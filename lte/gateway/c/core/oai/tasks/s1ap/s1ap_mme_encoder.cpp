@@ -115,7 +115,7 @@ static inline status_code_e s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_S1ap_S1AP_PDU, pdu);
-  *buffer = (uint8_t*)res.buffer;
+  *buffer = reinterpret_cast<uint8_t*>(res.buffer);
   *length = res.result.encoded;
   return RETURNok;
 }
@@ -148,7 +148,7 @@ static inline status_code_e s1ap_mme_encode_successful_outcome(
   }
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_S1ap_S1AP_PDU, pdu);
-  *buffer = (uint8_t*)res.buffer;
+  *buffer = reinterpret_cast<uint8_t*>(res.buffer);
   *length = res.result.encoded;
   return RETURNok;
 }
@@ -180,7 +180,7 @@ static inline status_code_e s1ap_mme_encode_unsuccessful_outcome(
   }
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_S1ap_S1AP_PDU, pdu);
-  *buffer = (uint8_t*)res.buffer;
+  *buffer = reinterpret_cast<uint8_t*>(res.buffer);
   *length = res.result.encoded;
   return RETURNok;
 }

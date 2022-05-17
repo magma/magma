@@ -463,7 +463,8 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
           (sctp_assoc_id ==
            ((ue_description_t*)oldnode->data)->sctp_assoc_id)) {
         pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-        s1ap_remove_ue(state, (ue_description_t*)oldnode->data);
+        s1ap_remove_ue(state,
+                       reinterpret_cast<ue_description_t*>(oldnode->data));
         pthread_mutex_lock(&hashtblP->lock_nodes[i]);
       }
     }
@@ -3627,8 +3628,8 @@ bool construct_s1ap_mme_full_reset_req(const hash_key_t keyP,
                                        const uint64_t dataP, void* argP,
                                        void** resultP) {
   arg_s1ap_construct_enb_reset_req_t* arg =
-      (arg_s1ap_construct_enb_reset_req_t*)argP;
-  ue_description_t* ue_ref = (ue_description_t*)dataP;
+      reinterpret_cast<arg_s1ap_construct_enb_reset_req_t*>(argP);
+  ue_description_t* ue_ref = reinterpret_cast<ue_description_t*>(dataP);
 
   hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
   hashtable_ts_get(s1ap_ue_state, (const hash_key_t)dataP, (void**)&ue_ref);

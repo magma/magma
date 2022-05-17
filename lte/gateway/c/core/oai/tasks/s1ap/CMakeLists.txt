@@ -67,10 +67,10 @@ add_library(TASK_S1AP
     "${PROTO_HDRS}"
     ${S1AP_DIR}/s1ap_mme_encoder.cpp
     ${S1AP_DIR}/s1ap_mme_decoder.cpp
-    ${S1AP_DIR}/s1ap_mme_itti_messaging.cpp
     ${S1AP_DIR}/s1ap_mme_handlers.cpp
     ${S1AP_DIR}/s1ap_mme_nas_procedures.cpp
     ${S1AP_DIR}/s1ap_mme.cpp
+    ${S1AP_DIR}/s1ap_mme_itti_messaging.cpp
     ${S1AP_DIR}/s1ap_mme_ta.cpp
     ${S1AP_DIR}/s1ap_state.cpp
     ${S1AP_DIR}/s1ap_state_manager.cpp

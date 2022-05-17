@@ -933,7 +933,7 @@ void s1ap_handle_conn_est_cnf(
     extension = reinterpret_cast<S1ap_ProtocolExtensionContainer_7327P134_t*>(
         calloc(1, sizeof(S1ap_ProtocolExtensionContainer_7327P134_t)));
     ie->value.choice.UEAggregateMaximumBitrate.iE_Extensions =
-        (S1ap_ProtocolExtensionContainer*)extension;
+        reinterpret_cast<S1ap_ProtocolExtensionContainer*>(extension);
   }
 
   if (conn_est_cnf_pP->ue_ambr.br_dl > EXT_UE_AMBR_DL) {
