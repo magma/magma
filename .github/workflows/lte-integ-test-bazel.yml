@@ -1,0 +1,111 @@
+---
+
+name: LTE integ test bazel
+
+on:
+  workflow_dispatch: null
+  workflow_run:
+    workflows:
+      - build-all
+    branches:
+      - master
+      - 'v1.*'
+    types:
+      - completed
+
+jobs:
+  lte-integ-test-bazel:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-10.15
+    env:
+      SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
+    steps:
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        with:
+          ref: ${{ env.SHA }}
+      - name: Cache magma-dev-box
+        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
+          key: vagrant-box-magma-dev
+      - name: Cache magma-test-box
+        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
+          key: vagrant-box-magma-test
+      - name: Cache magma-trfserver-box
+        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
+          key: vagrant-box-magma-trfserver
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+        with:
+          python-version: '3.8.10'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          vagrant plugin install vagrant-vbguest vagrant-disksize
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+          sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
+      - name: Prepare the integ test
+        run: |
+          cd lte/gateway
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=9216
+          fab bazel_integ_test_pre_build
+      - name: Build all services with bazel
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
+          vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/...)"`;' magma
+          vagrant ssh -c 'sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
+      - name: Run the integ test
+        run: |
+          cd lte/gateway
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=9216
+          fab bazel_integ_test_post_build
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: Bazel profile lte integ tests
+          path: bazel_profile_lte_integ_tests
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results"
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
+      - name: Get test logs
+        if: failure()
+        run: |
+          cd lte/gateway
+          fab get_test_logs:dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: failure()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@7377632048da85434c30810c38353542d3162dc4 # pin@v1
+        with:
+          files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests
