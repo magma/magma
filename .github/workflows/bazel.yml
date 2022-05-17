@@ -175,3 +175,14 @@ jobs:
         shell: bash
         run: |
           ./bazel/scripts/check_py_bazel.sh
+
+  c_cpp_file_check:
+    name: Check if there are non-bazelified c or c++ files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+      - name: Execute check
+        shell: bash
+        run: |
+          ./bazel/scripts/check_c_cpp_bazel.sh
