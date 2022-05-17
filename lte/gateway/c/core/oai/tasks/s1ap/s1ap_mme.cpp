@@ -40,10 +40,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
 #include "lte/gateway/c/core/common/common_defs.h"
