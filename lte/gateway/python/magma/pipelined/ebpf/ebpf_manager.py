@@ -13,21 +13,15 @@ limitations under the License.
 
 import ctypes
 import logging
-import os
 import socket
 import struct
 import subprocess
-from builtins import input
-from socket import AF_INET, htons
-from subprocess import call
-from sys import argv
-from threading import Thread
 
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
-from pyroute2 import IPDB, IPRoute, NetlinkError, NetNS, NSPopen
+from pyroute2 import IPRoute, NetlinkError
 from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import getmacbyip
 
@@ -110,7 +104,7 @@ class EbpfManager:
         ipr = IPRoute()
         try:
             ipr.tc("add", "clsact", s1_if_index)
-        except NetlinkError as ex:
+        except NetlinkError:
             LOG.error("error adding ingress ")
 
         try:
@@ -118,7 +112,7 @@ class EbpfManager:
                 "add-filter", "bpf", s1_if_index, ":1", fd=self.s1_fn.fd, name=self.s1_fn.name,
                 parent="ffff:fff2", classid=1, direct_action=True,
             )
-        except NetlinkError as ex:
+        except NetlinkError:
             LOG.error("error adding ingress ")
 
         LOG.debug("Attach done")
@@ -164,7 +158,7 @@ class EbpfManager:
             pass
         try:
             ipr.tc("del", "ingress", s1_if_index, "ffff:")
-        except NetlinkError as ex:
+        except NetlinkError:
             pass
         sys_file = BASE_MAP_FS + UL_MAP_NAME
         out1 = subprocess.run(["unlink", sys_file], capture_output=True)
@@ -194,7 +188,6 @@ class EbpfManager:
     def add_ul_entry(self, mark: int, ue_ip: str):
         if not self.enabled:
             return
-        sz = len(self.ul_map)
         ip_addr = self._pack_ip(ue_ip)
         LOG.debug(
             "Add entry: ip: %x mac src %s mac dst: %s" %

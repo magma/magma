@@ -35,9 +35,12 @@ func TestCbsdToBackend(t *testing.T) {
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
 		},
-		FccID:        "barID",
-		SerialNumber: "12345",
-		UserID:       "fooUser",
+		FccID:             "barID",
+		SerialNumber:      "12345",
+		UserID:            "fooUser",
+		DesiredState:      "registered",
+		CbsdCategory:      "a",
+		SingleStepEnabled: to_pointer.Bool(true),
 	}
 	data := models.CbsdToBackend(&cbsd)
 	assert.Equal(t, data.UserId, cbsd.UserID)
@@ -49,6 +52,9 @@ func TestCbsdToBackend(t *testing.T) {
 	assert.Equal(t, data.Capabilities.NumberOfAntennas, cbsd.Capabilities.NumberOfAntennas)
 	assert.Equal(t, data.Preferences.BandwidthMhz, cbsd.FrequencyPreferences.BandwidthMhz)
 	assert.Equal(t, data.Preferences.FrequenciesMhz, cbsd.FrequencyPreferences.FrequenciesMhz)
+	assert.Equal(t, data.DesiredState, cbsd.DesiredState)
+	assert.Equal(t, data.SingleStepEnabled, *cbsd.SingleStepEnabled)
+	assert.Equal(t, data.CbsdCategory, cbsd.CbsdCategory)
 }
 
 func TestCbsdFromBackendWithoutGrant(t *testing.T) {
@@ -67,6 +73,9 @@ func TestCbsdFromBackendWithoutGrant(t *testing.T) {
 	assert.Equal(t, *data.Capabilities.AntennaGain, details.Data.Capabilities.AntennaGain)
 	assert.Equal(t, data.FrequencyPreferences.BandwidthMhz, details.Data.Preferences.BandwidthMhz)
 	assert.Equal(t, data.FrequencyPreferences.FrequenciesMhz, details.Data.Preferences.FrequenciesMhz)
+	assert.Equal(t, data.DesiredState, details.Data.DesiredState)
+	assert.Equal(t, data.SingleStepEnabled, details.Data.SingleStepEnabled)
+	assert.Equal(t, data.CbsdCategory, details.Data.CbsdCategory)
 }
 
 func TestCbsdFromBackendWithGrant(t *testing.T) {
@@ -96,6 +105,7 @@ func getCbsdDetails() *protos.CbsdDetails {
 			UserId:       "barId",
 			FccId:        "bazId",
 			SerialNumber: "12345",
+			DesiredState: "registered",
 			Capabilities: &protos.Capabilities{
 				MinPower:         0,
 				MaxPower:         24,

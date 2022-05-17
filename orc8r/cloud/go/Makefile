@@ -4,10 +4,11 @@ TOOL_DEPS:= \
 	github.com/go-swagger/go-swagger/cmd/swagger \
 	github.com/golang/protobuf/protoc-gen-go \
 	github.com/ory/go-acc \
-	github.com/vektra/mockery/cmd/mockery \
+	github.com/vektra/mockery/v2 \
 	github.com/wadey/gocovmerge \
 	gotest.tools/gotestsum \
 	golang.org/x/tools/cmd/goimports
+	# dependencies external orc8r/cloud/go module need to be in sync with ./tools.go
 
 include $(MAGMA_ROOT)/orc8r/cloud/go/module.mk
 

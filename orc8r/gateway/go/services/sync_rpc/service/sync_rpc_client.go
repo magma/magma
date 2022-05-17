@@ -281,7 +281,7 @@ func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.
 			req.ReqId, fmt.Sprintf("request ID %d is already being handled", req.ReqId))
 		return
 	}
-	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.GetAuthority())
+	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.GetAuthority(), protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		glog.Errorf("[SyncRpc] error getting service address: %v", err)
 		return

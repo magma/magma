@@ -18,6 +18,7 @@ go_library(
 
 go_test(
     name = "zap_test",
+    size = "small",
     srcs = [
         "zap_integ_test.go",
         "zap_test.go",

@@ -78,7 +78,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern int emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);

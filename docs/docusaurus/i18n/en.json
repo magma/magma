@@ -63,14 +63,14 @@
       "docs/docs_overview": {
         "title": "Documentation Overview"
       },
-      "dp/architecture_overview title: Overview hide_title: true": {
-        "title": "dp/architecture_overview title: Overview hide_title: true"
+      "dp/architecture_overview": {
+        "title": "Overview"
       },
-      "dp/debug_logs title: View Logs hide_title: true": {
-        "title": "dp/debug_logs title: View Logs hide_title: true"
+      "dp/debug_logs": {
+        "title": "Debugging and logs"
       },
-      "dp/deploy_build title: Build DP hide_title: true": {
-        "title": "dp/deploy_build title: Build DP hide_title: true"
+      "dp/deploy_build": {
+        "title": "Build and deployment"
       },
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
@@ -99,8 +99,8 @@
       "feg/docker_setup": {
         "title": "FeG Docker Setup"
       },
-      "feg/s1ap_federated_tests": {
-        "title": "S1AP Federated Integration Tests"
+      "feg/s1ap_federated_test": {
+        "title": "S1AP Federated Integration Test"
       },
       "feg/session_proxy": {
         "title": "feg/session_proxy"
@@ -510,8 +510,8 @@
       "proposals/p025_magma_cdr_availability": {
         "title": "proposals/p025_magma_cdr_availability"
       },
-      "proposals/p026_magma_inbound_roaming_extentions": {
-        "title": "proposals/p026_magma_inbound_roaming_extentions"
+      "proposals/p026_magma_inbound_roaming_extensions": {
+        "title": "proposals/p026_magma_inbound_roaming_extensions"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
@@ -1587,14 +1587,14 @@
       "version-1.7.0/docs/version-1.7.0-docs_overview": {
         "title": "Documentation Overview"
       },
-      "version-1.7.0/dp/version-1.7.0-architecture_overview title: Overview hide_title: true": {
-        "title": "architecture_overview title: Overview hide_title: true"
+      "version-1.7.0/dp/version-1.7.0-architecture_overview": {
+        "title": "Overview"
       },
-      "version-1.7.0/dp/version-1.7.0-debug_logs title: View Logs hide_title: true": {
-        "title": "debug_logs title: View Logs hide_title: true"
+      "version-1.7.0/dp/version-1.7.0-debug_logs": {
+        "title": "Debugging and logs"
       },
-      "version-1.7.0/dp/version-1.7.0-deploy_build title: Build DP hide_title: true": {
-        "title": "deploy_build title: Build DP hide_title: true"
+      "version-1.7.0/dp/version-1.7.0-deploy_build": {
+        "title": "Build and deployment"
       },
       "version-1.7.0/faq/version-1.7.0-faq_magma": {
         "title": "Frequently Asked Questions"
@@ -1620,8 +1620,8 @@
       "version-1.7.0/feg/version-1.7.0-docker_setup": {
         "title": "FeG Docker Setup"
       },
-      "version-1.7.0/feg/version-1.7.0-s1ap_federated_tests": {
-        "title": "S1AP Federated Integration Tests"
+      "version-1.7.0/feg/version-1.7.0-s1ap_federated_test": {
+        "title": "S1AP Federated Integration Test"
       },
       "version-1.7.0/general/version-1.7.0-aws_cloudstrapper": {
         "title": "AWS Cloudstrapper Install"

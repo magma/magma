@@ -26,8 +26,8 @@
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }

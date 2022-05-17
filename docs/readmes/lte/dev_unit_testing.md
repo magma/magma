@@ -42,7 +42,7 @@ The list of services to test are configured in the following files.
 - `orc8r/gateway/python/defs.mk`
 - `lte/gateway/python/defs.mk`
 
-To run unit tests for a single Python service, select a name of the list of services and run
+To run unit tests for a single Python service, select a name from the list of services and run
 
 ```bash
 [VM] cd magma/lte/gateway
@@ -73,7 +73,7 @@ To run tests for those services, run
 [VM] make test_<service_directory_name> # Ex: make test_session_manager
 ```
 
-A subset of the AGW C/C++ directories are in progress of migrating to use Bazel as the default build system. We will list out some of the useful commands here, but please refer to the [Bazel user guide](https://docs.bazel.build/versions/main/guide.html) for a complete overview.
+A subset of the AGW C/C++ directories are in the process of being migrated to use Bazel as the default build system. We will list out some of the useful commands here, but please refer to the [Bazel user guide](https://docs.bazel.build/versions/main/guide.html) for a complete overview.
 
 ```bash
 [VM] cd magma # or any subdirectory inside magma
@@ -105,7 +105,7 @@ cd $MAGMA/lte/gateway/python
 # build the base image
 ./precommit.py --build
 
-# un the flake8 linter by specifying paths
+# run the flake8 linter by specifying paths
 ./precommit.py --lint -p PATH1 PATH2
 # run the flake8 linter on all modified files in HEAD vs master
 # this command can only be run on your host
@@ -120,11 +120,29 @@ cd $MAGMA/lte/gateway/python
 
 ### Format C/C++
 
-To run formatting for each C/C++ services, run
+To run formatting for each C/C++ service, run
 
 ```bash
 [VM] cd magma/lte/gateway
 [VM] make format_all
+```
+
+#### Apply IWYU
+
+> This tool currently only works inside the devcontainer environment and does not support fixups for `lte/gateway/c/core`.
+
+[include-what-you-use](https://include-what-you-use.org/) is a tool developed by Google to analyze C++ files to help ensure source files include all headers used.
+We have added a utility script that uses Bazel to generate a compilation database, then uses two scripts provided by IWYU, `iwyu_tool.py` and `fix_includes.py`, to apply changes.
+
+To use the script, run
+
+```bash
+# Recommended: Run IWYU for a specific directory, run `apply-iwyu.sh <PATH>`
+[DevContainer] $MAGMA_ROOT/dev_tools/apply-iwyu.sh orc8r/gateway/c
+[DevContainer] $MAGMA_ROOT/dev_tools/apply-iwyu.sh lte/gateway/c/session_manager
+# Run IWYU for all C/C++ files
+# Note: The script currently does not work for lte/gateway/c/core, so you may need to revert changes for that directory
+[DevContainer] $MAGMA_ROOT/dev_tools/apply-iwyu.sh
 ```
 
 ### Format Bazel BUILD files

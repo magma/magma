@@ -24,6 +24,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/servicers/mocks"
 	"magma/feg/gateway/services/csfb/test_init"
+	"magma/orc8r/cloud/go/test_utils"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -43,7 +44,7 @@ func TestCsfbServer_AlertAc(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.AlertAc(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -64,7 +65,7 @@ func TestCsfbServer_AlertRej(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.AlertRej(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -86,7 +87,7 @@ func TestCsfbServer_EPSDetachInd(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.EPSDetachInd(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -108,7 +109,7 @@ func TestCsfbServer_IMSIDetachInd(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.IMSIDetachInd(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -131,7 +132,7 @@ func TestCsfbServer_LocationUpdateReq(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.LocationUpdateReq(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -152,7 +153,7 @@ func TestCsfbServer_PagingRej(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.PagingRej(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -173,7 +174,7 @@ func TestCsfbServer_ServiceReq(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.ServiceReq(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -193,7 +194,7 @@ func TestCsfbServer_TMSIReallocationComp(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.TMSIReallocationComp(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -213,7 +214,7 @@ func TestCsfbServer_UEActivityInd(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.UEActivityInd(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -234,7 +235,7 @@ func TestCsfbServer_UEUnreach(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.UEUnreach(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -255,7 +256,7 @@ func TestCsfbServer_Uplink(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.Uplink(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -275,7 +276,7 @@ func TestCsfbServer_MMEResetAck(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.MMEResetAck(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -295,7 +296,7 @@ func TestCsfbServer_MMEResetIndication(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.MMEResetIndication(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)
@@ -317,7 +318,7 @@ func TestCsfbServer_MMEStatus(t *testing.T) {
 	client := protos.NewCSFBFedGWServiceClient(conn)
 	reply, err := client.MMEStatus(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, &orcprotos.Void{}, reply)
+	test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 
 	mockInterface.AssertNumberOfCalls(t, "Send", 1)
 	mockInterface.AssertExpectations(t)

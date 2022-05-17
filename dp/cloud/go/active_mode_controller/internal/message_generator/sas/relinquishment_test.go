@@ -9,7 +9,7 @@ import (
 
 func TestRelinquishmentRequestGenerator(t *testing.T) {
 	cbsd := &active_mode.Cbsd{
-		Id: "some_id",
+		CbsdId: "some_id",
 		Grants: []*active_mode.Grant{{
 			Id: "some_grant_id",
 		}},

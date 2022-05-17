@@ -18,7 +18,7 @@
 #include <iomanip>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
 #include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 

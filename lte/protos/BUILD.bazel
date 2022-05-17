@@ -254,6 +254,19 @@ proto_library(
 python_grpc_library(
     name = "session_manager_python_grpc",
     protos = [":session_manager_proto"],
+    deps = [
+        "//lte/protos:policydb_python_proto",
+        "//orc8r/protos:common_python_proto",
+    ],
+)
+
+python_proto_library(
+    name = "session_manager_python_proto",
+    protos = [":session_manager_proto"],
+    deps = [
+        "//lte/protos:policydb_python_proto",
+        "//orc8r/protos:common_python_proto",
+    ],
 )
 
 cpp_proto_library(
@@ -289,6 +302,20 @@ proto_library(
         ":subscriberdb_proto",
         "//orc8r/protos:common_proto",
     ],
+)
+
+python_proto_library(
+    name = "pipelined_python_proto",
+    protos = [":pipelined_proto"],
+    deps = [
+        ":policydb_python_proto",
+        ":session_manager_python_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "pipelined_python_grpc",
+    protos = [":pipelined_proto"],
 )
 
 cpp_grpc_library(

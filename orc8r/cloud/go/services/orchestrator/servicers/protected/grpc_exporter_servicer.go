@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/services/metricsd/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -74,7 +75,7 @@ func (s *GRPCPushExporterServicer) pushFamilies(families []*io_prometheus_client
 }
 
 func (s *GRPCPushExporterServicer) getClient() (edge_hub.MetricsControllerClient, error) {
-	conn, err := s.registry.GetConnectionWithOptions(serviceName, dialOpts...)
+	conn, err := s.registry.GetConnectionWithOptions(serviceName, lib_protos.ServiceType_SOUTHBOUND, dialOpts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "get exporter client connection")
 	}

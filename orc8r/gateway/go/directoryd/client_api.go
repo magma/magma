@@ -48,7 +48,7 @@ func GetGatewayDirectorydClient() (protos.GatewayDirectoryServiceClient, error) 
 	if useCloudDirectoryd {
 		conn, err = platformregistry.Get().GetSharedCloudConnection(strings.ToLower(ServiceName))
 	} else {
-		conn, err = platformregistry.Get().GetConnection(ServiceName)
+		conn, err = platformregistry.Get().GetConnection(ServiceName, protos.ServiceType_SOUTHBOUND)
 	}
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)

@@ -33,11 +33,15 @@ target_metadata = Base.metadata
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # ... etc.
-db_service_cfg = get_config()
-db_url = db_service_cfg.SQLALCHEMY_DB_URI
 
-if db_url:
-    config.set_section_option("alembic", "sqlalchemy.url", db_url)
+db_url = config.get_section("alembic").get("sqlalchemy.url")
+
+if not db_url:
+    db_service_cfg = get_config()
+    db_url = db_service_cfg.SQLALCHEMY_DB_URI
+
+    if db_url:
+        config.set_section_option("alembic", "sqlalchemy.url", db_url)
 
 
 def run_migrations_offline():

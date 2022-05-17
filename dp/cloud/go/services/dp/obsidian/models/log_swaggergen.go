@@ -6,24 +6,27 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Log log
+//
 // swagger:model log
 type Log struct {
 
 	// Body of log
+	// Example: {[{\"registrationRequest\":{\"cbsdSerialNumber\":\"some_serial_number\"}}]}
 	// Required: true
 	Body string `json:"body"`
 
 	// Fcc Id of cbsd involved in log
+	// Example: some_fcc_id
 	// Required: true
 	FccID string `json:"fcc_id"`
 
@@ -33,6 +36,7 @@ type Log struct {
 	From string `json:"from"`
 
 	// Serial number of cbsd involved in log
+	// Example: some_serial_number
 	// Required: true
 	SerialNumber string `json:"serial_number"`
 
@@ -91,7 +95,7 @@ func (m *Log) Validate(formats strfmt.Registry) error {
 
 func (m *Log) validateBody(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("body", "body", string(m.Body)); err != nil {
+	if err := validate.RequiredString("body", "body", m.Body); err != nil {
 		return err
 	}
 
@@ -100,7 +104,7 @@ func (m *Log) validateBody(formats strfmt.Registry) error {
 
 func (m *Log) validateFccID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("fcc_id", "body", string(m.FccID)); err != nil {
+	if err := validate.RequiredString("fcc_id", "body", m.FccID); err != nil {
 		return err
 	}
 
@@ -133,7 +137,7 @@ const (
 
 // prop value enum
 func (m *Log) validateFromEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, logTypeFromPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, logTypeFromPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -141,7 +145,7 @@ func (m *Log) validateFromEnum(path, location string, value string) error {
 
 func (m *Log) validateFrom(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("from", "body", string(m.From)); err != nil {
+	if err := validate.RequiredString("from", "body", m.From); err != nil {
 		return err
 	}
 
@@ -155,7 +159,7 @@ func (m *Log) validateFrom(formats strfmt.Registry) error {
 
 func (m *Log) validateSerialNumber(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("serial_number", "body", string(m.SerialNumber)); err != nil {
+	if err := validate.RequiredString("serial_number", "body", m.SerialNumber); err != nil {
 		return err
 	}
 
@@ -201,7 +205,7 @@ const (
 
 // prop value enum
 func (m *Log) validateToEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, logTypeToPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, logTypeToPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -209,7 +213,7 @@ func (m *Log) validateToEnum(path, location string, value string) error {
 
 func (m *Log) validateTo(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("to", "body", string(m.To)); err != nil {
+	if err := validate.RequiredString("to", "body", m.To); err != nil {
 		return err
 	}
 
@@ -223,10 +227,15 @@ func (m *Log) validateTo(formats strfmt.Registry) error {
 
 func (m *Log) validateType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("type", "body", string(m.Type)); err != nil {
+	if err := validate.RequiredString("type", "body", m.Type); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this log based on context it is used
+func (m *Log) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

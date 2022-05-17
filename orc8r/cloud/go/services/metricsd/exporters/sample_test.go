@@ -33,12 +33,12 @@ func TestGetSamplesForMetrics(t *testing.T) {
 
 type getSamplesTestCase struct {
 	name             string
-	metricAndContext protos.ContextualizedMetric
+	metricAndContext *protos.ContextualizedMetric
 	expectedSamples  []Sample
 }
 
 func (c *getSamplesTestCase) RunTest(t *testing.T) {
-	samples := GetSamplesForMetrics(&c.metricAndContext, c.metricAndContext.Family.Metric[0])
+	samples := GetSamplesForMetrics(c.metricAndContext, c.metricAndContext.Family.Metric[0])
 	assert.Equal(t, c.expectedSamples, samples)
 }
 
@@ -52,7 +52,7 @@ var (
 	cases = []getSamplesTestCase{
 		{
 			name: "Pushed Metric with GatewayID",
-			metricAndContext: protos.ContextualizedMetric{
+			metricAndContext: &protos.ContextualizedMetric{
 				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{{Name: tests.MakeStrPtr(metrics.GatewayLabelName), Value: &testGateway}}),
 				Context: &protos.Context{
 					MetricName: testMetricName,
@@ -73,7 +73,7 @@ var (
 		},
 		{
 			name: "Pushed Metric with no GatewayID",
-			metricAndContext: protos.ContextualizedMetric{
+			metricAndContext: &protos.ContextualizedMetric{
 				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{}),
 				Context: &protos.Context{
 					MetricName: testMetricName,
@@ -94,7 +94,7 @@ var (
 		},
 		{
 			name: "Gateway Metric",
-			metricAndContext: protos.ContextualizedMetric{
+			metricAndContext: &protos.ContextualizedMetric{
 				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
 				Context: &protos.Context{
 					MetricName: testMetricName,
@@ -116,7 +116,7 @@ var (
 		},
 		{
 			name: "Cloud Metric",
-			metricAndContext: protos.ContextualizedMetric{
+			metricAndContext: &protos.ContextualizedMetric{
 				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
 				Context: &protos.Context{
 					MetricName: testMetricName,

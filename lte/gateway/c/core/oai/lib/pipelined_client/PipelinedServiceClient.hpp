@@ -21,7 +21,7 @@
 #include <string>
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
-#include "orc8r/gateway/c/common/async_grpc/includes/GRPCReceiver.hpp"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 #include "lte/protos/pipelined.grpc.pb.h"
 
 namespace grpc {

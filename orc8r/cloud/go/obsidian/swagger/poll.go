@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
+	"magma/orc8r/cloud/go/parallel"
 )
 
 // GetCombinedSpec polls every servicer registered with
@@ -28,18 +29,25 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 		return "", err
 	}
 
-	var yamlSpecs []string
-	// TODO(hcgatewood): parallelize this via goroutines to avoid broken services breaking GetCombinedSpec
+	var inps []parallel.In
 	for _, s := range servicers {
+		inps = append(inps, s)
+	}
+
+	yamlSpecs, err := parallel.MapInToString(inps, parallel.DefaultNumWorkers, func(in parallel.In) (parallel.Out, error) {
+		s := in.(RemoteSpec)
 		yamlSpec, err := s.GetPartialSpec()
+
 		if err != nil {
 			// Swallow error because the polling should continue
 			// even if it fails to receive from a single servicer
 			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
 			glog.Error(err)
-		} else {
-			yamlSpecs = append(yamlSpecs, yamlSpec)
 		}
+		return yamlSpec, nil
+	})
+	if err != nil {
+		return "", err
 	}
 
 	combined, warnings, err := spec.Combine(yamlCommon, yamlSpecs)

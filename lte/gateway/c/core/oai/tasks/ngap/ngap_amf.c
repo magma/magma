@@ -32,7 +32,7 @@
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #include "asn_internal.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"

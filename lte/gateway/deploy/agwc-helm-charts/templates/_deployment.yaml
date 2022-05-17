@@ -46,6 +46,10 @@ spec:
         - name: agwc-claim
           persistentVolumeClaim:
             claimName: {{ .Values.persistent.name }}
+        - name: snowflake-file
+          hostPath:
+            path: /etc/snowflake
+            type: File
       containers:
       -
 {{ include "agwc.container.tpl" . | indent 8 }}

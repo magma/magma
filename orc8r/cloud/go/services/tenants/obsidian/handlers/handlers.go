@@ -135,7 +135,7 @@ func SetTenantHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
 	}
 
-	err = tenants.SetTenant(c.Request().Context(), tenantID, tenantInfo)
+	err = tenants.SetTenant(c.Request().Context(), tenantID, &tenantInfo)
 	if err != nil {
 		return mapErr(err, fmt.Errorf("tenant %d does not exist", tenantID), fmt.Errorf("error setting tenant info: %v", err))
 	}
@@ -198,7 +198,7 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 
 	req.ControlProxy = *data.ControlProxy
 
-	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), req)
+	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), &req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error setting control_proxy contents: %v", err))
 	}

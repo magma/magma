@@ -30,7 +30,7 @@ from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import indicates_connection_error
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows, messages
 from magma.pipelined.openflow.magma_match import MagmaMatch

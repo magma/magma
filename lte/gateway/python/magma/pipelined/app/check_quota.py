@@ -16,7 +16,8 @@ from typing import Dict, List, NamedTuple
 import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SubscriberQuotaUpdate
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.inout import EGRESS, INGRESS
+from magma.pipelined.app.egress import EGRESS
+from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -42,14 +43,13 @@ class CheckQuotaController(MagmaController):
 
     APP_NAME = "check_quota"
     APP_TYPE = ControllerType.LOGICAL
-    CheckQuotaConfig = NamedTuple(
-        'CheckQuotaConfig',
-        [
-            ('bridge_ip', str), ('quota_check_ip', str),
-            ('has_quota_port', int), ('no_quota_port', int),
-            ('cwf_bridge_mac', str),
-        ],
-    )
+
+    class CheckQuotaConfig(NamedTuple):
+        bridge_ip: str
+        quota_check_ip: str
+        has_quota_port: int
+        no_quota_port: int
+        cwf_bridge_mac: str
 
     def __init__(self, *args, **kwargs):
         super(CheckQuotaController, self).__init__(*args, **kwargs)

@@ -43,7 +43,7 @@ func GetCsfbConfig() *mconfProtos.CsfbConfig {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v", CsfbServiceName, err)
 		return envOrDefaultConfig()
 	}
-	glog.V(2).Infof("Loaded %s configs: %+v", CsfbServiceName, *config)
+	glog.V(2).Infof("Loaded %s configs: %+v", CsfbServiceName, config)
 	return config
 }
 

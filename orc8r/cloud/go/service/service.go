@@ -134,14 +134,20 @@ func (s *OrchestratorService) Run() error {
 // RunTest runs the test service on a given Listener and the HTTP on it's
 // configured addr if exists. This function blocks by a signal or until a
 // server is stopped.
-func (s *OrchestratorService) RunTest(lis net.Listener) {
+func (s *OrchestratorService) RunTest(lis net.Listener, plis net.Listener) {
 	s.State = protos.ServiceInfo_ALIVE
 	s.Health = protos.ServiceInfo_APP_HEALTHY
-	serverErr := make(chan error, 1)
-	go func() {
-		err := s.GrpcServer.Serve(lis)
-		serverErr <- err
-	}()
+	serverErr := make(chan error)
+	if lis != nil {
+		go func() {
+			serverErr <- s.GrpcServer.Serve(lis)
+		}()
+	}
+	if plis != nil {
+		go func() {
+			serverErr <- s.ProtectedGrpcServer.Serve(plis)
+		}()
+	}
 	if s.EchoServer != nil {
 		go func() {
 			err := s.EchoServer.StartServer(s.EchoServer.Server)

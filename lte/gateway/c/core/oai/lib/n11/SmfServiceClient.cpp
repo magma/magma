@@ -24,7 +24,7 @@
 #include <arpa/inet.h>
 #include <utility>
 
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
 
 #ifdef __cplusplus

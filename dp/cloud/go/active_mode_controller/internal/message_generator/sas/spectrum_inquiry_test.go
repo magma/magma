@@ -8,7 +8,7 @@ import (
 )
 
 func TestSpectrumInquiryRequestGenerator(t *testing.T) {
-	cbsd := &active_mode.Cbsd{Id: "some_id"}
+	cbsd := &active_mode.Cbsd{CbsdId: "some_id"}
 	g := sas.NewSpectrumInquiryRequestGenerator()
 	actual := g.GenerateRequests(cbsd)
 	expected := []*request{{

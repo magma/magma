@@ -22,12 +22,14 @@ from magma.pipelined.app.access_control import AccessControlController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app.dpi import DPIController
+from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.he import HeaderEnrichmentController
-from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL
+from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.middle import PHYSICAL_TO_LOGICAL
 from magma.pipelined.service_manager import (
     ServiceManager,
     TableNumException,
@@ -284,7 +286,3 @@ class ServiceManagerTest(unittest.TestCase):
                 result[result_key].scratch_tables,
                 expected[expected_key].scratch_tables,
             )
-
-
-if __name__ == "__main__":
-    unittest.main()

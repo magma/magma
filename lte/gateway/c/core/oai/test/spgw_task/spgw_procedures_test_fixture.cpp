@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.h"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

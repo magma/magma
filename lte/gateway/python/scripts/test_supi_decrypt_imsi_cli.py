@@ -26,13 +26,11 @@ from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.crypto.ECIES import ECIES_UE
 from orc8r.protos.common_pb2 import Void
 
-ue_encrypt_context = NamedTuple(
-    'ue_encrypt_context', [
-        ('pub_key', bytes),
-        ('cipher_text', bytes),
-        ('mac', bytes),
-    ],
-)
+
+class ue_encrypt_context(NamedTuple):
+    pub_key: bytes
+    cipher_text: bytes
+    mac: bytes
 
 
 class UEmsin(object):

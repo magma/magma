@@ -30,6 +30,9 @@ spec:
     - name: grpc
       port: 9180
       targetPort: 9110
+    - name: grpc-internal
+      port: 9190
+      targetPort: 9210
     - name: http
       port: 8080
       targetPort: 10110

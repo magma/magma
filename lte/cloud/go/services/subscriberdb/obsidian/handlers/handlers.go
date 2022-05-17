@@ -230,16 +230,17 @@ func listSubscribersHandler(c echo.Context) error {
 		return c.JSON(http.StatusOK, nil)
 	}
 	var paginatedSubs interface{}
+	token := subscribermodels.PageToken(nextPageToken)
 	if verbose {
 		paginatedSubs = subscribermodels.PaginatedSubscribers{
 			TotalCount:    int64(count),
-			NextPageToken: subscribermodels.PageToken(nextPageToken),
+			NextPageToken: &token,
 			Subscribers:   mapSubscribersForVerbosity(subs, verbose).(map[string]*subscribermodels.Subscriber),
 		}
 	} else {
 		paginatedSubs = subscribermodels.PaginatedSubscriberIds{
 			TotalCount:    int64(count),
-			NextPageToken: subscribermodels.PageToken(nextPageToken),
+			NextPageToken: &token,
 			Subscribers:   mapSubscribersForVerbosity(subs, verbose).([]string),
 		}
 	}
@@ -305,7 +306,7 @@ func updateSubscriberHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(*payload.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -454,8 +455,8 @@ func updateSubscriberProfile(c echo.Context) error {
 	}
 
 	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
-	desiredCfg.Lte.SubProfile = *payload
-	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(desiredCfg.Lte.SubProfile)); nerr != nil {
+	desiredCfg.Lte.SubProfile = payload
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(*desiredCfg.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -538,7 +539,7 @@ func getNetworkAndMSISDN(c echo.Context) (string, string, *echo.HTTPError) {
 func getSubProfiles(subs subscribermodels.MutableSubscribers) []string {
 	profiles := map[string]struct{}{}
 	for _, sub := range subs {
-		profiles[string(sub.Lte.SubProfile)] = struct{}{}
+		profiles[string(*sub.Lte.SubProfile)] = struct{}{}
 	}
 	return funk.Keys(profiles).([]string)
 }

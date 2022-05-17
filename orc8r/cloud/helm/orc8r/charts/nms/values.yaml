@@ -31,7 +31,6 @@ magmalte:
     api_host: orc8r-nginx-proxy
     host: 0.0.0.0
     port: 8081
-    mapbox_access_token: ""
     mysql_host: postgresql
     mysql_port: 5432
     mysql_db: magma

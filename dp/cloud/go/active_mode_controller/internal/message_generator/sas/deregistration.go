@@ -10,7 +10,7 @@ func NewDeregistrationRequestGenerator() *deregistrationRequestGenerator {
 
 func (*deregistrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &deregistrationRequest{
-		CbsdId: cbsd.GetId(),
+		CbsdId: cbsd.GetCbsdId(),
 	}
 	return []*Request{asRequest(Deregistration, req)}
 }

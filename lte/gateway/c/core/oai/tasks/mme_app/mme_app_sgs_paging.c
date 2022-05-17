@@ -47,7 +47,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 static int mme_app_send_sgsap_ue_unreachable(
     struct ue_mm_context_s* ue_context_p, SgsCause_t sgs_cause);

@@ -40,7 +40,7 @@ spec:
             type: Directory
         - name: ovs-volume
           hostPath:
-            path: /var/run/openvswitch
+            path: /var/run
             type: Directory
       containers:
       -
@@ -53,6 +53,10 @@ args:
 image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
 securityContext:
   privileged: true
+  capabilities:
+    add:
+      - NET_ADMIN
+      - NET_RAW
 volumeMounts:
   - mountPath: /etc/magma
     name: magma-config
@@ -60,6 +64,6 @@ volumeMounts:
     name: agwc-claim
   - mountPath: /tmp
     name: tmp-volume
-  - mountPath: /var/run/openvswitch
+  - mountPath: /var/run
     name: ovs-volume
 {{- end -}}

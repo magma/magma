@@ -51,11 +51,11 @@ func main() {
 	var serviceConfig lte_service.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, lte_service.ServiceName, &serviceConfig)
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
-	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
-	state_protos.RegisterIndexerServer(srv.GrpcServer, protected_servicers.NewIndexerServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, protected_servicers.NewBuilderServicer(serviceConfig))
+	provider_protos.RegisterStreamProviderServer(srv.ProtectedGrpcServer, servicers.NewProviderServicer())
+	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, protected_servicers.NewIndexerServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(lte_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(lte_service.ServiceName))
 
 	// Init storage
 	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
@@ -66,7 +66,7 @@ func main() {
 	if err := enbStateStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing enodeb state lookup storage: %v", err)
 	}
-	lte_protos.RegisterEnodebStateLookupServer(srv.GrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
+	lte_protos.RegisterEnodebStateLookupServer(srv.ProtectedGrpcServer, protected_servicers.NewLookupServicer(enbStateStore))
 
 	// Initialize analytics
 	// userStateExpr is a metric which enables us to compute the number of active users using the network
@@ -74,7 +74,7 @@ func main() {
 	userStateManager := calculations.NewUserStateManager(promQLClient, "ue_connected")
 	calcs := lte_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
 	collectorServicer := analytics_servicer.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
-	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

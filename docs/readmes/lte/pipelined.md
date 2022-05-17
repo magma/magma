@@ -36,7 +36,7 @@ Pipelined services are implemented as Ryu applications (controllers) under the h
 
 ### Static Services
 
-Static services include mandatory services (such as OAI and inout) which are always enabled, and services with a set table number. Static services can be configured in the YAML config.
+Static services include mandatory services (such as OAI, ingress, middle and egress) which are always enabled, and services with a set table number. Static services can be configured in the YAML config.
 
 ```text
     GTP port            Local Port
@@ -55,7 +55,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   V
     -------------------------------
     |      Table 1 (PHYSICAL)     |
-    |           inout             |
+    |          ingress            |
     |- sets direction bit         |
     -------------------------------
                   |
@@ -85,7 +85,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   V
     -------------------------------
     |      Table 10 (SPECIAL)     |
-    |           inout             |
+    |           middle            |
     |- Forwards uplink traffic to |
     |  LOCAL port                 |
     |- Forwards downlink traffic  |
@@ -99,7 +99,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   V
     -------------------------------
     |      Table 20 (SPECIAL)     |
-    |           inout             |
+    |           egress            |
     |- Forwards uplink traffic to |
     |  LOCAL port                 |
     |- Forwards downlink traffic  |
@@ -162,7 +162,7 @@ Register |    Type    |         Use          |           Set by
 metadata | Write-once | Stores IMSI          | Table 0 (GTP application)
 reg0     | Scratch    | Temporary Arithmetic | Any
 reg3     | Scratch    | Temporary Arithmetic | Any
-reg1     | Global     | Direction bit        | Table 1 (inout application)
+reg1     | Global     | Direction bit        | Table 1 (ingress app)
 reg2     | Local      | Policy number        | Enforcement app
 reg10    | Global     | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app
@@ -170,7 +170,7 @@ reg6     | Global     | Passthrough flag     | Ue Mac app
 reg7     | Local      | Vlan Tag             | Vlan learn app
 reg8     | Global     | Tunnel port          | MME
 reg9     | Global     | Tunnel ID            | MME
-reg10    | Local      | Proxy Tag            | HE
+reg12    | Local      | Proxy Tag            | HE
 reg11    | Local      | Session ID           | 5G stats
 
 ### Resilience
@@ -185,7 +185,7 @@ This is achieved by:
 This works because ovs secure fail mode doesn't remove flows whenever the controller disconnects.
 
 Note:
-Currently we reinsert some flows instead of doing the diff logic on them(f.e. enforcement redirection flows as they need async dhcp request resolution, other tables that don't hold and session data(inout, ue_mac, etc.) but this will be added later).
+Currently we reinsert some flows instead of doing the diff logic on them(f.e. enforcement redirection flows as they need async dhcp request resolution, other tables that don't hold and session data(ingress, middle, egress, ue_mac, etc.) but this will be added later).
 
 ## Testing
 

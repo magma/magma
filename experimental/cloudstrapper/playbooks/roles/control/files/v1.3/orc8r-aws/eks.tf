@@ -28,10 +28,10 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 8.0"
 
-  cluster_name = var.cluster_name
+  cluster_name    = var.cluster_name
   cluster_version = "1.17"
-  vpc_id       = module.vpc.vpc_id
-  subnets      = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
+  vpc_id          = module.vpc.vpc_id
+  subnets         = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
 
   cluster_enabled_log_types = [
     "api",

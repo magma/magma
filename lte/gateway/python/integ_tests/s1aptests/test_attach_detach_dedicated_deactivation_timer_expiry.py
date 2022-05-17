@@ -41,7 +41,7 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
 
-        for i in range(num_ues):
+        for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             print(
                 "********************** Running End to End attach for ",

@@ -27,7 +27,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm upgrade --install \
     --create-namespace \
     --namespace orc8r \
-    --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql \
+    --set global.postgresql.auth.postgresPassword=postgres,global.postgresql.auth.database=magma,fullnameOverride=postgresql \
     postgresql \
     bitnami/postgresql
 ```

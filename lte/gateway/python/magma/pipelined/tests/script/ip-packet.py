@@ -5,7 +5,7 @@
 import sys
 import time
 
-from scapy.all import *
+from scapy.all import IP, Ether, sendp
 from scapy.layers.l2 import getmacbyip
 
 ip_src = sys.argv[1]

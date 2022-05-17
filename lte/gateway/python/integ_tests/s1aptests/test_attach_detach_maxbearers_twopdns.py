@@ -57,7 +57,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
         # APN list to be configured
         apn_list = [ims]
 
-        for i in range(num_ues):
+        for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
 
             self._s1ap_wrapper.configAPN(

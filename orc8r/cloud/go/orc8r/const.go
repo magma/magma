@@ -43,8 +43,9 @@ const (
 	PartOfLabel    = "app.kubernetes.io/part-of"
 	PartOfOrc8rApp = "orc8r-app"
 
-	GRPCPortName = "grpc"
-	HTTPPortName = "http"
+	GRPCPortName          = "grpc"
+	ProtectedGRPCPortName = "grpc-internal"
+	HTTPPortName          = "http"
 
 	AnnotationFieldSeparator = ","
 

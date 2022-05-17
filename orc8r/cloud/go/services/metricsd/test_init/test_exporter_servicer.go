@@ -33,10 +33,10 @@ func StartNewTestExporter(t *testing.T, exporter exporters.Exporter) {
 	labels := map[string]string{
 		orc8r.MetricsExporterLabel: "true",
 	}
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "MOCK_EXPORTER_SERVICE", labels, nil)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "MOCK_EXPORTER_SERVICE", labels, nil)
 	servicer := &exporterServicer{exporter: exporter}
-	protos.RegisterMetricsExporterServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	protos.RegisterMetricsExporterServer(srv.ProtectedGrpcServer, servicer)
+	go srv.RunTest(lis, plis)
 }
 
 func (e *exporterServicer) Submit(ctx context.Context, req *protos.SubmitMetricsRequest) (*protos.SubmitMetricsResponse, error) {

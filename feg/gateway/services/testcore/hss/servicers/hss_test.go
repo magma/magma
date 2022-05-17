@@ -24,6 +24,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/lte/cloud/go/protos"
+	orc_test_utils "magma/orc8r/cloud/go/test_utils"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -119,7 +120,7 @@ func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 
 	retreivedSub, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
-	assert.Equal(t, updatedSub, retreivedSub)
+	orc_test_utils.AssertMessagesEqual(t, updatedSub, retreivedSub)
 }
 
 func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
@@ -155,7 +156,7 @@ func TestHomeSubscriberServer_GetSubscriberDataGrpc(t *testing.T) {
 	assert.EqualError(t, err, "rpc error: code = NotFound desc = Subscriber '100' not found")
 
 	reply, err := client.AddSubscriber(context.Background(), &sub)
-	assert.Equal(t, orcprotos.Void{}, *reply)
+	orc_test_utils.AssertMessagesEqual(t, &orcprotos.Void{}, reply)
 	assert.NoError(t, err)
 
 	data, err = client.GetSubscriberData(context.Background(), &id)

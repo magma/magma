@@ -92,6 +92,14 @@ func (c *cbsdManager) ListCbsds(_ context.Context, request *protos.ListCbsdReque
 	return resp, nil
 }
 
+func (c *cbsdManager) DeregisterCbsd(_ context.Context, request *protos.DeregisterCbsdRequest) (*protos.DeregisterCbsdResponse, error) {
+	err := c.store.DeregisterCbsd(request.NetworkId, request.Id)
+	if err != nil {
+		return nil, makeErr(err, "deregister cbsd")
+	}
+	return &protos.DeregisterCbsdResponse{}, nil
+}
+
 func dbPagination(pagination *protos.Pagination) *storage.Pagination {
 	p := &storage.Pagination{}
 	if pagination.Limit != nil {
@@ -111,11 +119,21 @@ func dbFilter(filter *protos.CbsdFilter) *storage.CbsdFilter {
 	return p
 }
 
-func cbsdToDatabase(data *protos.CbsdData) *storage.DBCbsd {
+func cbsdToDatabase(data *protos.CbsdData) *storage.MutableCbsd {
+	cbsd := buildCbsd(data)
+	return &storage.MutableCbsd{
+		Cbsd: cbsd,
+		DesiredState: &storage.DBCbsdState{
+			Name: db.MakeString(data.DesiredState),
+		},
+	}
+}
+
+func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 	capabilities := data.Capabilities
 	preferences := data.Preferences
 	b, _ := json.Marshal(preferences.FrequenciesMhz)
-	return &storage.DBCbsd{
+	cbsd := &storage.DBCbsd{
 		UserId:                  db.MakeString(data.UserId),
 		FccId:                   db.MakeString(data.FccId),
 		CbsdSerialNumber:        db.MakeString(data.SerialNumber),
@@ -125,7 +143,10 @@ func cbsdToDatabase(data *protos.CbsdData) *storage.DBCbsd {
 		NumberOfPorts:           db.MakeInt(capabilities.NumberOfAntennas),
 		PreferredBandwidthMHz:   db.MakeInt(preferences.BandwidthMhz),
 		PreferredFrequenciesMHz: db.MakeString(string(b)),
+		SingleStepEnabled:       db.MakeBool(data.SingleStepEnabled),
+		CbsdCategory:            db.MakeString(data.CbsdCategory),
 	}
+	return cbsd
 }
 
 func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Duration) *protos.CbsdDetails {
@@ -149,9 +170,11 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 	return &protos.CbsdDetails{
 		Id: data.Cbsd.Id.Int64,
 		Data: &protos.CbsdData{
-			UserId:       data.Cbsd.UserId.String,
-			FccId:        data.Cbsd.FccId.String,
-			SerialNumber: data.Cbsd.CbsdSerialNumber.String,
+			UserId:            data.Cbsd.UserId.String,
+			FccId:             data.Cbsd.FccId.String,
+			SerialNumber:      data.Cbsd.CbsdSerialNumber.String,
+			CbsdCategory:      data.Cbsd.CbsdCategory.String,
+			SingleStepEnabled: data.Cbsd.SingleStepEnabled.Bool,
 			Capabilities: &protos.Capabilities{
 				MinPower:         data.Cbsd.MinPower.Float64,
 				MaxPower:         data.Cbsd.MaxPower.Float64,
@@ -162,6 +185,7 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
 				FrequenciesMhz: frequencies,
 			},
+			DesiredState: data.DesiredState.Name.String,
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,

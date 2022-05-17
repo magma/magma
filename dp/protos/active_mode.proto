@@ -30,19 +30,35 @@ message State {
 }
 
 message Cbsd {
-  string id = 1;
-  string user_id = 2;
-  string fcc_id = 3;
-  string serial_number = 4;
-  CbsdState state = 5;
-  CbsdState desired_state = 6;
-  repeated Grant grants = 7;
-  repeated Channel channels = 8;
-  int64 last_seen_timestamp = 9;
-  int32 grant_attempts = 10;
-  EirpCapabilities eirp_capabilities = 11;
-  DatabaseCbsd db_data = 12;
-  FrequencyPreferences preferences = 13;
+  string cbsd_id = 1;
+  CbsdState state = 2;
+  CbsdState desired_state = 3;
+  repeated Grant grants = 4;
+  repeated Channel channels = 5;
+  int64 last_seen_timestamp = 6;
+  int32 grant_attempts = 7;
+  SasSettings sas_settings = 8;
+  InstallationParams installation_params = 9;
+  EirpCapabilities eirp_capabilities = 10;
+  DatabaseCbsd db_data = 11;
+  FrequencyPreferences preferences = 12;
+}
+
+message SasSettings {
+  bool single_step_enabled = 1;
+  string cbsd_category = 2;
+  string serial_number = 3;
+  string fcc_id = 4;
+  string user_id = 5;
+}
+
+message InstallationParams {
+  float latitude_deg = 1;
+  float longitude_deg = 2;
+  float height_m = 3;
+  string height_type = 4;
+  bool indoor_deployment = 5;
+  float antenna_gain_dbi = 6;
 }
 
 enum CbsdState {
@@ -72,8 +88,7 @@ message Channel {
 message EirpCapabilities {
   float min_power = 1;
   float max_power = 2;
-  float antenna_gain = 3;
-  int32 number_of_ports = 4;
+  int32 number_of_ports = 3;
 }
 
 message DatabaseCbsd {

@@ -33,7 +33,6 @@ from lte.protos.mobilityd_pb2 import (
     SubscriberIPTableEntry,
 )
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_address_man import IPAddressManager
 from magma.mobilityd.ip_allocator_pool import IpAllocatorPool
 from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool

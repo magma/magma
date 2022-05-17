@@ -81,7 +81,7 @@ class TestEsmInformation(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
 
-        for i in range(num_of_expires):
+        for _ in range(num_of_expires):
             # Esm Information Request indication
             print(
                 "Received Esm Information Request ue-id", sec_mode_complete.ue_Id,

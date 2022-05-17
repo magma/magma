@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/feg", "-run_echo_server=true
 ports:
   - name: grpc
     containerPort: 9114
+  - name: grpc-internal
+    containerPort: 9214
   - name: http
     containerPort: 10114
 livenessProbe:

@@ -19,8 +19,6 @@ module.exports = {
     filename => {
       if (filename.indexOf('fbcnms') >= 0) {
         return false;
-      } else if (filename.indexOf('magmalte') >= 0) {
-        return false;
       } else if (filename.indexOf('node_modules') >= 0) {
         return true;
       }
@@ -48,8 +46,6 @@ module.exports = {
     '@babel/plugin-proposal-nullish-coalescing-operator',
     '@babel/plugin-proposal-optional-chaining',
     '@babel/plugin-transform-react-jsx',
-    'babel-plugin-fbt',
-    'babel-plugin-fbt-runtime',
   ],
   env: {
     test: {

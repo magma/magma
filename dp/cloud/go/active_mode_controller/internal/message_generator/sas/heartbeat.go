@@ -22,7 +22,7 @@ func (h *heartbeatRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*
 	for _, grant := range grants {
 		if grant.GetState() == active_mode.GrantState_Unsync {
 			req := &relinquishmentRequest{
-				CbsdId:  cbsd.GetId(),
+				CbsdId:  cbsd.GetCbsdId(),
 				GrantId: grant.GetId(),
 			}
 			reqs = append(reqs, asRequest(Relinquishment, req))
@@ -33,7 +33,7 @@ func (h *heartbeatRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*
 			continue
 		}
 		req := &heartbeatRequest{
-			CbsdId:         cbsd.GetId(),
+			CbsdId:         cbsd.GetCbsdId(),
 			GrantId:        grant.GetId(),
 			OperationState: strings.ToUpper(grant.GetState().String()),
 		}

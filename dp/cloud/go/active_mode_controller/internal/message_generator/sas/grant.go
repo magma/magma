@@ -28,7 +28,7 @@ func (g *grantRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Requ
 		return nil
 	}
 	req := &grantRequest{
-		CbsdId:         cbsd.Id,
+		CbsdId:         cbsd.CbsdId,
 		OperationParam: operationParam,
 	}
 	return []*Request{asRequest(Grant, req)}
@@ -54,7 +54,7 @@ const (
 )
 
 func chooseSuitableChannel(cbsd *active_mode.Cbsd, rng RNG) *operationParam {
-	calc := newEirpCalculator(cbsd.GetEirpCapabilities())
+	calc := newEirpCalculator(cbsd.GetInstallationParams().GetAntennaGainDbi(), cbsd.GetEirpCapabilities())
 	pts := channelsToPoints(cbsd.GetChannels())
 	preferred, other := getCandidates(cbsd.GetPreferences(), pts, calc)
 
@@ -172,11 +172,11 @@ type eirpCalculator struct {
 	noPorts     float64
 }
 
-func newEirpCalculator(capabilities *active_mode.EirpCapabilities) *eirpCalculator {
+func newEirpCalculator(antennaGain float32, capabilities *active_mode.EirpCapabilities) *eirpCalculator {
 	return &eirpCalculator{
 		minPower:    float64(capabilities.GetMinPower()),
 		maxPower:    float64(capabilities.GetMaxPower()),
-		antennaGain: float64(capabilities.GetAntennaGain()),
+		antennaGain: float64(antennaGain),
 		noPorts:     float64(capabilities.GetNumberOfPorts()),
 	}
 }

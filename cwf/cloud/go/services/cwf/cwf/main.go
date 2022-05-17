@@ -41,9 +41,9 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, builder_servicers.NewBuilderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(cwf_service.ServiceName))
 
 	var serviceConfig cwf_service.Config
 	_, _, err = config.GetStructuredServiceConfig(cwf.ModuleName, cwf_service.ServiceName, &serviceConfig)
@@ -55,7 +55,7 @@ func main() {
 	calcs := cwf_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
 	userStateManager := calculations.NewUserStateManager(promQLClient, "active_sessions")
 	collectorServicer := analytics_servicer.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
-	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

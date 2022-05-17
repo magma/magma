@@ -23,8 +23,6 @@ cc_library(
         "GatewayDirectorydClient.hpp",
         "directoryd.hpp",
     ],
-    # TODO(@themarwhal): Migrate to using full path for includes - GH8299
-    strip_include_prefix = "/lte/gateway/c/core/oai/lib/directoryd",
     deps = [
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
