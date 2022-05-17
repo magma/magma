@@ -70,9 +70,7 @@ func (m *MutableSubscriber) ValidateModel(context.Context) error {
 func (m MutableSubscribers) ValidateModel(context.Context) error {
 	errs := &multierror.Error{}
 	for _, s := range m {
-		if err := s.ValidateModel(context.Background()); err != nil {
-			errs = multierror.Append(errs, err)
-		}
+		errs = multierror.Append(errs, s.ValidateModel(context.Background()))
 	}
 	return errs.ErrorOrNil()
 }

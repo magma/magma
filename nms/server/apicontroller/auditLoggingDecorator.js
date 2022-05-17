@@ -20,8 +20,8 @@ import type {FBCNMSRequest} from '../auth/access';
 const url = require('url');
 import pathToRegexp from 'path-to-regexp';
 
-import {AuditLogEntry} from '../../fbc_js_core/sequelize_models';
-const logger = require('../../fbc_js_core/logging').getLogger(module);
+import {AuditLogEntry} from '../../shared/sequelize_models';
+const logger = require('../../shared/logging').getLogger(module);
 
 const defaultResolver = (req: FBCNMSRequest, type: string) => {
   const {search} = url.parse(req.originalUrl);

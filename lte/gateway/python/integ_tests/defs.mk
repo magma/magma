@@ -64,7 +64,6 @@ s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_failure_incorrect_plmn.py \
 s1aptests/test_s1setup_failure_incorrect_tac.py \
-s1aptests/test_s1setup_success_secondary_plmn.py \
 s1aptests/test_sctp_abort_after_auth_req.py \
 s1aptests/test_sctp_abort_after_identity_req.py \
 s1aptests/test_sctp_abort_after_smc.py \
@@ -257,6 +256,9 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 # TODO flaky tests we should look at
 # s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
+
+# Re-enable this test case after S1APTester PR #74 is merged
+# s1aptests/test_s1setup_success_secondary_plmn.py
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

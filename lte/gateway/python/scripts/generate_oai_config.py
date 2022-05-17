@@ -21,7 +21,6 @@ from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.misc_utils import (
     IpPreference,
-    get_if_ip_with_netmask,
     get_ip_from_if,
     get_ip_from_if_cidr,
     get_ipv6_from_if,

@@ -17,11 +17,11 @@
 import bcrypt from 'bcryptjs';
 import express from 'express';
 import expressOnboarding from './expressOnboarding';
-import logging from '../../fbc_js_core/logging';
+import logging from '../../shared/logging';
 import passport from 'passport';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
-import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
+import {AuditLogEntry, User} from '../../shared/sequelize_models';
 import {access} from './access';
 import {
   addQueryParamsToUrl,
@@ -31,10 +31,10 @@ import {
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash';
 
-import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
+import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
-import type {UserType} from '../../fbc_js_core/sequelize_models/models/user';
+import type {UserType} from '../../shared/sequelize_models/models/user';
 
 import crypto from 'crypto';
 
@@ -130,7 +130,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         logger.error('Error getting organization', e);
       }
 
-      const appData: AppContextAppData = {
+      const appData: EmbeddedData = {
         csrfToken: req.csrfToken(),
         ssoEnabled: ssoSelectedType !== 'none',
         ssoSelectedType,

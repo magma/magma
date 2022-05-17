@@ -14,25 +14,27 @@
  * @format
  */
 
-import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
+import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
 
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
+import hostRoutes from '../host/routes';
+import loggerRoutes from '../logger/routes';
 import networkRoutes from '../network/routes';
 import path from 'path';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import staticDist from '../../config/staticDist';
+import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
 import {AccessRoles} from '../../shared/roles';
-
-import {TABS} from '../../fbc_js_core/types/tabs';
+import {TABS} from '../../shared/types/tabs';
 import {access} from '../auth/access';
-import {getEnabledFeatures} from '../../fbc_js_core/platform_server/features';
-import {hostOrgMiddleware} from '../../fbc_js_core/platform_server/host/middleware';
+import {getEnabledFeatures} from '../features';
+import {hostOrgMiddleware} from '../host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
@@ -46,7 +48,7 @@ const handleReact = tab =>
       );
       return;
     }
-    const appData: AppContextAppData = {
+    const appData: EmbeddedData = {
       csrfToken: req.csrfToken(),
       tabs: organization?.tabs || [],
       user: req.user
@@ -80,11 +82,8 @@ router.use('/nms/apicontroller', apiControllerRoutes);
 router.use('/nms/network', networkRoutes);
 router.use('/nms/static', express.static(path.join(__dirname, '../static')));
 
-router.use(
-  '/logger',
-  require('../../fbc_js_core/platform_server/logger/routes'),
-);
-router.use('/test', require('../../fbc_js_core/platform_server/test/routes'));
+router.use('/logger', loggerRoutes);
+router.use('/test', testRoutes);
 router.use(
   '/user',
   userMiddleware({
@@ -102,11 +101,10 @@ router.get(
   }),
 );
 
-const hostRouter = require('../../fbc_js_core/platform_server/host/routes');
-router.use('/host', hostOrgMiddleware, hostRouter.default);
+router.use('/host', hostOrgMiddleware, hostRoutes);
 
 async function handleHost(req: FBCNMSRequest, res) {
-  const appData: AppContextAppData = {
+  const appData: EmbeddedData = {
     csrfToken: req.csrfToken(),
     user: {
       tenant: 'host',

@@ -14,15 +14,15 @@
  * @format
  */
 
-import type {FBCNMSMiddleWareRequest} from '../../fbc_js_core/express_middleware';
-import type {UserRawType} from '../../fbc_js_core/sequelize_models/models/user';
-import type {UserType} from '../../fbc_js_core/sequelize_models/models/user.js';
+import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
+import type {UserRawType} from '../../shared/sequelize_models/models/user';
+import type {UserType} from '../../shared/sequelize_models/models/user.js';
 
 import EmailValidator from 'email-validator';
 import bcrypt from 'bcryptjs';
 import querystring from 'querystring';
 import {AccessRoles} from '../../shared/roles';
-import {User} from '../../fbc_js_core/sequelize_models';
+import {User} from '../../shared/sequelize_models';
 import {format, parse} from 'url';
 import {injectOrganizationParams} from './organization';
 

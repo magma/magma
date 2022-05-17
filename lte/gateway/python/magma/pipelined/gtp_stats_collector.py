@@ -23,25 +23,23 @@ from magma.pipelined.metrics import (
     GTP_PORT_USER_PLANE_UL_BYTES,
 )
 
-OVSDBDumpCommandParams = NamedTuple(
-    'OVSDBCommandParams',
-    [('table', str), ('columns', List[str])],
-)
-ParsedInterfaceStats = NamedTuple(
-    'ParsedInterfaceStats', [
-        ('Interface', str),
-        ('rx_bytes', str),
-        ('tx_bytes', str),
-        ('remote_ip', str),
-    ],
-)
-OVSDBCommandResult = NamedTuple(
-    'OVSDBCommandResult',
-    [
-        ('out', List[ParsedInterfaceStats]),
-        ('err', Optional[str]),
-    ],
-)
+
+class OVSDBDumpCommandParams(NamedTuple):
+    table: str
+    columns: List[str]
+
+
+class ParsedInterfaceStats(NamedTuple):
+    Interface: str
+    rx_bytes: str
+    tx_bytes: str
+    remote_ip: str
+
+
+class OVSDBCommandResult(NamedTuple):
+    out: List[ParsedInterfaceStats]
+    err: Optional[str]
+
 
 interface_group = r"(?P<Interface>\w+)"
 remote_ip_group = r"(?P<remote_ip>.*)"

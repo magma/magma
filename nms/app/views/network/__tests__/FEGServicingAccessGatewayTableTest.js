@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
@@ -24,14 +23,12 @@ import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   feg_lte_network,
   feg_network,
   lte_gateway,
 } from '../../../../generated/MagmaAPIBindings';
-
-afterEach(cleanup);
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',
@@ -107,7 +104,7 @@ const mockGw1: lte_gateway = {
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../../app/hooks/useSnackbar');
 
 describe('<ServicingAccessGatewaysInfo />', () => {
   const testNetwork: feg_network = {

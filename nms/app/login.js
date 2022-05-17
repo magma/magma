@@ -15,12 +15,16 @@
  */
 'use strict';
 
+import './common/polyfill';
+
 import {} from './common/axiosConfig';
-import LoginForm from '../fbc_js_core/ui/components/auth/LoginForm.js';
+import LoginForm from './views/login/LoginForm.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import nullthrows from '../fbc_js_core/util/nullthrows';
-import {AppContextProvider} from '../fbc_js_core/ui/context/AppContext';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import defaultTheme from './theme/default';
+import nullthrows from '../shared/util/nullthrows';
+import {AppContextProvider} from './components/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
 
 function LoginWrapper() {
@@ -42,7 +46,9 @@ function LoginWrapper() {
 ReactDOM.render(
   <AppContextProvider>
     <BrowserRouter>
-      <LoginWrapper />
+      <ThemeProvider theme={defaultTheme}>
+        <LoginWrapper />
+      </ThemeProvider>
     </BrowserRouter>
   </AppContextProvider>,
   nullthrows(document.getElementById('root')),

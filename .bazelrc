@@ -24,8 +24,9 @@ build:vm --define=folly_so=1
 build:vm --config=specify_vm_cc
 
 # MAGMA-BUILDER DOCKER CONTAINER CONFIGS
-build:docker --disk_cache=/magma/.bazel-cache
-common:docker --repository_cache=/magma/.bazel-cache-repo
+build:docker --disk_cache=/workspaces/magma/.bazel-cache
+common:docker --repository_cache=/workspaces/magma/.bazel-cache-repo
+build:docker --define=folly_so=1
 
 # DEVCONTAINER CONFIGS
 build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache

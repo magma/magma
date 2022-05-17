@@ -15,6 +15,7 @@ package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
 
 cc_test(
     name = "sgw_dedicated_bearer_test",
+    size = "medium",
     srcs = [
         "sgw_dedicated_bearer.cpp",
     ],
@@ -41,6 +42,7 @@ cc_library(
 
 cc_test(
     name = "sgw_s8_recv_grpc_messages_test",
+    size = "small",
     srcs = [
         "sgw_s8_recv_grpc_messages.cpp",
     ],
@@ -53,6 +55,7 @@ cc_test(
 
 cc_test(
     name = "sgw_s8_test_attach_proc_test",
+    size = "medium",
     srcs = [
         "sgw_s8_test_attach_proc.cpp",
     ],

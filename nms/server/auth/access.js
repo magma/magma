@@ -22,7 +22,7 @@ const path = require('path');
 const {AccessRoles} = require('../../shared/roles');
 const {ErrorCodes} = require('../../shared/errorCodes');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
-const logger = require('../../fbc_js_core/logging').getLogger(module);
+const logger = require('../../shared/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;
 
 import type {ExpressResponse, NextFunction} from 'express';

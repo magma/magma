@@ -16,7 +16,7 @@
 
 // This must be done before any module imports to configure
 // logging correctly
-import logging from '../fbc_js_core/logging';
+import logging from '../shared/logging';
 logging.configure({
   LOG_FORMAT,
   LOG_LEVEL,
@@ -36,11 +36,7 @@ import passport from 'passport';
 import path from 'path';
 import session from 'express-session';
 import {AccessRoles} from '../shared/roles';
-import {
-  DEV_MODE,
-  LOG_FORMAT,
-  LOG_LEVEL,
-} from '../fbc_js_core/platform_server/config';
+import {DEV_MODE, LOG_FORMAT, LOG_LEVEL} from '../config/config';
 import {access, configureAccess} from './auth/access';
 import {
   appMiddleware,
@@ -48,9 +44,9 @@ import {
   organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
-} from '../fbc_js_core/express_middleware';
+} from './middleware';
 import {distPath} from '../config/paths';
-import {sequelize} from '../fbc_js_core/sequelize_models';
+import {sequelize} from '../shared/sequelize_models';
 import {unprotectedUserRoutes} from '../server/auth/express';
 
 import type {ExpressResponse} from 'express';

@@ -16,14 +16,14 @@
 
 import {AccessRoles} from '../../../shared/roles';
 import {MultiSamlStrategy} from 'passport-saml'; // compatibility with breaking change in 3.1.0
-import {User} from '../../../fbc_js_core/sequelize_models';
+import {User} from '../../../shared/sequelize_models';
 
 import {getUserFromRequest} from '../util';
 import {injectOrganizationParams} from '../organization';
 
 import crypto from 'crypto';
 
-const logger = require('../../../fbc_js_core/logging').getLogger(module);
+const logger = require('../../../shared/logging').getLogger(module);
 
 type Config = {
   urlPrefix: string,

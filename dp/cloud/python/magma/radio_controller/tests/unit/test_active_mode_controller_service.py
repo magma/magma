@@ -71,18 +71,22 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
     def _prepare_base_cbsd(self) -> DBCbsdBuilder:
         return DBCbsdBuilder(). \
             with_id(SOME_ID). \
+            with_category('a'). \
             with_state(self.unregistered). \
             with_registration('some'). \
-            with_eirp_capabilities(0, 10, 20, 1). \
+            with_eirp_capabilities(0, 10, 1). \
+            with_antenna_gain(20). \
             with_desired_state(self.registered)
 
     @staticmethod
     def _prepare_base_active_mode_config() -> ActiveModeCbsdBuilder:
         return ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
+            with_category('a'). \
             with_state(Unregistered). \
             with_registration('some'). \
-            with_eirp_capabilities(0, 10, 20, 1). \
+            with_eirp_capabilities(0, 10, 1). \
+            with_antenna_gain(20). \
             with_desired_state(Registered)
 
 
@@ -291,38 +295,91 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.assertEqual(expected, actual)
 
     def test_get_state_with_multiple_cbsds(self):
-        some_cbsd = DBCbsdBuilder(). \
+        some_cbsd = self._prepare_base_cbsd(). \
             with_id(SOME_ID). \
-            with_state(self.unregistered). \
             with_registration('some'). \
-            with_eirp_capabilities(0, 10, 20, 1). \
-            with_desired_state(self.registered). \
             build()
-        other_cbsd = DBCbsdBuilder(). \
+        other_cbsd = self._prepare_base_cbsd(). \
             with_id(OTHER_ID). \
-            with_state(self.registered). \
             with_registration('other'). \
-            with_eirp_capabilities(5, 15, 25, 3). \
-            with_desired_state(self.registered). \
             build()
         self.session.add_all([some_cbsd, other_cbsd])
         self.session.commit()
 
-        some_config = ActiveModeCbsdBuilder(). \
+        some_config = self._prepare_base_active_mode_config(). \
             with_id(SOME_ID). \
-            with_state(Unregistered). \
             with_registration('some'). \
-            with_eirp_capabilities(0, 10, 20, 1). \
-            with_desired_state(Registered). \
             build()
-        other_config = ActiveModeCbsdBuilder(). \
+        other_config = self._prepare_base_active_mode_config(). \
             with_id(OTHER_ID). \
-            with_state(Registered). \
             with_registration('other'). \
-            with_eirp_capabilities(5, 15, 25, 3). \
-            with_desired_state(Registered). \
             build()
         expected = State(cbsds=[some_config, other_config])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_get_state_for_single_step(self):
+        cbsd = self._prepare_base_cbsd(). \
+            with_single_step_enabled(). \
+            with_installation_params(1, 2, 3, 'AGL', True). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        config = self._prepare_base_active_mode_config(). \
+            with_single_step_enabled(). \
+            with_installation_params(1, 2, 3, 'AGL', True). \
+            build()
+        expected = State(cbsds=[config])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_should_send_data_if_cbsd_needs_deregistration(self):
+        cbsd = DBCbsdBuilder(). \
+            with_id(SOME_ID). \
+            with_state(self.registered). \
+            with_desired_state(self.registered). \
+            with_registration('some'). \
+            updated(). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        config = ActiveModeCbsdBuilder(). \
+            with_id(SOME_ID). \
+            with_state(Registered). \
+            with_desired_state(Registered). \
+            with_registration('some'). \
+            updated(). \
+            with_category('b'). \
+            build()
+        expected = State(cbsds=[config])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_should_send_data_if_cbsd_needs_deletion(self):
+        cbsd = DBCbsdBuilder(). \
+            with_id(SOME_ID). \
+            with_state(self.registered). \
+            with_desired_state(self.registered). \
+            with_registration('some'). \
+            deleted(). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        config = ActiveModeCbsdBuilder(). \
+            with_id(SOME_ID). \
+            with_state(Registered). \
+            with_desired_state(Registered). \
+            with_registration('some'). \
+            deleted(). \
+            with_category('b'). \
+            build()
+        expected = State(cbsds=[config])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -330,7 +387,7 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
     def test_not_get_state_without_registration_params(self):
         cbsd = DBCbsdBuilder(). \
             with_state(self.unregistered). \
-            with_eirp_capabilities(0, 10, 20, 1). \
+            with_eirp_capabilities(0, 10, 1). \
             with_desired_state(self.registered). \
             build()
         self.session.add(cbsd)
@@ -346,6 +403,32 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_state(self.unregistered). \
             with_registration('some'). \
             with_desired_state(self.registered). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        expected = State()
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_not_get_state_with_single_step_enabled_and_without_installation_params(self):
+        cbsd = self._prepare_base_cbsd(). \
+            with_single_step_enabled(). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        expected = State()
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_not_get_state_with_single_step_enabled_category_a_and_outdoor(self):
+        cbsd = self._prepare_base_cbsd(). \
+            with_category('a'). \
+            with_installation_params(1, 2, 3, 'AGL', False). \
+            with_single_step_enabled(). \
             build()
         self.session.add(cbsd)
         self.session.commit()

@@ -31,31 +31,29 @@ import logging
 import pathlib
 import ssl
 import time
-import typing
 import urllib.request  # TODO: Figure out how to get aiohttp
+from typing import NamedTuple, NewType, Set
 
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.upgrade.upgrader import Upgrader
 from prometheus_client import Gauge
 
-VersionT = typing.NewType("VersionT", str)
-ImageNameT = typing.NewType("ImageNameT", str)
+VersionT = NewType("VersionT", str)
+ImageNameT = NewType("ImageNameT", str)
 
 # TODO - Add gauges for upgrade actions and failure
 
-UpgraderGauges = typing.NamedTuple(
-    'UpgraderGauges',
-    [
-        ('time_taken', Gauge),
-        ('error', Gauge),
-        ('downloaded', Gauge),
-        ('prepared', Gauge),
-        ('canary', Gauge),
-        ('stable', Gauge),
-        ('idle', Gauge),
-    ],
-)
+
+class UpgraderGauges(NamedTuple):
+    time_taken: Gauge
+    error: Gauge
+    downloaded: Gauge
+    prepared: Gauge
+    canary: Gauge
+    stable: Gauge
+    idle: Gauge
+
 
 _GAUGES = None  # type: typing.Optional[UpgraderGauges]
 
@@ -101,25 +99,19 @@ class ImageDownloadFailed(Exception):
     pass
 
 
-class VersionInfo(
-    # In 3.6, use the much shorter typing.NamedTuple syntax
-    typing.NamedTuple(
-        "VersionInfo",
-        [
-            # Use empty string for "no version"
-            ("current_version", VersionT),
-            # available_versions are those that have already had the
-            # prepare_upgrade() work done on them, and can be kicked off with a
-            # upgrade() call.
-            #
-            # available_versions does not need to contain current_version, but
-            # it can if you want.
-            ("available_versions", typing.Set[VersionT]),
-        ],
-    ),
-):
+class VersionInfo(NamedTuple):
+    # Use empty string for "no version"
+    current_version: VersionT
+    # available_versions are those that have already had the
+    # prepare_upgrade() work done on them, and can be kicked off with a
+    # upgrade() call.
+    #
+    # available_versions does not need to contain current_version, but
+    # it can if you want.
+    available_versions: Set[VersionT]
+
     @property
-    def all_versions(self) -> typing.Set[VersionT]:
+    def all_versions(self) -> Set[VersionT]:
         """All versions available on the device (including the current one)"""
         ret = set(self.available_versions)
         if self.current_version:
@@ -127,21 +119,20 @@ class VersionInfo(
         return ret
 
 
-class UpgradeIntent(
-    typing.NamedTuple(
-        "UpgradeIntent",
-        [
-            # If set, force upgrading to this version if the current version is
-            # not in stable or canary
-            # use empty string for "no version set"
-            ("stable", VersionT),
-            # If set, install this version and wait to be told to upgrade
-            # by a controller RPC
-            # use empty string for "no version set"
-            ("canary", VersionT),
-        ],
-    ),
-):
+class UpgradeIntent(NamedTuple):
+    # If set, force upgrading to this version if the current version is
+    # not in stable or canary
+    # use empty string for "no version set"
+    stable: VersionT
+    # If set, install this version and wait to be told to upgrade
+    # by a controller RPC
+    # use empty string for "no version set"
+    canary: VersionT
+
+    @property
+    def active_version(self) -> VersionT:
+        return self.stable or self.canary
+
     def version_to_prepare(self, version_info: VersionInfo) -> VersionT:
         """
         Returns the version to prepare for upgrade this loop, if needed.
@@ -170,10 +161,6 @@ class UpgradeIntent(
         ):
             return self.stable
         return VersionT("")
-
-    @property
-    def active_version(self) -> VersionT:
-        return self.stable or self.canary
 
 
 class Upgrader2(Upgrader, metaclass=abc.ABCMeta):

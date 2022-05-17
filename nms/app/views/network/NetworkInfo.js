@@ -32,10 +32,10 @@ import React from 'react';
 import axios from 'axios';
 
 import {AltFormField} from '../../components/FormField';
-import {FEG_LTE} from '../../../fbc_js_core/types/network';
-import {LTE} from '../../../fbc_js_core/types/network';
+import {FEG_LTE} from '../../../shared/types/network';
+import {LTE} from '../../../shared/types/network';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
   lteNetwork: $Shape<lte_network & feg_lte_network>,
@@ -194,10 +194,7 @@ export function NetworkInfoEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button
-          data-testid="cancelButton"
-          onClick={props.onClose}
-          skin="regular">
+        <Button data-testid="cancelButton" onClick={props.onClose}>
           Cancel
         </Button>
         <Button

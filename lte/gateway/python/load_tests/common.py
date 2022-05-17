@@ -13,7 +13,7 @@ limitations under the License.
 import os
 import subprocess  # noqa: S404
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from lte.protos.subscriberdb_pb2 import SubscriberID
 

@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {FBCNMSMiddleWareRequest} from '../../fbc_js_core/express_middleware';
+import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
 
 export async function injectOrganizationParams<T: {[string]: any}>(
   req: FBCNMSMiddleWareRequest,

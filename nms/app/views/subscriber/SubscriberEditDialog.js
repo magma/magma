@@ -36,20 +36,16 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import TypedSelect from '../../components/TypedSelect';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {CoreNetworkTypes} from './SubscriberUtils';
-import {
-  base64ToHex,
-  hexToBase64,
-  isValidHex,
-} from '../../../fbc_js_core/util/strings';
+import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -310,15 +306,13 @@ export function SubscriberEditDialog(props: DialogProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          {'Close'}
-        </Button>
+        <Button onClick={props.onClose}>Close</Button>
         <Button
           data-testid={`${props.editProps?.editTable || ''}-saveButton`}
           variant="contained"
           color="primary"
           onClick={onSave}>
-          {'Save'}
+          Save
         </Button>
       </DialogActions>
     </Dialog>

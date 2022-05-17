@@ -20,6 +20,7 @@
 
 #include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
 #include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
 
 namespace grpc {
 class ServerContext;
@@ -77,6 +78,11 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
   SessionProxyResponderHandlerImpl(std::shared_ptr<LocalEnforcer> monitor,
                                    SessionStore& session_store);
 
+  SessionProxyResponderHandlerImpl(
+      std::shared_ptr<LocalEnforcer> monitor,
+      std::shared_ptr<SessionStateEnforcer> m5genforcer,
+      SessionStore& session_store);
+
   ~SessionProxyResponderHandlerImpl() {}
 
   /**
@@ -103,6 +109,7 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
 
  private:
   std::shared_ptr<LocalEnforcer> enforcer_;
+  std::shared_ptr<SessionStateEnforcer> m5genforcer_;
   SessionStore& session_store_;
 };
 

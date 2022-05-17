@@ -20,7 +20,7 @@ import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React from 'react';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   REFRESH_INTERVAL,

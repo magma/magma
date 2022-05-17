@@ -226,6 +226,7 @@ func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 
 func (s *HandlersTestSuite) TestCreateCbsd() {
 	e := echo.New()
+
 	obsidianHandlers := cbsd.GetHandlers()
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
@@ -242,7 +243,6 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		ParamValues:    []string{"n1"},
 		Handler:        createCbsd,
 		ExpectedStatus: http.StatusCreated,
-		ExpectedError:  "",
 	}
 	tests.RunUnitTest(s.T(), e, tc)
 }
@@ -661,11 +661,13 @@ func getCbsd() *models.Cbsd {
 			State:              "someState",
 			TransmitExpireTime: to_pointer.TimeToDateTime(0),
 		},
-		ID:           0,
-		IsActive:     false,
-		SerialNumber: "someSerialNumber",
-		State:        "unregistered",
-		UserID:       "someUserId",
+		ID:                0,
+		IsActive:          false,
+		SerialNumber:      "someSerialNumber",
+		State:             "unregistered",
+		UserID:            "someUserId",
+		CbsdCategory:      "b",
+		SingleStepEnabled: false,
 	}
 }
 
@@ -677,7 +679,9 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 			MinPower:         to_pointer.Float(0),
 			NumberOfAntennas: 1,
 		},
-		DesiredState: "registered",
+		DesiredState:      "registered",
+		SingleStepEnabled: to_pointer.Bool(false),
+		CbsdCategory:      "b",
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
@@ -703,7 +707,9 @@ func getCbsdData() *protos.CbsdData {
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
 		},
-		DesiredState: "registered",
+		DesiredState:      "registered",
+		CbsdCategory:      "b",
+		SingleStepEnabled: false,
 	}
 }
 

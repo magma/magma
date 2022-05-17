@@ -40,7 +40,7 @@ import Text from '../../theme/design-system/Text';
 
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
@@ -311,11 +311,9 @@ export function ApnEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {'Save'}
+          Save
         </Button>
       </DialogActions>
     </>

@@ -99,7 +99,7 @@ func TestHeartbeatRequestGenerator(t *testing.T) {
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
 			cbsd := &active_mode.Cbsd{
-				Id:     "some_cbsd_id",
+				CbsdId: "some_cbsd_id",
 				Grants: tt.grants,
 			}
 			g := sas.NewHeartbeatRequestGenerator(nextSend)

@@ -14,8 +14,8 @@
  * @format
  */
 
-import type {FBCNMSMiddleWareRequest} from '../../../fbc_js_core/express_middleware';
-import type {UserType} from '../../../fbc_js_core/sequelize_models/models/user.js';
+import type {FBCNMSMiddleWareRequest} from '../../../server/middleware';
+import type {UserType} from '../../../shared/sequelize_models/models/user.js';
 
 import bcrypt from 'bcryptjs';
 import {Strategy as LocalStrategy} from 'passport-local';

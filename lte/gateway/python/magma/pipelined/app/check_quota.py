@@ -43,14 +43,13 @@ class CheckQuotaController(MagmaController):
 
     APP_NAME = "check_quota"
     APP_TYPE = ControllerType.LOGICAL
-    CheckQuotaConfig = NamedTuple(
-        'CheckQuotaConfig',
-        [
-            ('bridge_ip', str), ('quota_check_ip', str),
-            ('has_quota_port', int), ('no_quota_port', int),
-            ('cwf_bridge_mac', str),
-        ],
-    )
+
+    class CheckQuotaConfig(NamedTuple):
+        bridge_ip: str
+        quota_check_ip: str
+        has_quota_port: int
+        no_quota_port: int
+        cwf_bridge_mac: str
 
     def __init__(self, *args, **kwargs):
         super(CheckQuotaController, self).__init__(*args, **kwargs)

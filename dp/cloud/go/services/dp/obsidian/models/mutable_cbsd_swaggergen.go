@@ -24,6 +24,11 @@ type MutableCbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
+	// is the radio type A (only) or B (also applies to A/B type radios)
+	// Required: true
+	// Enum: [a b]
+	CbsdCategory string `json:"cbsd_category"`
+
 	// desired state of cbsd in SAS
 	// Required: true
 	// Enum: [unregistered registered]
@@ -45,6 +50,10 @@ type MutableCbsd struct {
 	// Min Length: 1
 	SerialNumber string `json:"serial_number"`
 
+	// should the CBSD be registered in a single-step mode
+	// Required: true
+	SingleStepEnabled *bool `json:"single_step_enabled"`
+
 	// user id
 	// Example: some_user_id
 	// Required: true
@@ -57,6 +66,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCapabilities(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -73,6 +86,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSerialNumber(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSingleStepEnabled(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -94,6 +111,49 @@ func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+var mutableCbsdTypeCbsdCategoryPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["a","b"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		mutableCbsdTypeCbsdCategoryPropEnum = append(mutableCbsdTypeCbsdCategoryPropEnum, v)
+	}
+}
+
+const (
+
+	// MutableCbsdCbsdCategoryA captures enum value "a"
+	MutableCbsdCbsdCategoryA string = "a"
+
+	// MutableCbsdCbsdCategoryB captures enum value "b"
+	MutableCbsdCbsdCategoryB string = "b"
+)
+
+// prop value enum
+func (m *MutableCbsd) validateCbsdCategoryEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, mutableCbsdTypeCbsdCategoryPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MutableCbsd) validateCbsdCategory(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("cbsd_category", "body", m.CbsdCategory); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", m.CbsdCategory); err != nil {
 		return err
 	}
 
@@ -177,6 +237,15 @@ func (m *MutableCbsd) validateSerialNumber(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinLength("serial_number", "body", m.SerialNumber, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCbsd) validateSingleStepEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("single_step_enabled", "body", m.SingleStepEnabled); err != nil {
 		return err
 	}
 

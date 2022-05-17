@@ -21,3 +21,9 @@ export const AccessRoles = {
   READ_ONLY_USER: 1,
   SUPERUSER: 3,
 };
+
+export const UserRoles = {
+  USER: 0,
+  READ_ONLY_USER: 1,
+  SUPERUSER: 3,
+};

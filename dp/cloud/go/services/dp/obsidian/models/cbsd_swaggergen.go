@@ -24,6 +24,11 @@ type Cbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
+	// is the radio type A (only) or B (also applies to A/B type radios)
+	// Required: true
+	// Enum: [a b]
+	CbsdCategory string `json:"cbsd_category"`
+
 	// id of cbsd in SAS
 	// Example: some_cbsd_id
 	CbsdID string `json:"cbsd_id,omitempty"`
@@ -60,6 +65,10 @@ type Cbsd struct {
 	// Min Length: 1
 	SerialNumber string `json:"serial_number"`
 
+	// should the CBSD be registered in a single-step mode
+	// Required: true
+	SingleStepEnabled bool `json:"single_step_enabled"`
+
 	// state of cbsd in SAS
 	// Required: true
 	// Enum: [unregistered registered]
@@ -77,6 +86,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCapabilities(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -108,6 +121,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateSingleStepEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateState(formats); err != nil {
 		res = append(res, err)
 	}
@@ -130,6 +147,49 @@ func (m *Cbsd) validateCapabilities(formats strfmt.Registry) error {
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+var cbsdTypeCbsdCategoryPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["a","b"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		cbsdTypeCbsdCategoryPropEnum = append(cbsdTypeCbsdCategoryPropEnum, v)
+	}
+}
+
+const (
+
+	// CbsdCbsdCategoryA captures enum value "a"
+	CbsdCbsdCategoryA string = "a"
+
+	// CbsdCbsdCategoryB captures enum value "b"
+	CbsdCbsdCategoryB string = "b"
+)
+
+// prop value enum
+func (m *Cbsd) validateCbsdCategoryEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, cbsdTypeCbsdCategoryPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Cbsd) validateCbsdCategory(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("cbsd_category", "body", m.CbsdCategory); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", m.CbsdCategory); err != nil {
 		return err
 	}
 
@@ -250,6 +310,15 @@ func (m *Cbsd) validateSerialNumber(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinLength("serial_number", "body", m.SerialNumber, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateSingleStepEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("single_step_enabled", "body", bool(m.SingleStepEnabled)); err != nil {
 		return err
 	}
 

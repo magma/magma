@@ -16,13 +16,13 @@
 
 import type {MetricGraphConfig} from '../insights/Metrics';
 
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../../../app/components/context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
+import NestedRouteLink from '../NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
 import TopBar from '../../components/TopBar';

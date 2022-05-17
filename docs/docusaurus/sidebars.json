@@ -342,7 +342,7 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/dev_testing",
-          "feg/s1ap_federated_tests"
+          "feg/s1ap_federated_test"
         ]
       },
       {

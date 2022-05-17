@@ -22,16 +22,16 @@ import type {
   tier,
 } from '../../generated/MagmaAPIBindings';
 
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '../../shared/roles';
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../fbc_js_core/types/network';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
 import {access} from '../auth/access';
 import {difference} from 'lodash';
 
-const logger = require('../../fbc_js_core/logging').getLogger(module);
+const logger = require('../../shared/logging').getLogger(module);
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 

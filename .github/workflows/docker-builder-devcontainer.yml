@@ -1,10 +1,11 @@
 ---
-name: "Build Docker image for DevContainer"
+name: "Build Docker image for Bazel Base and DevContainer"
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - master
     paths:
+      - .devcontainer/bazel-base/Dockerfile
       - .devcontainer/Dockerfile
       - .github/workflows/docker-builder-devcontainer.yml
       - .github/workflows/composite/**
@@ -14,26 +15,41 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - synchronize
     paths:
+      - .devcontainer/bazel-base/Dockerfile
       - .devcontainer/Dockerfile
       - .github/workflows/docker-builder-devcontainer.yml
       - .github/workflows/composite/**
   schedule:
-    - cron: '0 0,6,12,18 * * *'
+    - cron: '13 3 * * *'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_STREAM: ${{ github.repository }}/devcontainer
   IMAGE_TAGS: type=sha
-  DOCKERFILE: .devcontainer/Dockerfile
+  IMAGE_STREAM_BAZEL_BASE: ${{ github.repository }}/bazel-base
+  DOCKERFILE_BAZEL_BASE: .devcontainer/bazel-base/Dockerfile
+  IMAGE_STREAM_DEVCONTAINER: ${{ github.repository }}/devcontainer
+  DOCKERFILE_DEVCONTAINER: .devcontainer/Dockerfile
 
 jobs:
-  build_dockerfile:
+  build_dockerfile_bazel_base:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}
-          IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_BASE }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
-          DOCKERFILE: ${{ env.DOCKERFILE }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_BASE }}
+
+  build_dockerfile_devcontainer:
+    needs: build_dockerfile_bazel_base
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_DEVCONTAINER }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_DEVCONTAINER }}

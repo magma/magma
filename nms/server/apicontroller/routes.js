@@ -17,16 +17,12 @@
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
 
-const express = require('express');
-const proxy = require('express-http-proxy');
-const HttpsProxyAgent = require('https-proxy-agent');
-const url = require('url');
-const {
-  apiCredentials,
-  API_HOST,
-} = require('../../fbc_js_core/platform_server/config');
+import HttpsProxyAgent from 'https-proxy-agent';
 import auditLoggingDecorator from './auditLoggingDecorator';
-
+import express from 'express';
+import proxy from 'express-http-proxy';
+import url from 'url';
+import {API_HOST, apiCredentials} from '../../config/config';
 import {intersection} from 'lodash';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();

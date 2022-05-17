@@ -35,15 +35,16 @@ class IPFIXController(MagmaController):
     APP_NAME = "ipfix"
     APP_TYPE = ControllerType.LOGICAL
 
-    IPFIXConfig = NamedTuple(
-        'IPFIXConfig',
-        [
-            ('enabled', bool), ('collector_ip', str), ('collector_port', int),
-            ('probability', int), ('collector_set_id', int),
-            ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
-            ('sampling_port', int),
-        ],
-    )
+    class IPFIXConfig(NamedTuple):
+        enabled: bool
+        collector_ip: str
+        collector_port: int
+        probability: int
+        collector_set_id: int
+        obs_domain_id: int
+        obs_point_id: int
+        cache_timeout: int
+        sampling_port: int
 
     def __init__(self, *args, **kwargs):
         super(IPFIXController, self).__init__(*args, **kwargs)

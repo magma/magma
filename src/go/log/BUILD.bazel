@@ -9,6 +9,7 @@ go_library(
 
 go_test(
     name = "log_test",
+    size = "small",
     srcs = [
         "log_test.go",
         "mock_logger_test.go",

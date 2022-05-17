@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../context/GatewayContext';
@@ -26,14 +25,12 @@ import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   enodeb_state,
   feg_lte_network,
   lte_gateway,
 } from '../../../generated/MagmaAPIBindings';
-
-afterEach(cleanup);
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',
@@ -123,7 +120,7 @@ const mockEnbSt: enodeb_state = {
 
 jest.mock('axios');
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
   const Wrapper = () => {
