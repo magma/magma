@@ -22,7 +22,7 @@ import (
 	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
 	"github.com/labstack/echo"
 
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 )
 
 const (

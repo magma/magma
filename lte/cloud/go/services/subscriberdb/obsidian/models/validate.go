@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
-	"magma/orc8r/cloud/go/obsidian/models"
+	"magma/orc8r/cloud/go/services/obsidian/models"
 )
 
 const (

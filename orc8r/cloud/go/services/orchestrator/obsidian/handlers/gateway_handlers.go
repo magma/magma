@@ -26,7 +26,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"

@@ -22,9 +22,9 @@ import (
 	promAPI "github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd"
 	promH "magma/orc8r/cloud/go/services/metricsd/prometheus/handlers"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service/config"
 )

@@ -29,7 +29,7 @@ import (
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/merrors"
 	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
