@@ -27,7 +27,7 @@ import (
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/lib/go/metrics"
 )
