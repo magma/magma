@@ -1,0 +1,85 @@
+---
+name: LTE integ test bazel
+
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - build-all
+    branches:
+      - master
+      - 'v1.*'
+    types:
+      - completed
+
+jobs:
+  lte-integ-test-bazel:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-10.15
+    env:
+      SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.SHA }}
+      - name: setup pyenv
+        uses: "gabrielfalcao/pyenv-action@v8"
+        with:
+          default: 3.8.5
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          vagrant plugin install vagrant-vbguest vagrant-disksize
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+      - name: Configure bazel remote cache
+        run: |
+          bazel/scripts/remote_cache_bazelrc_setup.sh "magma-vm-lte-integ" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
+      - name: Run the integ test
+        run: |
+          cd lte/gateway
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=8192
+          fab integ_test:bazel_build="True"
+      - name: Upload bazel profile
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Bazel profile lte integ tests
+          path: bazel_profile_lte_integ_tests
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results"
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
+      - name: Get test logs
+        if: failure()
+        run: |
+          cd lte/gateway
+          fab get_test_logs:dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        with:
+          files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests

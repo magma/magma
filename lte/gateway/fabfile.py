@@ -250,7 +250,7 @@ def federated_integ_test(
 
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
-    destroy_vm='True', provision_vm='True',
+    destroy_vm='True', provision_vm='True', bazel_build='False',
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -272,6 +272,7 @@ def integ_test(
 
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
+    bazel_build = bool(strtobool(bazel_build))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -286,7 +287,13 @@ def integ_test(
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
     execute(_dist_upgrade)
-    execute(_build_magma)
+
+    if bazel_build:
+        execute(_modify_for_bazel)
+        execute(_build_magma_bazel)
+    else:
+        execute(_build_magma)
+
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
@@ -574,6 +581,23 @@ def _build_magma():
     """
     with cd(AGW_ROOT):
         run('make')
+
+
+def _build_magma_bazel():
+    """ 
+    Build magma on AGW with bazel. The /etc/gai.conf file is temporarily modified
+    to prefer IPv4 to accelerate the build.
+    """
+    with cd(r"$MAGMA_ROOT"):
+        run('sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf')
+        run('bazel build --profile=bazel_profile_lte_integ_tests --ui_event_filters=warning `bazel query "kind(.*_binary, //orc8r/... union //lte/...)"`')
+        run('sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf')
+
+
+def _modify_for_bazel():
+    """ Modify the service definitions to use the bazel-built executables """
+    run(r"sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/")
+    run("sudo systemctl daemon-reload")
 
 
 def _oai_coverage():
