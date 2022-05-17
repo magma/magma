@@ -22,6 +22,8 @@ import ExploreIcon from '@material-ui/icons/Explore';
 import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
+import ListIcon from '@material-ui/icons/ListAlt';
+import LogsList from '../../views/domain-proxy/LogsList';
 import NestedRouteLink from '../NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
@@ -275,12 +277,19 @@ export default function () {
       },
     ];
   }
+  tabList.push({
+    icon: ListIcon,
+    component: {NestedRouteLink},
+    label: 'DP Logs',
+    to: 'domain-proxy-logs',
+  });
 
   return (
     <>
       <TopBar header={'Metrics'} tabs={tabList} />
       {!grafanaEnabled ? (
         <Routes>
+          <Route path="/domain-proxy-logs" element={<LogsList />} />
           <Route path="/gateways/*" element={<GatewayMetricsGraphs />} />
           <Route path="/network" element={<NetworkKPIs />} />
           <Route path="/internal/*" element={<InternalMetrics />} />
@@ -288,6 +297,7 @@ export default function () {
         </Routes>
       ) : (
         <Routes>
+          <Route path="/domain-proxy-logs" element={<LogsList />} />
           <Route path="grafana" element={<GrafanaDashboard />} />
           <Route path="/explorer" element={<Explorer />} />
           <Route index element={<Navigate to="grafana" replace />} />
