@@ -65,12 +65,13 @@ type DetailedCbsd struct {
 	GrantState   *DBGrantState
 }
 
-func NewCbsdManager(db *sql.DB, builder sqorc.StatementBuilder, errorChecker sqorc.ErrorChecker) *cbsdManager {
+func NewCbsdManager(db *sql.DB, builder sqorc.StatementBuilder, errorChecker sqorc.ErrorChecker, locker sqorc.Locker) *cbsdManager {
 	return &cbsdManager{
 		db:           db,
 		builder:      builder,
 		cache:        &enumCache{cache: map[string]map[string]int64{}},
 		errorChecker: errorChecker,
+		locker:       locker,
 	}
 }
 
@@ -79,6 +80,7 @@ type cbsdManager struct {
 	builder      sqorc.StatementBuilder
 	cache        *enumCache
 	errorChecker sqorc.ErrorChecker
+	locker       sqorc.Locker
 }
 
 type enumCache struct {

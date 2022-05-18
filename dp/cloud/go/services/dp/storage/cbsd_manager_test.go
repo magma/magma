@@ -52,9 +52,10 @@ type CbsdManagerTestSuite struct {
 func (s *CbsdManagerTestSuite) SetupSuite() {
 	builder := sqorc.GetSqlBuilder()
 	errorChecker := sqorc.SQLiteErrorChecker{}
+	locker := sqorc.GetSqlLocker()
 	database, err := sqorc.Open("sqlite3", ":memory:")
 	s.Require().NoError(err)
-	s.cbsdManager = storage.NewCbsdManager(database, builder, errorChecker)
+	s.cbsdManager = storage.NewCbsdManager(database, builder, errorChecker, locker)
 	s.resourceManager = dbtest.NewResourceManager(s.T(), database, builder)
 	err = s.resourceManager.CreateTables(
 		&storage.DBCbsdState{},
