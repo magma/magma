@@ -93,7 +93,7 @@ func GenTrafficWithReatempts(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTr
 		resp, err = GenTraffic(req)
 		if err != nil &&
 			(strings.Contains(strings.ToLower(err.Error()), "connection refused") ||
-				strings.Contains(err.Error(),"DeadlineExceeded")) {
+				strings.Contains(err.Error(), "DeadlineExceeded")) {
 			// try again due to connection error
 			fmt.Printf("genTrafficSingleAttempt failed, retrying: %s\n", err)
 			continue

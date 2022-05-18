@@ -54,9 +54,9 @@ func TestGyReAuth(t *testing.T) {
 
 	err = setNewOCSConfig(
 		&fegprotos.OCSConfig{
-			MaxUsageOctets: &fegprotos.Octets{OutputOctets: ReAuthMaxUsageBytes},
-			MaxUsageTime:   ReAuthMaxUsageTimeSec,
-			ValidityTime:   ReAuthValidityTime,
+			MaxUsageOctets:     &fegprotos.Octets{OutputOctets: ReAuthMaxUsageBytes},
+			MaxUsageTime:       ReAuthMaxUsageTimeSec,
+			ValidityTime:       ReAuthValidityTime,
 			GrantTypeProcedure: fegprotos.OCSConfig_TxOnly,
 		},
 	)
@@ -98,7 +98,7 @@ func TestGyReAuth(t *testing.T) {
 		Volume:  &wrappers.StringValue{Value: "2M"},
 		Bitrate: &wrappers.StringValue{Value: "1M"}}
 	_, err = tr.GenULTrafficBasedOnPolicyUsage(req,
-		"static-pass-all-ocs2", uint64(math.Round(800 * KiloBytes)), 40*time.Second)
+		"static-pass-all-ocs2", uint64(math.Round(800*KiloBytes)), 40*time.Second)
 	require.NoError(t, err)
 
 	require.Eventually(t,
@@ -129,11 +129,11 @@ func TestGyReAuth(t *testing.T) {
 	// Send more traffic to see rule is not removed
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi}
 	_, err = tr.GenULTrafficBasedOnPolicyUsage(req,
-		"static-pass-all-ocs2", uint64(math.Round(1.5 * MegaBytes)), 40*time.Second)
+		"static-pass-all-ocs2", uint64(math.Round(1.5*MegaBytes)), 40*time.Second)
 	require.NoError(t, err)
 
 	require.Eventually(t,
-		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", uint64(math.Round(1.5 * MegaBytes))),
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", uint64(math.Round(1.5*MegaBytes))),
 		20*time.Second,
 		2*time.Second)
 
