@@ -23,7 +23,6 @@ replace (
 
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
-	github.com/emakeev/milenage v1.0.0
 	github.com/go-openapi/errors v0.20.2
 	github.com/go-openapi/strfmt v0.21.1
 	github.com/go-openapi/swag v0.19.15
@@ -39,11 +38,12 @@ require (
 	github.com/influxdata/tdigest v0.0.1
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.2.0
+	github.com/magma/milenage v1.0.2
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/thoas/go-funk v0.7.0
 	github.com/warthog618/sms v0.3.0
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
@@ -55,7 +55,6 @@ require (
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
-
 )
 
 require (

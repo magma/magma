@@ -42,7 +42,7 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.26.0
 	github.com/shirou/gopsutil/v3 v3.21.5
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/thoas/go-funk v0.7.0
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
 	github.com/wmnsk/go-gtp v0.8.1

@@ -16,7 +16,7 @@ package servicers
 import (
 	"testing"
 
-	"github.com/emakeev/milenage"
+	"github.com/magma/milenage"
 	"github.com/stretchr/testify/assert"
 
 	"magma/lte/cloud/go/crypto"
