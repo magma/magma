@@ -28,6 +28,24 @@ RUN [ "/bin/bash", "-c", "echo \"Install general purpose packages\" && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
     ln -s /usr/bin/clang-format-7 /usr/bin/clang-format" ]
 
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && echo $? && echo "AFTER WGET" \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -sf /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
+RUN ln -s /usr/local/lib/libfdproto.so.6 /usr/lib/libfdproto.so && \
+    ln -s /usr/local/lib/libfdcore.so.6 /usr/lib/libfdcore.so && \
+    ln -s /usr/local/lib/libgrpc++.so /usr/lib/libgrpc++.so && \
+    ln -s /usr/local/lib/libprotobuf.so.17 /usr/lib/libprotobuf.so && \
+    ln -s /usr/local/lib/libgrpc.so /usr/lib/libgrpc.so && \
+    ln -s /usr/local/lib/libgpr.so /usr/lib/libgpr.so && \
+    ln -s /usr/local/lib/libgflags.so.2.2 /usr/lib/libgflags.so && \
+    ln -s /usr/local/lib/libcares.so.2 /usr/lib/libcares.so && \
+    ln -s /usr/local/lib/libaddress_sorting.so /usr/lib/libaddress_sorting.so && \
+    ln -s /usr/local/lib/libnettle.so.4 /usr/lib/libnettle.so && \
+    ln -s /usr/local/lib/libgnutls.so.28 /usr/lib/libgnutls.so
+
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
     echo "Install CMake" && \
@@ -109,15 +127,15 @@ RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
     mkdir -p cmake/build && \
     cd cmake/build && \
     cmake \
-        -DgRPC_INSTALL=ON \
-        -DBUILD_SHARED_LIBS=ON \
-        -DgRPC_BUILD_TESTS=OFF \
-        -DgRPC_PROTOBUF_PROVIDER=package \
-        -DgRPC_ZLIB_PROVIDER=package \
-        -DgRPC_CARES_PROVIDER=package \
-        -DgRPC_SSL_PROVIDER=package \
-        -DCMAKE_BUILD_TYPE=Release \
-        ../.. && \
+    -DgRPC_INSTALL=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DgRPC_BUILD_TESTS=OFF \
+    -DgRPC_PROTOBUF_PROVIDER=package \
+    -DgRPC_ZLIB_PROVIDER=package \
+    -DgRPC_CARES_PROVIDER=package \
+    -DgRPC_SSL_PROVIDER=package \
+    -DCMAKE_BUILD_TYPE=Release \
+    ../.. && \
     make -j`nproc` && \
     make install
 
@@ -187,14 +205,19 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install
 
 # Build MME executables
-RUN ldconfig && \
-    cd $MAGMA_ROOT/lte/gateway && \
+# RUN ldconfig && \
+#     cd $MAGMA_ROOT/lte/gateway && \
+#     echo $FEATURES && \
+#     make build_oai && \
+#     make build_sctpd && \
+# cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
+# ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
+# ldd $C_BUILD/sctpd/src/sctpd
+RUN cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/sctpd/src/sctpd
+    bazel build //lte/gateway/c/core:oai_mme --config=$FEATURES && \
+    bazel build //lte/gateway/c/sctpd/src:sctpd && \
+    echo "SUCCESS"
 
 # Prepare config file
 RUN apt-get install -y python3-pip && \
@@ -247,10 +270,10 @@ RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 WORKDIR /magma-mme/scripts
 RUN cp $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate . && \
     sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
-           -e "s@\$SUDO@@" \
-           -e "s@echo_error@echo@" \
-           -e "s@echo_success@echo@" \
-           -e "s@echo_warning@echo@" check_mme_s6a_certificate
+    -e "s@\$SUDO@@" \
+    -e "s@echo_error@echo@" \
+    -e "s@echo_success@echo@" \
+    -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
@@ -270,12 +293,12 @@ ENV TZ=Europe/Paris
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-      psmisc \
-      openssl \
-      net-tools \
-      tshark \
-      tzdata \
-  && rm -rf /var/lib/apt/lists/*
+    psmisc \
+    openssl \
+    net-tools \
+    tshark \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
 COPY --from=magma-mme-builder \
@@ -351,10 +374,10 @@ COPY --from=magma-mme-builder \
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
-           -e "s@\$SUDO@@" \
-           -e "s@echo_error@echo@" \
-           -e "s@echo_success@echo@" \
-           -e "s@echo_warning@echo@" check_mme_s6a_certificate
+    -e "s@\$SUDO@@" \
+    -e "s@echo_error@echo@" \
+    -e "s@echo_success@echo@" \
+    -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 
