@@ -29,7 +29,6 @@ type UserRawInitType = {
   password: string,
   role: number,
   networkIDs?: Array<string>,
-  tabs?: Array<string>,
 };
 
 // This is the type read back
@@ -64,11 +63,13 @@ export default (
           return this.getDataValue('networkIDs') || [];
         },
       },
+      // Unused should be removed together with a migration as a breaking change
       tabs: {
         type: types.JSON,
         allowNull: true,
+        defaultValue: ['nms'],
         get() {
-          return this.getDataValue('tabs') || [];
+          return this.getDataValue('tabs') || ['nms'];
         },
       },
     },

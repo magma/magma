@@ -76,7 +76,6 @@ export default function () {
 
         await Organization.create({
           name: req.body.organization,
-          tabs: req.body.tabs,
           networkIDs: [],
           csvCharset: '',
           customDomains: [],
