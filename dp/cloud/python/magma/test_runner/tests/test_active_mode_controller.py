@@ -160,7 +160,3 @@ class ActiveModeControllerTestCase(DomainProxyIntegrationTestCase):
     @staticmethod
     def _build_empty_state_result() -> CBSDStateResult:
         return CBSDStateResult(radio_enabled=False)
-
-
-def _delete_dp_elasticsearch_indices():
-    requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
