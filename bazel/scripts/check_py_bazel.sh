@@ -66,9 +66,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
   "./lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
-  # TODO: GH12759 needs to be bazelified
-  "./lte/gateway/python/magma/mobilityd/tests/rpc_servicer_tests.py"
-  "./lte/gateway/python/magma/enodebd/tr069/tests/models_tests.py"
   # TODO: GH12765 dead code
   "./lte/gateway/python/magma/pipelined/openflow/events.py"
   "./lte/gateway/python/magma/enodebd/state_machines/enb_acs_pointer.py"
