@@ -42,7 +42,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_types.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"
 
 static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
   int i = 0;

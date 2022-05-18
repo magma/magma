@@ -27,8 +27,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.hpp"
 
 static inline status_code_e s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
                                                        uint8_t** buffer,

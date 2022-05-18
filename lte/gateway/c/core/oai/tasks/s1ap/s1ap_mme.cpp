@@ -22,7 +22,6 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -43,7 +42,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -52,10 +52,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 static void start_stats_timer(void);
