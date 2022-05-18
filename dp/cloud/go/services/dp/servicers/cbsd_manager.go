@@ -16,9 +16,9 @@ package servicers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -195,7 +195,7 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 }
 
 func makeErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
+	e := fmt.Errorf(wrap+": %w", err)
 	code := codes.Internal
 	if err == merrors.ErrNotFound {
 		code = codes.NotFound
