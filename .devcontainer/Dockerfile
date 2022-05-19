@@ -42,32 +42,32 @@ RUN echo "Install general purpose packages" && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-        autoconf \
-        automake \
-        clang-11 \
-        clang-format-11 \
-        clang-tidy-11 \
-        clangd-12 \
-        g++-9 \
-        gcc-9 \
-        gdb \
-        lcov \
-        libclang-11-dev \
-        lldb \
-        llvm-11-dev \
-        make \
-        ninja-build \
-        openjdk-8-jdk \
-        perl \
-        pkg-config \
-        python3-pip \
-        redis-server \
-        ruby \
-        rubygems \
-        ruby-dev \
-        software-properties-common \
-        tzdata \
-        virtualenv=20.0.17-1ubuntu0.4 && \
+    autoconf \
+    automake \
+    clang-11 \
+    clang-format-11 \
+    clang-tidy-11 \
+    clangd-12 \
+    g++-9 \
+    gcc-9 \
+    gdb \
+    lcov \
+    libclang-11-dev \
+    lldb \
+    llvm-11-dev \
+    make \
+    ninja-build \
+    openjdk-8-jdk \
+    perl \
+    pkg-config \
+    python3-pip \
+    redis-server \
+    ruby \
+    rubygems \
+    ruby-dev \
+    software-properties-common \
+    tzdata \
+    virtualenv=20.0.17-1ubuntu0.4 && \
     gem install fpm && \
     update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
@@ -86,33 +86,33 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
     echo "Install FMT lib requirements" && \
     apt-get -y install --no-install-recommends \
-        libunwind8-dev \
-        libelf-dev \
-        libdwarf-dev \
-        bzip2 && \
+    libunwind8-dev \
+    libelf-dev \
+    libdwarf-dev \
+    bzip2 && \
     echo "Install Folly requirements" && \
     apt-get -y install --no-install-recommends \
-        liblz4-dev \
-        liblzma-dev \
-        libsnappy-dev \
-        binutils-dev \
-        libjemalloc-dev \
-        pkg-config \
-        libunwind-dev && \
+    liblz4-dev \
+    liblzma-dev \
+    libsnappy-dev \
+    binutils-dev \
+    libjemalloc-dev \
+    pkg-config \
+    libunwind-dev && \
     echo "Install check for test support" && \
     apt-get -y install --no-install-recommends \
-        check && \
+    check && \
     echo "Install gtest for test support" && \
     apt-get -y install --no-install-recommends \
-        libgtest-dev && \
+    libgtest-dev && \
     echo "Install Nettle requirements" && \
     apt-get -y install --no-install-recommends \
-        libxml2-dev \
-        libyaml-cpp-dev \
-        nlohmann-json3-dev && \
+    libxml2-dev \
+    libyaml-cpp-dev \
+    nlohmann-json3-dev && \
     echo "GRPC and it's dependencies" && \
     apt-get -y install --no-install-recommends \
-        grpc-dev
+    grpc-dev
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
 RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd
@@ -152,10 +152,10 @@ RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
 
 # install magma dependencies
 RUN apt-get install -y --no-install-recommends \
-        libtins-dev \
-        magma-cpp-redis \
-        magma-libfluid \
-        python3-aioeventlet
+    libtins-dev \
+    magma-cpp-redis \
+    magma-libfluid \
+    python3-aioeventlet
 
 ##### libgtpnl
 # review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
@@ -277,5 +277,19 @@ RUN for SWAGGER_SRC in lte orc8r; \
     done
 
 RUN ln -fs $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+    curl \
+    libcurl4-openssl-dev
+
+# RUN ls /workspaces/magma/
+# RUN find / -name magma
+
+# RUN cd /workspaces/magma/ && \
+#     echo $FEATURES && \
+#     bazel build //lte/gateway/c/core:oai_mme --config=$FEATURES && \
+#     bazel build //lte/gateway/c/sctpd/src:sctpd && \
+#     echo "SUCCESS"
 
 WORKDIR $MAGMA_ROOT

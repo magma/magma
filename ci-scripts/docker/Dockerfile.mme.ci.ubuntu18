@@ -33,7 +33,7 @@ RUN echo "THIS IS BEFORE INSTALLING BAZEL"
 
 # Install bazel
 WORKDIR /usr/sbin
-RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && echo $? && echo "AFTER WGET" \
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
     chmod +x bazelisk-linux-amd64 && \
     ln -sf /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 

@@ -30,7 +30,7 @@ RUN [ "/bin/bash", "-c", "echo \"Install general purpose packages\" && \
 
 # Install bazel
 WORKDIR /usr/sbin
-RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && echo $? && echo "AFTER WGET" \
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
     chmod +x bazelisk-linux-amd64 && \
     ln -sf /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
@@ -203,6 +203,24 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     make -j`nproc` && \
     make install
+
+RUN apt-get install -y \
+    ruby \
+    rubygems \
+    ruby-dev
+
+RUN gem install fpm
+
+RUN echo "Install Folly requirements" && \
+    apt-get -y install libboost-all-dev libevent-dev libdouble-conversion-dev \
+    libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
+    libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev
+
+#### libfluid is requird to build MME with OVS support
+COPY third_party /tmp/third_party/
+RUN /tmp/third_party/build/bin/libfluid_build.sh && \
+    find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
+    rm -rf /tmp/*
 
 # Build MME executables
 # RUN ldconfig && \
