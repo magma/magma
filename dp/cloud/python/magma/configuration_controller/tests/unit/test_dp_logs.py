@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from freezegun import freeze_time
 from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.db_service.models import (
     DBCbsd,
@@ -20,7 +21,7 @@ from magma.db_service.models import (
 )
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from magma.fluentd_client.client import DPLog
-from magma.fluentd_client.dp_logs import make_dp_log
+from magma.fluentd_client.dp_logs import make_dp_log, now
 from parameterized import parameterized
 
 DP = 'DP'
@@ -31,12 +32,14 @@ HEARTBEAT_REQUEST = 'heartbeatRequest'
 SOME_SERIAL_NUMBER = 'some_serial_number'
 SOME_NETWORK_ID = 'some_network_id'
 SOME_MESSAGE = 'some_message'
+SOME_DATE = '2020-05-20T00:00:00+00:00'
 
 
 class IncorrectDPLog(object):
     ...
 
 
+@freeze_time(SOME_DATE)
 class DPLogsTestCase(LocalDBTestCase):
 
     def setUp(self):
@@ -70,6 +73,7 @@ class DPLogsTestCase(LocalDBTestCase):
 
         # Then
         expected_log = DPLog(
+            event_timestamp=SOME_DATE,
             cbsd_serial_number=serial_num,
             fcc_id=fcc_id,
             log_from=DP,
@@ -100,6 +104,7 @@ class DPLogsTestCase(LocalDBTestCase):
 
         # Then
         expected_log = DPLog(
+            event_timestamp=SOME_DATE,
             cbsd_serial_number=serial_num,
             fcc_id=fcc_id,
             log_from=SAS,
@@ -114,3 +119,6 @@ class DPLogsTestCase(LocalDBTestCase):
     def test_make_dp_log_returns_type_error_for_unknown_message_type(self):
         with self.assertRaises(TypeError):
             make_dp_log(IncorrectDPLog())
+
+    def test_datetime_now(self):
+        self.assertEqual(SOME_DATE, now())
