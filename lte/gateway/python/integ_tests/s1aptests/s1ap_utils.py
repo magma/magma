@@ -84,6 +84,7 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
+    # Default maximum wait time is 180 sec (3 min)
     MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
@@ -210,7 +211,6 @@ class S1ApUtil(object):
             AssertionError: Assert if timeout occurs
         """
         if timeout is None:
-            # Default maximum wait time is 900 sec (15 min)
             timeout = S1ApUtil.MAX_RESP_WAIT_TIME
 
         # Wait until callback is invoked or timeout occurred
