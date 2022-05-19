@@ -41,7 +41,6 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 )
 
 const testAgHwID = "Test-AGW-Hw-Id"
@@ -276,28 +275,28 @@ func TestSetIdentityFromContext(t *testing.T) {
 			reachesAllowCheck:  true,
 		}, {
 			// If the SN key is present with the right value, return no error.
-			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unarylib.CLIENT_CERT_SN_KEY, unarylib.ORC8R_CLIENT_CERT_VALUE)),
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, registry.ORC8R_CLIENT_CERT_VALUE)),
 			serverInfo:         &grpc.UnaryServerInfo{},
 			expectedError:      nil,
 			expectedContextNil: true,
 			reachesAllowCheck:  false,
 		}, {
 			// If multiple SN keys are present, return an error.
-			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unarylib.CLIENT_CERT_SN_KEY, unarylib.ORC8R_CLIENT_CERT_VALUE, unarylib.CLIENT_CERT_SN_KEY, "other value")),
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, registry.ORC8R_CLIENT_CERT_VALUE, unary.CLIENT_CERT_SN_KEY, "other value")),
 			serverInfo:         &grpc.UnaryServerInfo{},
 			expectedError:      status.Error(codes.Unauthenticated, "Multiple CSNs present"),
 			expectedContextNil: true,
 			reachesAllowCheck:  true,
 		}, {
 			// If CN key is present with the value, return no error.
-			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unarylib.CLIENT_CERT_SN_KEY, csn[0])),
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, csn[0])),
 			serverInfo:         &grpc.UnaryServerInfo{},
 			expectedError:      nil,
 			expectedContextNil: false,
 			reachesAllowCheck:  false,
 		}, {
 			// If CN key is present with the wrong value, return an error.
-			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unarylib.CLIENT_CERT_SN_KEY, "wrong CSN")),
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, "wrong CSN")),
 			serverInfo:         &grpc.UnaryServerInfo{},
 			expectedError:      status.Error(codes.PermissionDenied, "Unknown Client Certificate"),
 			expectedContextNil: true,
