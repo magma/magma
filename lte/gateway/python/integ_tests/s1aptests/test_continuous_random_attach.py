@@ -39,7 +39,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def handle_msg(self, msg):
-        """Handle messages recieved from TFW"""
+        """Handle messages received from TFW"""
         if msg.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value:
             self.auth_req_ind_count += 1
             m = msg.cast(s1ap_types.ueAuthReqInd_t)
