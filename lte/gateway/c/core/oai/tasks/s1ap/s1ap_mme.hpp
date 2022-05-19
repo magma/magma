@@ -32,7 +32,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
-#include "lte/gateway/c/core/oai/include/s1ap_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 
 #define S1AP_ZMQ_LATENCY_TH \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages

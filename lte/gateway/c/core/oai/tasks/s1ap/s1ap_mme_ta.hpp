@@ -27,7 +27,7 @@
 
 #include "S1ap_SupportedTAs.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/s1ap_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 
 enum {
   TA_LIST_UNKNOWN_TAC = -2,
