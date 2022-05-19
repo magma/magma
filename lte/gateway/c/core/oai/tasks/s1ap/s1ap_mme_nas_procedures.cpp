@@ -1009,7 +1009,7 @@ void s1ap_handle_conn_est_cnf(
           reinterpret_cast<S1ap_NAS_PDU_t*>(calloc(1, sizeof(S1ap_NAS_PDU_t)));
       nas_pdu->size = blength(conn_est_cnf_pP->nas_pdu[item]);
       nas_pdu->buf = reinterpret_cast<uint8_t*>(
-          malloc(blength(conn_est_cnf_pP->nas_pdu[item])));
+          calloc(1, blength(conn_est_cnf_pP->nas_pdu[item])));
       memcpy(nas_pdu->buf, conn_est_cnf_pP->nas_pdu[item]->data, nas_pdu->size);
       e_RABToBeSetup->nAS_PDU = nas_pdu;
     }

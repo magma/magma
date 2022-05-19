@@ -993,7 +993,7 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 	fmt.Println("RG 1 should now be UN-suspended")
 	// check rule is able to track traffic again
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi}
-	_, err = tr.GenULTrafficBasedOnPolicyUsage(req, "static-pass-all-ocs2", 200 * KiloBytes, 40 * time.Second)
+	_, err = tr.GenULTrafficBasedOnPolicyUsage(req, "static-pass-all-ocs2", 200*KiloBytes, 40*time.Second)
 	assert.NoError(t, err)
 
 	// trigger disconnection
