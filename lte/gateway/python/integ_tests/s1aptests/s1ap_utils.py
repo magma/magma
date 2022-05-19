@@ -84,7 +84,7 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
-    MAX_RESP_WAIT_TIME = 900
+    MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
