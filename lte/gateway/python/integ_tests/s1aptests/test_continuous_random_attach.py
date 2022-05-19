@@ -32,7 +32,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
         print(
             "The test case runs for a pre-defined duration and does not "
-            "gurantee complete detach of all the UEs. Restart sctpd service "
+            "guarantee complete detach of all the UEs. Restart sctpd service "
             "to clear Redis state for subsequent test cases",
         )
         self._s1ap_wrapper.magmad_util.restart_sctpd()
