@@ -311,8 +311,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_S1AP);
-  const task_id_t tasks[] = {TASK_MME_APP, TASK_SCTP, TASK_SERVICE303};
-  init_task_context(TASK_S1AP, tasks, 3, handle_message, &s1ap_task_zmq_ctx);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP, TASK_SCTP, TASK_SERVICE303};
+  init_task_context(TASK_S1AP, peer_task_ids, 3, handle_message,
+                    &s1ap_task_zmq_ctx);
 
   if (s1ap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
@@ -328,6 +329,8 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
+// TODO Rashmi remove extern C, when complete functionality of MME is migrated
+// to cpp
 extern "C" status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());

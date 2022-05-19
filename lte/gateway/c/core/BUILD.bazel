@@ -545,7 +545,6 @@ cc_library(
         "oai/common/security_types.h",
         "oai/common/shared_ts_log.h",
         "oai/common/tree.h",
-        "oai/include/3gpp_requirements_24.301.h",
         "oai/include/EpsQualityOfService.h",
         "oai/include/TrackingAreaIdentity.h",
         "oai/include/amf_app_messages_def.h",
