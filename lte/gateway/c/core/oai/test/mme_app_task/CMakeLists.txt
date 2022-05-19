@@ -62,11 +62,15 @@ set(MME_APP_TEST_SRC
     test_sgw_config.cpp
     )
 
+set(MME_APP_MAP_TEST_SRC
+    test_mme_app_map.cpp
+    )
 add_executable(test_mme_app_ue_context_imsi ${MME_APP_UE_CONTEXT_IMSI_SRC})
 add_executable(test_nas_encode_decode ${MME_APP_NAS_ENCODE_DECODE_SRC})
 add_executable(test_nas_eps_quality_of_service ${NAS_EPS_QUALITY_OF_SERVICE})
 add_executable(test_nas_apn_ambr ${NAS_APN_AMBR})
 add_executable(mme_app_test ${MME_APP_TEST_SRC})
+add_executable(mme_app_map_test ${MME_APP_MAP_TEST_SRC})
 
 target_link_libraries(test_mme_app_ue_context_imsi
     TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
@@ -94,6 +98,11 @@ target_link_libraries(mme_app_test
     ${NETTLE_LIBRARIES}
     )
 
+target_link_libraries(mme_app_map_test
+    TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    gtest gtest_main
+    )
+
 target_include_directories(test_mme_app_ue_context_imsi PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CHECK_INCLUDE_DIRS}
@@ -113,8 +122,14 @@ target_include_directories(test_nas_apn_ambr PUBLIC
     ${CHECK_INCLUDE_DIRS}
     )
 
+target_include_directories(mme_app_map_test PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CHECK_INCLUDE_DIRS}
+    )
+
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_nas_encode_decode COMMAND test_nas_encode_decode)
 add_test(NAME test_nas_eps_quality_of_service COMMAND test_nas_eps_quality_of_service)
 add_test(NAME test_nas_apn_ambr COMMAND test_nas_apn_ambr)
 add_test(NAME test_mme_app COMMAND mme_app_test)
+add_test(NAME test_mme_app_map COMMAND mme_app_map_test)

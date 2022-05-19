@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+#include "lte/gateway/c/core/oai/include/proto_map.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #ifdef __cplusplus
@@ -29,7 +30,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
 
 // Forward declarations
 struct enb_description_s;
