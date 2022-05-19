@@ -18,6 +18,7 @@ import AppContext from './context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import NetworkContext from './context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import Popout from './Popout';
 import React, {useContext} from 'react';
@@ -92,6 +93,7 @@ const ProfileButton = (props: Props) => {
   const navigate = useNavigate();
   const resolvedPath = useResolvedPath('');
   const classes = useStyles();
+  const {networkId} = useContext(NetworkContext);
   const {
     user,
     hasAccountSettings,
@@ -126,7 +128,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
                 props.setMenuOpen(false);
-                navigate('settings');
+                navigate(networkId === null ? '/settings' : 'settings');
               }}
               component="a">
               <Text className={classes.profileItemText}>Account Settings</Text>
@@ -139,7 +141,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.ADMINISTRATION_CLICKED);
                 props.setMenuOpen(false);
-                navigate('admin');
+                navigate(networkId === null ? '/admin' : 'admin');
               }}
               component="a">
               <Text className={classes.profileItemText}>Administration</Text>

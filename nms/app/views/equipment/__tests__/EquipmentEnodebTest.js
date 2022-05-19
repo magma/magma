@@ -15,7 +15,6 @@
  */
 import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../components/context/EnodebContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
@@ -29,7 +28,7 @@ import * as hooks from '../../../components/context/RefreshContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 const enqueueSnackbarMock = jest.fn();
 jest.mock('axios');
@@ -37,7 +36,6 @@ jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
 
 const mockThroughput: promql_return_object = {
   status: 'success',

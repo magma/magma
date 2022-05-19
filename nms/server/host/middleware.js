@@ -17,7 +17,7 @@
 import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
 
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 
 export const hostOrgMiddleware = asyncHandler(
   async (req: FBCNMSRequest, res: ExpressResponse, next: NextFunction) => {

@@ -35,7 +35,6 @@ pass as a parameter to fpm.
 import argparse
 import contextlib
 import copy
-import functools
 import glob
 import hashlib
 import json
@@ -48,11 +47,10 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import typing
 import zipfile
 from datetime import datetime
 from functools import lru_cache, partial
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, cast
 
 import apt  # type: ignore
 import pkg_resources
@@ -542,10 +540,10 @@ def lcd(path):
         os.chdir(oldcwd)
 
 
-PkgInfo = typing.NamedTuple('PkgInfo',
-                            [('name', str),
-                             ('version', str),
-                             ('arch', str)])
+class PkgInfo(NamedTuple):
+    name: str
+    version: str
+    arch: str
 
 
 def _cleanup(pkgname: str) -> None:
@@ -854,7 +852,7 @@ def gen_pip_distributions(
                                 'sys.stdout.buffer)')])
 
     result = venv(['python', '-c', freeze_script], capture=True)
-    pip_distributions = {str(p.key): typing.cast(pkg_resources.Distribution, p)
+    pip_distributions = {str(p.key): cast(pkg_resources.Distribution, p)
                          for p in pickle.loads(result.stdout)}
     return pip_distributions
 
@@ -1022,7 +1020,7 @@ def main(args):
     for key in deps:
         if deps[key]['source'] == 'pypi':
             try:
-                ver = typing.cast(str, deps[key]['version'])
+                ver = cast(str, deps[key]['version'])
                 existing_versions[key] = ver
             except KeyError as e:
                 log.error('{} missing key: {}'.format(key, e))

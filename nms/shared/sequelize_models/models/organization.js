@@ -18,13 +18,11 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
-import type {SSOSelectedType} from '../../../fbc_js_core/types/auth';
-import type {Tab} from '../../../fbc_js_core/types/tabs';
+import type {SSOSelectedType} from '../../types/auth';
 
 type OrganizationInitAttributes = {
   id?: number,
   name: string,
-  tabs?: Array<Tab>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,
@@ -40,7 +38,6 @@ type OrganizationInitAttributes = {
 export type OrganizationPlainAttributes = {
   id: number,
   name: string,
-  tabs: Array<Tab>,
   customDomains: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,
@@ -78,10 +75,11 @@ export default (
     'Organization',
     {
       name: types.STRING,
+      // Unused should be removed together with a migration as a breaking change
       tabs: {
         type: types.JSON,
         allowNull: false,
-        defaultValue: [],
+        defaultValue: ['nms'],
       },
       csvCharset: types.STRING,
       customDomains: {

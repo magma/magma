@@ -10,7 +10,7 @@ func NewSpectrumInquiryRequestGenerator() *spectrumInquiryRequestGenerator {
 
 func (*spectrumInquiryRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &spectrumInquiryRequest{
-		CbsdId: cbsd.GetId(),
+		CbsdId: cbsd.GetCbsdId(),
 		InquiredSpectrum: []*frequencyRange{{
 			LowFrequency:  lowestFrequencyHz,
 			HighFrequency: highestFrequencyHz,

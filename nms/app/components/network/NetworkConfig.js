@@ -35,11 +35,7 @@ import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
-import {
-  base64ToHex,
-  hexToBase64,
-  isValidHex,
-} from '../../../fbc_js_core/util/strings';
+import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

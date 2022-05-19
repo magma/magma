@@ -21,9 +21,6 @@
 .*/node_modules/rxjs/.*
 .*/node_modules/vis/.*
 
-; fbc-js-core
-;.*/fbc_js_core/.*
-
 [untyped]
 // TODO - fix flow error in core packages
 .*/view/alarms/legacy/Alarms/AlarmApi.js
@@ -38,8 +35,6 @@ esproposal.optional_chaining=enable
 .*/flow-typed/npm/@testing-library/.*
 .*/node_modules/react-beautiful-dnd/.*
 .*/node_modules/express/.*
-.*/fbc_js_core/express-middleware/.*
-.*/fbc_js_core/util/.*
 .*/app/views/organizations/.*
 
 [lints]

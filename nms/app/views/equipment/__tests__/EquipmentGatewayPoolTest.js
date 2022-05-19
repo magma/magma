@@ -15,7 +15,6 @@
  */
 import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
@@ -31,7 +30,7 @@ import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
 } from '../../../state/lte/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
@@ -41,8 +40,6 @@ const enqueueSnackbarMock = jest.fn();
 jest
   .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-
-afterEach(cleanup);
 
 const gwPoolStateMock = {
   pool1: {

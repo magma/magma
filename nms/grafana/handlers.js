@@ -19,7 +19,7 @@ import {isEqual, sortBy} from 'lodash';
 import MagmaV1API from '../server/magma/index';
 import Sequelize from 'sequelize';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
-import {CWF} from '../fbc_js_core/types/network';
+import {CWF} from '../shared/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
@@ -35,7 +35,7 @@ import {
   createDashboard,
 } from './dashboards/Dashboards';
 
-import {Organization} from '../fbc_js_core/sequelize_models';
+import {Organization} from '../shared/sequelize_models';
 import {XWFMDBData} from './dashboards/XWFMDashboards';
 import {apiCredentials} from '../config/config';
 
@@ -46,8 +46,8 @@ import type {
 } from './GrafanaAPIType';
 import type {FBCNMSRequest} from '../server/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
-import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/organization';
-import type {UserType} from '../fbc_js_core/sequelize_models/models/user';
+import type {OrganizationType} from '../shared/sequelize_models/models/organization';
+import type {UserType} from '../shared/sequelize_models/models/user';
 import type {network_type, tenant} from '../generated/MagmaAPIBindings';
 
 const logger = require('../shared/logging').getLogger(module);

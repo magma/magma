@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -23,7 +22,7 @@ import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 jest.mock('../../../../../app/hooks/useSnackbar');
 const useSnackbar = require('../../../../../app/hooks/useSnackbar');
@@ -53,7 +52,6 @@ const Wrapper = (props: {route: string, children: React.Node}) => (
 const AlarmsWrapper = () => <Alarms apiUtil={MagmaAlarmsApiUtil} />;
 
 afterEach(() => {
-  cleanup();
   useMagmaAPIMock.mockClear();
 });
 

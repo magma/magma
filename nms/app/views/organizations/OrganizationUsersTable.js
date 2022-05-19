@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import ActionTableLegacy from '../../components/ActionTableLegacy';
+import ActionTable from '../../components/ActionTable';
 import React from 'react';
 import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
@@ -21,7 +21,7 @@ import withAlert from '../../components/Alert/withAlert';
 import type {EditUser} from './OrganizationEdit';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
-import {UserRoles} from '../../../shared/types';
+import {UserRoles} from '../../../shared/roles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
@@ -110,7 +110,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
 
   return (
     <>
-      <ActionTableLegacy
+      <ActionTable
         tableRef={props.tableRef}
         data={() =>
           new Promise((resolve, _reject) => {

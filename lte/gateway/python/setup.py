@@ -40,7 +40,6 @@ setup(
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
         'magma.pipelined.ebpf',
-        'magma.pkt_tester',
         'magma.policydb',
         'magma.policydb.servicers',
         'magma.redirectd',

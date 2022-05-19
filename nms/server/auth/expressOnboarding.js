@@ -18,9 +18,9 @@ import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from './access';
 
 import express from 'express';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
-import {Organization, User} from '../../fbc_js_core/sequelize_models';
+import {Organization, User} from '../../shared/sequelize_models';
 import {getPropsToUpdate} from './util';
 
 export default function () {
@@ -76,7 +76,6 @@ export default function () {
 
         await Organization.create({
           name: req.body.organization,
-          tabs: req.body.tabs,
           networkIDs: [],
           csvCharset: '',
           customDomains: [],

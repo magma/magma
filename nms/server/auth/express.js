@@ -19,9 +19,9 @@ import express from 'express';
 import expressOnboarding from './expressOnboarding';
 import logging from '../../shared/logging';
 import passport from 'passport';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
+import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
-import {AuditLogEntry, User} from '../../fbc_js_core/sequelize_models';
+import {AuditLogEntry, User} from '../../shared/sequelize_models';
 import {access} from './access';
 import {
   addQueryParamsToUrl,
@@ -34,7 +34,7 @@ import {isEmpty} from 'lodash';
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
-import type {UserType} from '../../fbc_js_core/sequelize_models/models/user';
+import type {UserType} from '../../shared/sequelize_models/models/user';
 
 import crypto from 'crypto';
 
@@ -136,7 +136,6 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         ssoSelectedType,
         csvCharset: null,
         enabledFeatures: [],
-        tabs: [],
         user: {
           tenant: '',
           email: '',
@@ -275,13 +274,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
           throw new Error('Email not included!');
         }
 
-        const allowedProps = [
-          'email',
-          'networkIDs',
-          'password',
-          'role',
-          'tabs',
-        ];
+        const allowedProps = ['email', 'networkIDs', 'password', 'role'];
         let userProperties = await getPropsToUpdate(
           allowedProps,
           body,
@@ -329,7 +322,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
         }
 
         // Create object to pass into update()
-        const allowedProps = ['networkIDs', 'password', 'role', 'tabs'];
+        const allowedProps = ['networkIDs', 'password', 'role'];
 
         const userProperties = await getPropsToUpdate(
           allowedProps,

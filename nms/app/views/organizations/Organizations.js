@@ -14,11 +14,11 @@
  * @format
  */
 
-import type {OrganizationPlainAttributes} from '../../../fbc_js_core/sequelize_models/models/organization';
-import type {UserType} from '../../../fbc_js_core/sequelize_models/models/user.js';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
+import type {UserType} from '../../../shared/sequelize_models/models/user.js';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
-import ActionTableLegacy from '../../components/ActionTableLegacy';
+import ActionTable from '../../components/ActionTable';
 import BusinessIcon from '@material-ui/icons/Business';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -304,7 +304,7 @@ function Organizations(props: Props) {
         </Grid>
         <>{showOnboardingDialog && <OnboardingDialog />}</>
         <Grid item xs={12}>
-          <ActionTableLegacy
+          <ActionTable
             data={organizationRows}
             columns={[
               {

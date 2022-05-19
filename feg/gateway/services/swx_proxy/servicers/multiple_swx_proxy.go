@@ -17,9 +17,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/multiplex"
-	"magma/orc8r/lib/go/merrors"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
@@ -129,13 +130,15 @@ func (s *SwxProxies) Disable(ctx context.Context, req *fegprotos.DisableMessage)
 
 // Calls Enable on each swx proxy
 func (s *SwxProxies) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
-	multiError := merrors.NewMulti()
+	errs := &multierror.Error{}
 	for i, proxy := range s.proxies {
 		proxy.connMan.Enable()
 		_, err := proxy.connMan.GetConnection(proxy.smClient, proxy.config.ServerCfg)
-		multiError = multiError.AddFmt(err, "error(%d):", i+1)
+		if err != nil {
+			errs = multierror.Append(errs, fmt.Errorf("error(%d): %v", i+1, err))
+		}
 	}
-	return &orcprotos.Void{}, multiError.AsError()
+	return &orcprotos.Void{}, errs.ErrorOrNil()
 }
 
 // Calls GetHealthStatus on each Swx Proxy

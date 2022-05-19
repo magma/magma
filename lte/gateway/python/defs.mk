@@ -19,7 +19,6 @@ TESTS=magma/tests \
       magma/enodebd/tests \
       magma/mobilityd/tests \
       magma/pipelined/openflow/tests \
-      magma/pkt_tester/tests \
       magma/redirectd/tests \
       magma/subscriberdb/tests \
       magma/monitord/tests \

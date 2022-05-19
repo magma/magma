@@ -14,7 +14,7 @@
  * @format
  */
 import type {NetworkContextType} from '../context/NetworkContext';
-import type {NetworkType} from '../../../fbc_js_core/types/network';
+import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
 import AppContext from '../../../app/components/context/AppContext';
@@ -25,7 +25,7 @@ import {
   FEG,
   LTE,
   coalesceNetworkType,
-} from '../../../fbc_js_core/types/network';
+} from '../../../shared/types/network';
 
 import {getCWFSections} from '../cwf/CWFSections';
 import {getFEGSections} from '../feg/FEGSections';

@@ -31,7 +31,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/olivere/elastic/v7 v7.0.6
-	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.28.0
@@ -59,7 +58,7 @@ require (
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jxskiss/base62 v1.0.0 // indirect
@@ -76,6 +75,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.5.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

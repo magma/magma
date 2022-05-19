@@ -18,17 +18,17 @@ from typing import NamedTuple, Optional
 
 from magma.magmad.check import subprocess_workflow
 
-LscpuCommandParams = NamedTuple('LscpuCommandParams', [])
-LscpuCommandResult = NamedTuple(
-    'LscpuCommandResult',
-    [
-        ('error', Optional[str]),
-        ('core_count', Optional[int]),
-        ('threads_per_core', Optional[int]),
-        ('architecture', Optional[str]),
-        ('model_name', Optional[str]),
-    ],
-)
+
+class LscpuCommandParams(NamedTuple):
+    pass
+
+
+class LscpuCommandResult(NamedTuple):
+    error: Optional[str]
+    core_count: Optional[int]
+    threads_per_core: Optional[int]
+    architecture: Optional[str]
+    model_name: Optional[str]
 
 
 def get_cpu_info() -> LscpuCommandResult:

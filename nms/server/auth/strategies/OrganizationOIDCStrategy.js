@@ -17,7 +17,7 @@
 import DynamicStrategy from './DynamicStrategy';
 import {AccessRoles} from '../../../shared/roles';
 import {Strategy as OidcStrategy} from 'openid-client';
-import {User} from '../../../fbc_js_core/sequelize_models';
+import {User} from '../../../shared/sequelize_models';
 
 import {TokenSet} from 'openid-client';
 import {clientFromRequest} from '../oidc/client';

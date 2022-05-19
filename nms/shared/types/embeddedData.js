@@ -14,9 +14,8 @@
  * @format
  */
 
-import type {FeatureID} from '../../fbc_js_core/types/features';
-import type {SSOSelectedType} from '../../fbc_js_core/types/auth';
-import type {Tab} from '../../fbc_js_core/types/tabs';
+import type {FeatureID} from './features';
+import type {SSOSelectedType} from './auth';
 
 export type User = {
   tenant: string,
@@ -27,7 +26,6 @@ export type User = {
 
 export type EmbeddedData = {|
   csrfToken: string,
-  tabs: $ReadOnlyArray<Tab>,
   user: User,
   enabledFeatures: FeatureID[],
   ssoEnabled: boolean,

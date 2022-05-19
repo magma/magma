@@ -24,7 +24,7 @@ make orc8r
 ## Running integration tests.
 
 ```
-CI=true make
+make integration_tests
 ```
 
 ## Running integration tests with orc8r deployed.

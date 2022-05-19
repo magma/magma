@@ -14,13 +14,12 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';
 import {AppContextProvider} from '../../../app/components/context/AppContext';
-import {LTE} from '../../../fbc_js_core/types/network';
+import {LTE} from '../../../shared/types/network';
 import {MemoryRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 

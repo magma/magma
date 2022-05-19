@@ -17,13 +17,10 @@ from orc8r.protos.service303_pb2 import State
 
 ICMP_STATE_TYPE = "icmp_monitoring"
 
-ICMPMonitoringResponse = NamedTuple(
-    'ICMPMonitoringResponse',
-    [
-        ('last_reported_time', int),
-        ('latency_ms', float),
-    ],
-)
+
+class ICMPMonitoringResponse(NamedTuple):
+    last_reported_time: int
+    latency_ms: float
 
 
 def serialize_subscriber_states(

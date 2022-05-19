@@ -16,16 +16,16 @@
 
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
-import type {FeatureID} from '../../fbc_js_core/types/features';
+import type {FeatureID} from '../../shared/types/features';
 
 import Sequelize from 'sequelize';
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import express from 'express';
 import featureConfigs from '../features';
 import logging from '../../shared/logging';
-import {FeatureFlag, Organization} from '../../fbc_js_core/sequelize_models';
-import {User} from '../../fbc_js_core/sequelize_models';
+import {FeatureFlag, Organization} from '../../shared/sequelize_models';
+import {User} from '../../shared/sequelize_models';
 import {getPropsToUpdate} from '../auth/util';
 
 const logger = logging.getLogger(module);
@@ -150,7 +150,6 @@ router.post(
       name: req.body.name,
       networkIDs: req.body.networkIDs,
       customDomains: req.body.customDomains,
-      tabs: req.body.tabs,
       csvCharset: '',
       ssoCert: '',
       ssoEntrypoint: '',

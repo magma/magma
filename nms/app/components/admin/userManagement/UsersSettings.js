@@ -33,9 +33,9 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
-import {UserRoles} from '../../../../shared/types';
+import {UserRoles} from '../../../../shared/roles';
 
-import renderList from '../../../../fbc_js_core/util/renderList';
+import renderList from '../../../util/renderList';
 import withAlert from '../../Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../../app/hooks';
@@ -60,10 +60,8 @@ function UsersSettings(props: Props) {
   const [editingUser, setEditingUser] = useState<?EditUser>(null);
   const [users, setUsers] = useState<Array<EditUser>>([]);
   const [showDialog, setShowDialog] = useState<boolean>(false);
-  const {networkIds, ssoEnabled, isTabEnabled} = useContext(AppContext);
+  const {networkIds, ssoEnabled} = useContext(AppContext);
   const enqueueSnackbar = useEnqueueSnackbar();
-
-  const isNmsEnabled = isTabEnabled('nms');
 
   const {isLoading, error} = useAxios({
     url: '/user/async/',
@@ -122,9 +120,7 @@ function UsersSettings(props: Props) {
           ? 'Read Only User'
           : 'Super User'}
       </TableCell>
-      {isNmsEnabled ? (
-        <TableCell>{renderList(row.networkIDs || [])}</TableCell>
-      ) : null}
+      <TableCell>{renderList(row.networkIDs || [])}</TableCell>
       <TableCell>
         <IconButton onClick={() => deleteUser(row)}>
           <DeleteIcon />
@@ -157,7 +153,7 @@ function UsersSettings(props: Props) {
             <TableRow>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
-              {isNmsEnabled ? <TableCell>Accessible Networks</TableCell> : null}
+              <TableCell>Accessible Networks</TableCell>
               <TableCell />
             </TableRow>
           </TableHead>

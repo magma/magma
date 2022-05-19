@@ -14,21 +14,9 @@
  * @format
  */
 
-'use strict';
+import type {Middleware} from 'express';
 
-const fs = require('fs');
-const path = require('path');
-
-const appDirectory = fs.realpathSync(process.cwd());
-
-const resolveApp = (relativePath: string) =>
-  path.resolve(appDirectory, relativePath);
-
-module.exports = {
-  appIndexJs: resolveApp('app/main.js'),
-  loginJs: resolveApp('app/login.js'),
-  appSrc: resolveApp('app'),
-  distPath: resolveApp('static/dist'),
-  packagesDir: resolveApp('../../fbcnms-packages'),
-  resolveApp,
-};
+// $FlowIgnore[value-as-type]
+export default function asyncHandler(fn: Middleware): Middleware {
+  return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+}

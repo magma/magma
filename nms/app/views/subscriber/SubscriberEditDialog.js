@@ -41,11 +41,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {CoreNetworkTypes} from './SubscriberUtils';
-import {
-  base64ToHex,
-  hexToBase64,
-  isValidHex,
-} from '../../../fbc_js_core/util/strings';
+import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

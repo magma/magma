@@ -49,23 +49,21 @@ CACHED_GPS_COORD_FILE_PATH = os.path.join(
 _gps_lat_cached = None
 _gps_lon_cached = None
 
-EnodebStatus = NamedTuple(
-    'EnodebStatus',
-    [
-        ('enodeb_configured', bool),
-        ('gps_latitude', str),
-        ('gps_longitude', str),
-        ('enodeb_connected', bool),
-        ('opstate_enabled', bool),
-        ('rf_tx_on', bool),
-        ('rf_tx_desired', bool),
-        ('gps_connected', bool),
-        ('ptp_connected', bool),
-        ('mme_connected', bool),
-        ('fsm_state', str),
-        ('cell_id', int),
-    ],
-)
+
+class EnodebStatus(NamedTuple):
+    enodeb_configured: bool
+    gps_latitude: str
+    gps_longitude: str
+    enodeb_connected: bool
+    opstate_enabled: bool
+    rf_tx_on: bool
+    rf_tx_desired: bool
+    gps_connected: bool
+    ptp_connected: bool
+    mme_connected: bool
+    fsm_state: str
+    cell_id: int
+
 
 # TODO: Remove after checkins support multiple eNB status
 MagmaOldEnodebdStatus = namedtuple(
@@ -86,20 +84,17 @@ MagmaOldEnodebdStatus = namedtuple(
     ],
 )
 
-MagmaEnodebdStatus = NamedTuple(
-    'MagmaEnodebdStatus',
-    [
-        ('n_enodeb_connected', str),
-        ('all_enodeb_configured', str),
-        ('all_enodeb_opstate_enabled', str),
-        ('all_enodeb_rf_tx_configured', str),
-        ('any_enodeb_gps_connected', str),
-        ('all_enodeb_ptp_connected', str),
-        ('all_enodeb_mme_connected', str),
-        ('gateway_gps_longitude', str),
-        ('gateway_gps_latitude', str),
-    ],
-)
+
+class MagmaEnodebdStatus(NamedTuple):
+    n_enodeb_connected: str
+    all_enodeb_configured: str
+    all_enodeb_opstate_enabled: str
+    all_enodeb_rf_tx_configured: str
+    any_enodeb_gps_connected: str
+    all_enodeb_ptp_connected: str
+    all_enodeb_mme_connected: str
+    gateway_gps_longitude: str
+    gateway_gps_latitude: str
 
 
 def update_status_metrics(status: EnodebStatus) -> None:
