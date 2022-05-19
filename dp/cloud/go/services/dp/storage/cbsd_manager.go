@@ -16,16 +16,17 @@ package storage
 import (
 	"database/sql"
 
-	sq "github.com/Masterminds/squirrel"
-
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/merrors"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 type CbsdManager interface {
 	CreateCbsd(networkId string, data *MutableCbsd) error
 	UpdateCbsd(networkId string, id int64, data *MutableCbsd) error
+	EnodebdUpdateCbsd(serialNumber string, updatePayload *EnodebdPayload) error
 	DeleteCbsd(networkId string, id int64) error
 	FetchCbsd(networkId string, id int64) (*DetailedCbsd, error)
 	ListCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error)
@@ -44,6 +45,16 @@ type DetailedCbsdList struct {
 type MutableCbsd struct {
 	Cbsd         *DBCbsd
 	DesiredState *DBCbsdState
+}
+
+type EnodebdPayload struct {
+	LatitudeDeg      float64
+	LongitudeDeg     float64
+	IndoorDeployment bool
+	HeightM          float64
+	HeightType       string
+	AntennaGain      float64
+	CbsdCategory     string
 }
 
 type DetailedCbsd struct {
@@ -87,6 +98,15 @@ func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *MutableCbsd) 
 	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
 		err := runner.updateCbsd(networkId, id, data)
+		return nil, err
+	})
+	return makeError(err, c.errorChecker)
+}
+
+func (c *cbsdManager) EnodebdUpdateCbsd(serialNumber string, payload *EnodebdPayload) error {
+	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
+		runner := c.getInTransactionManager(tx)
+		err := runner.enodebdUpdateCbsd(serialNumber, payload)
 		return nil, err
 	})
 	return makeError(err, c.errorChecker)
@@ -198,7 +218,32 @@ func getCbsdWriteFields() []string {
 	}
 }
 
+func getEnodebdWritableFields() []string {
+	return []string{}
+}
+
 func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *MutableCbsd) error {
+	// SELECT FOR UPDATE. Field mask as an argument
+	if err := c.checkIfCbsdExists(networkId, id); err != nil {
+		return err
+	}
+	desiredState, err := c.cache.getValue(c.builder, &DBCbsdState{}, data.DesiredState.Name.String)
+	if err != nil {
+		return err
+	}
+	data.Cbsd.DesiredStateId = db.MakeInt(desiredState)
+	data.Cbsd.ShouldDeregister = db.MakeBool(true)
+	columns := append(getCbsdWriteFields(), "should_deregister")
+	return db.NewQuery().
+		WithBuilder(c.builder).
+		From(data.Cbsd).
+		Select(db.NewIncludeMask(columns...)).
+		Where(sq.Eq{"id": id}).
+		Update()
+}
+
+func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(serialNumber string, payload *EnodebdPayload) error {
+	// SELECT FOR UPDATE. Field mask as an argument
 	if err := c.checkIfCbsdExists(networkId, id); err != nil {
 		return err
 	}
@@ -222,7 +267,7 @@ func (c *cbsdManagerInTransaction) checkIfCbsdExists(networkId string, id int64)
 		WithBuilder(c.builder).
 		From(&DBCbsd{}).
 		Select(db.NewIncludeMask("id")).
-		Where(getCbsdFiltersWithId(networkId, id)).
+		Where(getCbsdFiltersWithId(networkId, id)). // Pass this to checkIfCbsdExists
 		Fetch()
 	return err
 }

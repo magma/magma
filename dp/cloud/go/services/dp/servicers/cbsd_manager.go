@@ -50,7 +50,39 @@ func (c *cbsdManager) CreateCbsd(_ context.Context, request *protos.CreateCbsdRe
 	return &protos.CreateCbsdResponse{}, nil
 }
 
-func (c *cbsdManager) UpdateCbsd(_ context.Context, request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+	_, err := fitForUserUpdate(request)
+	if err != nil {
+		return nil, makeErr(err, "update cbsd")
+	}
+	return c.doUpdate(request)
+}
+
+func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+	_, err := fitForEnodebdUpdate(request)
+	if err != nil {
+		return nil, makeErr(err, "update cbsd")
+	}
+	err = c.store.EnodebdUpdateCbsd(request.SerialNumber, toEnodebdPayload(request.InstallationParam, request.CbsdCategory))
+	if err != nil {
+		return nil, makeErr(err, "update cbsd")
+	}
+	return &protos.UpdateCbsdResponse{}, nil
+}
+
+func fitForEnodebdUpdate(request *protos.EnodebdUpdateCbsdRequest) (bool, error) {
+	// TODO select for update. Check if the entity has a digitalSitnature in the db. If so - do not update the entity
+	return true, nil
+}
+
+func fitForUserUpdate(request *protos.UpdateCbsdRequest) (bool, error) {
+	// TODO select for update on the cbsd and see if it can be updated the way the user is requesting. E.g. See if they are trying to
+	// update installationParam. For that the radio must be in single step mode and contain CPI data.
+	// Furthermore digital signing of the data must be successful first.
+	return true, nil
+}
+
+func (c *cbsdManager) doUpdate(request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
 	err := c.store.UpdateCbsd(request.NetworkId, request.Id, cbsdToDatabase(request.Data))
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
@@ -129,24 +161,50 @@ func cbsdToDatabase(data *protos.CbsdData) *storage.MutableCbsd {
 	}
 }
 
-func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
-	capabilities := data.Capabilities
-	preferences := data.Preferences
-	b, _ := json.Marshal(preferences.FrequenciesMhz)
-	cbsd := &storage.DBCbsd{
-		UserId:                  db.MakeString(data.UserId),
-		FccId:                   db.MakeString(data.FccId),
-		CbsdSerialNumber:        db.MakeString(data.SerialNumber),
-		MinPower:                db.MakeFloat(capabilities.MinPower),
-		MaxPower:                db.MakeFloat(capabilities.MaxPower),
-		AntennaGain:             db.MakeFloat(capabilities.AntennaGain),
-		NumberOfPorts:           db.MakeInt(capabilities.NumberOfAntennas),
-		PreferredBandwidthMHz:   db.MakeInt(preferences.BandwidthMhz),
-		PreferredFrequenciesMHz: db.MakeString(string(b)),
-		SingleStepEnabled:       db.MakeBool(data.SingleStepEnabled),
-		CbsdCategory:            db.MakeString(data.CbsdCategory),
+func toEnodebdPayload(installationParam *protos.InstallationParam, cbsdCategory string) *storage.EnodebdPayload {
+	payload := storage.EnodebdPayload{}
+	payload.CbsdCategory = cbsdCategory
+	if installationParam != nil {
+		payload.LatitudeDeg = installationParam.LatitudeDeg.Value
+		payload.LongitudeDeg = installationParam.LongitudeDeg.Value
+		payload.HeightM = installationParam.HeightM.Value
+		payload.HeightType = installationParam.HeightType.Value
+		payload.IndoorDeployment = installationParam.IndoorDeployment.Value
+		payload.AntennaGain = installationParam.AntennaGain.Value
 	}
+	return &payload
+}
+
+func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
+	capabilities := data.GetCapabilities()
+	preferences := data.GetPreferences()
+	installationParam := data.GetInstallationParam()
+	b, _ := json.Marshal(preferences.GetFrequenciesMhz())
+	cbsd := &storage.DBCbsd{
+		UserId:                  db.MakeString(data.GetUserId()),
+		FccId:                   db.MakeString(data.GetFccId()),
+		CbsdSerialNumber:        db.MakeString(data.GetSerialNumber()),
+		MinPower:                db.MakeFloat(capabilities.GetMinPower()),
+		MaxPower:                db.MakeFloat(capabilities.GetMaxPower()),
+		NumberOfPorts:           db.MakeInt(capabilities.GetNumberOfAntennas()),
+		PreferredBandwidthMHz:   db.MakeInt(preferences.GetBandwidthMhz()),
+		PreferredFrequenciesMHz: db.MakeString(string(b)),
+		SingleStepEnabled:       db.MakeBool(data.GetSingleStepEnabled()),
+		CbsdCategory:            db.MakeString(data.GetCbsdCategory()),
+	}
+	setInstallationParam(cbsd, installationParam)
 	return cbsd
+}
+
+func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam) {
+	if params != nil {
+		dbFloat64OrNil(&cbsd.AntennaGain, params.GetAntennaGain())
+		dbFloat64OrNil(&cbsd.LatitudeDeg, params.GetLatitudeDeg())
+		dbFloat64OrNil(&cbsd.LongitudeDeg, params.GetLongitudeDeg())
+		dbBoolOrNil(&cbsd.IndoorDeployment, params.GetIndoorDeployment())
+		dbFloat64OrNil(&cbsd.HeightM, params.GetHeightM())
+		dbStringOrNil(&cbsd.HeightType, params.GetHeightType())
+	}
 }
 
 func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Duration) *protos.CbsdDetails {
@@ -179,19 +237,30 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 				MinPower:         data.Cbsd.MinPower.Float64,
 				MaxPower:         data.Cbsd.MaxPower.Float64,
 				NumberOfAntennas: data.Cbsd.NumberOfPorts.Int64,
-				AntennaGain:      data.Cbsd.AntennaGain.Float64,
 			},
 			Preferences: &protos.FrequencyPreferences{
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
 				FrequenciesMhz: frequencies,
 			},
-			DesiredState: data.DesiredState.Name.String,
+			DesiredState:      data.DesiredState.Name.String,
+			InstallationParam: getInstallationParam(data.Cbsd),
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,
 		IsActive: isActive,
 		Grant:    grant,
 	}
+}
+
+func getInstallationParam(c *storage.DBCbsd) *protos.InstallationParam {
+	p := &protos.InstallationParam{}
+	p.LatitudeDeg = protoDoubleOrNil(c.LatitudeDeg)
+	p.LongitudeDeg = protoDoubleOrNil(c.LongitudeDeg)
+	p.IndoorDeployment = protoBoolOrNil(c.IndoorDeployment)
+	p.HeightM = protoDoubleOrNil(c.HeightM)
+	p.HeightType = protoStringOrNil(c.HeightType)
+	p.AntennaGain = protoDoubleOrNil(c.AntennaGain)
+	return p
 }
 
 func makeErr(err error, wrap string) error {

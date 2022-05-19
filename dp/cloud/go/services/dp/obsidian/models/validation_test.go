@@ -36,10 +36,6 @@ func TestMutableCbsd_Validate(t *testing.T) {
 		data:          newMutableCbsd(withFrequencies(nil)),
 		expectedError: "frequencies_mhz in body is required",
 	}, {
-		name:          "Should validate antenna gain",
-		data:          newMutableCbsd(withAntennaGain(nil)),
-		expectedError: "antenna_gain in body is required",
-	}, {
 		name:          "Should validate max power",
 		data:          newMutableCbsd(withMaxPower(nil)),
 		expectedError: "max_power in body is required",
@@ -86,8 +82,7 @@ func TestMutableCbsd_Validate(t *testing.T) {
 
 func newMutableCbsd(options ...mutableCbsdOption) *models.MutableCbsd {
 	m := &models.MutableCbsd{
-		Capabilities: models.Capabilities{
-			AntennaGain:      to_pointer.Float(1),
+		Capabilities: &models.Capabilities{
 			MaxPower:         to_pointer.Float(24),
 			MinPower:         to_pointer.Float(0),
 			NumberOfAntennas: 1,
@@ -135,12 +130,6 @@ func withMaxPower(maxPower *float64) mutableCbsdOption {
 func withMinPower(minPower *float64) mutableCbsdOption {
 	return func(m *models.MutableCbsd) {
 		m.Capabilities.MinPower = minPower
-	}
-}
-
-func withAntennaGain(antennaGain *float64) mutableCbsdOption {
-	return func(m *models.MutableCbsd) {
-		m.Capabilities.AntennaGain = antennaGain
 	}
 }
 

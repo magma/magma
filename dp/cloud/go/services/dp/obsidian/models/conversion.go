@@ -28,7 +28,6 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 		SingleStepEnabled: *m.SingleStepEnabled,
 		CbsdCategory:      m.CbsdCategory,
 		Capabilities: &protos.Capabilities{
-			AntennaGain:      *m.Capabilities.AntennaGain,
 			MaxPower:         *m.Capabilities.MaxPower,
 			MinPower:         *m.Capabilities.MinPower,
 			NumberOfAntennas: m.Capabilities.NumberOfAntennas,
@@ -43,8 +42,7 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 
 func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 	return &Cbsd{
-		Capabilities: Capabilities{
-			AntennaGain:      &details.Data.Capabilities.AntennaGain,
+		Capabilities: &Capabilities{
 			MaxPower:         &details.Data.Capabilities.MaxPower,
 			MinPower:         &details.Data.Capabilities.MinPower,
 			NumberOfAntennas: details.Data.Capabilities.NumberOfAntennas,
@@ -64,6 +62,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		UserID:            details.Data.UserId,
 		SingleStepEnabled: details.Data.SingleStepEnabled,
 		CbsdCategory:      details.Data.CbsdCategory,
+		InstallationParam: getInstallationParam(details.Data.GetInstallationParam()),
 	}
 }
 
@@ -85,6 +84,20 @@ func getGrant(grant *protos.GrantDetails) *Grant {
 		MaxEirp:            grant.MaxEirp,
 		State:              grant.State,
 		TransmitExpireTime: to_pointer.TimeToDateTime(grant.TransmitExpireTimestamp),
+	}
+}
+
+func getInstallationParam(params *protos.InstallationParam) *InstallationParam {
+	if params == nil {
+		return nil
+	}
+	return &InstallationParam{
+		AntennaGain:      params.AntennaGain.Value,
+		Heightm:          params.HeightM.Value,
+		HeightType:       params.HeightType.Value,
+		IndoorDeployment: params.IndoorDeployment.Value,
+		LatitudeDeg:      params.LatitudeDeg.Value,
+		LongitudeDeg:     params.LongitudeDeg.Value,
 	}
 }
 
