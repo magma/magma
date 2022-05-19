@@ -318,6 +318,7 @@ enum PdrState {
   INSTALL = 0;
   REMOVE  = 1;
   IDLE    = 2;
+  MODI    = 3;
 }
 
 // PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request

@@ -24,8 +24,8 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import nullthrows from '../../../shared/util/nullthrows';
+import withAlert from '../../components/Alert/withAlert';
 import {
   DEFAULT_PAGE_SIZE,
   REFRESH_TIMEOUT,
@@ -34,7 +34,7 @@ import {
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
   lte_subscription,
   mutable_subscriber,
@@ -57,7 +57,7 @@ import {
   isValidHex,
 } from '../../../fbc_js_core/util/strings';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 // number of subscriber in a chunk

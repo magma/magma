@@ -35,10 +35,10 @@ import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
+import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {CWF, FEG, LTE} from '../../../fbc_js_core/types/network';
 import {base64ToHex, decodeBase64} from '../../../fbc_js_core/util/strings';

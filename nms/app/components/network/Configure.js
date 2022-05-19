@@ -17,7 +17,7 @@
 import type {ComponentType} from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
+import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';

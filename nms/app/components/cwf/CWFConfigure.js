@@ -15,7 +15,7 @@
  */
 
 import Configure from '../network/Configure';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';

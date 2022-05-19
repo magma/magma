@@ -14,6 +14,7 @@ go_library(
 
 go_test(
     name = "pipelined_test",
+    size = "small",
     srcs = ["pipelined_server_integ_test.go"],
     deps = [
         ":pipelined",

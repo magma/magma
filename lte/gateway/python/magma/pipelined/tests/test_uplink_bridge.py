@@ -12,7 +12,6 @@ limitations under the License.
 """
 import logging
 import subprocess
-import threading
 import unittest
 import warnings
 from concurrent.futures import Future

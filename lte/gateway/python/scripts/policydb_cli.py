@@ -20,15 +20,11 @@ import grpc
 from google.protobuf import text_format
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import (
-    ChargingRuleNameSet,
     DisableStaticRuleRequest,
     EnableStaticRuleRequest,
     FlowDescription,
     FlowMatch,
-    InstalledPolicies,
     PolicyRule,
-    RatingGroup,
-    SubscriberPolicySet,
 )
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from magma.common.rpc_utils import grpc_wrapper
@@ -44,7 +40,7 @@ DEBUG_MSG = 'You may want to check that a connection can be made to ' \
 
 
 @grpc_wrapper
-def add_rule(args):
+def add_rule(self, args):
     rule_id = args.rule_id
     policy_dict = PolicyRuleDict()
     arg_list = {

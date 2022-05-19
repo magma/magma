@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
@@ -24,8 +24,8 @@ import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import nullthrows from '../../../shared/util/nullthrows';
+import withAlert from '../../components/Alert/withAlert';
 
 import {
   REFRESH_INTERVAL,
@@ -35,7 +35,7 @@ import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const CHART_TITLE = 'Total Throughput';

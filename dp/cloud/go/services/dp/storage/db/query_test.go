@@ -72,14 +72,9 @@ func (s *QueryTestSuite) TestCreate() {
 		expected:  &otherModel{id: db.MakeInt(id * 2)},
 	}, {
 		name:      "Should create resource with default value",
-		fieldMask: db.NewExcludeMask("default_value"),
+		fieldMask: db.NewExcludeMask(),
 		input:     &anotherModel{id: db.MakeInt(id * 3)},
 		expected:  &anotherModel{id: db.MakeInt(id * 3), defaultValue: db.MakeInt(defaultValue)},
-	}, {
-		name:      "Should create resource with unique fields",
-		fieldMask: db.NewExcludeMask(),
-		input:     getModelWithUniqueFields(),
-		expected:  getModelWithUniqueFields(),
 	}}
 	for _, tt := range testCases {
 		s.Run(tt.name, s.inTransaction(func() {
@@ -151,23 +146,49 @@ func (s *QueryTestSuite) TestCount() {
 }
 
 func (s *QueryTestSuite) TestUpdate() {
-	err := s.resourceManager.InTransaction(func() {
-		id := s.whenModelIsInserted(db.NewExcludeMask(), getSomeModel())
+	testCases := []struct {
+		name     string
+		given    db.Model
+		input    db.Model
+		expected db.Model
+	}{{
+		name:     "should update entity",
+		given:    getSomeModel().withId(2 * id),
+		input:    getSomeDifferentModel(),
+		expected: getSomeDifferentModel(),
+	}, {
+		name: "should update entity with default value",
+		given: &anotherModel{
+			id:           db.MakeInt(3 * id),
+			defaultValue: db.MakeInt(defaultValue + 1),
+		},
+		input: &anotherModel{},
+		expected: &anotherModel{
+			id:           db.MakeInt(3 * id),
+			defaultValue: db.MakeInt(defaultValue),
+		},
+	}}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			err := s.resourceManager.InTransaction(func() {
+				id := s.whenModelIsInserted(db.NewExcludeMask(), tc.given)
 
-		updateData := getSomeDifferentModel()
-		err := db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(updateData).
-			Select(db.NewExcludeMask("id")).
-			Where(sq.Eq{"id": id}).
-			Update()
-		s.Require().NoError(err)
+				updateData := tc.input
+				err := db.NewQuery().
+					WithBuilder(s.resourceManager.GetBuilder()).
+					From(updateData).
+					Select(db.NewExcludeMask("id")).
+					Where(sq.Eq{"id": id}).
+					Update()
+				s.Require().NoError(err)
 
-		actual := s.whenSingleModelIsFetched(id, &someModel{})
-		expected := updateData.withId(id)
-		s.Assert().Equal(expected, actual)
-	})
-	s.Require().NoError(err)
+				actual := s.whenSingleModelIsFetched(id, tc.given)
+				expected := tc.expected
+				s.Assert().Equal(expected, actual)
+			})
+			s.Require().NoError(err)
+		})
+	}
 }
 
 func (s *QueryTestSuite) TestUpdateOnlySelectedFields() {
@@ -692,14 +713,6 @@ func (a *anotherModel) Fields() []db.BaseType {
 		db.IntType{X: &a.id},
 		db.IntType{X: &a.otherId},
 		db.IntType{X: &a.defaultValue},
-	}
-}
-
-func getModelWithUniqueFields() *modelWithUniqueFields {
-	return &modelWithUniqueFields{
-		id:                db.MakeInt(id),
-		uniqueField:       db.MakeInt(id + 1),
-		anotherUniqueFied: db.MakeInt(id + 2),
 	}
 }
 

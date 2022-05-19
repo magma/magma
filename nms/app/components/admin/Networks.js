@@ -25,10 +25,10 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
-import NoNetworksMessage from '../../../fbc_js_core/ui/components/NoNetworksMessage';
+import NestedRouteLink from '../NestedRouteLink';
+import NoNetworksMessage from '../NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
 import React, {useCallback, useContext, useState} from 'react';
 import Table from '@material-ui/core/Table';
@@ -44,7 +44,7 @@ import useMagmaAPI from '../../../api/useMagmaAPI';
 import {Route, Routes, useNavigate} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   header: {

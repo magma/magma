@@ -132,6 +132,14 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
         self.when_cbsd_is_created(builder.build_post_data())
         self.when_cbsd_is_created(builder.build_post_data(), expected_status=HTTPStatus.CONFLICT)
 
+    def test_create_cbsd_with_single_step_fields(self):
+        # TODO extend the test to check if the registration actually works
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+
+        self.when_cbsd_is_created(builder.build_unregistered_single_step_data())
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
+        self.then_cbsd_is(cbsd, builder.build_unregistered_single_step_data())
+
     def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
         builder = CbsdAPIDataBuilder()
 
@@ -463,7 +471,17 @@ class CbsdAPIDataBuilder:
             'serial_number': self.serial_number,
             'user_id': USER_ID,
             'desired_state': self.desired_state,
+            "single_step_enabled": False,
+            "cbsd_category": "b",
         }
+
+    def build_unregistered_single_step_data(self):
+        data = self.build_unregistered_data()
+        data.update({
+            'single_step_enabled': True,
+            'cbsd_category': 'a',
+        })
+        return data
 
     def build_unregistered_data(self) -> Dict[str, Any]:
         data = self.build_post_data()

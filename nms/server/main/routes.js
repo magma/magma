@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
+import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
 
@@ -48,7 +48,7 @@ const handleReact = tab =>
       );
       return;
     }
-    const appData: AppContextAppData = {
+    const appData: EmbeddedData = {
       csrfToken: req.csrfToken(),
       tabs: organization?.tabs || [],
       user: req.user
@@ -104,7 +104,7 @@ router.get(
 router.use('/host', hostOrgMiddleware, hostRoutes);
 
 async function handleHost(req: FBCNMSRequest, res) {
-  const appData: AppContextAppData = {
+  const appData: EmbeddedData = {
     csrfToken: req.csrfToken(),
     user: {
       tenant: 'host',

@@ -35,7 +35,7 @@ import {cleanup, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../../app/hooks/useSnackbar');
 afterEach(cleanup);
 
 const mockSubscriberIds: Array<subscriber_id> = [

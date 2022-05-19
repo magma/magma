@@ -6907,6 +6907,13 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      cbsd_category:
+        description: is the radio type A (only) or B (also applies to A/B type radios)
+        enum:
+        - a
+        - b
+        type: string
+        x-nullable: false
       cbsd_id:
         description: id of cbsd in SAS
         example: some_cbsd_id
@@ -6942,6 +6949,10 @@ definitions:
         minLength: 1
         type: string
         x-nullable: false
+      single_step_enabled:
+        description: should the CBSD be registered in a single-step mode
+        type: boolean
+        x-nullable: false
       state:
         description: state of cbsd in SAS
         enum:
@@ -6964,6 +6975,8 @@ definitions:
     - serial_number
     - state
     - user_id
+    - single_step_enabled
+    - cbsd_category
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -9145,6 +9158,14 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      cbsd_category:
+        default: b
+        description: is the radio type A (only) or B (also applies to A/B type radios)
+        enum:
+        - a
+        - b
+        type: string
+        x-nullable: false
       desired_state:
         description: desired state of cbsd in SAS
         enum:
@@ -9164,6 +9185,9 @@ definitions:
         minLength: 1
         type: string
         x-nullable: false
+      single_step_enabled:
+        description: should the CBSD be registered in a single-step mode
+        type: boolean
       user_id:
         example: some_user_id
         minLength: 1
@@ -9176,6 +9200,8 @@ definitions:
     - frequency_preferences
     - serial_number
     - user_id
+    - single_step_enabled
+    - cbsd_category
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool

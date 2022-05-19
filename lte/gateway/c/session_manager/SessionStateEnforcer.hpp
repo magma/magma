@@ -228,6 +228,22 @@ class SessionStateEnforcer {
       const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
           dynamic_rule_installs);
 
+  void init_policy_reauth(const std::string& imsi, SessionMap& session_map,
+                          PolicyReAuthRequest request,
+                          PolicyReAuthAnswer& answer_out,
+                          SessionUpdate& session_update);
+
+  void init_policy_reauth_for_session(
+      const std::string& imsi, const PolicyReAuthRequest& request,
+      const std::unique_ptr<SessionState>& session,
+      SessionUpdate& session_update);
+
+  bool m5g_modification_session(SessionMap& session_map,
+                                const std::string& imsi,
+                                std::unique_ptr<SessionState>& session_state,
+                                SessionConfig& new_cfg,
+                                SessionUpdate& session_update);
+
  private:
   ConvergedRuleStore GlobalRuleList;
   std::shared_ptr<StaticRuleStore> rule_store_;
@@ -249,6 +265,15 @@ class SessionStateEnforcer {
   std::unique_ptr<Timezone> access_timezone_;
 
   bool default_and_static_rule_init();
+
+  /**
+   * Get the monitoring credits from PolicyReAuthRequest (RAR) message
+   * and add the credits to UsageMonitoringCreditPool of the session
+   */
+  void m5g_receive_monitoring_credit_from_rar(
+      const PolicyReAuthRequest& request,
+      const std::unique_ptr<SessionState>& session,
+      SessionStateUpdateCriteria* session_uc);
 
   /* To send response back to AMF
    * Fill the response structure and call rpc of AmfServiceClient

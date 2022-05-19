@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import time
 import unittest
 import warnings
 from concurrent.futures import Future
@@ -20,10 +19,7 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
-from magma.pipelined.tests.app.packet_builder import (
-    ARPPacketBuilder,
-    IPPacketBuilder,
-)
+from magma.pipelined.tests.app.packet_builder import ARPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,

@@ -44,7 +44,7 @@ import {
   organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
-} from '../fbc_js_core/express_middleware';
+} from './middleware';
 import {distPath} from '../config/paths';
 import {sequelize} from '../fbc_js_core/sequelize_models';
 import {unprotectedUserRoutes} from '../server/auth/express';

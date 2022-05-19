@@ -14,8 +14,6 @@ limitations under the License.
 import abc
 from collections import namedtuple
 
-from integ_tests.s1aptests.ovs import LOCALHOST
-from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from ryu.lib import hub
 
 FlowStats = namedtuple(

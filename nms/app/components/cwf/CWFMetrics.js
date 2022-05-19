@@ -16,11 +16,11 @@
 
 import APMetrics from './APMetrics';
 import AppBar from '@material-ui/core/AppBar';
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../context/AppContext';
 import CWFNetworkMetrics from './CWFNetworkMetrics';
 import Grafana from '../Grafana';
 import IMSIMetrics from './IMSIMetrics';
-import NestedRouteLink from '../../../fbc_js_core/ui/components/NestedRouteLink';
+import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';

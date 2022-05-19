@@ -15,11 +15,13 @@ limitations under the License.
 
 import argparse
 
+from lte.protos.policydb_pb2 import FlowQos, PolicyRule, QosArp
 from lte.protos.session_manager_pb2 import (
     CommonSessionContext,
     M5GQosInformationRequest,
     M5GSMSessionContext,
     PduSessionType,
+    QosPolicy,
     RatSpecificContext,
     RatSpecificNotification,
     RATType,
@@ -415,6 +417,93 @@ class CreateAmfActiveModeSession(object):
                     request_type=RequestType.Name(1), notify_ue_event=5,
                 ),
             )
+
+
+class ModifyAmfSession(object):
+
+    def __init__(self, policy_state, policy_action, version):
+        self._set_session = SetSMSessionContext(
+            common_context=CommonSessionContext(
+                sid=SubscriberID(id="IMSI12345"),
+                ue_ipv4="192.168.128.11",
+                apn=bytes("BLR", 'utf-8'),
+                rat_type=RATType.Name(2),
+                sm_session_state=SMSessionFSMState.Name(2),
+                sm_session_version=1,
+            ),
+            rat_specific_context=RatSpecificContext(
+                m5gsm_session_context=M5GSMSessionContext(
+                    pdu_session_id=1,
+                    request_type=RequestType.Name(
+                        1,
+                    ),
+                    gnode_endpoint=TeidSet(
+                        teid=10000,
+                        end_ipv4_addr="192.168.60.141",
+                    ),
+                    pdu_session_type=PduSessionType.Name(0),
+                    ssc_mode=SscMode.Name(2),
+                    qos_policy=[
+                        QosPolicy(
+                            policy_state=policy_state,
+                            policy_action=policy_action,
+                            version=version,
+                            qos=PolicyRule(
+                                id="ims-voice",
+                                priority=10,
+                                flow_list=[],
+                                qos=FlowQos(
+                                    qci=int(5),
+                                    max_req_bw_ul=100000,
+                                    max_req_bw_dl=100000,
+                                    arp=QosArp(
+                                        priority_level=1,
+                                        pre_capability=1,
+                                        pre_vulnerability=0,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+        )
+
+
+@grpc_wrapper
+def set_amf_session_tc21(client, args):
+    print("=========TEST CASE-21 PDU SESSION MODIFICATION (Adding new policy)===========")
+    cls_sess = ModifyAmfSession(policy_state=0, policy_action=0, version=1)
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
+@grpc_wrapper
+def set_amf_session_tc22(client, args):
+    print("=========TEST CASE-22 PDU SESSION MODIFICATION (Deleting policy)===========")
+    cls_sess = ModifyAmfSession(policy_state=0, policy_action=1, version=2)
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
+@grpc_wrapper
+def set_amf_session_tc23(client, args):
+    print("=========TEST CASE-23 PDU SESSION MODIFICATION REJECT (Adding new policy)===========")
+    cls_sess = ModifyAmfSession(policy_state=2, policy_action=0, version=1)
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
+
+
+@grpc_wrapper
+def set_amf_session_tc24(client, args):
+    print("=========TEST CASE-24 PDU SESSION MODIFICATION REJECT (Deleting policy)===========")
+    cls_sess = ModifyAmfSession(policy_state=2, policy_action=1, version=2)
+    print(cls_sess._set_session)
+    response = client.SetAmfSessionContext(cls_sess._set_session)
+    print(response)
 
 
 @grpc_wrapper
@@ -816,6 +905,54 @@ def create_amf_parser(apps):
     )
     subcmd.add_argument('--apn', help='APN', default='12345')
     subcmd.set_defaults(func=set_amf_session_tc14)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc21',
+        help='Session modification Add Policy',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc21)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc22',
+        help='Session modification Del Policy',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc22)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc23',
+        help='Session modification Add Policy Reject',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc23)
+
+    subcmd = subparsers.add_parser(
+        'set_amf_session_tc24',
+        help='Session modification Del Policy Reject',
+    )
+    subcmd.add_argument(
+        '--sid',
+        help='Subscriber_ID',
+        default="imsi00000000001",
+    )
+    subcmd.add_argument('--apn', help='APN', default='12345')
+    subcmd.set_defaults(func=set_amf_session_tc24)
 
 
 def create_parser():

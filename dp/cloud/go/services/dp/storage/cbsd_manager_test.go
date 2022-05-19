@@ -88,11 +88,20 @@ const (
 	someCbsdId = 123
 )
 
-func (s *CbsdManagerTestSuite) TestCreateCbsd() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd())
+func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getBaseCbsd()))
 	s.Require().NoError(err)
+	s.verifyCbsdCreation(getBaseCbsdWithDefaultValues())
+}
 
-	err = s.resourceManager.InTransaction(func() {
+func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getSingleStepCbsd()))
+	s.Require().NoError(err)
+	s.verifyCbsdCreation(getSingleStepCbsd())
+}
+
+func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
+	err := s.resourceManager.InTransaction(func() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
@@ -111,7 +120,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 			Fetch()
 		s.Require().NoError(err)
 
-		cbsd := getBaseCbsd()
+		cbsd := expected
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
@@ -127,9 +136,10 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd())
+	cbsd := getBaseCbsd()
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(cbsd))
 	s.Require().NoError(err)
-	err = s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd())
+	err = s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(cbsd))
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
@@ -154,7 +164,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	state := s.enumMaps[storage.CbsdStateTable]["registered"]
 	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
 
-	m := getMutableCbsd()
+	m := getMutableCbsd(getBaseCbsd())
 	m.Cbsd.UserId.String += "new1"
 	m.Cbsd.FccId.String += "new2"
 	m.Cbsd.CbsdSerialNumber.String += "new3"
@@ -162,6 +172,9 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 	m.Cbsd.MaxPower.Float64 += 2
 	m.Cbsd.MinPower.Float64 += 3
 	m.Cbsd.NumberOfPorts.Int64 += 4
+	m.Cbsd.SingleStepEnabled = db.MakeBool(true)
+	m.Cbsd.IndoorDeployment = db.MakeBool(true)
+	m.Cbsd.CbsdCategory = db.MakeString("a")
 	m.DesiredState.Name = db.MakeString("unregistered")
 	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, m)
 	s.Require().NoError(err)
@@ -178,6 +191,9 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		m.Cbsd.NetworkId = db.MakeString(someNetwork)
 		m.Cbsd.ShouldDeregister = db.MakeBool(true)
 		m.Cbsd.DesiredStateId = db.MakeInt(s.enumMaps[storage.CbsdStateTable]["unregistered"])
+		m.Cbsd.SingleStepEnabled = db.MakeBool(true)
+		m.Cbsd.IndoorDeployment = db.MakeBool(true)
+		m.Cbsd.CbsdCategory = db.MakeString("a")
 		expected := []db.Model{m.Cbsd}
 		s.Assert().Equal(expected, actual)
 	})
@@ -187,12 +203,12 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 func (s *CbsdManagerTestSuite) TestUpdateDeletedCbsd() {
 	s.givenDeletedCbsd()
 
-	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, getMutableCbsd())
+	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, getMutableCbsd(getBaseCbsd()))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateNonExistentCbsd() {
-	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getMutableCbsd())
+	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getMutableCbsd(getBaseCbsd()))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
@@ -521,7 +537,7 @@ func getCbsd(id int64, networkId string, stateId int64) *storage.DBCbsd {
 }
 
 func getDetailedCbsd(id int64) *storage.DBCbsd {
-	base := getBaseCbsd()
+	base := getBaseCbsdWithDefaultValues()
 	base.Id = db.MakeInt(id)
 	base.CbsdId = db.MakeString("some_cbsd_id")
 	return base
@@ -541,9 +557,26 @@ func getBaseCbsd() *storage.DBCbsd {
 	return base
 }
 
-func getMutableCbsd() *storage.MutableCbsd {
+func getSingleStepCbsd() *storage.DBCbsd {
+	// TODO make a builder to handle different types of cbsd data
+	base := getBaseCbsd()
+	base.SingleStepEnabled = db.MakeBool(true)
+	base.IndoorDeployment = db.MakeBool(true)
+	base.CbsdCategory = db.MakeString("a")
+	return base
+}
+
+func getBaseCbsdWithDefaultValues() *storage.DBCbsd {
+	base := getBaseCbsd()
+	base.SingleStepEnabled = db.MakeBool(false)
+	base.CbsdCategory = db.MakeString("b")
+	base.IndoorDeployment = db.MakeBool(false)
+	return base
+}
+
+func getMutableCbsd(cbsd *storage.DBCbsd) *storage.MutableCbsd {
 	return &storage.MutableCbsd{
-		Cbsd:         getBaseCbsd(),
+		Cbsd:         cbsd,
 		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
 	}
 }

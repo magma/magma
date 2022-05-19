@@ -13,7 +13,7 @@
  * @flow
  * @format
  */
-import AppContext from '../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../components/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import MagmaV1API from '../../generated/WebClient';
 import MenuButton from './MenuButton';

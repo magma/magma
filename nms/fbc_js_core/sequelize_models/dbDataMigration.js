@@ -36,7 +36,7 @@
  * --confirm:           skip final confirmation to run migration
  *
  * Example Usage:
- *  $ node -r ../../fbc_js_core/babel_register main.js
+ *  $ node -r ../../babelRegister.js main.js
  *  ? Enter DB host: mariadb
  *  ? Enter DB port: 3306
  *  ? Enter DB database name: nms

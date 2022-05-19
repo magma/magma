@@ -17,7 +17,7 @@ import type {NetworkContextType} from '../context/NetworkContext';
 import type {NetworkType} from '../../../fbc_js_core/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
-import AppContext from '../../../fbc_js_core/ui/context/AppContext';
+import AppContext from '../../../app/components/context/AppContext';
 import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../context/NetworkContext';
 import {

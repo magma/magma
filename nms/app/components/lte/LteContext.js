@@ -20,7 +20,7 @@ import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
@@ -81,7 +81,7 @@ import {
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,
