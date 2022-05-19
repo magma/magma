@@ -15,10 +15,10 @@ package test_utils
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
-	protoV1 "github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 )
@@ -35,44 +35,79 @@ func AssertErrorsEqual(t *testing.T, expectedError, actualError string) {
 	expectedErrorParts := strings.Split(expectedError, Separator)
 	// check if actual message contains relevant parts of expected error
 	for _, messagePart := range expectedErrorParts {
-		assert.Contains(t, actualError, messagePart, "actual error does not contain all parts of expected error\nexpected: %v\nactual:   %v", strings.Join(expectedErrorParts, " "), actualError)
+		assert.Contains(t, actualError, messagePart, "actual error does not contain all parts of "+
+			"expected error\nexpected: %v\nactual:   %v", strings.Join(expectedErrorParts, " "), actualError)
 	}
 }
 
-// AssertMapsEqual compares two maps of with proto messages.
-func AssertMapsEqual(t *testing.T, expected, actual map[string]protoV1.Message) {
-	assert.Equal(t, len(expected), len(actual))
-	for key := range actual {
-		AssertMessagesEqual(t, protoV1.MessageV2(expected[key]), protoV1.MessageV2(actual[key]))
+// AssertMapsEqual compares two maps of proto messages.
+func AssertMapsEqual(t *testing.T, expected, actual interface{}) {
+	expValue, actValue := reflect.ValueOf(expected), reflect.ValueOf(actual)
+	ekind, akind := expValue.Kind(), actValue.Kind()
+	if ekind != reflect.Map && akind != reflect.Map {
+		assert.Fail(t, fmt.Sprintf("Type error: Both arguments are not Maps \nexpected: %+v\nactual : %+v", ekind, akind))
+	} else if ekind != reflect.Map {
+		assert.Fail(t, fmt.Sprintf("Type error: expected argument is not a a Map \nexpected:  %+v", ekind))
+	} else if akind != reflect.Map {
+		assert.Fail(t, fmt.Sprintf("Type error: second argument is not a Map \nactual  : %+v", akind))
+	} else if assert.Equal(t, expValue.Len(), actValue.Len()) {
+		for _, key := range expValue.MapKeys() {
+			if assert.True(t, actValue.MapIndex(key).IsValid(), "Key %v is missing in actual:%v", key, actValue.MapKeys()) {
+				AssertMessagesEqual(t, expValue.MapIndex(key).Interface(), actValue.MapIndex(key).Interface())
+			}
+		}
 	}
 }
 
-// AssertMessagesEqual compares two proto.Message's with proto.Equal.
+// AssertListsEqual compares two lists of proto messages.
+func AssertListsEqual(t *testing.T, expected, actual interface{}) {
+	expValue, actValue := reflect.ValueOf(expected), reflect.ValueOf(actual)
+	ekind, akind := expValue.Kind(), actValue.Kind()
+	if ekind != reflect.Slice && akind != reflect.Slice {
+		assert.Fail(t, fmt.Sprintf("Type error: Both arguments are not Slices \nexpected: %+v\nactual : %+v", ekind, akind))
+	} else if ekind != reflect.Slice {
+		assert.Fail(t, fmt.Sprintf("Type error: expected argument is not a a Slice \nexpected:  %+v", ekind))
+	} else if akind != reflect.Slice {
+		assert.Fail(t, fmt.Sprintf("Type error: second argument is not a Slice \nactual  : %+v", akind))
+	} else {
+		assert.Equal(t, expValue.Len(), actValue.Len())
+		for i := 0; i < expValue.Len(); i++ {
+			AssertMessagesEqual(t, expValue.Index(i).Interface(), actValue.Index(i).Interface())
+		}
+	}
+}
+
+// AssertMessagesEqual compares two proto.Messages with proto.Equal.
 // Prints string representations of messages upon inequality.
-// Note, that string representations provided by protobuf are not stable.
+// String representations provided by protobuf are not stable.
 // Please only pay attention to the field values themselves, not to whitespaces
 // in between.
-func AssertMessagesEqual(t *testing.T, expected, actual proto.Message) bool {
-	equal := proto.Equal(expected, actual)
-	if !equal {
+func AssertMessagesEqual(t *testing.T, expected, actual interface{}) {
+	expMsg, expOk := expected.(proto.Message)
+	actMsg, actOk := actual.(proto.Message)
+	if !expOk || !actOk {
+		assert.Equal(t, expected, actual)
+	} else if !proto.Equal(expMsg, actMsg) {
 		assert.Fail(t, fmt.Sprintf("Not equal: \n"+
 			"expected: %+v\n"+
-			"actual: %+v\n"+
-			"Note, that string representations provided by protobuf are not guaranteed to be stable and the comparison between messages does not rely on them. Please pay attention to differences in the field values only.",
-			expected, actual))
+			"actual  : %+v\n"+
+			"Note that string representations provided by protobuf are not guaranteed to be stable and the comparison "+
+			"between messages does not rely on them. Please pay attention to differences in the field values only.",
+			expMsg, actMsg))
 	}
-	return true
 }
 
-// AssertMessagesNotEqual compares two proto.Message's with proto.Equal.
+// AssertMessagesNotEqual compares two proto.Messages with proto.Equal.
 // Fails if messages are equal and prints string representations of messages.
-// Note, that string representations provided by protobuf are not stable.
+// String representations provided by protobuf are not stable.
 // Please only pay attention to the field values themselves, not to whitespaces
 // in between.
-func AssertMessagesNotEqual(t *testing.T, expected, actual proto.Message) bool {
-	equal := proto.Equal(expected, actual)
-	if equal {
+func AssertMessagesNotEqual(t *testing.T, expected, actual interface{}) {
+	expMsg, expOk := expected.(proto.Message)
+	actMsg, actOk := actual.(proto.Message)
+	if !expOk || !actOk {
+		assert.NotEqual(t, expected, actual)
+	} else if proto.Equal(expMsg, actMsg) {
 		assert.Fail(t, "Messages are equal but should be different.")
 	}
-	return true
 }

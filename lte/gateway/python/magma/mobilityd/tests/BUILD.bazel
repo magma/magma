@@ -130,3 +130,18 @@ pytest_test(
         requirement("fakeredis"),
     ],
 )
+
+pytest_test(
+    name = "rpc_servicer_tests",
+    size = "small",
+    srcs = ["rpc_servicer_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+        requirement("grpcio"),
+    ],
+)

@@ -476,7 +476,7 @@ class UplinkBridgeController(MagmaController):
 
         # Kill dhclient if running.
         pgrep_out = subprocess.Popen(
-            ["pgrep", "-f", "dhclient.*" + if_name],
+            ["pgrep", "-f", "^/sbin/dhclient.*" + if_name],
             stdout=subprocess.PIPE,
         )
         for pid in pgrep_out.stdout.readlines():
@@ -512,7 +512,7 @@ class UplinkBridgeController(MagmaController):
         if af_inet != netifaces.AF_INET:
             self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
             return
-        release_eth_ip = ["dhclient", "-r", if_name]
+        release_eth_ip = ["/sbin/dhclient", "-r", if_name]
         try:
             subprocess.check_call(release_eth_ip)
         except subprocess.CalledProcessError as ex:
@@ -539,7 +539,7 @@ class UplinkBridgeController(MagmaController):
             self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
             return
 
-        setup_dhclient = ["dhclient", if_name]
+        setup_dhclient = ["/sbin/dhclient", if_name]
         try:
             subprocess.check_call(setup_dhclient)
             # delay to get DHCP address
