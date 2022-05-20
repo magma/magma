@@ -24,6 +24,7 @@
 
 #pragma once
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif
