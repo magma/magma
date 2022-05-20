@@ -35,6 +35,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/labstack/echo/v4 v4.2.1
+	github.com/magma/milenage v1.0.2
 	github.com/mennanov/fieldmask-utils v0.5.0
 	github.com/ory/go-acc v0.2.8
 	github.com/pkg/errors v0.9.1

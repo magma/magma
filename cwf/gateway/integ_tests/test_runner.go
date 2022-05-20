@@ -21,17 +21,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/magma/milenage"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
@@ -80,7 +80,7 @@ const (
 	GyValidityTime  = 60   // in second
 )
 
-//TestRunner helps setting up all associated services
+// TestRunner helps setting up all associated services
 type TestRunner struct {
 	t           *testing.T
 	imsis       map[string]bool
@@ -506,7 +506,7 @@ func (tr *TestRunner) WaitForEnforcementStatsForRuleGreaterThanOrDoesNotExistFun
 	return record, true
 }
 
-//WaitForPolicyReAuthToProcess returns a method which checks for reauth answer and
+// WaitForPolicyReAuthToProcess returns a method which checks for reauth answer and
 // if it has sessionID which contains the IMSI
 func (tr *TestRunner) WaitForPolicyReAuthToProcess(raa *fegprotos.PolicyReAuthAnswer, imsi string) func() bool {
 	// Todo figure out the best way to figure out when RAR is processed
@@ -518,7 +518,7 @@ func (tr *TestRunner) WaitForPolicyReAuthToProcess(raa *fegprotos.PolicyReAuthAn
 	}
 }
 
-//WaitForChargingReAuthToProcess returns a method which checks for reauth answer and
+// WaitForChargingReAuthToProcess returns a method which checks for reauth answer and
 // if it has sessionID which contains the IMSI
 func (tr *TestRunner) WaitForChargingReAuthToProcess(raa *fegprotos.ChargingReAuthAnswer, imsi string) func() bool {
 	// Todo figure out the best way to figure out when RAR is processed
@@ -573,7 +573,7 @@ func getRandKeyOpcFromOp(op []byte) (key, opc []byte, err error) {
 	key = make([]byte, 16)
 	rand.Read(key)
 
-	tempOpc, err := crypto.GenerateOpc(key, op)
+	tempOpc, err := milenage.GenerateOpc(key, op)
 	if err != nil {
 		return nil, nil, err
 	}
