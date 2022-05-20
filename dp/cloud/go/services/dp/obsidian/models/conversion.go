@@ -15,6 +15,8 @@ package models
 
 import (
 	"github.com/go-openapi/strfmt"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
@@ -36,7 +38,8 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 			BandwidthMhz:   m.FrequencyPreferences.BandwidthMhz,
 			FrequenciesMhz: m.FrequencyPreferences.FrequenciesMhz,
 		},
-		DesiredState: m.DesiredState,
+		DesiredState:      m.DesiredState,
+		InstallationParam: getProtoInstallationParam(m.InstallationParam),
 	}
 }
 
@@ -62,7 +65,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		UserID:            details.Data.UserId,
 		SingleStepEnabled: details.Data.SingleStepEnabled,
 		CbsdCategory:      details.Data.CbsdCategory,
-		InstallationParam: getInstallationParam(details.Data.GetInstallationParam()),
+		InstallationParam: getModelInstallationParam(details.Data.GetInstallationParam()),
 	}
 }
 
@@ -87,18 +90,74 @@ func getGrant(grant *protos.GrantDetails) *Grant {
 	}
 }
 
-func getInstallationParam(params *protos.InstallationParam) *InstallationParam {
+func getModelInstallationParam(params *protos.InstallationParam) *InstallationParam {
 	if params == nil {
 		return nil
 	}
 	return &InstallationParam{
-		AntennaGain:      params.AntennaGain.Value,
-		Heightm:          params.HeightM.Value,
-		HeightType:       params.HeightType.Value,
-		IndoorDeployment: params.IndoorDeployment.Value,
-		LatitudeDeg:      params.LatitudeDeg.Value,
-		LongitudeDeg:     params.LongitudeDeg.Value,
+		AntennaGain:      doubleValueToFloatOrNil(params.AntennaGain),
+		Heightm:          doubleValueToFloatOrNil(params.HeightM),
+		HeightType:       stringValueToStringOrNil(params.HeightType),
+		IndoorDeployment: boolValueToBoolOrNil(params.IndoorDeployment),
+		LatitudeDeg:      doubleValueToFloatOrNil(params.LatitudeDeg),
+		LongitudeDeg:     doubleValueToFloatOrNil(params.LongitudeDeg),
 	}
+}
+
+func getProtoInstallationParam(params *InstallationParam) *protos.InstallationParam {
+	if params == nil {
+		return nil
+	}
+	return &protos.InstallationParam{
+		AntennaGain:      floatToDoubleValueOrNil(params.AntennaGain),
+		HeightM:          floatToDoubleValueOrNil(params.Heightm),
+		HeightType:       stringToStringValueOrNil(params.HeightType),
+		IndoorDeployment: boolToBoolValueOrNil(params.IndoorDeployment),
+		LatitudeDeg:      floatToDoubleValueOrNil(params.LatitudeDeg),
+		LongitudeDeg:     floatToDoubleValueOrNil(params.LongitudeDeg),
+	}
+}
+
+func doubleValueToFloatOrNil(v *wrappers.DoubleValue) *float64 {
+	if v == nil {
+		return nil
+	}
+	return &v.Value
+}
+
+func boolValueToBoolOrNil(v *wrappers.BoolValue) *bool {
+	if v == nil {
+		return nil
+	}
+	return &v.Value
+}
+
+func stringValueToStringOrNil(v *wrappers.StringValue) *string {
+	if v == nil {
+		return nil
+	}
+	return &v.Value
+}
+
+func floatToDoubleValueOrNil(v *float64) *wrappers.DoubleValue {
+	if v == nil {
+		return nil
+	}
+	return wrapperspb.Double(*v)
+}
+
+func boolToBoolValueOrNil(v *bool) *wrapperspb.BoolValue {
+	if v == nil {
+		return nil
+	}
+	return wrapperspb.Bool(*v)
+}
+
+func stringToStringValueOrNil(v *string) *wrapperspb.StringValue {
+	if v == nil {
+		return nil
+	}
+	return wrapperspb.String(*v)
 }
 
 type LogInterface struct {

@@ -8784,11 +8784,12 @@ definitions:
     properties:
       antenna_gain:
         example: 15
-        readOnly: true
         type: number
+        x-nullable: true
       height_m:
         description: the CBSD antenna height in meters
         type: number
+        x-nullable: true
       height_type:
         description: AGL - relative to the ground level. AMSL - relative to the mean
           sea level
@@ -8796,15 +8797,19 @@ definitions:
         - agl
         - amsl
         type: string
+        x-nullable: true
       indoor_deployment:
         description: true if the CBSD is located indoors
         type: boolean
+        x-nullable: true
       latitude_deg:
         description: latitude coordinates of the radio in degrees
         type: number
+        x-nullable: true
       longitude_deg:
         description: longitude coordinates of the radio in degrees
         type: number
+        x-nullable: true
     type: object
   ip_address:
     description: IP address

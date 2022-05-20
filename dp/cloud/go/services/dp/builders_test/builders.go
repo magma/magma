@@ -45,6 +45,11 @@ func NewDBCbsdBuilder() *DBCbsdBuilder {
 	}
 }
 
+func (b *DBCbsdBuilder) Empty() *DBCbsdBuilder {
+	b.Cbsd = &storage.DBCbsd{}
+	return b
+}
+
 func (b *DBCbsdBuilder) WithId(id int64) *DBCbsdBuilder {
 	b.Cbsd.Id = db.MakeInt(id)
 	return b
@@ -57,6 +62,46 @@ func (b *DBCbsdBuilder) WithCbsdId(id string) *DBCbsdBuilder {
 
 func (b *DBCbsdBuilder) WithNetworkId(id string) *DBCbsdBuilder {
 	b.Cbsd.NetworkId = db.MakeString(id)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithFccId(id string) *DBCbsdBuilder {
+	b.Cbsd.FccId = db.MakeString(id)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithUserId(id string) *DBCbsdBuilder {
+	b.Cbsd.UserId = db.MakeString(id)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithAntennaGain(gain float64) *DBCbsdBuilder {
+	b.Cbsd.AntennaGain = db.MakeFloat(gain)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithLatitude(lat float64) *DBCbsdBuilder {
+	b.Cbsd.LatitudeDeg = db.MakeFloat(lat)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithLongitude(lon float64) *DBCbsdBuilder {
+	b.Cbsd.LongitudeDeg = db.MakeFloat(lon)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithNumberOfPorts(num int64) *DBCbsdBuilder {
+	b.Cbsd.NumberOfPorts = db.MakeInt(num)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithMaxPower(pow float64) *DBCbsdBuilder {
+	b.Cbsd.MaxPower = db.MakeFloat(pow)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithMinPower(pow float64) *DBCbsdBuilder {
+	b.Cbsd.MinPower = db.MakeFloat(pow)
 	return b
 }
 
@@ -86,10 +131,6 @@ func (b *DBCbsdBuilder) WithFullInstallationParam() *DBCbsdBuilder {
 	b.Cbsd.IndoorDeployment = db.MakeBool(true)
 	b.Cbsd.HeightM = db.MakeFloat(12.5)
 	b.Cbsd.HeightType = db.MakeString("agl")
-	b.Cbsd.AntennaAzimuthDeg = db.MakeInt(1)
-	b.Cbsd.AntennaDowntiltDeg = db.MakeInt(2)
-	b.Cbsd.AntennaBeamwidthDeg = db.MakeInt(3)
-	b.Cbsd.AntennaModel = db.MakeString(someModel)
 	b.Cbsd.AntennaGain = db.MakeFloat(4.5)
 	return b
 }
@@ -108,6 +149,21 @@ func (b *DBCbsdBuilder) WithIndoorDeployment(indoor bool) *DBCbsdBuilder {
 
 func (b *DBCbsdBuilder) WithSingleStepEnabled(enabled bool) *DBCbsdBuilder {
 	b.Cbsd.SingleStepEnabled = db.MakeBool(enabled)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithShouldDeregister(should bool) *DBCbsdBuilder {
+	b.Cbsd.ShouldDeregister = db.MakeBool(should)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithPreferredBandwidthMHz(bandwidth int64) *DBCbsdBuilder {
+	b.Cbsd.PreferredBandwidthMHz = db.MakeInt(bandwidth)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithPreferredFrequenciesMHz(freq string) *DBCbsdBuilder {
+	b.Cbsd.PreferredFrequenciesMHz = db.MakeString(freq)
 	return b
 }
 
@@ -183,6 +239,11 @@ func NewCbsdProtoPayloadBuilder() *CbsdProtoPayloadBuilder {
 	}
 }
 
+func (b *CbsdProtoPayloadBuilder) Empty() *CbsdProtoPayloadBuilder {
+	b.Payload = &protos.CbsdData{}
+	return b
+}
+
 func (b *CbsdProtoPayloadBuilder) WithSingleStepEnabled() *CbsdProtoPayloadBuilder {
 	b.Payload.SingleStepEnabled = true
 	return b
@@ -195,6 +256,11 @@ func (b *CbsdProtoPayloadBuilder) WithCbsdCategory(c string) *CbsdProtoPayloadBu
 
 func (b *CbsdProtoPayloadBuilder) WithEmptyInstallationParam() *CbsdProtoPayloadBuilder {
 	b.Payload.InstallationParam = &protos.InstallationParam{}
+	return b
+}
+
+func (b *CbsdProtoPayloadBuilder) WithAntennaGain(gain float64) *CbsdProtoPayloadBuilder {
+	b.Payload.InstallationParam.AntennaGain = wrapperspb.Double(gain)
 	return b
 }
 
@@ -334,11 +400,11 @@ func GetDetailedProtoCbsdList(builder *DetailedProtoCbsdBuilder) *protos.ListCbs
 	}
 }
 
-func GetMutableDBCbsd(cbsd *storage.DBCbsd) *storage.MutableCbsd {
+func GetMutableDBCbsd(cbsd *storage.DBCbsd, state string) *storage.MutableCbsd {
 	return &storage.MutableCbsd{
 		Cbsd: cbsd,
 		DesiredState: &storage.DBCbsdState{
-			Name: db.MakeString(registered),
+			Name: db.MakeString(state),
 		},
 	}
 }
@@ -430,12 +496,22 @@ func NewMutableCbsdModelPayloadBuilder() *MutableCbsdModelBuilder {
 	}}
 }
 
-func (b *MutableCbsdModelBuilder) withSingleStepEnabled() *MutableCbsdModelBuilder {
+func (b *MutableCbsdModelBuilder) WithEmptyInstallationParam() *MutableCbsdModelBuilder {
+	b.Payload.InstallationParam = &models.InstallationParam{}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithAntennaGain(gain float64) *MutableCbsdModelBuilder {
+	b.Payload.InstallationParam.AntennaGain = to_pointer.Float(gain)
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithSingleStepEnabled() *MutableCbsdModelBuilder {
 	b.Payload.SingleStepEnabled = to_pointer.Bool(true)
 	return b
 }
 
-func (b *MutableCbsdModelBuilder) withCbsdCategory(c string) *MutableCbsdModelBuilder {
+func (b *MutableCbsdModelBuilder) WithCbsdCategory(c string) *MutableCbsdModelBuilder {
 	b.Payload.CbsdCategory = c
 	return b
 }

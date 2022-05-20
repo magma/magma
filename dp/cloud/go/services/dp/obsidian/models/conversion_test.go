@@ -16,33 +16,16 @@ package models_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
-	"magma/dp/cloud/go/protos"
+	b "magma/dp/cloud/go/services/dp/builders_test"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCbsdToBackend(t *testing.T) {
-	cbsd := models.MutableCbsd{
-		Capabilities: &models.Capabilities{
-			MaxPower:         to_pointer.Float(24),
-			MinPower:         to_pointer.Float(0),
-			NumberOfAntennas: 1,
-		},
-		FrequencyPreferences: models.FrequencyPreferences{
-			BandwidthMhz:   10,
-			FrequenciesMhz: []int64{3600},
-		},
-		FccID:             "barID",
-		SerialNumber:      "12345",
-		UserID:            "fooUser",
-		DesiredState:      "registered",
-		CbsdCategory:      "a",
-		SingleStepEnabled: to_pointer.Bool(true),
-	}
-	data := models.CbsdToBackend(&cbsd)
+	cbsd := b.NewMutableCbsdModelPayloadBuilder().Payload
+	data := models.CbsdToBackend(cbsd)
 	assert.Equal(t, data.UserId, cbsd.UserID)
 	assert.Equal(t, data.FccId, cbsd.FccID)
 	assert.Equal(t, data.SerialNumber, cbsd.SerialNumber)
@@ -57,7 +40,8 @@ func TestCbsdToBackend(t *testing.T) {
 }
 
 func TestCbsdFromBackendWithoutGrant(t *testing.T) {
-	details := getCbsdDetails()
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder()).Details
 	data := models.CbsdFromBackend(details)
 	assert.Nil(t, data.Grant)
 	assert.Equal(t, data.ID, details.Id)
@@ -76,9 +60,21 @@ func TestCbsdFromBackendWithoutGrant(t *testing.T) {
 	assert.Equal(t, data.CbsdCategory, details.Data.CbsdCategory)
 }
 
+func TestCbsdFromBackendWithEmptyInstallationParam(t *testing.T) {
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder().WithEmptyInstallationParam()).Details
+	data := models.CbsdFromBackend(details)
+	assert.Nil(t, data.InstallationParam.LatitudeDeg)
+	assert.Nil(t, data.InstallationParam.LongitudeDeg)
+	assert.Nil(t, data.InstallationParam.IndoorDeployment)
+	assert.Nil(t, data.InstallationParam.Heightm)
+	assert.Nil(t, data.InstallationParam.HeightType)
+	assert.Nil(t, data.InstallationParam.AntennaGain)
+}
+
 func TestCbsdFromBackendWithGrant(t *testing.T) {
-	details := getCbsdDetails()
-	details.Grant = getGrant()
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder()).WithGrant().Details
 	data := models.CbsdFromBackend(details)
 	assert.Equal(t, data.Grant.BandwidthMhz, details.Grant.BandwidthMhz)
 	assert.Equal(t, data.Grant.FrequencyMhz, details.Grant.FrequencyMhz)
@@ -89,71 +85,28 @@ func TestCbsdFromBackendWithGrant(t *testing.T) {
 }
 
 func TestCbsdFromBackendWithoutInstallationParam(t *testing.T) {
-	details := getCbsdDetails()
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder()).Details
 	data := models.CbsdFromBackend(details)
 	assert.Nil(t, data.InstallationParam)
 }
 
 func TestCbsdFromBackendWithInstallationParam(t *testing.T) {
-	details := getCbsdDetails()
-	details.Data.InstallationParam = getInstallationParam()
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder().WithFullInstallationParam()).Details
 	data := models.CbsdFromBackend(details)
-	assert.Equal(t, data.InstallationParam.LatitudeDeg, details.Data.InstallationParam.LatitudeDeg.Value)
-	assert.Equal(t, data.InstallationParam.LongitudeDeg, details.Data.InstallationParam.LongitudeDeg.Value)
-	assert.Equal(t, data.InstallationParam.IndoorDeployment, details.Data.InstallationParam.IndoorDeployment.Value)
-	assert.Equal(t, data.InstallationParam.Heightm, details.Data.InstallationParam.HeightM.Value)
-	assert.Equal(t, data.InstallationParam.HeightType, details.Data.InstallationParam.HeightType.Value)
-	assert.Equal(t, data.InstallationParam.AntennaGain, details.Data.InstallationParam.AntennaGain.Value)
+	assert.Equal(t, data.InstallationParam.LatitudeDeg, &details.Data.InstallationParam.LatitudeDeg.Value)
+	assert.Equal(t, data.InstallationParam.LongitudeDeg, &details.Data.InstallationParam.LongitudeDeg.Value)
+	assert.Equal(t, data.InstallationParam.IndoorDeployment, &details.Data.InstallationParam.IndoorDeployment.Value)
+	assert.Equal(t, data.InstallationParam.Heightm, &details.Data.InstallationParam.HeightM.Value)
+	assert.Equal(t, data.InstallationParam.HeightType, &details.Data.InstallationParam.HeightType.Value)
+	assert.Equal(t, data.InstallationParam.AntennaGain, &details.Data.InstallationParam.AntennaGain.Value)
 }
 
 func TestCbsdFromBackendWithEmptyFrequencies(t *testing.T) {
-	details := getCbsdDetails()
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder()).Details
 	details.Data.Preferences.FrequenciesMhz = nil
 	data := models.CbsdFromBackend(details)
 	assert.Equal(t, []int64{}, data.FrequencyPreferences.FrequenciesMhz)
-}
-
-func getCbsdDetails() *protos.CbsdDetails {
-	return &protos.CbsdDetails{
-		Id:       1,
-		IsActive: false,
-		Data: &protos.CbsdData{
-			UserId:       "barId",
-			FccId:        "bazId",
-			SerialNumber: "12345",
-			DesiredState: "registered",
-			Capabilities: &protos.Capabilities{
-				MinPower:         0,
-				MaxPower:         24,
-				NumberOfAntennas: 1,
-			},
-			Preferences: &protos.FrequencyPreferences{
-				BandwidthMhz:   20,
-				FrequenciesMhz: []int64{3600},
-			},
-		},
-		CbsdId: "someCbsdId",
-	}
-}
-
-func getGrant() *protos.GrantDetails {
-	return &protos.GrantDetails{
-		BandwidthMhz:            10,
-		FrequencyMhz:            12345,
-		MaxEirp:                 123,
-		State:                   "someState",
-		TransmitExpireTimestamp: 12345678,
-		GrantExpireTimestamp:    12345678,
-	}
-}
-
-func getInstallationParam() *protos.InstallationParam {
-	return &protos.InstallationParam{
-		LatitudeDeg:      wrapperspb.Double(10.5),
-		LongitudeDeg:     wrapperspb.Double(11.5),
-		IndoorDeployment: wrapperspb.Bool(false),
-		HeightM:          wrapperspb.Double(12),
-		HeightType:       wrapperspb.String("AML"),
-		AntennaGain:      wrapperspb.Double(5),
-	}
 }

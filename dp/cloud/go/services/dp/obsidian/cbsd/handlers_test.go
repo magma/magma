@@ -234,25 +234,46 @@ func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 }
 
 func (s *HandlersTestSuite) TestCreateCbsd() {
-	e := echo.New()
-	obsidianHandlers := cbsd.GetHandlers()
-	payload := b.NewMutableCbsdModelPayloadBuilder().Payload
-	s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
-	s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
-		NetworkId: "n1",
-		Data:      b.NewCbsdProtoPayloadBuilder().Payload,
+	testCases := []struct {
+		name            string
+		inputPayload    *models.MutableCbsd
+		expectedPayload *protos.CbsdData
+	}{{
+		name:            "test create without installation param",
+		inputPayload:    b.NewMutableCbsdModelPayloadBuilder().Payload,
+		expectedPayload: b.NewCbsdProtoPayloadBuilder().Payload,
+	}, {
+		name: "test create with antenna gain",
+		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
+			WithEmptyInstallationParam().
+			WithAntennaGain(10.5).Payload,
+		expectedPayload: b.NewCbsdProtoPayloadBuilder().
+			WithEmptyInstallationParam().
+			WithAntennaGain(10.5).Payload,
+	}}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			e := echo.New()
+			obsidianHandlers := cbsd.GetHandlers()
+			payload := tc.inputPayload
+			s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
+			s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
+				NetworkId: "n1",
+				Data:      tc.expectedPayload,
+			}
+			createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
+			tc := tests.Test{
+				Method:         http.MethodPost,
+				URL:            "/magma/v1/dp/n1/cbsds",
+				Payload:        payload,
+				ParamNames:     []string{"network_id"},
+				ParamValues:    []string{"n1"},
+				Handler:        createCbsd,
+				ExpectedStatus: http.StatusCreated,
+			}
+			tests.RunUnitTest(s.T(), e, tc)
+		})
 	}
-	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
-	tc := tests.Test{
-		Method:         http.MethodPost,
-		URL:            "/magma/v1/dp/n1/cbsds",
-		Payload:        payload,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		Handler:        createCbsd,
-		ExpectedStatus: http.StatusCreated,
-	}
-	tests.RunUnitTest(s.T(), e, tc)
 }
 
 func (s *HandlersTestSuite) TestCreateWithDuplicateUniqueFieldsReturnsConflict() {

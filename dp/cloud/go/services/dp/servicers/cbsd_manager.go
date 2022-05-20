@@ -51,43 +51,35 @@ func (c *cbsdManager) CreateCbsd(_ context.Context, request *protos.CreateCbsdRe
 }
 
 func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
-	_, err := fitForUserUpdate(request)
-	if err != nil {
-		return nil, makeErr(err, "update cbsd")
-	}
-	return c.doUpdate(request)
-}
-
-func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
-	_, err := fitForEnodebdUpdate(request)
-	if err != nil {
-		return nil, makeErr(err, "update cbsd")
-	}
-	err = c.store.EnodebdUpdateCbsd(request.SerialNumber, toEnodebdPayload(request.InstallationParam, request.CbsdCategory))
-	if err != nil {
-		return nil, makeErr(err, "update cbsd")
-	}
-	return &protos.UpdateCbsdResponse{}, nil
-}
-
-func fitForEnodebdUpdate(request *protos.EnodebdUpdateCbsdRequest) (bool, error) {
-	// TODO select for update. Check if the entity has a digitalSitnature in the db. If so - do not update the entity
-	return true, nil
-}
-
-func fitForUserUpdate(request *protos.UpdateCbsdRequest) (bool, error) {
-	// TODO select for update on the cbsd and see if it can be updated the way the user is requesting. E.g. See if they are trying to
-	// update installationParam. For that the radio must be in single step mode and contain CPI data.
-	// Furthermore digital signing of the data must be successful first.
-	return true, nil
-}
-
-func (c *cbsdManager) doUpdate(request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
 	err := c.store.UpdateCbsd(request.NetworkId, request.Id, cbsdToDatabase(request.Data))
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
 	}
 	return &protos.UpdateCbsdResponse{}, nil
+}
+
+func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+	cbsd := requestToDbCbsd(request)
+	err := c.store.EnodebdUpdateCbsd(cbsd)
+	if err != nil {
+		return nil, makeErr(err, "update cbsd")
+	}
+	return &protos.UpdateCbsdResponse{}, nil
+}
+
+func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
+	cbsd := storage.DBCbsd{
+		CbsdSerialNumber: db.MakeString(request.SerialNumber),
+		CbsdCategory:     db.MakeString(request.CbsdCategory),
+	}
+	params := request.GetInstallationParam()
+	dbFloat64OrNil(&cbsd.LatitudeDeg, params.LatitudeDeg)
+	dbFloat64OrNil(&cbsd.LongitudeDeg, params.LongitudeDeg)
+	dbFloat64OrNil(&cbsd.HeightM, params.HeightM)
+	dbStringOrNil(&cbsd.HeightType, params.HeightType)
+	dbBoolOrNil(&cbsd.IndoorDeployment, params.IndoorDeployment)
+	dbFloat64OrNil(&cbsd.AntennaGain, params.AntennaGain)
+	return &cbsd
 }
 
 func (c *cbsdManager) DeleteCbsd(_ context.Context, request *protos.DeleteCbsdRequest) (*protos.DeleteCbsdResponse, error) {
@@ -159,20 +151,6 @@ func cbsdToDatabase(data *protos.CbsdData) *storage.MutableCbsd {
 			Name: db.MakeString(data.DesiredState),
 		},
 	}
-}
-
-func toEnodebdPayload(installationParam *protos.InstallationParam, cbsdCategory string) *storage.EnodebdPayload {
-	payload := storage.EnodebdPayload{}
-	payload.CbsdCategory = cbsdCategory
-	if installationParam != nil {
-		payload.LatitudeDeg = installationParam.LatitudeDeg.Value
-		payload.LongitudeDeg = installationParam.LongitudeDeg.Value
-		payload.HeightM = installationParam.HeightM.Value
-		payload.HeightType = installationParam.HeightType.Value
-		payload.IndoorDeployment = installationParam.IndoorDeployment.Value
-		payload.AntennaGain = installationParam.AntennaGain.Value
-	}
-	return &payload
 }
 
 func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {

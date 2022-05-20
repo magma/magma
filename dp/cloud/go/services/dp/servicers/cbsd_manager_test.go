@@ -75,7 +75,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 	}{{
 		name:     "test create cbsd",
 		input:    protoPayloadBuilder.Payload,
-		expected: b.GetMutableDBCbsd(dbCbsdBuilder.Cbsd),
+		expected: b.GetMutableDBCbsd(dbCbsdBuilder.Cbsd, registered),
 	}, {
 		name: "test create single step cbsd",
 		input: protoPayloadBuilder.
@@ -87,6 +87,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 				WithSingleStepEnabled(true).
 				WithCbsdCategory("a").
 				Cbsd,
+			registered,
 		),
 	}}
 	for _, tc := range testCases {
@@ -99,7 +100,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 			s.Require().NoError(err)
 
 			s.Assert().Equal(networkId, s.store.networkId)
-			s.Assert().Equal(tc.expected, s.store.data)
+			s.Assert().Equal(tc.expected, s.store.mutableData)
 		})
 	}
 }
@@ -130,55 +131,87 @@ func (s *CbsdManagerTestSuite) TestUserUpdateCbsd() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
-	s.Assert().Equal(b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd), s.store.data)
+	s.Assert().Equal(b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd, registered), s.store.mutableData)
 }
 
 func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 	testCases := []struct {
 		name     string
-		input    *protos.CbsdData
-		expected *storage.MutableCbsd
+		payload  *protos.CbsdData
+		expected *storage.DBCbsd
 	}{{
 		name:     "update cbsd",
-		input:    b.NewCbsdProtoPayloadBuilder().Payload,
-		expected: b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd),
+		payload:  b.NewCbsdProtoPayloadBuilder().WithEmptyInstallationParam().Payload,
+		expected: b.NewDBCbsdBuilder().Cbsd,
 	}, {
 		name: "update cbsd with full installation param",
-		input: b.NewCbsdProtoPayloadBuilder().
+		payload: b.NewCbsdProtoPayloadBuilder().
 			WithFullInstallationParam().Payload,
-		expected: b.GetMutableDBCbsd(b.NewDBCbsdBuilder().
-			WithFullInstallationParam().Cbsd),
+		expected: b.NewDBCbsdBuilder().
+			WithFullInstallationParam().Cbsd,
 	}, {
 		name: "update cbsd with incomplete installation param",
-		input: b.NewCbsdProtoPayloadBuilder().
+		payload: b.NewCbsdProtoPayloadBuilder().
 			WithIncompleteInstallationParam().Payload,
-		expected: b.GetMutableDBCbsd(b.NewDBCbsdBuilder().
-			WithIncompleteInstallationParam().Cbsd),
+		expected: b.NewDBCbsdBuilder().
+			WithIncompleteInstallationParam().Cbsd,
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			request := &protos.EnodebdUpdateCbsdRequest{
-				SerialNumber: someSerialNumber,
+				SerialNumber: tc.payload.SerialNumber,
 				InstallationParam: &protos.InstallationParam{
-					LatitudeDeg:      nil,
-					LongitudeDeg:     nil,
-					IndoorDeployment: nil,
-					HeightM:          nil,
-					HeightType:       nil,
-					AntennaGain:      nil,
+					LatitudeDeg:      tc.payload.InstallationParam.LatitudeDeg,
+					LongitudeDeg:     tc.payload.InstallationParam.LongitudeDeg,
+					IndoorDeployment: tc.payload.InstallationParam.IndoorDeployment,
+					HeightM:          tc.payload.InstallationParam.HeightM,
+					HeightType:       tc.payload.InstallationParam.HeightType,
+					AntennaGain:      tc.payload.InstallationParam.AntennaGain,
 				},
-				CbsdCategory: "",
+				CbsdCategory: tc.payload.CbsdCategory,
 			}
+			s.store.data = tc.expected
 			_, err := s.manager.EnodebdUpdateCbsd(context.Background(), request)
 			s.Require().NoError(err)
-			s.Assert().Equal(networkId, s.store.networkId)
-			s.Assert().Equal(cbsdId, s.store.id)
 			s.Assert().Equal(tc.expected, s.store.data)
 		})
 	}
 }
 
-func (s *CbsdManagerTestSuite) TestUpdateWithError() {
+func (s *CbsdManagerTestSuite) TestEnodebdUpdateWithError() {
+	testCases := []struct {
+		name                string
+		storageError        error
+		expectedErrorStatus codes.Code
+	}{{
+		name:                "update cbsd with duplicate data",
+		storageError:        merrors.ErrAlreadyExists,
+		expectedErrorStatus: codes.AlreadyExists,
+	}, {
+		name:                "update nonexistent cbsd",
+		storageError:        merrors.ErrNotFound,
+		expectedErrorStatus: codes.NotFound,
+	}}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.store.err = tc.storageError
+			s.store.data = b.NewDBCbsdBuilder().WithFullInstallationParam().Cbsd
+
+			request := &protos.EnodebdUpdateCbsdRequest{
+				SerialNumber:      someSerialNumber,
+				InstallationParam: &protos.InstallationParam{},
+				CbsdCategory:      "a",
+			}
+			_, err := s.manager.EnodebdUpdateCbsd(context.Background(), request)
+			s.Require().Error(err)
+
+			errStatus, _ := status.FromError(err)
+			s.Assert().Equal(tc.expectedErrorStatus, errStatus.Code())
+		})
+	}
+}
+
+func (s *CbsdManagerTestSuite) TestUserUpdateWithError() {
 	testCases := []struct {
 		name                string
 		storageError        error
@@ -461,26 +494,38 @@ func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
 }
 
 type stubCbsdManager struct {
-	networkId  string
-	id         int64
-	data       *storage.MutableCbsd
-	details    *storage.DetailedCbsd
-	list       *storage.DetailedCbsdList
-	pagination *storage.Pagination
-	filter     *storage.CbsdFilter
-	err        error
+	networkId   string
+	id          int64
+	data        *storage.DBCbsd
+	mutableData *storage.MutableCbsd
+	details     *storage.DetailedCbsd
+	list        *storage.DetailedCbsdList
+	pagination  *storage.Pagination
+	filter      *storage.CbsdFilter
+	err         error
 }
 
 func (s *stubCbsdManager) CreateCbsd(networkId string, data *storage.MutableCbsd) error {
 	s.networkId = networkId
-	s.data = data
+	s.mutableData = data
 	return s.err
 }
 
 func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.MutableCbsd) error {
 	s.networkId = networkId
 	s.id = id
-	s.data = data
+	s.mutableData = data
+	return s.err
+}
+
+func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) error {
+	s.data.CbsdCategory = data.CbsdCategory
+	s.data.AntennaGain = data.AntennaGain
+	s.data.LatitudeDeg = data.LatitudeDeg
+	s.data.LongitudeDeg = data.LongitudeDeg
+	s.data.HeightType = data.HeightType
+	s.data.HeightM = data.HeightM
+	s.data.IndoorDeployment = data.IndoorDeployment
 	return s.err
 }
 

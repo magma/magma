@@ -22,24 +22,23 @@ type InstallationParam struct {
 
 	// antenna gain
 	// Example: 15
-	// Read Only: true
-	AntennaGain float64 `json:"antenna_gain,omitempty"`
+	AntennaGain *float64 `json:"antenna_gain,omitempty"`
 
 	// the CBSD antenna height in meters
-	Heightm float64 `json:"height_m,omitempty"`
+	Heightm *float64 `json:"height_m,omitempty"`
 
 	// AGL - relative to the ground level. AMSL - relative to the mean sea level
 	// Enum: [agl amsl]
-	HeightType string `json:"height_type,omitempty"`
+	HeightType *string `json:"height_type,omitempty"`
 
 	// true if the CBSD is located indoors
-	IndoorDeployment bool `json:"indoor_deployment,omitempty"`
+	IndoorDeployment *bool `json:"indoor_deployment,omitempty"`
 
 	// latitude coordinates of the radio in degrees
-	LatitudeDeg float64 `json:"latitude_deg,omitempty"`
+	LatitudeDeg *float64 `json:"latitude_deg,omitempty"`
 
 	// longitude coordinates of the radio in degrees
-	LongitudeDeg float64 `json:"longitude_deg,omitempty"`
+	LongitudeDeg *float64 `json:"longitude_deg,omitempty"`
 }
 
 // Validate validates this installation param
@@ -91,33 +90,15 @@ func (m *InstallationParam) validateHeightType(formats strfmt.Registry) error {
 	}
 
 	// value enum
-	if err := m.validateHeightTypeEnum("height_type", "body", m.HeightType); err != nil {
+	if err := m.validateHeightTypeEnum("height_type", "body", *m.HeightType); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// ContextValidate validate this installation param based on the context it is used
+// ContextValidate validates this installation param based on context it is used
 func (m *InstallationParam) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateAntennaGain(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *InstallationParam) contextValidateAntennaGain(ctx context.Context, formats strfmt.Registry) error {
-
-	if err := validate.ReadOnly(ctx, "antenna_gain", "body", float64(m.AntennaGain)); err != nil {
-		return err
-	}
-
 	return nil
 }
 

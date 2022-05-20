@@ -29,13 +29,16 @@ import (
 )
 
 const (
-	registered    = "registered"
-	unregistered  = "unregistered"
-	someCbsdIdStr = "some_cbsd_id"
-	authorized    = "authorized"
-	someNetwork   = "some_network"
-	otherNetwork  = "other_network_id"
-	someCbsdId    = 123
+	registered       = "registered"
+	unregistered     = "unregistered"
+	someCbsdIdStr    = "some_cbsd_id"
+	authorized       = "authorized"
+	someNetwork      = "some_network"
+	otherNetwork     = "other_network_id"
+	someCbsdId       = 123
+	someFccId        = "some_fcc_id"
+	someUserId       = "some_user_id"
+	someSerialNumber = "some_serial_number"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -93,7 +96,8 @@ func (s *CbsdManagerTestSuite) TearDownTest() {
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd))
+	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
+		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Require().NoError(err)
 	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithDefaulValues().Cbsd)
 }
@@ -103,7 +107,8 @@ func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
 		b.NewDBCbsdBuilder().
 			WithSingleStepEnabled(true).
 			WithCbsdCategory("a").
-			WithIndoorDeployment(true).Cbsd))
+			WithIndoorDeployment(true).Cbsd,
+		registered))
 	s.Require().NoError(err)
 	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
 		WithSingleStepEnabled(true).
@@ -148,9 +153,9 @@ func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
 	cbsd := b.NewDBCbsdBuilder().Cbsd
-	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(cbsd))
+	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(cbsd, registered))
 	s.Require().NoError(err)
-	err = s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(cbsd))
+	err = s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(cbsd, registered))
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
@@ -173,10 +178,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsdWithSerialNumberOfExistingCbsd() {
 	s.givenResourcesInserted(cbsd1, cbsd2)
 
 	cbsd2.CbsdSerialNumber = cbsd1.CbsdSerialNumber
-	m := &storage.MutableCbsd{
-		Cbsd:         cbsd2,
-		DesiredState: &storage.DBCbsdState{Name: db.MakeString(registered)},
-	}
+	m := b.GetMutableDBCbsd(cbsd2, registered)
 	err := s.cbsdManager.UpdateCbsd(someNetwork, cbsd2.Id.Int64, m)
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
@@ -189,19 +191,22 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		WithDesiredStateId(state).
 		WithStateId(state).
 		Cbsd)
-
-	m := b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd)
-	m.Cbsd.UserId.String += "new1"
-	m.Cbsd.FccId.String += "new2"
-	m.Cbsd.CbsdSerialNumber.String += "new3"
-	m.Cbsd.AntennaGain = db.MakeFloat(1)
-	m.Cbsd.MaxPower.Float64 += 2
-	m.Cbsd.MinPower.Float64 += 3
-	m.Cbsd.NumberOfPorts.Int64 += 4
-	m.Cbsd.SingleStepEnabled = db.MakeBool(true)
-	m.Cbsd.IndoorDeployment = db.MakeBool(true)
-	m.Cbsd.CbsdCategory = db.MakeString("a")
-	m.DesiredState.Name = db.MakeString(unregistered)
+	cbsdBuilder := b.NewDBCbsdBuilder()
+	m := b.GetMutableDBCbsd(cbsdBuilder.
+		WithUserId(fmt.Sprintf("%snew1", cbsdBuilder.Cbsd.UserId.String)).
+		WithFccId(fmt.Sprintf("%snew2", cbsdBuilder.Cbsd.FccId.String)).
+		WithSerialNumber(fmt.Sprintf("%snew3", cbsdBuilder.Cbsd.CbsdSerialNumber.String)).
+		WithAntennaGain(1).
+		WithMaxPower(cbsdBuilder.Cbsd.MaxPower.Float64+2).
+		WithMinPower(cbsdBuilder.Cbsd.MinPower.Float64+3).
+		WithNumberOfPorts(cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
+		WithSingleStepEnabled(true).
+		WithIndoorDeployment(true).
+		WithCbsdCategory("a").
+		WithNetworkId(someNetwork).
+		Cbsd,
+		unregistered,
+	)
 	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, m)
 	s.Require().NoError(err)
 
@@ -214,27 +219,119 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			Where(sq.Eq{"id": someCbsdId}).
 			Fetch()
 		s.Require().NoError(err)
-		m.Cbsd.NetworkId = db.MakeString(someNetwork)
-		m.Cbsd.ShouldDeregister = db.MakeBool(true)
-		m.Cbsd.DesiredStateId = db.MakeInt(s.enumMaps[storage.CbsdStateTable][unregistered])
-		m.Cbsd.SingleStepEnabled = db.MakeBool(true)
-		m.Cbsd.IndoorDeployment = db.MakeBool(true)
-		m.Cbsd.CbsdCategory = db.MakeString("a")
 		expected := []db.Model{m.Cbsd}
 		s.Assert().Equal(expected, actual)
 	})
 	s.Require().NoError(err)
 }
 
+func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	testCases := []struct {
+		name     string
+		input    *storage.DBCbsd
+		toUpdate *storage.DBCbsd
+	}{{
+		name: "test enodebd update",
+		input: b.NewDBCbsdBuilder().
+			WithId(1).
+			WithNetworkId(someNetwork).
+			WithSerialNumber(someSerialNumber).
+			WithDesiredStateId(state).
+			WithStateId(state).
+			Cbsd,
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber(someSerialNumber).
+			WithCbsdCategory("a").
+			WithFullInstallationParam().
+			Cbsd,
+	}, {
+		name: "test enodebd only updates allowed fields",
+		input: b.NewDBCbsdBuilder().
+			WithId(2).
+			WithNetworkId(someNetwork).
+			WithSerialNumber("some_other_serial_number").
+			WithDesiredStateId(state).
+			WithStateId(state).
+			Cbsd,
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber("some_other_serial_number").
+			WithFccId(someFccId).
+			WithUserId(someUserId).
+			WithDesiredStateId(s.enumMaps[storage.CbsdStateTable][unregistered]).
+			WithNetworkId("some_other_network").
+			WithSingleStepEnabled(false).
+			WithCbsdCategory("a").
+			WithFullInstallationParam().
+			Cbsd,
+	}, {
+		name: "test enodebd nulls out unfilled installation params",
+		input: b.NewDBCbsdBuilder().
+			WithId(3).
+			WithNetworkId(someNetwork).
+			WithSerialNumber("different_serial_number").
+			WithFullInstallationParam().
+			WithDesiredStateId(state).
+			WithStateId(state).
+			Cbsd,
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber("different_serial_number").
+			WithSingleStepEnabled(false).
+			WithCbsdCategory("a").
+			WithIncompleteInstallationParam().
+			Cbsd,
+	}}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.givenResourcesInserted(tc.input)
+
+			c := tc.toUpdate
+			err := s.cbsdManager.EnodebdUpdateCbsd(c)
+			s.Require().NoError(err)
+
+			err = s.resourceManager.InTransaction(func() {
+				actual, err := db.NewQuery().
+					WithBuilder(s.resourceManager.GetBuilder()).
+					From(&storage.DBCbsd{}).
+					Select(db.NewExcludeMask("id", "state_id",
+						"cbsd_id", "grant_attempts", "is_deleted")).
+					Where(sq.Eq{"cbsd_serial_number": tc.input.CbsdSerialNumber}).
+					Fetch()
+				s.Require().NoError(err)
+				expectedBuilder := b.NewDBCbsdBuilder().Empty()
+				expectedBuilder.Cbsd = tc.toUpdate
+				expectedBuilder.WithSingleStepEnabled(false).
+					WithShouldDeregister(true).
+					WithDesiredStateId(s.enumMaps[storage.CbsdStateTable][registered]).
+					WithNetworkId(someNetwork).
+					WithFccId(someFccId).
+					WithUserId(someUserId).
+					WithPreferredFrequenciesMHz("[3600]").
+					WithPreferredBandwidthMHz(20).
+					WithMinPower(10).WithMaxPower(20).
+					WithNumberOfPorts(2)
+				expected := []db.Model{expectedBuilder.Cbsd}
+				s.Assert().Equal(expected, actual)
+			})
+			s.Require().NoError(err)
+		})
+	}
+}
+
 func (s *CbsdManagerTestSuite) TestUpdateDeletedCbsd() {
 	s.givenDeletedCbsd()
 
-	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd))
+	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, b.GetMutableDBCbsd(
+		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateNonExistentCbsd() {
-	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd))
+	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, b.GetMutableDBCbsd(
+		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
