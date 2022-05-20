@@ -14,11 +14,15 @@
 # -----------------------------------------------------------------------------
 # Builder image for Python binaries and Magma proto files
 # -----------------------------------------------------------------------------
+ARG CPU_ARCH=x86_64
+ARG DEB_PORT=amd64
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
 ARG EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
 
 FROM $OS_DIST:$OS_RELEASE AS builder
+ARG CPU_ARCH
+ARG DEB_PORT
 ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
@@ -100,6 +104,8 @@ RUN apt-get update && apt-get install -y \
   wget \
   ethtool \
   linux-headers-generic \
+  bpfcc-tools \
+  python3-bpfcc \
   iptables \
   iproute2
 
