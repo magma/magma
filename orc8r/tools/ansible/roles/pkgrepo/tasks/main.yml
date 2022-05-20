@@ -9,6 +9,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+- name: Remove all old registries
+  shell: rm -rf /etc/apt/sources.list.d/*.list
+  become: yes
+  ignore_errors: yes
 
 - name: Ensure ca-certificates is up to date
   become: yes
@@ -19,11 +23,6 @@
   vars:
     packages:
       - ca-certificates
-
-- name: Remove all old registries
-  shell: rm -rf /etc/apt/sources.list.d/*.list
-  become: yes
-  ignore_errors: yes
 
 - name: Copy gpg key from codebase
   copy:
@@ -39,6 +38,6 @@
   ansible.builtin.shell:
     cmd: echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list
 
-- name: Update apt 
+- name: Update apt
   apt:
     update_cache: yes
