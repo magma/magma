@@ -28,6 +28,7 @@ services:
       - fluentd
     command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
     restart: always
+    platform: linux/x86_64
   # If you want to use log aggregation on a Mac or Windows host, uncomment
   # the below block as-is
   # KP: host.docker.internal does not resolve to anything in Docker for linux
