@@ -14,12 +14,10 @@ limitations under the License.
 package models
 
 import (
-	"github.com/go-openapi/strfmt"
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
+
+	"github.com/go-openapi/strfmt"
 )
 
 func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
@@ -95,12 +93,12 @@ func getModelInstallationParam(params *protos.InstallationParam) *InstallationPa
 		return nil
 	}
 	return &InstallationParam{
-		AntennaGain:      doubleValueToFloatOrNil(params.AntennaGain),
-		Heightm:          doubleValueToFloatOrNil(params.HeightM),
-		HeightType:       stringValueToStringOrNil(params.HeightType),
-		IndoorDeployment: boolValueToBoolOrNil(params.IndoorDeployment),
-		LatitudeDeg:      doubleValueToFloatOrNil(params.LatitudeDeg),
-		LongitudeDeg:     doubleValueToFloatOrNil(params.LongitudeDeg),
+		AntennaGain:      to_pointer.DoubleValueToFloat(params.AntennaGain),
+		Heightm:          to_pointer.DoubleValueToFloat(params.HeightM),
+		HeightType:       to_pointer.StringValueToString(params.HeightType),
+		IndoorDeployment: to_pointer.BoolValueToBool(params.IndoorDeployment),
+		LatitudeDeg:      to_pointer.DoubleValueToFloat(params.LatitudeDeg),
+		LongitudeDeg:     to_pointer.DoubleValueToFloat(params.LongitudeDeg),
 	}
 }
 
@@ -109,55 +107,13 @@ func getProtoInstallationParam(params *InstallationParam) *protos.InstallationPa
 		return nil
 	}
 	return &protos.InstallationParam{
-		AntennaGain:      floatToDoubleValueOrNil(params.AntennaGain),
-		HeightM:          floatToDoubleValueOrNil(params.Heightm),
-		HeightType:       stringToStringValueOrNil(params.HeightType),
-		IndoorDeployment: boolToBoolValueOrNil(params.IndoorDeployment),
-		LatitudeDeg:      floatToDoubleValueOrNil(params.LatitudeDeg),
-		LongitudeDeg:     floatToDoubleValueOrNil(params.LongitudeDeg),
+		AntennaGain:      to_pointer.FloatToDoubleValue(params.AntennaGain),
+		HeightM:          to_pointer.FloatToDoubleValue(params.Heightm),
+		HeightType:       to_pointer.StringToStringValue(params.HeightType),
+		IndoorDeployment: to_pointer.BoolToBoolValue(params.IndoorDeployment),
+		LatitudeDeg:      to_pointer.FloatToDoubleValue(params.LatitudeDeg),
+		LongitudeDeg:     to_pointer.FloatToDoubleValue(params.LongitudeDeg),
 	}
-}
-
-func doubleValueToFloatOrNil(v *wrappers.DoubleValue) *float64 {
-	if v == nil {
-		return nil
-	}
-	return &v.Value
-}
-
-func boolValueToBoolOrNil(v *wrappers.BoolValue) *bool {
-	if v == nil {
-		return nil
-	}
-	return &v.Value
-}
-
-func stringValueToStringOrNil(v *wrappers.StringValue) *string {
-	if v == nil {
-		return nil
-	}
-	return &v.Value
-}
-
-func floatToDoubleValueOrNil(v *float64) *wrappers.DoubleValue {
-	if v == nil {
-		return nil
-	}
-	return wrapperspb.Double(*v)
-}
-
-func boolToBoolValueOrNil(v *bool) *wrapperspb.BoolValue {
-	if v == nil {
-		return nil
-	}
-	return wrapperspb.Bool(*v)
-}
-
-func stringToStringValueOrNil(v *string) *wrapperspb.StringValue {
-	if v == nil {
-		return nil
-	}
-	return wrapperspb.String(*v)
 }
 
 type LogInterface struct {

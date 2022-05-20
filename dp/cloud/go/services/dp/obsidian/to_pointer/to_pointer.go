@@ -16,6 +16,9 @@ package to_pointer
 import (
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"github.com/go-openapi/strfmt"
 )
 
@@ -42,4 +45,46 @@ func Bool(x bool) *bool {
 func TimeToDateTime(t int64) strfmt.DateTime {
 	tm := time.Unix(t, 0)
 	return strfmt.DateTime(tm)
+}
+
+func DoubleValueToFloat(v *wrappers.DoubleValue) *float64 {
+	if v == nil {
+		return nil
+	}
+	return &v.Value
+}
+
+func BoolValueToBool(v *wrappers.BoolValue) *bool {
+	if v == nil {
+		return nil
+	}
+	return &v.Value
+}
+
+func StringValueToString(v *wrappers.StringValue) *string {
+	if v == nil {
+		return nil
+	}
+	return &v.Value
+}
+
+func FloatToDoubleValue(v *float64) *wrappers.DoubleValue {
+	if v == nil {
+		return nil
+	}
+	return wrapperspb.Double(*v)
+}
+
+func BoolToBoolValue(v *bool) *wrapperspb.BoolValue {
+	if v == nil {
+		return nil
+	}
+	return wrapperspb.Bool(*v)
+}
+
+func StringToStringValue(v *string) *wrapperspb.StringValue {
+	if v == nil {
+		return nil
+	}
+	return wrapperspb.String(*v)
 }
