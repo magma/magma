@@ -17,6 +17,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/magma/milenage"
 	"github.com/stretchr/testify/assert"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -24,7 +25,6 @@ import (
 	"magma/feg/gateway/services/swx_proxy/cache"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 )
 
@@ -58,10 +58,10 @@ func testMARSuccessful(t *testing.T, verifyAuthorization bool, clearAAAserver bo
 	assert.Equal(t, 5, len(maa.GetSipAuthVectors()))
 	for _, vector := range maa.GetSipAuthVectors() {
 		assert.Equal(t, fegprotos.AuthenticationScheme_EAP_AKA, vector.AuthenticationScheme)
-		assert.Equal(t, crypto.ConfidentialityKeyBytes, len(vector.ConfidentialityKey))
-		assert.Equal(t, crypto.IntegrityKeyBytes, len(vector.IntegrityKey))
-		assert.Equal(t, crypto.RandChallengeBytes+crypto.AutnBytes, len(vector.RandAutn))
-		assert.Equal(t, crypto.XresBytes, len(vector.Xres))
+		assert.Equal(t, milenage.ConfidentialityKeyBytes, len(vector.ConfidentialityKey))
+		assert.Equal(t, milenage.IntegrityKeyBytes, len(vector.IntegrityKey))
+		assert.Equal(t, milenage.RandChallengeBytes+milenage.AutnBytes, len(vector.RandAutn))
+		assert.Equal(t, milenage.XresBytes, len(vector.Xres))
 	}
 }
 

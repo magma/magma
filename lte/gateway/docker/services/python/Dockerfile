@@ -77,6 +77,7 @@ RUN make buildenv
 # -----------------------------------------------------------------------------
 FROM $OS_DIST:$OS_RELEASE AS gateway_python
 ARG OS_DIST
+ARG CPU_ARCH
 ARG OS_RELEASE
 ARG EXTRA_REPO
 
@@ -104,8 +105,6 @@ RUN apt-get update && apt-get install -y \
   wget \
   ethtool \
   linux-headers-generic \
-  bpfcc-tools \
-  python3-bpfcc \
   iptables \
   iproute2
 
@@ -119,6 +118,11 @@ RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/pub
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
+
+RUN if [ "${CPU_ARCH}" = "aarch64" ]; then apt-get update && apt-get install -y \
+  bpfcc-tools \
+  python3-bpfcc; \
+  fi
 
 RUN apt-get update && apt-get install -y \
   td-agent-bit \

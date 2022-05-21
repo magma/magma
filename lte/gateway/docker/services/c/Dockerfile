@@ -47,10 +47,6 @@ RUN apt-get update && \
     chmod +x /usr/sbin/bazelisk-linux-"${DEB_PORT}" && \
     ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb ${EXTRA_REPO} focal-ci main"
-
 # Install dependencies required for building
 RUN apt-get update && apt-get install -y \
   sudo \
@@ -66,7 +62,6 @@ RUN apt-get update && apt-get install -y \
   libgflags-dev \
   libc++-dev \
   protobuf-compiler \
-  grpc-dev \
   ninja-build \
   autogen \
   ccache \
@@ -75,17 +70,13 @@ RUN apt-get update && apt-get install -y \
   libxslt-dev \
   libyaml-cpp-dev \
   nlohmann-json3-dev \
-  magma-cpp-redis \
   libgoogle-glog-dev \
-  prometheus-cpp-dev \
-  libfolly-dev \
   libsctp-dev \
   libpcap-dev \
   libmnl-dev \
   uuid-dev \
   python3-pip \
   libcurl4-openssl-dev \
-  magma-libfluid \
   libdouble-conversion-dev \
   libboost-chrono-dev \
   libboost-context-dev \
@@ -93,18 +84,32 @@ RUN apt-get update && apt-get install -y \
   libboost-filesystem-dev \
   libboost-regex-dev \
   check \
-  liblfds710 \
   libssl-dev \
   libsctp-dev \
   libtspi-dev \
-  oai-asn1c \
-  oai-nettle \
-  oai-gnutls \
-  oai-freediameter \
-  prometheus-cpp-dev \
   libconfig-dev \
   libgmp3-dev \
   libczmq-dev
+
+RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
+RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
+RUN apt-get update && apt-get install -y \
+  libfolly-dev \
+  oai-asn1c \
+  oai-freediameter \
+  oai-gnutls \
+  oai-nettle \
+  magma-cpp-redis \
+  magma-libfluid \
+  liblfds710
+RUN rm /etc/apt/sources.list.d/magma.list
+
+RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fb.list
+RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
+RUN apt-get update && apt-get install -y \
+  grpc-dev \
+  prometheus-cpp-dev
+RUN rm /etc/apt/sources.list.d/fb.list
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
@@ -147,6 +152,7 @@ RUN bazel build  \
   //lte/gateway/c/li_agent/src:liagentd \
   //lte/gateway/c/session_manager:sessiond \
   --define=folly_so=1
+
 RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
@@ -191,8 +197,11 @@ RUN apt-get update && apt-get install -y \
 
 RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
-
-RUN apt-get update && apt-get install -y libopenvswitch openvswitch-datapath-dkms openvswitch-common openvswitch-switch
+RUN apt-get update && apt-get install -y \
+  libopenvswitch \
+  openvswitch-datapath-dkms \
+  openvswitch-common \
+  openvswitch-switch
 
 # Copy pre-built shared object files
 COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/liblsan.so.0 /usr/lib/"${CPU_ARCH}"-linux-gnu/
