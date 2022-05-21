@@ -18,16 +18,16 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"magma/feg/gateway/services/testcore/hss/servicers"
 	"reflect"
+
+	"github.com/golang/glog"
+	"github.com/magma/milenage"
+	"github.com/pkg/errors"
 
 	"magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/aka"
-	"magma/lte/cloud/go/crypto"
-
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
+	"magma/feg/gateway/services/testcore/hss/servicers"
 )
 
 // todo Replace constants with configurable fields
@@ -128,7 +128,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	sqn := servicers.SeqToSqn(ue.Seq, defaultInd)
 
 	// Calculate Opc using key and Op, and verify that it matches the UE's Opc
-	opc, err := crypto.GenerateOpc(key, srv.cfg.op)
+	opc, err := milenage.GenerateOpc(key, srv.cfg.op)
 	if err != nil {
 		return nil, fmt.Errorf("Error while calculating Opc")
 	}
@@ -137,7 +137,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	}
 
 	// Calculate RES and other keys.
-	milenage, err := crypto.NewMilenageCipher(srv.cfg.amf)
+	milenage, err := milenage.NewCipher(srv.cfg.amf)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error creating milenage cipher")
 	}
