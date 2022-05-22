@@ -30,6 +30,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/oai/include/proto_map.h"
 
 // Forward declarations
 struct enb_description_s;
@@ -167,6 +168,7 @@ typedef struct enb_description_s {
   uint32_t nb_ue_associated;  ///< Number of NAS associated UE on this eNB
   hash_table_uint64_ts_t ue_id_coll;  ///< Contains comp_s1ap_id assoc to
                                       ///< enodeb, key is mme_ue_s1ap_id;
+  magma::proto_map_uint32_uint64_t ue_id_coll_proto;
   /*@}*/
   /** SCTP stuff **/
   /*@{*/
