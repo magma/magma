@@ -41,6 +41,7 @@ import Typography from '@material-ui/core/Typography';
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {CWF, FEG, LTE} from '../../../shared/types/network';
+// $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';

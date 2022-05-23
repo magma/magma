@@ -22,6 +22,7 @@ import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 
 import {AltFormField} from '../../components/FormField';
+// $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
