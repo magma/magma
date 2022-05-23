@@ -29,7 +29,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';

@@ -17,7 +17,7 @@
 import type {MetricGraphConfig} from './Metrics';
 
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import Metrics from './Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';

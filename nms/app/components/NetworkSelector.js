@@ -15,7 +15,7 @@
  */
 import AppContext from '../components/context/AppContext';
 import Divider from '@material-ui/core/Divider';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import MenuButton from './MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from './context/NetworkContext';

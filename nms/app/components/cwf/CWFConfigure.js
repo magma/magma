@@ -16,7 +16,7 @@
 
 import Configure from '../network/Configure';
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';

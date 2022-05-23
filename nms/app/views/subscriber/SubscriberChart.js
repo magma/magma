@@ -30,7 +30,7 @@ import DataGrid from '../../components/DataGrid';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';

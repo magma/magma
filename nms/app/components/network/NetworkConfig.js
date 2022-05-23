@@ -25,7 +25,7 @@ import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';

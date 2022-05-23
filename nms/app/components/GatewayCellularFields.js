@@ -22,7 +22,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';

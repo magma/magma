@@ -27,7 +27,7 @@ import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';

@@ -23,7 +23,7 @@ import type {
   rating_group,
 } from '../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 
 type Props = {
   networkId: network_id,

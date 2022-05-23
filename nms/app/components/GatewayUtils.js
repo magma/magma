@@ -25,7 +25,7 @@ import type {
   service_status_health,
 } from '../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 
 export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';

@@ -17,7 +17,7 @@
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
 import IndexWithoutNetwork from './IndexWithoutNetwork';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';

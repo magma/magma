@@ -39,7 +39,7 @@ import type {
   tier_id,
 } from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 
 /************************** Gateway Tier State *******************************/
 type InitTierStateProps = {

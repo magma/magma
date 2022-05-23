@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 

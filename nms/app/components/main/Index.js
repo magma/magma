@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 
 import {FEG, coalesceNetworkType} from '../../../shared/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';

@@ -23,7 +23,7 @@ import type {
   network_id,
 } from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
 
 type InitGatewayStateProps = {

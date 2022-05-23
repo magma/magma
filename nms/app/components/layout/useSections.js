@@ -18,7 +18,7 @@ import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
 import AppContext from '../../../app/components/context/AppContext';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import NetworkContext from '../context/NetworkContext';
 import {
   CWF,

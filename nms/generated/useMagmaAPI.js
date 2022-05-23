@@ -14,7 +14,7 @@
  * @format
  */
 
-import MagmaV1API from './WebClient';
+import MagmaV1API from '../app/common/WebClient';
 
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../app/hooks/useSnackbar';

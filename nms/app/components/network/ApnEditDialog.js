@@ -19,7 +19,7 @@ import type {
   apn,
 } from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import React from 'react';
 import {
   Button,

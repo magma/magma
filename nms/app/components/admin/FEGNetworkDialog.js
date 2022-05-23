@@ -19,7 +19,7 @@ import type {GenericConfig} from './GenericNetworkDialog';
 import * as React from 'react';
 import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import TextField from '@material-ui/core/TextField';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';

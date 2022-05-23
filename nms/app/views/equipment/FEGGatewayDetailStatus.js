@@ -18,7 +18,7 @@ import type {DataRows} from '../../components/DataGrid';
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';

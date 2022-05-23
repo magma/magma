@@ -19,7 +19,7 @@ import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';

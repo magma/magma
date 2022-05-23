@@ -20,7 +20,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';

@@ -17,7 +17,7 @@
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import React from 'react';
 import nullthrows from '../../shared/util/nullthrows';
 import type {DataRows} from './DataGrid';

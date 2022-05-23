@@ -16,7 +16,7 @@
 'use strict';
 
 import * as React from 'react';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import axios from 'axios';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

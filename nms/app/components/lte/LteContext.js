@@ -22,7 +22,7 @@ import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
 import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';

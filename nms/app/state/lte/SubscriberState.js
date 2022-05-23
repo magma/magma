@@ -26,7 +26,7 @@ import type {
   subscriber_state,
 } from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 
 import {
   DEFAULT_PAGE_SIZE,

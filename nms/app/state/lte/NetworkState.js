@@ -23,7 +23,7 @@ import type {
   network_subscriber_config,
 } from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 
 export type UpdateNetworkProps = {
   networkId: network_id,

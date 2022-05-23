@@ -35,7 +35,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
 import KeyValueFields from '../KeyValueFields';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useContext, useState} from 'react';
 import Select from '@material-ui/core/Select';

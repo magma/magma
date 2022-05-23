@@ -21,7 +21,7 @@ import FormControl from '@material-ui/core/FormControl';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import PolicyContext from '../../components/context/PolicyContext';

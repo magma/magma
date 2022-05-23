@@ -19,7 +19,7 @@ import CWFNetworkDialog from './CWFNetworkDialog';
 import FEGNetworkDialog from './FEGNetworkDialog';
 import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 
 import useMagmaAPI from '../../../api/useMagmaAPI';
 import {CWF, FEG} from '../../../shared/types/network';

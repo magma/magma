@@ -26,7 +26,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import NestedRouteLink from '../NestedRouteLink';
 import NoNetworksMessage from '../NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';

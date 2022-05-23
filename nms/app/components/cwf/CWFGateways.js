@@ -27,7 +27,7 @@ import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaV1API from '../../common/WebClient';
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';

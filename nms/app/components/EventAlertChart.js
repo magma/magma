@@ -22,7 +22,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../shared/util/nullthrows';

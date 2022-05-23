@@ -27,7 +27,7 @@ import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaV1API from '../common/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
