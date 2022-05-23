@@ -17,8 +17,6 @@ FROM $OS_DIST:$OS_RELEASE AS builder
 
 ARG MAGMA_RELEASE=master
 ARG DEBIAN_FRONTEND=noninteractive
-ARG S1_IP=192.168.60.144
-ARG S1_PORT=62462
 
 ARG GIT_VERSION=1:2.25.1-1ubuntu3.4
 ARG PYTHON3_PIP_VERSION=20.0.2-5ubuntu1.6
@@ -50,4 +48,4 @@ RUN mkdir /usr/lib/python3.8/util
 RUN cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/traffic_server.py /usr/local/bin/traffic_server.py
 RUN cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/util/traffic_messages.py /usr/lib/python3.8/util/
 
-ENTRYPOINT /usr/local/bin/traffic_server.py $S1_IP $S1_PORT
+ENTRYPOINT /usr/local/bin/traffic_server.py 192.168.60.144 62462

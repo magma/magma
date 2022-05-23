@@ -86,6 +86,11 @@ EOF
   cd /opt/magma || exit
   git checkout "$MAGMA_VERSION"
 
+  # copy magma modules
+  mkdir -p /usr/local/lib/python3.8/dist-packages/magma/mobilityd
+  cp -r /opt/magma/orc8r/gateway/python/magma/* /usr/local/lib/python3.8/dist-packages/magma/
+  cp -r /opt/magma/lte/gateway/python/magma/mobilityd/* /usr/local/lib/python3.8/dist-packages/magma/mobilityd/
+
   # changing intefaces name
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
   sed -i 's/ens5/eth0/g; s/ens6/eth1/g' /etc/netplan/50-cloud-init.yaml

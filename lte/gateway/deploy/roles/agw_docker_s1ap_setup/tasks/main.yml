@@ -1,0 +1,40 @@
+---
+- name: Verify eth0 and eth1 exist
+  assert:
+    that:
+      - "{{ ansible_facts['eth0'] is defined }}"
+      - "{{ ansible_facts['eth1'] is defined }}"
+    fail_msg: "eth0 and eth1 interfaces must exist"
+
+- name: Get AGW containers status
+  shell: "docker inspect magmad -f {% raw %}'{{ .State.Running }}'{% endraw %}"
+  register: application_status
+  ignore_errors: yes
+
+- name: Verify AGW containers are running
+  assert:
+    that: '"No such object" not in application_status.stderr and "true" in application_status.stdout'
+    fail_msg: "Start AGW containers"
+
+- name: Verify eth1 address
+  assert:
+    that: ansible_facts['eth1']['ipv4']['address']  == '192.168.60.142'
+    fail_msg: "eth1 must have address 192.168.60.142"
+
+- name: Update ubuntu password
+  user:
+    name: ubuntu
+    password: "{{ 'ubuntu' | password_hash('sha512', 'ubuntu') }}"
+
+- name: Permit ssh password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication|^#PasswordAuthentication'
+    line: "PasswordAuthentication yes"
+  register: password_auth
+
+- name: Reload ssh
+  systemd:
+    name: ssh
+    state: reloaded
+  when: password_auth.changed

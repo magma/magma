@@ -21,3 +21,22 @@
     repo: '{{ magma_repo}}'
     dest: /opt/magma
     version: '{{ magma_version }}'
+  when: get_docker.changed
+
+- name: Add docker registry to .env
+  lineinfile:
+    path: /opt/magma/lte/gateway/docker/.env
+    regexp: '^DOCKER_REGISTRY='
+    line: "DOCKER_REGISTRY={{ docker_registry }}"
+  when: docker_registry is defined
+
+- name: "Build {{ docker_application }} image"
+  shell:
+    cmd: "docker-compose -f docker-compose.yaml -f s1ap/docker-compose.override.yaml build {{ docker_application }}"
+    chdir: /opt/magma/lte/gateway/docker
+  when: docker_registry is not defined
+
+- name: "Start {{ docker_application }} container"
+  shell:
+    cmd: "docker-compose --env-file .env -f s1ap/docker-compose.s1ap.yaml up -d {{ docker_application }}"
+    chdir: /opt/magma/lte/gateway/docker

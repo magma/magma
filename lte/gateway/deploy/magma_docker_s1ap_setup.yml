@@ -18,7 +18,11 @@
   hosts: s1aptester
   roles:
     - role: agw_docker_s1aptester
+  vars:
+    docker_application: s1aptester
 - name: Setup Traffic Generator
   hosts: trfgen
   roles:
-    - role: agw_docker_trfgen
+    - role: agw_docker_s1aptester
+  vars:
+    docker_application: trfgen

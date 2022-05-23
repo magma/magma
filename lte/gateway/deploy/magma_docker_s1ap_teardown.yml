@@ -10,8 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Install host
+- name: Remove s1aptester changes to AGW host
   hosts: agw_docker
   roles:
-    - role: magma_deploy
-    - role: agw_docker
+    - role: agw_docker_s1ap_teardown

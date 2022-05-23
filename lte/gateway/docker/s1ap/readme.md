@@ -7,6 +7,20 @@ Your host must have the following to build and run all the images necessary for 
 - 20 GB of space for building/storing images, 64 GB recommended for running
 - At least 2 interfaces, eth0 (SGi), eth1 (S1)
 
+AGW:
+
+Must have an eth1 address of 192.168.60.142
+Must have eth0 and eth1 interfaces.
+
+s1aptester:
+
+Must have an eth1 address of 192.168.60.141
+
+trfgen:
+
+Must have an eth1 address of 192.168.60.142
+
+
 # Build and publish s1aptester images
 
 1. Clone the magma repository on an Ubuntu 20.04 host and move into AGW docker directory in the repo and run build script.
@@ -23,6 +37,21 @@ s1ap/publish.sh yourregistry.com/yourrepo/
 ```
 
 # Run s1aptester
+
+### Add your authentication to s1aptester and trfgen hosts from the agw vm
+
+### test your connection with
+
+ansible -m ping all -i /opt/magma/lte/gateway/deploy/agw_hosts -u ubuntu
+
+
+
+
+### build images on the s1aptester vm and don't define docker_registry or define with the address
+
+### ansible-playbook -i ~/agw_hosts magma_docker_s1ap_setup.yml -u ubuntu -l s1aptester -b -e "docker_registry=public.ecr.aws/z2g3r6f7/"
+
+
 
 1. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run the s1aptester start script `s1ap/start-s1ap.sh`. Make sure that your `DOCKER_REGISTRY` variable in the `.env` file points to your registry with your AGW and s1aptester images. Leave blank if your images exist in the local docker registry.
 

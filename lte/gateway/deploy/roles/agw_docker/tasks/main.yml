@@ -133,18 +133,7 @@
     - agwc
   loop:
     - docker-compose.s1ap.yaml
-    - start-s1ap.sh
-    - stop-s1ap.sh
-
-- name: Making s1ap scripts executable
-  file:
-    dest: /var/opt/magma/docker/s1ap/{{ item }}
-    mode: +x
-  tags:
-    - agwc
-  loop:
-    - start-s1ap.sh
-    - stop-s1ap.sh
+    - docker-compose.agw.yaml
 
 - name: bring up the containers.
   script: agw_upgrade.sh
