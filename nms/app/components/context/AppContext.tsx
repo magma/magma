@@ -9,63 +9,66 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 'use strict';
 
+import * as React from 'react';
+import {noop} from 'lodash';
 import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import type {FeatureID} from '../../../shared/types/features';
 import type {SSOSelectedType} from '../../../shared/types/auth';
 
-import * as React from 'react';
-import {noop} from 'lodash';
-
 export type AppContextType = {
-  csrfToken: ?string,
-  version: ?string,
-  networkIds: string[],
-  user: User,
-  showExpandButton: () => void,
-  hideExpandButton: () => void,
-  isOrganizations: boolean,
-  isFeatureEnabled: FeatureID => boolean,
-  ssoEnabled: boolean,
-  ssoSelectedType: SSOSelectedType,
-  hasAccountSettings: boolean,
+  csrfToken: string | null | undefined;
+  version: string | null | undefined;
+  networkIds: Array<string>;
+  user: User;
+  showExpandButton: () => void;
+  hideExpandButton: () => void;
+  isOrganizations: boolean;
+  isFeatureEnabled: (arg0: FeatureID) => boolean;
+  ssoEnabled: boolean;
+  ssoSelectedType: SSOSelectedType;
+  hasAccountSettings: boolean;
 };
 
-const appContextDefaults = {
+const appContextDefaults: AppContextType = {
   csrfToken: null,
   version: null,
   networkIds: [],
-  user: {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
+  user: {
+    tenant: '',
+    email: '',
+    isSuperUser: false,
+    isReadOnlyUser: false,
+  },
   showExpandButton: noop,
   hideExpandButton: noop,
   isFeatureEnabled: () => false,
+  isOrganizations: false,
   ssoEnabled: false,
   ssoSelectedType: 'none',
   hasAccountSettings: false,
 };
 
-// $FlowFixMe[prop-missing]
 const AppContext = React.createContext<AppContextType>(appContextDefaults);
-
-type Props = {|
-  children: React.Node,
-  isOrganizations?: boolean,
-  networkIDs?: string[],
-|};
+type Props = {
+  children: React.ReactNode;
+  isOrganizations?: boolean;
+  networkIDs?: Array<string>;
+};
 
 export function AppContextProvider(props: Props) {
-  const config: {appData: EmbeddedData} = window.CONFIG;
+  const config: {
+    appData: EmbeddedData;
+  } = window.CONFIG;
   const {appData} = config;
   const value = {
     ...appContextDefaults,
     ...appData,
     hasAccountSettings: !appData.ssoEnabled,
-    isOrganizations: !!props.isOrganizations, // is organizations management aka. the host site
+    isOrganizations: !!props.isOrganizations,
+    // is organizations management aka. the host site
     networkIds: props.networkIDs || [],
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;
