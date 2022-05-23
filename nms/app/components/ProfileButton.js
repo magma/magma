@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from './context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';

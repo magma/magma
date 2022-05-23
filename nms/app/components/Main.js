@@ -21,6 +21,7 @@ import MagmaV1API from '../../generated/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from './context/AppContext';
 import {
   Navigate,

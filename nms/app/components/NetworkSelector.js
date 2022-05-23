@@ -13,6 +13,7 @@
  * @flow
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../components/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import MagmaV1API from '../../generated/WebClient';

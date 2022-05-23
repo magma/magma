@@ -17,6 +17,7 @@
 import type {EditUser} from './EditUserDialog';
 import type {WithAlert} from './Alert/withAlert';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';

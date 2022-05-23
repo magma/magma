@@ -24,6 +24,7 @@ import ReactDOM from 'react-dom';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from './theme/default';
 import nullthrows from '../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from './components/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
 

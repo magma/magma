@@ -17,6 +17,7 @@
 import AddAlertIcon from '@material-ui/icons/AddAlert';
 import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from './components/Alarms';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import ContactMailIcon from '@material-ui/icons/ContactMail';

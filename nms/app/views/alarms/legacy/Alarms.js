@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../components/context/AppContext';
 import FBCAlarms from '../components/Alarms';
 import type {ApiUtil} from '../components/AlarmsApi';

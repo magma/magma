@@ -19,6 +19,7 @@ import type {NetworkContextType} from '../context/NetworkContext';
 import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript
