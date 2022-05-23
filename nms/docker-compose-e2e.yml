@@ -48,7 +48,6 @@ services:
       - ./scripts:/usr/src/scripts
       - ./server:/usr/src/server
       - ./shared:/usr/src/shared
-      - ./views:/usr/src/views
     depends_on:
       - postgres
     networks:
