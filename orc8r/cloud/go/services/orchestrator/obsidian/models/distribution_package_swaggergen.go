@@ -12,10 +12,10 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// Package package
+// DistributionPackage distribution package
 //
-// swagger:model package
-type Package struct {
+// swagger:model distribution_package
+type DistributionPackage struct {
 
 	// name
 	// Example: magma
@@ -26,18 +26,18 @@ type Package struct {
 	Version string `json:"version,omitempty"`
 }
 
-// Validate validates this package
-func (m *Package) Validate(formats strfmt.Registry) error {
+// Validate validates this distribution package
+func (m *DistributionPackage) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this package based on context it is used
-func (m *Package) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this distribution package based on context it is used
+func (m *DistributionPackage) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *Package) MarshalBinary() ([]byte, error) {
+func (m *DistributionPackage) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -45,8 +45,8 @@ func (m *Package) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *Package) UnmarshalBinary(b []byte) error {
-	var res Package
+func (m *DistributionPackage) UnmarshalBinary(b []byte) error {
+	var res DistributionPackage
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

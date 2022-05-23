@@ -38,8 +38,8 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/services/tenants"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/security/cert"
-	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 )
 
 var (
@@ -130,7 +130,7 @@ func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *prot
 	// add to table
 	snString := cert.SerialToString(sn)
 	// Ensure serial number is not the orc8r client reserved SN
-	if snString == unarylib.ORC8R_CLIENT_CERT_VALUE {
+	if snString == registry.ORC8R_CLIENT_CERT_VALUE {
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
 	}
 	err = srv.store.PutCertInfo(snString, certInfo)
@@ -207,7 +207,7 @@ func (srv *CertifierServer) AddCertificate(ctx context.Context, req *certprotos.
 	}
 	snStr := cert.SerialToString(x509Cert.SerialNumber)
 	// Ensure serial number is not the orc8r client reserved SN
-	if snStr == unarylib.ORC8R_CLIENT_CERT_VALUE {
+	if snStr == registry.ORC8R_CLIENT_CERT_VALUE {
 		return res, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
 	}
 	// Verify that the certificate is signed by our CA

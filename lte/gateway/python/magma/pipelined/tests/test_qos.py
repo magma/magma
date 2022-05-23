@@ -329,7 +329,6 @@ get_action_instruction",
             exp_id = id_list[i]
             k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
             exp_id_dict[k] = exp_id
-            # self.assertTrue(qos_mgr._redis_store[k] == exp_id)
             qid_info = get_data_json(get_subscriber_data(exp_id, 0, 0))
             self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
 

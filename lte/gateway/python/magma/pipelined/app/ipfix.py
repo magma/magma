@@ -234,9 +234,9 @@ class IPFIXController(MagmaController):
             )
 
     def add_ue_sample_flow(
-        self, imsi: str, msisdn: str,
-        apn_mac_addr: str, apn_name: str,
-        pdp_start_time: int,
+        self, imsi: str, apn_mac_addr: str,
+        apn_name: str, pdp_start_time: int,
+        msisdn: str = 'no_msisdn',
     ) -> None:
         """
         Install a flow to sample packets for IPFIX for specific imsi
@@ -262,9 +262,6 @@ class IPFIXController(MagmaController):
             apn_mac_bytes = [0, 0, 0, 0, 0, 0]
         else:
             apn_mac_bytes = [int(a, 16) for a in apn_mac_addr.split('-')]
-
-        if not msisdn:
-            msisdn = 'no_msisdn'
 
         actions = [
             parser.NXActionSample2(
