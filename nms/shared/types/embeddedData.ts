@@ -9,26 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import type {FeatureID} from './features';
 import type {SSOSelectedType} from './auth';
 
 export type User = {
-  tenant: string,
-  email: string,
-  isSuperUser: boolean,
-  isReadOnlyUser: boolean,
+  tenant: string;
+  email: string;
+  isSuperUser: boolean;
+  isReadOnlyUser: boolean;
 };
 
-export type EmbeddedData = {|
-  csrfToken: string,
-  user: User,
-  enabledFeatures: FeatureID[],
-  ssoEnabled: boolean,
-  ssoSelectedType: SSOSelectedType,
-  csvCharset: ?string,
-|};
+export type EmbeddedData = {
+  csrfToken: string;
+  user: User;
+  enabledFeatures: Array<FeatureID>;
+  ssoEnabled: boolean;
+  ssoSelectedType: SSOSelectedType;
+  csvCharset: string | null | undefined;
+};
