@@ -5,4 +5,4 @@ RUN gem install \
     fluent-plugin-elasticsearch:5.2.1 \
     fluent-plugin-multi-format-parser:1.0.0 \
     --no-document
-USER fluent
+ENV FLUENT_UID=0
