@@ -18,7 +18,7 @@ const Networks = {
   feg: 'feg',
   feg_lte: 'feg_lte',
   lte: 'lte',
-};
+} as const;
 
 export const CWF = Networks.carrier_wifi_network;
 export const XWFM = Networks.xwfm;

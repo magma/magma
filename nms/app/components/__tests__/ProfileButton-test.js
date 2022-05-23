@@ -55,7 +55,7 @@ const WrappedProfileButton = (props: Props) => {
 
 describe('<ProfileButton />', () => {
   it.each([true, false])('respects expanded=%s', expanded => {
-    global.CONFIG = {
+    window.CONFIG = {
       appData: {
         user: {},
         ssoEnabled: false,
@@ -88,7 +88,7 @@ describe('<ProfileButton />', () => {
     ssoEnabled?: boolean,
     enabledFeatures?: Array<string>,
   }) {
-    global.CONFIG = {
+    window.CONFIG = {
       appData: {
         user: {isSuperUser},
         ssoEnabled,
