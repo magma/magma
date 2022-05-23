@@ -36,7 +36,7 @@ const (
 	responseCode      = "response_code"
 	beginTimestamp    = "begin"
 	endTimestamp      = "end"
-	sortTag           = "@timestamp"
+	sortTag           = "event_timestamp"
 	Dp                = "dp"
 	DpPath            = obsidian.V1Root + Dp
 	ManageNetworkPath = DpPath + obsidian.UrlSep + ":network_id"
