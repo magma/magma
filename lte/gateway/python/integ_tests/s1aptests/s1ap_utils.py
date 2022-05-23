@@ -1220,11 +1220,27 @@ class MagmadUtil(object):
         """Enable Nat"""
         self._set_agw_nat(True)
         self._validate_nated_datapath(ip_version)
-        self.exec_command("sudo ip route del default via 192.168.129.42")
-        self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        if ip_version == 4:
+          self.exec_command("sudo ip route del default via 192.168.129.42")
+          self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        else :
+          self.exec_command("sudo ip route del default via 3001::2")
+          self.exec_command("sudo ip route add default via 2020::10 dev eth0")
 
     def disable_nat(self, ip_version=4):
-        """Disable Nat"""
+        """
+        Disable Nat
+
+        ip config details:
+               vm     ip                intf
+               =============================
+               dev    192.168.129.1     eth2
+               dev    3001::10          eth3
+               test   192.168.128.11    eth2
+               test   3001::3           eth3
+               trf    192.168.129.42    eth2
+               trf    3001::2           eth3
+        """
         if ip_version == 4:
           self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
           self.exec_command(

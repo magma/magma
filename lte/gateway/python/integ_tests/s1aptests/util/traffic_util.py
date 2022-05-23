@@ -110,6 +110,9 @@ class TrafficUtil(object):
             "{user}@{host} {command}"
         )
 
+        self.ue_ipv6_block = "fdee:0005:006c::/64"
+        self.agw_ipv6      = "3001::10"
+
     def exec_command(self, command):
         """
         Run a command remotely on magma_trfserver VM.
@@ -138,8 +141,8 @@ class TrafficUtil(object):
             "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
         )
         ret_code = self.exec_command(
-            "sudo ip -6 route flush via 3001::10 && sudo ip -6 route "
-            "replace " + "fdee:0005:006c::/64" + " via 3001::10 dev eth3",
+            "sudo ip -6 route flush via " + self.agw_ipv6 + " && sudo ip -6 route "
+            "replace " + self.ue_ipv6_block + " via "+ self.agw_ipv6 + " dev eth3",
         )
         return ret_code == 0
 
@@ -481,11 +484,9 @@ class TrafficTest(object):
                 )
 
             # Set up network ifaces and get UL port assignments for DL
-            if net_iface == 'eth2':
-              aliases = ()
             for instance in self.instances:
                 if instance.ip.version == 4:
-                  aliases += (TrafficTest._iface_up_ipv4(instance.ip),)
+                  (TrafficTest._iface_up_ipv4(instance.ip),)
                 else :
                   (TrafficTest._iface_up_ipv6(instance.ip),)
                 if not instance.is_uplink:

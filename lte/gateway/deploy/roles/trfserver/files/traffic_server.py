@@ -517,6 +517,10 @@ class TrafficTestDriver(object):
         self._server = server
         self._instances = instances
         self._results = None
+        self._trfserver_ipv6 = '3001::2'
+        self._trfserver_ipv4 = '192.168.129.42'
+        self._agw_ipv6 = '3001::10'
+        self._agw_ip_sub = 64
 
         self._setup_iperf3()
 
@@ -597,23 +601,23 @@ class TrafficTestDriver(object):
                 ip_str = ipaddress.ip_address(instance.ip)
                 if ip_str.version == 4:
                   print("Running ipv4")
-                  iperf.bind_address = '192.168.129.42'
+                  iperf.bind_address = self._trfserver_ipv4
                 else:
                   print("Running ipv6")
-                  iperf.bind_address = '3001::2'
-                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth3')
-                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth3' %(instance.ip.exploded,))
+                  iperf.bind_address = self._trfserver_ipv6
+                  os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' %(self._agw_ipv6, self._agw_ip_sub))
+                  os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' %(instance.ip.exploded, self._agw_ipv6))
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
                 ip_str = ipaddress.ip_address(instance.ip)
                 if ip_str.version == 4:
-                  iperf.bind_address = '192.168.129.42'
+                  iperf.bind_address = self._trfserver_ipv4
                 else:
-                  iperf.bind_address = '3001::2'
-                  os.system('sudo /sbin/ip -6 route add 3001::10/64 dev eth3')
-                  os.system('sudo /sbin/ip -6 route add %s via 3001::10 dev eth3' %(instance.ip.exploded,))
+                  iperf.bind_address = self._trfserver_ipv6
+                  os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' % (self._agw_ipv6, self._agw_ip_sub))
+                  os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' %(instance.ip.exploded, self._agw_ipv6))
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
