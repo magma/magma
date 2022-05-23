@@ -1,0 +1,4 @@
+---
+magma_version: "master"
+magma_repo: 'https://github.com/magma/magma'
+docker_compose_version: "2.5.1"

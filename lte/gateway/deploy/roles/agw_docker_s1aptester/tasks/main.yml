@@ -1,0 +1,23 @@
+---
+- name: Download Docker install script
+  get_url:
+    url: https://get.docker.com
+    dest: ~/get-docker.sh
+    mode: '0740'
+  register: get_docker
+
+- name: Download docker-compose
+  get_url:
+    url: 'https://github.com/docker/compose/releases/download/v{{docker_compose_version}}/docker-compose-linux-x86_64'
+    dest: /usr/local/bin/docker-compose
+    mode: '0740'
+
+- name: Install docker
+  shell: ~/get-docker.sh
+  when: get_docker.changed
+
+- name: Git checkout
+  git:
+    repo: '{{ magma_repo}}'
+    dest: /opt/magma
+    version: '{{ magma_version }}'

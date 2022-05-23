@@ -79,7 +79,7 @@ EOF
   fi
 
   alias python=python3
-  pip3 install ansible fire jsonpickle protobuf redis
+  pip3 install ansible fire jsonpickle protobuf redis grpcio snowflake
 
   rm -rf /opt/magma/
   git clone "${GIT_URL}" /opt/magma
@@ -107,7 +107,11 @@ fi
 
 echo "Generating localhost hostfile for Ansible"
 echo "[agw_docker]
-127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
+127.0.0.1 ansible_connection=local
+[s1aptester]
+192.168.60.141
+[trfgen]
+192.168.60.144" > $DEPLOY_PATH/agw_hosts
 
 if [ "$MODE" == "base" ]; then
   su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags base $DEPLOY_PATH/magma_docker.yml"

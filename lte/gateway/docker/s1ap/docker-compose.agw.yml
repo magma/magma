@@ -1,0 +1,105 @@
+---
+version: "3.7"
+
+services:
+  magmad:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  redis:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  directoryd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  subscriberdb:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  enodebd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  state:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  policydb:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  eventd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  health:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  monitord:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  redirectd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  smsd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  control_proxy:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  ctraced:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  sctpd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  oai_config:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  oai_mme:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  pipelined:
+    environment:
+      - MAGMA_DEV_MODE=1
+    command: >
+      bash -c "/usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set &&
+        /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 &&
+        /usr/bin/ovsdb-client dump Controller _uuid|tail -n +4 | while read id ; do \
+          /usr/bin/ovs-vsctl set Controller $${id} inactivity_probe=300 ; done &&
+        /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
+        /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
+        sed -i \"s/static_services: \[/static_services: \[ \'ryu_rest_service\',/g\" /etc/magma/pipelined.yml &&
+        /usr/bin/env python3 -m magma.pipelined.main "
+
+  sessiond:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  mobilityd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  connectiond:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  liagentd:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  td-agent-bit:
+    environment:
+      - MAGMA_DEV_MODE=1
