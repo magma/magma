@@ -19,7 +19,7 @@ import type {
   promql_return_object,
 } from '../../../generated/MagmaAPIBindings';
 
-import {isValidHex} from '../../../fbc_js_core/util/strings';
+import {isValidHex} from '../../util/strings';
 
 const mBIT = 1000000;
 const kBIT = 1000;

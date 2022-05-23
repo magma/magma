@@ -72,10 +72,14 @@ int amf_handle_security_complete_response(
                  smc_proc->T3560.id, ue_id);
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
-    /* FSM takes care of sending initial context setup request */
-    ue_state_handle_message_initial(COMMON_PROCEDURE_INITIATED1,
-                                    STATE_EVENT_SEC_MODE_COMPLETE, SESSION_NULL,
-                                    ue_mm_context, amf_ctx);
+    // Send s6a update location request
+    if (amf_send_n11_update_location_req(ue_mm_context->amf_ue_ngap_id) ==
+        RETURNerror) {
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "update location request failed for amf_ue_ngap_id "
+                   ": " AMF_UE_NGAP_ID_FMT,
+                   ue_mm_context->amf_ue_ngap_id);
+    }
 
   } else {
     OAILOG_ERROR(

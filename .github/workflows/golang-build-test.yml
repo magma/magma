@@ -49,12 +49,12 @@ jobs:
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
@@ -86,12 +86,12 @@ jobs:
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Setup gotestsum
@@ -132,12 +132,12 @@ jobs:
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         arch: [386, arm, arm64]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Install QEMU

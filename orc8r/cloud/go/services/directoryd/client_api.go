@@ -38,7 +38,7 @@ const ServiceName = "directoryd"
 
 // getDirectorydClient returns an RPC connection to the directoryd service.
 func getDirectorydClient() (protos.DirectoryLookupClient, error) {
-	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

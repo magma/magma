@@ -16,7 +16,7 @@
 
 import type {GatewayV1} from './GatewayUtils';
 
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormControl from '@material-ui/core/FormControl';
@@ -27,7 +27,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
-import nullthrows from '../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
 import {useParams} from 'react-router-dom';
@@ -118,10 +118,10 @@ export default function GatewayMagmadFields(props: Props) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </>
   );

@@ -17,8 +17,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/emakeev/milenage"
 	"github.com/golang/glog"
+	"github.com/magma/milenage"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

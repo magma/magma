@@ -19,7 +19,7 @@ import type {DataRows} from '../../components/DataGrid';
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import React from 'react';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   AVAILABLE_STATUS,

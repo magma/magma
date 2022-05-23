@@ -81,6 +81,7 @@ func TestK8sFindServices(t *testing.T) {
 func TestK8sGetServiceAddress(t *testing.T) {
 	servicer, mockClient, start, done := setupTest(t)
 
+	// Test southbound service address before and after deletion
 	req := &protos.GetServiceAddressRequest{
 		Service: "service1",
 	}
@@ -93,7 +94,16 @@ func TestK8sGetServiceAddress(t *testing.T) {
 	refreshCache(t, start, done)
 
 	_, err = servicer.GetServiceAddress(context.Background(), req)
+
+	// Test fetching protected service address
 	assert.Error(t, err)
+	req = &protos.GetServiceAddressRequest{
+		Service:     "service-2",
+		ServiceType: protos.ServiceType_PROTECTED,
+	}
+	response, err = servicer.GetServiceAddress(context.Background(), req)
+	assert.NoError(t, err)
+	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service-2:%d", registry.ProtectedGrpcServicePort))
 }
 
 func TestK8sGetHttpServerAddress(t *testing.T) {
@@ -182,6 +192,10 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface)
 				{
 					Name: orc8r.GRPCPortName,
 					Port: registry.GrpcServicePort,
+				},
+				{
+					Name: orc8r.ProtectedGRPCPortName,
+					Port: registry.ProtectedGrpcServicePort,
 				},
 			},
 			Type:      corev1.ServiceTypeClusterIP,

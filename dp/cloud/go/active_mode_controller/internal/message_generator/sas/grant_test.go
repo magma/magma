@@ -13,6 +13,7 @@ import (
 func TestGrantRequestGenerator(t *testing.T) {
 	data := []struct {
 		name          string
+		antennaGain   float32
 		capabilities  *active_mode.EirpCapabilities
 		channels      []*active_mode.Channel
 		grantAttempts int
@@ -46,10 +47,10 @@ func TestGrantRequestGenerator(t *testing.T) {
 			highFrequency: 3635 * 1e6,
 		},
 	}, {
-		name: "Should generate grant request based on capabilities and bandwidth",
+		name:        "Should generate grant request based on capabilities and bandwidth",
+		antennaGain: 15,
 		capabilities: &active_mode.EirpCapabilities{
 			MaxPower:      20,
-			AntennaGain:   15,
 			NumberOfPorts: 2,
 		},
 		channels: []*active_mode.Channel{{
@@ -96,11 +97,14 @@ func TestGrantRequestGenerator(t *testing.T) {
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
 			cbsd := &active_mode.Cbsd{
-				Id:               "some_cbsd_id",
+				CbsdId:           "some_cbsd_id",
 				Channels:         tt.channels,
 				EirpCapabilities: tt.capabilities,
 				GrantAttempts:    int32(tt.grantAttempts),
-				Preferences:      tt.preferences,
+				InstallationParams: &active_mode.InstallationParams{
+					AntennaGainDbi: tt.antennaGain,
+				},
+				Preferences: tt.preferences,
 			}
 			g := sas.NewGrantRequestGenerator(stubRNG{})
 			actual := g.GenerateRequests(cbsd)
@@ -169,7 +173,7 @@ func TestGrantSelectionOrder(t *testing.T) {
 	}}
 	g := sas.NewGrantRequestGenerator(stubRNG{})
 	cbsd := &active_mode.Cbsd{
-		Id: "some_cbsd_id",
+		CbsdId: "some_cbsd_id",
 		Channels: []*active_mode.Channel{{
 			LowFrequencyHz:  3652.5 * 1e6,
 			HighFrequencyHz: 3657.5 * 1e6,
@@ -188,8 +192,10 @@ func TestGrantSelectionOrder(t *testing.T) {
 		EirpCapabilities: &active_mode.EirpCapabilities{
 			MinPower:      0,
 			MaxPower:      20,
-			AntennaGain:   15,
 			NumberOfPorts: 1,
+		},
+		InstallationParams: &active_mode.InstallationParams{
+			AntennaGainDbi: 15,
 		},
 		Preferences: &active_mode.FrequencyPreferences{
 			BandwidthMhz:   15,
@@ -216,7 +222,6 @@ func getDefaultCapabilities() *active_mode.EirpCapabilities {
 	return &active_mode.EirpCapabilities{
 		MinPower:      -1000,
 		MaxPower:      1000,
-		AntennaGain:   0,
 		NumberOfPorts: 1,
 	}
 }

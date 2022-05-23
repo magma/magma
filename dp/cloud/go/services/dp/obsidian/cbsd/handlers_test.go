@@ -58,18 +58,20 @@ func (s *HandlersTestSuite) SetupTest() {
 
 type stubCbsdServer struct {
 	protos.UnimplementedCbsdManagementServer
-	expectedListRequest   *protos.ListCbsdRequest
-	listResponse          *protos.ListCbsdResponse
-	expectedFetchRequest  *protos.FetchCbsdRequest
-	fetchResponse         *protos.FetchCbsdResponse
-	expectedCreateRequest *protos.CreateCbsdRequest
-	createResponse        *protos.CreateCbsdResponse
-	expectedUpdateRequest *protos.UpdateCbsdRequest
-	updateResponse        *protos.UpdateCbsdResponse
-	expectedDeleteRequest *protos.DeleteCbsdRequest
-	deleteResponse        *protos.DeleteCbsdResponse
-	err                   error
-	t                     *testing.T
+	expectedListRequest       *protos.ListCbsdRequest
+	listResponse              *protos.ListCbsdResponse
+	expectedFetchRequest      *protos.FetchCbsdRequest
+	fetchResponse             *protos.FetchCbsdResponse
+	expectedCreateRequest     *protos.CreateCbsdRequest
+	createResponse            *protos.CreateCbsdResponse
+	expectedUpdateRequest     *protos.UpdateCbsdRequest
+	updateResponse            *protos.UpdateCbsdResponse
+	expectedDeleteRequest     *protos.DeleteCbsdRequest
+	deleteResponse            *protos.DeleteCbsdResponse
+	expectedDeregisterRequest *protos.DeregisterCbsdRequest
+	deregisterResponse        *protos.DeregisterCbsdResponse
+	err                       error
+	t                         *testing.T
 }
 
 func (s *HandlersTestSuite) TestListCbsds() {
@@ -224,6 +226,7 @@ func (s *HandlersTestSuite) TestFetchNonexistentCbsd() {
 
 func (s *HandlersTestSuite) TestCreateCbsd() {
 	e := echo.New()
+
 	obsidianHandlers := cbsd.GetHandlers()
 	payload := createOrUpdateCbsdPayload()
 	s.cbsdServer.createResponse = &protos.CreateCbsdResponse{}
@@ -240,7 +243,6 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		ParamValues:    []string{"n1"},
 		Handler:        createCbsd,
 		ExpectedStatus: http.StatusCreated,
-		ExpectedError:  "",
 	}
 	tests.RunUnitTest(s.T(), e, tc)
 }
@@ -433,6 +435,48 @@ func (s *HandlersTestSuite) TestUpdateCbsdWithDuplicateUniqueFieldsReturnsConfli
 	tests.RunUnitTest(s.T(), e, tc)
 }
 
+func (s *HandlersTestSuite) TestDeregisterCbsd() {
+	e := echo.New()
+	s.cbsdServer.deregisterResponse = &protos.DeregisterCbsdResponse{}
+	s.cbsdServer.expectedDeregisterRequest = &protos.DeregisterCbsdRequest{
+		NetworkId: "n1",
+		Id:        0,
+	}
+	obsidianHandlers := cbsd.GetHandlers()
+	deregisterCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.DeregisterCbsdPath, obsidian.POST).HandlerFunc
+	tc := tests.Test{
+		Method:         http.MethodPut,
+		URL:            "/magma/v1/n1/cbsds/0",
+		Handler:        deregisterCbsd,
+		ParamNames:     []string{"network_id", "cbsd_id"},
+		ParamValues:    []string{"n1", "0"},
+		ExpectedStatus: http.StatusNoContent,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
+func (s *HandlersTestSuite) TestDeregisterNonexistentCbsd() {
+	e := echo.New()
+	const errorMsg = "some msg"
+	s.cbsdServer.err = status.Error(codes.NotFound, errorMsg)
+	s.cbsdServer.expectedDeregisterRequest = &protos.DeregisterCbsdRequest{
+		NetworkId: "n1",
+		Id:        0,
+	}
+	obsidianHandlers := cbsd.GetHandlers()
+	deregisterCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.DeregisterCbsdPath, obsidian.POST).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPut,
+		URL:                    "/magma/v1/dp/n1/cbsds/0",
+		Handler:                deregisterCbsd,
+		ParamNames:             []string{"network_id", "cbsd_id"},
+		ParamValues:            []string{"n1", "0"},
+		ExpectedStatus:         http.StatusNotFound,
+		ExpectedErrorSubstring: errorMsg,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
 func (s *HandlersTestSuite) TestGetPagination() {
 	testCases := []struct {
 		testName       string
@@ -581,6 +625,12 @@ func (s *stubCbsdServer) ListCbsds(_ context.Context, request *protos.ListCbsdRe
 	return s.listResponse, s.err
 }
 
+func (s *stubCbsdServer) DeregisterCbsd(_ context.Context, request *protos.DeregisterCbsdRequest) (*protos.DeregisterCbsdResponse, error) {
+	assert.Equal(s.t, s.expectedDeregisterRequest.NetworkId, request.NetworkId)
+	assert.Equal(s.t, s.expectedDeregisterRequest.Id, request.Id)
+	return s.deregisterResponse, s.err
+}
+
 func getPaginatedCbsds() *models.PaginatedCbsds {
 	return &models.PaginatedCbsds{
 		Cbsds:      []*models.Cbsd{getCbsd()},
@@ -611,11 +661,13 @@ func getCbsd() *models.Cbsd {
 			State:              "someState",
 			TransmitExpireTime: to_pointer.TimeToDateTime(0),
 		},
-		ID:           0,
-		IsActive:     false,
-		SerialNumber: "someSerialNumber",
-		State:        "unregistered",
-		UserID:       "someUserId",
+		ID:                0,
+		IsActive:          false,
+		SerialNumber:      "someSerialNumber",
+		State:             "unregistered",
+		UserID:            "someUserId",
+		CbsdCategory:      "b",
+		SingleStepEnabled: false,
 	}
 }
 
@@ -627,7 +679,9 @@ func createOrUpdateCbsdPayload() *models.MutableCbsd {
 			MinPower:         to_pointer.Float(0),
 			NumberOfAntennas: 1,
 		},
-		DesiredState: "registered",
+		DesiredState:      "registered",
+		SingleStepEnabled: to_pointer.Bool(false),
+		CbsdCategory:      "b",
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
@@ -653,7 +707,9 @@ func getCbsdData() *protos.CbsdData {
 			BandwidthMhz:   10,
 			FrequenciesMhz: []int64{3600},
 		},
-		DesiredState: "registered",
+		DesiredState:      "registered",
+		CbsdCategory:      "b",
+		SingleStepEnabled: false,
 	}
 }
 

@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 
 import ApnContext from '../../../components/context/ApnContext';
 import EnodebContext from '../../../components/context/EnodebContext';
@@ -34,23 +33,19 @@ import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 import type {feg_network} from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
+jest.mock('../../../../app/hooks/useSnackbar');
 const enqueueSnackbarMock = jest.fn();
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
   key => CoreNetworkTypes[key],
 );
 jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 describe('<NetworkDashboard />', () => {

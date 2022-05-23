@@ -17,7 +17,7 @@ import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
-import NestedRouteLink from '../../fbc_js_core/ui/components/NestedRouteLink';
+import NestedRouteLink from './NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';

@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
@@ -21,7 +20,7 @@ import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 
-import {FEG_LTE, LTE} from '../../../../fbc_js_core/types/network';
+import {FEG_LTE, LTE} from '../../../../shared/types/network';
 import {
   LteNetworkContextProvider,
   PolicyProvider,
@@ -30,19 +29,14 @@ import {
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe Upgrade react-testing-library
-import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
-
 const policies = {
   policy_0: {
     flow_list: [],

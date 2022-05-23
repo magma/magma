@@ -164,7 +164,7 @@ func getDevice(ctx context.Context, networkID, deviceType, deviceKey string) (*p
 }
 
 func getDeviceClient() (protos.DeviceClient, error) {
-	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

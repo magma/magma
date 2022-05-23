@@ -165,7 +165,6 @@ func (k *KubernetesServiceRegistryServicer) getAddressForPortName(service string
 	if err != nil {
 		return "", err
 	}
-
 	for _, port := range svc.Spec.Ports {
 		if port.Name == portName {
 			return fmt.Sprintf("%s:%d", svc.Name, port.Port), nil

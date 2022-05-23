@@ -15,23 +15,23 @@
  */
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 import type {
   network_cellular_configs,
   network_dns_config,
   tier,
 } from '../../generated/MagmaAPIBindings';
 
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
 import MagmaV1API from '../magma';
-import {AccessRoles} from '../../fbc_js_core/auth/roles';
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../fbc_js_core/types/network';
-import {access} from '../../fbc_js_core/auth/access';
+import {AccessRoles} from '../../shared/roles';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
+import {access} from '../auth/access';
 import {difference} from 'lodash';
 
-const logger = require('../../fbc_js_core/logging').getLogger(module);
+const logger = require('../../shared/logging').getLogger(module);
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
@@ -180,6 +180,12 @@ router.post(
             },
           },
         });
+      } else {
+        res
+          .status(400)
+          .send(`Unsupported network type ${data.networkType}`)
+          .end();
+        return;
       }
 
       MagmaV1API.postNetworksByNetworkIdTiers({

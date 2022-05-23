@@ -381,7 +381,7 @@ func executeCommandWithRetries(command string, argList []string) (*IperfResponse
 		if !isIperfErrorDueToControlMessage(err) {
 			break
 		}
-		glog.Warning( "Retried IPERF command due to an specific error")
+		glog.Warning("Retried IPERF command due to an specific error")
 		time.Sleep(300 * time.Millisecond)
 	}
 	if err != nil {
@@ -412,8 +412,6 @@ func isIperfErrorDueToControlMessage(iperf_err error) bool {
 		return false
 	}
 	return strings.Contains(iperf_err.Error(), "unable to receive control message")
-	//|
-	//	strings.Contains(iperf_err.Error(), "the server is busy")
 }
 
 // TODO: create a new file and structs to to parse and dump iperf message

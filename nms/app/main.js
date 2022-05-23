@@ -15,13 +15,14 @@
  */
 'use strict';
 
-import '../fbc_js_core/babel_register/polyfill';
+import './common/polyfill';
 
+import ApplicationMain from './components/ApplicationMain';
 import Main from './components/Main';
 import MomentUtils from '@date-io/moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import nullthrows from '../fbc_js_core/util/nullthrows';
+import nullthrows from '../shared/util/nullthrows';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
@@ -30,7 +31,9 @@ import {} from './common/axiosConfig';
 ReactDOM.render(
   <BrowserRouter>
     <MuiPickersUtilsProvider utils={MomentUtils}>
-      <Main />
+      <ApplicationMain>
+        <Main />
+      </ApplicationMain>
     </MuiPickersUtilsProvider>
   </BrowserRouter>,
   nullthrows(document.getElementById('root')),

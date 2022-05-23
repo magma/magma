@@ -13,21 +13,15 @@ limitations under the License.
 
 import ctypes
 import logging
-import os
 import socket
 import struct
 import subprocess
-from builtins import input
-from socket import AF_INET, htons
-from subprocess import call
-from sys import argv
-from threading import Thread
 
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
-from pyroute2 import IPDB, IPRoute, NetlinkError, NetNS, NSPopen
+from pyroute2 import IPRoute, NetlinkError
 from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import getmacbyip
 

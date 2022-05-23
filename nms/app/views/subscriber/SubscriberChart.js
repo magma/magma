@@ -29,12 +29,12 @@ import Divider from '@material-ui/core/Divider';
 import DataGrid from '../../components/DataGrid';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
-import LoadingFiller from '../../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {CustomLineChart} from '../../components/CustomMetrics';
 import {DateTimePicker} from '@material-ui/pickers';
@@ -43,7 +43,7 @@ import {convertBitToMbit, getPromValue} from './SubscriberUtils';
 import {getStep, getStepString} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 export type DateTimeMetricChartProps = {

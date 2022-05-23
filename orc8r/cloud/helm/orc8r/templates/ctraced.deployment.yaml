@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/ctraced","-run_echo_server=t
 ports:
   - name: grpc
     containerPort: 9118
+  - name: grpc-internal
+    containerPort: 9218
   - name: http
     containerPort: 10118
 livenessProbe:

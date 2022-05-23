@@ -35,9 +35,9 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder_servicers.NewBuilderServicer())
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, builder_servicers.NewBuilderServicer())
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(feg_service.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(feg_service.ServiceName))
 
 	err = srv.Run()
 	if err != nil {

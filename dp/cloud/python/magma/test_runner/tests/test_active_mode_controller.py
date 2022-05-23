@@ -10,62 +10,38 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import json
 from collections import defaultdict
 from time import sleep
+from uuid import uuid4
 
-import grpc
 import pytest
 import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.session_manager import SessionManager
-from magma.db_service.tests.db_testcase import BaseDBTestCase
 from magma.test_runner.config import TestConfig
+from magma.test_runner.tests.integration_testcase import (
+    DomainProxyIntegrationTestCase,
+)
 from retrying import retry
 
 config = TestConfig()
 
-SERIAL_NUMBER = "some_serial_number"
 FCC_ID = "some_fcc_id"
 USER_ID = "some_user_id"
 
 
 @pytest.mark.local
-class ActiveModeControllerTestCase(BaseDBTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        wait_for_elastic_to_start()
+class ActiveModeControllerTestCase(DomainProxyIntegrationTestCase):
 
     def setUp(self):
-        super().setUp()
-        grpc_channel = grpc.insecure_channel(
-            f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
-        )
-        self.dp_client = DPServiceStub(grpc_channel)
-        DBInitializer(SessionManager(self.engine)).initialize()
-        # Indexing from previous test may not have been finished yet
-        sleep(5)
-        self._delete_dp_elasticsearch_indices()
-
-    # retrying is needed because of a possible deadlock
-    # with cc locking request table
-    @retry(stop_max_attempt_number=5, wait_fixed=100)
-    def drop_all(self):
-        super().drop_all()
-
-    def tearDown(self):
-        super().tearDown()
-        self._delete_dp_elasticsearch_indices()
+        self.serial_number = self._testMethodName + '_' + str(uuid4())
 
     def test_provision_cbsd_in_sas_requested_by_dp_client(self):
         self.given_cbsd_provisioned()
 
     def test_logs_are_written_to_elasticsearch(self):
         self.given_cbsd_provisioned()
-        # Giving ElasticSearch time to index logs
-        sleep(5)
         self.then_elasticsearch_contains_logs()
 
     def test_grant_relinquished_after_inactivity(self):
@@ -85,8 +61,26 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
 
         self.then_cbsd_is_eventually_provisioned_in_sas(self.dp_client)
 
+    @retry(stop_max_attempt_number=60, wait_fixed=1000)
     def then_elasticsearch_contains_logs(self):
-        actual = requests.get(f"{config.ELASTICSEARCH_URL}/dp*/_search?size=100").json()
+        query = {
+            "query": {
+                "term": {
+                    "cbsd_serial_number.keyword": {
+                        "value": self.serial_number,
+                    },
+                },
+            },
+        }
+
+        actual = requests.post(
+            f"{config.ELASTICSEARCH_URL}/dp*/_search?size=100",
+            data=json.dumps(query),
+            headers={
+                "Content-type": "application/json",
+            },
+        ).json()
+
         log_field_names = [
             "log_from",
             "log_to",
@@ -109,11 +103,10 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
         self.assertEqual(1, actual_log_types["registrationResponse"])
         self.assertEqual(1, actual_log_types["spectrumInquiryRequest"])
         self.assertEqual(1, actual_log_types["spectrumInquiryResponse"])
-        self.assertEqual(1, actual_log_types["spectrumInquiryResponse"])
         self.assertEqual(1, actual_log_types["grantRequest"])
         self.assertEqual(1, actual_log_types["grantResponse"])
-        self.assertEqual(1, actual_log_types["heartbeatRequest"])
         # The number of GetCBSDStateRequest and heartbeatResponse may differ between tests, so only asserting they have been logged
+        self.assertGreater(actual_log_types["heartbeatRequest"], 0)
         self.assertGreater(actual_log_types["heartbeatResponse"], 0)
         self.assertGreater(actual_log_types["GetCBSDStateRequest"], 0)
         self.assertGreater(actual_log_types["GetCBSDStateResponse"], 0)
@@ -123,7 +116,6 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
         state = self.dp_client.CBSDRegister(
             self._build_cbsd_request(), wait_for_ready=True,
         )
-        self.session.commit()
         self.assertEqual(self._build_empty_state_result(), state)
 
     @staticmethod
@@ -143,12 +135,11 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
         state = dp_client.GetCBSDState(self._build_cbsd_request())
         self.assertEqual(self._build_empty_state_result(), state)
 
-    @staticmethod
-    def _build_cbsd_request() -> CBSDRequest:
+    def _build_cbsd_request(self) -> CBSDRequest:
         return CBSDRequest(
             user_id=USER_ID,
             fcc_id=FCC_ID,
-            serial_number=SERIAL_NUMBER,
+            serial_number=self.serial_number,
             min_power=0,
             max_power=20,
             antenna_gain=15,
@@ -170,10 +161,6 @@ class ActiveModeControllerTestCase(BaseDBTestCase):
     def _build_empty_state_result() -> CBSDStateResult:
         return CBSDStateResult(radio_enabled=False)
 
-    def _delete_dp_elasticsearch_indices(self):
-        requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
 
-
-@retry(stop_max_attempt_number=30, wait_fixed=1000)
-def wait_for_elastic_to_start() -> None:
-    requests.get(f'{config.ELASTICSEARCH_URL}/_status')
+def _delete_dp_elasticsearch_indices():
+    requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")

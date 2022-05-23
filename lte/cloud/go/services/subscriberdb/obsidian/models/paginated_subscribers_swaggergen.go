@@ -6,26 +6,29 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PaginatedSubscribers Page of subscribers
+//
 // swagger:model paginated_subscribers
 type PaginatedSubscribers struct {
 
 	// next page token
 	// Required: true
-	NextPageToken PageToken `json:"next_page_token"`
+	NextPageToken *PageToken `json:"next_page_token"`
 
 	// subscribers
 	// Required: true
 	Subscribers map[string]*Subscriber `json:"subscribers"`
 
 	// estimated total number of subscriber entries
+	// Example: 10
 	// Required: true
 	TotalCount int64 `json:"total_count"`
 }
@@ -54,17 +57,33 @@ func (m *PaginatedSubscribers) Validate(formats strfmt.Registry) error {
 
 func (m *PaginatedSubscribers) validateNextPageToken(formats strfmt.Registry) error {
 
-	if err := m.NextPageToken.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("next_page_token")
-		}
+	if err := validate.Required("next_page_token", "body", m.NextPageToken); err != nil {
 		return err
+	}
+
+	if err := validate.Required("next_page_token", "body", m.NextPageToken); err != nil {
+		return err
+	}
+
+	if m.NextPageToken != nil {
+		if err := m.NextPageToken.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("next_page_token")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("next_page_token")
+			}
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (m *PaginatedSubscribers) validateSubscribers(formats strfmt.Registry) error {
+
+	if err := validate.Required("subscribers", "body", m.Subscribers); err != nil {
+		return err
+	}
 
 	for k := range m.Subscribers {
 
@@ -73,6 +92,11 @@ func (m *PaginatedSubscribers) validateSubscribers(formats strfmt.Registry) erro
 		}
 		if val, ok := m.Subscribers[k]; ok {
 			if err := val.Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("subscribers" + "." + k)
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("subscribers" + "." + k)
+				}
 				return err
 			}
 		}
@@ -86,6 +110,59 @@ func (m *PaginatedSubscribers) validateTotalCount(formats strfmt.Registry) error
 
 	if err := validate.Required("total_count", "body", int64(m.TotalCount)); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this paginated subscribers based on the context it is used
+func (m *PaginatedSubscribers) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateNextPageToken(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateSubscribers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PaginatedSubscribers) contextValidateNextPageToken(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.NextPageToken != nil {
+		if err := m.NextPageToken.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("next_page_token")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("next_page_token")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *PaginatedSubscribers) contextValidateSubscribers(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := validate.Required("subscribers", "body", m.Subscribers); err != nil {
+		return err
+	}
+
+	for k := range m.Subscribers {
+
+		if val, ok := m.Subscribers[k]; ok {
+			if err := val.ContextValidate(ctx, formats); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	return nil

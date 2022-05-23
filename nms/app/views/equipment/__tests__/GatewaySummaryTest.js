@@ -15,21 +15,17 @@
  */
 import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
-
 import GatewaySummary from '../GatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default.js';
 
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-
-afterEach(cleanup);
+jest.mock('../../../../app/hooks/useSnackbar');
 
 const mockGatewaySt: lte_gateway = {
   cellular: {

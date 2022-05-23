@@ -212,7 +212,7 @@ and password `password1234`. We recommend Firefox or Chrome. If you see Gateway 
 NMS can take upto 60 seconds to finish starting up.
 
 You will probably want to enable this organization (magma-test) to access all networks,
-so go to [master.localhost](https://master.localhost) and login with the same credentials.
+so go to [host.localhost](https://host.localhost) and login with the same credentials.
 Once there, you can click on the "Organizations" tab on the left sidebar, choose
 `magma-test`, and then check "Enable all networks" in the subsequent pop-up window.
 

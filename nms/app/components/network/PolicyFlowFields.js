@@ -28,7 +28,7 @@ import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
+import TypedSelect from '../TypedSelect';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {makeStyles} from '@material-ui/styles';

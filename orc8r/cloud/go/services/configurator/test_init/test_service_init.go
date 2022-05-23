@@ -49,12 +49,12 @@ func StartTestService(t *testing.T) {
 	accessd_test_init.StartTestService(t)
 	certifier_test_init.StartTestService(t)
 
-	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)
 	nb, err := protected_servicers.NewNorthboundConfiguratorServicer(storageFactory)
 	if err != nil {
 		t.Fatalf("Failed to create NB configurator servicer: %s", err)
 	}
-	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nb)
+	protos.RegisterNorthboundConfiguratorServer(srv.ProtectedGrpcServer, nb)
 
 	sb, err := servicers.NewSouthboundConfiguratorServicer(storageFactory)
 	if err != nil {
@@ -62,7 +62,7 @@ func StartTestService(t *testing.T) {
 	}
 	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sb)
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }
 
 type sequentialIDGenerator struct {

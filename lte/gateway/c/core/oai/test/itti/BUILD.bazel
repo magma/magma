@@ -15,6 +15,7 @@ package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
 
 cc_test(
     name = "itti_test",
+    size = "small",
     srcs = [
         "test_itti.cpp",
     ],

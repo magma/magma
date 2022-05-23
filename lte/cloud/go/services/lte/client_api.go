@@ -74,7 +74,7 @@ func SetEnodebState(ctx context.Context, networkID string, gatewayID string, eno
 }
 
 func getClient() (protos.EnodebStateLookupClient, error) {
-	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

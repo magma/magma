@@ -52,7 +52,7 @@ func StartTestServiceInternal(t *testing.T, dbName, dbDriver string) (reindex.Re
 }
 
 func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue) {
-	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
@@ -63,15 +63,15 @@ func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue
 
 	cloudStateServicer, err := protected_servicers.NewCloudStateServicer(factory)
 	require.NoError(t, err)
-	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
+	protos.RegisterCloudStateServiceServer(srv.ProtectedGrpcServer, cloudStateServicer)
 
 	queue := reindex.NewSQLJobQueue(singleAttempt, db, sqorc.GetSqlBuilder())
 	require.NoError(t, queue.Initialize())
 	reindexer := reindex.NewReindexerQueue(queue, reindex.NewStore(factory))
 	indexerServicer := protected_servicers.NewIndexerManagerServicer(reindexer, false)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
+	indexer_protos.RegisterIndexerManagerServer(srv.ProtectedGrpcServer, indexerServicer)
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 	return reindexer, queue
 }
 
@@ -85,7 +85,7 @@ func StartTestSingletonServiceInternal(t *testing.T) reindex.Reindexer {
 }
 
 func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
-	srv, lis, _ := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
+	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
 	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
@@ -96,14 +96,14 @@ func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 
 	cloudStateServicer, err := protected_servicers.NewCloudStateServicer(factory)
 	require.NoError(t, err)
-	protos.RegisterCloudStateServiceServer(srv.GrpcServer, cloudStateServicer)
+	protos.RegisterCloudStateServiceServer(srv.ProtectedGrpcServer, cloudStateServicer)
 
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	versioner.Initialize()
 	reindexer := reindex.NewReindexerSingleton(reindex.NewStore(factory), versioner)
 	indexerServicer := protected_servicers.NewIndexerManagerServicer(reindexer, false)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerServicer)
+	indexer_protos.RegisterIndexerManagerServer(srv.ProtectedGrpcServer, indexerServicer)
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 	return reindexer
 }

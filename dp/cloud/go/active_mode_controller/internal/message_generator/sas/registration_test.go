@@ -11,22 +11,73 @@ import (
 )
 
 func TestRegistrationRequestGenerator(t *testing.T) {
-	cbsd := &active_mode.Cbsd{
-		UserId:       "some_user_id",
-		FccId:        "some_fcc_id",
-		SerialNumber: "some_serial_number",
-	}
-	g := sas.NewRegistrationRequestGenerator()
-	actual := g.GenerateRequests(cbsd)
-	expected := []*request{{
-		requestType: "registrationRequest",
-		data: `{
+	data := []struct {
+		name     string
+		cbsd     *active_mode.Cbsd
+		expected string
+	}{{
+		name: "Should generate multi step registration request",
+		cbsd: &active_mode.Cbsd{
+			SasSettings: &active_mode.SasSettings{
+				UserId:       "some_user_id",
+				FccId:        "some_fcc_id",
+				SerialNumber: "some_serial_number",
+			},
+		},
+		expected: `{
 	"userId": "some_user_id",
 	"fccId": "some_fcc_id",
 	"cbsdSerialNumber": "some_serial_number"
 }`,
+	}, {
+		name: "Should generate cpi less single step registration request",
+		cbsd: &active_mode.Cbsd{
+			SasSettings: &active_mode.SasSettings{
+				SingleStepEnabled: true,
+				CbsdCategory:      "a",
+				SerialNumber:      "some_serial_number",
+				FccId:             "some_fcc_id",
+				UserId:            "some_user_id",
+			},
+			InstallationParams: &active_mode.InstallationParams{
+				LatitudeDeg:      12,
+				LongitudeDeg:     34,
+				HeightM:          5,
+				HeightType:       "AGL",
+				IndoorDeployment: true,
+				AntennaGainDbi:   15,
+			},
+		},
+		expected: `{
+	"userId": "some_user_id",
+	"fccId": "some_fcc_id",
+	"cbsdSerialNumber": "some_serial_number",
+	"cbsdCategory": "A",
+	"airInterface": {
+		"radioTechnology": "E_UTRA"
+	},
+	"installationParam": {
+		"latitude": 12,
+		"longitude": 34,
+		"height": 5,
+		"heightType": "AGL",
+		"indoorDeployment": true,
+		"antennaGain": 15
+	},
+	"measCapability": []
+}`,
 	}}
-	assertRequestsEqual(t, expected, actual)
+	g := sas.NewRegistrationRequestGenerator()
+	for _, tt := range data {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := g.GenerateRequests(tt.cbsd)
+			expected := []*request{{
+				requestType: "registrationRequest",
+				data:        tt.expected,
+			}}
+			assertRequestsEqual(t, expected, actual)
+		})
+	}
 }
 
 type request struct {

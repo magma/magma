@@ -169,7 +169,7 @@ func SetIMSIsForIPs(ctx context.Context, networkID string, mappings []*protos.IP
 }
 
 func getClient() (protos.SubscriberLookupClient, error) {
-	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(ServiceName, lib_protos.ServiceType_PROTECTED)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

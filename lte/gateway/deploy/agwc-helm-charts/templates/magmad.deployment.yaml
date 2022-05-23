@@ -38,6 +38,10 @@ spec:
           hostPath:
             path: /etc/snowflake
             type: File
+        - name: profile-file
+          hostPath:
+            path: /etc/profile
+            type: File
       containers:
       -
 {{ include "agwc.container" (list . "magmad.container")}}
@@ -57,4 +61,6 @@ volumeMounts:
     name: agwc-claim
   - mountPath: /etc/snowflake
     name: snowflake-file
+  - mountPath: /etc/profile
+    name: profile-file
 {{- end -}}

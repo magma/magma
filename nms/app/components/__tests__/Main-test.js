@@ -14,22 +14,19 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
+import ApplicationMain from '../ApplicationMain';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
-import Main from '../Main';
+import Main, {NO_NETWORK_MESSAGE} from '../Main';
 import React from 'react';
-import {AppContextProvider} from '../../../fbc_js_core/ui/context/AppContext';
+import {AppContextProvider} from '../context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('mapbox-gl', () => ({
-  Map: () => ({}),
-}));
-jest.mock('../insights/map/MapView', () => () => <div>Im the Map!</div>);
 
 jest.mock('../main/Index', () => ({
   __esModule: true,
+  ...jest.requireActual('../main/Index'),
   default: () => <div>Index</div>,
 }));
 
@@ -40,18 +37,22 @@ jest.mock('../IndexWithoutNetwork', () => ({
 
 const Wrapper = props => (
   <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
-    <AppContextProvider>{props.children}</AppContextProvider>
+    <AppContextProvider>
+      <ApplicationMain>{props.children}</ApplicationMain>
+    </AppContextProvider>
   </MemoryRouter>
 );
-
-afterEach(cleanup);
 
 describe.each`
   path                | text                     | networks
   ${'/nms/mynetwork'} | ${'Index'}               | ${['mynetwork']}
+  ${'/nms'}           | ${'Index'}               | ${['mynetwork']}
+  ${'/nms'}           | ${NO_NETWORK_MESSAGE}    | ${[]}
   ${'/admin'}         | ${'IndexWithoutNetwork'} | ${[]}
+  ${'/admin'}         | ${'Index'}               | ${['mynetwork']}
   ${'/settings'}      | ${'IndexWithoutNetwork'} | ${[]}
-`('renders $path', ({path, text, networks}) => {
+  ${'/settings'}      | ${'Index'}               | ${['mynetwork']}
+`('renders $path with networks $networks', ({path, text, networks}) => {
   beforeEach(() => {
     MagmaAPIBindings.getNetworks.mockResolvedValueOnce(networks);
   });
@@ -64,12 +65,10 @@ describe.each`
     global.CONFIG = {
       appData: {
         enabledFeatures: [],
-        tabs: ['nms', 'inventory'],
         user: {
           isSuperUser: false,
         },
       },
-      MAPBOX_ACCESS_TOKEN: '',
     };
 
     const {getByText} = render(

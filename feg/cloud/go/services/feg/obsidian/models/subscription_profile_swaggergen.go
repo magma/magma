@@ -6,20 +6,24 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // SubscriptionProfile HSS Subscription Profile
+//
 // swagger:model subscription_profile
 type SubscriptionProfile struct {
 
 	// max dl bit rate
+	// Example: 200000000
 	MaxDlBitRate uint64 `json:"max_dl_bit_rate,omitempty"`
 
 	// max ul bit rate
+	// Example: 100000000
 	MaxUlBitRate uint64 `json:"max_ul_bit_rate,omitempty"`
 }
 
@@ -30,6 +34,11 @@ func (m *SubscriptionProfile) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this subscription profile based on context it is used
+func (m *SubscriptionProfile) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

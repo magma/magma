@@ -160,6 +160,7 @@ export type carrier_wifi_ha_pair_status = {
 };
 export type cbsd = {
     capabilities: capabilities,
+    cbsd_category: "a" | "b",
     cbsd_id ? : string,
     desired_state: "unregistered" | "registered",
     fcc_id: string,
@@ -168,6 +169,7 @@ export type cbsd = {
     id: number,
     is_active: boolean,
     serial_number: string,
+    single_step_enabled: boolean,
     state: "unregistered" | "registered",
     user_id: string,
 };
@@ -503,6 +505,7 @@ export type gateway_epc_configs = {
     ipv6_p_cscf_addr ? : string,
     ipv6_prefix_allocation_mode ? : "RANDOM" | "HASH",
     nat_enabled: boolean,
+    node_identifier ? : string,
     sgi_management_iface_gw ? : string,
     sgi_management_iface_ipv6_addr ? : string,
     sgi_management_iface_ipv6_gw ? : string,
@@ -806,10 +809,12 @@ export type mutable_call_trace = {
 };
 export type mutable_cbsd = {
     capabilities: capabilities,
+    cbsd_category: "a" | "b",
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
     serial_number: string,
+    single_step_enabled: boolean,
     user_id: string,
 };
 export type mutable_cellular_gateway_pool = {
@@ -938,7 +943,6 @@ export type network_epc_configs = {
     },
     network_services ? : Array < "dpi" | "policy_enforcement" >
         ,
-    node_identifier ? : string,
     restricted_imeis ? : Array < imei >
         ,
     restricted_plmns ? : Array < plmn_config >
@@ -2919,6 +2923,29 @@ export default class MagmaAPIBindings {
         }
 
         return await this.request(path, 'PUT', query, body);
+    }
+    static async postDpByNetworkIdCbsdsByCbsdIdDeregister(
+        parameters: {
+            'networkId': string,
+            'cbsdId': number,
+        }
+    ): Promise < "Success" > {
+        let path = '/dp/{network_id}/cbsds/{cbsd_id}/deregister';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cbsdId'] === undefined) {
+            throw new Error('Missing required  parameter: cbsdId');
+        }
+
+        path = path.replace('{cbsd_id}', `${parameters['cbsdId']}`);
+
+        return await this.request(path, 'POST', query, body);
     }
     static async getDpByNetworkIdLogs(
             parameters: {

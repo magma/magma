@@ -19,8 +19,6 @@ import type {
   lte_network,
 } from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
-
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
@@ -38,19 +36,15 @@ import {
   SetGatewayState,
   UpdateGateway,
 } from '../../../state/lte/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
+jest.mock('../../../../app/hooks/useSnackbar');
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
 const mockGw0: lte_gateway = {

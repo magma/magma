@@ -36,7 +36,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
   epcConfigs: network_epc_configs,
@@ -260,10 +260,7 @@ export function NetworkEpcEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button
-          data-testid="epcCancelButton"
-          onClick={props.onClose}
-          skin="regular">
+        <Button data-testid="epcCancelButton" onClick={props.onClose}>
           Cancel
         </Button>
         <Button

@@ -15,6 +15,7 @@ package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
 
 cc_test(
     name = "lib_3gpp_test",
+    size = "small",
     srcs = [
         "test_3gpp.cpp",
     ],
@@ -27,6 +28,7 @@ cc_test(
 
 cc_test(
     name = "lib_bstr_test",
+    size = "small",
     srcs = [
         "test_bstr.cpp",
     ],

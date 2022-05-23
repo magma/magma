@@ -63,6 +63,18 @@ func TestMutableCbsd_Validate(t *testing.T) {
 		name:          "Should validate too high frequency",
 		data:          newMutableCbsd(withFrequencies([]int64{12345})),
 		expectedError: "frequencies_mhz.0 in body should be less than or equal to 3695",
+	}, {
+		name:          "Should validate single step enabled",
+		data:          newMutableCbsd(withSingleStepEnabled(nil)),
+		expectedError: "single_step_enabled in body is required",
+	}, {
+		name:          "Should validate cbsd category",
+		data:          newMutableCbsd(withCbsdCategory("")),
+		expectedError: "cbsd_category in body is required",
+	}, {
+		name:          "Should validate cbsd category value",
+		data:          newMutableCbsd(withCbsdCategory("c")),
+		expectedError: "cbsd_category in body should be one of [a b]",
 	}}
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {
@@ -108,6 +120,12 @@ func withFrequencies(frequencies []int64) mutableCbsdOption {
 	}
 }
 
+func withCbsdCategory(category string) mutableCbsdOption {
+	return func(m *models.MutableCbsd) {
+		m.CbsdCategory = category
+	}
+}
+
 func withMaxPower(maxPower *float64) mutableCbsdOption {
 	return func(m *models.MutableCbsd) {
 		m.Capabilities.MaxPower = maxPower
@@ -129,6 +147,12 @@ func withAntennaGain(antennaGain *float64) mutableCbsdOption {
 func withNumberOfAntennas(numberOfAntennas int64) mutableCbsdOption {
 	return func(m *models.MutableCbsd) {
 		m.Capabilities.NumberOfAntennas = numberOfAntennas
+	}
+}
+
+func withSingleStepEnabled(singleStepEnabled *bool) mutableCbsdOption {
+	return func(m *models.MutableCbsd) {
+		m.SingleStepEnabled = singleStepEnabled
 	}
 }
 

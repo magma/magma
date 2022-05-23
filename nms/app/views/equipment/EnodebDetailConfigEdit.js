@@ -48,7 +48,7 @@ import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const CONFIG_TITLE = 'Config';
@@ -490,9 +490,7 @@ export function RanEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Add eNodeB' : 'Save'}
         </Button>
@@ -593,9 +591,7 @@ export function ConfigEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>

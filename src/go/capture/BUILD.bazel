@@ -19,6 +19,7 @@ go_library(
 
 go_test(
     name = "capture_test",
+    size = "small",
     srcs = [
         "buffer_test.go",
         "middleware_test.go",

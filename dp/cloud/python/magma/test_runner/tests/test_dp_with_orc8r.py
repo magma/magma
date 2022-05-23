@@ -21,15 +21,13 @@ from time import sleep
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-import grpc
 import pytest
 import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
-from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.session_manager import SessionManager
-from magma.db_service.tests.db_testcase import BaseDBTestCase
 from magma.test_runner.config import TestConfig
+from magma.test_runner.tests.integration_testcase import (
+    DomainProxyIntegrationTestCase,
+)
 from retrying import retry
 
 config = TestConfig()
@@ -45,35 +43,9 @@ DATETIME_WAY_BACK = '2010-03-28T09:13:25.407877399+00:00'
 
 
 @pytest.mark.orc8r
-class DomainProxyOrc8rTestCase(BaseDBTestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
-        cls.set_up_db_test_case()
-        cls.create_all()
-        DBInitializer(SessionManager(cls.engine)).initialize()
-        grpc_channel = grpc.insecure_channel(
-            f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
-        )
-        cls.dp_client = DPServiceStub(grpc_channel)
-        wait_for_elastic_to_start()
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        # retrying is needed because of a possible deadlock
-        # with cc locking request table
-        @retry(stop_max_attempt_number=5, wait_fixed=100)
-        def drop_database_with_retries():
-            cls.drop_all()
-
-        drop_database_with_retries()
-        _delete_dp_elasticsearch_indices()
-
+class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
     def setUp(self) -> None:
         self.serial_number = self._testMethodName + '_' + str(uuid4())
-
-    def tearDown(self) -> None:
-        pass
 
     def test_cbsd_sas_flow(self):
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
@@ -102,6 +74,19 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
 
             # TODO maybe asking for state (cbsd api instead of log api) would be better
             self.then_message_is_eventually_sent(filters)
+
+    def test_sas_flow_restarted_when_user_requested_deregistration(self):
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
+
+        with self.while_cbsd_is_active():
+            filters = get_filters_for_request_type('deregistration', self.serial_number)
+
+            self.when_cbsd_is_deregistered(cbsd_id)
+
+            self.then_message_is_eventually_sent(filters)
+
+            self.then_state_is_eventually(builder.build_grant_state_data())
 
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
@@ -132,8 +117,6 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
         cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_registered_inactive_data())
 
-        self.delete_cbsd(cbsd_id)
-
     def test_frequency_preferences(self):
         builder = CbsdAPIDataBuilder(). \
             with_serial_number(self.serial_number). \
@@ -148,6 +131,14 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
 
         self.when_cbsd_is_created(builder.build_post_data())
         self.when_cbsd_is_created(builder.build_post_data(), expected_status=HTTPStatus.CONFLICT)
+
+    def test_create_cbsd_with_single_step_fields(self):
+        # TODO extend the test to check if the registration actually works
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+
+        self.when_cbsd_is_created(builder.build_unregistered_single_step_data())
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
+        self.then_cbsd_is(cbsd, builder.build_unregistered_single_step_data())
 
     def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
         builder = CbsdAPIDataBuilder()
@@ -275,6 +266,10 @@ class DomainProxyOrc8rTestCase(BaseDBTestCase):
     def when_cbsd_is_updated(self, cbsd_id: int, data: Dict[str, Any], expected_status: int = HTTPStatus.NO_CONTENT):
         r = send_request_to_backend('put', f'cbsds/{cbsd_id}', json=data)
         self.assertEqual(r.status_code, expected_status)
+
+    def when_cbsd_is_deregistered(self, cbsd_id: int):
+        r = send_request_to_backend('post', f'cbsds/{cbsd_id}/deregister')
+        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
     def when_cbsd_asks_for_state(self) -> CBSDStateResult:
         return self.dp_client.GetCBSDState(get_cbsd_request(self.serial_number))
@@ -476,7 +471,17 @@ class CbsdAPIDataBuilder:
             'serial_number': self.serial_number,
             'user_id': USER_ID,
             'desired_state': self.desired_state,
+            "single_step_enabled": False,
+            "cbsd_category": "b",
         }
+
+    def build_unregistered_single_step_data(self):
+        data = self.build_unregistered_data()
+        data.update({
+            'single_step_enabled': True,
+            'cbsd_category': 'a',
+        })
+        return data
 
     def build_unregistered_data(self) -> Dict[str, Any]:
         data = self.build_post_data()

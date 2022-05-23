@@ -115,15 +115,15 @@ func registerServicer(
 		orc8r.SwaggerSpecLabel: "true",
 	}
 
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, service, labels, nil)
 	partialSpec := spec.Spec{Tags: []spec.TagDefinition{partialTag}}
 	standaloneSpec := spec.Spec{Tags: []spec.TagDefinition{standaloneTag}}
 
 	partialYamlSpec := marshalToYAML(t, partialSpec)
 	standaloneYamlSpec := marshalToYAML(t, standaloneSpec)
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
+	protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, servicers.NewSpecServicer(partialYamlSpec, standaloneYamlSpec))
 
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 }
 
 // marshalToYAML marshals the passed Swagger spec to a YAML-formatted string.

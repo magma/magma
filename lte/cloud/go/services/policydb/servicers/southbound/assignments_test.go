@@ -44,6 +44,7 @@ func TestAssignmentsServicer(t *testing.T) {
 	testSubscriberId := "s1"
 	testPolicyId := "p1"
 	testBaseName := "b1"
+	policyID := models.PolicyID(testPolicyId)
 
 	// Initialize network
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: testNetworkId}, serdes.Network)
@@ -56,7 +57,7 @@ func TestAssignmentsServicer(t *testing.T) {
 			Type: lte.PolicyRuleEntityType,
 			Key:  testPolicyId,
 			Config: &models.PolicyRule{
-				ID:                  models.PolicyID(testPolicyId),
+				ID:                  &policyID,
 				FlowList:            []*models.FlowDescription{},
 				Priority:            swag.Uint32(5),
 				RatingGroup:         *swag.Uint32(2),
@@ -155,8 +156,9 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lteModels.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(true),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:     swag.Bool(true),
+			IPBlock:        "192.168.128.0/24",
+			NodeIdentifier: "192.168.200.1",
 		},
 		Ngc: &lteModels.GatewayNgcConfigs{
 			AmfDefaultSd:  "AFAFAF",

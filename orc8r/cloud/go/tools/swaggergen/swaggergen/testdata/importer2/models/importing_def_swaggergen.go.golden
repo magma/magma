@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ImportingDef importing def
+//
 // swagger:model importingDef
 type ImportingDef struct {
 
@@ -63,6 +65,8 @@ func (m *ImportingDef) validateBar(formats strfmt.Registry) error {
 		if err := m.Bar.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("bar")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("bar")
 			}
 			return err
 		}
@@ -77,7 +81,7 @@ func (m *ImportingDef) validateBaz(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("baz", "body", string(*m.Baz), 1); err != nil {
+	if err := validate.MinLength("baz", "body", *m.Baz, 1); err != nil {
 		return err
 	}
 
@@ -94,6 +98,58 @@ func (m *ImportingDef) validateFoo(formats strfmt.Registry) error {
 		if err := m.Foo.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("foo")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("foo")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this importing def based on the context it is used
+func (m *ImportingDef) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateBar(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFoo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *ImportingDef) contextValidateBar(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Bar != nil {
+		if err := m.Bar.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("bar")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("bar")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ImportingDef) contextValidateFoo(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Foo != nil {
+		if err := m.Foo.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("foo")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("foo")
 			}
 			return err
 		}

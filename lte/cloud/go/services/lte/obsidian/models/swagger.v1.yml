@@ -1868,11 +1868,6 @@ definitions:
         type: boolean
         example: true
         default: false
-      node_identifier:
-        type: string
-        description: Node Identifier for 5G Standalone (SA) at a network level
-        format: ipv4
-        example: '192.168.200.1'
       congestion_control_enabled:
         description: Network configuration flag for congestion control on EPC
         type: boolean
@@ -2124,6 +2119,11 @@ definitions:
         type: string
         minLength: 5
         maxLength: 49
+      node_identifier:
+        type: string
+        description: UPF Node Identifier
+        format: ipv4
+        example: '192.168.200.1'
       sgi_management_iface_vlan:
         type: string
         description: VLAN ID for management interface traffic on the AGW

@@ -66,6 +66,8 @@ using ::testing::Test;
 #define session_max_rtx_count 3
 namespace magma {
 
+Teids teids1;
+
 class SessionManagerHandlerTest : public ::testing::Test {
  public:
   virtual void SetUp() {
@@ -112,6 +114,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
     local_enforcer = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client, events_reporter,
         spgw_client, aaa_client, shard_tracker, 0, 0, default_mconfig);
+    teids1.set_agw_teid(TEID_1_UL);
+    teids1.set_enb_teid(TEID_1_DL);
   }
 
   virtual void TearDown() { delete evb; }
@@ -119,6 +123,17 @@ class SessionManagerHandlerTest : public ::testing::Test {
   void insert_static_rule(uint32_t rating_group, const std::string& m_key,
                           const std::string& rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
+  }
+
+  SessionConfig get_default_config(const std::string& imsi) {
+    SessionConfig cfg;
+    cfg.common_context =
+        build_common_context(imsi, IP1, IPv6_1, teids1, APN1, MSISDN, TGPP_NR);
+    M5GQosInformationRequest qos_info;
+    qos_info.set_apn_ambr_dl(32);
+    qos_info.set_apn_ambr_dl(64);
+    qos_info.set_br_unit(M5GQosInformationRequest_BitrateUnitsAMBR_KBPS);
+    return cfg;
   }
 
   void set_sm_session_context(magma::SetSMSessionContext* request) {
@@ -1148,5 +1163,178 @@ TEST_F(SessionManagerHandlerTest, test_update_session_credits_and_rules_5g) {
                 .rat_specific_context.m5gsm_session_context()
                 .ssc_mode(),
             magma::SscMode::SSC_MODE_2);
+}
+
+TEST_F(SessionManagerHandlerTest, test_policy_reauth_request_other_failure) {
+  magma::SetSMSessionContext request;
+  set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_2);
+  // Add static rule
+  insert_static_rule(1, "", "rule1");
+  PolicyRule d1;
+  RuleLifetime lifetime1(std::time_t(0), std::time_t(5));
+  d1.set_id("dynamic_rule1");
+
+  // Make Session Response from polcydb
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, credits->Add());
+  // Set session config
+  SessionConfig cfg;
+  cfg.common_context = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
+
+  grpc::ServerContext server_context;
+  // create session and expect one call
+  set_session_manager->SetAmfSessionContext(
+      &server_context, &request,
+      [this](grpc::Status status, SmContextVoid Void) {});
+
+  // Run session creation in the EventBase loop
+  evb->loopOnce();
+  // Read the session and create the session state
+  auto session_map = session_store->read_sessions({IMSI1});
+  session_enforcer->m5g_init_session_credit(session_map, IMSI1, SESSION_ID_1,
+                                            cfg);
+  SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID, SESSION_ID_1);
+  auto session_it = session_store->find_session(session_map, criteria);
+  auto& session_t = **session_it;
+  auto update = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(session_map[IMSI1].size(), 2);
+
+  auto& uc = update[IMSI1][SESSION_ID_1];
+  session_map[IMSI1].front()->insert_dynamic_rule(d1, lifetime1, &uc);
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+
+  // Update the policy
+  session_enforcer->update_session_with_policy(session_t, response, nullptr);
+  // Update the session
+  session_enforcer->m5g_update_session_context(session_map, IMSI1, session_t,
+                                               update);
+  PolicyReAuthRequest rar;
+  std::vector<std::string> rules_to_remove;
+  std::vector<StaticRuleInstall> rules_to_install;
+  std::vector<DynamicRuleInstall> dynamic_rules_to_install;
+  std::vector<EventTrigger> event_triggers;
+  std::vector<UsageMonitoringCredit> usage_monitoring_credits;
+  create_policy_reauth_request(SESSION_ID_1, IMSI1, rules_to_remove,
+                               rules_to_install, dynamic_rules_to_install,
+                               event_triggers, time(nullptr),
+                               usage_monitoring_credits, &rar);
+  auto rar_qos_info = rar.mutable_qos_info();
+  rar_qos_info->set_qci(QCI_1);
+
+  PolicyReAuthAnswer raa;
+  update = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(session_map[IMSI1].size(), 2);
+  /*If Session is not in ACTIVE state RAR should throw OTHER_FAILURE*/
+  session_enforcer->init_policy_reauth(IMSI1, session_map, rar, raa, update);
+  EXPECT_EQ(raa.result(), ReAuthResult::OTHER_FAILURE);
+}
+
+TEST_F(SessionManagerHandlerTest, test_policy_reauth_request) {
+  magma::SetSMSessionContext request;
+  set_sm_session_context_ipv4(&request);
+  request.mutable_rat_specific_context()
+      ->mutable_m5gsm_session_context()
+      ->set_ssc_mode(magma::SscMode::SSC_MODE_2);
+  // Add static rule
+  insert_static_rule(1, "", "static_rule1");
+  PolicyRule d1;
+  RuleLifetime lifetime1(std::time_t(0), std::time_t(5));
+  d1.set_id("dynamic_rule1");
+
+  // Make Session Response from polcydb
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, credits->Add());
+  // Set session config
+  SessionConfig cfg;
+  cfg.common_context = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
+
+  grpc::ServerContext server_context;
+  // create session and expect one call
+  set_session_manager->SetAmfSessionContext(
+      &server_context, &request,
+      [this](grpc::Status status, SmContextVoid Void) {});
+
+  // Run session creation in the EventBase loop
+  evb->loopOnce();
+  // Read the session and create the session state
+  auto session_map = session_store->read_sessions({IMSI1});
+  session_enforcer->m5g_init_session_credit(session_map, IMSI1, SESSION_ID_1,
+                                            cfg);
+  SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID, SESSION_ID_1);
+  auto session_it = session_store->find_session(session_map, criteria);
+  auto& session_t = **session_it;
+  auto update = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(session_map[IMSI1].size(), 2);
+
+  auto& uc = update[IMSI1][SESSION_ID_1];
+  session_map[IMSI1].front()->insert_dynamic_rule(d1, lifetime1, &uc);
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  // Update the policy
+  session_enforcer->update_session_with_policy(session_t, response, nullptr);
+  // Update the session
+  session_enforcer->m5g_update_session_context(session_map, IMSI1, session_t,
+                                               update);
+  PolicyReAuthRequest rar;
+  auto static_install = rar.mutable_rules_to_install()->Add();
+  static_install->set_rule_id("static_rule1");
+  auto dynamic_install = rar.mutable_dynamic_rules_to_install()->Add();
+  dynamic_install->mutable_policy_rule()->set_id("dynamic_rule1");
+  dynamic_install->mutable_policy_rule()->set_rating_group(2);
+  dynamic_install->mutable_policy_rule()->set_tracking_type(
+      PolicyRule::ONLY_PCRF);
+  rar.add_rules_to_remove("dynamic_rule1");
+  auto rar_qos_info = rar.mutable_qos_info();
+  rar_qos_info->set_qci(QCI_1);
+  session_t->set_fsm_state(SESSION_ACTIVE, &uc);
+  bool success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+
+  PolicyReAuthAnswer raa;
+  update = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(session_map[IMSI1].size(), 2);
+  session_enforcer->init_policy_reauth(IMSI1, session_map, rar, raa, update);
+  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+  success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+
+  auto session_state =
+      std::make_shared<SessionState>(IMSI1, SESSION_ID_1, cfg, *rule_store);
+  EXPECT_TRUE(session_state->is_5g_session());
+  session_enforcer->init_policy_reauth_for_session(IMSI1, rar, session_t,
+                                                   update);
+  auto& dynamic_rules = session_map[IMSI1][0]->get_dynamic_rules();
+  PolicyRule policy_out;
+  EXPECT_TRUE(dynamic_rules.get_rule("dynamic_rule1", &policy_out));
+  EXPECT_EQ(2, policy_out.rating_group());
+  EXPECT_TRUE(session_store->update_sessions(update));
+}
+
+TEST_F(SessionManagerHandlerTest, test_rar_session_not_found) {
+  magma::SetSMSessionContext request;
+  set_sm_session_context_ipv4(&request);
+  // verify session validity by passing in an invalid IMSI
+  PolicyReAuthRequest rar;
+  create_policy_reauth_request("session1", IMSI1, {}, {}, {}, {}, time(nullptr),
+                               {}, &rar);
+  PolicyReAuthAnswer raa;
+  auto test_cfg_ = get_default_config("");
+  auto update = SessionStore::get_default_session_update(session_map_);
+  session_enforcer->init_policy_reauth(IMSI1, session_map_, rar, raa, update);
+  EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
+
+  // verify session validity passing in a valid IMSI (IMSI1)
+  // and an invalid session-id (session0)
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response(IMSI1, "session0", 1, 4096, credits->Add());
+  session_enforcer->init_policy_reauth(IMSI1, session_map_, rar, raa, update);
+  EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
 }
 }  // namespace magma

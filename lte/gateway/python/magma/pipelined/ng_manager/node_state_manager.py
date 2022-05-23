@@ -40,10 +40,9 @@ class NodeStateManager:
     TEID_RANGE_VALUE = 0
     ASSOC_MAX_RETRIES = 40
 
-    LocalNodeConfig = NamedTuple(
-        'LocalNodeConfig',
-        [('downlink_ip', str), ('node_identifier', str)],
-    )
+    class LocalNodeConfig(NamedTuple):
+        downlink_ip: str
+        node_identifier: str
 
     def __init__(self, loop, sessiond_setinterface, config):
         self.config = self._get_config(config)

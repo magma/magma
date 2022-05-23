@@ -49,6 +49,15 @@ import (
 	orc_test_utils "magma/orc8r/cloud/go/test_utils"
 )
 
+var subProfileEmpty = subscriberModels.SubProfile("")
+var subProfileFoo = subscriberModels.SubProfile("foo")
+var subProfileBar = subscriberModels.SubProfile("bar")
+var subProfileMissing = subscriberModels.SubProfile("missing-profile")
+var subProfilePresent = subscriberModels.SubProfile("present-profile")
+var subProfileDefault = subscriberModels.SubProfile("default")
+
+var emptyPageToken = subscriberModels.PageToken("")
+
 func TestCreateSubscribers(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -91,7 +100,7 @@ func TestCreateSubscribers(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    2,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			"IMSI0000000000": sub0.ToSubscriber(),
 			"IMSI0000000001": sub1.ToSubscriber(),
@@ -142,7 +151,7 @@ func TestCreateSubscribers(t *testing.T) {
 
 	// Fail: create sub with non-default sub profile that's missing from network config
 	sub6 := newMutableSubscriber("IMSI0000000006")
-	sub6.Lte.SubProfile = "missing-profile"
+	sub6.Lte.SubProfile = &subProfileMissing
 	payload = subscriberModels.MutableSubscribers{sub6}
 	tc = tests.Test{
 		Method:                 "POST",
@@ -159,8 +168,8 @@ func TestCreateSubscribers(t *testing.T) {
 	// Pass: create sub with non-default sub profile that's present in network config
 	sub7 := newMutableSubscriber("IMSI0000000007")
 	sub8 := newMutableSubscriber("IMSI0000000008")
-	sub7.Lte.SubProfile = "present-profile"
-	sub8.Lte.SubProfile = "present-profile"
+	sub7.Lte.SubProfile = &subProfilePresent
+	sub8.Lte.SubProfile = &subProfilePresent
 	payload = subscriberModels.MutableSubscribers{sub7, sub8}
 	tc = tests.Test{
 		Method:         "POST",
@@ -196,7 +205,7 @@ func TestListSubscribers(t *testing.T) {
 	assert.NoError(t, err)
 	expectedResult := subscriberModels.PaginatedSubscribers{
 		TotalCount:    int64(0),
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers:   map[string]*subscriberModels.Subscriber{},
 	}
 	tc := tests.Test{
@@ -235,7 +244,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
@@ -249,7 +258,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
@@ -297,7 +306,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				State:      "ACTIVE",
-				SubProfile: "foo",
+				SubProfile: &subProfileFoo,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -306,7 +315,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
@@ -319,7 +328,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				State:      "ACTIVE",
-				SubProfile: "foo",
+				SubProfile: &subProfileFoo,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -328,14 +337,15 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn2},
 		},
 	}
-	expectedResult.NextPageToken = "Cg5JTVNJMDk4NzY1NDMyMg=="
+	expectedPageToken := subscriberModels.PageToken("Cg5JTVNJMDk4NzY1NDMyMg==")
+	expectedResult.NextPageToken = &expectedPageToken
 
 	// Test paginated requests
 	tc = tests.Test{
@@ -381,7 +391,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -390,7 +400,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
-					SubProfile: "default",
+					SubProfile: &subProfileDefault,
 				},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
@@ -423,7 +433,7 @@ func TestListSubscribers(t *testing.T) {
 			},
 		},
 	}
-	expectedResult.NextPageToken = ""
+	expectedResult.NextPageToken = &emptyPageToken
 	// Get last page of subscribers
 	tc = tests.Test{
 		Method:         "GET",
@@ -473,7 +483,7 @@ func TestGetSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -525,7 +535,7 @@ func TestGetSubscriber(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -534,7 +544,7 @@ func TestGetSubscriber(t *testing.T) {
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
-					SubProfile: "default",
+					SubProfile: &subProfileDefault,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -591,7 +601,7 @@ func TestGetSubscriber(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -600,7 +610,7 @@ func TestGetSubscriber(t *testing.T) {
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
-					SubProfile: "default",
+					SubProfile: &subProfileDefault,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -961,7 +971,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	// List all => empty
 	emptyPaginatedSub := subscriberModels.PaginatedSubscribers{
 		TotalCount:    int64(0),
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers:   map[string]*subscriberModels.Subscriber{},
 	}
 	tc = tests.Test{
@@ -1228,7 +1238,7 @@ func TestUpdateSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1244,7 +1254,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
-			SubProfile: "default",
+			SubProfile: &subProfileDefault,
 		},
 		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		ActiveApns:            subscriberModels.ApnList{apn2, apn1},
@@ -1280,7 +1290,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		},
@@ -1296,7 +1306,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			State:      "INACTIVE",
-			SubProfile: "foo",
+			SubProfile: &subProfileFoo,
 		},
 		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{},
 		StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -1328,7 +1338,7 @@ func TestUpdateSubscriber(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	// No profile matching
-	payload.Lte.SubProfile = "bar"
+	payload.Lte.SubProfile = &subProfileBar
 	tc = tests.Test{
 		Method:                 "PUT",
 		URL:                    testURLRoot,
@@ -1353,7 +1363,7 @@ func TestDeleteSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1401,7 +1411,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
 	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1490,7 +1500,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}, serdes.Network)
 	assert.NoError(t, err)
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1505,7 +1515,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
@@ -1568,7 +1578,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "foo",
+				SubProfile: &subProfileFoo,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
@@ -1600,7 +1610,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
@@ -1665,7 +1675,7 @@ func TestSubscriberBasename(t *testing.T) {
 	// Get all, posted subscriber found
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -1711,7 +1721,7 @@ func TestSubscriberBasename(t *testing.T) {
 	// Get all, updated subscriber matches the expected value
 	expected = subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -1783,7 +1793,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	// Get all, posted subscriber found
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -1829,7 +1839,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	// Get all, updated subscriber matches the expected value
 	expected = subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		}}
@@ -1893,7 +1903,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tests.RunUnitTest(t, e, tc)
 
 		// Post, sub with same policy both static and for specific APN
-		mutableSub.ActivePolicies = policydbModels.PolicyIds{policy.ID}
+		mutableSub.ActivePolicies = policydbModels.PolicyIds{*policy.ID}
 		mutableSub.ActivePoliciesByApn = policydbModels.PolicyIdsByApn{
 			"apn0": policydbModels.PolicyIds{"ruleXXX"},
 		}
@@ -1971,7 +1981,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	// Get all, initially empty
 	emptySub := subscriberModels.PaginatedSubscribers{
 		TotalCount:    0,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers:   map[string]*subscriberModels.Subscriber{},
 	}
 	tc := tests.Test{
@@ -2036,7 +2046,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	// Get all, posted subscriber found
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -2278,7 +2288,7 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
-			SubProfile: "default",
+			SubProfile: &subProfileDefault,
 		},
 		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		StaticIps: subscriberModels.SubscriberStaticIps{
@@ -2290,8 +2300,9 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 }
 
 func newPolicy(id string) *policydbModels.PolicyRule {
+	policyID := policydbModels.PolicyID(id)
 	policy := &policydbModels.PolicyRule{
-		ID: policydbModels.PolicyID(id),
+		ID: &policyID,
 		FlowList: []*policydbModels.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),

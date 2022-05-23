@@ -58,7 +58,7 @@ func main() {
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers(nprobeBlobstore))
-	protos.RegisterSwaggerSpecServer(srv.GrpcServer, servicers.NewSpecServicerFromFile(nprobe.ServiceName))
+	protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, servicers.NewSpecServicerFromFile(nprobe.ServiceName))
 
 	serviceConfig := nprobe.GetServiceConfig()
 	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore)

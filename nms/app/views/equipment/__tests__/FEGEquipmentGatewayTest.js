@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGEquipmentGateway from '../FEGEquipmentGateway';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -25,7 +24,7 @@ import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   csfb,
   federation_gateway,
@@ -40,16 +39,11 @@ import type {
 
 const enqueueSnackbarMock = jest.fn();
 jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
+  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
-
+jest.mock('../../../../app/hooks/useSnackbar');
 const mockGx: gx = {
   server: {
     address: '174.16.1.14:3868',

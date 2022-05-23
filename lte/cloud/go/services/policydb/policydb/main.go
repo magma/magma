@@ -36,7 +36,7 @@ func main() {
 	assignmentServicer := policydb_servicer.NewPolicyAssignmentServer()
 	protos.RegisterPolicyAssignmentControllerServer(srv.GrpcServer, assignmentServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swaggger_servicers.NewSpecServicerFromFile(policydb.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swaggger_servicers.NewSpecServicerFromFile(policydb.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	err = srv.Run()

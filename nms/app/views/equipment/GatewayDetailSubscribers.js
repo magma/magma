@@ -19,7 +19,7 @@ import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   REFRESH_INTERVAL,

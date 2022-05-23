@@ -31,7 +31,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {JsonDialog} from './SubscriberOverview';
 import {
@@ -42,7 +42,7 @@ import {RenderLink} from './SubscriberOverview';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({

@@ -208,10 +208,12 @@ func buildSomeState(names ...string) *active_mode.State {
 	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
 		cbsds[i] = &active_mode.Cbsd{
-			DesiredState:      active_mode.CbsdState_Registered,
-			UserId:            name,
-			FccId:             name,
-			SerialNumber:      name,
+			DesiredState: active_mode.CbsdState_Registered,
+			SasSettings: &active_mode.SasSettings{
+				UserId:       name,
+				FccId:        name,
+				SerialNumber: name,
+			},
 			State:             active_mode.CbsdState_Unregistered,
 			LastSeenTimestamp: currentTime,
 		}
@@ -231,7 +233,7 @@ func buildStateWithAuthorizedGrants(name string, interval time.Duration, timesta
 	}
 	cbsds := []*active_mode.Cbsd{{
 		DesiredState:      active_mode.CbsdState_Registered,
-		Id:                name,
+		CbsdId:            name,
 		State:             active_mode.CbsdState_Registered,
 		Grants:            grants,
 		LastSeenTimestamp: currentTime,
