@@ -40,6 +40,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import {Route, Routes, useNavigate} from 'react-router-dom';

@@ -13,18 +13,22 @@
  * @flow
  * @format
  */
+// $FlowFixMe migrated to typescript
 import type {NetworkContextType} from '../context/NetworkContext';
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
 import AppContext from '../../../app/components/context/AppContext';
 import MagmaV1API from '../../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';
 import {
   CWF,
   FEG,
   LTE,
   coalesceNetworkType,
+  // $FlowFixMe migrated to typescript
 } from '../../../shared/types/network';
 
 import {getCWFSections} from '../cwf/CWFSections';

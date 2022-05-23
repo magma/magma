@@ -23,7 +23,8 @@ import InitSubscriberState from '../../state/lte/SubscriberState';
 import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import MagmaV1API from '../../../generated/WebClient';
-import NetworkContext from '../../components/context/NetworkContext';
+// $FlowFixMe migrated to typescript
+import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 import TraceContext from '../context/TraceContext';
@@ -53,6 +54,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
+// $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../shared/types/network';
 import {
   InitEnodeState,

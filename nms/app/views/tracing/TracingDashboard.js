@@ -22,6 +22,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import CreateTraceButton from './TraceStartDialog';
 import HistoryIcon from '@material-ui/icons/History';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
 import TopBar from '../../components/TopBar';

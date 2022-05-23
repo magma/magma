@@ -16,10 +16,12 @@
 
 import MagmaV1API from '../../../generated/WebClient';
 
+// $FlowFixMe migrated to typescript
 import {FEG, coalesceNetworkType} from '../../../shared/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
 import {VersionContextProvider} from '../context/VersionContext';
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {Theme} from '@material-ui/core';
 import type {
@@ -30,6 +32,7 @@ import type {
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';
 import SectionRoutes from '../layout/SectionRoutes';
 import {useEffect, useState} from 'react';

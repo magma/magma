@@ -15,11 +15,13 @@
  */
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 
+// $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../../shared/types/network';
 import {
   LteNetworkContextProvider,
