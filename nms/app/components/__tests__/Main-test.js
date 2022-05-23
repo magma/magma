@@ -18,6 +18,7 @@ import ApplicationMain from '../ApplicationMain';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import Main, {NO_NETWORK_MESSAGE} from '../Main';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../context/AppContext';
 import {MemoryRouter} from 'react-router-dom';
 import {render, wait} from '@testing-library/react';

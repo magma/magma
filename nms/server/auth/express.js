@@ -31,6 +31,7 @@ import {
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';

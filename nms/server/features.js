@@ -16,6 +16,7 @@
 
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from './auth/access';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FeatureID} from '../shared/types/features';
 
 import {FeatureFlag} from '../shared/sequelize_models';

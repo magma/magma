@@ -18,6 +18,7 @@ import type {EditUser} from './OrganizationEdit';
 import type {Organization} from './Organizations';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

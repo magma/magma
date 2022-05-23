@@ -19,6 +19,7 @@ import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../../../app/components/context/AppContext';
 // $FlowFixMe migrated to typescript
 import {LTE} from '../../../shared/types/network';
