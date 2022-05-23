@@ -39,6 +39,7 @@
 # agw code related to orc8r
 /orc8r/gateway/c/ @magma/approvers-agw
 /orc8r/gateway/python @magma/approvers-agw @magma/approvers-orc8r
+/src/go/ @magma/approvers-orc8r
 
 # approvers-agw-<subsection>
 /lte/gateway/c/session_manager @magma/approvers-agw-sessiond
@@ -55,12 +56,10 @@
 /xwf/ @magma/approvers-xwf
 /feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
-/src/go/ @markjen
-
 /dp/ @magma/approvers-domain-proxy
 
 /docs/ @magma/approvers-docs
-/docs/readmes/proposals @electronjoe
+/docs/readmes/proposals @magma/approvers-tsc
 
 # approvers-bazel
 /.bazel-cache/ @magma/approvers-bazel
@@ -74,7 +73,7 @@
 /.bazelrc @magma/approvers-bazel
 *.bazel @magma/approvers-bazel
 
-/CODEOWNERS @amarpad @electronjoe @hcgatewood
+/CODEOWNERS @magma/approvers-tsc
 
 # Generated code excluded from code ownership
 **/go.mod @ghost

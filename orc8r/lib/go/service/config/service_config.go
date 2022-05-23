@@ -46,15 +46,6 @@ func GetServiceConfig(moduleName string, serviceName string) (*Map, error) {
 	return getServiceConfigImpl(moduleName, serviceName, main, legacy, overwrite)
 }
 
-// MustGetServiceConfig is same as GetServiceConfig but fails on errors.
-func MustGetServiceConfig(moduleName string, serviceName string) *Map {
-	cfg, err := GetServiceConfig(moduleName, serviceName)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	return cfg
-}
-
 // GetServiceConfigs returns module-keyed configs for the named service
 // from all known modules.
 // The list of known modules is determined by listing all non-directory files
@@ -150,13 +141,6 @@ func GetStructuredServiceConfigExt(
 		return
 	}
 	return ymlFilePath, ymlQWFilePath, oerr
-}
-
-// GetCurrentConfigDirectories returns currently used service YML configuration locations
-func GetCurrentConfigDirectories() (main, legacy, overwrite string) {
-	cfgDirMu.RLock()
-	defer cfgDirMu.RUnlock()
-	return configDir, oldConfigDir, configOverrideDir
 }
 
 // SetConfigDirectories sets main, legacy, overwrite config directories to be used

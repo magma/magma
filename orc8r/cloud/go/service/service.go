@@ -90,7 +90,7 @@ func NewOrchestratorService(moduleName string, serviceName string, serverOptions
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	serverOptions = append(serverOptions, unary.GetInterceptorOpt())
 
-	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceName, serverOptions...)
 	if err != nil {
 		return nil, err
 	}
