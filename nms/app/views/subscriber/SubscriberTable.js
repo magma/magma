@@ -51,6 +51,7 @@ import {
   handleSubscriberQuery,
 } from '../../state/lte/SubscriberState';
 import {JsonDialog, RenderLink} from './SubscriberOverview';
+// $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

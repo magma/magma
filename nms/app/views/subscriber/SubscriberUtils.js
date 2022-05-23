@@ -19,6 +19,7 @@ import type {
   promql_return_object,
 } from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module]
 import {isValidHex} from '../../util/strings';
 
 const mBIT = 1000000;
