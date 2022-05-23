@@ -64,7 +64,7 @@ func startSingletonReindexer(srv *service.OrchestratorService) {
 	}
 
 	indexerManagerServer := newSingletonIndexerManagerServicer(srv.Config, db, store)
-	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
+	indexer_protos.RegisterIndexerManagerServer(srv.ProtectedGrpcServer, indexerManagerServer)
 }
 
 func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {

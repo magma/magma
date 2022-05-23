@@ -125,7 +125,7 @@ func (m RuleNames) ToTKs() storage.TKs {
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	ent := configurator.NetworkEntity{
 		Type:         lte.PolicyRuleEntityType,
-		Key:          string(m.ID),
+		Key:          string(*m.ID),
 		Config:       m.getConfig(),
 		Associations: m.GetAssocs(),
 	}
@@ -133,7 +133,8 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 }
 
 func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
-	m.ID = PolicyID(ent.Key)
+	policyID := PolicyID(ent.Key)
+	m.ID = &policyID
 	m.fillFromConfig(ent.Config)
 
 	for _, assoc := range ent.ParentAssociations.Filter(lte.SubscriberEntityType) {
@@ -147,12 +148,13 @@ func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 	return m
 }
 
-func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *PolicyRule) ToEntityUpdateCriteria(associationsToAdd storage.TKs, associationsToDelete storage.TKs) configurator.EntityUpdateCriteria {
 	update := configurator.EntityUpdateCriteria{
-		Type:              lte.PolicyRuleEntityType,
-		Key:               string(m.ID),
-		NewConfig:         m.getConfig(),
-		AssociationsToAdd: m.GetAssocs(),
+		Type:                 lte.PolicyRuleEntityType,
+		Key:                  string(*m.ID),
+		NewConfig:            m.getConfig(),
+		AssociationsToAdd:    associationsToAdd,
+		AssociationsToDelete: associationsToDelete,
 	}
 	return update
 }
@@ -452,7 +454,7 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 	proto := &protos.FlowQos{
 		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
 		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
-		Qci:        protos.FlowQos_Qci(m.ClassID),
+		Qci:        protos.FlowQos_Qci(*m.ClassID),
 	}
 	if m.Gbr != nil {
 		proto.GbrUl = swag.Uint32Value(m.Gbr.Uplink)

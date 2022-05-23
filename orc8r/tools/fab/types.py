@@ -13,10 +13,10 @@ limitations under the License.
 
 from typing import List, NamedTuple
 
-ClientCert = NamedTuple(
-    'ClientCert',
-    [('cert', str), ('key', str)],
-)
+
+class ClientCert(NamedTuple):
+    cert: str
+    key: str
 
 
 class NetworkDNSConfig:

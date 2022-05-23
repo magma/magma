@@ -12,17 +12,20 @@
  */
 #pragma once
 
-#include <uuid/uuid.h>
-#include <tins/tins.h>
-
-#include <unordered_map>
-#include <string>
-
-#include "orc8r/gateway/c/common/config/includes/MConfigLoader.hpp"
 #include <lte/protos/mconfig/mconfigs.pb.h>
-#include "orc8r/gateway/c/common/logging/magma_logging.h"
-#include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
+#include <stdint.h>
+#include <sys/types.h>
+#include <tins/network_interface.h>
+#include <tins/tins.h>
+#include <uuid/uuid.h>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
+#include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
+#include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 namespace lte {

@@ -33,10 +33,10 @@ func StartNewTestBuilder(t *testing.T, builder mconfig.Builder) {
 	labels := map[string]string{
 		orc8r.MconfigBuilderLabel: "true",
 	}
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_mconfig_builder_service", labels, nil)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_mconfig_builder_service", labels, nil)
 	servicer := &builderServicer{builder: builder}
-	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicer)
-	go srv.RunTest(lis)
+	builder_protos.RegisterMconfigBuilderServer(srv.ProtectedGrpcServer, servicer)
+	go srv.RunTest(lis, plis)
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {

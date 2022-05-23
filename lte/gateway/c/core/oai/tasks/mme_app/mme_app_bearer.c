@@ -74,7 +74,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP

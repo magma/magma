@@ -49,7 +49,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 	err = s.resourceManager.CreateTables(
 		&storage.DBCbsdState{},
 		&storage.DBCbsd{},
-		&storage.DBActiveModeConfig{},
 		&storage.DBGrantState{},
 		&storage.DBGrant{},
 	)
@@ -77,7 +76,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 func (s *CbsdManagerTestSuite) TearDownTest() {
 	err := s.resourceManager.DropResources(
 		&storage.DBCbsd{},
-		&storage.DBActiveModeConfig{},
 		&storage.DBGrant{},
 	)
 	s.Require().NoError(err)
@@ -86,25 +84,43 @@ func (s *CbsdManagerTestSuite) TearDownTest() {
 const (
 	someNetwork  = "some_network"
 	otherNetwork = "other_network_id"
+
+	someCbsdId = 123
 )
 
-func (s *CbsdManagerTestSuite) TestCreateCbsd() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, getBaseCbsd())
+func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getBaseCbsd()))
 	s.Require().NoError(err)
+	s.verifyCbsdCreation(getBaseCbsdWithDefaultValues())
+}
 
-	err = s.resourceManager.InTransaction(func() {
+func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(getSingleStepCbsd()))
+	s.Require().NoError(err)
+	s.verifyCbsdCreation(getSingleStepCbsd())
+}
+
+func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
+	err := s.resourceManager.InTransaction(func() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id")).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
 			Join(db.NewQuery().
 				From(&storage.DBCbsdState{}).
+				As("t1").
+				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t2").
+				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
 				Select(db.NewIncludeMask("name"))).
 			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
 			Fetch()
 		s.Require().NoError(err)
 
-		cbsd := getBaseCbsd()
+		cbsd := expected
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
@@ -112,27 +128,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString("unregistered")},
-		}
-		s.Assert().Equal(expected, actual)
-
-		actual, err = db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBActiveModeConfig{}).
-			Select(db.NewIncludeMask()).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				Select(db.NewIncludeMask("name"))).
-			Join(db.NewQuery().
-				From(&storage.DBCbsd{}).
-				Select(db.NewIncludeMask())).
-			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
-			Fetch()
-		s.Require().NoError(err)
-
-		expected = []db.Model{
-			&storage.DBActiveModeConfig{},
 			&storage.DBCbsdState{Name: db.MakeString("registered")},
-			&storage.DBCbsd{},
 		}
 		s.Assert().Equal(expected, actual)
 	})
@@ -140,85 +136,87 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
-	err := s.cbsdManager.CreateCbsd(someNetwork, getBaseCbsd())
+	cbsd := getBaseCbsd()
+	err := s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(cbsd))
 	s.Require().NoError(err)
-	err = s.cbsdManager.CreateCbsd(someNetwork, getBaseCbsd())
+	err = s.cbsdManager.CreateCbsd(someNetwork, getMutableCbsd(cbsd))
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateCbsdWithSerialNumberOfExistingCbsd() {
-	cbsd1 := getBaseCbsd()
-	cbsd1.Id = db.MakeInt(1)
-	cbsd2 := getBaseCbsd()
-	cbsd2.Id = db.MakeInt(2)
-	cbsd2.CbsdSerialNumber = db.MakeString("cbsd_serial_number2")
-	err := s.cbsdManager.CreateCbsd(someNetwork, cbsd1)
-	s.Require().NoError(err)
-	err = s.cbsdManager.CreateCbsd(someNetwork, cbsd2)
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	cbsd1 := getCbsd(1, someNetwork, state)
+	cbsd1.CbsdSerialNumber = db.MakeString("some_serial_number_1")
+	cbsd2 := getCbsd(2, someNetwork, state)
+	cbsd2.CbsdSerialNumber = db.MakeString("some_serial_number_2")
+	s.givenResourcesInserted(cbsd1, cbsd2)
 
 	cbsd2.CbsdSerialNumber = cbsd1.CbsdSerialNumber
-
-	err = s.cbsdManager.UpdateCbsd(someNetwork, cbsd2.Id.Int64, cbsd2)
+	m := &storage.MutableCbsd{
+		Cbsd:         cbsd2,
+		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
+	}
+	err := s.cbsdManager.UpdateCbsd(someNetwork, cbsd2.Id.Int64, m)
 	s.Assert().ErrorIs(err, merrors.ErrAlreadyExists)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
 
-	cbsd := getBaseCbsd()
-	cbsd.UserId.String += "new1"
-	cbsd.FccId.String += "new2"
-	cbsd.CbsdSerialNumber.String += "new3"
-	cbsd.AntennaGain.Float64 += 1
-	cbsd.MaxPower.Float64 += 2
-	cbsd.MinPower.Float64 += 3
-	cbsd.NumberOfPorts.Int64 += 4
-	err = s.cbsdManager.UpdateCbsd(someNetwork, cbsdId, cbsd)
+	m := getMutableCbsd(getBaseCbsd())
+	m.Cbsd.UserId.String += "new1"
+	m.Cbsd.FccId.String += "new2"
+	m.Cbsd.CbsdSerialNumber.String += "new3"
+	m.Cbsd.AntennaGain.Float64 += 1
+	m.Cbsd.MaxPower.Float64 += 2
+	m.Cbsd.MinPower.Float64 += 3
+	m.Cbsd.NumberOfPorts.Int64 += 4
+	m.Cbsd.SingleStepEnabled = db.MakeBool(true)
+	m.Cbsd.IndoorDeployment = db.MakeBool(true)
+	m.Cbsd.CbsdCategory = db.MakeString("a")
+	m.DesiredState.Name = db.MakeString("unregistered")
+	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, m)
 	s.Require().NoError(err)
 
 	err = s.resourceManager.InTransaction(func() {
 		actual, err := db.NewQuery().
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "cbsd_id", "grant_attempts", "is_deleted")).
-			Where(sq.Eq{"id": cbsdId}).
+			Select(db.NewExcludeMask("id", "state_id",
+				"cbsd_id", "grant_attempts", "is_deleted")).
+			Where(sq.Eq{"id": someCbsdId}).
 			Fetch()
 		s.Require().NoError(err)
-		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.ShouldDeregister = db.MakeBool(true)
-		expected := []db.Model{cbsd}
+		m.Cbsd.NetworkId = db.MakeString(someNetwork)
+		m.Cbsd.ShouldDeregister = db.MakeBool(true)
+		m.Cbsd.DesiredStateId = db.MakeInt(s.enumMaps[storage.CbsdStateTable]["unregistered"])
+		m.Cbsd.SingleStepEnabled = db.MakeBool(true)
+		m.Cbsd.IndoorDeployment = db.MakeBool(true)
+		m.Cbsd.CbsdCategory = db.MakeString("a")
+		expected := []db.Model{m.Cbsd}
 		s.Assert().Equal(expected, actual)
 	})
 	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateDeletedCbsd() {
-	cbsdId := s.givenDeletedCbsd()
+	s.givenDeletedCbsd()
 
-	err := s.cbsdManager.UpdateCbsd(someNetwork, cbsdId, getBaseCbsd())
+	err := s.cbsdManager.UpdateCbsd(someNetwork, someCbsdId, getMutableCbsd(getBaseCbsd()))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestUpdateNonExistentCbsd() {
-	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getBaseCbsd())
+	err := s.cbsdManager.UpdateCbsd(someNetwork, 0, getMutableCbsd(getBaseCbsd()))
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
 
-	err = s.cbsdManager.DeleteCbsd(someNetwork, cbsdId)
+	err := s.cbsdManager.DeleteCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
 	err = s.resourceManager.InTransaction(func() {
@@ -226,7 +224,7 @@ func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
 			Select(db.NewIncludeMask("is_deleted")).
-			Where(sq.Eq{"id": cbsdId}).
+			Where(sq.Eq{"id": someCbsdId}).
 			Fetch()
 		s.Require().NoError(err)
 		expected := []db.Model{
@@ -238,9 +236,9 @@ func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestDeletedDeletedCbsd() {
-	cbsdId := s.givenDeletedCbsd()
+	s.givenDeletedCbsd()
 
-	err := s.cbsdManager.DeleteCbsd(someNetwork, cbsdId)
+	err := s.cbsdManager.DeleteCbsd(someNetwork, someCbsdId)
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
@@ -250,94 +248,83 @@ func (s *CbsdManagerTestSuite) TestDeleteNonExistentCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestFetchDeletedCbsd() {
-	cbsdId := s.givenDeletedCbsd()
+	s.givenDeletedCbsd()
 
-	_, err := s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
+	_, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestFetchCbsdFromDifferentNetwork() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(otherNetwork, state))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, otherNetwork, state))
 
-	_, err = s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
+	_, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-	})
-	s.Require().NoError(err)
-	actual, err := s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
+
+	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsd{
-		Cbsd:       getDetailedCbsd(cbsdId),
-		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Grant:      &storage.DBGrant{},
-		GrantState: &storage.DBGrantState{},
+		Cbsd:         getDetailedCbsd(someCbsdId),
+		CbsdState:    &storage.DBCbsdState{Name: db.MakeString("registered")},
+		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
+		Grant:        &storage.DBGrant{},
+		GrantState:   &storage.DBGrantState{},
 	}
 	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-		s.givenResourceInserted(getGrant(grantState, cbsdId))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
+	s.givenResourcesInserted(
+		getCbsd(someCbsdId, someNetwork, state),
+		getGrant(1, grantState, someCbsdId),
+	)
 
-	actual, err := s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
+	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsd{
-		Cbsd:       getDetailedCbsd(cbsdId),
-		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Grant:      &storage.DBGrant{},
-		GrantState: &storage.DBGrantState{},
+		Cbsd:         getDetailedCbsd(someCbsdId),
+		CbsdState:    &storage.DBCbsdState{Name: db.MakeString("registered")},
+		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
+		Grant:        &storage.DBGrant{},
+		GrantState:   &storage.DBGrantState{},
 	}
 	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		grantState := s.enumMaps[storage.GrantStateTable]["authorized"]
-		s.givenResourceInserted(getGrant(grantState, cbsdId))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	grantState := s.enumMaps[storage.GrantStateTable]["authorized"]
+	s.givenResourcesInserted(
+		getCbsd(someCbsdId, someNetwork, state),
+		getGrant(1, grantState, someCbsdId),
+	)
 
-	actual, err := s.cbsdManager.FetchCbsd(someNetwork, cbsdId)
+	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsd{
-		Cbsd:       getDetailedCbsd(cbsdId),
-		CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-		Grant:      getBaseGrant(),
-		GrantState: &storage.DBGrantState{Name: db.MakeString("authorized")},
+		Cbsd:         getDetailedCbsd(someCbsdId),
+		CbsdState:    &storage.DBCbsdState{Name: db.MakeString("registered")},
+		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
+		Grant:        getBaseGrant(),
+		GrantState:   &storage.DBGrantState{Name: db.MakeString("authorized")},
 	}
 	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsdFromDifferentNetwork() {
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		s.givenResourceInserted(getCbsd(otherNetwork, state))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, otherNetwork, state))
 
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
@@ -354,14 +341,11 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	models := make([]db.Model, count)
 	stateId := s.enumMaps[storage.CbsdStateTable]["unregistered"]
 	for i := range models {
-		cbsd := getCbsd(someNetwork, stateId)
-		cbsd.Id = db.MakeInt(int64(i + 1))
-
+		cbsd := getCbsd(int64(i+1), someNetwork, stateId)
 		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
 		models[i] = cbsd
 	}
-	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
-	s.Require().NoError(err)
+	s.givenResourcesInserted(models...)
 
 	const limit = 2
 	const offset = 1
@@ -380,28 +364,26 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 		cbsd := getDetailedCbsd(int64(i + 1 + offset))
 		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1+offset))
 		expected.Cbsds[i] = &storage.DetailedCbsd{
-			Cbsd:       cbsd,
-			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
-			Grant:      &storage.DBGrant{},
-			GrantState: &storage.DBGrantState{},
+			Cbsd:         cbsd,
+			CbsdState:    &storage.DBCbsdState{Name: db.MakeString("unregistered")},
+			DesiredState: &storage.DBCbsdState{Name: db.MakeString("unregistered")},
+			Grant:        &storage.DBGrant{},
+			GrantState:   &storage.DBGrantState{},
 		}
 	}
 	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListWithFilter() {
-	const count = 2
+	const count = 1
 	models := make([]db.Model, count)
 	stateId := s.enumMaps[storage.CbsdStateTable]["unregistered"]
 	for i := range models {
-		cbsd := getCbsd(someNetwork, stateId)
-		cbsd.Id = db.MakeInt(int64(i + 1))
-
+		cbsd := getCbsd(int64(i+1), someNetwork, stateId)
 		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
 		models[i] = cbsd
 	}
-	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
-	s.Require().NoError(err)
+	s.givenResourcesInserted(models...)
 
 	pagination := &storage.Pagination{}
 	filter := &storage.CbsdFilter{SerialNumber: "some_serial_number1"}
@@ -416,35 +398,35 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 		cbsd := getDetailedCbsd(int64(i + 1))
 		cbsd.CbsdSerialNumber = db.MakeString(fmt.Sprintf("some_serial_number%d", i+1))
 		expected.Cbsds[i] = &storage.DetailedCbsd{
-			Cbsd:       cbsd,
-			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("unregistered")},
-			Grant:      &storage.DBGrant{},
-			GrantState: &storage.DBGrantState{},
+			Cbsd:         cbsd,
+			CbsdState:    &storage.DBCbsdState{Name: db.MakeString("unregistered")},
+			DesiredState: &storage.DBCbsdState{Name: db.MakeString("unregistered")},
+			Grant:        &storage.DBGrant{},
+			GrantState:   &storage.DBGrantState{},
 		}
 	}
 	s.Assert().Equal(expected, actual)
 }
 
 func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsdId = s.givenResourceInserted(getCbsd(someNetwork, state))
-		grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-		s.givenResourceInserted(getGrant(grantState, cbsdId))
-		s.givenResourceInserted(getGrant(grantState, cbsdId))
-	})
-	s.Require().NoError(err)
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
+	s.givenResourcesInserted(
+		getCbsd(someCbsdId, someNetwork, state),
+		getGrant(1, grantState, someCbsdId),
+		getGrant(2, grantState, someCbsdId),
+	)
 
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
 	expected := &storage.DetailedCbsdList{
 		Cbsds: []*storage.DetailedCbsd{{
-			Cbsd:       getDetailedCbsd(cbsdId),
-			CbsdState:  &storage.DBCbsdState{Name: db.MakeString("registered")},
-			Grant:      &storage.DBGrant{},
-			GrantState: &storage.DBGrantState{},
+			Cbsd:         getDetailedCbsd(someCbsdId),
+			CbsdState:    &storage.DBCbsdState{Name: db.MakeString("registered")},
+			DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
+			Grant:        &storage.DBGrant{},
+			GrantState:   &storage.DBGrantState{},
 		}},
 		Count: 1,
 	}
@@ -464,26 +446,43 @@ func (s *CbsdManagerTestSuite) TestListDeletedCbsd() {
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) givenResourceInserted(model db.Model) int64 {
-	id, err := db.NewQuery().
-		WithBuilder(s.resourceManager.GetBuilder()).
-		From(model).
-		Select(db.NewExcludeMask("id")).
-		Insert()
-	s.Require().NoError(err)
-	return id
-}
+func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	s.givenResourcesInserted(getCbsd(someCbsdId, someNetwork, state))
 
-func (s *CbsdManagerTestSuite) givenDeletedCbsd() int64 {
-	var cbsdId int64
-	err := s.resourceManager.InTransaction(func() {
-		state := s.enumMaps[storage.CbsdStateTable]["registered"]
-		cbsd := getCbsd(someNetwork, state)
-		cbsd.IsDeleted = db.MakeBool(true)
-		cbsdId = s.givenResourceInserted(cbsd)
+	err := s.cbsdManager.DeregisterCbsd(someNetwork, someCbsdId)
+	s.Require().NoError(err)
+
+	err = s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&storage.DBCbsd{}).
+			Select(db.NewIncludeMask("should_deregister")).
+			Where(sq.Eq{"id": someCbsdId}).
+			Fetch()
+		s.Require().NoError(err)
+		cbsd := &storage.DBCbsd{ShouldDeregister: db.MakeBool(true)}
+		expected := []db.Model{cbsd}
+		s.Assert().Equal(expected, actual)
 	})
 	s.Require().NoError(err)
-	return cbsdId
+}
+
+func (s *CbsdManagerTestSuite) TestDeregisterNonExistentCbsd() {
+	err := s.cbsdManager.DeregisterCbsd(someNetwork, 0)
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+func (s *CbsdManagerTestSuite) givenResourcesInserted(models ...db.Model) {
+	err := s.resourceManager.InsertResources(db.NewExcludeMask(), models...)
+	s.Require().NoError(err)
+}
+
+func (s *CbsdManagerTestSuite) givenDeletedCbsd() {
+	state := s.enumMaps[storage.CbsdStateTable]["registered"]
+	cbsd := getCbsd(someCbsdId, someNetwork, state)
+	cbsd.IsDeleted = db.MakeBool(true)
+	s.givenResourcesInserted(cbsd)
 }
 
 func (s *CbsdManagerTestSuite) getNameIdMapping(model db.Model) map[string]int64 {
@@ -516,18 +515,20 @@ func getBaseGrant() *storage.DBGrant {
 	return base
 }
 
-func getGrant(stateId int64, cbsdId int64) *storage.DBGrant {
+func getGrant(id int64, stateId int64, cbsdId int64) *storage.DBGrant {
 	base := getBaseGrant()
+	base.Id = db.MakeInt(id)
 	base.CbsdId = db.MakeInt(cbsdId)
 	base.StateId = db.MakeInt(stateId)
 	base.GrantId = db.MakeString("some_grant_id")
 	return base
 }
 
-func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
-	base := getBaseCbsd()
+func getCbsd(id int64, networkId string, stateId int64) *storage.DBCbsd {
+	base := getDetailedCbsd(id)
 	base.NetworkId = db.MakeString(networkId)
 	base.StateId = db.MakeInt(stateId)
+	base.DesiredStateId = db.MakeInt(stateId)
 	base.CbsdId = db.MakeString("some_cbsd_id")
 	base.ShouldDeregister = db.MakeBool(false)
 	base.IsDeleted = db.MakeBool(false)
@@ -536,7 +537,7 @@ func getCbsd(networkId string, stateId int64) *storage.DBCbsd {
 }
 
 func getDetailedCbsd(id int64) *storage.DBCbsd {
-	base := getBaseCbsd()
+	base := getBaseCbsdWithDefaultValues()
 	base.Id = db.MakeInt(id)
 	base.CbsdId = db.MakeString("some_cbsd_id")
 	return base
@@ -554,4 +555,28 @@ func getBaseCbsd() *storage.DBCbsd {
 	base.AntennaGain = db.MakeFloat(15)
 	base.NumberOfPorts = db.MakeInt(2)
 	return base
+}
+
+func getSingleStepCbsd() *storage.DBCbsd {
+	// TODO make a builder to handle different types of cbsd data
+	base := getBaseCbsd()
+	base.SingleStepEnabled = db.MakeBool(true)
+	base.IndoorDeployment = db.MakeBool(true)
+	base.CbsdCategory = db.MakeString("a")
+	return base
+}
+
+func getBaseCbsdWithDefaultValues() *storage.DBCbsd {
+	base := getBaseCbsd()
+	base.SingleStepEnabled = db.MakeBool(false)
+	base.CbsdCategory = db.MakeString("b")
+	base.IndoorDeployment = db.MakeBool(false)
+	return base
+}
+
+func getMutableCbsd(cbsd *storage.DBCbsd) *storage.MutableCbsd {
+	return &storage.MutableCbsd{
+		Cbsd:         cbsd,
+		DesiredState: &storage.DBCbsdState{Name: db.MakeString("registered")},
+	}
 }

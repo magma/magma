@@ -642,43 +642,46 @@ int send_uplink_nas_message_service_request_with_pdu(
 }
 
 // Check the ue context state
-bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
-                            m5gmm_state_t expected_mm_state,
-                            m5gcm_state_t expected_cm_state,
-                            n2cause_e expected_ue_context_rel_cause) {
+int check_ue_context_state(amf_ue_ngap_id_t ue_id,
+                           m5gmm_state_t expected_mm_state,
+                           m5gcm_state_t expected_cm_state) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   m5gmm_state_t mm_state;
-  int rc = RETURNerror;
-
-  rc = amf_get_ue_context_mm_state(ue_id, &mm_state);
-  if (rc != RETURNok) {
-    return false;
+  if (amf_get_ue_context_mm_state(ue_id, &mm_state) != RETURNok) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Error: amf_ue_context_mm_context does not exist, "
+                 "ue_id: " AMF_UE_NGAP_ID_FMT "\n",
+                 ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (mm_state != expected_mm_state) {
-    return false;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   m5gcm_state_t cm_state;
-  rc = amf_get_ue_context_cm_state(ue_id, &cm_state);
-  if (rc != RETURNok) {
-    return false;
+  if (amf_get_ue_context_cm_state(ue_id, &cm_state) != RETURNok) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Error: amf_ue_context_cm_context does not exist, "
+                 "ue_id: " AMF_UE_NGAP_ID_FMT "\n",
+                 ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (cm_state != expected_cm_state) {
-    return false;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   n2cause_e ue_context_rel_cause;
-  rc = amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause);
-  if (rc != RETURNok) {
-    return false;
+  if (amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause) != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
-  if (ue_context_rel_cause != expected_ue_context_rel_cause) {
-    return false;
+  if (ue_context_rel_cause != NGAP_RADIO_NR_GENERATED_REASON) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
-  return (true);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 }  // namespace magma5g

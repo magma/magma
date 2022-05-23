@@ -19,23 +19,21 @@ from http import HTTPStatus
 from threading import Event, Thread
 from time import sleep
 from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
-import grpc
 import pytest
 import requests
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
-from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from magma.db_service.db_initialize import DBInitializer
-from magma.db_service.session_manager import SessionManager
-from magma.db_service.tests.db_testcase import DBTestCase
 from magma.test_runner.config import TestConfig
+from magma.test_runner.tests.integration_testcase import (
+    DomainProxyIntegrationTestCase,
+)
 from retrying import retry
 
 config = TestConfig()
 
 DP_HTTP_PREFIX = 'magma/v1/dp'
 NETWORK = 'some_network'
-SERIAL_NUMBER = "some_serial_number"
 SOME_FCC_ID = "some_fcc_id"
 OTHER_FCC_ID = "other_fcc_id"
 USER_ID = "some_user_id"
@@ -45,77 +43,84 @@ DATETIME_WAY_BACK = '2010-03-28T09:13:25.407877399+00:00'
 
 
 @pytest.mark.orc8r
-class DomainProxyOrc8rTestCase(DBTestCase):
-    @classmethod
-    def setUpClass(cls):
-        wait_for_elastic_to_start()
-
-    def setUp(self):
-        super().setUp()
-        DBInitializer(SessionManager(self.engine)).initialize()
-        grpc_channel = grpc.insecure_channel(
-            f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
-        )
-        self.dp_client = DPServiceStub(grpc_channel)
-        when_elastic_indexes_data()
-        _delete_dp_elasticsearch_indices()
-
-    def tearDown(self):
-        super().tearDown()
-        _delete_dp_elasticsearch_indices()
-
-    # retrying is needed because of a possible deadlock
-    # with cc locking request table
-    @retry(stop_max_attempt_number=5, wait_fixed=100)
-    def drop_all(self):
-        super().drop_all()
+class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
+    def setUp(self) -> None:
+        self.serial_number = self._testMethodName + '_' + str(uuid4())
 
     def test_cbsd_sas_flow(self):
-        cbsd_id = self.given_cbsd_provisioned(CbsdAPIDataBuilder())
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
 
         with self.while_cbsd_is_active():
-            when_elastic_indexes_data()
 
-            logs = self.when_logs_are_fetched(get_current_sas_filters())
-            self.then_logs_are(logs, self.get_sas_provision_messages())
+            self.then_logs_are(
+                get_current_sas_filters(self.serial_number),
+                self.get_sas_provision_messages(),
+            )
 
-            filters = get_filters_for_request_type('heartbeat')
+            filters = get_filters_for_request_type('heartbeat', self.serial_number)
             self.then_message_is_eventually_sent(filters)
 
         self.delete_cbsd(cbsd_id)
 
-    def test_sas_flow_restarted_for_updated_cbsd(self):
-        cbsd_id = self.given_cbsd_provisioned(CbsdAPIDataBuilder())
+    def test_cbsd_unregistered_when_requested_by_desired_state(self):
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
 
         with self.while_cbsd_is_active():
-            builder = CbsdAPIDataBuilder().with_fcc_id(OTHER_FCC_ID)
+            filters = get_filters_for_request_type('deregistration', self.serial_number)
+
+            builder = builder.with_desired_state('unregistered')
             self.when_cbsd_is_updated(cbsd_id, builder.build_post_data())
 
-            filters = get_filters_for_request_type('deregistration')
+            # TODO maybe asking for state (cbsd api instead of log api) would be better
+            self.then_message_is_eventually_sent(filters)
+
+    def test_sas_flow_restarted_when_user_requested_deregistration(self):
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
+
+        with self.while_cbsd_is_active():
+            filters = get_filters_for_request_type('deregistration', self.serial_number)
+
+            self.when_cbsd_is_deregistered(cbsd_id)
+
             self.then_message_is_eventually_sent(filters)
 
             self.then_state_is_eventually(builder.build_grant_state_data())
 
-            cbsd = self.when_cbsd_is_fetched()
+    def test_sas_flow_restarted_for_updated_cbsd(self):
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+        cbsd_id = self.given_cbsd_provisioned(builder)
+
+        with self.while_cbsd_is_active():
+            builder = builder.with_fcc_id(OTHER_FCC_ID)
+            self.when_cbsd_is_updated(cbsd_id, builder.build_post_data())
+
+            filters = get_filters_for_request_type('deregistration', self.serial_number)
+            self.then_message_is_eventually_sent(filters)
+
+            self.then_state_is_eventually(builder.build_grant_state_data())
+
+            cbsd = self.when_cbsd_is_fetched(builder.serial_number)
             self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         self.delete_cbsd(cbsd_id)
 
     def test_activity_status(self):
-        builder = CbsdAPIDataBuilder()
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
         cbsd_id = self.given_cbsd_provisioned(builder)
 
-        cbsd = self.when_cbsd_is_fetched()
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         self.when_cbsd_is_inactive()
-        cbsd = self.when_cbsd_is_fetched()
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_registered_inactive_data())
-
-        self.delete_cbsd(cbsd_id)
 
     def test_frequency_preferences(self):
         builder = CbsdAPIDataBuilder(). \
+            with_serial_number(self.serial_number). \
             with_frequency_preferences(5, [3625]). \
             with_expected_grant(5, 3625, 31)
         cbsd_id = self.given_cbsd_provisioned(builder)
@@ -123,60 +128,74 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.delete_cbsd(cbsd_id)
 
     def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
-        builder = CbsdAPIDataBuilder()
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
 
         self.when_cbsd_is_created(builder.build_post_data())
         self.when_cbsd_is_created(builder.build_post_data(), expected_status=HTTPStatus.CONFLICT)
 
+    def test_create_cbsd_with_single_step_fields(self):
+        # TODO extend the test to check if the registration actually works
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
+
+        self.when_cbsd_is_created(builder.build_unregistered_single_step_data())
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
+        self.then_cbsd_is(cbsd, builder.build_unregistered_single_step_data())
+
     def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
         builder = CbsdAPIDataBuilder()
 
-        cbsd1_payload = builder.with_serial_number("foo").build_post_data()
-        cbsd2_payload = builder.with_serial_number("bar").build_post_data()
-        self.when_cbsd_is_created(cbsd1_payload)  # cbsd_id = 1
-        self.when_cbsd_is_created(cbsd2_payload)  # cbsd_id = 2
+        cbsd1_serial = self.serial_number + "_foo"
+        cbsd2_serial = self.serial_number + "_bar"
+        cbsd1_payload = builder.with_serial_number(cbsd1_serial).build_post_data()
+        cbsd2_payload = builder.with_serial_number(cbsd2_serial).build_post_data()
+        self.when_cbsd_is_created(cbsd1_payload)
+        self.when_cbsd_is_created(cbsd2_payload)
+        cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
         self.when_cbsd_is_updated(
-            cbsd_id=2,
+            cbsd_id=cbsd2.get("id"),
             data=cbsd1_payload,
             expected_status=HTTPStatus.CONFLICT,
         )
 
     def test_fetch_cbsds_filtered_by_serial_number(self):
-        builder = CbsdAPIDataBuilder()
+        cbsd1_serial = self.serial_number + "_foo"
+        cbsd2_serial = self.serial_number + "_bar"
 
-        cbsd1_payload = builder.with_serial_number("foo").build_unregistered_data()
-        cbsd2_payload = builder.with_serial_number("bar").build_unregistered_data()
-        self.when_cbsd_is_created(cbsd1_payload)
-        self.when_cbsd_is_created(cbsd2_payload)
+        builder1 = CbsdAPIDataBuilder().with_serial_number(cbsd1_serial)
+        builder2 = CbsdAPIDataBuilder().with_serial_number(cbsd2_serial)
 
-        cbsds = self.when_cbsds_are_fetched(2, 1, {"serial_number": "foo"})
+        self.when_cbsd_is_created(builder1.build_post_data())
+        self.when_cbsd_is_created(builder2.build_post_data())
 
-        self.then_cbsd_is(cbsds[0], builder.with_serial_number("foo").build_unregistered_data())
+        cbsd1 = self.when_cbsd_is_fetched(serial_number=cbsd1_serial)
+        cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
+
+        self.then_cbsd_is(cbsd1, builder1.build_unregistered_data())
+        self.then_cbsd_is(cbsd2, builder2.build_unregistered_data())
 
     def test_fetching_logs_with_custom_filters(self):
-        self.given_cbsd_provisioned(CbsdAPIDataBuilder())
-        when_elastic_indexes_data()
+        builder = CbsdAPIDataBuilder().with_serial_number(self.serial_number)
 
         sas_to_dp_end_date_only = {
-            'serial_number': SERIAL_NUMBER,
+            'serial_number': self.serial_number,
             'from': SAS,
             'to': DP,
             'end': now(),
         }
         sas_to_dp_begin_date_only = {
-            'serial_number': SERIAL_NUMBER,
+            'serial_number': self.serial_number,
             'from': SAS,
             'to': DP,
             'begin': DATETIME_WAY_BACK,
         }
         sas_to_dp_end_date_too_early = {
-            'serial_number': SERIAL_NUMBER,
+            'serial_number': self.serial_number,
             'from': SAS,
             'to': DP,
             'end': DATETIME_WAY_BACK,
         }
         dp_to_sas = {
-            'serial_number': SERIAL_NUMBER,
+            'serial_number': self.serial_number,
             'from': DP,
             'to': SAS,
         }
@@ -197,21 +216,22 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             'to': DP,
         }
         scenarios = [
-            (sas_to_dp_end_date_only, operator.eq, 4, HTTPStatus.OK),
-            (sas_to_dp_begin_date_only, operator.eq, 4, HTTPStatus.OK),
-            (sas_to_dp_end_date_too_early, operator.eq, 0, HTTPStatus.OK),
-            (dp_to_sas, operator.gt, 0, HTTPStatus.OK),
-            (dp_to_sas_incorrect_serial_number, operator.eq, 0, HTTPStatus.OK),
-            (sas_to_dp_with_limit, operator.eq, 4, HTTPStatus.OK),
-            (sas_to_dp_with_limit_and_too_large_offset, operator.eq, 0, HTTPStatus.OK),
+            (sas_to_dp_end_date_only, operator.eq, 0),
+            (sas_to_dp_begin_date_only, operator.gt, 3),
+            (sas_to_dp_end_date_too_early, operator.eq, 0),
+            (dp_to_sas, operator.gt, 0),
+            (dp_to_sas_incorrect_serial_number, operator.eq, 0),
+            (sas_to_dp_with_limit, operator.gt, 3),
+            (sas_to_dp_with_limit_and_too_large_offset, operator.eq, 0),
         ]
 
-        for params in scenarios:
-            self._verify_logs_count(params)
+        self.given_cbsd_provisioned(builder)
+        with self.while_cbsd_is_active():
+            self._verify_logs_count(scenarios)
 
     def given_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
         self.when_cbsd_is_created(builder.build_post_data())
-        cbsd = self.when_cbsd_is_fetched()
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_unregistered_data())
 
         state = self.when_cbsd_asks_for_state()
@@ -219,7 +239,7 @@ class DomainProxyOrc8rTestCase(DBTestCase):
 
         self.then_state_is_eventually(builder.build_grant_state_data())
 
-        cbsd = self.when_cbsd_is_fetched()
+        cbsd = self.when_cbsd_is_fetched(builder.serial_number)
         self.then_cbsd_is(cbsd, builder.build_registered_active_data())
 
         return cbsd['id']
@@ -228,23 +248,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         r = send_request_to_backend('post', 'cbsds', json=data)
         self.assertEqual(r.status_code, expected_status)
 
-    def when_cbsd_is_fetched(self) -> Dict[str, Any]:
-        cbsds = self.when_cbsds_are_fetched(1, 1)
-        return cbsds[0]
-
-    def when_cbsds_are_fetched(
-            self,
-            expected_total_count: int,
-            expected_cbsds_num: int,
-            params: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
-        r = send_request_to_backend('get', 'cbsds', params=params)
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        data = r.json()
-        self.assertEqual(data.get('total_count'), expected_total_count)
-        cbsds = data.get('cbsds', [])
-        self.assertEqual(len(cbsds), expected_cbsds_num)
-        return cbsds
+    def when_cbsd_is_fetched(self, serial_number: str = None) -> Dict[str, Any]:
+        return self._check_for_cbsd(serial_number=serial_number)
 
     def when_logs_are_fetched(self, params: Dict[str, Any]) -> Dict[str, Any]:
         r = send_request_to_backend('get', 'logs', params=params)
@@ -260,8 +265,12 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         r = send_request_to_backend('put', f'cbsds/{cbsd_id}', json=data)
         self.assertEqual(r.status_code, expected_status)
 
+    def when_cbsd_is_deregistered(self, cbsd_id: int):
+        r = send_request_to_backend('post', f'cbsds/{cbsd_id}/deregister')
+        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
+
     def when_cbsd_asks_for_state(self) -> CBSDStateResult:
-        return self.dp_client.GetCBSDState(get_cbsd_request())
+        return self.dp_client.GetCBSDState(get_cbsd_request(self.serial_number))
 
     @staticmethod
     def when_cbsd_is_inactive():
@@ -296,11 +305,8 @@ class DomainProxyOrc8rTestCase(DBTestCase):
             del grant['transmit_expire_time']
         self.assertEqual(actual, expected)
 
-    def then_cbsd_is_deleted(self):
-        r = send_request_to_backend('get', 'cbsds')
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        data = r.json()
-        self.assertFalse(data.get('total_count', True))
+    def then_cbsd_is_deleted(self, serial_number: str):
+        self._check_for_cbsd(serial_number=serial_number, should_exist=False)
 
     def then_state_is(self, actual: CBSDStateResult, expected: CBSDStateResult):
         self.assertEqual(actual, expected)
@@ -310,7 +316,9 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         actual = self.when_cbsd_asks_for_state()
         self.then_state_is(actual, expected)
 
-    def then_logs_are(self, actual: Dict[str, Any], expected: List[str]):
+    @retry(stop_max_attempt_number=30, wait_fixed=1000)
+    def then_logs_are(self, filters: Dict[str, Any], expected: List[str]):
+        actual = self.when_logs_are_fetched(filters)
         actual = [x['type'] for x in actual['logs']]
         self.assertEqual(actual, expected)
 
@@ -320,10 +328,10 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         self.assertEqual(logs["total_count"], 1)
 
     def delete_cbsd(self, cbsd_id: int):
-        filters = get_filters_for_request_type('deregistration')
+        filters = get_filters_for_request_type('deregistration', self.serial_number)
 
         self.when_cbsd_is_deleted(cbsd_id)
-        self.then_cbsd_is_deleted()
+        self.then_cbsd_is_deleted(self.serial_number)
 
         state = self.when_cbsd_asks_for_state()
         self.then_state_is(state, get_empty_state())
@@ -335,26 +343,41 @@ class DomainProxyOrc8rTestCase(DBTestCase):
         names = ['heartbeat', 'grant', 'spectrumInquiry', 'registration']
         return [f'{x}Response' for x in names]
 
-    def _verify_logs_count(self, params):
-        using_filters, _operator, expected_count, expected_status = params
-        logs = self.when_logs_are_fetched(using_filters)
+    @retry(stop_max_attempt_number=30, wait_fixed=1000)
+    def _verify_logs_count(self, scenarios):
+        for params in scenarios:
+            using_filters, _operator, expected_count = params
+            logs = self.when_logs_are_fetched(using_filters)
+            logs_len = len(logs["logs"])
+            comparison = _operator(logs_len, expected_count)
+            self.assertTrue(comparison)
 
-        comparison = _operator(len(logs["logs"]), expected_count)
-        self.assertTrue(comparison)
+    def _check_for_cbsd(self, serial_number: str, should_exist: bool = True) -> Optional[Dict[str, Any]]:
+        params = {'serial_number': serial_number}
+        expected_count = 1 if should_exist else 0
+        r = send_request_to_backend('get', 'cbsds', params=params)
+        self.assertEqual(r.status_code, HTTPStatus.OK)
+        data = r.json()
+        total_count = data.get('total_count')
+        self.assertEqual(total_count, expected_count)
+        cbsds = data.get('cbsds', [])
+        self.assertEqual(len(cbsds), expected_count)
+        if should_exist:
+            return cbsds[0]
 
 
-def get_current_sas_filters() -> Dict[str, Any]:
+def get_current_sas_filters(serial_number: str) -> Dict[str, Any]:
     return {
-        'serial_number': SERIAL_NUMBER,
+        'serial_number': serial_number,
         'from': SAS,
         'to': DP,
         'end': now(),
     }
 
 
-def get_filters_for_request_type(request_type: str) -> Dict[str, Any]:
+def get_filters_for_request_type(request_type: str, serial_number: str) -> Dict[str, Any]:
     return {
-        'serial_number': SERIAL_NUMBER,
+        'serial_number': serial_number,
         'type': f'{request_type}Response',
         'begin': now(),
     }
@@ -364,26 +387,12 @@ def get_empty_state() -> CBSDStateResult:
     return CBSDStateResult(radio_enabled=False)
 
 
-def get_cbsd_request() -> CBSDRequest:
-    return CBSDRequest(serial_number=SERIAL_NUMBER)
+def get_cbsd_request(serial_number: str) -> CBSDRequest:
+    return CBSDRequest(serial_number=serial_number)
 
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-@retry(stop_max_attempt_number=30, wait_fixed=1000)
-def wait_for_elastic_to_start() -> None:
-    requests.get(f'{config.ELASTICSEARCH_URL}/_status')
-
-
-def when_elastic_indexes_data():
-    # TODO use retrying instead
-    sleep(5)
-
-
-def _delete_dp_elasticsearch_indices() -> None:
-    requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
 
 
 def send_request_to_backend(
@@ -402,25 +411,30 @@ def send_request_to_backend(
 
 class CbsdAPIDataBuilder:
     def __init__(self):
+        self.serial_number = str(uuid4())
         self.fcc_id = SOME_FCC_ID
-        self.serial_number = SERIAL_NUMBER
         self.preferred_bandwidth_mhz = 20
         self.preferred_frequencies_mhz = []
         self.frequency_mhz = 3625
         self.bandwidth_mhz = 10
         self.max_eirp = 28
-
-    def with_fcc_id(self, fcc_id: str) -> CbsdAPIDataBuilder:
-        self.fcc_id = fcc_id
-        return self
+        self.desired_state = 'registered'
 
     def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
         self.serial_number = serial_number
         return self
 
+    def with_fcc_id(self, fcc_id: str) -> CbsdAPIDataBuilder:
+        self.fcc_id = fcc_id
+        return self
+
     def with_frequency_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> CbsdAPIDataBuilder:
         self.preferred_bandwidth_mhz = bandwidth_mhz
         self.preferred_frequencies_mhz = frequencies_mhz
+        return self
+
+    def with_desired_state(self, desired_state: str) -> CbsdAPIDataBuilder:
+        self.desired_state = desired_state
         return self
 
     def with_expected_grant(self, bandwidth_mhz: int, frequency_mhz: int, max_eirp: int) -> CbsdAPIDataBuilder:
@@ -444,7 +458,18 @@ class CbsdAPIDataBuilder:
             'fcc_id': self.fcc_id,
             'serial_number': self.serial_number,
             'user_id': USER_ID,
+            'desired_state': self.desired_state,
+            "single_step_enabled": False,
+            "cbsd_category": "b",
         }
+
+    def build_unregistered_single_step_data(self):
+        data = self.build_unregistered_data()
+        data.update({
+            'single_step_enabled': True,
+            'cbsd_category': 'a',
+        })
+        return data
 
     def build_unregistered_data(self) -> Dict[str, Any]:
         data = self.build_post_data()
@@ -457,7 +482,7 @@ class CbsdAPIDataBuilder:
     def build_registered_inactive_data(self) -> Dict[str, Any]:
         data = self.build_post_data()
         data.update({
-            'cbsd_id': f'{self.fcc_id}/{SERIAL_NUMBER}',
+            'cbsd_id': f'{self.fcc_id}/{self.serial_number}',
             'is_active': False,
             'state': 'registered',
         })

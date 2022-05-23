@@ -37,7 +37,7 @@ extern "C" {
 
 #include "lte/protos/subscriberdb.grpc.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 

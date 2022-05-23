@@ -39,7 +39,6 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			CloudSubscriberdbEnabled: false,
 			CongestionControlEnabled: swag.Bool(true),
 			Enable5gFeatures:         swag.Bool(false),
-			NodeIdentifier:           "",
 			DefaultRuleID:            "",
 			SubscriberdbSyncInterval: SubscriberdbSyncInterval(300),
 		},

@@ -16,7 +16,6 @@ import unittest
 
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.ovs.rest_api import get_datapath
 from integ_tests.s1aptests.s1ap_utils import (
     GTPBridgeUtils,
     HeaderEnrichmentUtils,
@@ -53,7 +52,6 @@ class TestAttachDetachWithHE(unittest.TestCase):
         ]
         wait_for_s1 = [True, False]
         self._s1ap_wrapper.configUEDevice(num_ues)
-        datapath = get_datapath()
         MAX_NUM_RETRIES = 5
         gtp_br_util = GTPBridgeUtils()
         PROXY_PORT = gtp_br_util.get_proxy_port_no()

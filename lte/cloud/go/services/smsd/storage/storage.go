@@ -64,7 +64,7 @@ type SMSStorage interface {
 
 	// CreateSMS creates a new SMS message. The auto-generated pk for the
 	// message is returned.
-	CreateSMS(networkID string, sms MutableSMS) (string, error)
+	CreateSMS(networkID string, sms *MutableSMS) (string, error)
 
 	// DeleteSMSs deletes messages by pk. Semantics are all or nothing.
 	DeleteSMSs(networkID string, pks []string) error

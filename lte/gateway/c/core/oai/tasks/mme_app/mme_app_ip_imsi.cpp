@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <bits/stdc++.h>
 #include <unordered_map>
 #include <iostream>
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"

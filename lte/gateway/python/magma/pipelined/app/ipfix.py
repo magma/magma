@@ -35,15 +35,16 @@ class IPFIXController(MagmaController):
     APP_NAME = "ipfix"
     APP_TYPE = ControllerType.LOGICAL
 
-    IPFIXConfig = NamedTuple(
-        'IPFIXConfig',
-        [
-            ('enabled', bool), ('collector_ip', str), ('collector_port', int),
-            ('probability', int), ('collector_set_id', int),
-            ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
-            ('sampling_port', int),
-        ],
-    )
+    class IPFIXConfig(NamedTuple):
+        enabled: bool
+        collector_ip: str
+        collector_port: int
+        probability: int
+        collector_set_id: int
+        obs_domain_id: int
+        obs_point_id: int
+        cache_timeout: int
+        sampling_port: int
 
     def __init__(self, *args, **kwargs):
         super(IPFIXController, self).__init__(*args, **kwargs)
@@ -233,9 +234,9 @@ class IPFIXController(MagmaController):
             )
 
     def add_ue_sample_flow(
-        self, imsi: str, msisdn: str,
-        apn_mac_addr: str, apn_name: str,
-        pdp_start_time: int,
+        self, imsi: str, apn_mac_addr: str,
+        apn_name: str, pdp_start_time: int,
+        msisdn: str = 'no_msisdn',
     ) -> None:
         """
         Install a flow to sample packets for IPFIX for specific imsi
@@ -261,9 +262,6 @@ class IPFIXController(MagmaController):
             apn_mac_bytes = [0, 0, 0, 0, 0, 0]
         else:
             apn_mac_bytes = [int(a, 16) for a in apn_mac_addr.split('-')]
-
-        if not msisdn:
-            msisdn = 'no_msisdn'
 
         actions = [
             parser.NXActionSample2(

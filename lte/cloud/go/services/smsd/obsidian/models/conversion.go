@@ -42,8 +42,8 @@ func (m *MutableSmsMessage) ValidateModel(context.Context) error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableSmsMessage) ToProto() storage.MutableSMS {
-	return storage.MutableSMS{
+func (m *MutableSmsMessage) ToProto() *storage.MutableSMS {
+	return &storage.MutableSMS{
 		Imsi:         string(m.Imsi),
 		SourceMsisdn: m.SourceMsisdn,
 		Message:      m.Message,

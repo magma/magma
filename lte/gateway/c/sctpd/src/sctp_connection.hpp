@@ -13,12 +13,12 @@
 
 #pragma once
 
+#include <lte/protos/sctpd.grpc.pb.h>
+#include <stdint.h>
 #include <atomic>
 #include <memory>
 #include <string>
 #include <thread>
-
-#include <lte/protos/sctpd.grpc.pb.h>
 
 #include "lte/gateway/c/sctpd/src/sctp_desc.hpp"
 
@@ -26,6 +26,7 @@ struct sctp_assoc_change;
 
 namespace magma {
 namespace sctpd {
+class InitReq;
 
 // Describes status of Sctp event (up or down stream)
 enum class SctpStatus {

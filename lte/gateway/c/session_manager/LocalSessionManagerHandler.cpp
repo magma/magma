@@ -10,9 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/LocalSessionManagerHandler.hpp"
+
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status_code_enum.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
+#include <orc8r/protos/directoryd.pb.h>
 #include <chrono>
 #include <exception>
 #include <memory>
@@ -23,24 +29,18 @@
 #include <utility>
 #include <vector>
 
-#include "DirectorydClient.h"
-#include "GrpcMagmaUtils.h"
-#include "LocalEnforcer.h"
-#include "LocalSessionManagerHandler.h"
-#include "ServiceAction.h"
-#include "SessionCredit.h"
-#include "SessionEvents.h"
-#include "SessionReporter.h"
-#include "SessionState.h"
-#include "StoredState.h"
-#include "Types.h"
-#include "Utilities.h"
-#include "includes/SentryWrapper.hpp"
-#include "lte/protos/pipelined.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "magma_logging.h"
-#include "orc8r/protos/directoryd.pb.h"
+#include "lte/gateway/c/session_manager/DirectorydClient.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/ServiceAction.hpp"
+#include "lte/gateway/c/session_manager/SessionCredit.hpp"
+#include "lte/gateway/c/session_manager/SessionEvents.hpp"
+#include "lte/gateway/c/session_manager/SessionReporter.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/Utilities.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace google {
 namespace protobuf {

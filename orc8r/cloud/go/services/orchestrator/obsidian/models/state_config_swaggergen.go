@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // StateConfig State configuration
+//
 // swagger:model state_config
 type StateConfig struct {
 
 	// Sync interval in seconds
+	// Example: 60
 	// Minimum: 3
 	SyncInterval uint32 `json:"sync_interval,omitempty"`
 }
@@ -37,15 +40,19 @@ func (m *StateConfig) Validate(formats strfmt.Registry) error {
 }
 
 func (m *StateConfig) validateSyncInterval(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.SyncInterval) { // not required
 		return nil
 	}
 
-	if err := validate.Minimum("sync_interval", "body", float64(m.SyncInterval), 3, false); err != nil {
+	if err := validate.MinimumUint("sync_interval", "body", uint64(m.SyncInterval), 3, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this state config based on context it is used
+func (m *StateConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

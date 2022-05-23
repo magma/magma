@@ -51,9 +51,9 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating tenants server: %s", err)
 	}
-	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
+	protos.RegisterTenantsServiceServer(srv.ProtectedGrpcServer, server)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(tenants.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(tenants.ServiceName))
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 

@@ -33,14 +33,10 @@ func Combine(yamlCommon string, yamlSpecs []string) (string, error, error) {
 	warnings := &multierror.Error{}
 
 	common, specs, errs := unmarshalToSwagger(yamlCommon, yamlSpecs)
-	if errs != nil {
-		warnings = multierror.Append(warnings, errs)
-	}
+	warnings = multierror.Append(warnings, errs)
 
 	combined, errs := combine(common, specs)
-	if errs != nil {
-		warnings = multierror.Append(warnings, errs)
-	}
+	warnings = multierror.Append(warnings, errs)
 
 	out, err := marshalToYAML(combined)
 	if err != nil {

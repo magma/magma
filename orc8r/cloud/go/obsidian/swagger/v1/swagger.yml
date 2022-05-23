@@ -36,7 +36,7 @@ tags:
   name: Federated LTE Networks
 - description: Endpoints related to Federated gateway management
   name: Federation Gateways
-- description: ""
+- description: Endpoints related to Federated networks
   name: Federation Networks
 - description: Provision and manage gateways
   name: Gateways
@@ -991,6 +991,19 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Update CBSD in LTE network
+      tags:
+      - cbsds
+  /dp/{network_id}/cbsds/{cbsd_id}/deregister:
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/cbsd_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Force deregistration in SAS of given CBSD
       tags:
       - cbsds
   /dp/{network_id}/logs:
@@ -6894,9 +6907,23 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      cbsd_category:
+        description: is the radio type A (only) or B (also applies to A/B type radios)
+        enum:
+        - a
+        - b
+        type: string
+        x-nullable: false
       cbsd_id:
         description: id of cbsd in SAS
         example: some_cbsd_id
+        type: string
+        x-nullable: false
+      desired_state:
+        description: desired state of cbsd in SAS
+        enum:
+        - unregistered
+        - registered
         type: string
         x-nullable: false
       fcc_id:
@@ -6922,6 +6949,10 @@ definitions:
         minLength: 1
         type: string
         x-nullable: false
+      single_step_enabled:
+        description: should the CBSD be registered in a single-step mode
+        type: boolean
+        x-nullable: false
       state:
         description: state of cbsd in SAS
         enum:
@@ -6936,6 +6967,7 @@ definitions:
         x-nullable: false
     required:
     - capabilities
+    - desired_state
     - fcc_id
     - frequency_preferences
     - id
@@ -6943,6 +6975,8 @@ definitions:
     - serial_number
     - state
     - user_id
+    - single_step_enabled
+    - cbsd_category
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -7033,12 +7067,6 @@ definitions:
     pattern: ^[a-z][\da-z_]+$
     type: string
     x-nullable: false
-  components:
-    enum:
-    - SAS
-    - DP
-    - CBSD
-    type: string
   config_info:
     properties:
       mconfig_created_at:
@@ -7322,6 +7350,15 @@ definitions:
         example: 4809781248
         format: uint64
         type: integer
+    type: object
+  distribution_package:
+    properties:
+      name:
+        example: magma
+        type: string
+      version:
+        example: 0.0.0
+        type: string
     type: object
   dns_config_record:
     description: Mapping used for DNS resolving from a domain
@@ -8117,6 +8154,11 @@ definitions:
       nat_enabled:
         example: true
         type: boolean
+      node_identifier:
+        description: UPF Node Identifier
+        example: 192.168.200.1
+        format: ipv4
+        type: string
       sgi_management_iface_gw:
         description: IP address of gateway for management interface on the AGW
         format: cidr
@@ -9125,6 +9167,21 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      cbsd_category:
+        default: b
+        description: is the radio type A (only) or B (also applies to A/B type radios)
+        enum:
+        - a
+        - b
+        type: string
+        x-nullable: false
+      desired_state:
+        description: desired state of cbsd in SAS
+        enum:
+        - unregistered
+        - registered
+        type: string
+        x-nullable: false
       fcc_id:
         example: some_fcc_id
         minLength: 1
@@ -9137,6 +9194,9 @@ definitions:
         minLength: 1
         type: string
         x-nullable: false
+      single_step_enabled:
+        description: should the CBSD be registered in a single-step mode
+        type: boolean
       user_id:
         example: some_user_id
         minLength: 1
@@ -9144,10 +9204,13 @@ definitions:
         x-nullable: false
     required:
     - capabilities
+    - desired_state
     - fcc_id
     - frequency_preferences
     - serial_number
     - user_id
+    - single_step_enabled
+    - cbsd_category
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool
@@ -9547,11 +9610,6 @@ definitions:
           type: string
         type: array
         x-omitempty: true
-      node_identifier:
-        description: Node Identifier for 5G Standalone (SA) at a network level
-        example: 192.168.200.1
-        format: ipv4
-        type: string
       restricted_imeis:
         description: List of IMEIs restricted in the network
         items:
@@ -9970,15 +10028,6 @@ definitions:
       type: string
     description: neutral host PLMN ID to serving FeG network routes
     type: object
-  package:
-    properties:
-      name:
-        example: magma
-        type: string
-      version:
-        example: 0.0.0
-        type: string
-    type: object
   page_token:
     description: Base64-encoded page token for subsequent paginated API requests
     type: string
@@ -10167,7 +10216,7 @@ definitions:
         x-omitempty: true
       packages:
         items:
-          $ref: '#/definitions/package'
+          $ref: '#/definitions/distribution_package'
         type: array
         x-omitempty: true
       vpn_ip:

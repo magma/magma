@@ -33,7 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t)0
@@ -677,13 +677,6 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
                    "Timer: Registration_accept timer T3550 with id  %lu "
                    "Started for ue id: " AMF_UE_NGAP_ID_FMT,
                    registration_proc->T3550.id, registration_proc->ue_id);
-    }
-
-    // s6a update location request
-    int rc =
-        amf_send_n11_update_location_req(ue_m5gmm_context_p->amf_ue_ngap_id);
-    if (rc == RETURNerror) {
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: n11_update_location_req failure\n");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

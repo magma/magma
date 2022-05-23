@@ -45,6 +45,7 @@ import (
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
+	orc_test_utils "magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/key"
 )
@@ -328,8 +329,8 @@ func TestUpdateNetwork(t *testing.T) {
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"validation failure list:\n" +
-			"a_record.0 in body must be of type ipv4: \"asdf\"\n" +
-			"aaaa_record.0 in body must be of type ipv6: \"abcd\"",
+			"dns.records.0.a_record.0 in body must be of type ipv4: \"asdf\"\n" +
+			"dns.records.0.aaaa_record.0 in body must be of type ipv6: \"abcd\"",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1248,7 +1249,7 @@ func TestCreateGateway(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 500,
-		ExpectedError:  "error creating gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\" ]",
+		ExpectedError:  `error creating gateway: rpc error: code = Internal desc = could not find entities matching` + orc_test_utils.Separator + `[type:"cellular_enodeb"` + orc_test_utils.Separator + `key:"dne"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1339,7 +1340,7 @@ func TestListAndGetGateways(t *testing.T) {
 			{
 				Type: lte.CellularGatewayEntityType, Key: "g1",
 				Config: &lteModels.GatewayCellularConfigs{
-					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 					Ngc: &lteModels.GatewayNgcConfigs{
 						AmfDefaultSd:  "AFAFAF",
@@ -1354,7 +1355,7 @@ func TestListAndGetGateways(t *testing.T) {
 			{
 				Type: lte.CellularGatewayEntityType, Key: "g2",
 				Config: &lteModels.GatewayCellularConfigs{
-					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 					Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 					Ngc: &lteModels.GatewayNgcConfigs{
 						AmfDefaultSd:  "AFAFAF",
@@ -1426,7 +1427,7 @@ func TestListAndGetGateways(t *testing.T) {
 				CheckinTimeout:          5,
 			},
 			Cellular: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -1452,7 +1453,7 @@ func TestListAndGetGateways(t *testing.T) {
 				CheckinTimeout:          5,
 			},
 			Cellular: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -1495,7 +1496,7 @@ func TestListAndGetGateways(t *testing.T) {
 			CheckinTimeout:          5,
 		},
 		Cellular: &lteModels.GatewayCellularConfigs{
-			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			Ngc: &lteModels.GatewayNgcConfigs{
 				AmfDefaultSd:  "AFAFAF",
@@ -1533,7 +1534,7 @@ func TestListAndGetGateways(t *testing.T) {
 			CheckinTimeout:          5,
 		},
 		Cellular: &lteModels.GatewayCellularConfigs{
-			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			Ngc: &lteModels.GatewayNgcConfigs{
 				AmfDefaultSd:  "AFAFAF",
@@ -1580,7 +1581,7 @@ func TestUpdateGateway(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: "g1",
 			Config: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -1643,7 +1644,7 @@ func TestUpdateGateway(t *testing.T) {
 		},
 		Tier: "t1",
 		Cellular: &lteModels.GatewayCellularConfigs{
-			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24"},
+			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24", NodeIdentifier: "192.168.200.1"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
 			Ngc: &lteModels.GatewayNgcConfigs{
 				AmfDefaultSd:  "AFAFAF",
@@ -1731,7 +1732,7 @@ func TestDeleteGateway(t *testing.T) {
 		{
 			Type: lte.CellularGatewayEntityType, Key: "g1",
 			Config: &lteModels.GatewayCellularConfigs{
-				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24", NodeIdentifier: "192.168.200.1"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 				Ngc: &lteModels.GatewayNgcConfigs{
 					AmfDefaultSd:  "AFAFAF",
@@ -2395,9 +2396,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Serial:      "vwxyz",
 		},
 	}
+	emptyPageToken := lteModels.PageToken("")
 	expected := &lteModels.PaginatedEnodebs{
 		Enodebs:    enodebs,
-		PageToken:  "",
+		PageToken:  &emptyPageToken,
 		TotalCount: 2,
 	}
 
@@ -2412,10 +2414,10 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expectedPageToken := "CgdhYmNkZWZn"
+	expectedPageToken := lteModels.PageToken("CgdhYmNkZWZn")
 	paginatedExpectation := &lteModels.PaginatedEnodebs{
 		Enodebs:    map[string]*lteModels.Enodeb{"abcdefg": expected.Enodebs["abcdefg"]},
-		PageToken:  lteModels.PageToken(expectedPageToken),
+		PageToken:  &expectedPageToken,
 		TotalCount: 2,
 	}
 	tc = tests.Test{
@@ -2429,11 +2431,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 	paginatedExpectation.Enodebs = map[string]*lteModels.Enodeb{"vwxyz": expected.Enodebs["vwxyz"]}
-	paginatedExpectation.PageToken = ""
+	paginatedExpectation.PageToken = &emptyPageToken
 
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot + "?page_size=10&page_token=" + expectedPageToken,
+		URL:            testURLRoot + "?page_size=10&page_token=" + string(expectedPageToken),
 		Handler:        listEnodebs,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -3350,7 +3352,7 @@ func TestAPNResource(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n0"},
 		ExpectedStatus:         500, // this would actually make more sense as a 400, but it's a non-trivial fix
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apn0" ]`,
+		ExpectedErrorSubstring: `could not find entities matching` + orc_test_utils.Separator + `[type:"apn"` + orc_test_utils.Separator + `key:"apn0"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3424,7 +3426,7 @@ func TestAPNResource(t *testing.T) {
 		ParamValues:            []string{"n0", "gw0"},
 		Handler:                putGateway,
 		ExpectedStatus:         500, // would make more sense as 400
-		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX" ]`,
+		ExpectedErrorSubstring: `could not find entities matching` + orc_test_utils.Separator + `[type:"apn"` + orc_test_utils.Separator + `key:"apnXXX"]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -4351,8 +4353,9 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lteModels.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(true),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:     swag.Bool(true),
+			IPBlock:        "192.168.128.0/24",
+			NodeIdentifier: "192.168.200.1",
 		},
 		Ngc: &lteModels.GatewayNgcConfigs{
 			AmfDefaultSd:  "AFAFAF",

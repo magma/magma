@@ -340,7 +340,7 @@
         "label": "Federation Gateway",
         "ids": [
           "version-1.7.0-feg/dev_testing",
-          "version-1.7.0-feg/s1ap_federated_tests"
+          "version-1.7.0-feg/s1ap_federated_test"
         ]
       },
       {

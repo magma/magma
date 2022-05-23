@@ -86,8 +86,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def __init__(
         self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
         ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-        tunnel_learn_app, classifier_app, inout_app, ng_servicer_app,
-        service_config, service_manager,
+        tunnel_learn_app, classifier_app, ingress_app, middle_app, egress_app,
+        ng_servicer_app, service_config, service_manager,
     ):
         self._loop = loop
         self._gy_app = gy_app
@@ -101,7 +101,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._tunnel_learn_app = tunnel_learn_app
         self._service_config = service_config
         self._classifier_app = classifier_app
-        self._inout_app = inout_app
+        self._ingress_app = ingress_app
+        self._middle_app = middle_app
+        self._egress_app = egress_app
         self._ng_servicer_app = ng_servicer_app
         self._service_manager = service_manager
 
@@ -129,22 +131,34 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Setup default controllers, used on pipelined restarts
         """
         self._log_grpc_payload(request)
-        ret = self._inout_app.check_setup_request_epoch(request.epoch)
-        if ret is not None:
-            return SetupFlowsResult(result=ret)
 
+        apps = [self._ingress_app, self._middle_app, self._egress_app]
+
+        for app in apps:
+            epoch_res = app.check_setup_request_epoch(request.epoch)
+            if epoch_res is not None:
+                return SetupFlowsResult(result=epoch_res)
+
+        for app in apps:
+            setup_res = self._get_setup_result(app, context)
+            if setup_res is None or setup_res.result != SetupFlowsResult.SUCCESS:
+                return setup_res
+
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+
+    def _get_setup_result(self, controller, context):
         fut = Future()
-        self._loop.call_soon_threadsafe(self._setup_default_controllers, fut)
+        self._loop.call_soon_threadsafe(self._setup_default_controller, controller, fut)
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
-            logging.error("SetupDefaultControllers processing timed out")
+            logging.error("SetupDefaultController processing timed out")
             context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
-            context.set_details('SetupDefaultControllers processing timed out')
+            context.set_details('SetupDefaultController processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
-    def _setup_default_controllers(self, fut: 'Future(SetupFlowsResult)'):
-        res = self._inout_app.handle_restart(None)
+    def _setup_default_controller(self, controller, fut: 'Future(SetupFlowsResult)'):
+        res = controller.handle_restart(None)
         fut.set_result(res)
 
     # --------------------------
@@ -586,8 +600,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             # Install trace flow
             self._loop.call_soon_threadsafe(
                 self._ipfix_app.add_ue_sample_flow, request.sid.id,
-                request.msisdn, request.ap_mac_addr, request.ap_name,
-                request.pdp_start_time,
+                request.ap_mac_addr, request.ap_name, request.pdp_start_time,
+                request.msisdn,
             )
 
         resp = FlowResponse()
@@ -690,10 +704,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             for req in request.requests:
                 self._ipfix_app.add_ue_sample_flow(
-                    req.sid.id, req.msisdn,
+                    req.sid.id,
                     req.ap_mac_addr,
                     req.ap_name,
                     req.pdp_start_time,
+                    req.msisdn,
                 )
 
         fut.set_result(res)
@@ -1042,7 +1057,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule)
 
         # Install PDR rules
-        elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+        elif pdr_entry.pdr_state == PdrState.Value('INSTALL') or \
+                pdr_entry.pdr_state == PdrState.Value('MODI'):
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
                 ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
@@ -1064,6 +1080,21 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                     )
                 failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
+
+            if pdr_entry.pdr_state == PdrState.Value('MODI'):
+                qos_enforce_deactivate_rule = pdr_entry.del_qos_enforce_rule
+                if qos_enforce_deactivate_rule.policies:
+                    logging.info("qos_enforce_deactivate_rule.policies")
+                    if qos_enforce_deactivate_rule.ip_addr:
+                        ipv4 = convert_ip_str_to_ip_proto(qos_enforce_deactivate_rule.ip_addr)
+                        self._ng_mod_qer_flow(
+                            ipv4, qos_enforce_deactivate_rule,
+                        )
+                    if qos_enforce_deactivate_rule.ipv6_addr:
+                        ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_deactivate_rule.ipv6_addr)
+                        self._ng_mod_qer_flow(
+                            ipv6, qos_enforce_deactivate_rule,
+                        )
 
         return failed_policy_rules_results
 
@@ -1110,6 +1141,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._enforcement_stats.deactivate_default_flow(
             qos_enforce_rule.sid.id, ip,
             local_f_teid_ng,
+        )
+
+        if rule_ids:
+            self._enforcer_app.deactivate_rules(
+                qos_enforce_rule.sid.id, ip,
+                rule_ids,
+            )
+
+    def _ng_mod_qer_flow(
+        self, ip: IPAddress,
+        qos_enforce_rule: DeactivateFlowsRequest,
+    ):
+        rule_ids = []
+        rule_ids = [policy.rule_id for policy in qos_enforce_rule.policies]
+
+        self._remove_version(
+            qos_enforce_rule, ip,
         )
 
         if rule_ids:

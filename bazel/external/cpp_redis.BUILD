@@ -11,7 +11,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-# We can get rid of this once we upgrade cpp-redis to a more up-to-date version - GH8321
+# We can get rid of this once we upgrade cpp-redis to a more up-to-date version - #8321
 cc_library(
     name = "cpp_redis",
     srcs = glob(["sources/**/*.cpp"]),

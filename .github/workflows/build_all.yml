@@ -677,7 +677,8 @@ jobs:
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
       - name: Tag and push to Jfrog Registry
-        if: github.ref == 'refs/heads/master'
+        id: publish_artifacts
+        if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
@@ -826,15 +827,15 @@ jobs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
-      NMS_ROOT: "${{ github.workspace }}/nms/packages/magmalte"
+      NMS_ROOT: "${{ github.workspace }}/nms"
     steps:
       - uses: actions/checkout@v2
       - name: Run docker compose
         id: nms-docker-compose
         # yamllint disable rule:line-length
         run: |
-          cd ${MAGMA_ROOT}/nms/packages/magmalte
-          docker-compose build magmalte
+          cd ${MAGMA_ROOT}/nms
+          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
@@ -913,7 +914,7 @@ jobs:
       - name: Publish to
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
-          WORKERS: "fb_lab_spirent,fb_lab_tvm,wl_lab_5g"  # all workers for post-merge pipeline. Comma separated
+          WORKERS: "wl_lab_5g"  # all workers for post-merge pipeline. Comma separated
           BUILD_ID: "${{ github.sha }}"
           BUILD_METADATA: '{"github:workflow": "${{ github.workflow }}", "github:run_id": "${{ github.run_id }}", "github:actor": "${{ github.actor }}", "github:repository": "${{ github.repository }}", "github:event_name": "${{ github.event_name }}", "github:sha": "${{ github.sha }}", "github:sha:url": "${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}", "github:ref": "${{ github.ref }}"}'
           AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}

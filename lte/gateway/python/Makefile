@@ -68,20 +68,16 @@ $(BIN)/coverage: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "coverage>=6.1.2"
 
 $(BIN)/pylint: install_virtualenv
-    # https://github.com/PyCQA/pylint/issues/380
-    # compile issue with py3.4 so install with no-compile
-	$(VIRT_ENV_PIP_INSTALL) pylint==1.6.4 --no-compile
+	$(VIRT_ENV_PIP_INSTALL) pylint==2.12.2
 
 $(BIN)/pep8: install_virtualenv
 	# pylint doesn't cover all the pep8 style guidelines. Specifically,
 	# E203, E301, E303, W203, W291, W292
 	$(VIRT_ENV_PIP_INSTALL) pep8==1.7.0
 
-# Disable C0330: bad-continuation errors with pylint1.6.4 as it conflicts with pep8
-# 	https://github.com/pylint-bot/pylint-unofficial/issues/289
 # Disable W0511: todo warnings
 # Disable R0903: Too few public methods
-CHECK_CMD_PYLINT := find . -name '*.py' -exec $(BIN)/pylint --disable=C0330,R0903,W0511 {} +;
+CHECK_CMD_PYLINT := find . -name '*.py' -exec $(BIN)/pylint --disable=R0903,W0511 {} +;
 CHECK_CMD_PEP8 := find . -name '*.py' -exec $(BIN)/pep8 {} +;
 check: buildenv $(BIN)/pylint $(BIN)/pep8
 	$(CHECK_CMD_PEP8)

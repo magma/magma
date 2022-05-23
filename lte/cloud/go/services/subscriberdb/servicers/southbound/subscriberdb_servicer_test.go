@@ -72,15 +72,13 @@ func TestListSuciProfiles(t *testing.T) {
 					Mnc: "01",
 					Tac: 1,
 					// 16 bytes of \x11
-					LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					LteAuthAmf: []byte("\x80\x00"),
-
+					LteAuthOp:                []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					LteAuthAmf:               []byte("\x80\x00"),
 					HssRelayEnabled:          swag.Bool(false),
 					GxGyRelayEnabled:         swag.Bool(false),
 					CloudSubscriberdbEnabled: false,
 					CongestionControlEnabled: swag.Bool(true),
 					Enable5gFeatures:         swag.Bool(false),
-					NodeIdentifier:           "",
 					DefaultRuleID:            "",
 					SubscriberdbSyncInterval: lte_models.SubscriberdbSyncInterval(300),
 				},
@@ -137,6 +135,7 @@ func TestListSubscribers(t *testing.T) {
 	// other inactive with a sub profile
 	// 2 APNs active for the active sub, 1 with an assigned static IP and the
 	// other without
+	subProfile := models.SubProfile("foo")
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.APNEntityType, Key: "apn1",
@@ -181,8 +180,8 @@ func TestListSubscribers(t *testing.T) {
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"EPC"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"5GC"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI00002", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"EPC"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99999", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}, ForbiddenNetworkTypes: models.CoreNetworkTypes{"5GC"}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 
@@ -341,14 +340,14 @@ func TestListSubscribers(t *testing.T) {
 
 	// Create 8 more subscribers to test max page size
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
-		{Type: lte.SubscriberEntityType, Key: "IMSI99991", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99992", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99993", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99994", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99995", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99996", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99997", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI99998", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99991", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99992", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99993", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99994", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99995", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99996", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99997", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI99998", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 

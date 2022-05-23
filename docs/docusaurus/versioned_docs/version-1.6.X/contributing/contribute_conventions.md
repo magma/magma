@@ -269,7 +269,7 @@ The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) 
 - We also have a [Reviewdog](https://github.com/reviewdog/reviewdog) annotatoer that runs [cpplint](https://github.com/cpplint/cpplint) to aid the code review process
 
 **Logging**
-- For non-OAI C++ services, use the `MLOG` macros defined in `orc8r/gateway/c/common/logging/magma_logging.h`
+- For non-OAI C++ services, use the `MLOG` macros defined in `orc8r/gateway/c/common/logging/magma_logging.hpp`
 - For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/oai/common/log/h`
 - Refer to the Go logging section for deciding between log levels
 

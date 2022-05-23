@@ -103,17 +103,17 @@ func main() {
 		analytics_service.GetAnalyticsCalculations(&serviceConfig),
 		nil,
 	)
-	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.ProtectedGrpcServer, collectorServicer)
 
 	// Register servicer
 	servicer, err := servicers.NewCertifierServer(store, caMap)
 	if err != nil {
 		glog.Fatalf("Failed to create certifier server: %s", err)
 	}
-	certprotos.RegisterCertifierServer(srv.GrpcServer, servicer)
+	certprotos.RegisterCertifierServer(srv.ProtectedGrpcServer, servicer)
 
 	// Add handlers that manages users to Swagger
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(certifier.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(certifier.ServiceName))
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 
 	// Start Garbage Collector Ticker

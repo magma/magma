@@ -90,7 +90,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid without any assignment """
         sid = 'IMSI11'
         with self.assertRaises(SubscriberDBStaticIPValueError):
-            ip0, _ = self._allocator.alloc_ip_address(sid)
+            self._allocator.alloc_ip_address(sid)
 
     def test_get_ip_for_subscriber_with_apn(self):
         """ test get_ip_for_sid with static IP """
@@ -470,7 +470,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         )
 
         with self.assertRaises(InvalidVlanId):
-            ip0, _ = self._allocator.alloc_ip_address(sid)
+            self._allocator.alloc_ip_address(sid)
 
     def test_get_ip_for_subscriber_with_apn_dup_assignment(self):
         """ test duplicate static IPs """
@@ -534,4 +534,4 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
         with self.assertRaises(DuplicateIPAssignmentError):
-            ip0, _ = self._allocator.alloc_ip_address(sid)
+            self._allocator.alloc_ip_address(sid)

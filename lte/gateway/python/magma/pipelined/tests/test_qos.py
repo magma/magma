@@ -117,7 +117,6 @@ class TestQosManager(unittest.TestCase):
         self, mock_get_action_inst, mock_traffic_cls, d, qid, qos_info,
         parent_qid=0, skip_filter=False,
     ):
-        intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
         mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False, default_gbr='80Kbit')
         mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False, default_gbr='80Kbit')
@@ -330,7 +329,6 @@ get_action_instruction",
             exp_id = id_list[i]
             k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
             exp_id_dict[k] = exp_id
-            # self.assertTrue(qos_mgr._redis_store[k] == exp_id)
             qid_info = get_data_json(get_subscriber_data(exp_id, 0, 0))
             self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
 

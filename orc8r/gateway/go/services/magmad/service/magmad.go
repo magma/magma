@@ -25,6 +25,7 @@ import (
 	"github.com/aeden/traceroute"
 	"github.com/emakeev/snowflake"
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 
 	"magma/gateway/config"
 	"magma/gateway/mconfig"
@@ -33,7 +34,6 @@ import (
 	"magma/gateway/services/magmad/service/ping"
 	"magma/gateway/services/magmad/service_manager"
 	"magma/orc8r/lib/go/definitions"
-	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/service"
 )
@@ -43,23 +43,29 @@ type magmadService struct {
 }
 
 func (m *magmadService) StartServices(context.Context, *protos.Void) (*protos.Void, error) {
-	resErrs := merrors.NewMulti()
+	errs := &multierror.Error{}
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
 		glog.Infof("Starting service '%s'", srv)
-		resErrs = resErrs.AddFmt(sm.Start(srv), "service '%s' start error:", srv)
+		err := sm.Start(srv)
+		if err != nil {
+			errs = multierror.Append(errs, fmt.Errorf("service '%s' start error: %v", srv, err))
+		}
 	}
-	return &protos.Void{}, resErrs.AsError()
+	return &protos.Void{}, errs.ErrorOrNil()
 }
 
 func (m *magmadService) StopServices(context.Context, *protos.Void) (*protos.Void, error) {
-	resErrs := merrors.NewMulti()
+	errs := &multierror.Error{}
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
 		glog.Infof("Stopping service '%s'", srv)
-		resErrs = resErrs.AddFmt(sm.Stop(srv), "service '%s' stop error:", srv)
+		err := sm.Stop(srv)
+		if err != nil {
+			errs = multierror.Append(errs, fmt.Errorf("service '%s' stop error: %v", srv, err))
+		}
 	}
-	return &protos.Void{}, resErrs.AsError()
+	return &protos.Void{}, errs.ErrorOrNil()
 }
 
 func (m *magmadService) Reboot(context.Context, *protos.Void) (*protos.Void, error) {
@@ -69,13 +75,16 @@ func (m *magmadService) Reboot(context.Context, *protos.Void) (*protos.Void, err
 }
 
 func (m *magmadService) RestartServices(context.Context, *protos.RestartServicesRequest) (*protos.Void, error) {
-	resErrs := merrors.NewMulti()
+	errs := &multierror.Error{}
 	sm := service_manager.Get()
 	for _, srv := range getServices() {
 		glog.Infof("Restarting service '%s'", srv)
-		resErrs = resErrs.AddFmt(sm.Restart(srv), "service '%s' restart error:", srv)
+		err := sm.Restart(srv)
+		if err != nil {
+			errs = multierror.Append(errs, fmt.Errorf("service '%s' restart error: %v", srv, err))
+		}
 	}
-	return &protos.Void{}, resErrs.AsError()
+	return &protos.Void{}, errs.ErrorOrNil()
 }
 
 func (m *magmadService) GetConfigs(context.Context, *protos.Void) (*protos.GatewayConfigs, error) {

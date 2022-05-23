@@ -38,23 +38,26 @@ type DBGrantState struct {
 	Name sql.NullString
 }
 
-func (gs *DBGrantState) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &gs.Id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"name": &db.Field{
-			Item:    db.StringType{X: &gs.Name},
-			SqlType: sqorc.ColumnTypeText,
-		},
+func (gs *DBGrantState) Fields() []db.BaseType {
+	return []db.BaseType{
+		db.IntType{X: &gs.Id},
+		db.StringType{X: &gs.Name},
 	}
 }
 
 func (gs *DBGrantState) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     GrantStateTable,
-		Relations: map[string]string{},
+		Table: GrantStateTable,
+		Properties: []*db.Field{
+			{
+				Name:    "id",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:    "name",
+				SqlType: sqorc.ColumnTypeText,
+			},
+		},
 		CreateObject: func() db.Model {
 			return &DBGrantState{}
 		},
@@ -83,66 +86,77 @@ type DBGrant struct {
 	MaxEirp            sql.NullFloat64
 }
 
-func (g *DBGrant) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &g.Id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"state_id": &db.Field{
-			Item:    db.IntType{X: &g.StateId},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"cbsd_id": &db.Field{
-			Item:     db.IntType{X: &g.CbsdId},
-			SqlType:  sqorc.ColumnTypeInt,
-			Nullable: true,
-		},
-		"grant_id": &db.Field{
-			Item:    db.StringType{X: &g.GrantId},
-			SqlType: sqorc.ColumnTypeText,
-		},
-		"grant_expire_time": &db.Field{
-			Item:     db.TimeType{X: &g.GrantExpireTime},
-			SqlType:  sqorc.ColumnTypeDatetime,
-			Nullable: true,
-		},
-		"transmit_expire_time": &db.Field{
-			Item:     db.TimeType{X: &g.TransmitExpireTime},
-			SqlType:  sqorc.ColumnTypeDatetime,
-			Nullable: true,
-		},
-		"heartbeat_interval": &db.Field{
-			Item:     db.IntType{X: &g.HeartbeatInterval},
-			SqlType:  sqorc.ColumnTypeInt,
-			Nullable: true,
-		},
-		"channel_type": &db.Field{
-			Item:     db.StringType{X: &g.ChannelType},
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
-		},
-		"low_frequency": &db.Field{
-			Item:    db.IntType{X: &g.LowFrequency},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"high_frequency": &db.Field{
-			Item:    db.IntType{X: &g.HighFrequency},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"max_eirp": &db.Field{
-			Item:    db.FloatType{X: &g.MaxEirp},
-			SqlType: sqorc.ColumnTypeReal,
-		},
+func (g *DBGrant) Fields() []db.BaseType {
+	return []db.BaseType{
+		db.IntType{X: &g.Id},
+		db.IntType{X: &g.StateId},
+		db.IntType{X: &g.CbsdId},
+		db.StringType{X: &g.GrantId},
+		db.TimeType{X: &g.GrantExpireTime},
+		db.TimeType{X: &g.TransmitExpireTime},
+		db.IntType{X: &g.HeartbeatInterval},
+		db.StringType{X: &g.ChannelType},
+		db.IntType{X: &g.LowFrequency},
+		db.IntType{X: &g.HighFrequency},
+		db.FloatType{X: &g.MaxEirp},
 	}
 }
 
 func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
 		Table: GrantTable,
-		Relations: map[string]string{
-			GrantStateTable: "state_id",
-			CbsdTable:       "cbsd_id",
+		Properties: []*db.Field{
+			{
+				Name:    "id",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:     "state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: GrantStateTable,
+			},
+			{
+				Name:     "cbsd_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+				Relation: CbsdTable,
+			},
+			{
+				Name:    "grant_id",
+				SqlType: sqorc.ColumnTypeText,
+			},
+			{
+				Name:     "grant_expire_time",
+				SqlType:  sqorc.ColumnTypeDatetime,
+				Nullable: true,
+			},
+			{
+				Name:     "transmit_expire_time",
+				SqlType:  sqorc.ColumnTypeDatetime,
+				Nullable: true,
+			},
+			{
+				Name:     "heartbeat_interval",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:     "channel_type",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:    "low_frequency",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:    "high_frequency",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:    "max_eirp",
+				SqlType: sqorc.ColumnTypeReal,
+			},
 		},
 		CreateObject: func() db.Model {
 			return &DBGrant{}
@@ -155,23 +169,26 @@ type DBCbsdState struct {
 	Name sql.NullString
 }
 
-func (cs *DBCbsdState) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &cs.Id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"name": &db.Field{
-			Item:    db.StringType{X: &cs.Name},
-			SqlType: sqorc.ColumnTypeText,
-		},
+func (cs *DBCbsdState) Fields() []db.BaseType {
+	return []db.BaseType{
+		db.IntType{X: &cs.Id},
+		db.StringType{X: &cs.Name},
 	}
 }
 
 func (cs *DBCbsdState) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
-		Table:     "cbsd_states",
-		Relations: map[string]string{},
+		Table: "cbsd_states",
+		Properties: []*db.Field{
+			{
+				Name:    "id",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:    "name",
+				SqlType: sqorc.ColumnTypeText,
+			},
+		},
 		CreateObject: func() db.Model {
 			return &DBCbsdState{}
 		},
@@ -190,6 +207,7 @@ type DBCbsd struct {
 	Id                      sql.NullInt64
 	NetworkId               sql.NullString
 	StateId                 sql.NullInt64
+	DesiredStateId          sql.NullInt64
 	CbsdId                  sql.NullString
 	UserId                  sql.NullString
 	FccId                   sql.NullString
@@ -204,141 +222,229 @@ type DBCbsd struct {
 	NumberOfPorts           sql.NullInt64
 	IsDeleted               sql.NullBool
 	ShouldDeregister        sql.NullBool
+	SingleStepEnabled       sql.NullBool
+	CbsdCategory            sql.NullString
+	LatitudeDeg             sql.NullFloat64
+	LongitudeDeg            sql.NullFloat64
+	HeightM                 sql.NullFloat64
+	HeightType              sql.NullString
+	HorizontalAccuracyM     sql.NullFloat64
+	AntennaAzimuthDeg       sql.NullInt64
+	AntennaDowntiltDeg      sql.NullInt64
+	AntennaBeamwidthDeg     sql.NullInt64
+	AntennaModel            sql.NullString
+	EirpCapabilityDbmMhz    sql.NullInt64
+	IndoorDeployment        sql.NullBool
+	CpiDigitalSignature     sql.NullString
 }
 
-func (c *DBCbsd) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &c.Id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"network_id": &db.Field{
-			Item:    db.StringType{X: &c.NetworkId},
-			SqlType: sqorc.ColumnTypeText,
-		},
-		"state_id": &db.Field{
-			Item:    db.IntType{X: &c.StateId},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"cbsd_id": &db.Field{
-			Item:     db.StringType{X: &c.CbsdId},
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
-		},
-		"user_id": &db.Field{
-			Item:     db.StringType{X: &c.UserId},
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
-		},
-		"fcc_id": &db.Field{
-			Item:     db.StringType{X: &c.FccId},
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
-		},
-		"cbsd_serial_number": &db.Field{
-			Item:     db.StringType{X: &c.CbsdSerialNumber},
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
-			Unique:   true,
-		},
-		"last_seen": &db.Field{
-			Item:     db.TimeType{X: &c.LastSeen},
-			SqlType:  sqorc.ColumnTypeDatetime,
-			Nullable: true,
-		},
-		"grant_attempts": &db.Field{
-			Item:         db.IntType{X: &c.GrantAttempts},
-			SqlType:      sqorc.ColumnTypeInt,
-			HasDefault:   true,
-			DefaultValue: 0,
-		},
-		"preferred_bandwidth_mhz": &db.Field{
-			Item:    db.IntType{X: &c.PreferredBandwidthMHz},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"preferred_frequencies_mhz": &db.Field{
-			Item:    db.StringType{X: &c.PreferredFrequenciesMHz},
-			SqlType: sqorc.ColumnTypeText,
-		},
-		"min_power": &db.Field{
-			Item:     db.FloatType{X: &c.MinPower},
-			SqlType:  sqorc.ColumnTypeReal,
-			Nullable: true,
-		},
-		"max_power": &db.Field{
-			Item:     db.FloatType{X: &c.MaxPower},
-			SqlType:  sqorc.ColumnTypeReal,
-			Nullable: true,
-		},
-		"antenna_gain": &db.Field{
-			Item:     db.FloatType{X: &c.AntennaGain},
-			SqlType:  sqorc.ColumnTypeReal,
-			Nullable: true,
-		},
-		"number_of_ports": &db.Field{
-			Item:     db.IntType{X: &c.NumberOfPorts},
-			SqlType:  sqorc.ColumnTypeInt,
-			Nullable: true,
-		},
-		"is_deleted": &db.Field{
-			Item:         db.BoolType{X: &c.IsDeleted},
-			SqlType:      sqorc.ColumnTypeBool,
-			HasDefault:   true,
-			DefaultValue: false,
-		},
-		"should_deregister": &db.Field{
-			Item:         db.BoolType{X: &c.ShouldDeregister},
-			SqlType:      sqorc.ColumnTypeBool,
-			HasDefault:   true,
-			DefaultValue: false,
-		},
+func (c *DBCbsd) Fields() []db.BaseType {
+	return []db.BaseType{
+		db.IntType{X: &c.Id},
+		db.StringType{X: &c.NetworkId},
+		db.IntType{X: &c.StateId},
+		db.IntType{X: &c.DesiredStateId},
+		db.StringType{X: &c.CbsdId},
+		db.StringType{X: &c.UserId},
+		db.StringType{X: &c.FccId},
+		db.StringType{X: &c.CbsdSerialNumber},
+		db.TimeType{X: &c.LastSeen},
+		db.IntType{X: &c.GrantAttempts},
+		db.IntType{X: &c.PreferredBandwidthMHz},
+		db.StringType{X: &c.PreferredFrequenciesMHz},
+		db.FloatType{X: &c.MinPower},
+		db.FloatType{X: &c.MaxPower},
+		db.FloatType{X: &c.AntennaGain},
+		db.IntType{X: &c.NumberOfPorts},
+		db.BoolType{X: &c.IsDeleted},
+		db.BoolType{X: &c.ShouldDeregister},
+		db.BoolType{X: &c.SingleStepEnabled},
+		db.StringType{X: &c.CbsdCategory},
+		db.FloatType{X: &c.LatitudeDeg},
+		db.FloatType{X: &c.LongitudeDeg},
+		db.FloatType{X: &c.HeightM},
+		db.StringType{X: &c.HeightType},
+		db.FloatType{X: &c.HorizontalAccuracyM},
+		db.IntType{X: &c.AntennaAzimuthDeg},
+		db.IntType{X: &c.AntennaDowntiltDeg},
+		db.IntType{X: &c.AntennaBeamwidthDeg},
+		db.StringType{X: &c.AntennaModel},
+		db.IntType{X: &c.EirpCapabilityDbmMhz},
+		db.BoolType{X: &c.IndoorDeployment},
+		db.StringType{X: &c.CpiDigitalSignature},
 	}
 }
 
 func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 	return &db.ModelMetadata{
 		Table: CbsdTable,
-		Relations: map[string]string{
-			CbsdStateTable: "state_id",
+		Properties: []*db.Field{
+			{
+				Name:    "id",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:    "network_id",
+				SqlType: sqorc.ColumnTypeText,
+			},
+			{
+				Name:     "state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: CbsdStateTable,
+			},
+			{
+				Name:     "desired_state_id",
+				SqlType:  sqorc.ColumnTypeInt,
+				Relation: CbsdStateTable,
+			},
+			{
+				Name:     "cbsd_id",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "user_id",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "fcc_id",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "cbsd_serial_number",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+				Unique:   true,
+			},
+			{
+				Name:     "last_seen",
+				SqlType:  sqorc.ColumnTypeDatetime,
+				Nullable: true,
+			},
+			{
+				Name:         "grant_attempts",
+				SqlType:      sqorc.ColumnTypeInt,
+				HasDefault:   true,
+				DefaultValue: 0,
+			},
+			{
+				Name:    "preferred_bandwidth_mhz",
+				SqlType: sqorc.ColumnTypeInt,
+			},
+			{
+				Name:    "preferred_frequencies_mhz",
+				SqlType: sqorc.ColumnTypeText,
+			},
+			{
+				Name:     "min_power",
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			{
+				Name:     "max_power",
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			{
+				Name:     "antenna_gain",
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			{
+				Name:     "number_of_ports",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:         "is_deleted",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
+			},
+			{
+				Name:         "should_deregister",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
+			},
+			{
+				Name:         "single_step_enabled",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
+			},
+			{
+				Name:         "cbsd_category",
+				SqlType:      sqorc.ColumnTypeText,
+				HasDefault:   true,
+				DefaultValue: "b",
+			},
+			{
+				Name:     "latitude_deg",
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			{
+				Name:     "longitude_deg",
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			{
+				Name:     "height_m",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:     "height_type",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "horizontal_accuracy_m",
+				SqlType:  sqorc.ColumnTypeReal,
+				Nullable: true,
+			},
+			{
+				Name:     "antenna_azimuth_deg",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:     "antenna_downtilt_deg",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:     "antenna_beamwidth_deg",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:     "antenna_model",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "eirp_capability_dbm_mhz",
+				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			},
+			{
+				Name:         "indoor_deployment",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
+			},
+			{
+				Name:     "cpi_digital_signature",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
 		},
 		CreateObject: func() db.Model {
 			return &DBCbsd{}
-		},
-	}
-}
-
-type DBActiveModeConfig struct {
-	Id             sql.NullInt64
-	CbsdId         sql.NullInt64
-	DesiredStateId sql.NullInt64
-}
-
-func (amc *DBActiveModeConfig) Fields() db.FieldMap {
-	return db.FieldMap{
-		"id": &db.Field{
-			Item:    db.IntType{X: &amc.Id},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"cbsd_id": &db.Field{
-			Item:    db.IntType{X: &amc.CbsdId},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-		"desired_state_id": &db.Field{
-			Item:    db.IntType{X: &amc.DesiredStateId},
-			SqlType: sqorc.ColumnTypeInt,
-		},
-	}
-}
-
-func (amc *DBActiveModeConfig) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: ActiveModeConfigTable,
-		Relations: map[string]string{
-			CbsdTable:      "cbsd_id",
-			CbsdStateTable: "desired_state_id",
-		},
-		CreateObject: func() db.Model {
-			return &DBActiveModeConfig{}
 		},
 	}
 }

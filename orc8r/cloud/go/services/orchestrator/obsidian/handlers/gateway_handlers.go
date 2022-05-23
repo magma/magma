@@ -149,9 +149,10 @@ func listGatewaysHandler(c echo.Context) error {
 		return err
 	}
 
+	token := models.PageToken(nextPageToken)
 	paginatedGateways := models.PaginatedGateways{
 		Gateways:   gateways,
-		PageToken:  models.PageToken(nextPageToken),
+		PageToken:  &token,
 		TotalCount: int64(count),
 	}
 	return c.JSON(http.StatusOK, paginatedGateways)

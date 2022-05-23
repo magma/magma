@@ -10,22 +10,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.hpp"
+
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/status_code_enum.h>
+#include <lte/protos/abort_session.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <ostream>
 #include <string>
 
-#include "EnumToString.h"
-#include "GrpcMagmaUtils.h"
-#include "LocalEnforcer.h"
-#include "SessionProxyResponderHandler.h"
-#include "SessionStore.h"
-#include "includes/SentryWrapper.hpp"
-#include "lte/protos/abort_session.pb.h"
-#include "lte/protos/session_manager.pb.h"
-#include "magma_logging.h"
+#include "lte/gateway/c/session_manager/EnumToString.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace google {
 namespace protobuf {
@@ -42,6 +42,14 @@ namespace magma {
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionStore& session_store)
     : enforcer_(enforcer), session_store_(session_store) {}
+
+SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
+    std::shared_ptr<LocalEnforcer> enforcer,
+    std::shared_ptr<SessionStateEnforcer> m5genforcer,
+    SessionStore& session_store)
+    : enforcer_(enforcer),
+      m5genforcer_(m5genforcer),
+      session_store_(session_store) {}
 
 void SessionProxyResponderHandlerImpl::ChargingReAuth(
     ServerContext* context, const ChargingReAuthRequest* request,
@@ -93,21 +101,47 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy,
                                                     response_callback]() {
     PolicyReAuthAnswer ans;
-    auto session_map = session_store_.read_sessions({request_cpy.imsi()});
+    const std::string& imsi = request_cpy.imsi();
+    const std::string& session_id = request_cpy.session_id();
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_map = session_store_.read_sessions({imsi});
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
+                   << " with session_id " << session_id;
+      PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
+      ans.set_result(ReAuthResult::SESSION_NOT_FOUND);
+      Status status(grpc::NOT_FOUND, "Sesion Not found");
+      response_callback(status, ans);
+      return;
+    }
+
+    auto& session = **session_it;
+    const auto& config = session->get_config();
+    const auto& common_context = config.common_context;
+
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
-    enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
-    MLOG(MDEBUG) << "Result of Gx (Policy) ReAuthRequest "
+    const auto rat_type = common_context.rat_type();
+    const std::string& interface = (rat_type == TGPP_NR) ? "5G N7" : "4G Gx";
+    if (rat_type == TGPP_NR) {
+      m5genforcer_->init_policy_reauth(imsi, session_map, request_cpy, ans,
+                                       update);
+    } else {
+      enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
+    }
+    MLOG(MDEBUG) << "Result of " << interface << " (Policy) ReAuthRequest "
                  << raa_result_to_str(ans.result());
     bool update_success = session_store_.update_sessions(update);
     if (update_success) {
-      MLOG(MDEBUG) << "Sending RAA response for Gx ReAuth "
+      MLOG(MDEBUG) << "Sending RAA response for " << interface << " ReAuth "
                    << request_cpy.session_id();
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
       response_callback(Status::OK, ans);
     } else {
       // Todo If update fails, we should rollback changes from the request
-      MLOG(MERROR) << "Failed to update Gx (Policy) ReAuthRequest changes...";
+      MLOG(MERROR) << "Failed to update "
+                   << interface << " (Policy) ReAuthRequest changes...";
       auto status =
           Status(grpc::ABORTED,
                  "PolicyReAuth no longer valid due to another update that "
@@ -115,7 +149,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
       response_callback(status, ans);
     }
-    MLOG(MDEBUG) << "Sent RAA response for Gx ReAuth "
+    MLOG(MDEBUG) << "Sent RAA response for " << interface << " ReAuth "
                  << request_cpy.session_id();
   });
 }

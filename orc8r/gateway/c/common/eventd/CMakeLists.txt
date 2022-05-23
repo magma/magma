@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common)
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
@@ -53,7 +53,7 @@ add_custom_command(TARGET EVENTD POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
 add_custom_command(TARGET EVENTD POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.hpp ${MAGMA_INCLUDE_DIR})
+    ${PROJECT_SOURCE_DIR}/*.hpp ${MAGMA_INCLUDE_DIR})
 
 target_include_directories(EVENTD PUBLIC
     $ENV{MAGMA_ROOT}

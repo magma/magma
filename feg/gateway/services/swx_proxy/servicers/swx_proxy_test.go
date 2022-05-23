@@ -157,7 +157,7 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient, test_loops int)
 				complChan <- err
 				return
 			}
-			t.Logf("GRPC MAA: %#+v", *authRes)
+			t.Logf("GRPC MAA: %+v", authRes)
 			assert.Equal(t, userName, authRes.GetUserName())
 			if len(authRes.SipAuthVectors) != 1 {
 				t.Errorf("Unexpected Number of SIPAuthVectors: %d, Expected: %d", len(authRes.SipAuthVectors), 1)
@@ -181,7 +181,7 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient, test_loops int)
 			complChan <- err
 			return
 		}
-		t.Logf("GRPC SAA Register: %#+v", *regRes)
+		t.Logf("GRPC SAA Register: %+v", regRes)
 
 		unregRes, err := client.Deregister(context.Background(), regReq)
 		// Only must verify that request was successful (no error) to ensure user
@@ -191,7 +191,7 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient, test_loops int)
 			complChan <- err
 			return
 		}
-		t.Logf("GRPC SAA De-register: %#+v", *unregRes)
+		t.Logf("GRPC SAA De-register: %+v", unregRes)
 
 		// Test EAP-SIM (3 vectors) case
 		authReq = &protos.AuthenticationRequest{

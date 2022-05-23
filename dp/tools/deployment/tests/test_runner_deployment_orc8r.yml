@@ -1,37 +1,36 @@
 ---
-apiVersion: batch/v1
-kind: Job
+apiVersion: v1
+kind: Pod
 metadata:
-  name: test-runner-job-orc8r
+  name: test-runner-orc8r
+  labels:
+    name: test-runner-orc8r
+    type: integration-tests
 spec:
-  template:
-    metadata:
-      labels:
-        app: test-runner
-        type: integration-tests
-      name: test-runner-pod
-    spec:
-      restartPolicy: Never
-      containers:
-        - image: test_runner_image
-          name: test-runner-orc8
-          imagePullPolicy: IfNotPresent
-          command: ["python"]
-          args: ["-m", "pytest", "-vvv", "-s", "-m", "orc8r", "--junit-xml=/backend/test_runner/test-results/test_report.xml", "tests"]
-          volumeMounts:
-            - name: test-results
-              mountPath: /backend/test_runner/test-results
-            - name: certificates
-              mountPath: /backend/test_runner/certs
-              readOnly: true
-      volumes:
+  restartPolicy: Never
+  initContainers:
+    - name: wait-for-elasticsearch
+      image: curlimages/curl
+      command: ['sh', '-c', "until curl -sf http://elasticsearch:9200/_cluster/health; do echo \"waiting for elasticsearch...\"; sleep 0.2; done"]
+  containers:
+    - image: test_runner_image
+      name: test-runner-orc8
+      imagePullPolicy: IfNotPresent
+      command: ["python"]
+      args: ["-m", "pytest", "-vvv", "-s", "-m", "orc8r", "--junit-xml=/backend/test_runner/test-results/test_report.xml", "tests"]
+      volumeMounts:
         - name: test-results
-          hostPath:
-            path: /tmp/integration-tests-results
-            type: DirectoryOrCreate
+          mountPath: /backend/test_runner/test-results
         - name: certificates
-          projected:
-            sources:
-              - secret:
-                  name: orc8r-secrets-certs
-  backoffLimit: 10
+          mountPath: /backend/test_runner/certs
+          readOnly: true
+  volumes:
+    - name: test-results
+      hostPath:
+        path: /tmp/integration-tests-results
+        type: DirectoryOrCreate
+    - name: certificates
+      projected:
+        sources:
+          - secret:
+              name: orc8r-secrets-certs

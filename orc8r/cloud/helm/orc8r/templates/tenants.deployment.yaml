@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/tenants", "-run_echo_server=
 ports:
   - name: grpc
     containerPort: 9110
+  - name: grpc-internal
+    containerPort: 9210
   - name: http
     containerPort: 10110
 livenessProbe:

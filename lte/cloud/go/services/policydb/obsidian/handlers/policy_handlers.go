@@ -337,7 +337,7 @@ func UpdateRule(c echo.Context) error {
 	if err := rule.ValidateModel(reqCtx); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if ruleID != string(rule.ID) {
+	if ruleID != string(*rule.ID) {
 		return echo.NewHTTPError(http.StatusBadRequest, errors.New("rule ID in body does not match URL param"))
 	}
 
@@ -347,7 +347,7 @@ func UpdateRule(c echo.Context) error {
 	oldEnt, err := configurator.LoadEntity(
 		reqCtx,
 		networkID, lte.PolicyRuleEntityType, ruleID,
-		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
+		configurator.EntityLoadCriteria{LoadAssocsToThis: true, LoadAssocsFromThis: true},
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
@@ -372,7 +372,12 @@ func UpdateRule(c echo.Context) error {
 	//	- update child assocs: policy_qos_profile
 
 	var writes []configurator.EntityWriteOperation
-	writes = append(writes, rule.ToEntityUpdateCriteria())
+
+	removedAssocs, addedAssocs := oldEnt.Associations.Difference(rule.GetAssocs())
+	writes = append(writes, rule.ToEntityUpdateCriteria(
+		addedAssocs.Filter(lte.PolicyQoSProfileEntityType),
+		removedAssocs.Filter(lte.PolicyQoSProfileEntityType),
+	))
 
 	remove, add := oldEnt.ParentAssociations.Difference(rule.GetParentAssocs())
 	for _, tk := range remove.Filter(lte.SubscriberEntityType) {

@@ -40,7 +40,7 @@ spec:
             type: Directory
         - name: ovs-volume
           hostPath:
-            path: /var/run/openvswitch
+            path: /var/run
             type: Directory
       containers:
       -
@@ -49,11 +49,12 @@ spec:
 {{- define "oai-mme.container" -}}
 name: oai-mme
 args:
-  - sh
+  - /bin/bash
   - -c
   - /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
 image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
 securityContext:
+  privileged: true
   capabilities:
     add:
       - NET_ADMIN
@@ -65,6 +66,6 @@ volumeMounts:
     name: agwc-claim
   - mountPath: /tmp
     name: tmp-volume
-  - mountPath: /var/run/openvswitch
+  - mountPath: /var/run
     name: ovs-volume
 {{- end -}}

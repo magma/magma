@@ -191,6 +191,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             cbsd_serial_number=CBSD_SERIAL_NR,
             grant_attempts=INITIAL_GRANT_ATTEMPTS,
             state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
+            desired_state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
         )
         request = DBRequest(
             type=self._get_db_enum(DBRequestType, message_type),
@@ -467,6 +468,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             cbsd_serial_number=serial_number,
             user_id=user_id,
             state=cbsd_state,
+            desired_state=cbsd_state,
         )
 
         self.session.add(cbsd)

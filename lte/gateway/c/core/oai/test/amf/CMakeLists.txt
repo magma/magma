@@ -47,6 +47,7 @@ set(AMF_APP_TEST_SRC
     util_s6a_update_location.hpp
     test_amf_map.cpp
     test_amf_stateless.cpp
+    test_amf.cpp
     )
 
 add_executable(amf_app_test ${AMF_APP_TEST_SRC})

@@ -119,83 +119,83 @@ link_directories(
 
 add_library(SESSION_MANAGER
     AAAClient.cpp
-    AAAClient.h
+    AAAClient.hpp
     ChargingGrant.cpp
-    ChargingGrant.h
+    ChargingGrant.hpp
     EnumToString.cpp
-    EnumToString.h
+    EnumToString.hpp
     SessionManagerServer.cpp
-    SessionManagerServer.h
+    SessionManagerServer.hpp
     LocalSessionManagerHandler.cpp
-    LocalSessionManagerHandler.h
+    LocalSessionManagerHandler.hpp
     LocalEnforcer.cpp
-    LocalEnforcer.h
+    LocalEnforcer.hpp
     SessionState.cpp
-    SessionState.h
+    SessionState.hpp
     SessionCredit.cpp
-    SessionCredit.h
+    SessionCredit.hpp
     RestartHandler.cpp
-    RestartHandler.h
+    RestartHandler.hpp
     RuleStore.cpp
-    RuleStore.h
+    RuleStore.hpp
     SessionReporter.cpp
-    SessionReporter.h
+    SessionReporter.hpp
     SessionID.cpp
-    SessionID.h
-    ServiceAction.h
+    SessionID.hpp
+    ServiceAction.hpp
     SpgwServiceClient.cpp
-    SpgwServiceClient.h
+    SpgwServiceClient.hpp
     PipelinedClient.cpp
-    PipelinedClient.h
+    PipelinedClient.hpp
     DirectorydClient.cpp
-    DirectorydClient.h
+    DirectorydClient.hpp
     SessionEvents.cpp
-    SessionEvents.h
+    SessionEvents.hpp
     DiameterCodes.cpp
-    DiameterCodes.h
-    CreditKey.h
+    DiameterCodes.hpp
+    CreditKey.hpp
     StatsPoller.cpp
-    StatsPoller.h
+    StatsPoller.hpp
     ShardTracker.cpp
-    ShardTracker.h
+    ShardTracker.hpp
     SessionProxyResponderHandler.cpp
-    SessionProxyResponderHandler.h
+    SessionProxyResponderHandler.hpp
     StoredState.cpp
-    StoredState.h
+    StoredState.hpp
     SessionStore.cpp
-    SessionStore.h
+    SessionStore.hpp
     MemoryStoreClient.cpp
-    MemoryStoreClient.h
-    Monitor.h
+    MemoryStoreClient.hpp
+    Monitor.hpp
     RedisStoreClient.cpp
-    RedisStoreClient.h
-    StoreClient.h
+    RedisStoreClient.hpp
+    StoreClient.hpp
     MeteringReporter.cpp
-    MeteringReporter.h
+    MeteringReporter.hpp
     GrpcMagmaUtils.cpp
-    GrpcMagmaUtils.h
-    SetMessageManagerHandler.h
+    GrpcMagmaUtils.hpp
+    SetMessageManagerHandler.hpp
     SetMessageManagerHandler.cpp
-    UpfMsgManageHandler.h
+    UpfMsgManageHandler.hpp
     UpfMsgManageHandler.cpp
-    SessionStateEnforcer.h
+    SessionStateEnforcer.hpp
     SessionStateEnforcer.cpp
-    AmfServiceClient.h
+    AmfServiceClient.hpp
     AmfServiceClient.cpp
     Utilities.cpp
-    Utilities.h
+    Utilities.hpp
     OperationalStatesHandler.cpp
-    OperationalStatesHandler.h
-    Types.h
+    OperationalStatesHandler.hpp
+    Types.hpp
     MobilitydClient.cpp
-    MobilitydClient.h
-    ObjectMap.h
+    MobilitydClient.hpp
+    ObjectMap.hpp
     PolicyLoader.cpp
-    PolicyLoader.h
-    ObjectMap.h
+    PolicyLoader.hpp
+    ObjectMap.hpp
     RedisMap.hpp
     Serializers.cpp
-    Serializers.h
+    Serializers.hpp
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

@@ -28,7 +28,7 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;

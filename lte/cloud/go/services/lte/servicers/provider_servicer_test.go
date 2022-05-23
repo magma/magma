@@ -32,6 +32,7 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
@@ -48,7 +49,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	lte_test_init.StartTestService(t)
 
-	conn, err := registry.GetConnection(lte_service.ServiceName)
+	conn, err := registry.GetConnection(lte_service.ServiceName, protos.ServiceType_PROTECTED)
 	assert.NoError(t, err)
 	c := streamer_protos.NewStreamProviderClient(conn)
 	ctx := context.Background()
@@ -63,7 +64,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 		assert.NoError(t, err)
 		want, err := subscriberStreamer.GetUpdates(context.Background(), hwID, nil)
 		assert.NoError(t, err)
-		assert.Equal(t, &protos.DataUpdateBatch{Updates: want}, got)
+		test_utils.AssertMessagesEqual(t, &protos.DataUpdateBatch{Updates: want}, got)
 	})
 }
 
@@ -76,6 +77,7 @@ func initSubscriber(t *testing.T, hwID string) {
 	_, err = configurator.CreateEntity(context.Background(), "n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
+	subProfile := models.SubProfile("foo")
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{
 			Type: lte.APNEntityType, Key: "apn1",
@@ -119,7 +121,7 @@ func initSubscriber(t *testing.T, hwID string) {
 			},
 			Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: &subProfile}}},
 	}, serdes.Entity)
 	assert.NoError(t, err)
 }

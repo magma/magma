@@ -110,13 +110,14 @@ on UE or the server (on SGi side of the network) while debugging the issue.
 5. From here onwards you are going to debug OVS datapath, so you need to select
    a UE and identify which traffic direction is broken. You can do so by
    - Generating uplink traffic in UE
-   - Capturing packets on gtp_br0 in NATed datapath case and SGi_dev interface for
-     NonNAT datapath: `tcpdump -eni gtp_br0 host $UE_IP`.
-   - For NATed datapath you also need to check if packet are egressing on
+   - Capturing packets on gtpu_sys_2152 device: `tcpdump -eni gtpu_sys_2152 host $UE_IP`. If you do not see any packet, it means that packets are not reaching the GTP tunnel. Check S1 connectivity to debug further.
+   - *NATed datapath*: Capture packets on gtp_br0 `tcpdump -eni gtp_br0 host $UE_IP`. If you don't see any packets, try debugging with the `dp_probe_cli.py` utility. This utility would show which OVS table is dropping the packet.
+   - *NATed datapath*: You also need to check if the packet is egressing on
      the SGi port. You can do so by running tcpdump on SGi port
-     `tcpdump -eni $SGi_dev dst $SERVER_IP`
-   - In case the packet is missing on SGi port, you have issue with the routing.
-     check routing table on the AGW.
+     `tcpdump -eni $SGi_dev dst $SERVER_IP`. In case the packet is missing on the SGi port, you have an issue with the routing. Check the routing table and iptables rules on the AGW.
+   - *Non-NAT datapath*: You also need to check if the packet is egressing on
+     the SGi port. You can do so by running tcpdump on the SGi port
+     `tcpdump -eni $SGi_dev dst $SERVER_IP`. If you don't see any packets, try debugging with the `dp_probe_cli.py` utility. This utility would show which OVS table is dropping the packet.
    - In case uplink packets are reaching SGi port, you need to debug issues in
      downlink direction.
 6. Check if you are receiving packets from server by capturing return traffic

@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -28,7 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
-	"magma/orc8r/lib/go/merrors"
 )
 
 const (
@@ -117,39 +117,36 @@ func setSecondaryStates(ctx context.Context, networkID string, states state_type
 	if len(sessionIDToIMSI) == 0 && len(cTeidToHwId) == 0 {
 		return stateErrors, nil
 	}
-	multiError := merrors.NewMulti()
+	errs := &multierror.Error{}
 	if len(sessionIDToIMSI) != 0 {
 		err := directoryd.MapSessionIDsToIMSIs(ctx, networkID, sessionIDToIMSI)
-		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of session IDs to IMSIs %+v", sessionIDToIMSI)
+		errs = errsAppend(errs, "failed to update directoryd mapping of session IDs to IMSIs %+v %v", sessionIDToIMSI, err)
 	}
 	if len(cTeidToHwId) != 0 {
 		err := directoryd.MapSgwCTeidToHWID(ctx, networkID, cTeidToHwId)
-		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of control plane teid To HwID %+v", sessionIDToIMSI)
+		errs = errsAppend(errs, "failed to update directoryd mapping of control plane teid To HwID %+v %v", sessionIDToIMSI, err)
 	}
 	if len(uTeidToHwId) != 0 {
 		err := directoryd.MapSgwUTeidToHWID(ctx, networkID, uTeidToHwId)
-		multiError = multiError.AddFmt(err, "failed to update directoryd mapping of user plane teid To HwID %+v", sessionIDToIMSI)
+		errs = errsAppend(errs, "failed to update directoryd mapping of user plane teid To HwID %+v %v", sessionIDToIMSI, err)
 	}
 
-	// multiError will only be nil if both updates succeeded
-	return stateErrors, multiError.AsError()
+	// errs will only be nil if both updates succeeded
+	return stateErrors, errs.ErrorOrNil()
 }
 
 // unsetSecondaryStates removes {sessionID -> IMSI} and {TEID -> HWID} mappings
 func unsetSecondaryStates(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
 	sessionIDToIMSI, cTeidToHwId, uTeidToHwId, stateErrors := getMappings(states)
-	multiError := merrors.NewMulti()
+	errs := &multierror.Error{}
 
 	err := unsetTeids(ctx, controlPlaneTeid, networkID, cTeidToHwId)
-	multiError = multiError.Add(err)
-
+	errs = multierror.Append(errs, err)
 	err = unsetTeids(ctx, userPlaneTeid, networkID, uTeidToHwId)
-	multiError = multiError.Add(err)
-
+	errs = multierror.Append(errs, err)
 	err = unsetSessionIDs(ctx, networkID, sessionIDToIMSI)
-	multiError = multiError.Add(err)
-
-	return stateErrors, multiError.AsError()
+	errs = multierror.Append(errs, err)
+	return stateErrors, errs.ErrorOrNil()
 }
 
 // unsetTeids removes teidType {TEID -> TEID} mappings
@@ -278,4 +275,12 @@ func getTeidToHwIdPair(tType teidType, record *directoryd_types.DirectoryRecord)
 		err = fmt.Errorf("getTeidToHwIdPair: TeidType not found")
 	}
 	return teids, hwid, err
+}
+
+// errsAppend concatenates message, sessionIDToIMSI and err into a new error message and appends to errs
+func errsAppend(errs *multierror.Error, message string, sessionIDToIMSI map[string]string, err error) *multierror.Error {
+	if err != nil {
+		errs = multierror.Append(errs, fmt.Errorf(message, sessionIDToIMSI, err))
+	}
+	return errs
 }

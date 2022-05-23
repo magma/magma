@@ -13,17 +13,17 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "consts",
-    hdrs = ["Consts.h"],
+    hdrs = ["Consts.hpp"],
 )
 
 cc_library(
     name = "matchers",
-    hdrs = ["Matchers.h"],
+    hdrs = ["Matchers.hpp"],
 )
 
 cc_library(
     name = "sessiond_mocks",
-    hdrs = ["SessiondMocks.h"],
+    hdrs = ["SessiondMocks.hpp"],
     deps = [
         "//lte/gateway/c/session_manager:local_session_manager_handler",
         "//lte/gateway/c/session_manager:upf_msg_manage_handler",
@@ -32,13 +32,13 @@ cc_library(
 
 cc_library(
     name = "session_state_tester",
-    hdrs = ["SessionStateTester.h"],
+    hdrs = ["SessionStateTester.hpp"],
 )
 
 cc_library(
     name = "protobuf_creators",
     srcs = ["ProtobufCreators.cpp"],
-    hdrs = ["ProtobufCreators.h"],
+    hdrs = ["ProtobufCreators.hpp"],
     deps = [
         ":consts",
         "//lte/gateway/c/session_manager:diameter_codes",

@@ -200,7 +200,7 @@ func (c *certifierBlobstore) GetUser(username string) (*protos.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 func (c *certifierBlobstore) PutUser(username string, user *protos.User) error {
@@ -255,7 +255,7 @@ func (c *certifierBlobstore) GetPolicy(token string) (*protos.PolicyList, error)
 	if err != nil {
 		return nil, err
 	}
-	return &policy, nil
+	return policy, nil
 
 }
 

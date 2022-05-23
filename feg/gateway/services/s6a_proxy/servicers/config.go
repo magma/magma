@@ -80,7 +80,7 @@ func GetS6aProxyConfigs() *S6aProxyConfig {
 		}
 	}
 
-	log.Printf("Loaded %s configs: %+v", S6aProxyServiceName, *configsPtr)
+	log.Printf("Loaded %s configs: %+v", S6aProxyServiceName, configsPtr)
 
 	return &S6aProxyConfig{
 		ClientCfg: &diameter.DiameterClientConfig{

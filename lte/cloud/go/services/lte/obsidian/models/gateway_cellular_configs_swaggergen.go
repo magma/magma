@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayCellularConfigs Cellular configuration for LTE gateway
+//
 // swagger:model gateway_cellular_configs
 type GatewayCellularConfigs struct {
 
@@ -80,7 +82,6 @@ func (m *GatewayCellularConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *GatewayCellularConfigs) validateDNS(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.DNS) { // not required
 		return nil
 	}
@@ -89,6 +90,8 @@ func (m *GatewayCellularConfigs) validateDNS(formats strfmt.Registry) error {
 		if err := m.DNS.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("dns")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("dns")
 			}
 			return err
 		}
@@ -107,6 +110,8 @@ func (m *GatewayCellularConfigs) validateEpc(formats strfmt.Registry) error {
 		if err := m.Epc.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("epc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("epc")
 			}
 			return err
 		}
@@ -116,7 +121,6 @@ func (m *GatewayCellularConfigs) validateEpc(formats strfmt.Registry) error {
 }
 
 func (m *GatewayCellularConfigs) validateHeConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HeConfig) { // not required
 		return nil
 	}
@@ -125,6 +129,8 @@ func (m *GatewayCellularConfigs) validateHeConfig(formats strfmt.Registry) error
 		if err := m.HeConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("he_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("he_config")
 			}
 			return err
 		}
@@ -134,7 +140,6 @@ func (m *GatewayCellularConfigs) validateHeConfig(formats strfmt.Registry) error
 }
 
 func (m *GatewayCellularConfigs) validateNgc(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Ngc) { // not required
 		return nil
 	}
@@ -143,6 +148,8 @@ func (m *GatewayCellularConfigs) validateNgc(formats strfmt.Registry) error {
 		if err := m.Ngc.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ngc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ngc")
 			}
 			return err
 		}
@@ -152,7 +159,6 @@ func (m *GatewayCellularConfigs) validateNgc(formats strfmt.Registry) error {
 }
 
 func (m *GatewayCellularConfigs) validateNonEpsService(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.NonEpsService) { // not required
 		return nil
 	}
@@ -161,6 +167,8 @@ func (m *GatewayCellularConfigs) validateNonEpsService(formats strfmt.Registry) 
 		if err := m.NonEpsService.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("non_eps_service")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("non_eps_service")
 			}
 			return err
 		}
@@ -170,7 +178,6 @@ func (m *GatewayCellularConfigs) validateNonEpsService(formats strfmt.Registry) 
 }
 
 func (m *GatewayCellularConfigs) validatePooling(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Pooling) { // not required
 		return nil
 	}
@@ -178,6 +185,8 @@ func (m *GatewayCellularConfigs) validatePooling(formats strfmt.Registry) error 
 	if err := m.Pooling.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("pooling")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("pooling")
 		}
 		return err
 	}
@@ -195,6 +204,156 @@ func (m *GatewayCellularConfigs) validateRan(formats strfmt.Registry) error {
 		if err := m.Ran.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("ran")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ran")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this gateway cellular configs based on the context it is used
+func (m *GatewayCellularConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateDNS(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateEpc(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateHeConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateNgc(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateNonEpsService(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidatePooling(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateRan(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidateDNS(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.DNS != nil {
+		if err := m.DNS.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("dns")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("dns")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidateEpc(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Epc != nil {
+		if err := m.Epc.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("epc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("epc")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidateHeConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.HeConfig != nil {
+		if err := m.HeConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("he_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("he_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidateNgc(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Ngc != nil {
+		if err := m.Ngc.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ngc")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ngc")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidateNonEpsService(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.NonEpsService != nil {
+		if err := m.NonEpsService.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("non_eps_service")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("non_eps_service")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidatePooling(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Pooling.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("pooling")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("pooling")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) contextValidateRan(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Ran != nil {
+		if err := m.Ran.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ran")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("ran")
 			}
 			return err
 		}

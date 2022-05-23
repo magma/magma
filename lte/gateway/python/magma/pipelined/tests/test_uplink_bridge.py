@@ -12,7 +12,6 @@ limitations under the License.
 """
 import logging
 import subprocess
-import threading
 import unittest
 import warnings
 from concurrent.futures import Future
@@ -184,9 +183,6 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
             cls.VLAN_DEV_OUT, "71",
         )
 
-        # dummy uplink interface
-        vlan = "10"
-
         BridgeTools.create_internal_iface(
             cls.UPLINK_BRIDGE,
             cls.UPLINK_DHCP, None,
@@ -212,7 +208,6 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.UPLINK_BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        cls = self.__class__
         assert_bridge_snapshot_match(
             self, self.UPLINK_BRIDGE, self.service_manager,
             include_stats=False,
@@ -301,8 +296,6 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
             cls.VLAN_DEV_OUT, "71",
         )
 
-        # validate vlan id set
-        vlan = "10"
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
 
         BridgeTools.create_internal_iface(
@@ -330,7 +323,6 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.UPLINK_BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        cls = self.__class__
         assert_bridge_snapshot_match(
             self, self.UPLINK_BRIDGE, self.service_manager,
             include_stats=False,

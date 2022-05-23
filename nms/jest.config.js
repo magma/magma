@@ -15,46 +15,33 @@
 
 module.exports = {
   collectCoverageFrom: [
-    '**/packages/**/*.js',
+    '**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
     '!**/node_modules/**',
   ],
-
   coverageReporters: ['json', 'html'],
-  modulePathIgnorePatterns: [],
   projects: [
     {
       name: 'server',
       testEnvironment: 'node',
       testMatch: [
-        '<rootDir>/__tests__/*.js',
-        '<rootDir>/packages/**/server/**/__tests__/*.js',
+        '<rootDir>/server/**/__tests__/*.js',
+        '<rootDir>/shared/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
     },
     {
-      moduleNameMapper: {
-        '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-          '<rootDir>/__mocks__/fileMock.js',
-        '\\.(css|less)$': 'identity-obj-proxy',
-      },
       name: 'app',
-      setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
       testEnvironment: 'jsdom',
-      testMatch: [
-        '<rootDir>/packages/**/app/**/__tests__/*.js',
-        '<rootDir>/packages/**/fbc_js_core/**/__tests__/*.js',
-      ],
+      testMatch: ['<rootDir>/app/**/__tests__/*.js'],
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
+      setupFilesAfterEnv: ['./jest.setup.app.js'],
     },
   ],
   testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['/node_modules/'],
 };

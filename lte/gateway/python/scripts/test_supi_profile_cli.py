@@ -22,12 +22,10 @@ from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.crypto.EC import ECDH_SECP256R1, X25519
 from orc8r.protos.common_pb2 import Void
 
-home_network_key_pair = NamedTuple(
-    'home_network_key_pair', [
-        ('home_network_public_key', bytes),
-        ('home_network_private_key', bytes),
-    ],
-)
+
+class home_network_key_pair(NamedTuple):
+    home_network_public_key: bytes
+    home_network_private_key: bytes
 
 
 class HomeNetworkKeyPairGen(object):

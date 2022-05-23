@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
+from freezegun import freeze_time
 from magma.db_service.models import DBCbsd, DBCbsdState
 from magma.db_service.tests.local_db_test_case import LocalDBTestCase
 from magma.fluentd_client.client import DPLog
@@ -26,8 +27,10 @@ HEARTBEAT_REQUEST = 'heartbeatRequest'
 SOME_SERIAL_NUMBER = 'some_serial_number'
 SOME_NETWORK_ID = 'some_network_id'
 CBSD_REGISTER = 'CBSDRegister'
+SOME_DATE = '2020-05-20T00:00:00+00:00'
 
 
+@freeze_time(SOME_DATE)
 class DPLogsTestCase(LocalDBTestCase):
 
     def setUp(self):
@@ -35,6 +38,7 @@ class DPLogsTestCase(LocalDBTestCase):
         cbsd_state = DBCbsdState(name='some_cbsd_state')
         cbsd = DBCbsd(
             state=cbsd_state,
+            desired_state=cbsd_state,
             fcc_id=SOME_FCC_ID,
             cbsd_serial_number=SOME_SERIAL_NUMBER,
             network_id=SOME_NETWORK_ID,
@@ -66,6 +70,7 @@ class DPLogsTestCase(LocalDBTestCase):
 
         # Then
         expected_log = DPLog(
+            event_timestamp=SOME_DATE,
             cbsd_serial_number=serial_num,
             fcc_id=fcc_id,
             log_from=CBSD,
@@ -106,6 +111,7 @@ class DPLogsTestCase(LocalDBTestCase):
 
         # Then
         expected_log = DPLog(
+            event_timestamp=SOME_DATE,
             cbsd_serial_number=SOME_SERIAL_NUMBER,
             fcc_id=fcc_id,
             log_from=DP,

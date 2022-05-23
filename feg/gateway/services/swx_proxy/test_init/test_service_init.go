@@ -35,7 +35,7 @@ func StartTestService(t *testing.T) (*service.Service, error) {
 
 func StartTestServiceWithCache(t *testing.T, cache *cache.Impl) (*service.Service, error) {
 	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
-	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	srv, lis, _ := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 
 	// Note we get only get index 0
 	config := servicers.GetSwxProxyConfig()[0]
@@ -51,7 +51,7 @@ func StartTestServiceWithCache(t *testing.T, cache *cache.Impl) (*service.Servic
 		return nil, err
 	}
 	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 	return srv, nil
 }
 

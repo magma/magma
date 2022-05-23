@@ -18,7 +18,7 @@ import textwrap
 
 from magma.common.rpc_utils import grpc_wrapper
 from orc8r.protos import common_pb2
-from orc8r.protos.ctraced_pb2 import EndTraceRequest, StartTraceRequest
+from orc8r.protos.ctraced_pb2 import StartTraceRequest
 from orc8r.protos.ctraced_pb2_grpc import CallTraceServiceStub
 
 

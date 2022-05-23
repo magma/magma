@@ -13,15 +13,17 @@ limitations under the License.
 """
 
 import argparse
+import os
 import sys
 import textwrap
+import time
 from typing import List
 
 import checkin_cli
 import snowflake
 from magma.common.cert_utils import load_public_key_to_base64der
 from magma.common.service_registry import ServiceRegistry
-from magma.configuration.service_configs import save_override_config
+from magma.magmad.bootstrap_manager import BootstrapManager
 from orc8r.protos.bootstrapper_pb2 import (
     ChallengeKey,
     RegisterRequest,
@@ -29,6 +31,9 @@ from orc8r.protos.bootstrapper_pb2 import (
 )
 from orc8r.protos.bootstrapper_pb2_grpc import RegistrationStub
 from orc8r.protos.identity_pb2 import AccessGatewayID
+
+CONFIG_OVERRIDE_DIR = '/var/opt/magma/configs'
+CONTROL_PROXY = 'control_proxy.yml'
 
 
 def register_handler(client: RegistrationStub, args: List[str]) -> RegisterResponse:
@@ -57,6 +62,13 @@ def register_handler(client: RegistrationStub, args: List[str]) -> RegisterRespo
         raise Exception(res.error)
 
     return req, res
+
+
+def save_control_proxy(control_proxy: str):
+    os.makedirs(CONFIG_OVERRIDE_DIR, exist_ok=True)
+    control_proxy_path = os.path.join(CONFIG_OVERRIDE_DIR, CONTROL_PROXY)
+    with open(control_proxy_path, 'w', encoding='utf-8') as f:
+        f.write(control_proxy)
 
 
 def main():
@@ -90,12 +102,14 @@ def main():
         help="disables writing the control proxy file",
     )
     args = parser.parse_args()
+
     chan = ServiceRegistry.get_bare_bootstrap_rpc_channel(
         args.domain,
         '8444' if not args.cloud_port else args.cloud_port,
         args.ca_file,
     )
     client = RegistrationStub(chan)
+
     try:
         req, res = register_handler(client, args)
         msg = textwrap.dedent(
@@ -107,22 +121,34 @@ def main():
             Challenge Key
             -----------
             {}
-            Control Proxy
-            -----------
-            {}
             """,
         )
         print(msg.format(req.hwid, req.challenge_key, res.control_proxy))
+        if not args.no_control_proxy:
+            save_control_proxy("control_proxy", res.control_proxy)
+            msg = textwrap.dedent(
+                """
+                Control Proxy
+                -----------
+                {}
+                """,
+            )
+            print(msg.format(res.control_proxy))
     except Exception as e:
         msg = textwrap.dedent(" > Error: {} ")
         print(msg.format(e))
         sys.exit(1)
 
-    if not args.no_control_proxy:
-        save_override_config("control_proxy", res.control_proxy)
+    print(
+        "> Waiting {} seconds for next bootstrap".format(
+            BootstrapManager.LONG_BOOTSTRAP_RETRY_INTERVAL.total_seconds(),
+        ),
+    )
+    time.sleep(BootstrapManager.LONG_BOOTSTRAP_RETRY_INTERVAL.total_seconds())
+
+    print("> Running checkin_cli")
+    checkin_cli.main()
 
 
 if __name__ == "__main__":
     main()
-    print("> Running checkin_cli")
-    checkin_cli.main()

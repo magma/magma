@@ -13,12 +13,15 @@
 
 #pragma once
 
-#include "lte/gateway/c/sctpd/src/sctp_connection.hpp"
+#include <stdint.h>
+#include <string>
 
+#include "lte/gateway/c/sctpd/src/sctp_connection.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
 
 namespace magma {
 namespace sctpd {
+class SctpdUplinkClient;
 
 // Sctp handler that relays events to MME/AMF over GRPC
 class SctpdEventHandler : public SctpEventHandler {

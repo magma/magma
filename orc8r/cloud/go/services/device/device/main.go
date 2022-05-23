@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to instantiate the device servicer: %v", deviceServicer)
 	}
-	protos.RegisterDeviceServer(srv.GrpcServer, deviceServicer)
+	protos.RegisterDeviceServer(srv.ProtectedGrpcServer, deviceServicer)
 
 	err = srv.Run()
 	if err != nil {

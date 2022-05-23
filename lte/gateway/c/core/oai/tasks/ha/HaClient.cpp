@@ -16,7 +16,7 @@ limitations under the License.
 #include <utility>
 
 #include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
-#include "orc8r/gateway/c/common/service_registry/includes/ServiceRegistrySingleton.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/protos/ha_orc8r.pb.h"
 
 namespace magma {

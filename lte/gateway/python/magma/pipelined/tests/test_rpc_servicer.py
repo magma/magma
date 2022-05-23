@@ -12,10 +12,8 @@ limitations under the License.
 """
 
 import unittest
-from unittest import mock
-from unittest.mock import ANY, MagicMock
+from unittest.mock import MagicMock
 
-import fakeredis
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
@@ -27,9 +25,7 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
-from magma.pipelined.rule_mappers import SessionRuleToVersionMapper
 
 
 class RPCServicerTest(unittest.TestCase):
@@ -52,7 +48,9 @@ class RPCServicerTest(unittest.TestCase):
         self._vlan_learn_app = MagicMock()
         self._tunnel_learn_app = MagicMock()
         self._classifier_app = MagicMock()
-        self._inout_app = MagicMock()
+        self._ingress_app = MagicMock()
+        self._middle_app = MagicMock()
+        self._egress_app = MagicMock()
         self._ng_servicer_app = MagicMock()
         self._service_config = MagicMock()
         self._service_manager = MagicMock()
@@ -77,7 +75,9 @@ class RPCServicerTest(unittest.TestCase):
             self._vlan_learn_app,
             self._tunnel_learn_app,
             self._classifier_app,
-            self._inout_app,
+            self._ingress_app,
+            self._middle_app,
+            self._egress_app,
             self._ng_servicer_app,
             self._service_config,
             self._service_manager,

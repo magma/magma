@@ -65,7 +65,7 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
-#include "orc8r/gateway/c/common/service303/includes/MetricsHelpers.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;

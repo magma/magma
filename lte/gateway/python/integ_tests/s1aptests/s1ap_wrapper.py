@@ -22,6 +22,7 @@ from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import (
+    HSSGrpc,
     SubscriberDbCassandra,
     SubscriberDbGrpc,
 )
@@ -53,21 +54,26 @@ class TestWrapper(object):
     # IP address pool
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
-    IS_TEST_RUNNING_FIRST_TIME = True
+    TEST_CASE_EXECUTION_COUNT = 0
 
     def __init__(
         self,
         stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
         health_service=MagmadUtil.health_service_cmds.DISABLE,
+        federated_mode=False,
     ):
         """
         Initialize the various classes required by the tests and setup.
         """
-        if not TestWrapper.IS_TEST_RUNNING_FIRST_TIME:
+        if TestWrapper.TEST_CASE_EXECUTION_COUNT != 0:
             print("\n**Running the test case again to identify flaky behavior")
+        TestWrapper.TEST_CASE_EXECUTION_COUNT += 1
+        print(
+            "Test Case Execution Count:",
+            TestWrapper.TEST_CASE_EXECUTION_COUNT,
+        )
 
-        TestWrapper.IS_TEST_RUNNING_FIRST_TIME = False
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         print("Start time", current_time)
@@ -77,6 +83,9 @@ class TestWrapper(object):
         if self._test_oai_upstream:
             subscriber_client = SubscriberDbCassandra()
             self.wait_gateway_healthy = False
+        elif federated_mode:
+            subscriber_client = HSSGrpc()
+            self.wait_gateway_healthy = True
         else:
             subscriber_client = SubscriberDbGrpc()
             self.wait_gateway_healthy = True

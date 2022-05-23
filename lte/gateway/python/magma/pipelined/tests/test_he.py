@@ -542,8 +542,6 @@ class EnforcementTableHeTest(unittest.TestCase):
         Add policy to subscriber with HE config
 
         """
-        cls = self.__class__
-
         fake_controller_setup(self.enforcement_controller)
 
         imsi = 'IMSI010000000088888'

@@ -29,13 +29,17 @@ type Query struct {
 	arg        *arg
 	join       []*Query
 	pagination *pagination
+	parent     *Query
 }
 
 type arg struct {
+	alias    string
 	model    Model
+	metadata *ModelMetadata
 	mask     FieldMask
 	nullable bool
 	filter   sq.Sqlizer
+	on       sq.Sqlizer
 }
 
 func (q *Query) WithBuilder(builder sq.StatementBuilderType) *Query {
@@ -50,6 +54,12 @@ func (q *Query) Select(mask FieldMask) *Query {
 
 func (q *Query) From(model Model) *Query {
 	q.arg.model = model
+	q.arg.metadata = model.GetMetadata()
+	return q
+}
+
+func (q *Query) As(alias string) *Query {
+	q.arg.alias = alias
 	return q
 }
 
@@ -58,7 +68,13 @@ func (q *Query) Where(filter sq.Sqlizer) *Query {
 	return q
 }
 
+func (q *Query) On(cond sq.Sqlizer) *Query {
+	q.arg.on = cond
+	return q
+}
+
 func (q *Query) Join(other *Query) *Query {
+	other.parent = q
 	q.join = append(q.join, other)
 	return q
 }

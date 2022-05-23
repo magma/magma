@@ -18,3 +18,6 @@ else
     # Fetch build cache
     wget -qO- https://magma-cache.s3.amazonaws.com/bazel-cache-devcontainer.tar.gz | tar xvfz -
 fi
+
+echo "Generating compile_commands.json for C/C++ code navigation"
+"$1"/dev_tools/gen_compilation_database.py

@@ -12,8 +12,10 @@
  */
 #pragma once
 
-#include <string>
+#include <openssl/ossl_typ.h>
 #include <openssl/ssl.h>
+#include <stdint.h>
+#include <string>
 
 namespace magma {
 namespace lte {
@@ -35,7 +37,7 @@ class ProxyConnectorImpl : public ProxyConnector {
    * setup_proxy_socket instantiate ssl library and opens a tls connection
    * @return return positif integer if it successeds.
    */
-  int setup_proxy_socket();
+  int setup_proxy_socket() override;
 
   /**
    * export_record exports the x3 record over tls to a remote server.
@@ -43,13 +45,13 @@ class ProxyConnectorImpl : public ProxyConnector {
    * @param size - x3 record length
    * @return return positif integer if sending data successeds.
    */
-  int send_data(void* data, uint32_t size);
+  int send_data(void* data, uint32_t size) override;
 
   /**
    * cleanup cleans up all allocated ressources in proxy connector
    * @return void
    */
-  void cleanup();
+  void cleanup() override;
 
   /**
    * performs cleanup if cleanup not explicitly called

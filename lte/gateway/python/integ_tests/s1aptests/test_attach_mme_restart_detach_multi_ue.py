@@ -47,7 +47,7 @@ class TestAttachMmeRestartDetachMultiUe(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         ue_ids = []
-        for i in range(num_ues):
+        for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             print(
                 "************************* Running End to End attach for ",

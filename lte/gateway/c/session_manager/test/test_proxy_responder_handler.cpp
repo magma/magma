@@ -11,26 +11,39 @@
  * limitations under the License.
  */
 
+#include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
-#include <glog/logging.h>
+#include <gmock/gmock.h>
+#include <grpcpp/impl/codegen/server_context.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-
+#include <lte/protos/abort_session.pb.h>
+#include <lte/protos/pipelined.pb.h>
+#include <lte/protos/session_manager.pb.h>
+#include <stdint.h>
+#include <iostream>
 #include <memory>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "Consts.h"
-#include "LocalEnforcer.h"
-#include "magma_logging.h"
-#include "includes/MagmaService.hpp"
-#include "Matchers.h"
-#include "ProtobufCreators.h"
-#include "RuleStore.h"
-#include "includes/ServiceRegistrySingleton.hpp"
-#include "SessiondMocks.h"
-#include "SessionID.h"
-#include "SessionProxyResponderHandler.h"
-#include "SessionState.h"
-#include "SessionStore.h"
-#include "StoredState.h"
+#include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
+#include "lte/gateway/c/session_manager/MeteringReporter.hpp"
+#include "lte/gateway/c/session_manager/RuleStore.hpp"
+#include "lte/gateway/c/session_manager/SessionID.hpp"
+#include "lte/gateway/c/session_manager/SessionProxyResponderHandler.hpp"
+#include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
+#include "lte/gateway/c/session_manager/ShardTracker.hpp"
+#include "lte/gateway/c/session_manager/StoreClient.hpp"
+#include "lte/gateway/c/session_manager/StoredState.hpp"
+#include "lte/gateway/c/session_manager/Types.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/Matchers.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 
 using ::testing::Test;
 
@@ -205,6 +218,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   //    a failure, then the entire PolicyReAuth will not save to the
   //    SessionStore properly
   auto request = get_policy_reauth_request();
+  request.set_session_id(SESSION_ID_1);
   grpc::ServerContext create_context;
   EXPECT_CALL(*pipelined_client, activate_flows_for_rules(IMSI1, _, _, _, _, _,
                                                           CheckRuleCount(1), _))

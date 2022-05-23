@@ -15,6 +15,8 @@ import (
 	"context"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	protected_servicers "magma/feg/cloud/go/services/health/servicers/protected"
+	servicers "magma/feg/cloud/go/services/health/servicers/southbound"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/blobstore"
@@ -23,8 +25,8 @@ import (
 
 // A little Go "polymorphism" magic for testing
 type TestHealthServer struct {
-	HealthServer      HealthServer
-	CloudHealthServer CloudHealthServer
+	HealthServer      servicers.HealthServer
+	CloudHealthServer protected_servicers.CloudHealthServer
 	Feg1              bool //boolean to simulate requests coming from more than 1 FeG
 }
 
@@ -46,17 +48,25 @@ func (srv *TestHealthServer) UpdateHealth(
 	return srv.HealthServer.UpdateHealth(ctx, req)
 }
 
+func (srv *TestHealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewayStatusRequest) (*fegprotos.HealthStats, error) {
+	return srv.CloudHealthServer.GetHealth(ctx, req)
+}
+
+func (srv *TestHealthServer) GetClusterState(ctx context.Context, req *fegprotos.ClusterStateRequest) (*fegprotos.ClusterState, error) {
+	return srv.CloudHealthServer.GetClusterState(ctx, req)
+}
+
 func NewTestHealthServer(mockFactory blobstore.StoreFactory) (*TestHealthServer, error) {
 	store, err := storage.NewHealthBlobstore(mockFactory)
 	if err != nil {
 		return nil, err
 	}
 	return &TestHealthServer{
-		HealthServer: HealthServer{
-			store: store,
+		HealthServer: servicers.HealthServer{
+			Store: store,
 		},
-		CloudHealthServer: CloudHealthServer{
-			store: store,
+		CloudHealthServer: protected_servicers.CloudHealthServer{
+			Store: store,
 		},
 		Feg1: true,
 	}, nil

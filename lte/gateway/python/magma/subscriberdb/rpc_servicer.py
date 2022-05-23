@@ -23,13 +23,11 @@ from magma.subscriberdb.store.base import (
     SubscriberNotFoundError,
 )
 
-suci_profile_data = NamedTuple(
-    'suci_profile_data', [
-        ('protection_scheme', int),
-        ('home_net_public_key', bytes),
-        ('home_net_private_key', bytes),
-    ],
-)
+
+class suci_profile_data(NamedTuple):
+    protection_scheme: int
+    home_net_public_key: bytes
+    home_net_private_key: bytes
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):

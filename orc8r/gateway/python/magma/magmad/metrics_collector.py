@@ -30,14 +30,13 @@ from orc8r.protos.metricsd_pb2_grpc import MetricsControllerStub
 from orc8r.protos.service303_pb2_grpc import Service303Stub
 from prometheus_client.parser import text_string_to_metric_families
 
+
 # ScrapeTarget Holds information required to scrape and process metrics from a
 # prometheus target
-ScrapeTarget = NamedTuple(
-    'ScrapeTarget', [
-        ('url', str), ('name', str),
-        ('interval', int),
-    ],
-)
+class ScrapeTarget(NamedTuple):
+    url: str
+    name: str
+    interval: int
 
 
 class MetricsCollector(object):

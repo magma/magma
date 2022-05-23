@@ -31,7 +31,7 @@ func GetCertifierBlobstore(t *testing.T) storage.CertifierStorage {
 
 func CreateTestUser(t *testing.T, store storage.CertifierStorage, username string, password string, policies []*certprotos.Policy) string {
 	user, token := createTestUser(t, username, password)
-	err := store.PutUser(username, &user)
+	err := store.PutUser(username, user)
 	assert.NoError(t, err)
 	policyList := certprotos.PolicyList{
 		Token:    token,
@@ -42,7 +42,7 @@ func CreateTestUser(t *testing.T, store storage.CertifierStorage, username strin
 	return token
 }
 
-func createTestUser(t *testing.T, username string, password string) (certprotos.User, string) {
+func createTestUser(t *testing.T, username string, password string) (*certprotos.User, string) {
 	token, err := certifier.GenerateToken(certifier.Personal)
 	assert.NoError(t, err)
 	user := certprotos.User{
@@ -50,5 +50,5 @@ func createTestUser(t *testing.T, username string, password string) (certprotos.
 		Password: []byte(password),
 		Tokens:   &certprotos.TokenList{Tokens: []string{token}},
 	}
-	return user, token
+	return &user, token
 }

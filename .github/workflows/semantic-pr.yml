@@ -84,6 +84,7 @@ jobs:
             ctraced
             cwg
             deps
+            deps-dev
             directoryd
             dp
             eap
@@ -96,6 +97,7 @@ jobs:
             feg_hello
             feg_relay
             health
+            lte
             magmad
             mme
             mobilityd

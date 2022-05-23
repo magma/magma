@@ -13,14 +13,23 @@
 
 #pragma once
 
+#include <grpcpp/grpcpp.h>
+#include <lte/protos/sctpd.grpc.pb.h>
+#include <stdint.h>
 #include <memory>
 
-#include <grpcpp/grpcpp.h>
-
-#include <lte/protos/sctpd.grpc.pb.h>
+namespace grpc {
+class Channel;
+}  // namespace grpc
 
 namespace magma {
 namespace sctpd {
+class CloseAssocReq;
+class CloseAssocRes;
+class NewAssocReq;
+class NewAssocRes;
+class SendUlReq;
+class SendUlRes;
 
 using grpc::Channel;
 

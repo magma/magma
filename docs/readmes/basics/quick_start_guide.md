@@ -200,10 +200,10 @@ Magma provides an UI for configuring and monitoring the networks. To set up
 the NMS to talk to your local Orchestrator:
 
 ```bash
-HOST [magma]$ cd nms/packages/magmalte
-HOST [magma/nms/packages/magmalte] $ docker-compose build magmalte
-HOST [magma/nms/packages/magmalte] $ docker-compose up -d
-HOST [magma/nms/packages/magmalte] $ ./scripts/dev_setup.sh
+HOST [magma]$ cd nms
+HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+HOST [magma/nms] $ docker-compose up -d
+HOST [magma/nms] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting
@@ -212,7 +212,7 @@ and password `password1234`. We recommend Firefox or Chrome. If you see Gateway 
 NMS can take upto 60 seconds to finish starting up.
 
 You will probably want to enable this organization (magma-test) to access all networks,
-so go to [master.localhost](https://master.localhost) and login with the same credentials.
+so go to [host.localhost](https://host.localhost) and login with the same credentials.
 Once there, you can click on the "Organizations" tab on the left sidebar, choose
 `magma-test`, and then check "Enable all networks" in the subsequent pop-up window.
 

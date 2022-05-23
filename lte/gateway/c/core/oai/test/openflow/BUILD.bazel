@@ -22,6 +22,7 @@ cc_library(
 
 cc_test(
     name = "gtp_app_test",
+    size = "small",
     srcs = [
         "test_gtp_app.cpp",
     ],
@@ -35,6 +36,7 @@ cc_test(
 
 cc_test(
     name = "imsi_encoder_test",
+    size = "small",
     srcs = [
         "test_imsi_encoder.cpp",
     ],
@@ -46,6 +48,7 @@ cc_test(
 
 cc_test(
     name = "openflow_controller_test",
+    size = "small",
     srcs = [
         "test_openflow_controller.cpp",
     ],

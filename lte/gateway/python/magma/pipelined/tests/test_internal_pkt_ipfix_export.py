@@ -31,7 +31,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
-from nose.tools import nottest
 
 
 class InternalPktIpfixExportTest(unittest.TestCase):
@@ -167,8 +166,8 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             'base.ip.http.facebook', 'tbd',
         )
         self.ipfix_controller.add_ue_sample_flow(
-            imsi, "magma_is_awesome_msisdn",
-            "00:11:22:33:44:55", "apn_name123456789", 145,
+            imsi, "00:11:22:33:44:55", "apn_name123456789",
+            145, "magma_is_awesome_msisdn",
         )
 
         snapshot_verifier = SnapshotVerifier(

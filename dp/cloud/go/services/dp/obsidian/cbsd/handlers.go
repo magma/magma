@@ -31,6 +31,7 @@ import (
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/lib/go/merrors"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 )
 
@@ -39,8 +40,9 @@ const (
 	DpPath            = obsidian.V1Root + Dp
 	ManageNetworkPath = DpPath + obsidian.UrlSep + ":network_id"
 
-	ManageCbsdsPath = ManageNetworkPath + obsidian.UrlSep + "cbsds"
-	ManageCbsdPath  = ManageCbsdsPath + obsidian.UrlSep + ":cbsd_id"
+	ManageCbsdsPath    = ManageNetworkPath + obsidian.UrlSep + "cbsds"
+	ManageCbsdPath     = ManageCbsdsPath + obsidian.UrlSep + ":cbsd_id"
+	DeregisterCbsdPath = ManageCbsdPath + obsidian.UrlSep + "deregister"
 )
 
 const baseWrongValMsg = "'%s' is not a proper value for %s"
@@ -52,6 +54,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageCbsdPath, Methods: obsidian.GET, HandlerFunc: fetchCbsd},
 		{Path: ManageCbsdPath, Methods: obsidian.DELETE, HandlerFunc: deleteCbsd},
 		{Path: ManageCbsdPath, Methods: obsidian.PUT, HandlerFunc: updateCbsd},
+		{Path: DeregisterCbsdPath, Methods: obsidian.POST, HandlerFunc: deregisterCbsd},
 	}
 }
 
@@ -213,6 +216,32 @@ func updateCbsd(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func deregisterCbsd(c echo.Context) error {
+	networkId, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	cbsdId, nerr := getCbsdId(c)
+	if nerr != nil {
+		return nerr
+	}
+	id, err := strconv.Atoi(cbsdId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+	client, err := getCbsdManagerClient()
+	if err != nil {
+		return err
+	}
+	req := protos.DeregisterCbsdRequest{NetworkId: networkId, Id: int64(id)}
+	ctx := c.Request().Context()
+	_, ierr := client.DeregisterCbsd(ctx, &req)
+	if ierr != nil {
+		return getHttpError(ierr)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func GetCbsdFilter(c echo.Context) *protos.CbsdFilter {
 	return &protos.CbsdFilter{
 		SerialNumber: c.QueryParam("serial_number"),
@@ -268,7 +297,7 @@ func getCbsdManagerClient() (protos.CbsdManagementClient, error) {
 }
 
 func getConn() (*grpc.ClientConn, error) {
-	conn, err := registry.GetConnection(dp_service.ServiceName)
+	conn, err := registry.GetConnection(dp_service.ServiceName, lib_protos.ServiceType_SOUTHBOUND)
 	if err != nil {
 		initErr := merrors.NewInitError(err, dp_service.ServiceName)
 		glog.Error(initErr)

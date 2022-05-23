@@ -16,7 +16,6 @@ import unittest
 
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.ovs.rest_api import get_datapath
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, SpgwUtil
 
 
@@ -37,7 +36,6 @@ class TestAttachASR(unittest.TestCase):
         """ single UE """
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
-        datapath = get_datapath()
 
         req = self._s1ap_wrapper.ue_req
         print(

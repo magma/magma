@@ -32,7 +32,7 @@ func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream prot
 }
 
 func StartTestService(t *testing.T) {
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamer.ServiceName, nil, nil)
+	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamer.ServiceName, nil, nil)
 	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
-	go srv.RunTest(lis)
+	go srv.RunTest(lis, nil)
 }

@@ -36,6 +36,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/metricsd", "-run_echo_server
 ports:
   - name: grpc
     containerPort: 9084
+  - name: grpc-internal
+    containerPort: 9184
   - name: http
     containerPort: 10084
 livenessProbe:

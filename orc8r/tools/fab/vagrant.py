@@ -24,7 +24,7 @@ def __ensure_in_vagrant_dir():
     if not os.path.isfile(pwd + '/Vagrantfile'):
         # check if we are on a vagrant subdirectory
         with cd(pwd):
-            if not local('Vagrant validate', capture=True):
+            if not local('vagrant validate', capture=True):
                 print("Error: Vagrantfile not found")
                 exit(1)
     return

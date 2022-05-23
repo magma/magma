@@ -28,7 +28,8 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/servicers"
+	"magma/orc8r/cloud/go/services/metricsd/servicers/protected"
+	"magma/orc8r/cloud/go/services/metricsd/servicers/southbound"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -47,10 +48,13 @@ func main() {
 		glog.Fatalf("Error creating orc8r service for metricsd: %s", err)
 	}
 
-	controllerServicer := servicers.NewMetricsControllerServer()
+	cloudControllerServicer := protected.NewCloudMetricsControllerServer()
+	protos.RegisterCloudMetricsControllerServer(srv.ProtectedGrpcServer, cloudControllerServicer)
+
+	controllerServicer := southbound.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
-	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger_servicers.NewSpecServicerFromFile(metricsd.ServiceName))
+	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(metricsd.ServiceName))
 
 	// Initialize gatherers
 	additionalCollectors := []collection.MetricCollector{
@@ -62,7 +66,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error initializing MetricsGatherer: %s", err)
 	}
-	go controllerServicer.ConsumeCloudMetrics(metricsCh, service.MustGetHostname())
+	go cloudControllerServicer.ConsumeCloudMetrics(metricsCh, service.MustGetHostname())
 	gatherer.Run()
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers(srv.Config))
