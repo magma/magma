@@ -19,12 +19,12 @@ package service
 import (
 	"flag"
 	"fmt"
-	"github.com/pkg/errors"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
@@ -93,13 +93,6 @@ type Service struct {
 // service303 with the specified grpc server options.
 // It will not instantiate the service with the identity checking middleware.
 func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	return NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
-}
-
-// NewServiceWithOptionsImpl returns a new GRPC service implementing
-// service303 with the specified grpc server options. This will not instantiate
-// the service with the identity checking middleware.
-func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
