@@ -61,6 +61,7 @@ const (
             "_id":"2ds34f6w-43f5-2344-dsf4-kf9ekw9fke9w",
             "_score":1.0,
             "_source":{
+               "event_timestamp": "2022-01-14T10:23:49.871Z",
                "log_message":"some message1",
                "fcc_id":"some_fcc_id",
                "log_from":"SAS",
@@ -76,6 +77,7 @@ const (
             "_id":"2ds34f6w-43f5-2344-dsf4-kf9ekw9fke9w",
             "_score":1.0,
             "_source":{
+               "event_timestamp": "2022-01-14T10:23:49.871Z",
                "log_message":"some message2",
                "fcc_id":"some_fcc_id",
                "log_from":"SAS",
@@ -148,7 +150,7 @@ func (s *HandlersTestSuite) TestBoolQuery() {
    "must":[
       {
          "range":{
-            "@timestamp":{
+            "event_timestamp":{
                "from":null,
                "include_lower":true,
                "include_upper":true,
@@ -200,7 +202,7 @@ func (s *HandlersTestSuite) TestBoolQuery() {
    "must":[
       {
          "range":{
-            "@timestamp":{
+            "event_timestamp":{
                "from":100,
                "include_lower":true,
                "include_upper":true,
@@ -346,7 +348,7 @@ func (s *HandlersTestSuite) TestListLogs() {
    },
    "sort":[
       {
-         "@timestamp":{
+         "event_timestamp":{
             "order":"desc"
          }
       }
@@ -371,7 +373,7 @@ func (s *HandlersTestSuite) TestListLogs() {
    "size":4,
    "sort":[
       {
-         "@timestamp":{
+         "event_timestamp":{
             "order":"desc"
          }
       }
@@ -404,7 +406,7 @@ func (s *HandlersTestSuite) TestListLogs() {
          "must":[
             {
                "range":{
-                  "@timestamp":{
+                  "event_timestamp":{
                      "from":1642155829871,
                      "include_lower":true,
                      "include_upper":true,
@@ -460,7 +462,7 @@ func (s *HandlersTestSuite) TestListLogs() {
    "size":4,
    "sort":[
       {
-         "@timestamp":{
+         "event_timestamp":{
             "order":"desc"
          }
       }
