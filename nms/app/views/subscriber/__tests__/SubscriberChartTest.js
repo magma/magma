@@ -17,6 +17,7 @@
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';

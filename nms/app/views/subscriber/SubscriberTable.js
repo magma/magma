@@ -34,6 +34,7 @@ import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../../components/context/NetworkContext';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';

@@ -18,14 +18,17 @@ import Divider from '@material-ui/core/Divider';
 import MagmaV1API from '../../generated/WebClient';
 import MenuButton from './MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
+// $FlowFixMe migrated to typescript
 import NetworkContext from './context/NetworkContext';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
+// $FlowFixMe migrated to typescript
 import {LTE, coalesceNetworkType} from '../../shared/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate} from 'react-router-dom';
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../shared/types/network';
 
 const useStyles = makeStyles(_ => ({

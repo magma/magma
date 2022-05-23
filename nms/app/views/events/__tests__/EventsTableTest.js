@@ -17,6 +17,7 @@
 import EventsTable from '../EventsTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import defaultTheme from '../../../theme/default.js';

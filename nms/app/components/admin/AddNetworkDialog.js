@@ -31,8 +31,14 @@ import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
 import nullthrows from '../../../shared/util/nullthrows';
-import {AllNetworkTypes, XWFM} from '../../../shared/types/network';
-import {CWF, FEG, FEG_LTE} from '../../../shared/types/network';
+import {
+  AllNetworkTypes,
+  CWF,
+  FEG,
+  FEG_LTE,
+  XWFM,
+  // $FlowFixMe migrated to typescript
+} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

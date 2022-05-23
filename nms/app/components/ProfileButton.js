@@ -18,6 +18,7 @@ import AppContext from './context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+// $FlowFixMe migrated to typescript
 import NetworkContext from './context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import Popout from './Popout';

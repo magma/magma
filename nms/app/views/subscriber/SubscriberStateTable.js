@@ -27,6 +27,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+// $FlowFixMe migrated to typescript
 import NetworkContext from '../../components/context/NetworkContext';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';

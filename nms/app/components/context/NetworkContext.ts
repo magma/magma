@@ -10,15 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @format
  */
+'use strict';
 import React from 'react';
 
 export type NetworkContextType = {
-  networkId: string | null | undefined;
+  networkId: string | undefined | null;
   networkType?: string;
 };
 
-declare const Context: React.Context<NetworkContextType>;
-
-export default Context;
+export default React.createContext<NetworkContextType>({
+  networkId: null,
+});
