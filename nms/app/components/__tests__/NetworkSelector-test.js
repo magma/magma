@@ -38,7 +38,7 @@ const Wrapper = (props: {
   children: Node,
   isSuperUser: boolean,
 }) => {
-  global.CONFIG = {
+  window.CONFIG = {
     appData: {
       user: {
         isSuperUser: props.isSuperUser,

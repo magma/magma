@@ -59,7 +59,7 @@ describe.each`
   });
 
   it(`renders for ${path} path`, async () => {
-    global.CONFIG = {
+    window.CONFIG = {
       appData: {
         enabledFeatures: [],
         user: {

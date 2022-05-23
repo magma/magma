@@ -23,13 +23,14 @@ import {AppContextProvider} from '../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
+import {EmbeddedData} from '../../../../shared/types/embeddedData';
 
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 
-global.CONFIG = {
-  appData: {
+window.CONFIG = {
+  appData: ({
     enabledFeatures: [],
-  },
+  } as unknown) as EmbeddedData,
 };
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
@@ -39,11 +40,6 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
     </NetworkContext.Provider>
   </AppContextProvider>
 );
-
-interface TestCase {
-  default: string;
-  sections: Array<string>;
-}
 
 const testCases = {
   lte: {
