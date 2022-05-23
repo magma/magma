@@ -27,6 +27,7 @@ import DataGrid from '../../components/DataGrid';
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';

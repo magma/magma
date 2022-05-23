@@ -25,6 +25,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript

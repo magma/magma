@@ -21,6 +21,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import React from 'react';
 import ReactJson from 'react-json-view';

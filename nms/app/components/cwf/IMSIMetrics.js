@@ -16,6 +16,7 @@
 
 import type {MetricGraphConfig} from '../insights/Metrics';
 
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import Metrics from '../insights/Metrics';

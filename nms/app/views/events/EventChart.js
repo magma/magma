@@ -18,6 +18,7 @@ import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';

@@ -29,6 +29,7 @@ import Divider from '@material-ui/core/Divider';
 import DataGrid from '../../components/DataGrid';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';

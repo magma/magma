@@ -20,6 +20,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';

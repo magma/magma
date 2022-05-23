@@ -17,6 +17,7 @@ import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';

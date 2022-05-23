@@ -41,6 +41,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';

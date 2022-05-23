@@ -31,6 +31,7 @@ import {
   useParams,
 } from 'react-router-dom';
 
+// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 import {sortBy} from 'lodash';

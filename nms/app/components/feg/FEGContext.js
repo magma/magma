@@ -18,6 +18,7 @@ import * as React from 'react';
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';

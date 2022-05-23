@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 import React from 'react';
 

@@ -21,6 +21,7 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';

@@ -26,6 +26,7 @@ import type {
 
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import React, {useEffect, useState} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
