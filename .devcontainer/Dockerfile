@@ -77,9 +77,11 @@ RUN echo "Install general purpose packages" && \
 
 # Install golang 1.18
 WORKDIR /usr/local
-RUN curl https://artifactory.magmacore.org/artifactory/generic/go1.18.linux-amd64.tar.gz --remote-name --location && \
-    tar -xzf go1.18.linux-amd64.tar.gz && \
-    rm go1.18.linux-amd64.tar.gz
+ARG GOLANG_VERSION="1.18"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && rm ${GO_TARBALL}
 ENV PATH=$PATH:/usr/local/go/bin
 
 RUN echo "Install 3rd party dependencies" && \
