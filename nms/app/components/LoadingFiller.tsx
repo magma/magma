@@ -9,17 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import React from 'react';
+import {makeStyles} from '@material-ui/styles';
 
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = _theme => ({
+const useStyles = makeStyles({
   loadingContainer: {
     minHeight: 500,
     paddingTop: 200,
@@ -27,10 +23,13 @@ const styles = _theme => ({
   },
 });
 
-const LoadingFiller = ({classes}) => (
-  <div className={classes.loadingContainer}>
-    <CircularProgress size={50} />
-  </div>
-);
+const LoadingFiller = () => {
+  const classes = useStyles();
+  return (
+    <div className={classes.loadingContainer}>
+      <CircularProgress size={50} />
+    </div>
+  );
+};
 
-export default withStyles(styles)(LoadingFiller);
+export default LoadingFiller;

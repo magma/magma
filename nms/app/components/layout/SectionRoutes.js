@@ -18,6 +18,7 @@ import AccountSettings from '../AccountSettings';
 import Admin from '../admin/Admin';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import React, {useContext} from 'react';
 import useSections from './useSections';

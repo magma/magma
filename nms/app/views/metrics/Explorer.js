@@ -19,6 +19,7 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';

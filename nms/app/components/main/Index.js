@@ -37,6 +37,7 @@ import NetworkContext from '../context/NetworkContext';
 import SectionRoutes from '../layout/SectionRoutes';
 import {useEffect, useState} from 'react';
 
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';

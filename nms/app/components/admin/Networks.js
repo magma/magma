@@ -27,6 +27,7 @@ import EditNetworkDialog from './EditNetworkDialog';
 import EmptyState from '../EmptyState';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript

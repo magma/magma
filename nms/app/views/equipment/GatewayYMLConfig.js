@@ -19,6 +19,7 @@ import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import ListItemText from '@material-ui/core/ListItemText';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';

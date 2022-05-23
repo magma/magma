@@ -26,6 +26,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
 import OrganizationSummary from './OrganizationSummary';

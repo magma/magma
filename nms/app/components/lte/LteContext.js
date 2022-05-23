@@ -21,6 +21,7 @@ import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import MagmaV1API from '../../../generated/WebClient';

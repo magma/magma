@@ -16,6 +16,7 @@
 
 import React from 'react';
 
+// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 
 import {makeStyles} from '@material-ui/styles';

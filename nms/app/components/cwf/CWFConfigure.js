@@ -15,6 +15,7 @@
  */
 
 import Configure from '../network/Configure';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import PoliciesConfig from '../network/PoliciesConfig';

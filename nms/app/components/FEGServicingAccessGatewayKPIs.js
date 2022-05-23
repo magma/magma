@@ -16,6 +16,7 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
+// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
