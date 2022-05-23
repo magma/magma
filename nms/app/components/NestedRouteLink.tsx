@@ -10,8 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
@@ -27,23 +25,20 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  children: React.Node,
-  to: string,
-  className?: string,
+  children: React.ReactNode;
+  to: string;
+  className?: string;
 };
 
-function NestedRouteLink(props: Props, ref: React.Ref<*>) {
+export default function NestedRouteLink(props: Props) {
   const classes = useStyles();
   const {children, to, className: childClassName, ...childProps} = props;
   return (
     <Link
       {...childProps}
-      innerRef={ref}
       className={classNames(classes.link, childClassName)}
       to={to}>
       {children}
     </Link>
   );
 }
-
-export default React.forwardRef<Props, typeof NestedRouteLink>(NestedRouteLink);

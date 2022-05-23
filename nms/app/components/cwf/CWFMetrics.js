@@ -20,6 +20,7 @@ import AppContext from '../context/AppContext';
 import CWFNetworkMetrics from './CWFNetworkMetrics';
 import Grafana from '../Grafana';
 import IMSIMetrics from './IMSIMetrics';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';

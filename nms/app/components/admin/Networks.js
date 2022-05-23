@@ -29,6 +29,7 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React, {useCallback, useContext, useState} from 'react';

@@ -24,6 +24,7 @@ import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
 import ListIcon from '@material-ui/icons/ListAlt';
 import LogsList from '../../views/domain-proxy/LogsList';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';

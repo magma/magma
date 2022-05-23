@@ -24,6 +24,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
