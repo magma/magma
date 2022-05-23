@@ -24,6 +24,7 @@ import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import PolicyBaseNameDialog from './PolicyBaseNameDialog';
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';

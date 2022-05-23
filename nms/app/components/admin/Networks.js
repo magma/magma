@@ -27,6 +27,7 @@ import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import NoNetworksMessage from '../NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';

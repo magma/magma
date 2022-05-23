@@ -91,6 +91,7 @@
     "@types/express-http-proxy": "^1.5.1",
     "@types/express-session": "^1.15.6",
     "@types/jest": "^27.5.0",
+    "@types/lodash": "^4.14.182",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
     "autoprefixer": "^7.1.6",

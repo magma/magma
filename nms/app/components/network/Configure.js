@@ -17,6 +17,7 @@
 import type {ComponentType} from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
