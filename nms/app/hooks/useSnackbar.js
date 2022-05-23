@@ -16,6 +16,7 @@
 
 // https://github.com/iamhosseindhv/notistack/pull/17
 import * as React from 'react';
+// $FlowFixMe migrated to typescript
 import SnackbarItem from '../components/SnackbarItem';
 import {useCallback, useEffect, useState} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';

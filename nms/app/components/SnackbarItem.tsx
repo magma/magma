@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
@@ -25,9 +22,7 @@ import classNames from 'classnames';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useSnackbar} from 'notistack';
-import {withForwardRef} from './ForwardRef';
-import type {ForwardRef} from './ForwardRef';
-import type {Variants} from 'notistack';
+import type {VariantType} from 'notistack';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -100,12 +95,12 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  id: number | string,
-  message: string,
-  variant: Variants,
-} & ForwardRef;
+  id: number | string;
+  message: string;
+  variant: VariantType;
+};
 
-const IconVariants: {[Variants]: React.ComponentType<*>} = {
+const IconVariants: Record<VariantType, React.ComponentType<any>> = {
   error: ErrorIcon,
   success: CheckCircleIcon,
   warning: WarningIcon,
@@ -113,24 +108,28 @@ const IconVariants: {[Variants]: React.ComponentType<*>} = {
   info: InfoIcon,
 };
 
-const SnackbarItem = withForwardRef((props: Props) => {
-  const {id, message, variant, fwdRef} = props;
-  const classes = useStyles();
-  const {closeSnackbar} = useSnackbar();
-  const Icon = IconVariants[variant];
-  return (
-    <div className={classes.root} ref={fwdRef}>
-      <div className={classNames(classes.bar, classes[variant + 'Bar'])} />
-      <div className={classes.content}>
-        <Icon className={classNames(classes.icon, classes[variant + 'Icon'])} />
-        <Text className={classes.message}>{message}</Text>
-        <CloseIcon
-          className={classes.closeButton}
-          onClick={() => closeSnackbar(id)}
-        />
+const SnackbarItem = React.forwardRef<HTMLDivElement, Props>(
+  (props, fwdRef) => {
+    const {id, message, variant} = props;
+    const classes = useStyles();
+    const {closeSnackbar} = useSnackbar();
+    const Icon = IconVariants[variant];
+    return (
+      <div className={classes.root} ref={fwdRef}>
+        <div className={classNames(classes.bar, classes[`${variant}Bar`])} />
+        <div className={classes.content}>
+          <Icon
+            className={classNames(classes.icon, classes[`${variant}Icon`])}
+          />
+          <Text className={classes.message}>{message}</Text>
+          <CloseIcon
+            className={classes.closeButton}
+            onClick={() => closeSnackbar(id)}
+          />
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 export default SnackbarItem;
