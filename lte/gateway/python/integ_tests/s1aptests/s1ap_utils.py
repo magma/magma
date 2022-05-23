@@ -1221,11 +1221,11 @@ class MagmadUtil(object):
         self._set_agw_nat(True)
         self._validate_nated_datapath(ip_version)
         if ip_version == 4:
-          self.exec_command("sudo ip route del default via 192.168.129.42")
-          self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
-        else :
-          self.exec_command("sudo ip route del default via 3001::2")
-          self.exec_command("sudo ip route add default via 2020::10 dev eth0")
+            self.exec_command("sudo ip route del default via 192.168.129.42")
+            self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        else:
+            self.exec_command("sudo ip route del default via 3001::2")
+            self.exec_command("sudo ip route add default via 2020::10 dev eth0")
 
     def disable_nat(self, ip_version=4):
         """
@@ -1242,17 +1242,17 @@ class MagmadUtil(object):
                trf    3001::2           eth3
         """
         if ip_version == 4:
-          self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
-          self.exec_command(
-              "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
-          )
-          self.exec_command(
-              "sudo ip route add default via 192.168.129.42 dev uplink_br0",
-          )
-        else :
-          self.exec_command("sudo ip route del default via  2020::10 dev eth0")
-          self.exec_command("sudo ip addr replace 3001::10 dev uplink_br0")
-          self.exec_command("sudo ip route -A inet6 add default via 3001::2 dev uplink_br0")
+            self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
+            self.exec_command(
+                "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
+            )
+            self.exec_command(
+                "sudo ip route add default via 192.168.129.42 dev uplink_br0",
+            )
+        else:
+            self.exec_command("sudo ip route del default via  2020::10 dev eth0")
+            self.exec_command("sudo ip addr replace 3001::10 dev uplink_br0")
+            self.exec_command("sudo ip route -A inet6 add default via 3001::2 dev uplink_br0")
 
         self._set_agw_nat(False)
         self._validate_non_nat_datapath(ip_version)

@@ -24,8 +24,8 @@ import socketserver
 import subprocess
 import sys
 import threading
-import traceback
 import time
+import traceback
 
 import iperf3
 import pyroute2
@@ -529,9 +529,9 @@ class TrafficTestDriver(object):
         on the information of the instances '''
         ip = pyroute2.IPRoute()
         if version == 4:
-          intf = 'eth2'
+            intf = 'eth2'
         else:
-          intf = 'eth3'
+            intf = 'eth3'
         mac = ip.link('get', index=ip.link_lookup(ifname=intf)[0])[0] \
             .get_attr('IFLA_ADDRESS')
 
@@ -600,24 +600,24 @@ class TrafficTestDriver(object):
                 iperf = iperf3.Server()
                 ip_str = ipaddress.ip_address(instance.ip)
                 if ip_str.version == 4:
-                  print("Running ipv4")
-                  iperf.bind_address = self._trfserver_ipv4
+                    print("Running ipv4")
+                    iperf.bind_address = self._trfserver_ipv4
                 else:
-                  print("Running ipv6")
-                  iperf.bind_address = self._trfserver_ipv6
-                  os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' %(self._agw_ipv6, self._agw_ip_sub))
-                  os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' %(instance.ip.exploded, self._agw_ipv6))
+                    print("Running ipv6")
+                    iperf.bind_address = self._trfserver_ipv6
+                    os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' % (self._agw_ipv6, self._agw_ip_sub))
+                    os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' % (instance.ip.exploded, self._agw_ipv6))
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
                 ip_str = ipaddress.ip_address(instance.ip)
                 if ip_str.version == 4:
-                  iperf.bind_address = self._trfserver_ipv4
+                    iperf.bind_address = self._trfserver_ipv4
                 else:
-                  iperf.bind_address = self._trfserver_ipv6
-                  os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' % (self._agw_ipv6, self._agw_ip_sub))
-                  os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' %(instance.ip.exploded, self._agw_ipv6))
+                    iperf.bind_address = self._trfserver_ipv6
+                    os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' % (self._agw_ipv6, self._agw_ip_sub))
+                    os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' % (instance.ip.exploded, self._agw_ipv6))
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
@@ -646,8 +646,8 @@ class TrafficTestDriver(object):
         # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
         # addresses
         for iperf in self._iperfs:
-          ip_version = ipaddress.ip_address(iperf.bind_address).version
-          break
+            ip_version = ipaddress.ip_address(iperf.bind_address).version
+            break
         macs = self._get_macs(ip_version)
 
         # Reshape into argument tuples
