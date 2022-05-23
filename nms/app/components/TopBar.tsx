@@ -14,6 +14,7 @@ import SvgIcon from '@material-ui/core/SvgIcon';
 
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import NestedRouteLink from './NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
@@ -21,6 +22,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 
 import NetworkSelector from './NetworkSelector';
+// $FlowFixMe migrated to typescript
 import {GetCurrentTabPos} from './TabUtils';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../theme/default';
