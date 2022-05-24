@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SubscriberInfo} from './SubscriberUtils';
 import type {subscriber} from '../../../generated/MagmaAPIBindings';
 
@@ -41,6 +42,7 @@ import TypedSelect from '../../components/TypedSelect';
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from './SubscriberUtils';
 // $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
