@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+from typing import List, Optional
 
 import grpc
 from magma.common.service_registry import ServiceRegistry
@@ -88,7 +89,7 @@ def get_record(imsi: str, field: str) -> str:
     return None
 
 
-def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> [dict]:
+def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> Optional[List[dict]]:
     """
     Make RPC call to 'GetAllDirectoryRecords' method of local directoryD service
     """
