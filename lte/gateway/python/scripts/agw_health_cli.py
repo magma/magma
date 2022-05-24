@@ -16,7 +16,7 @@ import math
 import subprocess
 
 import fire
-from magma.health.health_service import AGWHealth
+from scripts.lte_health_service import AGWHealth
 from termcolor import colored
 
 

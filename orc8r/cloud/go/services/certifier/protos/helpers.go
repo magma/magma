@@ -1,10 +1,10 @@
 package protos
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
@@ -111,7 +111,7 @@ func convertTenantResourceIDs(ids []string) ([]int64, error) {
 	for _, i := range ids {
 		j, err := strconv.ParseInt(i, 10, 64)
 		if err != nil {
-			return []int64{}, errors.Wrapf(err, "failed to convert tenant IDs to integers")
+			return []int64{}, fmt.Errorf("failed to convert tenant IDs to integers: %w", err)
 		}
 		intIDs = append(intIDs, j)
 	}

@@ -15,8 +15,8 @@ package protected
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -82,6 +82,6 @@ func (srv *indexerServicer) validateReindexReq(req *indexer_protos.StartReindexR
 }
 
 func internalErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
+	e := fmt.Errorf(wrap+": %w", err)
 	return status.Error(codes.Internal, e.Error())
 }

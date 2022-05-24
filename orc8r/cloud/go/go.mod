@@ -45,7 +45,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/ory/go-acc v0.2.8
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/alertmanager v0.17.0
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/client_model v0.2.0
@@ -134,6 +133,7 @@ require (
 	github.com/ory/viper v1.7.5 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect

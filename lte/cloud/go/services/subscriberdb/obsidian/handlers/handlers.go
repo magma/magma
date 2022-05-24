@@ -15,6 +15,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -24,7 +25,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -467,7 +467,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to update profile"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update profile: %w", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -563,7 +563,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 	errs := &multierror.Error{}
 	for _, p := range nonDefaultProfiles {
 		if _, ok := networkProfiles[p]; !ok {
-			errs = multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))
+			errs = multierror.Append(errs, fmt.Errorf("subscriber profile '%s' does not exist for the network", p))
 		}
 	}
 	err = errs.ErrorOrNil()
@@ -618,7 +618,7 @@ func loadSubscribers(ctx context.Context, networkID string, includeSub subscribe
 	for _, key := range keys {
 		sub, err := loadSubscriber(ctx, networkID, key)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error loading subscriber %s", key)
+			return nil, fmt.Errorf("error loading subscriber %s: %w", key, err)
 		}
 		if includeSub(sub) {
 			subs[string(sub.ID)] = sub
@@ -694,7 +694,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	if len(uniqueIDs) != len(ids) {
 		duplicates := funk.FilterString(ids, func(s string) bool { return uniqueIDs[s] > 1 })
-		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
 	}
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
@@ -704,7 +704,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
 	if len(found) != 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
 	}
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)

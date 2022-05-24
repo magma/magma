@@ -19,21 +19,10 @@ class DomainProxyIntegrationTestCase(TestCase):
             f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
         )
         cls.dp_client = DPServiceStub(grpc_channel)
-        wait_for_elastic_to_start()
 
     @classmethod
     def tearDownClass(cls) -> None:
         _delete_dp_elasticsearch_indices()
-
-
-@retry(stop_max_attempt_number=30, wait_fixed=1000)
-def wait_for_elastic_to_start() -> None:
-    requests.get(f'{config.ELASTICSEARCH_URL}/_status')
-
-
-def when_elastic_indexes_data():
-    # TODO use retrying instead
-    sleep(15)
 
 
 def _delete_dp_elasticsearch_indices() -> None:

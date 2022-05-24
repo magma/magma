@@ -16,12 +16,12 @@ package blobstore
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -167,7 +167,7 @@ func (store *sqlStore) GetMany(networkID string, ids storage.TKs) (Blobs, error)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
+		return nil, fmt.Errorf("sql rows err: %w", err)
 	}
 	return blobs, nil
 }
@@ -207,7 +207,7 @@ func (store *sqlStore) Search(filter SearchFilter, criteria LoadCriteria) (map[s
 		RunWith(store.tx).
 		Query()
 	if err != nil {
-		return ret, errors.Wrap(err, "failed to query DB")
+		return ret, fmt.Errorf("failed to query DB: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "GetMany")
 
@@ -222,7 +222,7 @@ func (store *sqlStore) Search(filter SearchFilter, criteria LoadCriteria) (map[s
 
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			return ret, errors.Wrap(err, "failed to scan blob row")
+			return ret, fmt.Errorf("failed to scan blob row: %w", err)
 		}
 
 		nidCol := ret[nid]
@@ -231,7 +231,7 @@ func (store *sqlStore) Search(filter SearchFilter, criteria LoadCriteria) (map[s
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
+		return nil, fmt.Errorf("sql rows err: %w", err)
 	}
 	return ret, nil
 }
@@ -293,7 +293,7 @@ func (store *sqlStore) GetExistingKeys(keys []string, filter SearchFilter) ([]st
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
+		return nil, fmt.Errorf("sql rows err: %w", err)
 	}
 	return scannedKeys, nil
 }
@@ -330,7 +330,7 @@ func (store *sqlStore) IncrementVersion(networkID string, id storage.TK) error {
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return errors.Wrapf(err, "Error incrementing version on network %s with type %s and key %s", networkID, id.Type, id.Key)
+		return fmt.Errorf("Error incrementing version on network %s with type %s and key %s: %w", networkID, id.Type, id.Key, err)
 	}
 	return nil
 }
@@ -382,7 +382,7 @@ func (store *sqlStore) insertNewBlobs(networkID string, blobs Blobs) error {
 	}
 	_, err := insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return errors.Wrap(err, "error creating blobs")
+		return fmt.Errorf("error creating blobs: %w", err)
 	}
 	return nil
 }
