@@ -1,0 +1,10 @@
+domain: magma.cwf
+layout:
+- go.kubebuilder.io/v3
+multigroup: true
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: cwf-operator
+repo: magma/cwf/k8s/cwf-operator
+version: "3"
