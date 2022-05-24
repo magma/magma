@@ -50,7 +50,7 @@ these functions can be seen in pipelined/tests/test_*.py files
 """
 
 SubTest = namedtuple('SubTest', ['context', 'isolator', 'flowtest_list'])
-PktsToSend = namedtuple('PacketToSend', ['pkt', 'num'])
+PktsToSend = namedtuple('PktsToSend', ['pkt', 'num'])
 QueryMatch = namedtuple('QueryMatch', ['pkts', 'flow_count'])
 
 SNAPSHOT_DIR = 'snapshots/'

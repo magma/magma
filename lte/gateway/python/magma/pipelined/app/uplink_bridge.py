@@ -41,7 +41,7 @@ class UplinkBridgeController(MagmaController):
     DEFAULT_DEV_VLAN_OUT = 'vlan_pop_out'
     SGI_INGRESS_FLOW_UPDATE_FREQ = 60
 
-    UplinkConfig = namedtuple(
+    UplinkBridgeConfig = namedtuple(
         'UplinkBridgeConfig',
         [
             'uplink_bridge', 'uplink_eth_port_name', 'uplink_patch',
@@ -97,7 +97,7 @@ class UplinkBridgeController(MagmaController):
         sgi_management_iface_ipv6_gw = config_dict.get('sgi_management_iface_ipv6_gw', "")
         sgi_ip_monitoring = config_dict.get('sgi_ip_monitoring', True)
 
-        return self.UplinkConfig(
+        return self.UplinkBridgeConfig(
             enable_nat=enable_nat,
             uplink_bridge=bridge_name,
             uplink_eth_port_name=uplink_eth_port_name,
