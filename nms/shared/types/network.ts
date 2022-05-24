@@ -41,3 +41,5 @@ export function coalesceNetworkType(
   }
   return null;
 }
+
+export type NetworkId = string;

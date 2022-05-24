@@ -16,6 +16,7 @@
 
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+// $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../../components/context/FEGNetworkContext';
 import FEGNetworkInfo from './FEGNetworkInfo';
 import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
@@ -121,7 +122,7 @@ export function NetworkJsonConfig() {
       error={error}
       onSave={async fegNetwork => {
         try {
-          ctx.updateNetworks({networkId, fegNetwork});
+          await ctx.updateNetworks({networkId, fegNetwork});
           enqueueSnackbar('Network saved successfully', {
             variant: 'success',
           });

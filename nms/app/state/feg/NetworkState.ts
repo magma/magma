@@ -14,20 +14,16 @@
  * @format
  */
 
-import type {
-  feg_network,
-  network_id,
-  network_subscriber_config,
-} from '../../../generated/MagmaAPIBindings';
-
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
+import type {FegNetwork, NetworkSubscriberConfig} from '../../../generated-ts';
+import type {NetworkId} from '../../../shared/types/network';
 
 export type UpdateNetworkProps = {
-  networkId: network_id,
-  fegNetwork?: feg_network,
-  subscriberConfig?: network_subscriber_config,
-  setFegNetwork: feg_network => void,
-  refreshState: boolean,
+  networkId: NetworkId;
+  fegNetwork?: FegNetwork;
+  subscriberConfig?: NetworkSubscriberConfig;
+  setFegNetwork: (fn: FegNetwork) => void;
+  refreshState: boolean;
 };
 
 export async function UpdateNetworkState(props: UpdateNetworkProps) {
@@ -35,7 +31,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   const requests = [];
   if (props.fegNetwork) {
     requests.push(
-      await MagmaV1API.putFegByNetworkId({
+      await MagmaAPI.federationNetworks.fegNetworkIdPut({
         networkId: networkId,
         fegNetwork: {
           ...props.fegNetwork,
@@ -45,7 +41,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   }
   if (props.subscriberConfig) {
     requests.push(
-      await MagmaV1API.putFegByNetworkIdSubscriberConfig({
+      await MagmaAPI.federationNetworks.fegNetworkIdSubscriberConfigPut({
         networkId: props.networkId,
         record: props.subscriberConfig,
       }),
@@ -53,6 +49,8 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   }
   await Promise.all(requests);
   if (props.refreshState) {
-    setFegNetwork(await MagmaV1API.getFegByNetworkId({networkId}));
+    setFegNetwork(
+      (await MagmaAPI.federationNetworks.fegNetworkIdGet({networkId})).data,
+    );
   }
 }

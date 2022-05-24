@@ -16,6 +16,7 @@
 
 import * as React from 'react';
 import FEGGatewayContext from '../context/FEGGatewayContext';
+// $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
 // $FlowFixMe migrated to typescript
@@ -38,6 +39,7 @@ import {
   InitGatewayState,
   SetGatewayState,
 } from '../../state/feg/EquipmentState';
+// $FlowFixMe migrated to typescript
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
