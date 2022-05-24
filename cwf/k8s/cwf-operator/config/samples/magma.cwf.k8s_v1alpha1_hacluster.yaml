@@ -1,0 +1,6 @@
+apiVersion: magma.cwf.k8s.magma.cwf/v1alpha1
+kind: HACluster
+metadata:
+  name: hacluster-sample
+spec:
+  # TODO(user): Add fields here

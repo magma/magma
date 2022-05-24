@@ -1,0 +1,24 @@
+# permissions for end users to edit haclusters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hacluster-editor-role
+rules:
+- apiGroups:
+  - magma.cwf.k8s.magma.cwf
+  resources:
+  - haclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - magma.cwf.k8s.magma.cwf
+  resources:
+  - haclusters/status
+  verbs:
+  - get
