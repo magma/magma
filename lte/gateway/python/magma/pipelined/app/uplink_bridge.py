@@ -479,8 +479,9 @@ class UplinkBridgeController(MagmaController):
             ["pgrep", "-f", "^/sbin/dhclient.*" + if_name],
             stdout=subprocess.PIPE,
         )
-        for pid in pgrep_out.stdout.readlines():
-            subprocess.check_call(["kill", pid.strip()])
+        if pgrep_out.stdout is not None:
+            for pid in pgrep_out.stdout.readlines():
+                subprocess.check_call(["kill", pid.strip()])
 
     def _restart_dhclient(self, if_name: str, af_inet: int):
         if af_inet != netifaces.AF_INET:
