@@ -693,7 +693,7 @@ class SnapshotVerifier:
         )
 
 
-def get_ovsdb_port_tag(port_name: str) -> str:
+def get_ovsdb_port_tag(port_name: str) -> Optional[str]:
     dump1 = subprocess.Popen(
         ["ovsdb-client", "dump", "Port", "name", "tag"],
         stdout=subprocess.PIPE,
@@ -706,6 +706,7 @@ def get_ovsdb_port_tag(port_name: str) -> str:
             return tokens[1]
         except ValueError:
             pass
+    return None
 
 
 def get_iface_ipv4(iface: str) -> List[str]:
