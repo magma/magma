@@ -22,6 +22,7 @@ import EnodebContext from '../../../components/context/EnodebContext';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext from '../../../components/context/GatewayContext';
+// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -38,6 +39,7 @@ import defaultTheme from '../../../theme/default.js';
 import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe migrated to typescript
 import {UpdateNetworkState} from '../../../state/lte/NetworkState';
 import {fireEvent, render, wait} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

@@ -25,6 +25,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -35,6 +36,7 @@ import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+// $FlowFixMe migrated to typescript
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {

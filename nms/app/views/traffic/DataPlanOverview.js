@@ -22,6 +22,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataPlanEditDialog from './DataPlanEdit';
 import Link from '@material-ui/core/Link';
+// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
 import withAlert from '../../components/Alert/withAlert';
@@ -33,6 +34,7 @@ import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+// $FlowFixMe migrated to typescript
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {
