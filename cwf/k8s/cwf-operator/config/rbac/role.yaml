@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - magma.cwf.k8s.magma.cwf
+  resources:
+  - haclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - magma.cwf.k8s.magma.cwf
+  resources:
+  - haclusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - magma.cwf.k8s.magma.cwf
+  resources:
+  - haclusters/status
+  verbs:
+  - get
+  - patch
+  - update
