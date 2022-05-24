@@ -27,6 +27,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';

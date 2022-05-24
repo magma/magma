@@ -17,6 +17,7 @@
 import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';

@@ -26,6 +26,7 @@ import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 // $FlowFixMe migrated to typescript

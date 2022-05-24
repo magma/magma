@@ -27,6 +27,7 @@ import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';

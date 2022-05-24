@@ -25,6 +25,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import PolicyAppEdit from './PolicyApp';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyFlowsEdit from './PolicyFlows';
 import PolicyHeaderEnrichmentEdit from './PolicyHeaderEnrichment';
