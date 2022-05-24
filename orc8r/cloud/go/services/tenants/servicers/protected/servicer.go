@@ -124,6 +124,40 @@ func (s *tenantsServicer) CreateOrUpdateControlProxy(c context.Context, request 
 	return &tenant_protos.CreateOrUpdateControlProxyResponse{}, nil
 }
 
+func (s *tenantsServicer) GetControlProxyFromNetworkID(_ context.Context, request *tenant_protos.GetControlProxyFromNetworkIDRequest) (*tenant_protos.GetControlProxyResponse, error) {
+	tenantList, err := s.store.GetAllTenants()
+	if err != nil {
+		return nil, err
+	}
+
+	var tenantID int64
+	isTenantFound := false
+	tenantID, isTenantFound = findTenantFromNetworkID(tenantList, request)
+
+	if !isTenantFound {
+		return nil, status.Errorf(codes.NotFound, "tenantID for current NetworkID %v not found", request.GetNetworkID())
+	}
+
+	controlProxy, err := s.store.GetControlProxy(tenantID)
+
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "no control-proxy found for tenant %d", tenantID)
+	}
+
+	return &tenant_protos.GetControlProxyResponse{Id: tenantID, ControlProxy: controlProxy}, nil
+}
+
+func findTenantFromNetworkID(tenantList *tenant_protos.TenantList, request *tenant_protos.GetControlProxyFromNetworkIDRequest) (int64, bool) {
+	for _, t := range tenantList.GetTenants() {
+		for _, n := range t.Tenant.Networks {
+			if n == request.GetNetworkID() {
+				return t.Id, true
+			}
+		}
+	}
+	return 0, false
+}
+
 func mapErrForGet(err error, id int64, getType string) error {
 	switch {
 	case err == merrors.ErrNotFound:

@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/go-openapi/strfmt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
@@ -77,34 +75,13 @@ func RegisterDevice(deviceInfo *protos.GatewayDeviceInfo, hwid *protos.AccessGat
 }
 
 func GetControlProxy(networkID string) (string, error) {
-	// TODO(#10536) Move functionality to get control_proxy from networkID into tenants service
-	tenantList, err := tenants.GetAllTenants(context.Background())
+	controlProxy, err := tenants.GetControlProxyFromNetworkID(context.Background(), networkID)
 	if err != nil {
-		return "", err
+		clientErr := fmt.Errorf("could not get control-proxy from tenant with network ID %s: %w", networkID, err)
+		return "", clientErr
 	}
 
-	var tenantID int64
-	isTenantFound := false
-	for _, t := range tenantList.GetTenants() {
-		for _, n := range t.Tenant.Networks {
-			if n == networkID {
-				tenantID = t.Id
-				isTenantFound = true
-				break
-			}
-		}
-	}
-
-	if !isTenantFound {
-		return "", status.Errorf(codes.NotFound, "tenantID for current NetworkID %v not found", networkID)
-	}
-
-	cp, err := tenants.GetControlProxy(context.Background(), tenantID)
-	if err != nil {
-		return "", err
-	}
-
-	return cp.ControlProxy, nil
+	return controlProxy.GetControlProxy(), nil
 }
 
 // makeErr makes a protos.RegisterResponse_Error for protos.RegisterResponse
