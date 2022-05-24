@@ -1,4 +1,17 @@
-package builders_test
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package builders
 
 import (
 	"time"
@@ -241,6 +254,11 @@ func NewCbsdProtoPayloadBuilder() *CbsdProtoPayloadBuilder {
 
 func (b *CbsdProtoPayloadBuilder) Empty() *CbsdProtoPayloadBuilder {
 	b.Payload = &protos.CbsdData{}
+	return b
+}
+
+func (b *CbsdProtoPayloadBuilder) WithEmptyPreferences() *CbsdProtoPayloadBuilder {
+	b.Payload.Preferences = &protos.FrequencyPreferences{}
 	return b
 }
 
@@ -496,18 +514,98 @@ func NewMutableCbsdModelPayloadBuilder() *MutableCbsdModelBuilder {
 	}}
 }
 
+func (b *MutableCbsdModelBuilder) Empty() *MutableCbsdModelBuilder {
+	b.Payload = &models.MutableCbsd{}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithSerialNumber(serial string) *MutableCbsdModelBuilder {
+	b.Payload.SerialNumber = serial
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithFccId(id string) *MutableCbsdModelBuilder {
+	b.Payload.FccID = id
+	return b
+}
+
 func (b *MutableCbsdModelBuilder) WithEmptyInstallationParam() *MutableCbsdModelBuilder {
 	b.Payload.InstallationParam = &models.InstallationParam{}
 	return b
 }
 
+func (b *MutableCbsdModelBuilder) WithHeightType(heightType string) *MutableCbsdModelBuilder {
+	if b.Payload.InstallationParam == nil {
+		b.Payload.InstallationParam = &models.InstallationParam{}
+	}
+	b.Payload.InstallationParam.HeightType = to_pointer.String(heightType)
+	return b
+}
+
 func (b *MutableCbsdModelBuilder) WithAntennaGain(gain float64) *MutableCbsdModelBuilder {
+	if b.Payload.InstallationParam == nil {
+		b.Payload.InstallationParam = &models.InstallationParam{}
+	}
 	b.Payload.InstallationParam.AntennaGain = to_pointer.Float(gain)
 	return b
 }
 
-func (b *MutableCbsdModelBuilder) WithSingleStepEnabled() *MutableCbsdModelBuilder {
-	b.Payload.SingleStepEnabled = to_pointer.Bool(true)
+func (b *MutableCbsdModelBuilder) WithUserId(id string) *MutableCbsdModelBuilder {
+	b.Payload.UserID = id
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithFrequencies(frequencies []int64) *MutableCbsdModelBuilder {
+	b.Payload.FrequencyPreferences.FrequenciesMhz = frequencies
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithBandwidth(bandwidth int64) *MutableCbsdModelBuilder {
+	b.Payload.FrequencyPreferences.BandwidthMhz = bandwidth
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithNumberOfAntennas(number int64) *MutableCbsdModelBuilder {
+	b.Payload.Capabilities.NumberOfAntennas = number
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithSingleStepEnabled(enabled *bool) *MutableCbsdModelBuilder {
+	if enabled == nil {
+		b.Payload.SingleStepEnabled = nil
+	} else {
+		b.Payload.SingleStepEnabled = to_pointer.Bool(*enabled)
+	}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithIndoorDeployment(indoor *bool) *MutableCbsdModelBuilder {
+	if b.Payload.InstallationParam == nil {
+		b.Payload.InstallationParam = &models.InstallationParam{}
+	}
+	if indoor == nil {
+		b.Payload.InstallationParam.IndoorDeployment = nil
+	} else {
+		b.Payload.InstallationParam.IndoorDeployment = to_pointer.Bool(*indoor)
+	}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithMinPower(power *float64) *MutableCbsdModelBuilder {
+	if power == nil {
+		b.Payload.Capabilities.MinPower = nil
+	} else {
+		b.Payload.Capabilities.MinPower = to_pointer.Float(*power)
+	}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithMaxPower(power *float64) *MutableCbsdModelBuilder {
+	if power == nil {
+		b.Payload.Capabilities.MaxPower = nil
+	} else {
+		b.Payload.Capabilities.MaxPower = to_pointer.Float(*power)
+	}
 	return b
 }
 

@@ -73,12 +73,7 @@ func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
 		CbsdCategory:     db.MakeString(request.CbsdCategory),
 	}
 	params := request.GetInstallationParam()
-	dbFloat64OrNil(&cbsd.LatitudeDeg, params.LatitudeDeg)
-	dbFloat64OrNil(&cbsd.LongitudeDeg, params.LongitudeDeg)
-	dbFloat64OrNil(&cbsd.HeightM, params.HeightM)
-	dbStringOrNil(&cbsd.HeightType, params.HeightType)
-	dbBoolOrNil(&cbsd.IndoorDeployment, params.IndoorDeployment)
-	dbFloat64OrNil(&cbsd.AntennaGain, params.AntennaGain)
+	setInstallationParam(&cbsd, params)
 	return &cbsd
 }
 
@@ -176,12 +171,12 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 
 func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam) {
 	if params != nil {
-		dbFloat64OrNil(&cbsd.AntennaGain, params.GetAntennaGain())
-		dbFloat64OrNil(&cbsd.LatitudeDeg, params.GetLatitudeDeg())
-		dbFloat64OrNil(&cbsd.LongitudeDeg, params.GetLongitudeDeg())
-		dbBoolOrNil(&cbsd.IndoorDeployment, params.GetIndoorDeployment())
-		dbFloat64OrNil(&cbsd.HeightM, params.GetHeightM())
-		dbStringOrNil(&cbsd.HeightType, params.GetHeightType())
+		cbsd.LatitudeDeg = dbFloat64OrNil(params.LatitudeDeg)
+		cbsd.LongitudeDeg = dbFloat64OrNil(params.LongitudeDeg)
+		cbsd.HeightM = dbFloat64OrNil(params.HeightM)
+		cbsd.HeightType = dbStringOrNil(params.HeightType)
+		cbsd.IndoorDeployment = dbBoolOrNil(params.IndoorDeployment)
+		cbsd.AntennaGain = dbFloat64OrNil(params.AntennaGain)
 	}
 }
 

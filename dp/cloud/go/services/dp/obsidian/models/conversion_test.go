@@ -16,11 +16,11 @@ package models_test
 import (
 	"testing"
 
-	b "magma/dp/cloud/go/services/dp/builders_test"
+	"github.com/stretchr/testify/assert"
+
+	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCbsdToBackend(t *testing.T) {
@@ -105,8 +105,8 @@ func TestCbsdFromBackendWithInstallationParam(t *testing.T) {
 
 func TestCbsdFromBackendWithEmptyFrequencies(t *testing.T) {
 	details := b.NewDetailedProtoCbsdBuilder(
-		b.NewCbsdProtoPayloadBuilder()).Details
-	details.Data.Preferences.FrequenciesMhz = nil
+		b.NewCbsdProtoPayloadBuilder().WithEmptyPreferences()).Details
 	data := models.CbsdFromBackend(details)
 	assert.Equal(t, []int64{}, data.FrequencyPreferences.FrequenciesMhz)
+	assert.Equal(t, int64(0), data.FrequencyPreferences.BandwidthMhz)
 }

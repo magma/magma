@@ -24,7 +24,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/protos"
-	b "magma/dp/cloud/go/services/dp/builders_test"
+	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/servicers"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"

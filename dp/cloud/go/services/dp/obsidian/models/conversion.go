@@ -14,10 +14,10 @@ limitations under the License.
 package models
 
 import (
+	"github.com/go-openapi/strfmt"
+
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
-
-	"github.com/go-openapi/strfmt"
 )
 
 func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {

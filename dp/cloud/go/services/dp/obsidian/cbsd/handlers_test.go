@@ -30,7 +30,7 @@ import (
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
-	b "magma/dp/cloud/go/services/dp/builders_test"
+	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/storage/db"
@@ -245,7 +245,6 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 	}, {
 		name: "test create with antenna gain",
 		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
-			WithEmptyInstallationParam().
 			WithAntennaGain(10.5).Payload,
 		expectedPayload: b.NewCbsdProtoPayloadBuilder().
 			WithEmptyInstallationParam().
@@ -303,12 +302,7 @@ func (s *HandlersTestSuite) TestCreateWithDuplicateUniqueFieldsReturnsConflict()
 func (s *HandlersTestSuite) TestCreateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
 	obsidianHandlers := cbsd.GetHandlers()
-	payload := &models.MutableCbsd{
-		Capabilities: &models.Capabilities{
-			NumberOfAntennas: 1,
-		},
-		SerialNumber: "someSerialNumber",
-	}
+	payload := b.NewMutableCbsdModelPayloadBuilder().Empty().WithSerialNumber("someSerialNumber").Payload
 	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodPost,
@@ -393,12 +387,7 @@ func (s *HandlersTestSuite) TestUpdateCbsd() {
 func (s *HandlersTestSuite) TestUpdateCbsdWithoutAllRequiredParams() {
 	e := echo.New()
 	obsidianHandlers := cbsd.GetHandlers()
-	payload := &models.MutableCbsd{
-		Capabilities: &models.Capabilities{
-			NumberOfAntennas: 1,
-		},
-		SerialNumber: "someSerialNumber",
-	}
+	payload := b.NewMutableCbsdModelPayloadBuilder().Empty().WithSerialNumber("someSerialNumber").Payload
 	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	tc := tests.Test{
 		Method:                 http.MethodPut,

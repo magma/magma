@@ -47,16 +47,6 @@ type MutableCbsd struct {
 	DesiredState *DBCbsdState
 }
 
-type EnodebdPayload struct {
-	LatitudeDeg      float64
-	LongitudeDeg     float64
-	IndoorDeployment bool
-	HeightM          float64
-	HeightType       string
-	AntennaGain      float64
-	CbsdCategory     string
-}
-
 type DetailedCbsd struct {
 	Cbsd         *DBCbsd
 	CbsdState    *DBCbsdState

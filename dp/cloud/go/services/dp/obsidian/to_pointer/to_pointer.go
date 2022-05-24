@@ -16,10 +16,9 @@ package to_pointer
 import (
 	"time"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-
-	"github.com/go-openapi/strfmt"
 )
 
 func Float(x float64) *float64 {
