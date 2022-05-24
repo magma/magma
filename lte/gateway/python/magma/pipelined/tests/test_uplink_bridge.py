@@ -998,7 +998,7 @@ def validate_routing_table(dst: str, dev_name: str) -> Optional[str]:
             continue
         try:
             if dev_name in str(line):
-                return
+                return None
         except ValueError:
             pass
     logging.error("could not find route to %s via %s", dst, dev_name)
