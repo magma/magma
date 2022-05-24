@@ -19,6 +19,7 @@ import type {
   qos_class_id,
 } from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import BaseNameEditDialog from './BaseNameEdit';
 import EmptyState from '../../components/EmptyState';

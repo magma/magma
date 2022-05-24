@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {Metrics} from '../../components/context/SubscriberContext';

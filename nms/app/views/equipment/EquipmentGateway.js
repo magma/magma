@@ -20,6 +20,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 // $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
@@ -51,6 +52,7 @@ import {FetchGateways} from '../../state/lte/EquipmentState';
 import {useInterval} from '../../hooks';
 
 import {GatewayEditDialog} from './GatewayDetailConfigEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
