@@ -9,18 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {
-  core_network_types,
-  promql_return_object,
-} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module]
 import {isValidHex} from '../../util/strings';
+import type {
+  PromqlReturnObject,
+  SubscriberForbiddenNetworkTypesEnum,
+} from '../../../generated-ts';
 
 const mBIT = 1000000;
 const kBIT = 1000;
@@ -30,6 +25,7 @@ export function getLabelUnit(val: number) {
   } else if (val > kBIT) {
     return [(val / kBIT).toFixed(2), 'kb'];
   }
+
   return [val.toFixed(2), 'bytes'];
 }
 
@@ -47,13 +43,14 @@ export const CoreNetworkTypes = Object.freeze({
   NT_5GC: '5GC',
 });
 
-export function getPromValue(resp: promql_return_object) {
+export function getPromValue(resp: PromqlReturnObject) {
   const respArr = resp?.data?.result
     ?.map(item => {
-      return parseFloat(item?.value?.[1]);
+      const value = item?.value?.[1];
+      return value ? parseFloat(value) : undefined;
     })
     .filter(Boolean);
-  return respArr && respArr.length ? respArr[0] : 0;
+  return respArr?.length ? respArr[0] : 0;
 }
 
 // default subscriber count in get subscriber query
@@ -91,24 +88,21 @@ const SUBSCRIBER_ACTION_TYPE = Object.freeze({
   EDIT: 'edit',
   DELETE: 'delete',
 });
-
-export type SubscriberActionType = $Values<typeof SUBSCRIBER_ACTION_TYPE>;
-
+export type SubscriberActionType = typeof SUBSCRIBER_ACTION_TYPE[keyof typeof SUBSCRIBER_ACTION_TYPE];
 export const REFRESH_TIMEOUT = 1000;
 
 export type SubscriberInfo = {
-  name: string,
-  imsi: string,
-  authKey: string,
-  authOpc: string,
-  state: 'INACTIVE' | 'ACTIVE',
-  forbiddenNetworkTypes: core_network_types,
-  dataPlan: string,
-  apns: Array<string>,
-  policies?: Array<string>,
+  name: string;
+  imsi: string;
+  authKey: string;
+  authOpc: string;
+  state: 'INACTIVE' | 'ACTIVE';
+  forbiddenNetworkTypes: Array<SubscriberForbiddenNetworkTypesEnum>;
+  dataPlan: string;
+  apns: Array<string>;
+  policies?: Array<string>;
 };
-
-type SubscriberError = $Values<typeof SUBSCRIBER_ADD_ERRORS>;
+type SubscriberError = typeof SUBSCRIBER_ADD_ERRORS[keyof typeof SUBSCRIBER_ADD_ERRORS];
 
 /**
  * Checks subscriber fields format
@@ -120,13 +114,12 @@ export function validateSubscribers(
   subscribers: Array<SubscriberInfo>,
   action: SubscriberActionType,
 ) {
-  const errors: {
-    [error: SubscriberError]: Array<number>,
-  } = {};
-  const imsiList = [];
+  const errors: Record<SubscriberError, Array<number>> = {};
+  const imsiList: Array<string> = [];
 
   Object.keys(SUBSCRIBER_ADD_ERRORS).map(error => {
-    const subscriberError = SUBSCRIBER_ADD_ERRORS[error];
+    const subscriberError =
+      SUBSCRIBER_ADD_ERRORS[error as keyof typeof SUBSCRIBER_ADD_ERRORS];
     errors[subscriberError] = [];
   });
   subscribers.forEach((info, i) => {
@@ -134,35 +127,45 @@ export function validateSubscribers(
       if (!info.authKey) {
         errors[SUBSCRIBER_ADD_ERRORS['REQUIRED_AUTH_KEY']].push(i + 1);
       }
+
       if (!info.dataPlan) {
         errors[SUBSCRIBER_ADD_ERRORS['REQUIRED_SUB_PROFILE']].push(i + 1);
       }
+
       if (imsiList.includes(info.imsi)) {
         errors[SUBSCRIBER_ADD_ERRORS['DUPLICATE_IMSI']].push(i + 1);
       }
     }
+
     if (!imsiList.includes(info.imsi)) {
       imsiList.push(info.imsi);
     }
+
     if (!info?.imsi?.match(/^(IMSI\d{10,15})$/)) {
       errors[SUBSCRIBER_ADD_ERRORS['INVALID_IMSI']].push(i + 1);
     }
+
     if (info.authKey && !isValidHex(info.authKey)) {
       errors[SUBSCRIBER_ADD_ERRORS['INVALID_AUTH_KEY']].push(i + 1);
     }
+
     if (info.authOpc && !isValidHex(info.authOpc)) {
       errors[SUBSCRIBER_ADD_ERRORS['INVALID_AUTH_OPC']].push(i + 1);
     }
   });
 
   const errorList: Array<string> = Object.keys(SUBSCRIBER_ADD_ERRORS)
-    .map(error => SUBSCRIBER_ADD_ERRORS[error])
-    .reduce((res, errorMessage) => {
+    .map(
+      error =>
+        SUBSCRIBER_ADD_ERRORS[error as keyof typeof SUBSCRIBER_ADD_ERRORS],
+    )
+    .reduce((res: Array<string>, errorMessage) => {
       if (errors[errorMessage].length > 0) {
         res.push(
           `${errorMessage} : Row ${errors[errorMessage].sort().join(', ')}`,
         );
       }
+
       return res;
     }, []);
 
