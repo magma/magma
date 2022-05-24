@@ -9,11 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import AddCircleOutlined from '@material-ui/icons/AddCircleOutlined';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
@@ -30,34 +26,33 @@ import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
 import FormControl from '@material-ui/core/FormControl';
 import LastPage from '@material-ui/icons/LastPage';
-import MaterialTable from '@material-table/core';
+import MaterialTable, {MaterialTableProps, Query} from '@material-table/core';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
+import Paper, {PaperProps} from '@material-ui/core/Paper';
 import React from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import Select from '@material-ui/core/Select';
+import SvgIcon from '@material-ui/core/SvgIcon';
 import TextField from '@material-ui/core/TextField';
-
-import {forwardRef} from 'react';
+import {forwardRef, useState} from 'react';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   inputRoot: {
     '&.MuiOutlinedInput-root': {
       padding: 0,
     },
   },
-}));
+});
 
 const tableIcons = {
-  Add: forwardRef((props, ref) => (
+  Add: forwardRef<SVGSVGElement>((props, ref) => (
     <Button
       startIcon={<AddCircleOutlined {...props} ref={ref} />}
       variant="outlined"
@@ -65,110 +60,88 @@ const tableIcons = {
       {'Add New Row'}
     </Button>
   )),
-  Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
+  Check: forwardRef<SVGSVGElement>((props, ref) => (
+    <Check {...props} ref={ref} />
+  )),
 
-  Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-  Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
-  Delete: forwardRef((props, ref) => <DeleteOutline {...props} ref={ref} />),
+  Clear: forwardRef<SVGSVGElement>((props, ref) => (
+    <Clear {...props} ref={ref} />
+  )),
+  Edit: forwardRef<SVGSVGElement>((props, ref) => (
+    <Edit {...props} ref={ref} />
+  )),
+  Delete: forwardRef<SVGSVGElement>((props, ref) => (
+    <DeleteOutline {...props} ref={ref} />
+  )),
 
-  Export: forwardRef((props, ref) => <SaveAlt {...props} ref={ref} />),
-  FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
-  LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-  NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
-  PreviousPage: forwardRef((props, ref) => (
+  Export: forwardRef<SVGSVGElement>((props, ref) => (
+    <SaveAlt {...props} ref={ref} />
+  )),
+  FirstPage: forwardRef<SVGSVGElement>((props, ref) => (
+    <FirstPage {...props} ref={ref} />
+  )),
+  LastPage: forwardRef<SVGSVGElement>((props, ref) => (
+    <LastPage {...props} ref={ref} />
+  )),
+  NextPage: forwardRef<SVGSVGElement>((props, ref) => (
+    <ChevronRight {...props} ref={ref} />
+  )),
+  PreviousPage: forwardRef<SVGSVGElement>((props, ref) => (
     <ChevronLeft {...props} ref={ref} />
   )),
-  ResetSearch: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-  Retry: forwardRef((props, ref) => <RefreshIcon {...props} ref={ref} />),
-  Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
-  SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
-  ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
-  Filter: forwardRef((props, ref) => <FilterList {...props} ref={ref} />),
+  ResetSearch: forwardRef<SVGSVGElement>((props, ref) => (
+    <Clear {...props} ref={ref} />
+  )),
+  Retry: forwardRef<SVGSVGElement>((props, ref) => (
+    <RefreshIcon {...props} ref={ref} />
+  )),
+  Search: forwardRef<SVGSVGElement>((props, ref) => (
+    <Search {...props} ref={ref} />
+  )),
+  SortArrow: forwardRef<SVGSVGElement>((props, ref) => (
+    <ArrowDownward {...props} ref={ref} />
+  )),
+  ThirdStateCheck: forwardRef<SVGSVGElement>((props, ref) => (
+    <Remove {...props} ref={ref} />
+  )),
+  Filter: forwardRef<SVGSVGElement>((props, ref) => (
+    <FilterList {...props} ref={ref} />
+  )),
 };
 
 type ActionMenuItems = {
-  name: string,
-  handleFunc?: () => void | (() => Promise<void>),
+  name: string;
+  handleFunc?: () => void | (() => Promise<void>);
 };
 
-type ColumnType =
-  | 'boolean'
-  | 'numeric'
-  | 'date'
-  | 'datetime'
-  | 'time'
-  | 'currency';
+export type ActionQuery = Query<any>;
 
-type ActionTableColumn = {
-  title: string,
-  type?: ColumnType,
-  field: string,
+export type ActionTableProps<T extends object> = {
+  titleIcon?: typeof SvgIcon;
+  tableRef?: MaterialTableProps<T>['tableRef'];
+  editable?: MaterialTableProps<T>['editable'];
+  localization?: MaterialTableProps<T>['localization'];
+  title?: string;
+  handleCurrRow?: (arg0: T) => void;
+  columns: MaterialTableProps<T>['columns'];
+  menuItems?: Array<ActionMenuItems>;
+  actions?: MaterialTableProps<T>['actions'];
+  data: MaterialTableProps<T>['data'];
+  options: MaterialTableProps<T>['options'];
+  detailPanel?: MaterialTableProps<T>['detailPanel'];
+  onSelectionChange?: MaterialTableProps<T>['onSelectionChange'];
 };
 
-type ActionTableOptions = {
-  // Order of actions column
-  actionsColumnIndex: number,
-  // Number of rows that would be rendered on every page
-  pageSize?: number,
-  // Page size options that could be selected by user
-  pageSizeOptions: Array<number>,
-  // Css style to be applied rows
-  rowStyle?: {},
-  // Header cell style for all headers
-  headerStyle?: {},
-  // Flag for showing toolbar
-  toolbar?: boolean,
-};
-
-type ActionOrderType = {
-  field: string,
-  title: string,
-  tableData: {},
-};
-
-export type ActionFilter = {
-  column: ActionTableColumn,
-  value: string,
-};
-
-export type ActionQuery = {
-  filters: Array<ActionFilter>,
-  orderBy: ActionOrderType,
-  orderDirection: string,
-  page: number,
-  pageSize: number,
-  search: string,
-  totalCount: number,
-};
-
-export type ActionTableProps<T> = {
-  titleIcon?: SvgIcon,
-  tableRef?: {},
-  toolbar?: {},
-  editable?: {},
-  // Change/translate default texts of datatable (Eg: toolbar placeholder)
-  localization?: {},
-  title?: string,
-  handleCurrRow?: T => void,
-  columns: Array<ActionTableColumn>,
-  menuItems?: Array<ActionMenuItems>,
-  actions?: Array<{}>,
-  data: Array<T> | (ActionQuery => {}),
-  options: ActionTableOptions,
-  detailPanel?: Array<{}>,
-  onSelectionChange?: (Array<T>) => void,
-};
-
-export function PaperComponent(props: {}) {
+export function PaperComponent(props: PaperProps) {
   return <Paper {...props} elevation={0} />;
 }
 
 type SelectProps = {
-  content: Array<string>,
-  defaultValue?: string,
-  value: string,
-  onChange: string => void,
-  testId?: string,
+  content: Array<string>;
+  defaultValue?: string;
+  value: string;
+  onChange: (arg0: string) => void;
+  testId?: string;
 };
 
 export function SelectEditComponent(props: SelectProps) {
@@ -178,12 +151,13 @@ export function SelectEditComponent(props: SelectProps) {
       return null;
     }
   }
+
   return (
     <FormControl>
       <Select
         data-testid={props.testId ?? ''}
         value={props.value}
-        onChange={({target}) => props.onChange(target.value)}
+        onChange={({target}) => props.onChange(target.value as string)}
         input={<OutlinedInput />}>
         {props.content.map((k: string, idx: number) => (
           <MenuItem key={idx} value={k}>
@@ -214,24 +188,31 @@ export function AutoCompleteEditComponent(props: SelectProps) {
       onInputChange={(_, newInputValue) => {
         props.onChange(newInputValue);
       }}
-      renderInput={(params: {}) => <TextField {...params} variant="outlined" />}
+      renderInput={params => <TextField {...params} variant="outlined" />}
     />
   );
 }
 
-export default function ActionTable<T>(props: ActionTableProps<T>) {
+export default function ActionTable<T extends object>(
+  props: ActionTableProps<T>,
+) {
   const actionTableJSX = [];
-  const [anchorEl, setAnchorEl] = useState(null);
-  const handleClick = (event, row: T) => {
+  const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(
+    null,
+  );
+
+  const handleClick = (event: React.MouseEvent, row: T | Array<T>) => {
     setAnchorEl(event.currentTarget);
+
     if (props.handleCurrRow) {
-      props.handleCurrRow(row);
+      props.handleCurrRow(row as T);
     }
   };
 
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
@@ -242,6 +223,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
       />,
     );
   }
+
   if (props.menuItems) {
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(
@@ -260,6 +242,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
               if (item.handleFunc) {
                 item.handleFunc();
               }
+
               handleClose();
             }}>
             {item.name}
@@ -268,12 +251,12 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
       </Menu>,
     );
   }
+
   return (
     <>
       {actionTableJSX}
       <MaterialTable
         localization={props.localization}
-        toolbar={props.toolbar}
         tableRef={props.tableRef}
         editable={props.editable}
         components={{
