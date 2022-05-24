@@ -32,6 +32,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import {
   DEFAULT_PAGE_SIZE,
   getLabelUnit,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../views/subscriber/SubscriberUtils';
 
 type FetchProps = {

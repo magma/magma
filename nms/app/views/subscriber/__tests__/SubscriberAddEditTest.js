@@ -27,6 +27,7 @@ import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default.js';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
