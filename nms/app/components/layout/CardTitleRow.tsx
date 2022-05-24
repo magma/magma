@@ -9,20 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+import SvgIcon from '@material-ui/core/SvgIcon';
 import Text from '../../theme/design-system/Text';
-
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import type {Theme} from '@material-ui/core/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   cardTitleRow: {
     marginBottom: theme.spacing(1),
     minHeight: '36px',
@@ -34,9 +31,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type CardTitleRowProps = {
-  icon?: SvgIcon,
-  label: string,
-  filter?: () => React$Node,
+  icon?: typeof SvgIcon;
+  label: string;
+  filter?: () => React.ReactElement;
 };
 
 export default function CardTitleRow(props: CardTitleRowProps) {
