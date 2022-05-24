@@ -101,15 +101,10 @@ RUN apt-get update && apt-get install -y \
   oai-nettle \
   magma-cpp-redis \
   magma-libfluid \
+  grpc-dev \
+  prometheus-cpp-dev \
   liblfds710
 RUN rm /etc/apt/sources.list.d/magma.list
-
-RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/fb.list
-RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
-RUN apt-get update && apt-get install -y \
-  grpc-dev \
-  prometheus-cpp-dev
-RUN rm /etc/apt/sources.list.d/fb.list
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
