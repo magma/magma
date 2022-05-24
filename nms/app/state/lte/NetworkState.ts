@@ -9,58 +9,53 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
+import MagmaAPI from '../../../api/MagmaAPI';
 import type {
-  lte_network,
-  network_dns_config,
-  network_epc_configs,
-  network_id,
-  network_ran_configs,
-  network_subscriber_config,
-} from '../../../generated/MagmaAPIBindings';
-
-import MagmaV1API from '../../../generated/WebClient';
+  LteNetwork,
+  NetworkDnsConfig,
+  NetworkEpcConfigs,
+  NetworkRanConfigs,
+  NetworkSubscriberConfig,
+} from '../../../generated-ts';
+import type {NetworkId} from '../../../shared/types/network';
 
 export type UpdateNetworkProps = {
-  networkId: network_id,
-  lteNetwork?: lte_network,
-  epcConfigs?: network_epc_configs,
-  lteRanConfigs?: network_ran_configs,
-  lteDnsConfig?: network_dns_config,
-  subscriberConfig?: network_subscriber_config,
-  setLteNetwork: lte_network => void,
-  refreshState: boolean,
+  networkId: NetworkId;
+  lteNetwork?: LteNetwork;
+  epcConfigs?: NetworkEpcConfigs;
+  lteRanConfigs?: NetworkRanConfigs;
+  lteDnsConfig?: NetworkDnsConfig;
+  subscriberConfig?: NetworkSubscriberConfig;
+  setLteNetwork: (arg0: LteNetwork) => void;
+  refreshState: boolean;
 };
 
 export async function UpdateNetworkState(props: UpdateNetworkProps) {
   const {networkId, setLteNetwork} = props;
   const requests = [];
+
   if (props.lteNetwork) {
     requests.push(
-      MagmaV1API.putLteByNetworkId({
+      MagmaAPI.lteNetworks.lteNetworkIdPut({
         networkId: networkId,
-        lteNetwork: {
-          ...props.lteNetwork,
-        },
+        lteNetwork: {...props.lteNetwork},
       }),
     );
   }
 
   if (props.epcConfigs) {
     requests.push(
-      MagmaV1API.putLteByNetworkIdCellularEpc({
+      MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut({
         networkId: props.networkId,
-        config: props.epcConfigs, // $FlowIgnore
+        config: props.epcConfigs,
       }),
     );
   }
   if (props.lteRanConfigs) {
     requests.push(
-      MagmaV1API.putLteByNetworkIdCellularRan({
+      MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut({
         networkId: props.networkId,
         config: props.lteRanConfigs,
       }),
@@ -68,7 +63,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   }
   if (props.lteDnsConfig) {
     requests.push(
-      MagmaV1API.putLteByNetworkIdDns({
+      MagmaAPI.lteNetworks.lteNetworkIdDnsPut({
         networkId: props.networkId,
         config: props.lteDnsConfig,
       }),
@@ -76,7 +71,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   }
   if (props.subscriberConfig) {
     requests.push(
-      MagmaV1API.putLteByNetworkIdSubscriberConfig({
+      MagmaAPI.lteNetworks.lteNetworkIdSubscriberConfigPut({
         networkId: props.networkId,
         record: props.subscriberConfig,
       }),
@@ -85,6 +80,12 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   // TODO(andreilee): Provide a way to handle errors here
   await Promise.all(requests);
   if (props.refreshState) {
-    setLteNetwork(await MagmaV1API.getLteByNetworkId({networkId}));
+    setLteNetwork(
+      (
+        await MagmaAPI.lteNetworks.lteNetworkIdGet({
+          networkId,
+        })
+      ).data,
+    );
   }
 }

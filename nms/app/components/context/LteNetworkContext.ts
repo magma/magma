@@ -9,27 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
+import type {FegLteNetwork, LteNetwork} from '../../../generated-ts';
 import type {UpdateNetworkProps as FegLteUpdateNetworkProps} from '../../state/feg_lte/NetworkState';
 import type {UpdateNetworkProps as LteUpdateNetworkProps} from '../../state/lte/NetworkState';
-import type {
-  feg_lte_network,
-  lte_network,
-} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
 
-export type UpdateNetworkContextProps = $Shape<
-  LteUpdateNetworkProps & FegLteUpdateNetworkProps,
+export type UpdateNetworkContextProps = Partial<
+  LteUpdateNetworkProps & FegLteUpdateNetworkProps
 >;
 
 export type LteNetworkContextType = {
-  state: $Shape<lte_network & feg_lte_network>,
-  updateNetworks: (props: UpdateNetworkContextProps) => Promise<void>,
+  state: Partial<LteNetwork & FegLteNetwork>;
+  updateNetworks: (props: UpdateNetworkContextProps) => Promise<void>;
 };
 
-export default React.createContext<LteNetworkContextType>({});
+export default React.createContext<LteNetworkContextType>(
+  {} as LteNetworkContextType,
+);

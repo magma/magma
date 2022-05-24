@@ -24,6 +24,7 @@ import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
 import GatewayContext from '../../../components/context/GatewayContext';
+// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

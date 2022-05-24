@@ -22,6 +22,7 @@ import type {
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '../../theme/design-system/DialogTitle';
+// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
