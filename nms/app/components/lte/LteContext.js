@@ -19,6 +19,7 @@ import ApnContext from '../context/ApnContext';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
 import GatewayContext from '../context/GatewayContext';
+// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 import InitSubscriberState from '../../state/lte/SubscriberState';
@@ -57,6 +58,7 @@ import type {
   subscriber_id,
   tier,
 } from '../../../generated/MagmaAPIBindings';
+// $FlowFixMe migrated to typescript
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 // $FlowFixMe migrated to typescript

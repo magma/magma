@@ -18,6 +18,7 @@ import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
+// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../../components/context/GatewayPoolsContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

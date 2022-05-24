@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe migrated to typescript
 import type {GatewayPoolRecordsType} from '../../components/context/GatewayPoolsContext';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
@@ -20,6 +21,7 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 import ActionTable from '../../components/ActionTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
+// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';

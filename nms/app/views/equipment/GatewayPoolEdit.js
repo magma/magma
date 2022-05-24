@@ -13,10 +13,10 @@
  * @flow strict-local
  * @format
  */
-/*[object Object]*/
 import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
+  // $FlowFixMe migrated to typescript
 } from '../../components/context/GatewayPoolsContext';
 import type {mutable_cellular_gateway_pool} from '../../../generated/MagmaAPIBindings';
 
