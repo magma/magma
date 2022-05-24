@@ -15,6 +15,7 @@
  */
 import type {EditSubscriberProps} from './SubscriberEditDialog.js';
 
+// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';

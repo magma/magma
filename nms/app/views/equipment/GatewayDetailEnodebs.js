@@ -18,6 +18,7 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {GatewayDetailType} from './GatewayDetailMain';
 
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React from 'react';

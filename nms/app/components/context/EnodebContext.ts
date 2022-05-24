@@ -9,28 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../lte/EnodebUtils';
-import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
+import type {NetworkRanConfigs} from '../../../generated-ts';
 
 import React from 'react';
 
 export type EnodebState = {
-  enbInfo: {[string]: EnodebInfo},
+  enbInfo: Record<string, EnodebInfo>;
 };
 
 export type EnodebContextType = {
-  state: EnodebState,
-  lteRanConfigs?: network_ran_configs,
+  state: EnodebState;
+  lteRanConfigs?: NetworkRanConfigs;
   setState: (
     key: string,
     val?: EnodebInfo,
     newState?: EnodebState,
-  ) => Promise<void>,
+  ) => Promise<void>;
 };
 
-export default React.createContext<EnodebContextType>({});
+export default React.createContext<EnodebContextType>({} as EnodebContextType);

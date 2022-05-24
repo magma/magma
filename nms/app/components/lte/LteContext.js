@@ -14,7 +14,9 @@
  * @format
  */
 import * as React from 'react';
+// $FlowFixMe migrated to typescript
 import ApnContext from '../context/ApnContext';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
 import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
@@ -31,6 +33,7 @@ import SubscriberContext from '../context/SubscriberContext';
 import TraceContext from '../context/TraceContext';
 // $FlowFixMe migrated to typescript
 import type {EnodebInfo} from './EnodebUtils';
+// $FlowFixMe migrated to typescript
 import type {EnodebState} from '../context/EnodebContext';
 import type {
   apn,
