@@ -21,6 +21,7 @@ import type {EnqueueSnackbarOptions} from 'notistack';
 import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
+  // $FlowFixMe migrated to typescript
 } from '../../components/context/GatewayPoolsContext';
 import type {
   enodeb_serials,

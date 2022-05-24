@@ -22,6 +22,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayContext from '../../components/context/GatewayContext';
+// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';

@@ -21,6 +21,7 @@ import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
+// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import List from '@material-ui/core/List';
 import OutlinedInput from '@material-ui/core/OutlinedInput';

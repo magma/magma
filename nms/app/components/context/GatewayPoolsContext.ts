@@ -9,27 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  cellular_gateway_pool,
-  cellular_gateway_pool_record,
-  gateway_pool_id,
-  mutable_cellular_gateway_pool,
-} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
+import type {
+  CellularGatewayPool,
+  CellularGatewayPoolRecord,
+  MutableCellularGatewayPool,
+} from '../../../generated-ts';
+import type {GatewayPoolId} from '../../../shared/types/network';
 
 // add gateway ID to gateway pool records (gateway primary/secondary)
 export type GatewayPoolRecordsType = {
-  gateway_id: string,
-} & cellular_gateway_pool_record;
+  gateway_id: string;
+} & CellularGatewayPoolRecord;
 
 export type gatewayPoolsStateType = {
-  gatewayPool: cellular_gateway_pool,
-  gatewayPoolRecords: Array<GatewayPoolRecordsType>,
+  gatewayPool: CellularGatewayPool;
+  gatewayPoolRecords: Array<GatewayPoolRecordsType>;
 };
 
 /* GatewayPoolsContextType
@@ -38,16 +35,18 @@ setState: POST, PUT, DELETE gateway pool config
 updateGatewayPoolRecords: POST, PUT, DELETE gateway pool records
 */
 export type GatewayPoolsContextType = {
-  state: {[string]: gatewayPoolsStateType},
+  state: Record<string, gatewayPoolsStateType>;
   setState: (
-    key: gateway_pool_id,
-    val?: mutable_cellular_gateway_pool,
-  ) => Promise<void>,
+    key: GatewayPoolId,
+    val?: MutableCellularGatewayPool,
+  ) => Promise<void>;
   updateGatewayPoolRecords: (
-    key: gateway_pool_id,
-    val?: mutable_cellular_gateway_pool,
+    key: GatewayPoolId,
+    val?: MutableCellularGatewayPool,
     resources?: Array<GatewayPoolRecordsType>,
-  ) => Promise<void>,
+  ) => Promise<void>;
 };
 
-export default React.createContext<GatewayPoolsContextType>({});
+export default React.createContext<GatewayPoolsContextType>(
+  {} as GatewayPoolsContextType,
+);
