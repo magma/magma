@@ -3,8 +3,8 @@ module fbc/cwf/radius
 replace (
 	fbc/lib/go/machine => ../lib/go/machine
 	fbc/lib/go/radius => ../lib/go/radius
-	magma/orc8r/lib/go => github.com/facebookincubator/magma/orc8r/lib/go v0.0.0-20200625002311-c12331e4dadc
-	magma/orc8r/lib/go/protos => github.com/facebookincubator/magma/orc8r/lib/go/protos v0.0.0-20200625002311-c12331e4dadc
+	magma/orc8r/lib/go => ../../../orc8r/lib/go
+	magma/orc8r/lib/go/protos => ../../../orc8r/lib/go/protos
 )
 
 require (
