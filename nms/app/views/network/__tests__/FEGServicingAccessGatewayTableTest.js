@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

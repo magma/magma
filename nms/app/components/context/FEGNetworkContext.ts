@@ -9,19 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
 import type {UpdateNetworkProps as FEGUpdateNetworkProps} from '../../state/feg/NetworkState';
-import type {feg_network} from '../../../generated/MagmaAPIBindings';
+import type {FegNetwork} from '../../../generated-ts';
 
 import React from 'react';
 
 export type FEGNetworkContextType = {
-  state: $Shape<feg_network>,
-  updateNetworks: (props: $Shape<FEGUpdateNetworkProps>) => Promise<void>,
+  state: Partial<FegNetwork>;
+  updateNetworks: (props: Partial<FEGUpdateNetworkProps>) => Promise<void>;
 };
 
-export default React.createContext<FEGNetworkContextType>({});
+export default React.createContext<FEGNetworkContextType>(
+  {} as FEGNetworkContextType,
+);
