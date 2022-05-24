@@ -32,6 +32,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

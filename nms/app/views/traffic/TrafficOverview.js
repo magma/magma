@@ -21,6 +21,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataPlanEditDialog from './DataPlanEdit';
 import DataPlanOverview from './DataPlanOverview';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
+// $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview, {PolicyJsonConfig} from './PolicyOverview';

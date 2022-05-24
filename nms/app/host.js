@@ -22,6 +22,7 @@ import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
 
 import {} from './common/axiosConfig';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../shared/util/nullthrows';
 
 ReactDOM.render(

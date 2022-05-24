@@ -29,6 +29,7 @@ import MyLocationIcon from '@material-ui/icons/MyLocation';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {DateTimePicker} from '@material-ui/pickers';

@@ -32,6 +32,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import moment from 'moment';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 

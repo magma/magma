@@ -26,6 +26,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

@@ -25,6 +25,7 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
 import {colors, typography} from '../../theme/default';

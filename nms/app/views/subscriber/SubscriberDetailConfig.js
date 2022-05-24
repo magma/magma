@@ -29,6 +29,7 @@ import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {EditSubscriberButton} from './SubscriberEditDialog';

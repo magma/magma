@@ -29,6 +29,7 @@ import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {DynamicServices} from '../../components/GatewayUtils';

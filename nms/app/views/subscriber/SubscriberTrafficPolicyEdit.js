@@ -28,6 +28,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 

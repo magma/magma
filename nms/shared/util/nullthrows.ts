@@ -12,7 +12,18 @@
  *
  */
 
+class NullValueError extends Error {
+  constructor(message?: string) {
+    super('[NullValueError]' + (message ? ' ' + message : ''));
+  }
+}
+
 export default function nullthrows<TVal>(
-  data?: TVal | null,
+  data: TVal | undefined | null,
   message?: string,
-): TVal;
+): TVal {
+  if (data == null) {
+    throw new NullValueError(message);
+  }
+  return data;
+}

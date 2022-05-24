@@ -17,6 +17,7 @@
 import AppContext from '../components/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import MagmaV1API from '../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import MenuButton from './MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 // $FlowFixMe migrated to typescript

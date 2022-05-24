@@ -24,6 +24,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';

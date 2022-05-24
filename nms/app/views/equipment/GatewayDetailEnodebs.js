@@ -20,6 +20,7 @@ import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {

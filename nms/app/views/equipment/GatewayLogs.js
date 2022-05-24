@@ -27,6 +27,7 @@ import LogChart from './GatewayLogChart';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';

@@ -29,6 +29,7 @@ import EditGatewayButton from './FEGGatewayDetailConfigEdit';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {TAB_OPTIONS} from '../../components/feg/FEGGatewayDialog';

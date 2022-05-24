@@ -37,6 +37,7 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
 import TopBar from '../../components/TopBar';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {EVENT_STREAM} from '../../views/events/EventsTable';
