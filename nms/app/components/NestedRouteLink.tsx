@@ -30,15 +30,18 @@ type Props = {
   className?: string;
 };
 
-export default function NestedRouteLink(props: Props) {
-  const classes = useStyles();
-  const {children, to, className: childClassName, ...childProps} = props;
-  return (
-    <Link
-      {...childProps}
-      className={classNames(classes.link, childClassName)}
-      to={to}>
-      {children}
-    </Link>
-  );
-}
+export default React.forwardRef<HTMLAnchorElement, Props>(
+  function NestedRouteLink(props, ref) {
+    const classes = useStyles();
+    const {children, to, className: childClassName, ...childProps} = props;
+    return (
+      <Link
+        {...childProps}
+        ref={ref}
+        className={classNames(classes.link, childClassName)}
+        to={to}>
+        {children}
+      </Link>
+    );
+  },
+);
