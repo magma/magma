@@ -111,7 +111,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       if (ht_rc != HASH_TABLE_OK) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
-        hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+        delete enb->ue_id_coll_proto.map;
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
@@ -124,7 +124,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
     OAILOG_ERROR(LOG_S1AP,
                  "An error occurred while destroying assoc_id hash table");
   }
-  free(state_cache_p);
+  delete state_cache_p;
 }
 
 void S1apStateManager::free_state() {
@@ -135,7 +135,7 @@ void S1apStateManager::free_state() {
   if (state_cache_p == nullptr) {
     return;
   }
-  delete state_cache_p;
+  free_s1ap_state(state_cache_p);
   state_cache_p = nullptr;
 
   if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {

@@ -210,6 +210,7 @@ void StateConverter::proto_to_apn_config_profile(
   }
 }
 
+// TODO (rsarwad) remove these functions while removing hash library completely
 void StateConverter::hashtable_uint64_ts_to_proto(
     hash_table_uint64_ts_t* htbl,
     google::protobuf::Map<unsigned long, unsigned long>* proto_map) {
@@ -271,6 +272,14 @@ void StateConverter::proto_to_map_uint64_uint64(
                    "Failed to insert value %lu in table %s: error: %s\n", val,
                    map->name.c_str(), map_rc_code2string(m_rc).c_str());
     }
+  }
+}
+// Copies in memory proto map to Redis proto map
+void StateConverter::proto_map_uint32_uint64_to_proto(
+    proto_map_uint32_uint64_t map,
+    google::protobuf::Map<uint64_t, uint64_t>* proto_map) {
+  for (auto elm = map.map->begin(); elm != map.map->end(); ++elm) {
+    (*proto_map)[elm->first] = elm->second;
   }
 }
 

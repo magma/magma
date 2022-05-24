@@ -38,6 +38,7 @@ extern "C" {
 #include <google/protobuf/map.h>
 #include <functional>
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/include/proto_map.h"
 #include "lte/protos/oai/common_types.pb.h"
 
 namespace magma {
@@ -181,6 +182,10 @@ class StateConverter {
   static void proto_to_map_uint64_uint64(
       const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
       map_uint64_uint64_t* map);
+
+  static void proto_map_uint32_uint64_to_proto(
+      proto_map_uint32_uint64_t map,
+      google::protobuf::Map<uint64_t, uint64_t>* proto_map);
 
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
