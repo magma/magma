@@ -78,10 +78,15 @@
     - agwc
     - base
 
-- name: copy docker compose config file
-  shell: cp -r /opt/magma/lte/gateway/docker/docker-compose.yaml /var/opt/magma/docker/
+- name: copy the docker-compose files
+  copy:
+    src: "/opt/magma/lte/gateway/docker/{{ item }}"
+    dest: /var/opt/magma/docker/
   tags:
     - agwc
+  loop:
+    - docker-compose.yaml
+    - s1ap/docker-compose.agw.s1ap.override.yaml
 
 - name: update nat interface
   shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
@@ -124,16 +129,6 @@
     mode: '0755'
   tags:
     - agwc
-
-- name: copy the s1ap files
-  copy:
-    src: "/opt/magma/lte/gateway/docker/s1ap/{{ item }}"
-    dest: /var/opt/magma/docker/s1ap/
-  tags:
-    - agwc
-  loop:
-    - docker-compose.s1ap.yaml
-    - docker-compose.agw.yaml
 
 - name: bring up the containers.
   script: agw_upgrade.sh

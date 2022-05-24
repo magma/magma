@@ -7,14 +7,14 @@
     fail_msg: "eth0 and eth1 interfaces must exist"
 
 - name: Get AGW containers status
-  shell: "docker inspect magmad -f {% raw %}'{{ .State.Running }}'{% endraw %}"
-  register: application_status
-  ignore_errors: yes
+  stat:
+    path: /var/opt/magma/docker/docker-compose.yaml
+  register: agw_deployed
 
-- name: Verify AGW containers are running
+- name: Verify AGW is deployed
   assert:
-    that: '"No such object" not in application_status.stderr and "true" in application_status.stdout'
-    fail_msg: "Start AGW containers"
+    that: "{{ agw_deployed.stat.exists }}"
+    fail_msg: "Deploy host as an AGW"
 
 - name: Verify eth1 address
   assert:
@@ -38,3 +38,21 @@
     name: ssh
     state: reloaded
   when: password_auth.changed
+
+- name: Add docker registry to .env
+  lineinfile:
+    path: /var/opt/magma/docker/.env
+    regexp: '^DOCKER_REGISTRY='
+    line: "DOCKER_REGISTRY={{ docker_registry }}"
+  when: docker_registry is defined
+
+- name: "Build agw images"
+  shell:
+    cmd: "docker-compose build --parallel"
+    chdir: /opt/magma/lte/gateway/docker
+  when: docker_registry is not defined
+
+- name: "Start AGW containers"
+  shell:
+    cmd: "docker-compose --env-file .env -f docker-compose.yaml -f docker-compose.agw.s1ap.override.yaml up -d"
+    chdir: /var/opt/magma/docker
