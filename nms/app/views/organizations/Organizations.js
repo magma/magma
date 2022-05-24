@@ -19,6 +19,7 @@ import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models
 import type {UserType} from '../../../shared/sequelize_models/models/user.js';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import BusinessIcon from '@material-ui/icons/Business';
 import Button from '@material-ui/core/Button';

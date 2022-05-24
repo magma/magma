@@ -18,6 +18,7 @@ import type {
   prom_firing_alert,
 } from '../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from './ActionTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';

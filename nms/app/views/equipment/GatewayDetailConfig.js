@@ -19,6 +19,7 @@ import type {EditProps} from './GatewayDetailConfigEdit';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';

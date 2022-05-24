@@ -19,6 +19,7 @@ import type {
   subscriber,
 } from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

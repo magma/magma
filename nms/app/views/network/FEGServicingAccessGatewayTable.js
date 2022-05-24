@@ -24,6 +24,7 @@ import type {
   network_name,
 } from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 // $FlowFixMe migrated to typescript

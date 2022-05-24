@@ -15,6 +15,7 @@
  */
 import type {GatewayDetailType} from './GatewayDetailMain';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';

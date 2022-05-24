@@ -17,6 +17,7 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {GatewayDetailType} from './GatewayDetailMain';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
