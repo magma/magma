@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../lte/EnodebUtils';
 import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 

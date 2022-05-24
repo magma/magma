@@ -34,6 +34,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {colors} from '../../theme/default';
+// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

@@ -27,6 +27,7 @@ import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
+// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

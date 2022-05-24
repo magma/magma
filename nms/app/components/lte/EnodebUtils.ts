@@ -14,12 +14,16 @@
  * @format
  */
 
-import type {enodeb, enodeb_state} from '../../../generated/MagmaAPIBindings';
-import type {enodeb_configuration} from '../../../generated/MagmaAPIBindings';
+import type {
+  Enodeb,
+  EnodebConfiguration,
+  EnodebState,
+} from '../../../generated-ts';
 
-export const EnodebDeviceClass: {
-  [string]: $PropertyType<enodeb_configuration, 'device_class'>,
-} = Object.freeze({
+export const EnodebDeviceClass: Record<
+  string,
+  EnodebConfiguration['device_class']
+> = Object.freeze({
   BAICELLS_NOVA_233_2_OD_FDD: 'Baicells Nova-233 G2 OD FDD',
   BAICELLS_NOVA_243_OD_TDD: 'Baicells Nova-243 OD TDD',
   BAICELLS_NEUTRINO_224_ID_FDD: 'Baicells Neutrino 224 ID FDD',
@@ -28,9 +32,10 @@ export const EnodebDeviceClass: {
   FREEDOMFI_ONE: 'FreedomFi One',
 });
 
-export const EnodebBandwidthOption: {
-  [string]: $NonMaybeType<$PropertyType<enodeb_configuration, 'bandwidth_mhz'>>,
-} = Object.freeze({
+export const EnodebBandwidthOption: Record<
+  string,
+  EnodebConfiguration['bandwidth_mhz'] | null | undefined
+> = Object.freeze({
   '3': 3,
   '5': 5,
   '10': 10,
@@ -39,8 +44,8 @@ export const EnodebBandwidthOption: {
 });
 
 export type EnodebInfo = {
-  enb: enodeb,
-  enb_state: enodeb_state,
+  enb: Enodeb;
+  enb_state: EnodebState;
 };
 
 export function isEnodebHealthy(enbInfo: EnodebInfo) {

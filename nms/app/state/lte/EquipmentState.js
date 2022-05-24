@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {EnodebState} from '../../components/context/EnodebContext';
 import type {EnqueueSnackbarOptions} from 'notistack';

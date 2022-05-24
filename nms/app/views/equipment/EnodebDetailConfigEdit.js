@@ -39,6 +39,7 @@ import Tabs from '@material-ui/core/Tabs';
 import {
   EnodebBandwidthOption,
   EnodebDeviceClass,
+  // $FlowFixMe migrated to typescript
 } from '../../components/lte/EnodebUtils';
 
 import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
