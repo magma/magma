@@ -1579,4 +1579,42 @@ TEST(test_PDUAddressMsg, test_pdu_session_accept_optional_addressinfo) {
   EXPECT_TRUE(msg.address_info[0] == 0xc0);
   EXPECT_TRUE(msg.address_info[1] == 0xa8);
 }
+TEST(test_network_feature, test_network_feature) {
+  NetworkFeatureSupportMsg networkfeature;
+  NetworkFeatureSupportMsg decoded_networkfeature;
+  networkfeature.iei = 0x21;
+  uint8_t iei = networkfeature.iei;
+
+  networkfeature.len = 2;
+  networkfeature.IMS_VoPS_3GPP = 1;
+  networkfeature.IMS_VoPS_N3GPP = 0;
+  networkfeature.EMC = 2;
+  networkfeature.EMF = 3;
+  networkfeature.IWK_N26 = 1;
+  networkfeature.MPSI = 0;
+  networkfeature.EMCN3 = 1;
+  networkfeature.MCSI = 0;
+
+  uint8_t network_feature_buffer[4096];
+
+  int encoded_network_feature = networkfeature.EncodeNetworkFeatureSupportMsg(
+      &networkfeature, iei, network_feature_buffer, 4096);
+  EXPECT_EQ(encoded_network_feature, 4);
+
+  int decoded_network_feature = networkfeature.DecodeNetworkFeatureSupportMsg(
+      &decoded_networkfeature, iei, network_feature_buffer, 4096);
+  EXPECT_EQ(decoded_network_feature, 4);
+
+  EXPECT_EQ(networkfeature.iei, decoded_networkfeature.iei);
+  EXPECT_EQ(networkfeature.len, decoded_networkfeature.len);
+  EXPECT_EQ(networkfeature.IMS_VoPS_3GPP, decoded_networkfeature.IMS_VoPS_3GPP);
+  EXPECT_EQ(networkfeature.IMS_VoPS_N3GPP,
+            decoded_networkfeature.IMS_VoPS_N3GPP);
+  EXPECT_EQ(networkfeature.EMC, decoded_networkfeature.EMC);
+  EXPECT_EQ(networkfeature.EMF, decoded_networkfeature.EMF);
+  EXPECT_EQ(networkfeature.IWK_N26, decoded_networkfeature.IWK_N26);
+  EXPECT_EQ(networkfeature.MPSI, decoded_networkfeature.MPSI);
+  EXPECT_EQ(networkfeature.EMCN3, decoded_networkfeature.EMCN3);
+  EXPECT_EQ(networkfeature.MCSI, decoded_networkfeature.MCSI);
+}
 }  // namespace magma5g

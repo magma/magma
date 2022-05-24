@@ -493,6 +493,27 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .timervalue = 6;
 
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.iei = 0x21;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.len = 2;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.MPSI = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IWK_N26 = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMF = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMC = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IMS_VoPS_N3GPP = 1;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IMS_VoPS_3GPP = 1;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.MCSI = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMCN3 = 0;
+
   size += MOBILE_IDENTITY_MAX_LENGTH;
   size += 20;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);

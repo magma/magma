@@ -88,6 +88,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer2.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GRequestType.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GMaxNumOfSupportedPacketFilters.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GNetworkFeatureSupport.cpp
     )
 
 add_library(LIB_NAS5G
