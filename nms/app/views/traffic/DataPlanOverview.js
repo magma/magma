@@ -24,6 +24,7 @@ import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
 import withAlert from '../../components/Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

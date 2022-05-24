@@ -15,6 +15,7 @@
  */
 
 import MagmaV1API from '../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 

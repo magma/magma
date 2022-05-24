@@ -40,6 +40,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 

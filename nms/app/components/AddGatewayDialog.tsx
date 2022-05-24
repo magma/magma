@@ -27,6 +27,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';

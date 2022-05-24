@@ -26,6 +26,7 @@ import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 
 import {

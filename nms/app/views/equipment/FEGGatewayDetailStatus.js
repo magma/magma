@@ -21,6 +21,7 @@ import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 

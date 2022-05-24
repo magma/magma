@@ -30,6 +30,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import renderList from '../../../app/util/renderList';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';

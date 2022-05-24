@@ -39,6 +39,7 @@ import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 import withAlert from '../Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';

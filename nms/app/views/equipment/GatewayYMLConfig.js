@@ -28,6 +28,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '../../theme/design-system/Text';
 import TextareaAutosize from 'react-textarea-autosize';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../../components/Alert/withAlert';

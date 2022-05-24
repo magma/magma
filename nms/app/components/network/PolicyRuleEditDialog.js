@@ -39,6 +39,7 @@ import TextField from '@material-ui/core/TextField';
 import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 // $FlowFixMe migrated to typescript

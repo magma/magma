@@ -9,25 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
+import Menu, {MenuProps} from '@material-ui/core/Menu';
 import React from 'react';
 import {colors, shadows} from '../theme/default';
 import {withStyles} from '@material-ui/core/styles';
-
-import type {Node} from 'react';
 
 const StyledMenu = withStyles({
   paper: {
     border: `1px solid ${colors.button.lightOutline}`,
     boxShadow: shadows.DP3,
   },
-})(props => (
+})((props: MenuProps) => (
   <Menu
     elevation={0}
     getContentAnchorEl={null}
@@ -43,25 +38,25 @@ const StyledMenu = withStyles({
   />
 ));
 
-type Props = {|
-  label: string,
-  children: Node,
-  'data-testid'?: string,
-  size?: 'small' | 'medium' | 'large',
-  className?: string,
-|};
+type Props = {
+  label: string;
+  children: React.ReactNode;
+  'data-testid'?: string;
+  size?: 'small' | 'medium' | 'large';
+  className?: string;
+};
 
 export default function MenuButton(props: Props) {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [minWidth, setMinWidth] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement>();
+  const [minWidth, setMinWidth] = React.useState<number>();
 
-  const onButtonClick = event => {
+  const onButtonClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
     setMinWidth(event.currentTarget.getBoundingClientRect().width);
     setAnchorEl(event.currentTarget);
   };
   const onClose = () => {
-    setAnchorEl(null);
-    setMinWidth(null);
+    setAnchorEl(undefined);
+    setMinWidth(undefined);
   };
 
   const {children, label, ...passthroughProps} = props;

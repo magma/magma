@@ -28,6 +28,7 @@ import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '../theme/design-system/Text';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';

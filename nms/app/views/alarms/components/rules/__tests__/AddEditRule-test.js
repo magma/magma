@@ -17,6 +17,7 @@
 import * as React from 'react';
 import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../../../../shared/util/nullthrows';
 import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';

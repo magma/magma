@@ -45,6 +45,7 @@ services:
       - ./api:/usr/src/api
       - ./app:/usr/src/app
       - ./generated:/usr/src/generated
+      - ./grafana:/usr/src/grafana
       - ./scripts:/usr/src/scripts
       - ./server:/usr/src/server
       - ./shared:/usr/src/shared

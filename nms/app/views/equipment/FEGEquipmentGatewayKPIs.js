@@ -20,6 +20,7 @@ import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 

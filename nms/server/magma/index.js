@@ -17,6 +17,7 @@
 import MagmaAPIBindings from '../../generated/MagmaAPIBindings';
 import axios from 'axios';
 import https from 'https';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import {API_HOST, apiCredentials} from '../../config/config';
 

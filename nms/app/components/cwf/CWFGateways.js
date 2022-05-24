@@ -44,6 +44,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../Alert/withAlert';

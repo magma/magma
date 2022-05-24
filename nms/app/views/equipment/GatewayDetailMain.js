@@ -35,6 +35,7 @@ import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
+// $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
@@ -46,6 +47,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 import {

@@ -38,6 +38,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../Alert/withAlert';

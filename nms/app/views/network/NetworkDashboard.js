@@ -26,6 +26,7 @@ import NetworkKPI from './NetworkKPIs';
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
 import TopBar from '../../components/TopBar';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {

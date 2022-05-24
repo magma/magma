@@ -35,6 +35,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 

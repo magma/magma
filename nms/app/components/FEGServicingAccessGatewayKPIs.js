@@ -20,6 +20,7 @@ import DataGrid from './DataGrid';
 import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import type {DataRows} from './DataGrid';
 import type {EnqueueSnackbarOptions} from 'notistack';
