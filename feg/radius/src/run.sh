@@ -13,13 +13,6 @@
 ################################################################################
 
 OUTPUT_DIR=bin
-WHICH_FBGO=$(command -v fbgo)
-WHICH_GO=$(command -v go)
-if [ -z "${WHICH_FBGO}" ]; then
-    GO=${WHICH_GO}
-else
-    GO=${WHICH_FBGO}
-fi
 
 function lint {
     LINTER=$(which golangci-lint)
@@ -38,11 +31,11 @@ function lint {
 }
 
 function build {
-    ${GO} build .
+    go build .
 }
 
 function gen {
-    ${GO} generate ./...
+    go generate ./...
 }
 
 function clean {
@@ -60,7 +53,7 @@ function pretty {
 }
 
 function test {
-    find . | grep _test\.go | sed 's/\(.*\)\/.*/\1/' | xargs -L1 "${GO}" "test"
+    find . | grep _test\.go | sed 's/\(.*\)\/.*/\1/' | xargs -L1 go "test"
 }
 
 function e2e {
