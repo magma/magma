@@ -60,7 +60,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 1. Install the following tools
    1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
-   3. [Vagrant](https://www.vagrantup.com/downloads) (Install by downloading the `.deb` file. Installing via the command line using `apt-get` can currently cause an issue with OpenSSL.)
+   3. [Vagrant](https://www.vagrantup.com/downloads) (Install by downloading the `.deb` file. Installing via the command line using `apt-get` can currently cause an issue with OpenSSL. See also [this discussion](https://github.com/hashicorp/vagrant/issues/12751).)
 2. Install golang version 18.
 
    1. Download the tar file.
@@ -107,7 +107,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev  libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
       ```
 
-      **Note**: For Ubuntu 22.04 use `python3-openssl` instead of `python-openssl`.
+      **Note**: For Ubuntu 22.04, use `python3-openssl` instead of `python-openssl`.
 
    3. Clone `pyenv` repository.
 
@@ -131,7 +131,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       pyenv global 3.7.3
       ```
 
-        **Note**: Python 3.7.3 cannot be installed on Ubuntu 22.04 this way. Use Python 3.10.4 instead.
+        **Note**: The `pyenv` installation [might fail with a segmentation fault](https://github.com/pyenv/pyenv/issues/2046). Try using `CFLAGS="-O2" pyenv install 3.7.3` in that case.
 
 4. Install `pip3` and its dependencies.
 
@@ -144,7 +144,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    2. Install the following dependencies
 
       ```bash
-      pip3 install ansible 'fabric<2.0' jsonpickle requests PyYAML
+      pip3 install ansible fabric3 jsonpickle requests PyYAML
       ```
 
 5. Install `vagrant` necessary plugin.
@@ -153,7 +153,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    vagrant plugin install vagrant-vbguest
    ```
 
-    Make sure `virtualbox` is the default provider for `vagrant` by adding the following line to your `.bashrc` (or equivalent) and restart your shell: `export VAGRANT_DEFAULT_PROVIDER="virtualbox"`
+    Make sure `virtualbox` is the default provider for `vagrant` by adding the following line to your `.bashrc` (or equivalent) and restart your shell: `export VAGRANT_DEFAULT_PROVIDER="virtualbox"`.
 
 ## Downloading Magma
 

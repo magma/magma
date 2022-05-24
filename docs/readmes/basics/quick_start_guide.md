@@ -133,7 +133,7 @@ Creating orc8r_controller_1       ... done
 
 The Orchestrator application containers will bootstrap certificates on startup
 which are cached for future runs. Watch the directory `magma/.cache/test_certs`
-for a file `admin_operator.pfx` to show up (this may take a minute or 2).
+for a file `admin_operator.pfx` to show up (this may take a minute or two).
 
 ```bash
 HOST [magma/orc8r/cloud/docker]$ ls ../../../.cache/test_certs
