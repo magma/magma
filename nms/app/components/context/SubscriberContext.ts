@@ -9,25 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
+
 import type {
-  core_network_types,
-  gateway_id,
-  mutable_subscriber,
-  mutable_subscribers,
-  subscriber,
-  subscriber_id,
-  subscriber_state,
-} from '../../../generated/MagmaAPIBindings';
+  MutableSubscriber,
+  Subscriber,
+  SubscriberState,
+} from '../../../generated-ts';
 
 import React from 'react';
+import {GatewayId, SubscriberId} from '../../../shared/types/network';
+import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated-ts';
 
 export type Metrics = {
-  currentUsage: string,
-  dailyAvg: string,
+  currentUsage: string;
+  dailyAvg: string;
 };
 
 /* SubscriberContextType
@@ -39,18 +35,23 @@ totalCount: total count of subscribers
 setState: POST, PUT, DELETE subscriber
 */
 export type SubscriberContextType = {
-  state: {[string]: subscriber},
-  sessionState: {[string]: subscriber_state},
-  forbiddenNetworkTypes: {[string]: core_network_types},
-  metrics?: {[string]: Metrics},
-  gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
-  totalCount: number,
+  state: Record<string, Subscriber>;
+  sessionState: Record<string, SubscriberState>;
+  forbiddenNetworkTypes: Record<
+    string,
+    Array<SubscriberForbiddenNetworkTypesEnum>
+  >;
+  metrics?: Record<string, Metrics>;
+  gwSubscriberMap: Record<GatewayId, Array<SubscriberId>>;
+  totalCount: number;
   setState?: (
     key: string,
-    val?: mutable_subscriber | mutable_subscribers,
-    newState?: {[string]: subscriber},
-    newSessionState?: {[string]: subscriber_state},
-  ) => Promise<void>,
+    val?: MutableSubscriber | Array<MutableSubscriber>,
+    newState?: Record<string, Subscriber>,
+    newSessionState?: Record<string, SubscriberState>,
+  ) => Promise<void>;
 };
 
-export default React.createContext<SubscriberContextType>({});
+export default React.createContext<SubscriberContextType>(
+  {} as SubscriberContextType,
+);

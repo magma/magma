@@ -25,6 +25,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from '../../components/context/NetworkContext';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript

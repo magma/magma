@@ -16,7 +16,9 @@
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
+// $FlowFixMe migrated to typescript
 import type {Metrics} from '../../components/context/SubscriberContext';
+// $FlowFixMe migrated to typescript
 import type {SubscriberContextType} from '../../components/context/SubscriberContext';
 import type {SubscriberRowType} from '../../views/subscriber/SubscriberOverview';
 import type {

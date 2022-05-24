@@ -35,6 +35,7 @@ import Link from '@material-ui/core/Link';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useEffect, useState} from 'react';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';

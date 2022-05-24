@@ -21,6 +21,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import ReactJson from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import SubscriberStateTable from './SubscriberStateTable';
