@@ -30,6 +30,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
 import {useNetworkId} from '../../components/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../hooks/useSnackbar';
 
 import type {FiringAlarm} from '../AlarmAPIType';

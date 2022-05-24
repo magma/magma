@@ -17,6 +17,7 @@
 import MagmaV1API from '../generated/WebClient';
 
 import {useEffect, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../app/hooks/useSnackbar';
 
 export default function <TParams: {...}, TResponse>(

@@ -22,6 +22,7 @@ import TableActionDialog from '../table/TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useNetworkId} from '../../components/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../hooks/useSnackbar';
 import {useState} from 'react';
 

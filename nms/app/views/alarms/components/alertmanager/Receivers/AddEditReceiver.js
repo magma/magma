@@ -30,6 +30,7 @@ import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '../../../hooks/useForm';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {

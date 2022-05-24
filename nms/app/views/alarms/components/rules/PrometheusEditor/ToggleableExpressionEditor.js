@@ -29,6 +29,7 @@ import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../../components/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';

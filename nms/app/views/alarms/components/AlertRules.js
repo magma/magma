@@ -26,6 +26,7 @@ import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from './AlarmContext';
 import {useLoadRules} from './hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import {useParams} from 'react-router-dom';

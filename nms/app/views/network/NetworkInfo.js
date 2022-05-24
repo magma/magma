@@ -36,6 +36,7 @@ import {AltFormField} from '../../components/FormField';
 // $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../shared/types/network';
 import {useContext, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {

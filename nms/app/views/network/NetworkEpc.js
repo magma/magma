@@ -36,6 +36,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {

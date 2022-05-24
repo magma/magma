@@ -25,6 +25,7 @@ import TextField from '@material-ui/core/TextField';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({

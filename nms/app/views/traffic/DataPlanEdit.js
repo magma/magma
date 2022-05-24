@@ -33,6 +33,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 

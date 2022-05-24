@@ -57,6 +57,7 @@ import {JsonDialog, RenderLink} from './SubscriberOverview';
 // $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 

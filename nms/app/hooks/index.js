@@ -15,5 +15,6 @@
  */
 
 export {default as useAxios} from './useAxios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 export {default as useSnackbar} from './useSnackbar';
 export {default as useInterval} from './useInterval';

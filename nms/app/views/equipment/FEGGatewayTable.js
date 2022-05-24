@@ -41,6 +41,7 @@ import {
   RefreshTypeEnum,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 

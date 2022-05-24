@@ -59,6 +59,7 @@ import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 import type {WithAlert} from '../../components/Alert/withAlert';

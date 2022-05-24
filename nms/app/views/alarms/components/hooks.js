@@ -17,6 +17,7 @@
 import * as React from 'react';
 import axios from 'axios';
 import {useAlarmContext} from './AlarmContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import type {AlertRoutingTree} from './AlarmAPIType';

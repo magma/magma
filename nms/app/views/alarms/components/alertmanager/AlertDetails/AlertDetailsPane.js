@@ -36,6 +36,7 @@ import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {
