@@ -36,13 +36,14 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/tools/migrations/m012_policy_qos/types"
 	"magma/orc8r/cloud/go/sqorc"
@@ -100,7 +101,7 @@ func main() {
 	dbSource := migrations.GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")
 	db, err := sql.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	_, err = migrations.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, doMigration)
@@ -151,7 +152,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		Where(squirrel.Eq{entTypeCol: policyEntType}).
 		RunWith(tx).Query()
 	if err != nil {
-		return errors.Wrap(err, "get policy ents")
+		return fmt.Errorf("get policy ents: %w", err)
 	}
 	oldByKey := map[string]policyEnt{}
 	for rows.Next() {
@@ -160,17 +161,17 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		var confBytes []byte
 		err = rows.Scan(&old.pk, &key, &old.network, &old.gid, &confBytes)
 		if err != nil {
-			return errors.Wrap(err, "scan policy")
+			return fmt.Errorf("scan policy: %w", err)
 		}
 		err = json.Unmarshal(confBytes, &old.config)
 		if err != nil {
-			return errors.Wrap(err, "unmarshal existing policy rule config")
+			return fmt.Errorf("unmarshal existing policy rule config: %w", err)
 		}
 		oldByKey[key] = old
 	}
 	err = rows.Err()
 	if err != nil {
-		return errors.Wrap(err, "get existing assocs: SQL rows error")
+		return fmt.Errorf("get existing assocs: SQL rows error: %w", err)
 	}
 
 	// Convert policy configs to {new config, policy_qos_profile ent}
@@ -192,7 +193,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		}
 		newBytes, err := json.Marshal(newConf)
 		if err != nil {
-			return errors.Wrap(err, "marshal updated policy config")
+			return fmt.Errorf("marshal updated policy config: %w", err)
 		}
 		updateConfByKey[key] = newBytes
 
@@ -208,7 +209,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		}
 		profileBytes, err := json.Marshal(profileConf)
 		if err != nil {
-			return errors.Wrap(err, "marshal new policy_qos_profile config")
+			return fmt.Errorf("marshal new policy_qos_profile config: %w", err)
 		}
 		createProfileByKey[key] = profileBytes
 	}
@@ -228,7 +229,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		glog.Infof("[RUN] %s %v", sqlStr, args)
 		_, err = bu.RunWith(tx).Exec()
 		if err != nil {
-			return errors.Wrap(err, "error updating policy ent")
+			return fmt.Errorf("error updating policy ent: %w", err)
 		}
 
 		qosProfilePK := migrations.MakePK()
@@ -241,7 +242,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		glog.Infof("[RUN] %s %v", sqlStr, args)
 		_, err = bi.RunWith(tx).Exec()
 		if err != nil {
-			return errors.Wrap(err, "error inserting policy_qos_profile ent")
+			return fmt.Errorf("error inserting policy_qos_profile ent: %w", err)
 		}
 
 		bi = builder.
@@ -252,7 +253,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		glog.Infof("[RUN] %s %v", sqlStr, args)
 		_, err = bi.RunWith(tx).Exec()
 		if err != nil {
-			return errors.Wrap(err, "error inserting policy->policy_qos_profile assoc")
+			return fmt.Errorf("error inserting policy->policy_qos_profile assoc: %w", err)
 		}
 	}
 

@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -70,7 +69,7 @@ func NewSQLBlobstoreForServices(tableName string) (blobstore.StoreFactory, error
 	// to provide a clean slate across test cases
 	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
 	if err != nil {
-		return nil, errors.Wrapf(err, "drop test SQL blobstore table: %s", tableName)
+		return nil, fmt.Errorf("drop test SQL blobstore table: %s: %w", tableName, err)
 	}
 
 	store := blobstore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())

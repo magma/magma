@@ -16,10 +16,10 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
@@ -51,7 +51,7 @@ func main() {
 
 	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	_, err = migrations.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, doMigration)
@@ -75,7 +75,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 	glog.Infof("[RUN] %s %v", sqlStr, args)
 	rows, err := b.RunWith(tx).Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "error loading enodeb configs")
+		return nil, fmt.Errorf("error loading enodeb configs: %w", err)
 	}
 
 	defer sqorc.CloseRowsLogOnError(rows, "m014_enodeb_config")
@@ -85,7 +85,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		var oldConf []byte
 
 		if err = rows.Scan(&pk, &oldConf); err != nil {
-			return nil, errors.Wrap(err, "error scanning enodeb config row")
+			return nil, fmt.Errorf("error scanning enodeb config row: %w", err)
 		}
 		shouldMigrate, err := shouldMigrateConf(oldConf)
 		if err != nil {
@@ -98,7 +98,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		newConf := EnodebConfig{ConfigType: "MANAGED", ManagedConfig: oldConf}
 		newConfBytes, err := json.Marshal(newConf)
 		if err != nil {
-			return nil, errors.Wrap(err, "error marshalling new enodeb config")
+			return nil, fmt.Errorf("error marshaling new enodeb config: %w", err)
 		}
 		newConfsByPk[pk] = newConfBytes
 	}
@@ -111,7 +111,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		glog.Infof("[RUN] %s %v", sqlStr, args)
 		_, err = bu.RunWith(tx).Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "error updating enodeb config %s", pk)
+			return nil, fmt.Errorf("error updating enodeb config %s: %w", pk, err)
 		}
 	}
 	return nil, nil
@@ -123,7 +123,7 @@ func shouldMigrateConf(oldConf []byte) (bool, error) {
 	parsedMessage := map[string]interface{}{}
 	err := json.Unmarshal(oldConf, &parsedMessage)
 	if err != nil {
-		return false, errors.Wrap(err, "could not unmarshal legacy config")
+		return false, fmt.Errorf("could not unmarshal legacy config: %w", err)
 	}
 
 	_, alreadyMigrated := parsedMessage["config_type"]

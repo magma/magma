@@ -21,12 +21,12 @@ package reindex_test
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 

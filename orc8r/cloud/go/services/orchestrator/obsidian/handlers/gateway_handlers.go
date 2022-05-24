@@ -24,7 +24,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -136,11 +135,11 @@ func listGatewaysHandler(c echo.Context) error {
 
 	devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs, serdes.Device)
 	if err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("failed to load devices: %w", err), http.StatusInternalServerError)
 	}
 	statusesByID, err := wrappers.GetGatewayStatuses(reqCtx, nid, deviceIDs)
 	if err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("failed to load statuses: %w", err), http.StatusInternalServerError)
 	}
 	gateways := makeGateways(entsByTK, devicesByID, statusesByID)
 
@@ -182,7 +181,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 	// Must associate to an existing tier
 	tierExists, err := configurator.DoesEntityExist(reqCtx, nid, orc8r.UpgradeTierEntityType, string(mdGateway.Tier))
 	if err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check for tier existence"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("failed to check for tier existence: %w", err), http.StatusInternalServerError)
 	}
 	if !tierExists {
 		return echo.NewHTTPError(http.StatusBadRequest, "requested tier does not exist")
@@ -213,7 +212,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway, entitySerdes
 	}
 
 	if err = configurator.WriteEntities(reqCtx, nid, writes, entitySerdes); err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "error creating gateway"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("error creating gateway: %w", err), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -234,21 +233,21 @@ func registerDevice(ctx context.Context, networkID string, gateway *models.Magma
 	case err == merrors.ErrNotFound:
 		err = device.RegisterDevice(ctx, networkID, orc8r.AccessGatewayRecordType, deviceID, gateway.Device, deviceSerdes)
 		if err != nil {
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to register physical device"), http.StatusInternalServerError)
+			return obsidian.MakeHTTPError(fmt.Errorf("failed to register physical device: %w", err), http.StatusInternalServerError)
 		}
 	case err != nil:
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check if physical device is already registered"), http.StatusConflict)
+		return obsidian.MakeHTTPError(fmt.Errorf("failed to check if physical device is already registered: %w", err), http.StatusConflict)
 	default: // err == nil
 		assignedEnt, err := configurator.LoadEntityForPhysicalID(ctx, deviceID, configurator.EntityLoadCriteria{}, entitySerdes)
 		switch {
 		case err == nil:
-			return obsidian.MakeHTTPError(errors.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
+			return obsidian.MakeHTTPError(fmt.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
 		case err != merrors.ErrNotFound:
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to check for existing device assignment"), http.StatusInternalServerError)
+			return obsidian.MakeHTTPError(fmt.Errorf("failed to check for existing device assignment: %w", err), http.StatusInternalServerError)
 		}
 
 		if err := device.UpdateDevice(ctx, networkID, orc8r.AccessGatewayRecordType, deviceID, gateway.Device, deviceSerdes); err != nil {
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to update device record"), http.StatusInternalServerError)
+			return obsidian.MakeHTTPError(fmt.Errorf("failed to update device record: %w", err), http.StatusInternalServerError)
 		}
 	}
 	return nil
@@ -348,7 +347,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 		entitySerdes,
 	)
 	if err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load gateway before update"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("failed to load gateway before update: %w", err), http.StatusInternalServerError)
 	}
 
 	writes, nerr := getUpdateWrites(reqCtx, subGateway, loadedEnts)
@@ -365,7 +364,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 	// configurator write was successful
 	err = device.UpdateDevice(reqCtx, nid, orc8r.AccessGatewayRecordType, mdGateway.Device.HardwareID, mdGateway.Device, deviceSerdes)
 	if err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "failed to update device info"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("failed to update device info: %w", err), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -380,7 +379,7 @@ func getUpdateWrites(ctx context.Context, payload MagmadEncompassingGateway, loa
 	case err == merrors.ErrNotFound:
 		return writes, echo.ErrNotFound
 	case err != nil:
-		return writes, obsidian.MakeHTTPError(errors.Wrap(err, "failed to get update operations from magmad model"), http.StatusInternalServerError)
+		return writes, obsidian.MakeHTTPError(fmt.Errorf("failed to get update operations from magmad model: %w", err), http.StatusInternalServerError)
 	}
 
 	// Short circuit if this is the magmad gateway
@@ -394,7 +393,7 @@ func getUpdateWrites(ctx context.Context, payload MagmadEncompassingGateway, loa
 	case err == merrors.ErrNotFound:
 		return writes, echo.ErrNotFound
 	case err != nil:
-		return writes, obsidian.MakeHTTPError(errors.Wrap(err, "failed to get update operations from payload model"), http.StatusInternalServerError)
+		return writes, obsidian.MakeHTTPError(fmt.Errorf("failed to get update operations from payload model: %w", err), http.StatusInternalServerError)
 	}
 
 	writes = append(writes, mdGwWrites...)
@@ -426,7 +425,7 @@ func DeleteMagmadGateway(ctx context.Context, networkID, gatewayID string, addit
 
 	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
-		return obsidian.MakeHTTPError(errors.Wrap(err, "error deleting gateway"), http.StatusInternalServerError)
+		return obsidian.MakeHTTPError(fmt.Errorf("error deleting gateway: %w", err), http.StatusInternalServerError)
 	}
 
 	// Now we delete the associated device. Even though we error out
@@ -436,7 +435,7 @@ func DeleteMagmadGateway(ctx context.Context, networkID, gatewayID string, addit
 	if mdGw.PhysicalID != "" {
 		err = device.DeleteDevice(ctx, networkID, orc8r.AccessGatewayRecordType, mdGw.PhysicalID)
 		if err != nil {
-			return obsidian.MakeHTTPError(errors.Wrap(err, "failed to delete device for gateway. no further action is required"), http.StatusInternalServerError)
+			return obsidian.MakeHTTPError(fmt.Errorf("failed to delete device for gateway. no further action is required: %w", err), http.StatusInternalServerError)
 		}
 	}
 

@@ -19,7 +19,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 )
@@ -53,7 +52,7 @@ func (l *syncStore) NewCacheWriter(network string, id string) CacheWriter {
 // CacheWriter object.
 func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 	if l.invalid {
-		return errors.Errorf("attempt to insert into network %+v with invalid cache writer", l.network)
+		return fmt.Errorf("attempt to insert into network %+v with invalid cache writer", l.network)
 	}
 	if len(objects) == 0 {
 		return nil
@@ -72,7 +71,10 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := insertQuery.RunWith(tx).Exec()
-		return nil, errors.Wrapf(err, "insert objs into store for network %+v", l.network)
+		if err != nil {
+			return nil, fmt.Errorf("insert objs into store for network %+v: %w", l.network, err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
@@ -80,7 +82,7 @@ func (l *cacheWriter) InsertMany(objects map[string][]byte) error {
 
 func (l *cacheWriter) Apply() error {
 	if l.invalid {
-		return errors.Errorf("attempt to apply updates to network %+v with invalid cache writer", l.network)
+		return fmt.Errorf("attempt to apply updates to network %+v with invalid cache writer", l.network)
 	}
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		// HACK: hard coding part of this sql query because there currently doesn't exist good support
@@ -104,7 +106,7 @@ func (l *cacheWriter) Apply() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "clean up previous cached objs store table")
+			return nil, fmt.Errorf("clean up previous cached objs store table: %w", err)
 		}
 
 		// The upsert query should look something like
@@ -132,7 +134,7 @@ func (l *cacheWriter) Apply() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "populate cached objs store table")
+			return nil, fmt.Errorf("populate cached objs store table: %w", err)
 		}
 
 		_, err = l.builder.
@@ -140,7 +142,7 @@ func (l *cacheWriter) Apply() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "clean up tmp cached objs store table")
+			return nil, fmt.Errorf("clean up tmp cached objs store table: %w", err)
 		}
 		return nil, nil
 	}
