@@ -49,12 +49,12 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ng_set_session_msg import CreateSessionUtil
-from magma.pipelined.pg_set_session_msg import CreateMMESessionUtils
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.service_manager import Tables
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
+from scripts.pg_set_session_msg import CreateMMESessionUtils
 
 LOG_INCREMENT = 25
 UEInfo = namedtuple(
