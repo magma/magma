@@ -30,6 +30,7 @@ import LteNetworkContext from '../context/LteNetworkContext';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../context/PolicyContext';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../context/SubscriberContext';

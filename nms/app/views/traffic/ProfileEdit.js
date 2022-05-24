@@ -25,6 +25,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
+// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 

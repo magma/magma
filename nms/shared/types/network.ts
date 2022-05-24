@@ -46,3 +46,4 @@ export type NetworkId = string;
 export type GatewayId = string;
 export type GatewayPoolId = string;
 export type SubscriberId = string;
+export type PolicyId = string;
