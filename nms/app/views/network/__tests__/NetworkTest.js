@@ -14,7 +14,9 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGNetworkDashboard from '../FEGNetworkDashboard';

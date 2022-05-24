@@ -17,6 +17,7 @@ import type {DataRows} from '../../components/DataGrid';
 
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';

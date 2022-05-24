@@ -9,18 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
-import type {apn} from '../../../generated/MagmaAPIBindings';
+import type {Apn} from '../../../generated-ts';
 
 import React from 'react';
 
 export type ApnContextType = {
-  state: {[string]: apn},
-  setState: (key: string, val?: apn) => Promise<void>,
+  state: Record<string, Apn>;
+  setState: (key: string, val?: Apn) => Promise<void>;
 };
 
-export default React.createContext<ApnContextType>({});
+export default React.createContext<ApnContextType>({} as ApnContextType);

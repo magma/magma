@@ -16,6 +16,7 @@
 
 import AddEditEnodeButton from '../EnodebDetailConfigEdit';
 import EnodebConfig from '../EnodebDetailConfig';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

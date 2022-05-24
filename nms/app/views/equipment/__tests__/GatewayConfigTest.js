@@ -20,6 +20,7 @@ import type {
 } from '../../../../generated/MagmaAPIBindings';
 
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
+// $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
 import GatewayContext from '../../../components/context/GatewayContext';

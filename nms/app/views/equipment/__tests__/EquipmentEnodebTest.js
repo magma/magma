@@ -16,6 +16,7 @@
 import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
 
 import Enodeb from '../EquipmentEnodeb';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';

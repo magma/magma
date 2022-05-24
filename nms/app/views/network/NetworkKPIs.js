@@ -15,9 +15,11 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 
+// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayContext from '../../components/context/GatewayContext';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';

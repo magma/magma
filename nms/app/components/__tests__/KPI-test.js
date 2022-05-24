@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../context/GatewayContext';

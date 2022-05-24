@@ -26,6 +26,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EmptyState from '../../components/EmptyState';
+// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';

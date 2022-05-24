@@ -19,6 +19,7 @@ import type {DataRows} from './DataGrid';
 import type {EnodebInfo} from './lte/EnodebUtils';
 
 import DataGrid from './DataGrid';
+// $FlowFixMe migrated to typescript
 import EnodebContext from './context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';

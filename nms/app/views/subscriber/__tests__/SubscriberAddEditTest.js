@@ -15,6 +15,7 @@
  */
 import * as hooks from '../../../components/context/RefreshContext';
 
+// $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

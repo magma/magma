@@ -20,6 +20,7 @@ import type {
   qos_profile,
 } from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
