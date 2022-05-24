@@ -15,10 +15,10 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -43,7 +43,7 @@ func NewGwCtracedClient() GwCtracedClient {
 func getGWCtracedClient(ctx context.Context, networkID string, gatewayID string) (protos.CallTraceServiceClient, context.Context, error) {
 	hwID, err := configurator.GetPhysicalIDOfEntity(ctx, networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, fmt.Sprintf("gateway not found, network-id: %s, gateway-id: %s", networkID, gatewayID))
+		return nil, nil, fmt.Errorf("gateway not found, network-id: %s, gateway-id: %s: %w", networkID, gatewayID, err)
 	}
 	conn, gatewayCtx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwCtraced, hwID)
 	if err != nil {
@@ -63,7 +63,7 @@ func (c gwCtracedClientImpl) StartCallTrace(ctx context.Context, networkId strin
 	}
 	resp, err := client.StartCallTrace(gatewayCtx, req)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start call trace, gRPC client received error")
+		return nil, fmt.Errorf("failed to start call trace, gRPC client received error: %w", err)
 	}
 	return resp, err
 }
@@ -77,7 +77,7 @@ func (c gwCtracedClientImpl) EndCallTrace(ctx context.Context, networkId string,
 	}
 	resp, err := client.EndCallTrace(gatewayCtx, req)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to end call trace, gRPC client received error")
+		return nil, fmt.Errorf("failed to end call trace, gRPC client received error: %w", err)
 	}
 	return resp, err
 }

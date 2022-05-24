@@ -15,11 +15,11 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -101,7 +101,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 
 		exists, err := configurator.DoesEntityExist(reqCtx, networkID, orc8r.CallTraceEntityType, cfg.TraceID)
 		if exists {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.New(fmt.Sprintf("Call trace id: %s already exists", cfg.TraceID)))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Call trace id: %s already exists", cfg.TraceID))
 		}
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -112,12 +112,12 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 
 		req, err := buildStartTraceRequest(cfg)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to build call trace request"))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to build call trace request: %w", err))
 		}
 
 		resp, err := client.StartCallTrace(reqCtx, networkID, cfg.GatewayID, req)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to start call trace"))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to start call trace: %w", err))
 		}
 		if !resp.Success {
 			return echo.NewHTTPError(http.StatusInternalServerError, errors.New("failed to start call trace"))
@@ -126,7 +126,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		createdEntity := ctr.ToEntity()
 		_, err = configurator.CreateEntity(reqCtx, networkID, createdEntity, serdes.Entity)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to create call trace"))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to create call trace: %w", err))
 		}
 		return c.JSON(http.StatusCreated, cfg.TraceID)
 	}
@@ -177,7 +177,7 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 
 		err = storage.StoreCallTrace(networkID, callTraceID, resp.TraceContent)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, fmt.Sprintf("failed to save call trace data, network-id: %s, gateway-id: %s, calltrace-id: %s", networkID, callTrace.Config.GatewayID, callTraceID)))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to save call trace data, network-id: %s, gateway-id: %s, calltrace-id: %s: %w", networkID, callTrace.Config.GatewayID, callTraceID, err))
 		}
 
 		_, err = configurator.UpdateEntity(reqCtx, networkID, mutableCallTrace.ToEntityUpdateCriteria(callTraceID, *callTrace), serdes.Entity)
@@ -197,7 +197,7 @@ func getDeleteCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 
 		err := storage.DeleteCallTrace(networkID, callTraceID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to delete call trace data"))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to delete call trace data: %w", err))
 		}
 
 		err = configurator.DeleteEntity(c.Request().Context(), networkID, orc8r.CallTraceEntityType, callTraceID)
@@ -217,7 +217,7 @@ func getDownloadCallTraceHandlerFunc(storage storage.CtracedStorage) echo.Handle
 
 		callTrace, err := storage.GetCallTrace(networkID, callTraceID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to retrieve call trace data"))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to retrieve call trace data: %w", err))
 		}
 
 		res := c.Response()

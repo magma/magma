@@ -15,12 +15,12 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -166,7 +166,7 @@ func (store *sqlConfiguratorStorage) updateNetwork(update *NetworkUpdateCriteria
 	updateBuilder = updateBuilder.Set(nwVerCol, sq.Expr(fmt.Sprintf("%s.%s+1", networksTable, nwVerCol)))
 	_, err := updateBuilder.RunWith(stmtCache).Exec()
 	if err != nil {
-		return errors.Wrapf(err, "error updating network %s", update.ID)
+		return fmt.Errorf("error updating network %s: %w", update.ID, err)
 	}
 
 	// Sort config keys for deterministic behavior on upserts
@@ -187,7 +187,7 @@ func (store *sqlConfiguratorStorage) updateNetwork(update *NetworkUpdateCriteria
 			RunWith(stmtCache).
 			Exec()
 		if err != nil {
-			return errors.Wrapf(err, "error updating config %s on network %s", configType, update.ID)
+			return fmt.Errorf("error updating config %s on network %s: %w", configType, update.ID, err)
 		}
 	}
 
@@ -202,7 +202,7 @@ func (store *sqlConfiguratorStorage) updateNetwork(update *NetworkUpdateCriteria
 	}
 	_, err = store.builder.Delete(networkConfigTable).Where(orClause).RunWith(store.tx).Exec()
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete configs for network %s", update.ID)
+		return fmt.Errorf("failed to delete configs for network %s: %w", update.ID, err)
 	}
 
 	return nil

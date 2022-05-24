@@ -20,7 +20,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 // Duplicated from configurator
@@ -96,7 +95,7 @@ func SetAssocDirections(builder squirrel.StatementBuilderType, edges []AssocDire
 		Where(where).
 		Query()
 	if err != nil {
-		return errors.Wrap(err, "get existing assocs to flip")
+		return fmt.Errorf("get existing assocs to flip: %w", err)
 	}
 
 	var assocs []assocPair
@@ -104,13 +103,13 @@ func SetAssocDirections(builder squirrel.StatementBuilderType, edges []AssocDire
 		assoc := assocPair{}
 		err = rows.Scan(&assoc.fromPk, &assoc.toPk)
 		if err != nil {
-			return errors.Wrap(err, "scan assocs")
+			return fmt.Errorf("scan assocs: %w", err)
 		}
 		assocs = append(assocs, assoc)
 	}
 	err = rows.Err()
 	if err != nil {
-		return errors.Wrap(err, "get existing assocs: SQL rows error")
+		return fmt.Errorf("get existing assocs: SQL rows error: %w", err)
 	}
 
 	glog.Infof("Flipping %d assocs", len(assocs))
@@ -134,7 +133,7 @@ func flipAssocDirection(builder squirrel.StatementBuilderType, assoc assocPair) 
 	glog.Infof("[RUN] %s %v", sqlStr, args)
 	_, err := b.Exec()
 	if err != nil {
-		return errors.Wrap(err, "update error")
+		return fmt.Errorf("update error: %w", err)
 	}
 	return nil
 }
