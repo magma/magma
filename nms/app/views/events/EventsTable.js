@@ -19,6 +19,7 @@ import type {event as MagmaEvent} from '../../../generated/MagmaAPIBindings';
 import ActionTable from '../../components/ActionTable';
 // $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EventChart from './EventChart';
 import ExpandLess from '@material-ui/icons/ExpandLess';

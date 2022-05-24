@@ -16,6 +16,7 @@
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 // $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardAlertTable from '../../components/DashboardAlertTable';

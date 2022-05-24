@@ -21,6 +21,7 @@ import type {
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import Grid from '@material-ui/core/Grid';

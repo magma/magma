@@ -19,6 +19,7 @@ import type {TimeRange} from '../../components/insights/AsyncMetric';
 import AsyncMetric from '../../components/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';

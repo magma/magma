@@ -17,6 +17,7 @@ import type {SubscribersDialogDetailProps} from './SubscriberAddDialog';
 
 import Alert from '@material-ui/lab/Alert';
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';

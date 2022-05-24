@@ -19,6 +19,7 @@ import ActionTable from '../../components/ActionTable';
 // $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import ApnEditDialog from './ApnEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';

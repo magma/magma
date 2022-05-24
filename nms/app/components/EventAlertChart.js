@@ -19,6 +19,7 @@ import type {network_id} from '../../generated/MagmaAPIBindings';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 // $FlowFixMe migrated to typescript

@@ -17,6 +17,7 @@ import type {GatewayPoolRecordsType} from '../../components/context/GatewayPools
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import Grid from '@material-ui/core/Grid';

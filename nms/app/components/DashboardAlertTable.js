@@ -19,6 +19,7 @@ import type {
 } from '../../generated/MagmaAPIBindings';
 
 import ActionTable from './ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';
 import Chip from '@material-ui/core/Chip';
 import ErrorIcon from '@material-ui/icons/Error';

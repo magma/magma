@@ -20,6 +20,7 @@ import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript
