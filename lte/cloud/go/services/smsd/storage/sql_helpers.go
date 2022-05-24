@@ -22,7 +22,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -56,7 +55,7 @@ func garbageCollectExpiredRefs(tx *sql.Tx, builder sqorc.StatementBuilder, netwo
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to garbage collect old SMS refs")
+		return fmt.Errorf("failed to garbage collect old SMS refs: %w", err)
 	}
 	return nil
 }
@@ -96,7 +95,7 @@ func loadMessagesToSend(tx *sql.Tx, builder sqorc.StatementBuilder, networkID st
 		RunWith(tx).
 		Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load SMSs to deliver")
+		return nil, fmt.Errorf("failed to load SMSs to deliver: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "loadMessagesToSend")
 
@@ -123,7 +122,7 @@ func loadRefsMasks(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string,
 		RunWith(tx).
 		Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load allocated ref nums")
+		return nil, fmt.Errorf("failed to load allocated ref nums: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "loadRefsMasks")
 
@@ -203,7 +202,7 @@ func persistNewRefNums(tx *sql.Tx, builder sqorc.StatementBuilder, refsByPk map[
 				RunWith(sc).
 				Exec()
 			if err != nil {
-				return errors.Wrap(err, "failed to create new SMS ref numbers")
+				return fmt.Errorf("failed to create new SMS ref numbers: %w", err)
 			}
 		}
 	}
@@ -216,7 +215,7 @@ func persistNewRefNums(tx *sql.Tx, builder sqorc.StatementBuilder, refsByPk map[
 		RunWith(sc).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to increment sms attempt counts")
+		return fmt.Errorf("failed to increment sms attempt counts: %w", err)
 	}
 
 	return nil
@@ -245,7 +244,7 @@ func loadPksByRefs(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string,
 		RunWith(tx).
 		Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to query for ref-pk mapping")
+		return nil, fmt.Errorf("failed to query for ref-pk mapping: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "loadPksByRefs")
 
@@ -256,13 +255,13 @@ func loadPksByRefs(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string,
 
 		err := rows.Scan(&imsi, &pk, &ref)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan ref-pk mapping")
+			return nil, fmt.Errorf("failed to scan ref-pk mapping: %w", err)
 		}
 		ret[imsiAndRef{imsi: imsi, ref: byte(ref)}] = pk
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
+		return nil, fmt.Errorf("sql rows err: %w", err)
 	}
 	return ret, nil
 }
@@ -289,7 +288,7 @@ func markMessagesAsDelivered(tx *sql.Tx, builder sqorc.StatementBuilder, network
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to mark SMSs as delivered")
+		return fmt.Errorf("failed to mark SMSs as delivered: %w", err)
 	}
 
 	// Subquery to limit operation to this network
@@ -308,7 +307,7 @@ func markMessagesAsDelivered(tx *sql.Tx, builder sqorc.StatementBuilder, network
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to clear refs for delivered messages")
+		return fmt.Errorf("failed to clear refs for delivered messages: %w", err)
 	}
 
 	return nil
@@ -337,7 +336,7 @@ func processFailedMessages(tx *sql.Tx, builder sqorc.StatementBuilder, networkID
 				RunWith(sc).
 				Exec()
 			if err != nil {
-				return errors.Wrap(err, "failed to set error message on SMS")
+				return fmt.Errorf("failed to set error message on SMS: %w", err)
 			}
 		}
 	}
@@ -364,7 +363,7 @@ func processFailedMessages(tx *sql.Tx, builder sqorc.StatementBuilder, networkID
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to delete refs for failed messages over retry threshold")
+		return fmt.Errorf("failed to delete refs for failed messages over retry threshold: %w", err)
 	}
 
 	return nil
@@ -381,19 +380,19 @@ func scanMessages(rows *sql.Rows) (map[string]tSmsByPk, error) {
 
 		err := rows.Scan(&pk, &delivered, &imsi, &srcMsisdn, &message, &timeCreated, &errorMessage, &numAttempts, &refNum, &refCreated)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan sms row")
+			return nil, fmt.Errorf("failed to scan sms row: %w", err)
 		}
 
 		createdTs, err := ptypes.TimestampProto(time.Unix(timeCreated, 0))
 		if err != nil {
-			return nil, errors.Wrapf(err, "could not validate created time for sms %s", pk)
+			return nil, fmt.Errorf("could not validate created time for sms %s: %w", pk, err)
 		}
 
 		var attemptedTs *timestamp.Timestamp
 		if refCreated.Valid {
 			attemptedTs, err = ptypes.TimestampProto(time.Unix(refCreated.Int64, 0))
 			if err != nil {
-				return nil, errors.Wrapf(err, "could not validate attempted time for sms %s", pk)
+				return nil, fmt.Errorf("could not validate attempted time for sms %s: %w", pk, err)
 			}
 		}
 
@@ -449,7 +448,7 @@ func scanRefs(rows *sql.Rows) (map[string]*[256]bool, error) {
 
 		err := rows.Scan(&imsi, &ref)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan ref num")
+			return nil, fmt.Errorf("failed to scan ref num: %w", err)
 		}
 
 		if _, imsiArrExists := ret[imsi]; !imsiArrExists {
