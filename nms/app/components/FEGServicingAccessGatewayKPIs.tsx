@@ -17,6 +17,7 @@ import DataGrid from './DataGrid';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {NetworkId} from '../../shared/types/network';
