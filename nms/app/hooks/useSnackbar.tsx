@@ -9,21 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 // https://github.com/iamhosseindhv/notistack/pull/17
 import * as React from 'react';
-// $FlowFixMe migrated to typescript
 import SnackbarItem from '../components/SnackbarItem';
 import {useCallback, useEffect, useState} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {Variants} from 'notistack';
+import type {OptionsObject, SnackbarKey, VariantType} from 'notistack';
 
-type AllowedConfig = $Exact<{variant?: Variants} & EnqueueSnackbarOptions>;
+type AllowedConfig = {
+  variant?: VariantType;
+} & OptionsObject;
+
 export default function useSnackbar(
   message: string,
   config: AllowedConfig,
@@ -32,10 +30,10 @@ export default function useSnackbar(
 ) {
   const {enqueueSnackbar, closeSnackbar} = useNotistackSnackbar();
   const stringConfig = JSON.stringify(config);
-  const [snackbarKey, setSnackbarKey] = useState(null);
+  const [snackbarKey, setSnackbarKey] = useState<SnackbarKey | null>(null);
   useEffect(() => {
     if (show) {
-      const config: AllowedConfig = JSON.parse(stringConfig);
+      const config = JSON.parse(stringConfig) as AllowedConfig;
       const k = enqueueSnackbar(message, {
         content: key => (
           <SnackbarItem
@@ -44,9 +42,9 @@ export default function useSnackbar(
             variant={config.variant ?? 'success'}
           />
         ),
-        // $FlowFixMe[incompatible-use]
         ...config,
       });
+
       if (dismissPrevious) {
         snackbarKey != null && closeSnackbar(snackbarKey);
         setSnackbarKey(k);
@@ -55,7 +53,7 @@ export default function useSnackbar(
     /*eslint-disable react-hooks/exhaustive-deps*/
   }, [
     // we shouldn't add snackbarKey
-    // to the dependency list otherwise it'd creeate an infinite recursion
+    // to the dependency list otherwise it'd create an infinite recursion
     closeSnackbar,
     dismissPrevious,
     enqueueSnackbar,
@@ -69,8 +67,7 @@ export default function useSnackbar(
 export function useEnqueueSnackbar() {
   const {enqueueSnackbar} = useNotistackSnackbar();
   return useCallback(
-    (message: string, config: EnqueueSnackbarOptions) =>
-      // $FlowFixMe[prop-missing]
+    (message: string, config: OptionsObject) =>
       enqueueSnackbar(message, {
         content: key => (
           <SnackbarItem
