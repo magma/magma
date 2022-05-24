@@ -22,6 +22,7 @@ import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript

@@ -14,6 +14,7 @@
  * @format
  */
 import ActionTable from '../ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import Dialog from '@material-ui/core/Dialog';
