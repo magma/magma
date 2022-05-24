@@ -28,6 +28,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default.js';

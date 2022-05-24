@@ -28,6 +28,7 @@ import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 
 import {useContext} from 'react';

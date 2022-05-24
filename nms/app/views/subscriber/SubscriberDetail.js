@@ -36,6 +36,7 @@ import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberChart from './SubscriberChart';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';

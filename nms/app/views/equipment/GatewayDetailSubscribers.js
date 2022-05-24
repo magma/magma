@@ -19,6 +19,7 @@ import type {GatewayDetailType} from './GatewayDetailMain';
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

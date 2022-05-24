@@ -31,6 +31,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';

@@ -45,3 +45,4 @@ export function coalesceNetworkType(
 export type NetworkId = string;
 export type GatewayId = string;
 export type GatewayPoolId = string;
+export type SubscriberId = string;

@@ -33,6 +33,7 @@ import ListItem from '@material-ui/core/ListItem';
 import NetworkContext from '../../components/context/NetworkContext';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript

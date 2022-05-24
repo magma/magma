@@ -18,6 +18,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default.js';
