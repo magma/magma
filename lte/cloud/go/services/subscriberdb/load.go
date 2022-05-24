@@ -21,7 +21,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -50,7 +49,7 @@ func LoadSubProtosPage(
 
 	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(context.Background(), networkID, lte.SubscriberEntityType, lc, serdes.Entity)
 	if err != nil {
-		return nil, "", errors.Wrapf(err, "load subscribers in network of gateway %s", networkID)
+		return nil, "", fmt.Errorf("load subscribers in network of gateway %s: %w", networkID, err)
 	}
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
@@ -72,7 +71,7 @@ func SerializeSubscribers(subProtos []*lte_protos.SubscriberData) (map[string][]
 		sid := lte_protos.SidString(subProto.Sid)
 		serialized, err := proto.Marshal(subProto)
 		if err != nil {
-			return nil, errors.Wrap(err, "serialize subscriber proto")
+			return nil, fmt.Errorf("serialize subscriber proto: %w", err)
 		}
 		subsSerialized[sid] = serialized
 	}
@@ -86,7 +85,7 @@ func DeserializeSubscribers(subProtosSerialized [][]byte) ([]*lte_protos.Subscri
 		subProto := &lte_protos.SubscriberData{}
 		err := proto.Unmarshal(serialized, subProto)
 		if err != nil {
-			return nil, errors.Wrap(err, "deserialize subscriber proto")
+			return nil, fmt.Errorf("deserialize subscriber proto: %w", err)
 		}
 		subs = append(subs, subProto)
 	}
@@ -113,14 +112,14 @@ func LoadSubProtosByID(
 		lc, serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "load added/modified subscriber entities")
+		return nil, fmt.Errorf("load added/modified subscriber entities: %w", err)
 	}
 
 	subProtos := []*lte_protos.SubscriberData{}
 	for _, subEnt := range subEnts {
 		subProto, err := ConvertSubEntsToProtos(subEnt, apnsByName, apnResourcesByAPN)
 		if err != nil {
-			return nil, errors.Wrap(err, "convert subscriber entity into proto object")
+			return nil, fmt.Errorf("convert subscriber entity into proto object: %w", err)
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
 		subProtos = append(subProtos, subProto)
@@ -235,13 +234,13 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 func LoadSuciProtos(ctx context.Context, networkID string) ([]*lte_protos.SuciProfile, error) {
 	network, err := configurator.LoadNetwork(ctx, networkID, true, true, serdes.Network)
 	if err != nil {
-		return nil, errors.Wrapf(err, "network loading failed")
+		return nil, fmt.Errorf("network loading failed: %w", err)
 	}
 
 	ngcModel := &lte_models.NetworkNgcConfigs{}
 	ngcConfig := ngcModel.GetFromNetwork(network)
 	if ngcConfig == nil {
-		return nil, errors.Wrapf(err, "ngcConfig is nil")
+		return nil, fmt.Errorf("ngcConfig is nil: %w", err)
 	}
 
 	suciProfiles := ngcConfig.(*lte_models.NetworkNgcConfigs).SuciProfiles

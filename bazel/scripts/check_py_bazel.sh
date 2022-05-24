@@ -55,20 +55,10 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   "./lte/gateway/python/integ_tests"
   # TODO: GH12738 unused test logic
   "./orc8r/gateway/python/magma/magmad/tests/dummy_service.py"
-  # TODO: GH12754 move to (lte|orc8r)/gateway/python/scripts/
-  "./orc8r/gateway/python/magma/common/health/docker_health_service.py"
-  "./orc8r/gateway/python/magma/common/health/health_service.py"
-  "./orc8r/gateway/python/magma/common/health/entities.py"
-  "./lte/gateway/python/magma/health/health_service.py"
-  "./lte/gateway/python/magma/health/entities.py"
-  "./lte/gateway/python/magma/pipelined/pg_set_session_msg.py"
   # TODO: GH12755 access via absolut path on the VM,
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
   "./lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
-  # TODO: GH12765 dead code
-  "./lte/gateway/python/magma/pipelined/openflow/events.py"
-  "./lte/gateway/python/magma/enodebd/state_machines/enb_acs_pointer.py"
   # TODO: GH9878 needs to be further analyzed
   "./lte/gateway/python/load_tests"
   "./lte/gateway/python/scripts"

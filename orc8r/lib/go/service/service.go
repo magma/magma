@@ -19,7 +19,6 @@ package service
 import (
 	"flag"
 	"fmt"
-	"github.com/pkg/errors"
 	"net"
 	"sync"
 	"time"
@@ -93,13 +92,6 @@ type Service struct {
 // service303 with the specified grpc server options.
 // It will not instantiate the service with the identity checking middleware.
 func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	return NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
-}
-
-// NewServiceWithOptionsImpl returns a new GRPC service implementing
-// service303 with the specified grpc server options. This will not instantiate
-// the service with the identity checking middleware.
-func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
@@ -152,7 +144,7 @@ func (service *Service) Run() error {
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
 	if err != nil || perr != nil {
-		return errors.Errorf("error running grpc server: %v; error running proteced grpc server: %v", err, perr)
+		return fmt.Errorf("error running grpc server: %v; error running proteced grpc server: %v", err, perr)
 	} else {
 		return nil
 	}

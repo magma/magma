@@ -96,7 +96,6 @@ s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
 s1aptests/test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py \
 s1aptests/test_secondary_pdn_reject_unknown_pdn_type.py \
 s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
-s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
 s1aptests/test_ics_timer_expiry_ue_registered.py \
 s1aptests/test_ics_timer_expiry_ue_unregistered.py \
 s1aptests/test_identity_timer_3470_expiry.py \
@@ -254,11 +253,14 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_data_flow_after_service_request.py \ Fails randomly with connection refused
 #---------------
 
-# TODO flaky tests we should look at
-# s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
-
+# Sanity: Failure/Stuck/Crashing Test Cases
+# s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \ GitHubIssue 12779
 # Re-enable this test case after S1APTester PR #74 is merged
 # s1aptests/test_s1setup_success_secondary_plmn.py
+
+# Sanity: Flaky Test Cases
+# s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
+#---------------
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

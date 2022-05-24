@@ -14,8 +14,10 @@
 package syncstore
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -37,7 +39,7 @@ func (config *Config) Validate(writer bool) error {
 		errs = multierror.Append(errs, errors.New("empty table name prefix for syncstore"))
 	}
 	if writer && config.CacheWriterValidIntervalSecs <= 0 {
-		errs = multierror.Append(errs, errors.Errorf("invalid cache writer valid interval: %+v", config.CacheWriterValidIntervalSecs))
+		errs = multierror.Append(errs, fmt.Errorf("invalid cache writer valid interval: %+v", config.CacheWriterValidIntervalSecs))
 	}
 	return errs.ErrorOrNil()
 }

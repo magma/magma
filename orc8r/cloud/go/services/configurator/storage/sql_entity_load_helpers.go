@@ -22,7 +22,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -61,7 +60,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter *Enti
 
 	rows, err := builder.RunWith(store.tx).Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "error querying for entities")
+		return nil, fmt.Errorf("error querying for entities: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "loadEntities")
 
@@ -74,7 +73,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter *Enti
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
+		return nil, fmt.Errorf("sql rows err: %w", err)
 	}
 
 	return entsByTK, nil
@@ -82,7 +81,7 @@ func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter *Enti
 
 func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria, loadTyp loadType) (loadedAssocs, error) {
 	if loadTyp != loadChildren && loadTyp != loadParents {
-		return nil, errors.Errorf("wrong load type received: '%v'", loadTyp)
+		return nil, fmt.Errorf("wrong load type received: '%v'", loadTyp)
 	}
 
 	assocs := loadedAssocs{}
@@ -94,7 +93,7 @@ func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter *Entity
 
 	rows, err := builder.RunWith(store.tx).Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "error querying for entities")
+		return nil, fmt.Errorf("error querying for entities: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "loadAssocs")
 
@@ -107,7 +106,7 @@ func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter *Entity
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
+		return nil, fmt.Errorf("sql rows err: %w", err)
 	}
 
 	return assocs, nil
@@ -245,7 +244,7 @@ func scanEntityRow(rows *sql.Rows, criteria *EntityLoadCriteria) (*NetworkEntity
 
 	err := rows.Scan(scanArgs...)
 	if err != nil {
-		return &NetworkEntity{}, errors.Wrap(err, "error while scanning entity row")
+		return &NetworkEntity{}, fmt.Errorf("error while scanning entity row: %w", err)
 	}
 
 	ent := &NetworkEntity{
@@ -280,7 +279,7 @@ func scanAssocRow(rows *sql.Rows, loadTyp loadType) (loadedAssoc, error) {
 
 	err := rows.Scan(scanArgs...)
 	if err != nil {
-		return loadedAssoc{}, errors.Wrap(err, "error while scanning entity row")
+		return loadedAssoc{}, fmt.Errorf("error while scanning entity row: %w", err)
 	}
 
 	return a, nil

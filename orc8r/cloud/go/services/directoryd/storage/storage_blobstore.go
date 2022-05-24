@@ -14,10 +14,10 @@ limitations under the License.
 package storage
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
@@ -129,7 +129,7 @@ func (d *directorydBlobstore) UnmapSgwUTeidToHWID(networkID string, teids []stri
 func (d *directorydBlobstore) getFromStore(networkID, tkType, key string) (string, error) {
 	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to start transaction to get %s for tkKey %s", key, tkType)
+		return "", fmt.Errorf("failed to start transaction to get %s for tkKey %s: %w", key, tkType, err)
 	}
 	defer store.Rollback()
 
@@ -138,7 +138,7 @@ func (d *directorydBlobstore) getFromStore(networkID, tkType, key string) (strin
 		return "", err
 	}
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to get %s from %s", key, tkType)
+		return "", fmt.Errorf("failed to get %s from %s: %w", key, tkType, err)
 	}
 	return string(blob.Value), store.Commit()
 }
@@ -146,14 +146,14 @@ func (d *directorydBlobstore) getFromStore(networkID, tkType, key string) (strin
 func (d *directorydBlobstore) mapToStore(networkID, tkType string, keyToValueMap map[string]string) error {
 	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrapf(err, "failed to start transaction mapToStore with map %+v for tkKey %s", keyToValueMap, tkType)
+		return fmt.Errorf("failed to start transaction mapToStore with map %+v for tkKey %s: %w", keyToValueMap, tkType, err)
 	}
 	defer store.Rollback()
 
 	blobs := convertKVToBlobs(tkType, keyToValueMap)
 	err = store.Write(networkID, blobs)
 	if err != nil {
-		return errors.Wrapf(err, "failed to mapToStore with map %+v for tkKey %s", keyToValueMap, tkType)
+		return fmt.Errorf("failed to mapToStore with map %+v for tkKey %s: %w", keyToValueMap, tkType, err)
 	}
 	return store.Commit()
 }
@@ -161,13 +161,13 @@ func (d *directorydBlobstore) mapToStore(networkID, tkType string, keyToValueMap
 func (d *directorydBlobstore) unmapFromStore(networkID, tkType string, keys []string) error {
 	store, err := d.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrapf(err, "failed to start transaction unmapFromStore with key %s for tkKey %s", keys, tkType)
+		return fmt.Errorf("failed to start transaction unmapFromStore with key %s for tkKey %s: %w", keys, tkType, err)
 	}
 	defer store.Rollback()
 
 	err = store.Delete(networkID, storage.MakeTKs(tkType, keys))
 	if err != nil {
-		return errors.Wrapf(err, "failed to unmapFromStore with keys %s for tkKey %s", keys, tkType)
+		return fmt.Errorf("failed to unmapFromStore with keys %s for tkKey %s: %w", keys, tkType, err)
 	}
 	return store.Commit()
 }

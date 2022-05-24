@@ -17,7 +17,6 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -49,13 +48,13 @@ func NewCertifierBlobstore(factory blobstore.StoreFactory) CertifierStorage {
 func (c *certifierBlobstore) ListSerialNumbers() ([]string, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, constants.CertInfoType)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to list keys")
+		return nil, fmt.Errorf("failed to list keys: %w", err)
 	}
 
 	return serialNumbers, store.Commit()
@@ -75,14 +74,14 @@ func (c *certifierBlobstore) GetCertInfo(serialNumber string) (*protos.Certifica
 func (c *certifierBlobstore) GetManyCertInfo(serialNumbers []string) (map[string]*protos.CertificateInfo, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	tks := storage.MakeTKs(constants.CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get many certificate info")
+		return nil, fmt.Errorf("failed to get many certificate info: %w", err)
 	}
 
 	ret := make(map[string]*protos.CertificateInfo)
@@ -90,7 +89,7 @@ func (c *certifierBlobstore) GetManyCertInfo(serialNumbers []string) (map[string
 		info := &protos.CertificateInfo{}
 		err = proto.Unmarshal(blob.Value, info)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal cert info")
+			return nil, fmt.Errorf("failed to unmarshal cert info: %w", err)
 		}
 		ret[blob.Key] = info
 	}
@@ -103,13 +102,13 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	serialNumbers, err := blobstore.ListKeys(store, placeholderNetworkID, constants.CertInfoType)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to list keys")
+		return nil, fmt.Errorf("failed to list keys: %w", err)
 	}
 
 	if len(serialNumbers) == 0 {
@@ -119,14 +118,14 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 	tks := storage.MakeTKs(constants.CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get many certificate info")
+		return nil, fmt.Errorf("failed to get many certificate info: %w", err)
 	}
 
 	for _, blob := range blobs {
 		info := &protos.CertificateInfo{}
 		err = proto.Unmarshal(blob.Value, info)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal cert info")
+			return nil, fmt.Errorf("failed to unmarshal cert info: %w", err)
 		}
 		infos[blob.Key] = info
 	}
@@ -137,19 +136,19 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.CertificateInfo) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	marshaledCertInfo, err := proto.Marshal(certInfo)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal cert info")
+		return fmt.Errorf("failed to marshal cert info: %w", err)
 	}
 
 	blob := blobstore.Blob{Type: constants.CertInfoType, Key: serialNumber, Value: marshaledCertInfo}
 	err = store.Write(placeholderNetworkID, blobstore.Blobs{blob})
 	if err != nil {
-		return errors.Wrap(err, "failed to put certificate info")
+		return fmt.Errorf("failed to put certificate info: %w", err)
 	}
 
 	return store.Commit()
@@ -158,14 +157,14 @@ func (c *certifierBlobstore) PutCertInfo(serialNumber string, certInfo *protos.C
 func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	tk := storage.TK{Type: constants.CertInfoType, Key: serialNumber}
 	err = store.Delete(placeholderNetworkID, storage.TKs{tk})
 	if err != nil {
-		return errors.Wrap(err, "failed to delete certificate info")
+		return fmt.Errorf("failed to delete certificate info: %w", err)
 	}
 
 	return store.Commit()
@@ -174,13 +173,13 @@ func (c *certifierBlobstore) DeleteCertInfo(serialNumber string) error {
 func (c *certifierBlobstore) ListUser() ([]string, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	users, err := blobstore.ListKeys(store, placeholderNetworkID, constants.UserType)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to list keys")
+		return nil, fmt.Errorf("failed to list keys: %w", err)
 	}
 
 	return users, store.Commit()
@@ -217,7 +216,7 @@ func (c *certifierBlobstore) PutUser(username string, user *protos.User) error {
 
 	err = store.Write(placeholderNetworkID, blobstore.Blobs{userBlob})
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to update password for user %s", username))
+		return fmt.Errorf("failed to update password for user %s: %w", username, err)
 	}
 
 	return store.Commit()
@@ -273,7 +272,7 @@ func (c *certifierBlobstore) PutPolicy(token string, policy *protos.PolicyList) 
 
 	err = store.Write(placeholderNetworkID, blobstore.Blobs{policyBlob})
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to create or update policy for token %s", token))
+		return fmt.Errorf("failed to create or update policy for token %s: %w", token, err)
 	}
 
 	return store.Commit()
@@ -288,14 +287,14 @@ func (c *certifierBlobstore) ListUsers() ([]*protos.User, error) {
 	defer store.Rollback()
 	blobs, err := blobstore.GetAllOfType(store, placeholderNetworkID, constants.UserType)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get all users")
+		return nil, fmt.Errorf("failed to get all users: %w", err)
 	}
 	users := make([]*protos.User, len(blobs))
 	for i, blob := range blobs {
 		user := &protos.User{}
 		err = proto.Unmarshal(blob.Value, user)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal user")
+			return nil, fmt.Errorf("failed to unmarshal user: %w", err)
 		}
 		users[i] = user
 	}
