@@ -22,6 +22,7 @@ import type {EditUser} from './OrganizationEdit';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import {UserRoles} from '../../../shared/roles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';

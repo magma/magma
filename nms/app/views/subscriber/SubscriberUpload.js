@@ -28,6 +28,7 @@ import {CoreNetworkTypes} from './SubscriberUtils';
 import {DropzoneArea} from 'material-ui-dropzone';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useMemo, useState} from 'react';
 import {validateSubscribers} from './SubscriberUtils';

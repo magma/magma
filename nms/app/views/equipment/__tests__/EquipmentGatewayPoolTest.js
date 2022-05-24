@@ -31,6 +31,7 @@ import {
   UpdateGatewayPoolRecords,
 } from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 

@@ -32,6 +32,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe Upgrade react-testing-library
 import {fireEvent, render, waitFor} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('axios');

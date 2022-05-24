@@ -19,6 +19,7 @@ import * as React from 'react';
 import MagmaV1API from '../../../generated/WebClient';
 import axios from 'axios';
 import {useEffect, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import type {version_info} from '../../../generated/MagmaAPIBindings';
 

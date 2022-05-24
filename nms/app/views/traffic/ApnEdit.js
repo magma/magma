@@ -41,6 +41,7 @@ import Text from '../../theme/design-system/Text';
 
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useEffect, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const DEFAULT_APN_CONFIG = {

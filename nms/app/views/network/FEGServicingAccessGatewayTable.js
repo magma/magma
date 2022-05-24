@@ -35,6 +35,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {FetchGateways} from '../../state/lte/EquipmentState';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

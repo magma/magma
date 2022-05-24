@@ -51,6 +51,7 @@ import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({

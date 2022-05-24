@@ -29,6 +29,7 @@ import TableAddButton from '../../table/TableAddButton';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {AlertReceiver} from '../../AlarmAPIType';

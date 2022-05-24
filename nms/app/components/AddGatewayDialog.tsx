@@ -31,6 +31,7 @@ import TextField from '@material-ui/core/TextField';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

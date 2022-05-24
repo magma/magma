@@ -32,6 +32,7 @@ import Text from '../theme/design-system/Text';
 import nullthrows from '../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

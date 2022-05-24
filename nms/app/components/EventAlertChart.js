@@ -37,6 +37,7 @@ import {
 } from './CustomMetrics';
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

@@ -25,6 +25,7 @@ import axios from 'axios';
 import {AltFormField, PasswordInput} from './FormField';
 import {List} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 
 const TITLE = 'Account Settings';

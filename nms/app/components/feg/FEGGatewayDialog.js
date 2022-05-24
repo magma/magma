@@ -55,6 +55,7 @@ import {
   // $FlowFixMe migrated to typescript
 } from '../AddGatewayDialog';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

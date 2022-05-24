@@ -24,6 +24,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetGatewayState} from '../../../state/feg/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../../app/hooks/useSnackbar';
 import {useState} from 'react';
 import type {

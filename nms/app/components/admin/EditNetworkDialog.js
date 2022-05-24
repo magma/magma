@@ -24,6 +24,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 // $FlowFixMe migrated to typescript
 import {CWF, FEG} from '../../../shared/types/network';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

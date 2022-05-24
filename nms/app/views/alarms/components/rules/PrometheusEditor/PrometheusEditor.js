@@ -36,6 +36,7 @@ import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';

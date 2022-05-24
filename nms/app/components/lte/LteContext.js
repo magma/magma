@@ -93,6 +93,7 @@ import {
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
