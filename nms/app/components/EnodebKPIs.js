@@ -15,6 +15,7 @@
  */
 
 import type {DataRows} from './DataGrid';
+// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from './lte/EnodebUtils';
 
 import DataGrid from './DataGrid';

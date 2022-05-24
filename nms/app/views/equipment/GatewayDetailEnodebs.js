@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {GatewayDetailType} from './GatewayDetailMain';
 
@@ -27,6 +28,7 @@ import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
+// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 import {useState} from 'react';

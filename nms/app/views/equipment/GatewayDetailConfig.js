@@ -15,6 +15,7 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 import type {EditProps} from './GatewayDetailConfigEdit';
+// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 

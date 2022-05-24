@@ -38,6 +38,7 @@ import withAlert from '../../components/Alert/withAlert';
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
 import {FetchEnodebs} from '../../state/lte/EquipmentState';
 import {colors} from '../../theme/default';
+// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

@@ -14,6 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
+// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
