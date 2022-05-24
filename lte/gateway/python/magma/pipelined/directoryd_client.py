@@ -58,7 +58,7 @@ def update_record(imsi: str, ip_addr: str) -> None:
         )
 
 
-def get_record(imsi: str, field: str) -> str:
+def get_record(imsi: str, field: str) -> Optional[str]:
     """
     Make RPC call to 'GetDirectoryField' method of local directoryD service
     """

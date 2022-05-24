@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -491,7 +491,7 @@ def expected_snapshot(
     bridge_name: str,
     current_snapshot,
     snapshot_name: Optional[str] = None,
-) -> bool:
+) -> Tuple[str, List[str]]:
     if snapshot_name is not None:
         combined_name = '{}.{}{}'.format(
             test_case.id(), snapshot_name,

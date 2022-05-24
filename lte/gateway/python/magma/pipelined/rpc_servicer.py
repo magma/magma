@@ -1169,10 +1169,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
-) -> Tuple[
-    List[RuleModResult],
-    List[RuleModResult],
-]:
+) -> List[RuleModResult]:
     failed_policies_results = \
         [
             result for result in
