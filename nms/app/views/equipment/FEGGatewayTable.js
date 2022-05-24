@@ -37,6 +37,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {
   REFRESH_INTERVAL,

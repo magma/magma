@@ -34,6 +34,7 @@ import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../../components/Alert/withAlert';
 
 import {AltFormField} from '../../components/FormField';
+// $FlowFixMe migrated to typescript
 import {RUNNING_SERVICES} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';

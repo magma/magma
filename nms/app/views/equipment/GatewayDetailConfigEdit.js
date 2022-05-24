@@ -71,6 +71,7 @@ import {
   DEFAULT_GATEWAY_CONFIG,
   DEFAULT_HE_CONFIG,
   DynamicServices,
+  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

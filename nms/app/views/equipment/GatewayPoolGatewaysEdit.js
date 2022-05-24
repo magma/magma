@@ -39,6 +39,7 @@ import {
   DEFAULT_GW_POOL_CONFIG,
   DEFAULT_GW_PRIMARY_CONFIG,
   DEFAULT_GW_SECONDARY_CONFIG,
+  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

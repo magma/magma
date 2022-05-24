@@ -26,6 +26,7 @@ import {
   AVAILABLE_STATUS,
   HEALTHY_STATUS,
   ServiceTypeEnum,
+  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';

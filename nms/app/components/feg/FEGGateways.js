@@ -40,6 +40,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {colors} from '../../theme/default';

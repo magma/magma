@@ -34,6 +34,7 @@ import React, {useEffect, useState} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {FetchGateways} from '../../state/lte/EquipmentState';
+// $FlowFixMe migrated to typescript
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

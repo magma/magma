@@ -29,6 +29,7 @@ import {
   DynamicServices,
   GatewayTypeEnum,
   HEALTHY_STATUS,
+  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
 import {
   REFRESH_INTERVAL,

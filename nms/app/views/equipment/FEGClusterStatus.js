@@ -30,6 +30,7 @@ import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
+// $FlowFixMe migrated to typescript
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';

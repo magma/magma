@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import type {GatewayV1} from './GatewayUtils';
 
 import Button from '@material-ui/core/Button';
@@ -30,6 +31,7 @@ import TextField from '@material-ui/core/TextField';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe migrated to typescript
 import {toString} from './GatewayUtils';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';

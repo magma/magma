@@ -36,6 +36,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe migrated to typescript
 import {DynamicServices} from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
