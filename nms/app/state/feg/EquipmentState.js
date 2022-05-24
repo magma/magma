@@ -15,6 +15,7 @@
  */
 
 import type {EnqueueSnackbarOptions} from 'notistack';
+// $FlowFixMe migrated to typescript
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {
   federation_gateway,
@@ -24,6 +25,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import MagmaV1API from '../../../generated/WebClient';
+// $FlowFixMe migrated to typescript
 import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
 
 type InitGatewayStateProps = {

@@ -27,6 +27,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 
 import {AltFormField} from '../../components/FormField';
+// $FlowFixMe migrated to typescript
 import {DEFAULT_GW_POOL_CONFIG} from '../../components/GatewayUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

@@ -33,6 +33,7 @@ import {
   DEFAULT_GW_POOL_CONFIG,
   DEFAULT_GW_PRIMARY_CONFIG,
   DEFAULT_GW_SECONDARY_CONFIG,
+  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {
   federation_gateway,

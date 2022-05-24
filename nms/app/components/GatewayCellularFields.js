@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import type {GatewayV1} from './GatewayUtils';
 
 import Button from '@material-ui/core/Button';
@@ -31,6 +32,7 @@ import Text from '../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe migrated to typescript
 import {toString} from './GatewayUtils';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';

@@ -24,6 +24,7 @@ import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
+// $FlowFixMe migrated to typescript
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {
   federation_gateway,
