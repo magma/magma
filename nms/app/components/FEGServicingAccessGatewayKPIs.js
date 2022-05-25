@@ -15,6 +15,7 @@
  */
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
@@ -22,6 +23,7 @@ import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from './DataGrid';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {

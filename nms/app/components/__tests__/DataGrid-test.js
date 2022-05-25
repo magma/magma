@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../DataGrid';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -21,6 +22,7 @@ import React from 'react';
 import defaultTheme from '../../theme/default';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../DataGrid';
 
 const data: DataRows[] = [
