@@ -9,26 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import ReactJson from 'react-json-view';
+import ReactJson, {InteractionProps, ReactJsonViewProps} from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -73,10 +67,10 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props<T> = {
-  content: T,
-  error: string,
-  customFilter?: React$Node,
-  onSave: T => Promise<void>,
+  content: T;
+  error: string;
+  customFilter?: React.ReactNode;
+  onSave: (arg0: T) => Promise<void>;
 };
 
 export default function JsonEditor<T>(props: Props<T>) {
@@ -88,8 +82,8 @@ export default function JsonEditor<T>(props: Props<T>) {
     setError(props.error);
   }, [props.error]);
 
-  const handleChange = data => {
-    setContent(data.updated_src);
+  const handleChange = (data: InteractionProps) => {
+    setContent((data.updated_src as unknown) as T);
   };
 
   const JsonFilter = () => {
@@ -111,9 +105,9 @@ export default function JsonEditor<T>(props: Props<T>) {
             className={classes.appBarBtn}
             onClick={() => {
               try {
-                props.onSave(content);
+                void props.onSave(content);
               } catch (e) {
-                setError(e.message);
+                setError((e as Error).message);
               }
             }}>
             Save
@@ -142,7 +136,7 @@ export default function JsonEditor<T>(props: Props<T>) {
           xs={12}>
           {error !== '' && <FormLabel error>{error}</FormLabel>}
           <ReactJson
-            src={content}
+            src={(content as unknown) as ReactJsonViewProps['src']}
             enableClipboard={false}
             displayDataTypes={false}
             onAdd={handleChange}

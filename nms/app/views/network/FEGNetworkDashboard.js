@@ -22,6 +22,7 @@ import FEGNetworkContext from '../../components/context/FEGNetworkContext';
 import FEGNetworkInfo from './FEGNetworkInfo';
 import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import TopBar from '../../components/TopBar';

@@ -24,6 +24,7 @@ import ApnEditDialog from './ApnEdit';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EmptyState from '../../components/EmptyState';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';

@@ -26,6 +26,7 @@ import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';

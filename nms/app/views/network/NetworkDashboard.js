@@ -19,6 +19,7 @@ import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 // $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';

@@ -26,6 +26,7 @@ import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
