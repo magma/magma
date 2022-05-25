@@ -13,11 +13,13 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
 // $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';

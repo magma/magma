@@ -14,10 +14,12 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from './DataGrid';
 import type {lte_gateway} from '../../generated/MagmaAPIBindings';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
 // $FlowFixMe migrated to typescript
 import GatewayContext from './context/GatewayContext';

@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 import type {
   mutable_subscriber,
@@ -24,6 +25,7 @@ import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import Grid from '@material-ui/core/Grid';
 // $FlowFixMe migrated to typescript

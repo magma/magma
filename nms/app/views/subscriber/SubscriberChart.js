@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 import type {Dataset} from '../../components/CustomMetrics';
 import type {EnqueueSnackbarOptions} from 'notistack';
@@ -27,6 +28,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Divider from '@material-ui/core/Divider';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';

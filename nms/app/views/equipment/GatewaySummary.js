@@ -13,9 +13,11 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import React from 'react';
 

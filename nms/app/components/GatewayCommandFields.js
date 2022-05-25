@@ -13,11 +13,13 @@
  * @flow
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from './DataGrid';
 import type {generic_command_response} from '../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Check from '@material-ui/icons/Check';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';

@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 import type {
@@ -25,6 +26,7 @@ import type {
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import EditGatewayButton from './FEGGatewayDetailConfigEdit';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';

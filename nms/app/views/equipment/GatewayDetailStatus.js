@@ -13,9 +13,10 @@
  * @flow strict-local
  * @format
  */
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
