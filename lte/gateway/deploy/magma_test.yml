@@ -14,7 +14,7 @@
         distribution: "stretch"
         oai_build: "{{ c_build }}/core/oai"
         repo: "dev"
-    - role: pkgrepo
+    - role: pkgrepo_fb
     - role: python_dev
     - role: dev_common
       vars:
