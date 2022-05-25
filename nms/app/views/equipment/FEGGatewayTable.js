@@ -28,6 +28,7 @@ import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import CheckIcon from '@material-ui/icons/Check';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';

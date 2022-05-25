@@ -19,6 +19,7 @@ import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../theme/design-system/DeviceStatusCircle';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';

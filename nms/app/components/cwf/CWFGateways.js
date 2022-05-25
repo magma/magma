@@ -24,6 +24,7 @@ import Button from '@material-ui/core/Button';
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
