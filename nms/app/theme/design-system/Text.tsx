@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
@@ -19,7 +16,7 @@ import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {typography} from '../default';
 
-const styles = {
+export const typographyStyles = makeStyles(() => ({
   h1: typography.h1,
   h2: typography.h2,
   h3: typography.h3,
@@ -46,17 +43,17 @@ const styles = {
   boldWeight: {
     fontWeight: 600,
   },
+  inheritWeight: {fontWeight: 'inherit'},
   truncate: {
     display: 'block',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
-};
-export const typographyStyles = makeStyles<Props, typeof styles>(() => styles);
+}));
 
 type Props = {
-  children: ?React.Node,
+  children: React.ReactNode | null | undefined;
   variant?:
     | 'h1'
     | 'h2'
@@ -71,10 +68,10 @@ type Props = {
     | 'body2'
     | 'body3'
     | 'caption'
-    | 'overline',
-  className?: string,
-  useEllipsis?: ?boolean,
-  weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
+    | 'overline';
+  className?: string;
+  useEllipsis?: boolean | null | undefined;
+  weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold';
 };
 
 const Text = (props: Props) => {
@@ -93,7 +90,9 @@ const Text = (props: Props) => {
       className={classNames(
         classes[variant],
         classes[`${weight ? weight : 'regular'}Weight`],
-        {[classes.truncate]: useEllipsis},
+        {
+          [classes.truncate]: useEllipsis,
+        },
         className,
       )}>
       {children}

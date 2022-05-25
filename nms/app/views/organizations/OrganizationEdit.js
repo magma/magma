@@ -33,7 +33,7 @@ import OrganizationSummary from './OrganizationSummary';
 import OrganizationUsersTable from './OrganizationUsersTable';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-import Text from '../../../app/theme/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 
