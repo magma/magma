@@ -22,6 +22,7 @@ import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';

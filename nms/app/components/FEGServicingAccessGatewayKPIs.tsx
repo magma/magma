@@ -9,55 +9,46 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from './DataGrid';
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {
-  feg_lte_network,
-  network_id,
-} from '../../generated/MagmaAPIBindings';
-
-// $FlowFixMe migrated to typescript
 import {FetchGateways} from '../state/lte/EquipmentState';
+import {NetworkId} from '../../shared/types/network';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {DataRows} from './DataGrid';
+import type {FegLteNetwork} from '../../generated-ts';
+import type {OptionsObject} from 'notistack';
 
 /**
  * Returns the list of federated lte networks serviced by the federation
  *  network with the id: federationNetworkId.
- * @param {network_id} federationNetworkId id of the federation network
+ * @param {NetworkId} federationNetworkId id of the federation network
  * @param {function} enqueueSnackbar snackbar used to display information
  */
 export async function getServicedAccessNetworks(
-  federationNetworkId: network_id,
+  federationNetworkId: NetworkId,
   enqueueSnackbar?: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
-): Promise<Array<feg_lte_network>> {
-  const servicedAccessNetworks = [];
-  const fegLteNetworkIdList = await MagmaV1API.getFegLte();
+    cfg: OptionsObject,
+  ) => (string | number) | null | undefined,
+): Promise<Array<FegLteNetwork>> {
+  const servicedAccessNetworks: Array<FegLteNetwork> = [];
+  const fegLteNetworkIdList = (await MagmaAPI.federatedLTENetworks.fegLteGet())
+    .data;
   const requests = fegLteNetworkIdList.map(async fegLteNetworkId => {
     try {
-      return await MagmaV1API.getFegLteByNetworkId({
-        networkId: fegLteNetworkId,
-      });
+      return (
+        await MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet({
+          networkId: fegLteNetworkId,
+        })
+      ).data;
     } catch (e) {
       enqueueSnackbar?.(
         'failed fetching network information for ' + fegLteNetworkId,
@@ -81,6 +72,7 @@ export async function getServicedAccessNetworks(
  * Returns the total count of access gateways serviced by the
  * federation network.
  */
+
 export default function ServicingAccessGatewayKPIs() {
   const params = useParams();
   const networkId = nullthrows(params.networkId);
@@ -92,21 +84,25 @@ export default function ServicingAccessGatewayKPIs() {
   const enqueueSnackbar = useEnqueueSnackbar();
   useEffect(() => {
     const getServicedAccessGatewaysCount = async (
-      servicedAccessNetworks: Array<feg_lte_network>,
+      servicedAccessNetworks: Array<FegLteNetwork>,
     ): Promise<number> => {
       let totalServicedAccessGateways = 0;
+
       for (const servicedAccessNetwork of servicedAccessNetworks) {
         const servicedAccessGateways = await FetchGateways({
           networkId: servicedAccessNetwork.id,
-          undefined,
           enqueueSnackbar,
         });
-        totalServicedAccessGateways += Object.keys(
-          servicedAccessGateways,
-        ).filter(Boolean).length;
+        if (servicedAccessGateways) {
+          totalServicedAccessGateways += Object.keys(
+            servicedAccessGateways,
+          ).filter(Boolean).length;
+        }
       }
+
       return totalServicedAccessGateways;
     };
+
     const fetchServicedAccessGateways = async () => {
       try {
         const servicedAccessNetworks = await getServicedAccessNetworks(
@@ -127,9 +123,10 @@ export default function ServicingAccessGatewayKPIs() {
         );
       }
     };
-    fetchServicedAccessGateways();
+
+    void fetchServicedAccessGateways();
   }, [networkId, enqueueSnackbar]);
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         icon: CellWifiIcon,
@@ -142,8 +139,10 @@ export default function ServicingAccessGatewayKPIs() {
       },
     ],
   ];
+
   if (isLoading) {
     return <LoadingFiller />;
   }
+
   return <DataGrid data={data} />;
 }

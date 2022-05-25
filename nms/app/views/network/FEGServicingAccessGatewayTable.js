@@ -37,6 +37,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {FetchGateways} from '../../state/lte/EquipmentState';
 // $FlowFixMe migrated to typescript
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
