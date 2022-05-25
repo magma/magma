@@ -23,6 +23,7 @@ import React from 'react';
 import ReactJson from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';

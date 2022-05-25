@@ -28,6 +28,7 @@ import Text from '../theme/design-system/Text';
 import NetworkSelector from './NetworkSelector';
 // $FlowFixMe migrated to typescript
 import {GetCurrentTabPos} from './TabUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useResolvedPath} from 'react-router-dom';

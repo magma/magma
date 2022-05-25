@@ -61,6 +61,7 @@ import {
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 // $FlowFixMe migrated to typescript
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

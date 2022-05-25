@@ -37,6 +37,7 @@ import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {DateTimePicker} from '@material-ui/pickers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';

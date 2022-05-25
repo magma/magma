@@ -56,6 +56,7 @@ import {useInterval} from '../../hooks';
 import {GatewayEditDialog} from './GatewayDetailConfigEdit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SelectEditComponent} from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

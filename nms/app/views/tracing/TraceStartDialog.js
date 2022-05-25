@@ -31,6 +31,7 @@ import TypedSelect from '../../components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
 import {AltFormField} from '../../components/FormField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';

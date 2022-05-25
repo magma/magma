@@ -22,6 +22,7 @@ import LoginForm from './views/login/LoginForm.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from './theme/default';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../shared/util/nullthrows';

@@ -39,6 +39,7 @@ import Text from '../../theme/design-system/Text';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AutoCompleteEditComponent} from '../../components/ActionTable';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

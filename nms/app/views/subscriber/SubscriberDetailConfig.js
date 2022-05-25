@@ -36,6 +36,7 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {EditSubscriberButton} from './SubscriberEditDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

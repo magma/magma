@@ -28,7 +28,8 @@ import React from 'react';
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
-import defaultTheme from '../../../theme/default.js';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import defaultTheme from '../../../theme/default';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from '../SubscriberUtils';

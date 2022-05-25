@@ -48,6 +48,7 @@ import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
 import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 
 import {AltFormField} from '../../components/FormField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

@@ -17,6 +17,7 @@
 import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../../theme/default';
 import useMagmaAPI from '../../../../../api/useMagmaAPIFlow';
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';

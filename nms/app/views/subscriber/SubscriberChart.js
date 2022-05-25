@@ -42,6 +42,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 
 import {CustomLineChart} from '../../components/CustomMetrics';
 import {DateTimePicker} from '@material-ui/pickers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {convertBitToMbit, getPromValue} from './SubscriberUtils';

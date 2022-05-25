@@ -29,6 +29,7 @@ import Text from '../../theme/design-system/Text';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from './SubscriberUtils';
 import {DropzoneArea} from 'material-ui-dropzone';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

@@ -35,6 +35,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../../theme/default';
 import {forwardRef} from 'react';
 import {makeStyles} from '@material-ui/styles';

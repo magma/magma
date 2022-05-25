@@ -25,6 +25,7 @@ import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
 
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
 import {render, wait} from '@testing-library/react';

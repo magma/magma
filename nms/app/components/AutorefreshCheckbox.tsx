@@ -21,6 +21,7 @@ import React from 'react';
 import Text from '../theme/design-system/Text';
 import makeStyles from '@material-ui/styles/makeStyles';
 import moment from 'moment';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {useCallback, useEffect, useState} from 'react';
 

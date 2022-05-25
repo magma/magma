@@ -23,6 +23,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import RootRef from '@material-ui/core/RootRef';
 import Typography from '@material-ui/core/Typography';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
 

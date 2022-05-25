@@ -44,6 +44,7 @@ import useMagmaAPI from '../../api/useMagmaAPIFlow';
 
 import {Alarm} from '@material-ui/icons';
 import {REFRESH_INTERVAL} from './context/RefreshContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../theme/default';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';

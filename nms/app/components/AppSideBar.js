@@ -21,6 +21,7 @@ import SidebarItem from './SidebarItem';
 import Text from '../theme/design-system/Text';
 import VersionContext from './context/VersionContext';
 import classNames from 'classnames';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 

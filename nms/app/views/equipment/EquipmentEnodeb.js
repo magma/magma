@@ -40,6 +40,7 @@ import withAlert from '../../components/Alert/withAlert';
 
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
 import {FetchEnodebs} from '../../state/lte/EquipmentState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 // $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
