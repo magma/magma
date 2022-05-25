@@ -15,7 +15,7 @@ import logging
 import threading
 import traceback
 from enum import Enum
-from typing import Any, Dict, List, Tuple  # noqa
+from typing import Any, Dict, List, Set, Tuple
 
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.common.redis.client import get_default_client
@@ -62,7 +62,7 @@ class SubscriberSession(object):
         self.ambr_dl = 0
         self.ambr_dl_leaf = 0
 
-        self.rules = set()
+        self.rules: Set = set()
 
     def set_ambr(self, d: FlowMatch.Direction, root: int, leaf: int) -> None:
         if d == FlowMatch.UPLINK:
@@ -90,8 +90,8 @@ class SubscriberState(object):
 
     def __init__(self, imsi: str, qos_store: Dict):
         self.imsi = imsi
-        self.rules = {}  # rule -> qos handle
-        self.sessions = {}  # IP -> [sessions(ip, qos_argumets, rule_no), ...]
+        self.rules: Dict = {}  # rule -> qos handle
+        self.sessions: Dict = {}  # IP -> [sessions(ip, qos_argumets, rule_no), ...]
         self._redis_store = qos_store
 
     def check_empty(self) -> bool:

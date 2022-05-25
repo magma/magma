@@ -18,7 +18,7 @@ import time
 import unittest
 import warnings
 from concurrent.futures import Future
-from typing import List
+from typing import Dict, List
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
 from magma.pipelined.app import egress
@@ -37,7 +37,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-gw_info_map = {}
+gw_info_map: Dict = {}
 gw_info_lock = threading.RLock()  # re-entrant locks
 
 
@@ -155,10 +155,10 @@ class InOutNonNatTest(unittest.TestCase):
 
         cls.service_manager = create_service_manager([])
 
-        ingress_controller_reference = Future()
-        middle_controller_reference = Future()
-        egress_controller_reference = Future()
-        testing_controller_reference = Future()
+        ingress_controller_reference: Future = Future()
+        middle_controller_reference: Future = Future()
+        egress_controller_reference: Future = Future()
+        testing_controller_reference: Future = Future()
 
         if non_nat_arp_egress_port is None:
             non_nat_arp_egress_port = cls.DHCP_PORT
