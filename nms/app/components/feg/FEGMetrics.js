@@ -20,6 +20,7 @@ import Grid from '@material-ui/core/Grid';
 import LteMetrics from '../lte/LteMetrics';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 
 import {colors} from '../../theme/default';

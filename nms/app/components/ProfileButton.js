@@ -24,6 +24,7 @@ import NetworkContext from './context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import Popout from './Popout';
 import React, {useContext} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '../util/Logging';

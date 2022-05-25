@@ -29,6 +29,7 @@ import ListAltIcon from '@material-ui/icons/ListAlt';
 import LogChart from './GatewayLogChart';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

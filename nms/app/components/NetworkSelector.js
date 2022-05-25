@@ -23,6 +23,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 // $FlowFixMe migrated to typescript
 import NetworkContext from './context/NetworkContext';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 // $FlowFixMe migrated to typescript

@@ -36,6 +36,7 @@ import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import withAlert from '../../components/Alert/withAlert';

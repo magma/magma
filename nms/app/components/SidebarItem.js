@@ -15,6 +15,7 @@
  */
 
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {Link, useLocation, useResolvedPath} from 'react-router-dom';

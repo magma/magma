@@ -20,6 +20,7 @@ import EventsTable from '../../events/EventsTable';
 import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../../theme/design-system/Text';
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';

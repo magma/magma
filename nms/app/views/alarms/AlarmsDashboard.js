@@ -23,6 +23,7 @@ import Button from '@material-ui/core/Button';
 import ContactMailIcon from '@material-ui/icons/ContactMail';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript

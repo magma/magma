@@ -33,6 +33,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
 import {UserRoles} from '../../../../shared/roles';
