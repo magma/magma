@@ -18,6 +18,7 @@
 import CardTitleRow from './layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ServicingAccessGatewayKPIs from './FEGServicingAccessGatewayKPIs';
 
 import {GpsFixed} from '@material-ui/icons';

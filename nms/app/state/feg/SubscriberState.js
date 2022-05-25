@@ -18,6 +18,7 @@ import type {EnqueueSnackbarOptions} from 'notistack';
 import type {network_id} from '../../../generated/MagmaAPIBindings';
 
 import {FetchSubscriberState} from '../lte/SubscriberState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 
 /**
