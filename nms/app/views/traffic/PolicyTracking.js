@@ -22,6 +22,7 @@ import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, decodeBase64} from '../../util/strings';

@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import Box from '@material-ui/core/Box';
@@ -24,20 +21,18 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import grey from '@material-ui/core/colors/grey';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   children: {
     padding: '8px 0',
   },
@@ -52,12 +47,12 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'right',
   },
   subheading: {
-    fontWeight: '400',
+    fontWeight: 400,
   },
   optionalLabel: {
     color: grey.A700,
     fontStyle: 'italic',
-    fontWeight: '400',
+    fontWeight: 400,
     marginLeft: '8px',
   },
   secondaryHeading: {
@@ -79,19 +74,19 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   // Label of the form field
-  label: string,
+  label: string;
   // Content of the component (Eg, Input, OutlinedInpir, Switch)
-  children?: any,
+  children?: any;
   // If true, compact vertical padding designed for keyboard and mouse input is used
-  dense?: boolean,
+  dense?: boolean;
   // Tooltio of the field
-  tooltip?: string,
+  tooltip?: string;
   // SubLabel of the form field
-  subLabel?: string,
+  subLabel?: string;
   // If true, adds a optional caption to the form field
-  isOptional?: boolean,
+  isOptional?: boolean;
   // If true, the left and right padding is removed.
-  disableGutters?: boolean,
+  disableGutters?: boolean;
 };
 
 export default function FormField(props: Props) {
@@ -173,9 +168,9 @@ export function AltFormFieldSubheading(props: Props) {
 }
 
 type PasswordProps = {
-  value: string,
-  onChange: string => void,
-  placeholder?: string,
+  value: string;
+  onChange: (arg0: string) => void;
+  placeholder?: string;
 };
 
 export function FormDivider() {
@@ -207,8 +202,8 @@ export function PasswordInput(props: PasswordProps) {
 }
 
 type ProgressProps = {
-  value: number,
-  text?: string,
+  value: number;
+  text?: string;
 };
 
 export function LinearProgressWithLabel(props: ProgressProps) {

@@ -30,6 +30,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../../app/components/FormField';
 import {useState} from 'react';
 

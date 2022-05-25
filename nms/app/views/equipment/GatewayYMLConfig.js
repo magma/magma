@@ -34,6 +34,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import withAlert from '../../components/Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe migrated to typescript
 import {RUNNING_SERVICES} from '../../components/GatewayUtils';

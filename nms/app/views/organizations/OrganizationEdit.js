@@ -38,6 +38,7 @@ import Text from '../../theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../app/hooks';

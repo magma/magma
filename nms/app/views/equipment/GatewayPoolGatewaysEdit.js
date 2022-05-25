@@ -36,6 +36,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {
   DEFAULT_GW_POOL_CONFIG,

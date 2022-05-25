@@ -21,6 +21,7 @@ import DataGrid from '../../components/DataGrid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';

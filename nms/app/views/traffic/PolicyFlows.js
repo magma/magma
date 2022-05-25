@@ -43,6 +43,7 @@ import {
   DIRECTION,
   PROTOCOL,
 } from '../../components/network/PolicyTypes';
+// $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';

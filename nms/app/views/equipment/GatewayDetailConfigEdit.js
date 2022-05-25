@@ -69,6 +69,7 @@ import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {
   DEFAULT_DNS_CONFIG,

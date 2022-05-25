@@ -41,6 +41,7 @@ import Switch from '@material-ui/core/Switch';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

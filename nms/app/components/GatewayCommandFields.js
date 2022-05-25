@@ -25,6 +25,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
+// $FlowFixMe migrated to typescript
 import FormField from './FormField';
 import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
@@ -43,6 +44,7 @@ import grey from '@material-ui/core/colors/grey';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from './FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';

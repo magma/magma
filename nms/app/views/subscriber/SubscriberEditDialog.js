@@ -44,6 +44,7 @@ import TypedSelect from '../../components/TypedSelect';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField, PasswordInput} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from './SubscriberUtils';
