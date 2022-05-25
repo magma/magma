@@ -42,10 +42,12 @@ export function coalesceNetworkType(
   return null;
 }
 
-export type NetworkId = string;
-export type GatewayId = string;
-export type GatewayPoolId = string;
-export type SubscriberId = string;
-export type PolicyId = string;
 export type EnodebSerial = string;
+export type GatewayId = string;
+export type GatewayName = string;
+export type GatewayPoolId = string;
+export type NetworkId = string;
+export type NetworkName = string;
+export type PolicyId = string;
+export type SubscriberId = string;
 export type TierId = string;
