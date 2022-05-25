@@ -9,17 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
-import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../theme/design-system/DeviceStatusCircle';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
@@ -32,14 +26,15 @@ import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
+import SvgIcon from '@material-ui/core/SvgIcon';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {ComponentType} from 'react';
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme, ConfigureStyleParameters>(theme => ({
   dataHeaderBlock: {
     display: 'flex',
     alignItems: 'center',
@@ -86,7 +81,7 @@ const useStyles = makeStyles(theme => ({
   },
   dataBox: {
     width: '100%',
-    padding: props => (props.collapsed ? '0' : null),
+    padding: props => (props.collapsed ? '0' : undefined),
 
     '& > div': {
       width: '100%',
@@ -105,6 +100,12 @@ const useStyles = makeStyles(theme => ({
     padding: 0,
   },
 }));
+
+type ConfigureStyleParameters = {
+  collapsed?: boolean;
+  hasIcon?: boolean;
+  hasStatus?: boolean;
+};
 
 // Status Indicator displays a small text with an DeviceStatusCircle icon
 // disabled indicates if the status color is to be grayed out
@@ -125,7 +126,7 @@ function StatusIndicator(disabled: boolean, up: boolean, val: string) {
 }
 
 // Data Icon adds an icon to the left of the value
-function DataIcon(icon: SvgIcon, val: string) {
+function DataIcon(icon: typeof SvgIcon, val: string) {
   const props = {hasIcon: true};
   const classes = useStyles(props);
   const Icon = icon;
@@ -142,7 +143,10 @@ function DataIcon(icon: SvgIcon, val: string) {
 }
 
 // Data Obscure makes the field into a password type filed with a visibility toggle for more sensitive fields.
-function DataObscure(value: number | string, category: ?string) {
+function DataObscure(
+  value: number | string,
+  category: string | null | undefined,
+) {
   const [showPassword, setShowPassword] = React.useState(false);
   return (
     <Input
@@ -170,7 +174,7 @@ function DataCollapse(data: Data) {
   const props = {collapsed: true};
   const classes = useStyles(props);
   const [open, setOpen] = React.useState(true);
-  const dataEntryValue = data.value + (data.unit ?? '');
+  const dataEntryValue = `${data.value}${data.unit ?? ''}`;
   return (
     <List
       key={`${data.category ?? data.value}Collapse`}
@@ -213,34 +217,38 @@ function DataCollapse(data: Data) {
     </List>
   );
 }
+
 function DataLink(data: string) {
   return <Link href={data}>{data}</Link>;
 }
+
 type Data = {
-  icon?: SvgIcon,
-  category?: string,
-  value: number | string,
-  obscure?: boolean,
-  //$FlowFixMe TODO: Needs a ComponentType argument
-  collapse?: ComponentType | boolean,
-  unit?: string,
-  statusCircle?: boolean,
-  statusInactive?: boolean,
-  status?: boolean,
-  tooltip?: string,
-  isLink?: boolean,
+  icon?: typeof SvgIcon;
+  category?: string;
+  value: number | string;
+  obscure?: boolean;
+  collapse?: ComponentType | boolean;
+  unit?: string;
+  statusCircle?: boolean;
+  statusInactive?: boolean;
+  status?: boolean;
+  tooltip?: string;
+  isLink?: boolean;
 };
 
-export type DataRows = Data[];
+export type DataRows = Array<Data>;
 
-type Props = {data: DataRows[], testID?: string};
+type Props = {
+  data: Array<DataRows>;
+  testID?: string;
+};
 
 export default function DataGrid(props: Props) {
-  const classes = useStyles();
+  const classes = useStyles({});
   const dataGrid = props.data.map((row, i) => (
     <Grid key={i} container direction="row">
       {row.map((data, j) => {
-        const dataEntryValue = data.value + (data.unit ?? '');
+        const dataEntryValue = `${data.value}${data.unit ?? ''}`;
 
         return (
           <React.Fragment key={`data-${i}-${j}`}>
