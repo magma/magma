@@ -9,22 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import React from 'react';
-
-import {colors} from '../../theme/default';
+import {Theme} from '@material-ui/core/styles';
+import {colors} from '../default';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
-  isGrey: boolean,
-  isActive: boolean,
+  isGrey: boolean;
+  isActive: boolean;
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme, Props>(theme => ({
   status: {
     width: '8px',
     height: '8px',
