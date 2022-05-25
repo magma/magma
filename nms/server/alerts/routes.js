@@ -17,7 +17,7 @@
 import express from 'express';
 import syncAlerts from './sync';
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../server/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 

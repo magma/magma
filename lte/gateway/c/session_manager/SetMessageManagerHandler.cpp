@@ -436,7 +436,7 @@ void SetMessageManagerHandler::pdu_session_inactive(
   if (!session_it) {
     MLOG(MINFO) << " No session found for IMSI: " << imsi << " pdu id "
                 << pdu_id;
-    Status status(grpc::NOT_FOUND, "Sesion Not found");
+    Status status(grpc::NOT_FOUND, "Session not found");
     response_callback(status, SmContextVoid());
     return;
   }
@@ -509,7 +509,7 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
   }
   if (!count) {
     MLOG(MINFO) << " No Valid session found for IMSI: " << imsi;
-    Status status(grpc::NOT_FOUND, "Sesion Not found");
+    Status status(grpc::NOT_FOUND, "Session not found");
     response_callback(status, SmContextVoid());
     return;
   }
@@ -539,7 +539,7 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
   auto session_it = session_store_.find_session(session_map, criteria);
   if (!session_it) {
     MLOG(MINFO) << " No Valid session found for IMSI: " << imsi;
-    Status status(grpc::NOT_FOUND, "Sesion Not found");
+    Status status(grpc::NOT_FOUND, "Session not found");
     response_callback(status, SmContextVoid());
     return;
   }
@@ -582,7 +582,7 @@ void SetMessageManagerHandler::request_modification_session(
   if (!session_it) {
     MLOG(MINFO) << " No session found for IMSI: " << imsi << " pdu id "
                 << pdu_id;
-    Status status(grpc::NOT_FOUND, "Sesion Not found");
+    Status status(grpc::NOT_FOUND, "Session not found");
     response_callback(status, SmContextVoid());
     return;
   }

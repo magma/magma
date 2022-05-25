@@ -17,10 +17,10 @@ limitations under the License.
 package providers
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/orc8r"

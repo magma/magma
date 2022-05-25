@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/api/v2/client/silence"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/alertmanager/pkg/parse"
@@ -79,7 +78,7 @@ func postSilencer(networkID, silencerURL string, c echo.Context, client HttpClie
 
 	newSilencerBytes, err := json.Marshal(silencer)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "make silencer"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("make silencer: %w", err))
 	}
 
 	resp, err := client.Post(silencerURL, "application/json", bytes.NewBuffer(newSilencerBytes))

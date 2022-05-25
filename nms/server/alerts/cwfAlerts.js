@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {prom_alert_config} from '../generated/MagmaAPIBindings';
+import type {prom_alert_config} from '../../generated/MagmaAPIBindings';
 
 export default function getCwfAlerts(
   networkID: string,

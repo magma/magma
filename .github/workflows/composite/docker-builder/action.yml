@@ -31,15 +31,8 @@ runs:
         # defines the image stream the image is pushed to
         images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_STREAM }}
         # defines the image tags added to the image
-        # TODO set a custom tag for now as a release strategy
-        # will be changed back in a follwoup PR
-        # tags: ${{ inputs.IMAGE_TAGS }}
-        tags: |
-          type=sha
-          type=raw,value=latestv2
-        # TODO do not set the latest tag for now so that jobs use the
-        # current latest build until new images are build.
-        flavor: latest=false
+        tags: ${{ inputs.IMAGE_TAGS }}
+        flavor: latest=true
     - name: Set up Docker Buildx
       id: buildx
       uses: docker/setup-buildx-action@v1

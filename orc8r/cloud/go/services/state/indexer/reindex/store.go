@@ -14,7 +14,8 @@ limitations under the License.
 package reindex
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -70,6 +71,6 @@ func blobsToIDs(byNetwork map[string]blobstore.Blobs) state_types.IDsByNetwork {
 }
 
 func internalErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
+	e := fmt.Errorf(wrap+": %w", err)
 	return status.Error(codes.Internal, e.Error())
 }

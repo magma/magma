@@ -19,7 +19,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -48,19 +47,19 @@ func runRemoteCommand(hostname string, bastionIP string, cmds []string) ([]strin
 	}
 	bastionConn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", bastionIP, *sshPort), sshConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "connect to bastion host")
+		return nil, fmt.Errorf("connect to bastion host: %w", err)
 	}
 	defer bastionConn.Close()
 
 	tunnelConn, err := bastionConn.Dial("tcp", fmt.Sprintf("%s:%d", hostname, *sshPort))
 	if err != nil {
-		return nil, errors.Wrap(err, "connect to host through tunnel")
+		return nil, fmt.Errorf("connect to host through tunnel: %w", err)
 	}
 	defer tunnelConn.Close()
 
 	newClientConn, channels, sshRequest, err := ssh.NewClientConn(tunnelConn, hostname, sshConfig)
 	if err != nil {
-		return nil, errors.Wrapf(err, "establish ssh client connection to '%s'", hostname)
+		return nil, fmt.Errorf("establish ssh client connection to '%s': %w", hostname, err)
 	}
 	defer newClientConn.Close()
 

@@ -15,13 +15,13 @@ package sqorc
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/lann/builder"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -88,9 +88,9 @@ const (
 	// Fill in other types as needed
 )
 
-//=============================================================================
+// =============================================================================
 // Tables
-//=============================================================================
+// =============================================================================
 
 // CreateTableBuilder is a builder for DDL table creation statements.
 // This builder is immutable and all operations will return a new instance
@@ -162,9 +162,9 @@ func (b CreateTableBuilder) columnTypeNames(m map[ColumnType]string) CreateTable
 	return builder.Set(b, "ColumnTypeNames", m).(CreateTableBuilder)
 }
 
-//=============================================================================
+// =============================================================================
 // Columns
-//=============================================================================
+// =============================================================================
 
 // ColumnBuilder is a builder for columns within a table creation statement
 // This builder is immutable and all methods will return a new instance of the
@@ -231,9 +231,9 @@ func (b ColumnBuilder) columnTypeNames(m map[ColumnType]string) ColumnBuilder {
 	return builder.Set(b, "ColumnTypeNames", m).(ColumnBuilder)
 }
 
-//=============================================================================
+// =============================================================================
 // Indexes
-//=============================================================================
+// =============================================================================
 
 // CreateIndexBuilder is a builder for CREATE INDEX statements
 type CreateIndexBuilder builder.Builder
@@ -275,9 +275,9 @@ func (b CreateIndexBuilder) ToSql() (string, []interface{}, error) {
 	return d.ToSql()
 }
 
-//=============================================================================
+// =============================================================================
 // Builder data types
-//=============================================================================
+// =============================================================================
 
 type foreignKey struct {
 	Table         string
@@ -330,7 +330,7 @@ func (d createTableData) ToSql() (string, []interface{}, error) {
 	for i, col := range d.Columns {
 		colSql, err := col.ToSql()
 		if err != nil {
-			return "", nil, errors.Wrapf(err, "could not sqlize column at position %d", i)
+			return "", nil, fmt.Errorf("could not sqlize column at position %d: %w", i, err)
 		}
 		colSqls = append(colSqls, colSql)
 	}
@@ -361,7 +361,7 @@ func (d createTableData) ToSql() (string, []interface{}, error) {
 		case ColumnOnDeleteCascade:
 			sb.WriteString(" ON DELETE CASCADE")
 		default:
-			return "", nil, errors.Errorf("unrecognized on delete behavior %v", fk.OnDelete)
+			return "", nil, fmt.Errorf("unrecognized on delete behavior %v", fk.OnDelete)
 		}
 	}
 
@@ -398,13 +398,13 @@ func (d createColumnData) ToSql() (string, error) {
 		return "", errors.New("column type must be specified")
 	}
 	if _, typeOk := d.ColumnTypeNames[*d.Type]; !typeOk {
-		return "", errors.Errorf("column type %v not recognized", *d.Type)
+		return "", fmt.Errorf("column type %v not recognized", *d.Type)
 	}
 	if d.References != nil && (len(d.References[0]) == 0 || len(d.References[1]) == 0) {
-		return "", errors.Errorf("reference table name and column of foreign key must not be empty")
+		return "", fmt.Errorf("reference table name and column of foreign key must not be empty")
 	}
 	if d.OnDelete != nil && d.References == nil {
-		return "", errors.Errorf("cannot specify an ON DELETE without a REFERENCES")
+		return "", fmt.Errorf("cannot specify an ON DELETE without a REFERENCES")
 	}
 
 	sb := strings.Builder{}
@@ -430,7 +430,7 @@ func (d createColumnData) ToSql() (string, error) {
 		case ColumnOnDeleteCascade:
 			sb.WriteString(" ON DELETE CASCADE")
 		default:
-			return "", errors.Errorf("unrecognized on delete option %v", *d.OnDelete)
+			return "", fmt.Errorf("unrecognized on delete option %v", *d.OnDelete)
 		}
 	}
 	return sb.String(), nil

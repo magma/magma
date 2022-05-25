@@ -16,11 +16,11 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
@@ -78,14 +78,14 @@ func manuallyVerifyAccessdMigration() error {
 	accessdSrvAddr := "localhost:9091"
 	conn, err := grpc.Dial(accessdSrvAddr, grpc.WithInsecure())
 	if err != nil {
-		return errors.Wrap(err, "failed to connect to accessd server")
+		return fmt.Errorf("failed to connect to accessd server: %w", err)
 	}
 	client := accessprotos.NewAccessControlManagerClient(conn)
 	ctx := context.Background()
 
 	operators, err := client.ListOperators(ctx, &protos.Void{})
 	if err != nil {
-		return errors.Wrap(err, "failed to list operators")
+		return fmt.Errorf("failed to list operators: %w", err)
 	}
 	glog.Infof("[manually verify] number of operators: %d", len(operators.List))
 
@@ -97,7 +97,7 @@ func manuallyVerifyAccessdMigration() error {
 	operator := operators.List[0]
 	acl, err := client.GetOperatorACL(ctx, operator)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get operator ACL for operator: %+v", operator)
+		return fmt.Errorf("failed to get operator ACL for operator: %+v: %w", operator, err)
 	}
 	glog.Infof("[manually verify] operator-acl pair: {operator: %+v, acl: %+v}", operator, acl)
 

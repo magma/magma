@@ -19,7 +19,6 @@ import (
 	"sort"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/state"
@@ -66,7 +65,10 @@ func (l *ipLookup) Initialize() error {
 			Unique(ipLookupNidCol, ipLookupImsiCol).
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "initialize IP lookup table")
+		if err != nil {
+			return nil, fmt.Errorf("initialize IP lookup table: %w", err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
@@ -81,7 +83,7 @@ func (l *ipLookup) GetIPs(networkID string, ips []string) ([]*protos.IPMapping, 
 			RunWith(tx).
 			Query()
 		if err != nil {
-			return nil, errors.Wrapf(err, "select IMSIs for IPs %v", ips)
+			return nil, fmt.Errorf("select IMSIs for IPs %v: %w", ips, err)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetIPs")
 
@@ -91,7 +93,7 @@ func (l *ipLookup) GetIPs(networkID string, ips []string) ([]*protos.IPMapping, 
 			imsiVal := ""
 			err = rows.Scan(&m.Ip, &imsiVal)
 			if err != nil {
-				return nil, errors.Wrap(err, "select IMSIs for IPs, SQL row scan error")
+				return nil, fmt.Errorf("select IMSIs for IPs, SQL row scan error: %w", err)
 			}
 			m.Imsi, m.Apn, err = state.GetIMSIAndAPNFromMobilitydStateKey(imsiVal)
 			if err != nil {
@@ -101,7 +103,7 @@ func (l *ipLookup) GetIPs(networkID string, ips []string) ([]*protos.IPMapping, 
 		}
 		err = rows.Err()
 		if err != nil {
-			return nil, errors.Wrap(err, "select IMSIs for IPs, SQL rows error")
+			return nil, fmt.Errorf("select IMSIs for IPs, SQL rows error: %w", err)
 		}
 
 		sort.Slice(mappings, func(i, j int) bool { return mappings[i].String() < mappings[j].String() })
@@ -132,7 +134,7 @@ func (l *ipLookup) SetIPs(networkID string, mappings []*protos.IPMapping) error 
 				RunWith(sc).
 				Exec()
 			if err != nil {
-				return nil, errors.Wrapf(err, "insert IP mapping %+v", m)
+				return nil, fmt.Errorf("insert IP mapping %+v: %w", m, err)
 			}
 		}
 
