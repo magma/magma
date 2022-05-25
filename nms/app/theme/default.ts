@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 //  NOTE: Color Names generated from hex code at http://chir.ag/projects/name-that-color/
@@ -221,7 +218,6 @@ export default createTheme({
       main: colors.secondary.dodgerBlue,
       dark: colors.secondary.mariner,
     },
-    blueGrayDark: colors.primary.brightGray,
   },
   typography: {
     ...typography,
@@ -242,6 +238,7 @@ export default createTheme({
         margin: '0px',
       },
     },
+    // @ts-ignore
     MuiAlert: {
       root: {
         marginBottom: '16px',
@@ -307,7 +304,7 @@ export default createTheme({
         backgroundColor: colors.primary.white,
         boxShadow: shadows.DP3,
         padding: '20px',
-        zIndex: '1',
+        zIndex: 1,
       },
     },
     MuiDialogContent: {
@@ -345,10 +342,7 @@ export default createTheme({
     },
     MuiFormLabel: {
       root: {
-        '&$error': {
-          ...typography.overline,
-          color: colors.state.error,
-        },
+        '&$error': {...typography.overline, color: colors.state.error},
       },
     },
     MuiToggleButton: {
