@@ -9,58 +9,46 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-import type {
-  feg_lte_network,
-  lte_network,
-} from '../../../generated/MagmaAPIBindings';
+import type {FegLteNetwork, LteNetwork} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../components/context/NetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import axios from 'axios';
 
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../shared/types/network';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
-  lteNetwork: $Shape<lte_network & feg_lte_network>,
+  lteNetwork: Partial<LteNetwork & FegLteNetwork>;
 };
 
 export default function NetworkInfo(props: Props) {
   const networkCtx = useContext(NetworkContext);
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'ID',
-        value: props.lteNetwork.id,
+        value: props.lteNetwork.id!,
       },
     ],
     [
       {
         category: 'Name',
-        value: props.lteNetwork.name,
+        value: props.lteNetwork.name!,
       },
     ],
     [
@@ -70,6 +58,7 @@ export default function NetworkInfo(props: Props) {
       },
     ],
   ];
+
   if (networkCtx.networkType === FEG_LTE) {
     kpiData.push(
       [
@@ -90,14 +79,15 @@ export default function NetworkInfo(props: Props) {
       ],
     );
   }
+
   return <DataGrid data={kpiData} testID="info" />;
 }
 
 type EditProps = {
-  saveButtonTitle: string,
-  lteNetwork: $Shape<lte_network & feg_lte_network>,
-  onClose: () => void,
-  onSave: ($Shape<lte_network & feg_lte_network>) => void,
+  saveButtonTitle: string;
+  lteNetwork: Partial<LteNetwork & FegLteNetwork>;
+  onClose: () => void;
+  onSave: (arg0: Partial<LteNetwork & FegLteNetwork>) => void;
 };
 
 export function NetworkInfoEdit(props: EditProps) {
@@ -105,20 +95,24 @@ export function NetworkInfoEdit(props: EditProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
   const [lteNetwork, setLteNetwork] = useState<
-    $Shape<lte_network & feg_lte_network>,
+    Partial<LteNetwork & FegLteNetwork>
   >(props.lteNetwork);
 
   const onSave = async () => {
     if (props.lteNetwork?.id) {
       // edit
       try {
-        await ctx.updateNetworks({networkId: lteNetwork.id, lteNetwork});
+        await ctx.updateNetworks({
+          networkId: lteNetwork.id,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          lteNetwork: lteNetwork as any, // TODO[TS-migration] The type UpdateNetworkContextProps is probably wrong
+        });
         enqueueSnackbar('Network configs saved successfully', {
           variant: 'success',
         });
         props.onSave(lteNetwork);
       } catch (e) {
-        setError(e.response?.data?.message ?? e?.message);
+        setError(getErrorMessage(e));
       }
     } else {
       // network creation a special case. We have to update the organization
@@ -133,17 +127,20 @@ export function NetworkInfoEdit(props: EditProps) {
             networkType: LTE,
           },
         };
-        const response = await axios.post('/nms/network/create', payload);
+        const response = await axios.post<{success: boolean; message?: string}>(
+          '/nms/network/create',
+          payload,
+        );
         if (response.data.success) {
-          enqueueSnackbar(`Network ${lteNetwork.name} successfully created`, {
+          enqueueSnackbar(`Network ${lteNetwork.name!} successfully created`, {
             variant: 'success',
           });
           props.onSave(lteNetwork);
         } else {
-          setError(response.data.message);
+          setError(response.data.message!);
         }
       } catch (e) {
-        setError(e.data?.message ?? e.message);
+        setError(getErrorMessage(e));
       }
     }
   };
@@ -200,7 +197,9 @@ export function NetworkInfoEdit(props: EditProps) {
         </Button>
         <Button
           data-testid="saveButton"
-          onClick={onSave}
+          onClick={() => {
+            void onSave();
+          }}
           variant="contained"
           color="primary">
           {props.saveButtonTitle}
