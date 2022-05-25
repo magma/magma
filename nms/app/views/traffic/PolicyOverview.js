@@ -42,6 +42,7 @@ import TextField from '@material-ui/core/TextField';
 import withAlert from '../../components/Alert/withAlert';
 
 import {Checkbox} from '@material-ui/core';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

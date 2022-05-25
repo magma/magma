@@ -76,6 +76,7 @@ import {
   DynamicServices,
   // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

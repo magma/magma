@@ -29,6 +29,7 @@ import {EVENT_STREAM} from '../../events/EventsTable';
 import {DateTimePicker} from '@material-ui/pickers';
 import {Navigate, Route, Routes} from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 

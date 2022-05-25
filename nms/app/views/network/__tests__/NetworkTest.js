@@ -33,7 +33,8 @@ import React from 'react';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import axiosMock from 'axios';
-import defaultTheme from '../../../theme/default.js';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import defaultTheme from '../../../theme/default';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';

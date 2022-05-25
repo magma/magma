@@ -50,6 +50,7 @@ import {
 } from '../../components/context/RefreshContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SelectEditComponent} from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

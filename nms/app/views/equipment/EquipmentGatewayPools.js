@@ -32,6 +32,7 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '../../components/Alert/withAlert';
 
 import {GatewayPoolEditDialog} from './GatewayPoolEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';

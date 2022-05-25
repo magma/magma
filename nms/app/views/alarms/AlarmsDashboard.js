@@ -29,6 +29,7 @@ import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';

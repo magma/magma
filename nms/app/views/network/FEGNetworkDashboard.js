@@ -36,6 +36,7 @@ import {
   useParams,
 } from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

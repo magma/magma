@@ -26,6 +26,7 @@ import moment from 'moment';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';

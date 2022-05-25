@@ -36,6 +36,7 @@ import {
   getStep,
   getStepString,
 } from './CustomMetrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

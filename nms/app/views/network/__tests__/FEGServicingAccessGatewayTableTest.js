@@ -20,6 +20,7 @@ import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';

@@ -17,6 +17,7 @@
 import * as React from 'react';
 import AccountSettings from '../AccountSettings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';

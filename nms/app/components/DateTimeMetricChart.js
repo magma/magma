@@ -27,6 +27,7 @@ import Text from '../theme/design-system/Text';
 import moment from 'moment';
 
 import {DateTimePicker} from '@material-ui/pickers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';

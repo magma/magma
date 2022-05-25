@@ -35,6 +35,7 @@ import React from 'react';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 

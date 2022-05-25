@@ -36,6 +36,7 @@ import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 // $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';

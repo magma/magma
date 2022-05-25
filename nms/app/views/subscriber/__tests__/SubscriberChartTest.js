@@ -21,7 +21,8 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';
-import defaultTheme from '../../../theme/default.js';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import defaultTheme from '../../../theme/default';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';

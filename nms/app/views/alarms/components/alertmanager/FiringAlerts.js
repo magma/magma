@@ -25,6 +25,7 @@ import Slide from '@material-ui/core/Slide';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {Link, useResolvedPath} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';

@@ -28,6 +28,7 @@ import React, {useContext} from 'react';
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '../util/Logging';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate, useResolvedPath} from 'react-router-dom';

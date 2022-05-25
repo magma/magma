@@ -50,6 +50,7 @@ import {
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';

@@ -17,6 +17,7 @@
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
 import WifiTethering from '@material-ui/icons/WifiTethering';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 

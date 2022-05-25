@@ -28,6 +28,7 @@ import React, {useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 

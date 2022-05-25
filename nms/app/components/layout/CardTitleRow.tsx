@@ -16,6 +16,7 @@ import React from 'react';
 import SvgIcon from '@material-ui/core/SvgIcon';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import type {Theme} from '@material-ui/core/styles';

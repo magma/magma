@@ -45,6 +45,7 @@ import withAlert from '../Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';

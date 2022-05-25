@@ -38,6 +38,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 
 // $FlowFixMe migrated to typescript
 import {DynamicServices} from '../../components/GatewayUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
