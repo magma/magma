@@ -70,6 +70,7 @@ RUN printenv > /etc/environment
 
 COPY feg/radius/lib/go/ /radius/lib/go
 COPY feg/radius/src/go.* /radius/src/
+COPY orc8r/lib/go/go.* /orc8r/lib/go/
 WORKDIR /radius/src
 RUN go mod download
 

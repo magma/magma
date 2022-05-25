@@ -22,8 +22,8 @@ require (
 	go.opencensus.io v0.21.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.18.1
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
-	google.golang.org/grpc v1.33.2
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.26.0
 	magma/orc8r/lib/go v0.0.0
 )
@@ -45,7 +45,7 @@ require (
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/sys v0.0.0-20191002091554-b397fe3ad8ed // indirect
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 	golang.org/x/text v0.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
