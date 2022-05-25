@@ -17,16 +17,17 @@
 import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkContext from '../../components/context/FEGNetworkContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkInfo from './FEGNetworkInfo';
 import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {
