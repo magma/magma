@@ -24,6 +24,7 @@ import ActionTable from '../../components/ActionTable';
 import BaseNameEditDialog from './BaseNameEdit';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 // $FlowFixMe migrated to typescript
