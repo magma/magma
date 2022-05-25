@@ -23,6 +23,7 @@ import DashboardAlertTable from '../../components/DashboardAlertTable';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';

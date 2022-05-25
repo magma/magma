@@ -23,6 +23,7 @@ import type {mutable_cellular_gateway_pool} from '../../../generated/MagmaAPIBin
 import Button from '@material-ui/core/Button';
 import ConfigEdit from './GatewayPoolConfigEdit';
 import Dialog from '@material-ui/core/Dialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import GatewayEdit from './GatewayPoolGatewaysEdit';
 import React from 'react';

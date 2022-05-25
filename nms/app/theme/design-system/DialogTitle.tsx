@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import CloseIcon from '@material-ui/icons/Close';
@@ -19,7 +16,6 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
 import Text from './Text';
-
 import {colors} from '../default';
 import {makeStyles} from '@material-ui/styles';
 
@@ -31,8 +27,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  label: string,
-  onClose: () => void,
+  label: string;
+  onClose: () => void;
 };
 
 export default function CustomDialogTitle(props: Props) {

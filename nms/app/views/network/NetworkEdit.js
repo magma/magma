@@ -21,6 +21,7 @@ import type {
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 // $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';

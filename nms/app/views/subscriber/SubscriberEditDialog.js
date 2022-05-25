@@ -22,6 +22,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EditSubscriberApnStaticIps from './SubscriberApnStaticIpsEdit';
 import EditSubscriberTrafficPolicy from './SubscriberTrafficPolicyEdit';
