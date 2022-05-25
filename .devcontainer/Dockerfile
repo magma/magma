@@ -212,10 +212,14 @@ ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
 RUN virtualenv --system-site-packages --python=/usr/bin/python${PYTHON_VERSION} ${PYTHON_VENV}
 RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
 
-# add patch that is missing in jfrog version of aioeventlet (it only comes with 1 of 2 patches)
-COPY lte/gateway/deploy/roles/magma/files/patches/aioeventlet_fd_exception.patch /tmp/
-RUN (patch -N -s -f /usr/local/lib/python${PYTHON_VERSION}/dist-packages/aioeventlet.py < /tmp/aioeventlet_fd_exception.patch) || ( true && echo "skipping aioeventlet patch since it was already applied") && \
-    rm -rf /tmp/*
+### install python3-aioeventlet and bcc-tools from the magma apt repo
+COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/
+RUN apt-key add /tmp/jfrog.pub && \
+    echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list && \
+    apt-get update -y && \
+    apt-get install -y python3-aioeventlet bcc-tools && \
+    rm -f /tmp/* && \
+    rm -rf /var/lib/apt/lists/*  # delete lists that are downloaded by apt-get update
 
 ### install eggs (lte, orc8r)
 COPY /lte/gateway/python/ ${MAGMA_ROOT}/lte/gateway/python/
