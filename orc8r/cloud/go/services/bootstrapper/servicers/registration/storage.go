@@ -14,7 +14,7 @@ limitations under the License.
 package registration
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/bootstrapper"
@@ -54,7 +54,7 @@ func (b *blobstoreStore) SetTokenInfo(tokenInfo *protos.TokenInfo) error {
 		return err
 	}
 	if !isUnique {
-		return errors.Errorf("token is not unique")
+		return fmt.Errorf("token is not unique")
 	}
 
 	// Write to 2 blobstores so that we can key for tokenInfo with both the logicalID and the nonce
@@ -150,7 +150,7 @@ func (b *blobstoreStore) isNonceUnique(store blobstore.Store, nonce string) (boo
 func tokenInfoToBlob(blobType bootstrapper.BlobType, key string, tokenInfo *protos.TokenInfo) (blobstore.Blob, error) {
 	marshaledTokenInfo, err := protos.Marshal(tokenInfo)
 	if err != nil {
-		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
+		return blobstore.Blob{}, fmt.Errorf("Error marshaling protobuf: %w", err)
 	}
 	blob := blobstore.Blob{
 		Type:  string(blobType),
@@ -164,7 +164,7 @@ func tokenInfoFromBlob(blob blobstore.Blob) (*protos.TokenInfo, error) {
 	tokenInfo := protos.TokenInfo{}
 	err := protos.Unmarshal(blob.Value, &tokenInfo)
 	if err != nil {
-		return &protos.TokenInfo{}, errors.Wrap(err, "Error unmarshaling protobuf")
+		return &protos.TokenInfo{}, fmt.Errorf("Error unmarshaling protobuf: %w", err)
 	}
 	return &tokenInfo, nil
 }

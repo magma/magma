@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/lib/go/service/config"
 )
@@ -70,7 +69,7 @@ func LoadServiceRegistryConfigs() ([]ServiceLocation, error) {
 		}
 		locations, err := convertToServiceLocations(rawMap)
 		if err != nil {
-			return nil, errors.Wrapf(err, "load service registry for %s:%s.yml", module, serviceRegistryFilename)
+			return nil, fmt.Errorf("load service registry for %s:%s.yml: %w", module, serviceRegistryFilename, err)
 		}
 		ret = append(ret, locations...)
 	}

@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/feg/cloud/go/feg"
@@ -322,7 +322,7 @@ func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.Pipelin
 	for _, service := range networkServices {
 		mc, found := networkServicesByName[service]
 		if !found {
-			return nil, errors.Errorf("unknown network service name %s", service)
+			return nil, fmt.Errorf("unknown network service name %s", service)
 		}
 		apps = append(apps, mc)
 	}

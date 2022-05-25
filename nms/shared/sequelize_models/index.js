@@ -140,19 +140,12 @@ export async function importFromDatabase(sourceConfig: Options) {
   const featureFlags = await sourceDb.FeatureFlag.findAll();
   await FeatureFlag.bulkCreate(getDataValues(featureFlags));
 
-  // NOTE: While the tabs field should be non-null, it does happen
   // $FlowIgnore findAll function exists for Organization
   const organizations = await sourceDb.Organization.findAll();
-  organizations.forEach(organization => {
-    organization.tabs = organization.tabs || [];
-  });
   await Organization.bulkCreate(getDataValues(organizations));
 
   // $FlowIgnore findAll function exists for User
   const users = await sourceDb.User.findAll();
-  users.forEach(user => {
-    user.tabs = user.tabs || [];
-  });
   await User.bulkCreate(getDataValues(users));
 }
 
@@ -189,16 +182,10 @@ export async function exportToDatabase(targetConfig: Options) {
   // NOTE: While the tabs field should be non-null, it does happen
   // $FlowIgnore findAll function exists for Organization
   const organizations = await Organization.findAll();
-  organizations.forEach(organization => {
-    organization.tabs = organization.tabs || [];
-  });
   await targetDb.Organization.bulkCreate(getDataValues(organizations));
 
   // $FlowIgnore findAll function exists for User
   const users = await User.findAll();
-  users.forEach(user => {
-    user.tabs = user.tabs || [];
-  });
   await targetDb.User.bulkCreate(getDataValues(users));
 
   await resetPgIdSeq(targetSequelize);

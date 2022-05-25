@@ -15,9 +15,9 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/merrors"
@@ -66,7 +66,10 @@ func (l *enodebStateLookup) Initialize() error {
 			Unique(nidCol, gidCol, enbSnCol, enbStateCol).
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "initialize enodeb state lookup table")
+		if err != nil {
+			return nil, fmt.Errorf("initialize enodeb state lookup table: %w", err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
@@ -81,7 +84,7 @@ func (l *enodebStateLookup) GetEnodebState(networkID string, gatewayID string, e
 			RunWith(tx).
 			Query()
 		if err != nil {
-			return nil, errors.Wrapf(err, "select EnodebState for gatewayID, enodebSN %v, %v", gatewayID, enodebSN)
+			return nil, fmt.Errorf("select EnodebState for gatewayID, enodebSN %v, %v: %w", gatewayID, enodebSN, err)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetEnodebState")
 
@@ -89,14 +92,14 @@ func (l *enodebStateLookup) GetEnodebState(networkID string, gatewayID string, e
 		for rows.Next() {
 			err = rows.Scan(&serializedState)
 			if err != nil {
-				return nil, errors.Wrap(err, "select EnodebState for (gatewayID, enodebSN), SQL row scan error")
+				return nil, fmt.Errorf("select EnodebState for (gatewayID, enodebSN), SQL row scan error: %w", err)
 			}
 			// always return the first record as all cols are unique
 			break
 		}
 		err = rows.Err()
 		if err != nil {
-			return nil, errors.Wrap(err, "select EnodebState for (gatewayID, enodebSN), SQL rows error")
+			return nil, fmt.Errorf("select EnodebState for (gatewayID, enodebSN), SQL rows error: %w", err)
 		}
 		return serializedState, nil
 	}
@@ -127,7 +130,7 @@ func (l *enodebStateLookup) SetEnodebState(networkID string, gatewayID string, e
 			RunWith(sc).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "insert EnodbeState %+v", enodebState)
+			return nil, fmt.Errorf("insert EnodbeState %+v: %w", enodebState, err)
 		}
 		return nil, nil
 	}

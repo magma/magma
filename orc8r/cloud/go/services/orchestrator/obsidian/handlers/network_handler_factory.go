@@ -20,7 +20,6 @@ import (
 	"sort"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
@@ -272,7 +271,7 @@ func getUpdateTypedNetworkHandler(path string, networkType string, networkModel 
 				return c.NoContent(http.StatusNotFound)
 			}
 			if err != nil {
-				return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(fmt.Errorf("failed to load network to check type: %w", err), http.StatusInternalServerError)
 			}
 			if network.Type != networkType {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))
@@ -303,7 +302,7 @@ func getDeleteTypedNetworkHandler(path string, networkType string, serdes serde.
 				return c.NoContent(http.StatusNotFound)
 			}
 			if err != nil {
-				return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(fmt.Errorf("failed to load network to check type: %w", err), http.StatusInternalServerError)
 			}
 			if network.Type != networkType {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, networkType))

@@ -19,22 +19,22 @@ import ReactDOM from 'react-dom/server';
 import express from 'express';
 import proxy from 'express-http-proxy';
 
-import Client from './GrafanaAPI';
+import Client from '../../grafana/GrafanaAPI';
 
-import GrafanaErrorMessage from './GrafanaErrorMessage';
+import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
 import {
   makeGrafanaUsername,
   syncDashboards,
   syncDatasource,
   syncGrafanaUser,
   syncTenants,
-} from './handlers';
+} from '../../grafana/handlers';
 
-import type {Task} from './handlers';
+import type {Task} from '../../grafana/handlers';
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../server/auth/access';
-import type {GrafanaClient} from './GrafanaAPI';
+import type {FBCNMSRequest} from '../auth/access';
+import type {GrafanaClient} from '../../grafana/GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';
 const GRAFANA_ADDRESS = process.env.USER_GRAFANA_ADDRESS ?? 'user-grafana:3000';

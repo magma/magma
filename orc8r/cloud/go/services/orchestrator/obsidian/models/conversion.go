@@ -15,11 +15,11 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/models"
@@ -383,7 +383,7 @@ func (m *TierID) ToUpdateCriteria(ctx context.Context, networkID string, gateway
 
 	exists, err := configurator.DoesEntityExist(ctx, networkID, orc8r.UpgradeTierEntityType, tierID)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to look up tier")
+		return nil, fmt.Errorf("Failed to look up tier: %w", err)
 	}
 	if !exists {
 		return nil, fmt.Errorf("Tier %s does not exist", tierID)

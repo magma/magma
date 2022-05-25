@@ -15,8 +15,6 @@ package serde
 
 import (
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // Registry provides a serde registry.
@@ -65,7 +63,7 @@ func (r registry) MustMerge(rr Registry) Registry {
 func (r registry) GetSerde(typ string) (Serde, error) {
 	serde, ok := r[typ]
 	if !ok {
-		return nil, errors.Errorf("no serde in registry for type %s", typ)
+		return nil, fmt.Errorf("no serde in registry for type %s", typ)
 	}
 	return serde, nil
 }

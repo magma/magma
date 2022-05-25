@@ -27,13 +27,14 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/tools/migrations/m013_relay_split/types"
 	"magma/orc8r/cloud/go/sqorc"
@@ -73,7 +74,7 @@ func main() {
 
 	db, err := sql.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	_, err = migrations.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, doMigration)
@@ -113,7 +114,7 @@ func migrateNetworkEpcConfigs(tx *sql.Tx, builder squirrel.StatementBuilderType)
 	glog.Infof("[RUN] %s %v", sqlStr, args)
 	rows, err := b.RunWith(tx).Query()
 	if err != nil {
-		return errors.Wrap(err, "get lte_network configs")
+		return fmt.Errorf("get lte_network configs: %w", err)
 	}
 	oldByNid := map[string]types.OldNetworkCellularConfigs{}
 	for rows.Next() {
@@ -121,18 +122,18 @@ func migrateNetworkEpcConfigs(tx *sql.Tx, builder squirrel.StatementBuilderType)
 		var confBytes []byte
 		err = rows.Scan(&nid, &confBytes)
 		if err != nil {
-			return errors.Wrap(err, "scan lte_network config")
+			return fmt.Errorf("scan lte_network config: %w", err)
 		}
 		old := types.OldNetworkCellularConfigs{}
 		err = json.Unmarshal(confBytes, &old)
 		if err != nil {
-			return errors.Wrap(err, "unmarshal existing lte_network config")
+			return fmt.Errorf("unmarshal existing lte_network config: %w", err)
 		}
 		oldByNid[nid] = old
 	}
 	err = rows.Err()
 	if err != nil {
-		return errors.Wrap(err, "get existing lte_network configs: SQL rows error")
+		return fmt.Errorf("get existing lte_network configs: SQL rows error: %w", err)
 	}
 
 	// Convert network configs to new versions
@@ -159,7 +160,7 @@ func migrateNetworkEpcConfigs(tx *sql.Tx, builder squirrel.StatementBuilderType)
 		}
 		newBytes, err := json.Marshal(newConf)
 		if err != nil {
-			return errors.Wrap(err, "marshal updated lte_network config")
+			return fmt.Errorf("marshal updated lte_network config: %w", err)
 		}
 		updateConfByNid[nid] = newBytes
 	}
@@ -174,7 +175,7 @@ func migrateNetworkEpcConfigs(tx *sql.Tx, builder squirrel.StatementBuilderType)
 		glog.Infof("[RUN] %s %v", sqlStr, args)
 		_, err = bu.RunWith(tx).Exec()
 		if err != nil {
-			return errors.Wrap(err, "error updating lte_network config")
+			return fmt.Errorf("error updating lte_network config: %w", err)
 		}
 	}
 

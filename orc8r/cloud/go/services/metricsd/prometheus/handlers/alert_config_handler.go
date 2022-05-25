@@ -24,7 +24,6 @@ import (
 
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 
@@ -156,11 +155,11 @@ func sendConfig(payload interface{}, url string, method string, client HttpClien
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "create http request"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("create http request: %w", err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrapf(err, "make %s request", method))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("make %s request: %w", method, err))
 	}
 	defer resp.Body.Close()
 
@@ -263,11 +262,11 @@ func sendBulkConfig(payload interface{}, url string, client HttpClient) (string,
 
 	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return "", echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "create http request"))
+		return "", echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("create http request: %w", err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "make PUT request"))
+		return "", echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("make PUT request: %w", err))
 	}
 	defer resp.Body.Close()
 

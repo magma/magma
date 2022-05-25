@@ -20,7 +20,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/lib/go/protos"
@@ -40,7 +39,7 @@ func CreateMconfigJSON(network *storage.Network, graph *storage.EntityGraph, gat
 	for _, b := range builders {
 		partialConfig, err := b.Build(network, graph, gatewayID)
 		if err != nil {
-			return nil, errors.Wrapf(err, "mconfig builder %+v error", b)
+			return nil, fmt.Errorf("mconfig builder %+v error: %w", b, err)
 		}
 		for key, config := range partialConfig {
 			_, ok := configs[key]
