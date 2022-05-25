@@ -21,6 +21,7 @@ import EnodebContext from '../../../components/context/EnodebContext';
 // $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGNetworkDashboard from '../FEGNetworkDashboard';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../../components/context/GatewayContext';
 // $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../../components/context/LteNetworkContext';

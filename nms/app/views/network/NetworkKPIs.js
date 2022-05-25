@@ -21,6 +21,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import PeopleIcon from '@material-ui/icons/People';

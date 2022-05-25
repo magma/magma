@@ -28,6 +28,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';

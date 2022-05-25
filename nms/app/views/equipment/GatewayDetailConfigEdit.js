@@ -47,6 +47,7 @@ import EnodebContext from '../../components/context/EnodebContext';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';

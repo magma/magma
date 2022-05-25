@@ -18,6 +18,7 @@ import * as React from 'react';
 import ApnContext from '../context/ApnContext';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../context/GatewayContext';
 // $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../context/GatewayPoolsContext';

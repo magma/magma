@@ -16,6 +16,7 @@
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
