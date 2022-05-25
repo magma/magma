@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/orc8r/math"
@@ -50,7 +49,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	for _, b := range localBuilders {
 		partialConfig, err := b.Build(request.Network, request.Graph, request.GatewayId)
 		if err != nil {
-			return nil, errors.Wrapf(err, "sub-builder %+v error", b)
+			return nil, fmt.Errorf("sub-builder %+v error: %w", b, err)
 		}
 		for key, config := range partialConfig {
 			_, ok := ret.ConfigsByKey[key]
@@ -75,13 +74,13 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 
 	net, err := (configurator.Network{}).FromProto(network, serdes.Network)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not find network %s in graph", networkID)
+		return nil, fmt.Errorf("could not find network %s in graph: %w", networkID, err)
 	}
 
 	// Gateway must be present in the graph
 	gateway, err := nativeGraph.GetEntity(orc8r.MagmadGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
-		return nil, errors.Errorf("could not find magmad gateway %s in graph", gatewayID)
+		return nil, fmt.Errorf("could not find magmad gateway %s in graph", gatewayID)
 	}
 	if err != nil {
 		return nil, err
@@ -140,7 +139,7 @@ func getPackageVersionAndImages(magmadGateway *configurator.NetworkEntity, graph
 		return "0.0.0-0", []*mconfig_protos.ImageSpec{}, nil
 	}
 	if err != nil {
-		return "0.0.0-0", []*mconfig_protos.ImageSpec{}, errors.Wrap(err, "failed to load upgrade tier")
+		return "0.0.0-0", []*mconfig_protos.ImageSpec{}, fmt.Errorf("failed to load upgrade tier: %w", err)
 	}
 
 	tierConfig := tier.Config.(*models.Tier)

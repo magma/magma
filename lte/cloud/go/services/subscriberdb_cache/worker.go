@@ -15,11 +15,11 @@ package subscriberdb_cache
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -54,14 +54,14 @@ func MonitorDigests(config Config, store syncstore.SyncStore) {
 func RenewDigests(config Config, store syncstore.SyncStore) (map[string]string, map[string][]*protos.LeafDigest, error) {
 	tracked, err := configurator.ListNetworkIDs(context.Background())
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "Load current networks for subscriberdb cache")
+		return nil, nil, fmt.Errorf("Load current networks for subscriberdb cache: %w", err)
 	}
 	// Garbage collection needs to happen here to ensure that untracked networks are removed from store
 	// before the next step
 	store.CollectGarbage(tracked)
 	toUpdate, err := getNetworksToUpdate(store, tracked, config.UpdateIntervalSecs)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "get networks to update")
+		return nil, nil, fmt.Errorf("get networks to update: %w", err)
 	}
 
 	errs := &multierror.Error{}
@@ -84,7 +84,7 @@ func renewDigestsForNetwork(
 ) (string, []*protos.LeafDigest, error) {
 	prevDigestTree, err := syncstore.GetDigestTree(store, network)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "get previous root digest for network %+v", network)
+		return "", nil, fmt.Errorf("get previous root digest for network %+v: %w", network, err)
 	}
 	rootDigest, leafDigests, err := updateDigestTree(network, store)
 	// If the digest-related operations succeeded, and the generated root digest is the same as
@@ -95,7 +95,7 @@ func renewDigestsForNetwork(
 
 	err = updateSubscribers(network, store)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "update subscribers cache for network %+v", network)
+		return "", nil, fmt.Errorf("update subscribers cache for network %+v: %w", network, err)
 	}
 	// TODO(wangyyt1013): add logs for updated sub protos
 
@@ -105,7 +105,7 @@ func renewDigestsForNetwork(
 func updateDigestTree(network string, store syncstore.SyncStore) (string, []*protos.LeafDigest, error) {
 	rootDigest, err := subscriberdb.GetDigest(network)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "generate root digest")
+		return "", nil, fmt.Errorf("generate root digest: %w", err)
 	}
 	// The leaf digests in store are updated en masse (collectively serialized into one blob per network);
 	// this update takes place along with every root digest update for consistency.
@@ -113,7 +113,7 @@ func updateDigestTree(network string, store syncstore.SyncStore) (string, []*pro
 	// not update, and will indicate outdated-ness instead, forcing a redo in the next loop.
 	leafDigests, err := subscriberdb.GetPerSubscriberDigests(network)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "get per-subscriber digests to update")
+		return "", nil, fmt.Errorf("get per-subscriber digests to update: %w", err)
 	}
 	digestTree := &protos.DigestTree{
 		RootDigest:  &protos.Digest{Md5Base64Digest: rootDigest},
@@ -121,7 +121,7 @@ func updateDigestTree(network string, store syncstore.SyncStore) (string, []*pro
 	}
 	err = store.SetDigest(network, digestTree)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "set digest for network %+v", network)
+		return "", nil, fmt.Errorf("set digest for network %+v: %w", network, err)
 	}
 	return rootDigest, leafDigests, nil
 }
@@ -133,7 +133,7 @@ func updateSubscribers(network string, store syncstore.SyncStore) error {
 	}
 	writer, err := store.UpdateCache(network)
 	if err != nil {
-		return errors.Wrapf(err, "get new cache writer for network %+v", network)
+		return fmt.Errorf("get new cache writer for network %+v: %w", network, err)
 	}
 
 	token := ""
@@ -162,11 +162,11 @@ func updateSubscribers(network string, store syncstore.SyncStore) error {
 func getNetworksToUpdate(store syncstore.SyncStore, tracked []string, updateIntervalSecs int) ([]string, error) {
 	storedDigests, err := store.GetDigests([]string{}, clock.Now().Unix(), false)
 	if err != nil {
-		return nil, errors.Wrap(err, "Load digests in store for subscriberdb cache")
+		return nil, fmt.Errorf("Load digests in store for subscriberdb cache: %w", err)
 	}
 	outdatedDigests, err := store.GetDigests([]string{}, clock.Now().Unix()-int64(updateIntervalSecs), false)
 	if err != nil {
-		return nil, errors.Wrap(err, "Load outdated digests in store for subscriberdb cache")
+		return nil, fmt.Errorf("Load outdated digests in store for subscriberdb cache: %w", err)
 	}
 
 	newlyCreated, _ := funk.DifferenceString(tracked, storedDigests.Networks())

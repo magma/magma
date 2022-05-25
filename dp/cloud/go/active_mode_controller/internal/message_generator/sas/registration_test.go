@@ -43,7 +43,7 @@ func TestRegistrationRequestGenerator(t *testing.T) {
 				LatitudeDeg:      12,
 				LongitudeDeg:     34,
 				HeightM:          5,
-				HeightType:       "AGL",
+				HeightType:       "agl",
 				IndoorDeployment: true,
 				AntennaGainDbi:   15,
 			},

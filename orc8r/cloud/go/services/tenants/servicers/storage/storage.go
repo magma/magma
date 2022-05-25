@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/pkg/errors"
-
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
@@ -178,7 +176,7 @@ func (b *blobstoreStore) CreateOrUpdateControlProxy(tenantID int64, controlProxy
 func tenantToBlob(tenantID int64, tenant *tenant_protos.Tenant) (blobstore.Blob, error) {
 	marshaledTenant, err := protos.Marshal(tenant)
 	if err != nil {
-		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling protobuf")
+		return blobstore.Blob{}, fmt.Errorf("Error marshaling protobuf: %w", err)
 	}
 	return blobstore.Blob{
 		Type:  tenants.TenantInfoType,
@@ -191,7 +189,7 @@ func tenantFromBlob(blob blobstore.Blob) (*tenant_protos.Tenant, error) {
 	tenant := tenant_protos.Tenant{}
 	err := protos.Unmarshal(blob.Value, &tenant)
 	if err != nil {
-		return &tenant_protos.Tenant{}, errors.Wrap(err, "Error unmarshaling protobuf")
+		return &tenant_protos.Tenant{}, fmt.Errorf("Error unmarshaling protobuf: %w", err)
 	}
 	return &tenant, nil
 }

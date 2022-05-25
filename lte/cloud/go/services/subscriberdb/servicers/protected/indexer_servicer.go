@@ -15,9 +15,9 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -124,7 +124,7 @@ func setIPMappings(ctx context.Context, networkID string, states state_types.Sta
 
 	err := subscriberdb.SetIMSIsForIPs(ctx, networkID, ipMappings)
 	if err != nil {
-		return stateErrors, errors.Wrapf(err, "update directoryd mapping of session IDs to IMSIs %+v", ipMappings)
+		return stateErrors, fmt.Errorf("update directoryd mapping of session IDs to IMSIs %+v: %w", ipMappings, err)
 	}
 
 	return stateErrors, nil

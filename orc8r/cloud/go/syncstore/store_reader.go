@@ -20,7 +20,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
@@ -47,7 +46,7 @@ const (
 func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.StoreFactory, config Config) (SyncStoreReader, error) {
 	err := config.Validate(false)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid configs for syncstore reader")
+		return nil, fmt.Errorf("invalid configs for syncstore reader: %w", err)
 	}
 	storeReader := &syncStore{
 		db:                           db,
@@ -73,7 +72,7 @@ func (l *syncStore) Initialize() error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "initialize digest store table")
+			return nil, fmt.Errorf("initialize digest store table: %w", err)
 		}
 
 		_, err = l.builder.CreateTable(l.cacheTableName).
@@ -84,7 +83,10 @@ func (l *syncStore) Initialize() error {
 			PrimaryKey(nidCol, idCol).
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "initialize cached obj store table")
+		if err != nil {
+			return nil, fmt.Errorf("initialize cached obj store table: %w", err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
@@ -103,7 +105,7 @@ func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadL
 			RunWith(tx).
 			Query()
 		if err != nil {
-			return nil, errors.Wrapf(err, "get digests for networks %+v", networks)
+			return nil, fmt.Errorf("get digests for networks %+v: %w", networks, err)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetDigests")
 
@@ -112,7 +114,7 @@ func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadL
 			network, rootDigest, leafDigestsMarshaled, lastUpdatedTime := "", "", []byte{}, int64(0)
 			err = rows.Scan(&network, &rootDigest, &leafDigestsMarshaled, &lastUpdatedTime)
 			if err != nil {
-				return nil, errors.Wrapf(err, "get digests for network %+v, SQL row scan error", network)
+				return nil, fmt.Errorf("get digests for network %+v, SQL row scan error: %w", network, err)
 			}
 
 			digestTree := &protos.DigestTree{RootDigest: &protos.Digest{Md5Base64Digest: rootDigest}}
@@ -120,7 +122,7 @@ func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadL
 				leafDigests := &protos.LeafDigests{}
 				err = proto.Unmarshal(leafDigestsMarshaled, leafDigests)
 				if err != nil {
-					return nil, errors.Wrapf(err, "unmarshal leaf digests for network %+v", network)
+					return nil, fmt.Errorf("unmarshal leaf digests for network %+v: %w", network, err)
 				}
 				digestTree.LeafDigests = leafDigests.Digests
 			}
@@ -128,7 +130,7 @@ func (l *syncStore) GetDigests(networks []string, lastUpdatedBefore int64, loadL
 		}
 		err = rows.Err()
 		if err != nil {
-			return nil, errors.Wrap(err, "select digests for network, SQL rows error")
+			return nil, fmt.Errorf("select digests for network, SQL rows error: %w", err)
 		}
 		return digestTrees, nil
 	}
@@ -156,7 +158,7 @@ func (l *syncStore) GetCachedByID(network string, ids []string) ([][]byte, error
 			RunWith(tx).
 			Query()
 		if err != nil {
-			return nil, errors.Wrapf(err, "get cached objs by ID for network %+v", network)
+			return nil, fmt.Errorf("get cached objs by ID for network %+v: %w", network, err)
 		}
 		objs, _, err := parseRows(rows)
 		return objs, err
@@ -189,7 +191,7 @@ func (l *syncStore) GetCachedByPage(network string, token string, pageSize uint6
 			RunWith(tx).
 			Query()
 		if err != nil {
-			return nil, errors.Wrapf(err, "get page for network %+v with token %+v", network, token)
+			return nil, fmt.Errorf("get page for network %+v with token %+v: %w", network, token, err)
 		}
 		return parsePage(rows, pageSize)
 	}
@@ -204,7 +206,7 @@ func (l *syncStore) GetCachedByPage(network string, token string, pageSize uint6
 func (l *syncStore) GetLastResync(network string, gateway string) (int64, error) {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return int64(0), errors.Wrapf(err, "error starting transaction")
+		return int64(0), fmt.Errorf("error starting transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -214,7 +216,7 @@ func (l *syncStore) GetLastResync(network string, gateway string) (int64, error)
 		return int64(0), nil
 	}
 	if err != nil {
-		return int64(0), errors.Wrapf(err, "get last resync time of network %+v, gateway %+v from blobstore", network, gateway)
+		return int64(0), fmt.Errorf("get last resync time of network %+v, gateway %+v from blobstore: %w", network, gateway, err)
 	}
 
 	lastResync := binary.LittleEndian.Uint64(blob.Value)
@@ -256,7 +258,7 @@ func parsePage(rows *sql.Rows, pageSize uint64) (*pageInfo, error) {
 	nextToken := &configurator_storage.EntityPageToken{LastIncludedEntity: lastIncludedID}
 	nextTokenSerialized, err := configurator_storage.SerializePageToken(nextToken)
 	if err != nil {
-		return nil, errors.Wrap(err, "get next page token for cached objs store")
+		return nil, fmt.Errorf("get next page token for cached objs store: %w", err)
 	}
 	return &pageInfo{token: nextTokenSerialized, objects: objs}, nil
 }
@@ -267,14 +269,14 @@ func parseRows(rows *sql.Rows) ([][]byte, string, error) {
 		id, obj := "", []byte{}
 		err := rows.Scan(&id, &obj)
 		if err != nil {
-			return nil, "", errors.Wrap(err, "get serialized obj, SQL rows scan error")
+			return nil, "", fmt.Errorf("get serialized obj, SQL rows scan error: %w", err)
 		}
 		objs = append(objs, obj)
 		lastIncludedID = id
 	}
 	err := rows.Err()
 	if err != nil {
-		return nil, "", errors.Wrap(err, "parse cached objs in store, SQL rows error")
+		return nil, "", fmt.Errorf("parse cached objs in store, SQL rows error: %w", err)
 	}
 	return objs, lastIncludedID, nil
 }

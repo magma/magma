@@ -16,8 +16,6 @@ package storage
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
@@ -40,7 +38,7 @@ type nprobeBlobStore struct {
 func (c *nprobeBlobStore) StoreNProbeData(networkID, taskID string, data models.NetworkProbeData) error {
 	store, err := c.factory.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -51,7 +49,7 @@ func (c *nprobeBlobStore) StoreNProbeData(networkID, taskID string, data models.
 
 	err = store.Write(networkID, blobstore.Blobs{dataBlob})
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to store nprobe data  %s", taskID))
+		return fmt.Errorf("failed to store nprobe data  %s: %w", taskID, err)
 	}
 	return store.Commit()
 }
@@ -60,7 +58,7 @@ func (c *nprobeBlobStore) StoreNProbeData(networkID, taskID string, data models.
 func (c *nprobeBlobStore) GetNProbeData(networkID, taskID string) (*models.NetworkProbeData, error) {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -69,7 +67,7 @@ func (c *nprobeBlobStore) GetNProbeData(networkID, taskID string) (*models.Netwo
 		storage.TK{Type: NProbeBlobType, Key: taskID},
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("failed to get nprobe data %s", taskID))
+		return nil, fmt.Errorf("failed to get nprobe data %s: %w", taskID, err)
 	}
 
 	data, err := nprobeDataFromBlob(blob)
@@ -83,7 +81,7 @@ func (c *nprobeBlobStore) GetNProbeData(networkID, taskID string) (*models.Netwo
 func (c *nprobeBlobStore) DeleteNProbeData(networkID, taskID string) error {
 	store, err := c.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -94,7 +92,7 @@ func (c *nprobeBlobStore) DeleteNProbeData(networkID, taskID string) error {
 		},
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to delete nprobe data %s", taskID))
+		return fmt.Errorf("failed to delete nprobe data %s: %w", taskID, err)
 	}
 	return store.Commit()
 }
@@ -102,7 +100,7 @@ func (c *nprobeBlobStore) DeleteNProbeData(networkID, taskID string) error {
 func nprobeDataToBlob(taskID string, data models.NetworkProbeData) (blobstore.Blob, error) {
 	marshaledData, err := data.MarshalBinary()
 	if err != nil {
-		return blobstore.Blob{}, errors.Wrap(err, "Error marshaling NetworkProbeData")
+		return blobstore.Blob{}, fmt.Errorf("Error marshaling NetworkProbeData: %w", err)
 	}
 	return blobstore.Blob{
 		Type:  NProbeBlobType,
@@ -115,7 +113,7 @@ func nprobeDataFromBlob(blob blobstore.Blob) (models.NetworkProbeData, error) {
 	data := models.NetworkProbeData{}
 	err := data.UnmarshalBinary(blob.Value)
 	if err != nil {
-		return models.NetworkProbeData{}, errors.Wrap(err, "Error unmarshaling NetworkProbeData")
+		return models.NetworkProbeData{}, fmt.Errorf("Error unmarshaling NetworkProbeData: %w", err)
 	}
 	return data, nil
 }

@@ -16,12 +16,12 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
@@ -33,7 +33,7 @@ type MconfigProvider struct{}
 func (p *MconfigProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	res, err := configurator.GetMconfigFor(ctx, gatewayId)
 	if err != nil {
-		return nil, errors.Wrap(err, "get mconfig from configurator")
+		return nil, fmt.Errorf("get mconfig from configurator: %w", err)
 	}
 
 	// TODO(#2310): add back support for extracting and comparing mconfig digest

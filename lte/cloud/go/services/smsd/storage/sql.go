@@ -22,7 +22,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/clock"
@@ -79,7 +78,7 @@ type sqlSMSStorage struct {
 func (s *sqlSMSStorage) Init() (err error) {
 	tx, err := s.db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		err = errors.Wrap(err, "table initialization failed")
+		err = fmt.Errorf("table initialization failed: %w", err)
 	}
 
 	defer func() {
@@ -107,7 +106,7 @@ func (s *sqlSMSStorage) Init() (err error) {
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "table initialization failed")
+		err = fmt.Errorf("table initialization failed: %w", err)
 		return
 	}
 
@@ -119,7 +118,7 @@ func (s *sqlSMSStorage) Init() (err error) {
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create sms imsi index")
+		err = fmt.Errorf("failed to create sms imsi index: %w", err)
 		return
 	}
 
@@ -133,7 +132,7 @@ func (s *sqlSMSStorage) Init() (err error) {
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create sms ref number table")
+		err = fmt.Errorf("failed to create sms ref number table: %w", err)
 		return
 	}
 
@@ -170,7 +169,7 @@ func (s *sqlSMSStorage) GetSMSs(networkID string, pks []string, imsis []string, 
 
 		rows, err := builder.Query()
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to load messages")
+			return nil, fmt.Errorf("failed to load messages: %w", err)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetSMSs")
 
@@ -220,7 +219,7 @@ func (s *sqlSMSStorage) GetSMSsToDeliver(networkID string, imsis []string, timeo
 		timeoutSecs := clock.Now().Add(-timeoutThreshold).Unix()
 		updatedTimeCreatedTS, err := ptypes.TimestampProto(time.Unix(timeCreated, 0))
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create timestamp")
+			return nil, fmt.Errorf("failed to create timestamp: %w", err)
 		}
 
 		err = garbageCollectExpiredRefs(tx, s.builder, networkID, imsis, timeoutSecs)
@@ -287,7 +286,7 @@ func (s *sqlSMSStorage) CreateSMS(networkID string, sms *MutableSMS) (string, er
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return "", errors.Wrap(err, "failed to create SMS")
+			return "", fmt.Errorf("failed to create SMS: %w", err)
 		}
 		return pk, nil
 	}
@@ -306,7 +305,7 @@ func (s *sqlSMSStorage) DeleteSMSs(networkID string, pks []string) error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to delete SMSs")
+			return nil, fmt.Errorf("failed to delete SMSs: %w", err)
 		}
 		return nil, nil
 	}

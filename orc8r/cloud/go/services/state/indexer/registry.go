@@ -17,11 +17,11 @@ limitations under the License.
 package indexer
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -33,7 +33,7 @@ import (
 func GetIndexer(serviceName string) (Indexer, error) {
 	x, err := getIndexer(serviceName)
 	if err != nil {
-		return NewEmptyIndexer(serviceName), errors.Wrapf(err, "indexer not found for service %s", serviceName)
+		return NewEmptyIndexer(serviceName), fmt.Errorf("indexer not found for service %s: %w", serviceName, err)
 	}
 	return x, nil
 }
@@ -82,10 +82,10 @@ func getIndexer(serviceName string) (Indexer, error) {
 	}
 	versionInt, err := strconv.ParseInt(versionVal, 10, 32)
 	if err != nil {
-		return nil, errors.Wrapf(err, "convert indexer version %v to int for service %s", versionVal, serviceName)
+		return nil, fmt.Errorf("convert indexer version %v to int for service %s: %w", versionVal, serviceName, err)
 	}
 	if versionInt < 0 || versionInt > math.MaxUint32 {
-		return nil, errors.Wrapf(err, "number %d is outside the boundaries of uint32 type", versionInt)
+		return nil, fmt.Errorf("number %d is outside the boundaries of uint32 type: %w", versionInt, err)
 	}
 	version, err := NewIndexerVersion(versionInt)
 	if err != nil {

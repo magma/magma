@@ -14,9 +14,9 @@ limitations under the License.
 package index_test
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/clock"
@@ -33,7 +33,7 @@ import (
 )
 
 func init() {
-	//_ = flag.Set("logtostderr", "true") // uncomment to view logs during test
+	// _ = flag.Set("logtostderr", "true") // uncomment to view logs during test
 }
 
 func TestIndexImpl_HappyPath(t *testing.T) {

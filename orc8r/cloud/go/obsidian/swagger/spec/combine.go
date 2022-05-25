@@ -14,11 +14,11 @@
 package spec
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
 	"magma/orc8r/cloud/go/swagger"
@@ -178,7 +178,7 @@ func combineTags(common []swagger.TagDefinition, others [][]swagger.TagDefinitio
 func merge(a, b map[string]interface{}, fieldName string, errs error) {
 	for k, v := range b {
 		if _, ok := a[k]; ok {
-			errs = multierror.Append(errs, errors.Errorf("overwriting spec key '%s' in field '%s'", k, fieldName))
+			errs = multierror.Append(errs, fmt.Errorf("overwriting spec key '%s' in field '%s'", k, fieldName))
 		}
 		a[k] = v
 	}
@@ -188,7 +188,7 @@ func merge(a, b map[string]interface{}, fieldName string, errs error) {
 func mergeTags(a map[string]string, b []swagger.TagDefinition, errs error) {
 	for _, tag := range b {
 		if _, ok := a[tag.Name]; ok {
-			errs = multierror.Append(errs, errors.Errorf("overwriting tag '%s'", tag.Name))
+			errs = multierror.Append(errs, fmt.Errorf("overwriting tag '%s'", tag.Name))
 		}
 		a[tag.Name] = tag.Description
 	}
