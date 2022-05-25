@@ -676,7 +676,7 @@ class SnapshotVerifier:
                 include_stats=self._include_stats,
             )
         except WaitTimeExceeded as e:
-            ofctl_cmd = "sudo ovs-ofctl dump-flows %s".format(self._bridge_name)
+            ofctl_cmd = f"sudo ovs-ofctl dump-flows {self._bridge_name}"
             p = subprocess.Popen(
                 [ofctl_cmd],
                 stdout=subprocess.PIPE,
