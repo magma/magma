@@ -31,6 +31,7 @@ import Tabs from '@material-ui/core/Tabs';
 
 import {NetworkEpcEdit} from './NetworkEpc';
 import {NetworkFederationEdit} from './NetworkFederationConfig';
+// $FlowFixMe migrated to typescript
 import {NetworkInfoEdit} from './NetworkInfo';
 import {NetworkRanEdit} from './NetworkRanConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

@@ -16,6 +16,7 @@ import type {UpdateNetworkProps as LteUpdateNetworkProps} from '../../state/lte/
 
 import React from 'react';
 
+// TODO[TS-migration] This should probably be something like Partial<LteUpdateNetworkProps> | Partial<FegLteUpdateNetworkProps>
 export type UpdateNetworkContextProps = Partial<
   LteUpdateNetworkProps & FegLteUpdateNetworkProps
 >;

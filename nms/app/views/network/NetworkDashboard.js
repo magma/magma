@@ -24,6 +24,7 @@ import JsonEditor from '../../components/JsonEditor';
 // $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import NetworkEpc from './NetworkEpc';
+// $FlowFixMe migrated to typescript
 import NetworkInfo from './NetworkInfo';
 // $FlowFixMe migrated to typescript
 import NetworkKPI from './NetworkKPIs';
