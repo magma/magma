@@ -53,8 +53,6 @@ DENY_LIST_NOT_RELEVANT=(
 DENY_LIST_NOT_YET_BAZELIFIED=(
   # TODO: GH12752 tests should be bazelified
   "./lte/gateway/python/integ_tests"
-  # TODO: GH12738 unused test logic
-  "./orc8r/gateway/python/magma/magmad/tests/dummy_service.py"
   # TODO: GH12755 access via absolut path on the VM,
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
