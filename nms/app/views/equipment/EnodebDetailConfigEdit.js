@@ -47,6 +47,7 @@ import {
 import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
 import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';

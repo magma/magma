@@ -37,6 +37,7 @@ import Switch from '@material-ui/core/Switch';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

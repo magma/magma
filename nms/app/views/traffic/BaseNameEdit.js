@@ -35,6 +35,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

@@ -24,6 +24,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField, PasswordInput} from '../../../app/components/FormField';
 import {UserRoles} from '../../../shared/roles';
 import {makeStyles} from '@material-ui/styles';

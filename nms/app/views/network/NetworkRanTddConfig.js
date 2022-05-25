@@ -19,6 +19,7 @@ import Grid from '@material-ui/core/Grid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 
 type Props = {

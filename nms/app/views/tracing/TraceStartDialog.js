@@ -30,6 +30,7 @@ import TraceContext from '../../components/context/TraceContext';
 import TypedSelect from '../../components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';

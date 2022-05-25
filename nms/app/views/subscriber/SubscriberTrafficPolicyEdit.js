@@ -34,6 +34,7 @@ import Select from '@material-ui/core/Select';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';

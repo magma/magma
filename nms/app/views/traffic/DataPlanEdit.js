@@ -34,6 +34,7 @@ import React from 'react';
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

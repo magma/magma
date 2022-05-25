@@ -34,6 +34,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import TddConfig from './NetworkRanTddConfig';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField, FormDivider} from '../../components/FormField';
 import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

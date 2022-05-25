@@ -21,6 +21,7 @@ import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
+// $FlowFixMe migrated to typescript
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
 import MagmaV1API from '../../generated/WebClient';

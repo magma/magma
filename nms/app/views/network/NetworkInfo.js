@@ -35,6 +35,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import axios from 'axios';
 
+// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../shared/types/network';

@@ -54,6 +54,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
+// $FlowFixMe migrated to typescript
 import {PasswordInput} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SelectEditComponent} from '../../components/ActionTable';
