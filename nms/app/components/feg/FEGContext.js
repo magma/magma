@@ -39,6 +39,7 @@ import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {
   InitGatewayState,
   SetGatewayState,
+  // $FlowFixMe migrated to typescript
 } from '../../state/feg/EquipmentState';
 // $FlowFixMe migrated to typescript
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';

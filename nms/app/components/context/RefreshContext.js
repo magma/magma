@@ -14,11 +14,13 @@
  * @format
  */
 'use strict';
+// $FlowFixMe migrated to typescript
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
 import {
   FetchFegGateways,
   getActiveFegGatewayId,
   getFegGatewaysHealthStatus,
+  // $FlowFixMe migrated to typescript
 } from '../../state/feg/EquipmentState';
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';

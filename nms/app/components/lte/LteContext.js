@@ -80,6 +80,7 @@ import {
   SetTierState,
   UpdateGateway,
   UpdateGatewayPoolRecords,
+  // $FlowFixMe migrated to typescript
 } from '../../state/lte/EquipmentState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';

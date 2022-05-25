@@ -29,6 +29,7 @@ import type {
   network_id,
 } from '../../generated/MagmaAPIBindings';
 
+// $FlowFixMe migrated to typescript
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
