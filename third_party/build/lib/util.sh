@@ -14,12 +14,6 @@
 
 BUILDTS="$(date -u +"%Y%m%d%H%M%S")"
 
-case $(uname -m) in
-    aarch64)  cpu_arch="arm64" ;;
-    *) cpu_arch="amd64" ;;
-esac
-
-
 # IMPORTANT! set variables
 # * PKGNAME
 # * VERSION
@@ -28,7 +22,7 @@ esac
 # * PKGFMT
 # to the correct values before calling pkgfilename()
 
-ARCH="${ARCH:-$cpu_arch}"
+ARCH="${ARCH:-amd64}"
 PKGFMT="${PKGFMT:-deb}"
 SCRIPTKEY="$(basename "$0" | sed 's/_build.sh//g')"
 OUTPUT_DIR="$(pwd)"
