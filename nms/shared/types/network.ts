@@ -47,3 +47,5 @@ export type GatewayId = string;
 export type GatewayPoolId = string;
 export type SubscriberId = string;
 export type PolicyId = string;
+export type EnodebSerial = string;
+export type TierId = string;

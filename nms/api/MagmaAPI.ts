@@ -42,6 +42,7 @@ import {
   UpgradesApi,
   UserApi,
 } from '../generated-ts';
+
 import {BaseAPI} from '../generated-ts/base';
 
 const config = new Configuration();

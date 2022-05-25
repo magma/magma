@@ -95,7 +95,7 @@ module.exports = {
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
-    'no-warning-comments': [1, {terms: ['$FlowFixMe'], location: 'anywhere'}],
+    'no-warning-comments': 'off',
     strict: 'off',
 
     // Import Plugin
