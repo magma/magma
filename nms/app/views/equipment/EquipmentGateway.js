@@ -32,6 +32,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EmptyState from '../../components/EmptyState';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';

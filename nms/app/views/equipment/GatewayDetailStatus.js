@@ -17,6 +17,7 @@
 import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';

@@ -28,6 +28,7 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
 import GatewayConfigYml from './GatewayYMLConfig';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';

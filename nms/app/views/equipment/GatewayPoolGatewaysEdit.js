@@ -21,6 +21,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 // $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';

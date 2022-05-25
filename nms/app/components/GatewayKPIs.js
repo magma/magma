@@ -19,6 +19,7 @@ import type {lte_gateway} from '../../generated/MagmaAPIBindings';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
+// $FlowFixMe migrated to typescript
 import GatewayContext from './context/GatewayContext';
 import React from 'react';
 

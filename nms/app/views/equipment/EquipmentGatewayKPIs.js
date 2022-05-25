@@ -20,6 +20,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';

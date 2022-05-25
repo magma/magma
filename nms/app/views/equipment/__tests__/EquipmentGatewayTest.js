@@ -14,6 +14,7 @@
  * @format
  */
 import Gateway from '../EquipmentGateway';
+// $FlowFixMe migrated to typescript
 import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
