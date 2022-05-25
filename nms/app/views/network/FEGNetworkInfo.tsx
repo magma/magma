@@ -9,21 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
-import type {feg_network} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import React from 'react';
+import type {DataRows} from '../../components/DataGrid';
+import type {FegNetwork} from '../../../generated-ts';
 
 type Props = {
-  fegNetwork: $Shape<feg_network>,
+  // TODO: Is a partial really needed here? Also fix the implications for NetworkInfo.
+  fegNetwork: Partial<FegNetwork>;
 };
 
 /**
@@ -31,18 +25,19 @@ type Props = {
  * @param {object} props: has a property called fegNetwork that has
  * information about the federation network.
  */
+
 export default function NetworkInfo(props: Props) {
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'ID',
-        value: props.fegNetwork.id,
+        value: props.fegNetwork.id!,
       },
     ],
     [
       {
         category: 'Name',
-        value: props.fegNetwork.name,
+        value: props.fegNetwork.name!,
       },
     ],
     [
