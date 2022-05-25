@@ -42,6 +42,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
+// $FlowFixMe migrated to typescript
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

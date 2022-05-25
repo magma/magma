@@ -30,6 +30,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
+  // $FlowFixMe migrated to typescript
 } from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

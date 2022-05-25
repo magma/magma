@@ -25,6 +25,7 @@ import defaultTheme from '../../../theme/default.js';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe migrated to typescript
 import {SetEnodebState} from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

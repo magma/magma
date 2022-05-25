@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe migrated to typescript
 import type {UpdateGatewayProps} from '../../state/lte/EquipmentState';
 import type {
   gateway_id,

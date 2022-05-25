@@ -33,6 +33,7 @@ import React, {useEffect, useState} from 'react';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe migrated to typescript
 import {FetchGateways} from '../../state/lte/EquipmentState';
 // $FlowFixMe migrated to typescript
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
