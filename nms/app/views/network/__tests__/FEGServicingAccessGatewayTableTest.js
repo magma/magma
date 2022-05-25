@@ -16,6 +16,7 @@
 
 // $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

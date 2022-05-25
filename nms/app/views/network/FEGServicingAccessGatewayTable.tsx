@@ -9,46 +9,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {
-  feg_lte_network,
-  gateway_id,
-  gateway_name,
-  lte_gateway,
-  network_id,
-  network_name,
-} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import React, {useEffect, useState} from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe migrated to typescript
 import {FetchGateways} from '../../state/lte/EquipmentState';
-// $FlowFixMe migrated to typescript
+import {
+  GatewayId,
+  GatewayName,
+  NetworkId,
+  NetworkName,
+} from '../../../shared/types/network';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {FegLteNetwork, LteGateway} from '../../../generated-ts';
+import type {OptionsObject} from 'notistack';
 
 type ServicingAccessGatewayRowType = {
-  networkId: network_id,
-  networkName: network_name,
-  gatewayId: gateway_id,
-  gatewayName: gateway_name,
-  gatewayHealth: string,
+  networkId: NetworkId;
+  networkName: NetworkName;
+  gatewayId: GatewayId;
+  gatewayName: GatewayName;
+  gatewayHealth: string;
 };
 
 /**
@@ -57,42 +44,44 @@ type ServicingAccessGatewayRowType = {
  * The information about the serviced gateways includes the gateway
  * id, name, network name & network id under which the gateway exists.
  *
- * @param {Array<feg_lte_network>} servicedAccessNetworks List of federated LTE networks serviced by this federation network.
+ * @param {Array<FegLteNetwork>} servicedAccessNetworks List of federated LTE networks serviced by this federation network.
  * @param {(msg, cfg) => ?(string | number),} enqueueSnackbar A snackbar to display errors.
  * @returns An Array of the serviced access gateways with information about each.
  */
 async function getServicedAccessGatewaysInfo(
-  servicedAccessNetworks: Array<feg_lte_network>,
+  servicedAccessNetworks: Array<FegLteNetwork>,
   enqueueSnackbar: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => (string | number) | null | undefined,
 ): Promise<Array<ServicingAccessGatewayRowType>> {
-  const newServicedAccessGatewaysInfo = [];
+  const newServicedAccessGatewaysInfo: Array<ServicingAccessGatewayRowType> = [];
+
   for (const servicedAccessNetwork of servicedAccessNetworks) {
-    const servicedAccessGateways: {
-      [string]: lte_gateway,
-    } = await FetchGateways({
+    const servicedAccessGateways = await FetchGateways({
       networkId: servicedAccessNetwork.id,
-      undefined,
       enqueueSnackbar,
     });
     //Add the gateways of the serviced network
-    Object.keys(servicedAccessGateways).map(servicedAccessGatewayId => {
-      const newServicedAccessGatewayInfo: ServicingAccessGatewayRowType = {
-        networkId: servicedAccessNetwork.id,
-        networkName: servicedAccessNetwork.name,
-        gatewayId: servicedAccessGatewayId,
-        gatewayName:
-          servicedAccessGateways[servicedAccessGatewayId]?.name || '',
-        gatewayHealth: servicedAccessGateways[servicedAccessGatewayId]
+    if (servicedAccessGateways) {
+      Object.keys(servicedAccessGateways).map(servicedAccessGatewayId => {
+        const newServicedAccessGatewayInfo: ServicingAccessGatewayRowType = {
+          networkId: servicedAccessNetwork.id,
+          networkName: servicedAccessNetwork.name,
+          gatewayId: servicedAccessGatewayId,
+          gatewayName:
+            servicedAccessGateways[servicedAccessGatewayId]?.name || '',
+          gatewayHealth:
+            servicedAccessGateways[servicedAccessGatewayId]
           ?.checked_in_recently
-          ? GatewayTypeEnum.HEALTHY_GATEWAY
-          : GatewayTypeEnum.UNHEALTHY_GATEWAY,
-      };
-      newServicedAccessGatewaysInfo.push(newServicedAccessGatewayInfo);
-    });
+            ? GatewayTypeEnum.HEALTHY_GATEWAY
+            : GatewayTypeEnum.UNHEALTHY_GATEWAY,
+        };
+        newServicedAccessGatewaysInfo.push(newServicedAccessGatewayInfo);
+      });
+    }
   }
+
   return newServicedAccessGatewaysInfo;
 }
 
@@ -100,13 +89,14 @@ async function getServicedAccessGatewaysInfo(
  * Returns a table consisting of the serviced access gateways alongside
  * the serviced network in which they are under.
  */
+
 export default function ServicingAccessGatewayInfo() {
   const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const networkId: string = nullthrows(params.networkId);
   const [servicedAccessGatewaysInfo, setServicedAccessGatewaysInfo] = useState<
-    Array<ServicingAccessGatewayRowType>,
-  >([]);
+    Array<ServicingAccessGatewayRowType>
+  >();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -131,11 +121,14 @@ export default function ServicingAccessGatewayInfo() {
         );
       }
     };
-    fetchServicedAccessGateways();
+
+    void fetchServicedAccessGateways();
   }, [networkId, enqueueSnackbar]);
+
   if (isLoading) {
     return <LoadingFiller />;
   }
+
   return (
     <div>
       <ActionTable

@@ -21,6 +21,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import FEGNetworkContext from '../../components/context/FEGNetworkContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkInfo from './FEGNetworkInfo';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
 import Grid from '@material-ui/core/Grid';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
