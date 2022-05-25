@@ -29,7 +29,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Wrapper for GRPC Client functionality
+// Wrapper for GRPC client functionality
 type ueSimClient struct {
 	cwfprotos.UESimClient
 	cc *grpc.ClientConn

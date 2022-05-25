@@ -78,10 +78,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&magmacwfk8scontrollers.HAClusterReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	if err = (magmacwfk8scontrollers.NewReconciler(mgr)).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HACluster")
 		os.Exit(1)
 	}

@@ -118,7 +118,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+	docker build -f ${MAGMA_ROOT}/cwf/k8s/cwf-operator/docker/Dockerfile -t ${IMG} ${MAGMA_ROOT}
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.

@@ -40,31 +40,31 @@ var (
 	OCSinstances = []string{MockOCSRemote, MockOCSRemote2}
 )
 
-// Wrapper for GRPC Client functionality
+// Wrapper for GRPC client functionality
 type hssClient struct {
 	fegprotos.HSSConfiguratorClient
 	cc *grpc.ClientConn
 }
 
-// Wrapper for GRPC Client functionality
+// Wrapper for GRPC client functionality
 type pcrfClient struct {
 	fegprotos.MockPCRFClient
 	cc *grpc.ClientConn
 }
 
-// Wrapper for GRPC Client functionality
+// Wrapper for GRPC client functionality
 type ocsClient struct {
 	fegprotos.MockOCSClient
 	cc *grpc.ClientConn
 }
 
-// Wrapper for GRPC Client functionality
+// Wrapper for GRPC client functionality
 type pipelinedClient struct {
 	lteprotos.PipelinedClient
 	cc *grpc.ClientConn
 }
 
-// Wrapper for GRPC Client functionality
+// Wrapper for GRPC client functionality
 type directorydClient struct {
 	orc8rprotos.GatewayDirectoryServiceClient
 	cc *grpc.ClientConn
