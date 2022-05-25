@@ -14,6 +14,7 @@
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SvgIcon from '@material-ui/core/SvgIcon';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

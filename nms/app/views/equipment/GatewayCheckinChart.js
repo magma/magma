@@ -24,6 +24,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 

@@ -44,6 +44,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 // $FlowFixMe migrated to typescript

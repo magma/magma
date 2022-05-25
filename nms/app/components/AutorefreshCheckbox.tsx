@@ -17,6 +17,7 @@
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import makeStyles from '@material-ui/styles/makeStyles';
 import moment from 'moment';

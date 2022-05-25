@@ -16,6 +16,7 @@
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';

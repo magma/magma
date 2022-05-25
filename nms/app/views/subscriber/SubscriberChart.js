@@ -34,6 +34,7 @@ import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 // $FlowFixMe migrated to typescript

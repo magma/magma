@@ -31,6 +31,7 @@ import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import moment from 'moment';

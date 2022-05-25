@@ -17,6 +17,7 @@
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';

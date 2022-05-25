@@ -24,6 +24,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from './SubscriberUtils';

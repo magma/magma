@@ -18,6 +18,7 @@ import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 
