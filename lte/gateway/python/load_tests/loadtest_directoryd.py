@@ -60,7 +60,6 @@ def _load_subs(num_subs: int) -> List[DirectoryRecord]:
     return sids
 
 
-
 def _cleanup_subs():
     """Clear directory records"""
     client = GatewayDirectoryServiceStub(
