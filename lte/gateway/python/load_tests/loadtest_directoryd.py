@@ -34,7 +34,7 @@ from orc8r.protos.common_pb2 import Void, Bytes
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DIRECTORYD_SERVICE_NAME = 'directoryd'
-DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService'  # check
+DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService' 
 DIRECTORYD_PORT = '127.0.0.1:50067'
 PROTO_PATH = 'orc8r/protos/directoryd.proto'
 
@@ -68,10 +68,6 @@ def _cleanup_subs(num_subs):
             DIRECTORYD_SERVICE_NAME, ServiceRegistry.LOCAL,
         ),
     )
-    
-    # for i in range(1, num_subs):
-    #     sid = DeleteRecordRequest(id=str(i).zfill(15))
-    #     client.DeleteRecord(sid)
     print(client.GetAllDirectoryRecords(Void()))
     for record in client.GetAllDirectoryRecords(Void()).records:
         sid = DeleteRecordRequest(
