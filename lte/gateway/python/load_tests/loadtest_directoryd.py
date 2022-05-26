@@ -38,10 +38,9 @@ DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService'
 DIRECTORYD_PORT = '127.0.0.1:50067'
 PROTO_PATH = 'orc8r/protos/directoryd.proto'
 
-# create directory records
-
 
 def _load_subs(num_subs: int) -> List[DirectoryRecord]:
+    """Load directory records"""
     client = GatewayDirectoryServiceStub(
         ServiceRegistry.get_rpc_channel(
             DIRECTORYD_SERVICE_NAME, ServiceRegistry.LOCAL,
@@ -60,10 +59,10 @@ def _load_subs(num_subs: int) -> List[DirectoryRecord]:
         sids.append(sid)
     return sids
 
-# clear directory records
 
 
-def _cleanup_subs(num_subs):
+def _cleanup_subs():
+    """Clear directory records"""
     client = GatewayDirectoryServiceStub(
         ServiceRegistry.get_rpc_channel(
             DIRECTORYD_SERVICE_NAME, ServiceRegistry.LOCAL,
@@ -76,9 +75,9 @@ def _cleanup_subs(num_subs):
         client.DeleteRecord(sid)
 
 
-def _build_update_records_data(record_list: list, input_file: str):
+def _build_update_records_data(num_requests: int, input_file: str):
     update_record_reqs = []
-    for i in range(len(record_list)):
+    for i in range(num_requests):
         id = str(i).zfill(15)
         location = str(i).zfill(15)
         request = UpdateRecordRequest(
@@ -125,8 +124,7 @@ def _build_get_all_record_data(record_list: list, input_file: str):
 
 def update_record_test(args):
     input_file = 'update_record.json'
-    record_list = [None] * args.num_of_ues
-    _build_update_records_data(record_list, input_file)
+    _build_update_records_data(args.num_of_requests, input_file)
     request_type = 'UpdateRecord'
     benchmark_grpc_request(
         proto_path=PROTO_PATH,
@@ -135,15 +133,15 @@ def update_record_test(args):
         ),
         input_file=input_file,
         output_file=make_output_file_path(request_type),
-        num_reqs=args.num_of_ues, address=DIRECTORYD_PORT,
+        num_reqs=args.num_of_requests, address=DIRECTORYD_PORT,
         import_path=args.import_path,
     )
-    _cleanup_subs(args.num_of_ues)
+    _cleanup_subs()
 
 
 def delete_record_test(args):
     input_file = 'delete_record.json'
-    record_list = _load_subs(args.num_of_ues)
+    record_list = _load_subs(args.num_of_requests)
     _build_delete_records_data(record_list, input_file)
 
     request_type = 'DeleteRecord'
@@ -154,15 +152,15 @@ def delete_record_test(args):
         ),
         input_file=input_file,
         output_file=make_output_file_path(request_type),
-        num_reqs=args.num_of_ues, address=DIRECTORYD_PORT,
+        num_reqs=args.num_of_requests, address=DIRECTORYD_PORT,
         import_path=args.import_path,
     )
-    _cleanup_subs(args.num_of_ues)
+    _cleanup_subs()
 
 
 def get_record_test(args):
     input_file = 'get_record.json'
-    record_list = _load_subs(args.num_of_ues)
+    record_list = _load_subs(args.num_of_requests)
     _build_get_record_data(record_list, input_file)
     request_type = 'GetDirectoryField'
     benchmark_grpc_request(
@@ -172,15 +170,15 @@ def get_record_test(args):
         ),
         input_file=input_file,
         output_file=make_output_file_path(request_type),
-        num_reqs=args.num_of_ues, address=DIRECTORYD_PORT,
+        num_reqs=args.num_of_requests, address=DIRECTORYD_PORT,
         import_path=args.import_path,
     )
-    _cleanup_subs(args.num_of_ues)
+    _cleanup_subs()
 
 
 def get_all_records_test(args):
     input_file = 'get_all_records.json'
-    record_list = _load_subs(args.num_of_ues)
+    record_list = _load_subs(args.num_of_requests)
     _build_get_all_record_data(record_list, input_file)
     request_type = 'GetAllDirectoryRecords'
     benchmark_grpc_request(
@@ -190,10 +188,10 @@ def get_all_records_test(args):
         ),
         input_file=input_file,
         output_file=make_output_file_path(request_type),
-        num_reqs=1, address=DIRECTORYD_PORT,
+        num_reqs=2000, address=DIRECTORYD_PORT,
         import_path=args.import_path,
     )
-    _cleanup_subs(args.num_of_ues)
+    _cleanup_subs()
 
 
 def create_parser():
@@ -229,7 +227,7 @@ def create_parser():
     ]:
 
         subcmd.add_argument(
-            '--num_of_ues', help='Number of total UEs to atach',
+            '--num_of_requests', help='Number of total records in directory',
             type=int, default=2000,
         )
         subcmd.add_argument(
