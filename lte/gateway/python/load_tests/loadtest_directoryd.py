@@ -16,7 +16,6 @@ limitations under the License.
 import argparse
 import json
 from typing import List
-
 from google.protobuf import json_format
 from load_tests.common import (
     benchmark_grpc_request,
@@ -31,7 +30,6 @@ from orc8r.protos.directoryd_pb2 import (
     GetDirectoryFieldRequest,
     UpdateRecordRequest,
 )
-
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DIRECTORYD_SERVICE_NAME = 'directoryd'
