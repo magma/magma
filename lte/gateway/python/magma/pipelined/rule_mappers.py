@@ -120,7 +120,7 @@ class SessionRuleToVersionMapper:
 
     def save_version(
         self, imsi: str, ip_addr: IPAddress,
-        rule_id: [str], version: int,
+        rule_id: str, version: int,
     ):
         """
         Increment the version number for a given subscriber and rule. If the

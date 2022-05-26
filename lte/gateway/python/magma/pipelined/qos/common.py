@@ -15,7 +15,7 @@ import logging
 import threading
 import traceback
 from enum import Enum
-from typing import Dict, List  # noqa
+from typing import Dict, List, Tuple  # noqa
 
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.common.redis.client import get_default_client
@@ -155,7 +155,7 @@ class SubscriberState(object):
     def find_rule(self, rule_num: int):
         return self.rules.get(rule_num)
 
-    def get_all_rules(self) -> List:
+    def get_all_rules(self) -> Dict[int, List[Tuple[FlowMatch.Direction, str]]]:
         return self.rules
 
     def get_all_empty_sessions(self) -> List:
