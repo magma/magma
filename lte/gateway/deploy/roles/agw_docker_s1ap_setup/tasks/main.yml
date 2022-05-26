@@ -6,7 +6,7 @@
       - "{{ ansible_facts['eth1'] is defined }}"
     fail_msg: "eth0 and eth1 interfaces must exist"
 
-- name: Get AGW containers status
+- name: Get AGW deployment status
   stat:
     path: /var/opt/magma/docker/docker-compose.yaml
   register: agw_deployed
@@ -21,10 +21,10 @@
     that: ansible_facts['eth1']['ipv4']['address']  == '192.168.60.142'
     fail_msg: "eth1 must have address 192.168.60.142"
 
-- name: Verify eth2 address
+- name: Verify eth0 address
   assert:
-    that: ansible_facts['eth2']['ipv4']['address']  == '192.168.129.1'
-    fail_msg: "eth2 must have address 192.168.129.1"
+    that: ansible_facts['eth0']['ipv4']['address']  == '192.168.129.1'
+    fail_msg: "eth0 must have address 192.168.129.1"
 
 - name: Update ubuntu password
   user:
