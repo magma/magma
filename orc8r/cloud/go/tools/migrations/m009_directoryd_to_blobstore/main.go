@@ -22,7 +22,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
@@ -48,18 +47,18 @@ func main() {
 	dbSource := migrations.GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")
 	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	// Set up transaction
 	tx, err := db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "error opening tx"))
+		glog.Fatal(fmt.Errorf("error opening tx: %w", err))
 	}
 	defer func() {
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				glog.Errorf("tx failed to rollback: %s", err)
+				glog.Errorf("tx failed to rollback: %s", rollbackErr)
 			}
 			glog.Fatal(err)
 		}
@@ -75,7 +74,7 @@ func main() {
 	glog.Infof("[RUN] %s", query)
 	_, err = tx.Exec(query)
 	if err != nil {
-		err = errors.Wrap(err, "failed to drop new table")
+		err = fmt.Errorf("failed to drop new table: %w", err)
 		return
 	}
 

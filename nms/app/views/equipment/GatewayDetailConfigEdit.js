@@ -16,6 +16,7 @@
 import type {
   apn_resources,
   challenge_key,
+  distribution_package,
   enodeb_serials,
   gateway_device,
   gateway_dns_configs,
@@ -25,7 +26,6 @@ import type {
   gateway_ran_configs,
   lte_gateway,
   magmad_gateway_configs,
-  package_type,
 } from '../../../generated/MagmaAPIBindings';
 
 import Accordion from '@material-ui/core/Accordion';
@@ -344,7 +344,7 @@ type Props = {
   onSave: lte_gateway => void,
 };
 
-type VersionType = $PropertyType<package_type, 'version'>;
+type VersionType = $PropertyType<distribution_package, 'version'>;
 
 export function ConfigEdit(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();

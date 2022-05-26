@@ -14,13 +14,13 @@
 package generate
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
 	"magma/orc8r/cloud/go/swagger"
@@ -111,12 +111,12 @@ type MagmaGenType struct {
 func GenerateModels(targetFilepath string, configFilepath string, rootDir string, specs map[string]MagmaSwaggerSpec) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
-		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
+		return fmt.Errorf("target filepath %s is invalid: %w", targetFilepath, err)
 	}
 
 	tmpGenDir, err := ioutil.TempDir(".", "tmpgen")
 	if err != nil {
-		return errors.Wrap(err, "could not create temporary gen directory")
+		return fmt.Errorf("could not create temporary gen directory: %w", err)
 	}
 	defer os.RemoveAll(tmpGenDir)
 
@@ -124,7 +124,7 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 	// the filename specified by `dependent-filename`
 	err = StripAndWriteSwaggerSpecs(specs, tmpGenDir)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	// Shell out to go-swagger
@@ -148,7 +148,7 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 
 	err = cmd.Run()
 	if err != nil {
-		return errors.Wrapf(err, "failed to generate models; stdout:\n%s\nstderr:\n%s", stdoutBuf.String(), stderrBuf.String())
+		return fmt.Errorf("failed to generate models; stdout:\n%s\nstderr:\n%s: %w", stdoutBuf.String(), stderrBuf.String(), err)
 	}
 
 	return nil
@@ -161,12 +161,12 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string]MagmaSwaggerSpec, error) {
 	absRootFilepath, err := filepath.Abs(rootFilepath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "root filepath %s is invalid", rootFilepath)
+		return nil, fmt.Errorf("root filepath %s is invalid: %w", rootFilepath, err)
 	}
 
 	targetSpec, err := readSwaggerSpec(absRootFilepath)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
 	type mscAndPath struct {
@@ -187,7 +187,7 @@ func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string
 		for _, dependencyPath := range nextSpec.MagmaGenMeta.Dependencies {
 			absDependencyPath, err := filepath.Abs(filepath.Join(rootDir, dependencyPath))
 			if err != nil {
-				return nil, errors.Wrapf(err, "dependency filepath %s is invalid", dependencyPath)
+				return nil, fmt.Errorf("dependency filepath %s is invalid: %w", dependencyPath, err)
 			}
 			if _, alreadyOpened := openedFiles[absDependencyPath]; alreadyOpened {
 				continue
@@ -196,7 +196,7 @@ func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string
 
 			dependencySpec, err := readSwaggerSpec(absDependencyPath)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to read dependency tree of swagger specs")
+				return nil, fmt.Errorf("failed to read dependency tree of swagger specs: %w", err)
 			}
 			specsToVisit = append(
 				specsToVisit,
@@ -215,12 +215,12 @@ func StripAndWriteSwaggerSpecs(specs map[string]MagmaSwaggerSpec, outDir string)
 		sanitized := msc.ToSwaggerSpec()
 		marshaledSanitized, err := yaml.Marshal(sanitized)
 		if err != nil {
-			return errors.Wrapf(err, "could not re-marshal swagger spec %s", path)
+			return fmt.Errorf("could not re-marshal swagger spec %s: %w", path, err)
 		}
 
 		err = ioutil.WriteFile(filepath.Join(outDir, msc.MagmaGenMeta.TempGenFilename), marshaledSanitized, 0666)
 		if err != nil {
-			return errors.Wrapf(err, "could not write dependency swagger spec %s", msc.MagmaGenMeta.TempGenFilename)
+			return fmt.Errorf("could not write dependency swagger spec %s: %w", msc.MagmaGenMeta.TempGenFilename, err)
 		}
 	}
 	return nil
@@ -229,13 +229,13 @@ func StripAndWriteSwaggerSpecs(specs map[string]MagmaSwaggerSpec, outDir string)
 func readSwaggerSpec(filepath string) (MagmaSwaggerSpec, error) {
 	fileContents, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return MagmaSwaggerSpec{}, errors.Wrapf(err, "could not open target file %s", filepath)
+		return MagmaSwaggerSpec{}, fmt.Errorf("could not open target file %s: %w", filepath, err)
 	}
 
 	spec := MagmaSwaggerSpec{}
 	err = yaml.Unmarshal(fileContents, &spec)
 	if err != nil {
-		return MagmaSwaggerSpec{}, errors.Wrapf(err, "could not parse target file %s as yml", filepath)
+		return MagmaSwaggerSpec{}, fmt.Errorf("could not parse target file %s as yml: %w", filepath, err)
 	}
 	return spec, nil
 }

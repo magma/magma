@@ -15,12 +15,12 @@ package servicers_test
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -80,7 +80,7 @@ func TestSyncRPC(t *testing.T) {
 			}
 			assert.NoError(t, err)
 			if protos.TestMarshal(in) != protos.TestMarshal(syncRPCReq) {
-				err := errors.Errorf(
+				err := fmt.Errorf(
 					"req received at gateway is different from req sent on the service: received: %v, sent: %v\n",
 					in, syncRPCReq,
 				)

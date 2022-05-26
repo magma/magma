@@ -15,13 +15,13 @@ package reindex
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -178,7 +178,7 @@ func (s *sqlJobQueue) ClaimAvailableJob() (*Job, error) {
 	idx, err := indexer.GetIndexer(job.id)
 	if err != nil {
 		failed := &Job{Idx: idx, From: job.from, To: job.to}
-		completeErr := s.CompleteJob(failed, errors.Wrap(err, "error claiming available job"))
+		completeErr := s.CompleteJob(failed, fmt.Errorf("error claiming available job: %w", err))
 		if completeErr != nil {
 			glog.Errorf("Error completing job after failing to claim it: %+v", completeErr)
 		}
@@ -223,7 +223,7 @@ func (s *sqlJobQueue) CompleteJob(job *Job, withErr error) error {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "update reindex job status to complete %+v", job)
+			return nil, fmt.Errorf("update reindex job status to complete %+v: %w", job, err)
 		}
 
 		return nil, nil
@@ -237,7 +237,7 @@ func (s *sqlJobQueue) GetJobInfos() (map[string]JobInfo, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := s.selectAll().From(queueTableName).RunWith(tx).Query()
 		if err != nil {
-			return nil, errors.Wrap(err, "select all reindex job infos")
+			return nil, fmt.Errorf("select all reindex job infos: %w", err)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetJobInfos")
 
@@ -276,7 +276,10 @@ func (s *sqlJobQueue) initQueueTable() error {
 			Column(errorCol).Type(sqorc.ColumnTypeText).Default("''").NotNull().EndColumn().
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "initialize reindex job queue table")
+		if err != nil {
+			return nil, fmt.Errorf("initialize reindex job queue table: %w", err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(s.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
 	return err
@@ -291,7 +294,7 @@ func (s *sqlJobQueue) addJobs(tx *sql.Tx, newJobs []*reindexJob) error {
 
 	_, err = s.builder.Delete(queueTableName).RunWith(tx).Exec()
 	if err != nil {
-		return errors.Wrap(err, "add reindex jobs, delete existing table contents")
+		return fmt.Errorf("add reindex jobs, delete existing table contents: %w", err)
 	}
 
 	builder := s.builder.Insert(queueTableName).Columns(idCol, fromCol, toCol, lastChangeCol)
@@ -301,7 +304,7 @@ func (s *sqlJobQueue) addJobs(tx *sql.Tx, newJobs []*reindexJob) error {
 
 	_, err = builder.RunWith(tx).Exec()
 	if err != nil {
-		return errors.Wrapf(err, "add reindex jobs, insert new jobs %+v", jobsToInsert)
+		return fmt.Errorf("add reindex jobs, insert new jobs %+v: %w", jobsToInsert, err)
 	}
 
 	return nil
@@ -369,7 +372,7 @@ func (s *sqlJobQueue) getExistingIncompleteJobs(tx *sql.Tx) (map[string]*reindex
 		RunWith(tx).
 		Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "select existing incomplete reindex jobs")
+		return nil, fmt.Errorf("select existing incomplete reindex jobs: %w", err)
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "getExistingIncompleteJobs")
 
@@ -411,7 +414,7 @@ func (s *sqlJobQueue) claimAvailableJob() (*reindexJob, error) {
 			Query()
 
 		if err != nil {
-			return nil, errors.Wrap(err, "claim available reindex job, select available job")
+			return nil, fmt.Errorf("claim available reindex job, select available job: %w", err)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "ClaimAvailableJob")
 
@@ -429,7 +432,7 @@ func (s *sqlJobQueue) claimAvailableJob() (*reindexJob, error) {
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "claim available reindex job, update job status for %+v", job)
+			return nil, fmt.Errorf("claim available reindex job, update job status for %+v: %w", job, err)
 		}
 
 		return job, nil
@@ -475,7 +478,7 @@ func scanJobs(rows *sql.Rows) (map[string]*reindexJob, error) {
 		var lastChangeVal int64
 		err = rows.Scan(&job.id, &job.from, &job.to, &job.status, &job.attempts, &job.error, &lastChangeVal)
 		if err != nil {
-			return nil, errors.Wrap(err, "scan reindex job, SQL row scan error")
+			return nil, fmt.Errorf("scan reindex job, SQL row scan error: %w", err)
 		}
 		job.lastChange = time.Unix(lastChangeVal, 0)
 
@@ -483,7 +486,7 @@ func scanJobs(rows *sql.Rows) (map[string]*reindexJob, error) {
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrap(err, "scan reindex job, SQL rows error")
+		return nil, fmt.Errorf("scan reindex job, SQL rows error: %w", err)
 	}
 
 	return jobs, nil

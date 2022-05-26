@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -50,7 +50,7 @@ these functions can be seen in pipelined/tests/test_*.py files
 """
 
 SubTest = namedtuple('SubTest', ['context', 'isolator', 'flowtest_list'])
-PktsToSend = namedtuple('PacketToSend', ['pkt', 'num'])
+PktsToSend = namedtuple('PktsToSend', ['pkt', 'num'])
 QueryMatch = namedtuple('QueryMatch', ['pkts', 'flow_count'])
 
 SNAPSHOT_DIR = 'snapshots/'
@@ -491,7 +491,7 @@ def expected_snapshot(
     bridge_name: str,
     current_snapshot,
     snapshot_name: Optional[str] = None,
-) -> bool:
+) -> Tuple[str, List[str]]:
     if snapshot_name is not None:
         combined_name = '{}.{}{}'.format(
             test_case.id(), snapshot_name,
@@ -693,7 +693,7 @@ class SnapshotVerifier:
         )
 
 
-def get_ovsdb_port_tag(port_name: str) -> str:
+def get_ovsdb_port_tag(port_name: str) -> Optional[str]:
     dump1 = subprocess.Popen(
         ["ovsdb-client", "dump", "Port", "name", "tag"],
         stdout=subprocess.PIPE,
@@ -706,6 +706,7 @@ def get_ovsdb_port_tag(port_name: str) -> str:
             return tokens[1]
         except ValueError:
             pass
+    return None
 
 
 def get_iface_ipv4(iface: str) -> List[str]:

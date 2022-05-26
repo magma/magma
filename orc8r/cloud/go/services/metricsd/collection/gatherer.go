@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	prometheus_proto "github.com/prometheus/client_model/go"
 
 	"magma/orc8r/lib/go/registry"
@@ -79,7 +78,7 @@ func (g *MetricsGatherer) getCollectors() []MetricCollector {
 
 	services, err := registry.ListAllServices()
 	if err != nil {
-		err = errors.Wrap(err, "error getting metrics collectors: list all services")
+		err = fmt.Errorf("error getting metrics collectors: list all services: %w", err)
 		glog.Warning(err)
 		return collectors
 	}

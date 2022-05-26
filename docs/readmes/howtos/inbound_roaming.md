@@ -49,6 +49,47 @@ subscribers may also work but are not tested yet.
 Configurations with SubscriberDB, local HSS and remote HSS all at the same
 time is not supported yet.
 
+The following is a logic diagram of Neutral Host architecture we
+use on Inbound Roaming to be able to route the request properly. Note that
+in this diagram we add the Optional Local FeG. In case you are using
+subscriberDB for your local subscribers, you will not need that FeG Gateway,
+but you will still need the Neutral Host Network.
+
+```mermaid
+graph LR
+
+AGW_G --Any_PLMN--> NH_Network
+NH_Network --PLMN1--> FeG_Gateway_1
+NH_Network --PLMN2--> FeG_Gateway_2
+NH_Network --PLMN3--> FeG_Gateway_3
+Optional_FeG_gateway --Other_PLMN--> Local_HSS
+FeG_Gateway_1 --> HSS_1
+FeG_Gateway_2 --> HSS_2
+FeG_Gateway_3 --> HSS_3
+
+
+subgraph AGW Network
+AGW_G
+end
+
+subgraph Neutral_Host_Network
+NH_Network & Optional_FeG_gateway
+
+end
+
+subgraph Roaming_FeG_Network_1
+FeG_Gateway_1
+end
+
+subgraph Roaming_FeG_Network_2
+FeG_Gateway_2
+end
+
+subgraph Roaming_FeG_Network_3
+FeG_Gateway_3
+end
+```
+
 ## Prerequisites
 
 Before starting to configure roaming setup, first you need to bring up a
@@ -153,10 +194,10 @@ Gateway Network we created in Pre Requisites. On **Swagger API**:
   federated LTE network` your local (non roaming) Federated LTE Network
 - Copy/paste the response into PUT method `Update an entire Federated LTE
   network`
-- Find a key `federation`. If you completed Pre Requisites properly, you
-  should have there `feg_network_id` pointing to your FeG Network Modify/add
-- Add the routing dictionary following the example, adding an entry per each
-PLMN
+- Find the key `federation`. If you completed Pre Requisites properly, you
+  should have `feg_network_id` pointing to your FeG Network.
+- Add the routing dictionary following the example below, adding an entry per
+each PLMN.
 
 ```text
   "federation": {
@@ -181,16 +222,20 @@ PLMN
   },
 ```
 
-- Field `mode` will indicate the flow the subscriber will take. Use
-  `local_subscriber` for PLMN served by your own SubscriberDB/HSS. Use
-  `s8_subscriber` to use roam HSS and roam PGW. Leave `apn` and `imsi_range`
-  blank since it is not supported yet.
+To configure that key properly:
 
+- Field `mode` will indicate the path the subscriber will take:
+    - `local_subscriber` for PLMNs served by your own SubscriberDB/HSS.
+    - `s8_subscriber` for PLMNs served by roam HSS (`S6a`) and roam PGW (`S8`).
+    - Any other PLMN not configured here will be defaulted to local HSS (`S6a`).
+- You can leave `apn` and `imsi_range` blank since it is not supported yet
+- Add the routing dictionary following the example, adding an entry per each
+PLMN.
 - Note `hss_relay_enabled` must be enabled. The decision to send it to HSS or
   not will be taken by `federated_modes_mapping`. If you disable, s8_subscribers
-  will not be sent to the FeG to get the HSS
+  will not be sent to the FeG to get the HSS.
 
-- Flag `gx_gy_relay_enabled` can be enabled or disabled depending if your
+- Flag `gx_gy_relay_enabled` can be enabled or disabled depending on if your
   network works with local policy db or with OCS and PCRF (gx/gy). If your
   local subscribers authenticate with HSS but use GX/GY, then you will have to
   leave it as `True`.
@@ -208,7 +253,8 @@ we created in Pre Requisites. On **Swagger API**:
 - Copy/paste the response into PUT method `Update an entire federation network`
 - Modify/add the `nh_routes` (see the example on Swagger API if it is
   missing from your configuration). On the map match the PLMN, and the name
-  of the roam FeG Network.
+  of the roam FeG Network. Note that these are names of FeG Networks,
+  not FeG Gateways.
 
 ```text
     "nh_routes": {

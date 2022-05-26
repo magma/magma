@@ -118,7 +118,7 @@ def decrypt_str(data: str, key: bytes, encryption_algorithm, mac) -> str:
 
 
 def get_hash(s: str, hash_function) -> bytes:
-    hash_bytes = ""
+    hash_bytes = bytes()
     if hash_function == PipelineD.HEConfig.MD5:
         m = hashlib.md5()
         m.update(s.encode('utf-8'))
@@ -135,7 +135,7 @@ def get_hash(s: str, hash_function) -> bytes:
     return hash_bytes
 
 
-def encode_str(s: str, encoding_type) -> bytes:
+def encode_str(s: str, encoding_type) -> str:
     if encoding_type == PipelineD.HEConfig.BASE64:
         s = codecs.encode(codecs.decode(s, 'hex'), 'base64').decode()
     elif encoding_type == PipelineD.HEConfig.HEX2BIN:

@@ -36,7 +36,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
-	unarylib "magma/orc8r/lib/go/service/middleware/unary"
+	"magma/orc8r/lib/go/registry"
 )
 
 // SetIdentityFromContext is an identity decorator implements Identity injector
@@ -124,7 +124,7 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 			var gwIdentity *protos.Identity
 			var certExpTime int64
 			// Check if SN is the reserved value used for all inter-orc8r calls
-			if snlist[0] == unarylib.ORC8R_CLIENT_CERT_VALUE {
+			if snlist[0] == registry.ORC8R_CLIENT_CERT_VALUE {
 				return newCtx, newReq, resp, nil
 			}
 			gwIdentity, certExpTime, err = findGatewayIdentity(ctx, snlist[0], ctxMetadata)

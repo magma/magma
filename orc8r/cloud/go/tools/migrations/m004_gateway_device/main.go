@@ -17,13 +17,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
@@ -68,12 +68,12 @@ func main() {
 	dbSource := migrations.GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")
 	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	tx, err := db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "error opening tx"))
+		log.Fatal(fmt.Errorf("error opening tx: %w", err))
 	}
 
 	defer func() {
@@ -104,7 +104,7 @@ func main() {
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create table")
+		err = fmt.Errorf("failed to create table: %w", err)
 	}
 
 	rows, err := builder.Select(nidCol, typeCol, keyCol, valCol, verCol).
@@ -127,13 +127,13 @@ func main() {
 		var version uint64
 
 		if err = rows.Scan(&nid, &t, &k, &val, &version); err != nil {
-			err = errors.Wrap(err, "could not scan row")
+			err = fmt.Errorf("could not scan row: %w", err)
 			return
 		}
 
 		oldVal := &legacyRecord{}
 		if err = json.Unmarshal(val, oldVal); err != nil {
-			err = errors.Wrapf(err, "could not unmarshal AGW record for (%s, %s)", nid, k)
+			err = fmt.Errorf("could not unmarshal AGW record for (%s, %s): %w", nid, k, err)
 			return
 		}
 
@@ -141,7 +141,7 @@ func main() {
 		var newBytes []byte
 		newBytes, err = json.Marshal(newVal)
 		if err != nil {
-			err = errors.Wrapf(err, "could not remarshal migrated gateway device for (%s, %s)", nid, k)
+			err = fmt.Errorf("could not remarshal migrated gateway device for (%s, %s): %w", nid, k, err)
 		}
 
 		migratedRows = append(migratedRows, &blobRow{nid: nid, t: t, k: k, val: newBytes, version: version})
@@ -156,7 +156,7 @@ func main() {
 			RunWith(sc).
 			Exec()
 		if err != nil {
-			err = errors.Wrapf(err, "error updating gateway device (%s, %s)", row.nid, row.k)
+			err = fmt.Errorf("error updating gateway device (%s, %s): %w", row.nid, row.k, err)
 			return
 		}
 	}

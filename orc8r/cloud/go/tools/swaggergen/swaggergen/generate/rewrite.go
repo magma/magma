@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"golang.org/x/tools/go/ast/astutil"
 )
@@ -42,7 +41,7 @@ import (
 func RewriteGeneratedRefs(targetFilepath string, rootDir string, configs map[string]MagmaSwaggerSpec) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
-		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
+		return fmt.Errorf("target filepath %s is invalid: %w", targetFilepath, err)
 	}
 	targetConfig := configs[absTargetFilepath]
 	targetOutputDir, err := filepath.Abs(filepath.Join(
@@ -51,14 +50,14 @@ func RewriteGeneratedRefs(targetFilepath string, rootDir string, configs map[str
 		"models", // go-swagger puts all model definitions under a `models` subpackage
 	))
 	if err != nil {
-		return errors.Wrap(err, "could not compute output dir")
+		return fmt.Errorf("could not compute output dir: %w", err)
 	}
 
 	// Gather owned types: map from ident to package import
 	// (name and full path) and filename
 	filesToRewrite, err := getFilesToRewrite(targetConfig, targetOutputDir)
 	if err != nil {
-		return errors.Wrapf(err, "get files to rewrite generated swagger bindings for %s", absTargetFilepath)
+		return fmt.Errorf("get files to rewrite generated swagger bindings for %s: %w", absTargetFilepath, err)
 	}
 	validDependencyTypes := gatherAllValidDependentTypes(absTargetFilepath, configs)
 
@@ -66,7 +65,7 @@ func RewriteGeneratedRefs(targetFilepath string, rootDir string, configs map[str
 	for _, filename := range filesToRewrite {
 		err = rewriteGeneratedModelBinding(filename, validDependencyTypes)
 		if err != nil {
-			return errors.Wrapf(err, "rewrite generated file at %s", filename)
+			return fmt.Errorf("rewrite generated file at %s: %w", filename, err)
 		}
 	}
 
@@ -119,7 +118,7 @@ func rewriteGeneratedModelBinding(filename string, dependentTypes map[string]swa
 	fset := token.NewFileSet()
 	fileNode, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
-		return errors.Wrapf(err, "parse Go file")
+		return fmt.Errorf("parse Go file: %w", err)
 	}
 
 	// Find the idents to replace, add imports as needed, rewrite the idents
@@ -251,17 +250,17 @@ func writeFinalFile(filename string, fset *token.FileSet, fileNode ast.Node) err
 	buf := &bytes.Buffer{}
 	err := printer.Fprint(buf, fset, fileNode)
 	if err != nil {
-		return errors.Wrap(err, "write final AST to intermediate buffer")
+		return fmt.Errorf("write final AST to intermediate buffer: %w", err)
 	}
 
 	formattedOutput, err := format.Source(buf.Bytes())
 	if err != nil {
-		return errors.Wrap(err, "gofmt final source code")
+		return fmt.Errorf("gofmt final source code: %w", err)
 	}
 
 	err = ioutil.WriteFile(filename, formattedOutput, 0664)
 	if err != nil {
-		return errors.Wrap(err, "write formatted source code to output file")
+		return fmt.Errorf("write formatted source code to output file: %w", err)
 	}
 
 	return nil

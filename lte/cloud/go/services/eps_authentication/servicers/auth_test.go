@@ -19,7 +19,6 @@ import (
 	"github.com/magma/milenage"
 	"github.com/stretchr/testify/assert"
 
-	"magma/lte/cloud/go/crypto"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 )
@@ -57,7 +56,7 @@ func TestGetOrGenerateOpc(t *testing.T) {
 	lte = &protos.LTESubscription{AuthKey: []byte("\x46\x5b\x5c\xe8\xb1\x99\xb4\x9f\xaa\x5f\x0a\x2e\xe2\x38\xa6\xbc")}
 	opc, err = GetOrGenerateOpc(lte, defaultLteAuthOp)
 	assert.NoError(t, err)
-	expectedOpc, err := crypto.GenerateOpc(lte.AuthKey, defaultLteAuthOp)
+	expectedOpc, err := milenage.GenerateOpc(lte.AuthKey, defaultLteAuthOp)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOpc[:], opc)
 }

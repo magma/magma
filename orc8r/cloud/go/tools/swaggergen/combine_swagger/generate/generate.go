@@ -14,11 +14,10 @@
 package generate
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/swaggergen/swaggergen/generate"
@@ -50,7 +49,7 @@ func GenerateStandaloneSpecs(specDir string, rootDir string) error {
 func GenerateSpec(targetFilepath string, specs map[string]generate.MagmaSwaggerSpec, outPath string) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
-		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
+		return fmt.Errorf("target filepath %s is invalid: %w", targetFilepath, err)
 	}
 
 	var yamlSpecs []string

@@ -15,10 +15,10 @@ package configurator
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
@@ -280,7 +280,7 @@ func WriteEntities(ctx context.Context, networkID string, writes []EntityWriteOp
 			}
 			req.Writes = append(req.Writes, &protos.WriteEntityRequest{Request: &protos.WriteEntityRequest_Update{Update: protoEuc}})
 		default:
-			return errors.Errorf("unrecognized entity write operation %T", op)
+			return fmt.Errorf("unrecognized entity write operation %T", op)
 		}
 	}
 
@@ -509,7 +509,7 @@ func LoadEntityForPhysicalID(ctx context.Context, physicalID string, criteria En
 		return ret, merrors.ErrNotFound
 	}
 	if len(loaded) > 1 {
-		return ret, errors.Errorf("expected one entity from query, found %d", len(loaded))
+		return ret, fmt.Errorf("expected one entity from query, found %d", len(loaded))
 	}
 	return loaded[0], nil
 }
@@ -525,7 +525,7 @@ func LoadEntities(ctx context.Context, networkID string, typeFilter *string, key
 	}
 	ret, err := (NetworkEntities{}).fromProtos(protoEnts, serdes)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "request succeeded but deserialization failed")
+		return nil, nil, fmt.Errorf("request succeeded but deserialization failed: %w", err)
 	}
 	return ret, entIDsToTKs(notFound), nil
 }
@@ -682,7 +682,7 @@ func LoadAllEntitiesOfType(ctx context.Context, networkID string, entityType str
 
 	ret, err := (NetworkEntities{}).fromProtos(res.Entities, serdes)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "request succeeded but deserialization failed")
+		return nil, "", fmt.Errorf("request succeeded but deserialization failed: %w", err)
 	}
 
 	return ret, res.NextPageToken, nil

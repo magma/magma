@@ -538,7 +538,7 @@ def mocked_setmacbyip6(ipv6_addr: str, mac: str):
 def mocked_getmacbyip6(ipv6_addr: str) -> str:
     global ipv6_mac_table
     with gw_info_lock:
-        return ipv6_mac_table.get(ipv6_addr, None)
+        return ipv6_mac_table.get(ipv6_addr)
 
 
 class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):

@@ -52,10 +52,11 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
         cbsd_id = self.given_cbsd_provisioned(builder)
 
         with self.while_cbsd_is_active():
-            when_elastic_indexes_data()
 
-            logs = self.when_logs_are_fetched(get_current_sas_filters(self.serial_number))
-            self.then_logs_are(logs, self.get_sas_provision_messages())
+            self.then_logs_are(
+                get_current_sas_filters(self.serial_number),
+                self.get_sas_provision_messages(),
+            )
 
             filters = get_filters_for_request_type('heartbeat', self.serial_number)
             self.then_message_is_eventually_sent(filters)
@@ -226,10 +227,7 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
 
         self.given_cbsd_provisioned(builder)
         with self.while_cbsd_is_active():
-            when_elastic_indexes_data()
-
-            for params in scenarios:
-                self._verify_logs_count(params)
+            self._verify_logs_count(scenarios)
 
     def given_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
         self.when_cbsd_is_created(builder.build_post_data())
@@ -318,7 +316,9 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
         actual = self.when_cbsd_asks_for_state()
         self.then_state_is(actual, expected)
 
-    def then_logs_are(self, actual: Dict[str, Any], expected: List[str]):
+    @retry(stop_max_attempt_number=30, wait_fixed=1000)
+    def then_logs_are(self, filters: Dict[str, Any], expected: List[str]):
+        actual = self.when_logs_are_fetched(filters)
         actual = [x['type'] for x in actual['logs']]
         self.assertEqual(actual, expected)
 
@@ -343,12 +343,14 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase):
         names = ['heartbeat', 'grant', 'spectrumInquiry', 'registration']
         return [f'{x}Response' for x in names]
 
-    def _verify_logs_count(self, params):
-        using_filters, _operator, expected_count = params
-        logs = self.when_logs_are_fetched(using_filters)
-        logs_len = len(logs["logs"])
-        comparison = _operator(logs_len, expected_count)
-        self.assertTrue(comparison)
+    @retry(stop_max_attempt_number=30, wait_fixed=1000)
+    def _verify_logs_count(self, scenarios):
+        for params in scenarios:
+            using_filters, _operator, expected_count = params
+            logs = self.when_logs_are_fetched(using_filters)
+            logs_len = len(logs["logs"])
+            comparison = _operator(logs_len, expected_count)
+            self.assertTrue(comparison)
 
     def _check_for_cbsd(self, serial_number: str, should_exist: bool = True) -> Optional[Dict[str, Any]]:
         params = {'serial_number': serial_number}
@@ -391,20 +393,6 @@ def get_cbsd_request(serial_number: str) -> CBSDRequest:
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-@retry(stop_max_attempt_number=30, wait_fixed=1000)
-def wait_for_elastic_to_start() -> None:
-    requests.get(f'{config.ELASTICSEARCH_URL}/_status')
-
-
-def when_elastic_indexes_data():
-    # TODO use retrying instead
-    sleep(15)
-
-
-def _delete_dp_elasticsearch_indices() -> None:
-    requests.delete(f"{config.ELASTICSEARCH_URL}/{config.ELASTICSEARCH_INDEX}*")
 
 
 def send_request_to_backend(
