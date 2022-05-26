@@ -34,7 +34,7 @@ from orc8r.protos.directoryd_pb2 import (
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DIRECTORYD_SERVICE_NAME = 'directoryd'
-DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService' 
+DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService'
 DIRECTORYD_PORT = '127.0.0.1:50067'
 PROTO_PATH = 'orc8r/protos/directoryd.proto'
 
@@ -58,7 +58,9 @@ def _load_subs(num_subs: int) -> List[DirectoryRecord]:
         sids.append(sid)
     return sids
 
-#clear directory records
+# clear directory records
+
+
 def _cleanup_subs(num_subs):
     client = GatewayDirectoryServiceStub(
         ServiceRegistry.get_rpc_channel(
@@ -67,7 +69,7 @@ def _cleanup_subs(num_subs):
     )
     for record in client.GetAllDirectoryRecords(Void()).records:
         sid = DeleteRecordRequest(
-            id = record.id
+            id=record.id
         )
         client.DeleteRecord(sid)
 
@@ -75,8 +77,8 @@ def _cleanup_subs(num_subs):
 def _build_update_records_data(record_list: list, input_file: str):
     update_record_reqs = []
     for i in range(len(record_list)):
-        id=str(i).zfill(15)
-        location=str(i).zfill(15)
+        id = str(i).zfill(15)
+        location = str(i).zfill(15)
         request = UpdateRecordRequest(
             id=id,
             location=location
@@ -121,7 +123,7 @@ def _build_get_all_record_data(record_list: list, input_file: str):
 
 def update_record_test(args):
     input_file = 'update_record.json'
-    record_list = [None]*args.num_of_ues
+    record_list = [None] * args.num_of_ues
     _build_update_records_data(record_list, input_file)
     request_type = 'UpdateRecord'
     benchmark_grpc_request(
