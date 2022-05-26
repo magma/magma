@@ -29,7 +29,7 @@ from orc8r.protos.directoryd_pb2 import (
     DeleteRecordRequest,
     DirectoryRecord,
     GetDirectoryFieldRequest,
-    UpdateRecordRequest
+    UpdateRecordRequest,
 )
 
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
