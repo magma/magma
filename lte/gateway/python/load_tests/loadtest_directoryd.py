@@ -54,7 +54,8 @@ def _load_subs(num_subs: int) -> List[DirectoryRecord]:
         sid = UpdateRecordRequest(
             fields=fields,
             id=str(i).zfill(15),
-            location=str(i).zfill(15),)
+            location=str(i).zfill(15),
+        )
         client.UpdateRecord(sid)
         sids.append(sid)
     return sids
