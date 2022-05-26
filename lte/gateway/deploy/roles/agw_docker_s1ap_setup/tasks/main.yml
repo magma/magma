@@ -21,6 +21,11 @@
     that: ansible_facts['eth1']['ipv4']['address']  == '192.168.60.142'
     fail_msg: "eth1 must have address 192.168.60.142"
 
+- name: Verify eth2 address
+  assert:
+    that: ansible_facts['eth2']['ipv4']['address']  == '192.168.129.1'
+    fail_msg: "eth2 must have address 192.168.129.1"
+
 - name: Update ubuntu password
   user:
     name: ubuntu

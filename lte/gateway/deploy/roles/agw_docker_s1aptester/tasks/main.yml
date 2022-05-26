@@ -1,4 +1,22 @@
 ---
+- name: Verify eth0, eth1, eth2 exist
+  assert:
+    that:
+      - "{{ ansible_facts['eth0'] is defined }}"
+      - "{{ ansible_facts['eth1'] is defined }}"
+      - "{{ ansible_facts['eth2'] is defined }}"
+    fail_msg: "eth0, eth1, eth2 interfaces must exist"
+
+- name: Verify eth1 address
+  assert:
+    that: ansible_facts['eth1']['ipv4']['address']  == eth1_address
+    fail_msg: "eth1 must have address {{ eth1_address }}"
+
+- name: Verify eth2 address
+  assert:
+    that: ansible_facts['eth2']['ipv4']['address']  == eth2_address
+    fail_msg: "eth1 must have address {{ eth2_address }}"
+
 - name: Download Docker install script
   get_url:
     url: https://get.docker.com

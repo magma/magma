@@ -20,9 +20,13 @@
     - role: agw_docker_s1aptester
   vars:
     docker_application: s1aptester
+    eth1_address: 192.168.60.141
+    eth2_address: 192.168.128.11
 - name: Setup Traffic Generator
   hosts: trfgen
   roles:
     - role: agw_docker_s1aptester
   vars:
     docker_application: trfgen
+    eth1_address: 192.168.60.144
+    eth2_address: 192.168.129.42

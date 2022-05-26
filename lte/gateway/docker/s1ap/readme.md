@@ -4,8 +4,7 @@ Your host must have the following to build and run all the images necessary for 
 
 - Ubuntu 20.04 Focal
 - x64 (ARM support to come later)
-- 20 GB of space for building/storing images, 64 GB recommended for running
-- At least 2 interfaces, eth0 (SGi), eth1 (S1)
+- 20 GB of space for building/storing images, 64 GB recommended for running AGW
 
 AGW:
 
@@ -14,7 +13,9 @@ Must have eth0 and eth1 interfaces.
 
 s1aptester:
 
-Must have an eth1 address of 192.168.60.141
+eth0, eth1, eth2 interfaces.
+eth0 management address
+eth1 address of 192.168.60.142
 
 trfgen:
 
@@ -38,7 +39,13 @@ s1ap/publish.sh yourregistry.com/yourrepo/
 
 # Run s1aptester
 
-### Add your authentication to s1aptester and trfgen hosts from the agw vm
+### Add your authentication to s1aptester and trfgen hosts from the agw vm. Here's an example
+
+#### Generate your ssh key on the AGW host
+
+ssh-keygen
+
+
 
 ### test your connection with
 
