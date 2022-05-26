@@ -54,7 +54,7 @@ class TestWrapper(object):
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
     TEST_CASE_EXECUTION_COUNT = 0
-    Test_Error_Tracebacks = []
+    TEST_ERROR_TRACEBACKS = []
 
     def __init__(
         self,
@@ -466,9 +466,9 @@ class TestWrapper(object):
     @classmethod
     def generate_flaky_summary(cls):
         """Print the flaky report summary"""
-        if TestWrapper.Test_Error_Tracebacks:
+        if TestWrapper.TEST_ERROR_TRACEBACKS:
             print("\n===Flaky Test Report===\n")
-            for traceback in TestWrapper.Test_Error_Tracebacks:
+            for traceback in TestWrapper.TEST_ERROR_TRACEBACKS:
                 print(traceback)
             print("===End Flaky Test Report===")
 
@@ -487,7 +487,7 @@ class TestWrapper(object):
                 result.failures and result.failures[-1][0] is test
             )
             if test_contains_error or test_contains_failure:
-                TestWrapper.Test_Error_Tracebacks.append(
+                TestWrapper.TEST_ERROR_TRACEBACKS.append(
                     str(test)
                     + " failed (Execution Count: "
                     + str(TestWrapper.TEST_CASE_EXECUTION_COUNT)
