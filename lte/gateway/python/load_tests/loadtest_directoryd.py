@@ -24,13 +24,14 @@ from load_tests.common import (
     make_output_file_path,
 )
 from magma.common.service_registry import ServiceRegistry
+from orc8r.protos.common_pb2 import Void, Bytes
 from orc8r.protos.directoryd_pb2 import (
     DeleteRecordRequest,
     DirectoryRecord,
     GetDirectoryFieldRequest,
-    UpdateRecordRequest
+    UpdateRecordRequest,
 )
-from orc8r.protos.common_pb2 import Void, Bytes
+
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DIRECTORYD_SERVICE_NAME = 'directoryd'
