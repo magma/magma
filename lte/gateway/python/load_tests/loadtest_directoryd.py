@@ -35,20 +35,18 @@ from orc8r.protos.directoryd_pb2 import (
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DIRECTORYD_SERVICE_NAME = 'directoryd'
-DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService'  # check
+DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService' 
 DIRECTORYD_PORT = '127.0.0.1:50067'
 PROTO_PATH = 'orc8r/protos/directoryd.proto'
 
 
 def _load_subs(num_subs: int) -> List[DirectoryRecord]:
-
     client = GatewayDirectoryServiceStub(
         ServiceRegistry.get_rpc_channel(
             DIRECTORYD_SERVICE_NAME, ServiceRegistry.LOCAL,
         ),
     )
     sids = []
-
     for i in range(num_subs):
         mac_addr = (str(i) * 2 + ":") * 5 + (str(i) * 2)
         ipv4_addr = str(i) * 3 + "." + str(i) * 3 + "." + str(i) * 3 + "." + str(i) * 3
@@ -57,7 +55,6 @@ def _load_subs(num_subs: int) -> List[DirectoryRecord]:
             fields=fields,
             id=str(i).zfill(15),
             location=str(i).zfill(15))
-
         client.UpdateRecord(sid)
         sids.append(sid)
     return sids
