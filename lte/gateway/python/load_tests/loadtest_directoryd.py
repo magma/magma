@@ -38,6 +38,8 @@ DIRECTORYD_SERVICE_RPC_PATH = 'magma.orc8r.GatewayDirectoryService'
 DIRECTORYD_PORT = '127.0.0.1:50067'
 PROTO_PATH = 'orc8r/protos/directoryd.proto'
 
+# create directory records
+
 
 def _load_subs(num_subs: int) -> List[DirectoryRecord]:
     client = GatewayDirectoryServiceStub(
