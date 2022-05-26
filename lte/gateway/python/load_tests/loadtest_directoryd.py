@@ -54,7 +54,7 @@ def _load_subs(num_subs: int) -> List[DirectoryRecord]:
         sid = UpdateRecordRequest(
             fields=fields,
             id=str(i).zfill(15),
-            location=str(i).zfill(15))
+            location=str(i).zfill(15),)
         client.UpdateRecord(sid)
         sids.append(sid)
     return sids
@@ -69,7 +69,7 @@ def _cleanup_subs():
     )
     for record in client.GetAllDirectoryRecords(Void()).records:
         sid = DeleteRecordRequest(
-            id=record.id
+            id=record.id,
         )
         client.DeleteRecord(sid)
 
@@ -81,7 +81,7 @@ def _build_update_records_data(num_requests: int, input_file: str):
         location = str(i).zfill(15)
         request = UpdateRecordRequest(
             id=id,
-            location=location
+            location=location,
         )
         request_dict = json_format.MessageToDict(request)
         update_record_reqs.append(request_dict)
@@ -93,7 +93,7 @@ def _build_delete_records_data(record_list: list, input_file: str):
     delete_record_reqs = []
     for index, record in enumerate(record_list):
         request = DeleteRecordRequest(
-            id=record.id
+            id=record.id,
         )
         request_dict = json_format.MessageToDict(request)
         delete_record_reqs.append(request_dict)
@@ -106,7 +106,7 @@ def _build_get_record_data(record_list: list, input_file: str):
     for index, record in enumerate(record_list):
         request = GetDirectoryFieldRequest(
             id=record.id,
-            field_key="mac-addr"
+            field_key="mac-addr",
         )
         request_dict = json_format.MessageToDict(request)
         get_record_reqs.append(request_dict)
@@ -211,18 +211,18 @@ def create_parser():
     )
 
     parser_get_record = subparsers.add_parser(
-        'get_record', help='Get specific record in directory'
+        'get_record', help='Get specific record in directory',
     )
 
     parser_get_all_records = subparsers.add_parser(
-        'get_all_records', help='Get all records in directory'
+        'get_all_records', help='Get all records in directory',
     )
 
     for subcmd in [
         parser_update_record,
         parser_delete_record,
         parser_get_record,
-        parser_get_all_records
+        parser_get_all_records,
     ]:
 
         subcmd.add_argument(
