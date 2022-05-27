@@ -34,8 +34,8 @@ spec:
         image: controller:latest
         name: manager
         # Replace value for redis server address to enable status reporting
-        # environment:
-        # - name: REDIS_ADDR
+        #env:
+        #- name: REDIS_ADDR
         #  value: localhost:6380
         securityContext:
           allowPrivilegeEscalation: false
