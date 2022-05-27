@@ -53,7 +53,11 @@ challenge=$(grpcurl \
 
 openssl genrsa -out /tmp/magma_protos/gateway.key 2048
 openssl req -new -key /tmp/magma_protos/gateway.key -out /tmp/magma_protos/gateway.csr.der -outform DER -subj "/C=US/CN=${hwid}"
-csr_bytes=$(base64 -i /tmp/magma_protos/gateway.csr.der)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  csr_bytes=$(base64 -i -w0 /tmp/magma_protos/gateway.csr.der)
+else
+  csr_bytes=$(base64 -i /tmp/magma_protos/gateway.csr.der)
+fi
 
 req="
 {
@@ -85,7 +89,11 @@ cert_der=$(grpcurl \
   magma.orc8r.Bootstrapper/RequestSign \
   | jq -r .certDer
 )
-echo -n ${cert_der} | base64 -D | openssl x509 -inform der -out /tmp/magma_protos/gateway.crt
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo -n ${cert_der} | base64 -d | openssl x509 -inform der -out /tmp/magma_protos/gateway.crt
+else
+  echo -n ${cert_der} | base64 -D | openssl x509 -inform der -out /tmp/magma_protos/gateway.crt
+fi
 
 echo ''
 echo 'Success'
