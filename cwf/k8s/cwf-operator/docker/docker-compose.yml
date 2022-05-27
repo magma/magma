@@ -15,4 +15,4 @@ services:
   operator:
     build:
       context: ../../../../
-      dockerfile: cwf/k8s/cwf_operator/Dockerfile
+      dockerfile: cwf/k8s/cwf-operator/Dockerfile

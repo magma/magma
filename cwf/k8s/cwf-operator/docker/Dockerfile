@@ -62,8 +62,7 @@ RUN go build -o bin/manager main.go
 # -----------------------------------------------------------------------------
 FROM ubuntu:bionic as cwf-operator
 
-ENV OPERATOR=/usr/local/bin/cwf-operator \
-    USER_UID=1001 \
+ENV USER_UID=1001 \
     USER_NAME=cwf-operator
 
 # Install the runtime deps.
@@ -73,12 +72,11 @@ RUN curl -L "https://github.com/Mirantis/virtlet/releases/download/v1.5.1/virtle
 RUN chmod 755 /usr/bin/virtletctl
 
 # install operator binary
-COPY --from=builder $MAGMA_ROOT/cwf/k8s/cwf-operator/bin/manager ${OPERATOR}
+COPY --from=builder $MAGMA_ROOT/cwf/k8s/cwf-operator/bin/manager /manager
 
-COPY cwf/k8s/cwf-operator/docker/entrypoint /usr/local/bin
 COPY cwf/k8s/cwf-operator/docker/user_setup /usr/local/bin
 COPY cwf/gateway/helm/cwf-kubevirt /helm-charts/cwf
 RUN  /usr/local/bin/user_setup
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
+ENTRYPOINT ["/manager"]
 USER ${USER_UID}
