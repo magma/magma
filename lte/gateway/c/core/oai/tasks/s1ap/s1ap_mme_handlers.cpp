@@ -416,11 +416,10 @@ void clean_stale_enb_state(s1ap_state_t* state,
   OAILOG_INFO(LOG_S1AP, "Found stale eNB at association id %d",
               stale_enb_association->sctp_assoc_id);
   // Remove the S1 context for UEs associated with old eNB association
-  if (stale_enb_association->ue_id_coll_proto.size()) {
+  if (stale_enb_association->ue_id_coll.size()) {
     ue_description_t* ue_ref = NULL;
-    for (auto itr_map = stale_enb_association->ue_id_coll_proto.map->begin();
-         itr_map != stale_enb_association->ue_id_coll_proto.map->end();
-         ++itr_map) {
+    for (auto itr_map = stale_enb_association->ue_id_coll.map->begin();
+         itr_map != stale_enb_association->ue_id_coll.map->end(); ++itr_map) {
       ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t)itr_map->second);
       /* The function s1ap_remove_ue will take care of removing the enb also,
        * when the last UE is removed
@@ -559,10 +558,9 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     OAILOG_WARNING(LOG_S1AP,
                    "Ignoring s1setup from eNB in state %s on assoc id %u",
                    s1_enb_state2str(enb_association->s1_state), assoc_id);
-    OAILOG_DEBUG(LOG_S1AP,
-                 "Num UEs associated %u num elements in ue_id_coll %zu",
-                 enb_association->nb_ue_associated,
-                 enb_association->ue_id_coll_proto.size());
+    OAILOG_DEBUG(
+        LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %zu",
+        enb_association->nb_ue_associated, enb_association->ue_id_coll.size());
     rc = s1ap_mme_generate_s1_setup_failure(
         assoc_id, S1ap_Cause_PR_transport,
         S1ap_CauseTransport_transport_resource_unavailable,
@@ -575,7 +573,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
      */
-    if (enb_association->ue_id_coll_proto.size() == 0) {
+    if (enb_association->ue_id_coll.size() == 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP,
                          s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
                              state, enb_association->sctp_assoc_id));
@@ -584,8 +582,8 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     MessageDef* message_p = NULL;
 
     arg.associated_enb_id = enb_association->enb_id;
-    arg.deregister_ue_count = enb_association->ue_id_coll_proto.size();
-    enb_association->ue_id_coll_proto.map_apply_callback_on_all_elements(
+    arg.deregister_ue_count = enb_association->ue_id_coll.size();
+    enb_association->ue_id_coll.map_apply_callback_on_all_elements(
         s1ap_send_enb_deregistered_ind, (void*)&arg, (void**)&message_p);
 
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -2789,7 +2787,7 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
               "Handover Required from association id %u, "
               "Connected UEs = %u Num elements = %zu\n",
               assoc_id, enb_association->nb_ue_associated,
-              enb_association->ue_id_coll_proto.size());
+              enb_association->ue_id_coll.size());
 
   container = &pdu->choice.initiatingMessage.value.choice.HandoverRequired;
 
@@ -3210,8 +3208,8 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
         &state->mmeid2associd, (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
         (void*)(uintptr_t)assoc_id);
 
-    target_enb->ue_id_coll_proto.insert(new_ue_ref_p->mme_ue_s1ap_id,
-                                        new_ue_ref_p->comp_s1ap_id);
+    target_enb->ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id,
+                                  new_ue_ref_p->comp_s1ap_id);
 
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
@@ -3456,8 +3454,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
         &state->mmeid2associd, (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
         (void*)(uintptr_t)assoc_id);
 
-    enb_association->ue_id_coll_proto.insert(new_ue_ref_p->mme_ue_s1ap_id,
-                                             new_ue_ref_p->comp_s1ap_id);
+    enb_association->ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id,
+                                       new_ue_ref_p->comp_s1ap_id);
 
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
@@ -3666,7 +3664,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
               "SCTP disconnection request for association id %u, Reset Flag = "
               "%u. Connected UEs = %u Num elements = %zu\n",
               assoc_id, reset, enb_association->nb_ue_associated,
-              enb_association->ue_id_coll_proto.size());
+              enb_association->ue_id_coll.size());
 
   // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
@@ -3700,7 +3698,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
      */
-    if (enb_association->ue_id_coll_proto.size() == 0) {
+    if (enb_association->ue_id_coll.size() == 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP,
                          s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
                              state, enb_association->sctp_assoc_id));
@@ -3712,8 +3710,8 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
    */
 
   arg.associated_enb_id = enb_association->enb_id;
-  arg.deregister_ue_count = enb_association->ue_id_coll_proto.size();
-  enb_association->ue_id_coll_proto.map_apply_callback_on_all_elements(
+  arg.deregister_ue_count = enb_association->ue_id_coll.size();
+  enb_association->ue_id_coll.map_apply_callback_on_all_elements(
       s1ap_send_enb_deregistered_ind, (void*)&arg, (void**)&message_p);
 
   /*
@@ -4201,7 +4199,7 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
       }
       arg.msg = msg;
       arg.current_ue_index = 0;
-      enb_association->ue_id_coll_proto.map_apply_callback_on_all_elements(
+      enb_association->ue_id_coll.map_apply_callback_on_all_elements(
           construct_s1ap_mme_full_reset_req, &arg, NULL);
       // EURECOM LG 2020-07-16 added break here
       break;

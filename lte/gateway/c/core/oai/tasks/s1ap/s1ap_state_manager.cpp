@@ -18,7 +18,7 @@
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
-#include "lte/gateway/c/core/oai/include/proto_map.h"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 namespace {
 constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
@@ -111,7 +111,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       if (ht_rc != HASH_TABLE_OK) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
-        delete enb->ue_id_coll_proto.map;
+        enb->ue_id_coll.destroy_map();
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);

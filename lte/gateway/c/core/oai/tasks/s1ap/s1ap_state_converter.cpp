@@ -122,8 +122,7 @@ void S1apStateConverter::enb_to_proto(enb_description_t* enb,
   proto->set_ran_cp_ipaddr_sz(enb->ran_cp_ipaddr_sz);
 
   // store ue_ids
-  proto_map_uint32_uint64_to_proto(enb->ue_id_coll_proto,
-                                   proto->mutable_ue_ids());
+  proto_map_uint32_uint64_to_proto(enb->ue_id_coll, proto->mutable_ue_ids());
 
   supported_ta_list_to_proto(&enb->supported_ta_list,
                              proto->mutable_supported_ta_list());
@@ -148,16 +147,16 @@ void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
 
   // load ues
   proto_map_rc_t rc = {PROTO_MAP_OK};
-  enb->ue_id_coll_proto.map =
+  enb->ue_id_coll.map =
       new (google::protobuf::Map<unsigned int, long unsigned int>);
-  enb->ue_id_coll_proto.set_name("s1ap_ue_coll");
+  enb->ue_id_coll.set_name("s1ap_ue_coll");
 
   auto ue_ids = proto.ue_ids();
   for (auto const& kv : ue_ids) {
     mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
     uint64_t comp_s1ap_id = kv.second;
 
-    rc = enb->ue_id_coll_proto.insert(mme_ue_s1ap_id, comp_s1ap_id);
+    rc = enb->ue_id_coll.insert(mme_ue_s1ap_id, comp_s1ap_id);
     if (rc != PROTO_MAP_OK) {
       OAILOG_DEBUG(LOG_S1AP,
                    "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
