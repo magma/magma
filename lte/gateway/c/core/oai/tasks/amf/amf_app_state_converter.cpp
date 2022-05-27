@@ -53,10 +53,10 @@ void AmfNasStateConverter::chars_to_plmn(const char* plmn_array,
 // HelperFunction: Converts guti_m5_t to std::string
 std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
     const guti_m5_t& guti) {
-#define GUTI_STRING_LEN 25
+#define GUTI_M5_STRING_LEN 25
   char* temp_str =
-      reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_STRING_LEN));
-  snprintf(temp_str, GUTI_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
+      reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_M5_STRING_LEN));
+  snprintf(temp_str, GUTI_M5_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
            guti.guamfi.plmn.mcc_digit1, guti.guamfi.plmn.mcc_digit2,
            guti.guamfi.plmn.mcc_digit3, guti.guamfi.plmn.mnc_digit1,
            guti.guamfi.plmn.mnc_digit2, guti.guamfi.plmn.mnc_digit3,
