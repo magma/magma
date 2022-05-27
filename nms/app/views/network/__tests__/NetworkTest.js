@@ -117,6 +117,7 @@ describe('<NetworkDashboard />', () => {
         checkin_timeout: 100,
         tier: 'tier2',
       },
+      checked_in_recently: false,
       connected_enodeb_serials: [],
       cellular: {
         epc: {

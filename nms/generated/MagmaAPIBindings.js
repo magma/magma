@@ -479,6 +479,7 @@ export type gateway_cellular_configs = {
     pooling ? : cellular_gateway_pool_records,
     ran: gateway_ran_configs,
 };
+export type gateway_checked_in_recently = boolean;
 export type gateway_cwf_configs = {
     allowed_gre_peers: allowed_gre_peers,
     gateway_health_configs ? : gateway_health_configs,
@@ -725,6 +726,7 @@ export type log = {
 export type lte_gateway = {
     apn_resources ? : apn_resources,
     cellular: gateway_cellular_configs,
+    checked_in_recently: gateway_checked_in_recently,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
     device ? : gateway_device,

@@ -310,6 +310,7 @@ export const DEFAULT_GATEWAY_CONFIG: lte_gateway = {
       ],
     },
   },
+  checked_in_recently: false,
   tier: 'default',
 };
 
