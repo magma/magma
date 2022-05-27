@@ -216,11 +216,16 @@ RUN echo "Install Folly requirements" && \
     libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
     libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev
 
-#### libfluid is requird to build MME with OVS support
+#### libfluid is required to build MME with OVS support
 COPY third_party /tmp/third_party/
 RUN /tmp/third_party/build/bin/libfluid_build.sh && \
     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
     rm -rf /tmp/*
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+    curl \
+    libcurl4-openssl-dev
 
 # Build MME executables
 # RUN ldconfig && \
@@ -268,9 +273,9 @@ RUN apt-get install -y python3-pip && \
 
 # For developer's to have the same run env as in target image to debug
 # Copy the configuration file templates and mean to modify/generate certificates
-WORKDIR /magma-mme/bin
-RUN cp $C_BUILD/core/oai/oai_mme/mme oai_mme
-RUN cp $C_BUILD/sctpd/src/sctpd .
+# WORKDIR /magma-mme/bin
+# RUN cp $C_BUILD/core/oai/oai_mme/mme oai_mme
+# RUN cp $C_BUILD/sctpd/src/sctpd .
 WORKDIR /magma-mme/etc
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
@@ -355,15 +360,23 @@ COPY --from=magma-mme-builder \
 WORKDIR /usr/local/lib/freeDiameter
 COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
 
+# Copy pre-built binaries for MME and SCTPD
+WORKDIR /magma-mme/bin
+COPY --from=magma-mme-builder \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme.runfiles/__main__/_solib_k8/* \
+    ./
+
 # Refresh library cache
 RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
-WORKDIR /magma-mme/bin
-COPY --from=magma-mme-builder \
-    $C_BUILD/core/oai/oai_mme/oai_mme \
-    $C_BUILD/sctpd/src/sctpd \
-    ./
+# WORKDIR /magma-mme/bin
+# COPY --from=magma-mme-builder \
+#     $C_BUILD/core/oai/oai_mme/oai_mme \
+#     $C_BUILD/sctpd/src/sctpd \
+#     ./
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/etc
