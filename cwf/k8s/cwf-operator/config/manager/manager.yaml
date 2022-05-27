@@ -33,6 +33,9 @@ spec:
         - --leader-elect
         image: controller:latest
         name: manager
+        # Replace value for redis server address to enable status reporting
+        # - name: REDIS_ADDR
+        #  value: localhost:6380
         securityContext:
           allowPrivilegeEscalation: false
         livenessProbe:
