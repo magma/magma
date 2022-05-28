@@ -18,7 +18,7 @@ There are two basic options for setting up Magma Cloudstrapper within Amazon Web
     - In “Choose Action”, select “Launch from Website” (default)
     - The EC2 Instance Type dropdown will select “t2.medium” by default
     - Choose preferred values for other drop-boxes. Cloudstrapper will work fine deployed on the public subnet.
-    - Under “Security Group Settings” select a security group that at allows SSH traffic and any other rules that are relevant to your network.
+    - Under “Security Group Settings” select a security group that allows SSH traffic and any other rules that are relevant to your network.
     - Under “Key Pair Settings” select your preferred key pair.
 - Click on Launch
 - In order to ssh into your Cloudstrapper use the key pair .pem file and ubuntu in this format: ssh -i &lt;KeyPair&gt; ubuntu@&lt;InstanceIP&gt;
