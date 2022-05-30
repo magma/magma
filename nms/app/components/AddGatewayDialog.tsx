@@ -80,7 +80,6 @@ export default function AddGatewayDialog(props: Props) {
   const params = useParams();
   const networkID = nullthrows(params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     MagmaAPI.upgrades.networksNetworkIdTiersGet,
     {
       networkId: networkID,

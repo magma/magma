@@ -44,7 +44,6 @@ const NetworkSelector = () => {
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
 
   useMagmaAPI(
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     MagmaAPI.networks.networksGet,
     {},
     useCallback((resp: Array<string>) => setNetworkIds(resp), []),

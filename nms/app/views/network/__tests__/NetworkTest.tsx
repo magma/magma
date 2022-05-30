@@ -14,50 +14,53 @@
  * @format
  */
 
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
-// $FlowFixMe migrated to typescript
-import EnodebContext from '../../../components/context/EnodebContext';
-// $FlowFixMe migrated to typescript
+import EnodebContext, {
+  EnodebContextType,
+} from '../../../components/context/EnodebContext';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkDashboard from '../FEGNetworkDashboard';
-// $FlowFixMe migrated to typescript
-import GatewayContext from '../../../components/context/GatewayContext';
-// $FlowFixMe migrated to typescript
-import LteNetworkContext from '../../../components/context/LteNetworkContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import GatewayContext, {
+  GatewayContextType,
+} from '../../../components/context/GatewayContext';
+import LteNetworkContext, {
+  LteNetworkContextType,
+  UpdateNetworkContextProps,
+} from '../../../components/context/LteNetworkContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import NetworkDashboard from '../NetworkDashboard';
-// $FlowFixMe migrated to typescript
-import PolicyContext from '../../../components/context/PolicyContext';
+import PolicyContext, {
+  PolicyContextType,
+} from '../../../components/context/PolicyContext';
 import React from 'react';
-// $FlowFixMe migrated to typescript
-import SubscriberContext from '../../../components/context/SubscriberContext';
-import axiosMock from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import SubscriberContext, {
+  SubscriberContextType,
+} from '../../../components/context/SubscriberContext';
+import axiosMock, {AxiosResponse} from 'axios';
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe migrated to typescript
-import {UpdateNetworkState} from '../../../state/lte/NetworkState';
+import {
+  UpdateNetworkProps,
+  UpdateNetworkState,
+} from '../../../state/lte/NetworkState';
 import {fireEvent, render, wait} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
-import type {feg_network} from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
+import axios from 'axios';
+import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated-ts';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
-const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
-  key => CoreNetworkTypes[key],
-);
+const forbiddenNetworkTypes = (Object.keys(CoreNetworkTypes) as Array<
+  keyof typeof CoreNetworkTypes
+>).map(key => CoreNetworkTypes[key]);
 
 describe('<NetworkDashboard />', () => {
   const testNetwork = {
@@ -71,7 +74,7 @@ describe('<NetworkDashboard />', () => {
     },
   };
 
-  const epc = {
+  const epc: NetworkEpcConfigs = {
     default_rule_id: 'default_rule_1',
     lte_auth_amf: 'gAA=',
     lte_auth_op: 'EREREREREREREREREREREQ==',
@@ -268,27 +271,32 @@ describe('<NetworkDashboard />', () => {
   };
 
   beforeEach(() => {
-    (useEnqueueSnackbar: JestMockFn<
-      Array<empty>,
-      $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
-
-    axiosMock.post.mockImplementation(() =>
+    (axiosMock as jest.Mocked<typeof axios>).post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
-    MagmaAPIBindings.putLteByNetworkId.mockImplementation(() =>
-      Promise.resolve({data: {success: true}}),
-    );
-    MagmaAPIBindings.putLteByNetworkIdCellularEpc.mockImplementation(() =>
-      Promise.resolve({data: {success: true}}),
-    );
-    MagmaAPIBindings.putLteByNetworkIdCellularRan.mockImplementation(() =>
-      Promise.resolve({data: {success: true}}),
-    );
-    MagmaAPIBindings.putLteByNetworkIdDns.mockImplementation(() =>
-      Promise.resolve({data: {success: true}}),
-    );
-    MagmaAPIBindings.getNetworks.mockImplementation(() => Promise.resolve([]));
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdPut')
+      .mockImplementation(() =>
+        Promise.resolve({data: {success: true}} as AxiosResponse),
+      );
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdCellularEpcPut')
+      .mockImplementation(() =>
+        Promise.resolve({data: {success: true}} as AxiosResponse),
+      );
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdCellularRanPut')
+      .mockImplementation(() =>
+        Promise.resolve({data: {success: true}} as AxiosResponse),
+      );
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdDnsPut')
+      .mockImplementation(() =>
+        Promise.resolve({data: {success: true}} as AxiosResponse),
+      );
+    jest
+      .spyOn(MagmaAPI.networks, 'networksGet')
+      .mockImplementation(() => Promise.resolve({data: []} as AxiosResponse));
   });
 
   const Wrapper = () => {
@@ -305,17 +313,17 @@ describe('<NetworkDashboard />', () => {
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
-    };
+    } as PolicyContextType;
     const enodebCtx = {
       state: {enbInfo},
       setState: async () => {},
-    };
+    } as EnodebContextType;
 
     const gatewayCtx = {
       state: gateways,
       setState: async () => {},
       updateGateway: async () => {},
-    };
+    } as GatewayContextType;
 
     const subscriberCtx = {
       state: subscribers,
@@ -324,24 +332,25 @@ describe('<NetworkDashboard />', () => {
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
-    };
+    } as SubscriberContextType;
 
     const networkCtx = {
       state: {
         ...testNetwork,
+
         cellular: {
           epc: epc,
           ran: ran,
         },
       },
-      updateNetworks: async props => {
+      updateNetworks: async (props: UpdateNetworkContextProps) => {
         return UpdateNetworkState({
           setLteNetwork: () => {},
           refreshState: testNetwork.id === props.networkId,
           ...props,
-        });
+        } as UpdateNetworkProps); // TODO[TS-migration] Broken LteNetworkContext type
       },
-    };
+    } as LteNetworkContextType;
 
     return (
       <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
@@ -504,7 +513,7 @@ describe('<NetworkDashboard />', () => {
 
     fireEvent.click(getByText('Save And Continue'));
     await wait();
-    expect(MagmaAPIBindings.putLteByNetworkId).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteNetworks.lteNetworkIdPut).toHaveBeenCalledWith({
       networkId: 'testNetworkID',
       lteNetwork: {
         name: 'Test LTE Network',
@@ -531,7 +540,9 @@ describe('<NetworkDashboard />', () => {
     fireEvent.click(getByText('Save And Continue'));
     await wait();
 
-    expect(MagmaAPIBindings.putLteByNetworkIdCellularEpc).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut,
+    ).toHaveBeenCalledWith({
       config: {
         cloud_subscriberdb_enabled: false,
         default_rule_id: 'default_rule_1',
@@ -575,7 +586,9 @@ describe('<NetworkDashboard />', () => {
     }
     fireEvent.click(getByText('Save And Add Network'));
     await wait();
-    expect(MagmaAPIBindings.putLteByNetworkIdCellularRan).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut,
+    ).toHaveBeenCalledWith({
       config: {
         bandwidth_mhz: 20,
         fdd_config: undefined,
@@ -587,7 +600,7 @@ describe('<NetworkDashboard />', () => {
       },
       networkId: 'testNetworkID',
     });
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(0);
+    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(0);
   });
 
   it('Verify Network Edit Info', async () => {
@@ -628,7 +641,7 @@ describe('<NetworkDashboard />', () => {
 
     fireEvent.click(getByText('Save'));
     await wait();
-    expect(MagmaAPIBindings.putLteByNetworkId).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteNetworks.lteNetworkIdPut).toHaveBeenCalledWith({
       networkId: 'test_network',
       lteNetwork: {
         ...testNetwork,
@@ -639,7 +652,7 @@ describe('<NetworkDashboard />', () => {
         },
       },
     });
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
+    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit EPC', async () => {
@@ -663,11 +676,13 @@ describe('<NetworkDashboard />', () => {
     fireEvent.click(getByText('Save'));
     await wait();
 
-    expect(MagmaAPIBindings.putLteByNetworkIdCellularEpc).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut,
+    ).toHaveBeenCalledWith({
       config: {...epc, mnc: '03'},
       networkId: 'test_network',
     });
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
+    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit Ran', async () => {
@@ -691,7 +706,9 @@ describe('<NetworkDashboard />', () => {
     fireEvent.click(getByText('Save'));
     await wait();
 
-    expect(MagmaAPIBindings.putLteByNetworkIdCellularRan).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut,
+    ).toHaveBeenCalledWith({
       config: {
         ...ran,
         tdd_config: {
@@ -701,12 +718,12 @@ describe('<NetworkDashboard />', () => {
       },
       networkId: 'test_network',
     });
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
+    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('<FEGNetworkDashboard />', () => {
-  const testNetwork: feg_network = {
+  const testNetwork: FegNetwork = {
     description: 'Test Network Description',
     federation: {
       aaa_server: {},
@@ -738,7 +755,7 @@ describe('<FEGNetworkDashboard />', () => {
       state: {
         ...testNetwork,
       },
-      updateNetworks: async _ => {},
+      updateNetworks: async () => {},
     };
     return (
       <MemoryRouter
