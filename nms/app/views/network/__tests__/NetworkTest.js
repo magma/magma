@@ -28,6 +28,7 @@ import GatewayContext from '../../../components/context/GatewayContext';
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe migrated to typescript
 import NetworkDashboard from '../NetworkDashboard';
 // $FlowFixMe migrated to typescript
 import PolicyContext from '../../../components/context/PolicyContext';

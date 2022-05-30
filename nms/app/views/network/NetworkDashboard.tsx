@@ -9,33 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe migrated to typescript
 import AddEditNetworkButton from './NetworkEdit';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
-// $FlowFixMe migrated to typescript
-import LteNetworkContext from '../../components/context/LteNetworkContext';
-// $FlowFixMe migrated to typescript
+import LteNetworkContext, {
+  UpdateNetworkContextProps,
+} from '../../components/context/LteNetworkContext';
 import NetworkEpc from './NetworkEpc';
-// $FlowFixMe migrated to typescript
 import NetworkInfo from './NetworkInfo';
-// $FlowFixMe migrated to typescript
 import NetworkKPI from './NetworkKPIs';
-// $FlowFixMe migrated to typescript
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {
@@ -46,14 +35,14 @@ import {
   useParams,
 } from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -129,13 +118,17 @@ export function NetworkJsonConfig() {
       error={error}
       onSave={async lteNetwork => {
         try {
-          ctx.updateNetworks({networkId, lteNetwork});
+          // TODO[TS-migration] Broken LteNetworkContext type
+          await ctx.updateNetworks(({
+            networkId,
+            lteNetwork,
+          } as unknown) as UpdateNetworkContextProps);
           enqueueSnackbar('Network saved successfully', {
             variant: 'success',
           });
           setError('');
-        } catch (e) {
-          setError(e.response?.data?.message ?? e.message);
+        } catch (error) {
+          setError(getErrorMessage(error));
         }
       }}
     />
@@ -146,9 +139,12 @@ export function NetworkDashboardInternal() {
   const classes = useStyles();
   const ctx = useContext(LteNetworkContext);
 
-  const epcConfigs = ctx.state.cellular?.epc;
-  const lteRanConfigs = ctx.state.cellular?.ran;
-  const lteDnsConfig = ctx.state?.dns;
+  // TODO[TS-migration] Broken LteNetworkContext type
+  /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+  const epcConfigs = ctx.state.cellular?.epc!;
+  const lteRanConfigs = ctx.state.cellular?.ran!;
+  const lteDnsConfig = ctx.state.dns!;
+  /* eslint-enable @typescript-eslint/no-non-null-asserted-optional-chain */
 
   function editNetwork() {
     return (
@@ -200,10 +196,7 @@ export function NetworkDashboardInternal() {
             </Grid>
             <Grid item xs={12}>
               <CardTitleRow label="RAN" filter={editRAN} />
-              <NetworkRanConfig
-                lteDnsConfig={lteDnsConfig}
-                lteRanConfigs={lteRanConfigs}
-              />
+              <NetworkRanConfig lteRanConfigs={lteRanConfigs} />
             </Grid>
           </Grid>
         </Grid>

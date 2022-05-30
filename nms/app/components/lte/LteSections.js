@@ -24,6 +24,7 @@ import LineStyleIcon from '@material-ui/icons/LineStyle';
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
 import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
+// $FlowFixMe migrated to typescript
 import NetworkDashboard from '../../views/network/NetworkDashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import RouterIcon from '@material-ui/icons/Router';
