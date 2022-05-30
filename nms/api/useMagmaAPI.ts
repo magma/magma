@@ -21,7 +21,7 @@ import {useEnqueueSnackbar} from '../app/hooks/useSnackbar';
 export default function <TParams, TResponse>(
   func: (params: TParams) => AxiosPromise<TResponse>,
   params: TParams,
-  onResponse?: (response: TResponse) => undefined,
+  onResponse?: (response: TResponse) => void,
   cacheCounter?: string | number,
 ): {
   response: TResponse | undefined;

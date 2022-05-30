@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe migrated to typescript
 import AddEditNetworkButton from './NetworkEdit';
 import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
