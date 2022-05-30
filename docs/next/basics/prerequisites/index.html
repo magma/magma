@@ -100,7 +100,7 @@ Advanced). If you are running into build/test failures with Go that report
 <ol>
 <li><a href="https://docs.docker.com/engine/install/ubuntu/">Docker</a> and <a href="https://docs.docker.com/compose/install/">Docker Compose</a></li>
 <li><a href="https://www.virtualbox.org/wiki/Linux_Downloads">VirtualBox</a></li>
-<li><a href="https://www.vagrantup.com/downloads">Vagrant</a></li>
+<li><a href="https://www.vagrantup.com/downloads">Vagrant</a> (Install by downloading the <code>.deb</code> file. Installing via the command line using <code>apt-get</code> can currently cause an issue with OpenSSL. See also <a href="https://github.com/hashicorp/vagrant/issues/12751">this discussion</a>.)</li>
 </ol></li>
 <li><p>Install golang version 18.</p>
 <ol>
@@ -127,7 +127,8 @@ Advanced). If you are running into build/test failures with Go that report
 </code></pre></li>
 <li><p>Install some necessary dependencies. <strong>If you are using <code>zsh</code> instead of <code>bash</code>, replace</strong> <code>.bashrc</code> <strong>for</strong> <code>.zshrc</code>.</p>
 <pre><code class="hljs css language-bash">apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev  libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
-</code></pre></li>
+</code></pre>
+<p><strong>Note</strong>: For Ubuntu 22.04, use <code>python3-openssl</code> instead of <code>python-openssl</code>.</p></li>
 <li><p>Clone <code>pyenv</code> repository.</p>
 <pre><code class="hljs css language-bash">git <span class="hljs-built_in">clone</span> https://github.com/pyenv/pyenv.git ~/.pyenv
 </code></pre></li>
@@ -140,7 +141,8 @@ Advanced). If you are running into build/test failures with Go that report
 <li><p>Create python virtual environment version 3.7.3.</p>
 <pre><code class="hljs css language-bash">pyenv install 3.7.3
 pyenv global 3.7.3
-</code></pre></li>
+</code></pre>
+<p><strong>Note</strong>: The <code>pyenv</code> installation <a href="https://github.com/pyenv/pyenv/issues/2046">might fail with a segmentation fault</a>. Try using <code>CFLAGS=&quot;-O2&quot; pyenv install 3.7.3</code> in that case.</p></li>
 </ol></li>
 <li><p>Install <code>pip3</code> and its dependencies.</p>
 <ol>
@@ -153,7 +155,8 @@ pyenv global 3.7.3
 </ol></li>
 <li><p>Install <code>vagrant</code> necessary plugin.</p>
 <pre><code class="hljs css language-bash">vagrant plugin install vagrant-vbguest
-</code></pre></li>
+</code></pre>
+<p>Make sure <code>virtualbox</code> is the default provider for <code>vagrant</code> by adding the following line to your <code>.bashrc</code> (or equivalent) and restart your shell: <code>export VAGRANT_DEFAULT_PROVIDER=&quot;virtualbox&quot;</code>.</p></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="downloading-magma"></a><a href="#downloading-magma" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Downloading Magma</h2>
 <p>You can find Magma code on <a href="https://github.com/magma/magma">Github</a>.</p>

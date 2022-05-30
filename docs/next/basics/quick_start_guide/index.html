@@ -148,14 +148,20 @@ Creating orc8r_controller_1       ... <span class="hljs-keyword">done</span>
 </code></pre>
 <p>The Orchestrator application containers will bootstrap certificates on startup
 which are cached for future runs. Watch the directory <code>magma/.cache/test_certs</code>
-for a file <code>admin_operator.pfx</code> to show up (this may take a minute or 2), then:</p>
+for a file <code>admin_operator.pfx</code> to show up (this may take a minute or two).</p>
 <pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker]$ ls ../../../.cache/test_certs
 
 admin_operator.key.pem  bootstrapper.key        controller.crt          rootCA.key
 admin_operator.pem      certifier.key           controller.csr          rootCA.pem
 admin_operator.pfx      certifier.pem           controller.key          rootCA.srl
-
-HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs
+</code></pre>
+<p>The owner and group of <code>admin_cert.key.pem</code> and <code>admin_cert.pfx</code> in <code>/magma/.cache/test_certs/</code> are <code>root</code>.
+You need to change ownership of these files to your user with <code>chown</code>, e.g.</p>
+<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.key.pem
+HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.pfx
+</code></pre>
+<p>Replace <code>username</code> with your username, then:</p>
+<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs
 </code></pre>
 <p>In the Finder window that pops up, double-click <code>admin_operator.pfx</code> to add the
 local client cert to your keychain. <em>The password for the cert is magma</em>.
@@ -210,7 +216,8 @@ NMS can take upto 60 seconds to finish starting up.</p>
 <p>You will probably want to enable this organization (magma-test) to access all networks,
 so go to <a href="https://host.localhost">host.localhost</a> and login with the same credentials.
 Once there, you can click on the &quot;Organizations&quot; tab on the left sidebar, choose
-<code>magma-test</code>, and then check &quot;Enable all networks&quot; in the subsequent pop-up window.</p>
+<code>magma-test</code> (the three dots on the right) → View → Edit → Advanced Settings
+and then check &quot;Enable all networks&quot; in the subsequent pop-up window.</p>
 <p><strong>Note</strong>: If you want to test the access gateway VM with a physical eNB and UE,
 refer to
 the <a href="/magma/docs/next/lte/dev_notes#connecting-a-physical-enodeb-and-ue-to-gateway-vm">Connecting a physical eNodeb and UE device to gateway
