@@ -9,34 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import type {
-  feg_lte_network,
-  lte_network,
-  network_epc_configs,
-} from '../../../generated/MagmaAPIBindings';
+  FegLteNetwork,
+  LteNetwork,
+  NetworkEpcConfigs,
+} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-// $FlowFixMe migrated to typescript
 import {NetworkEpcEdit} from './NetworkEpc';
 import {NetworkFederationEdit} from './NetworkFederationConfig';
-// $FlowFixMe migrated to typescript
 import {NetworkInfoEdit} from './NetworkInfo';
-// $FlowFixMe migrated to typescript
 import {NetworkRanEdit} from './NetworkRanConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
@@ -46,7 +37,7 @@ const FEDERATION_TITLE = 'Federation';
 const EPC_TITLE = 'Epc';
 const RAN_TITLE = 'Ran';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -64,7 +55,7 @@ const useStyles = makeStyles(_ => ({
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
   },
-}));
+});
 
 const LTE_TABS = {
   info: 0,
@@ -81,19 +72,19 @@ const FEG_TABS = {
 };
 
 type EditProps = {
-  editTable: $Keys<typeof LTE_TABS> & $Keys<typeof FEG_TABS>,
+  editTable: keyof typeof LTE_TABS & keyof typeof FEG_TABS;
 };
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  editProps?: EditProps,
+  open: boolean;
+  onClose: () => void;
+  editProps?: EditProps;
 };
 
 type ButtonProps = {
-  title: string,
-  isLink: boolean,
-  editProps?: EditProps,
+  title: string;
+  isLink: boolean;
+  editProps?: EditProps;
 };
 
 export default function AddEditNetworkButton(props: ButtonProps) {
@@ -139,13 +130,14 @@ export function NetworkEditDialog(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(LteNetworkContext);
 
-  const [lteNetwork, setLteNetwork] = useState<
-    $Shape<lte_network & feg_lte_network>,
-  >({});
-  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
+  const [lteNetwork, setLteNetwork] =
+    useState < Partial<LteNetwork & FegLteNetwork>({});
+  //  eslint-disable-next-line @typescript-eslint/ban-types
+  const [epcConfigs, setEpcConfigs] = useState<NetworkEpcConfigs | {}>({});
+
   const lteRanConfigs = editProps ? ctx.state.cellular?.ran : undefined;
 
-  const [tabPos, setTabPos] = React.useState(0);
+  const [tabPos, setTabPos] = React.useState<number>(0);
 
   useEffect(() => {
     if (editProps) {
@@ -178,7 +170,7 @@ export function NetworkEditDialog(props: DialogProps) {
       />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v: number) => setTabPos(v)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="network" data-testid="networkTab" label={NETWORK_TITLE} />
@@ -208,7 +200,7 @@ export function NetworkEditDialog(props: DialogProps) {
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           lteNetwork={lteNetwork}
           onClose={onClose}
-          onSave={(lteNetwork: lte_network) => {
+          onSave={lteNetwork => {
             setLteNetwork(lteNetwork);
             if (editProps) {
               onClose();
@@ -237,8 +229,8 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === tabs.epc && (
         <NetworkEpcEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
-          networkId={lteNetwork.id}
-          epcConfigs={epcConfigs}
+          networkId={(lteNetwork as LteNetwork).id}
+          epcConfigs={epcConfigs as NetworkEpcConfigs}
           onClose={onClose}
           onSave={epcConfigs => {
             setEpcConfigs(epcConfigs);
@@ -253,7 +245,7 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === tabs.ran && (
         <NetworkRanEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Add Network'}
-          networkId={lteNetwork.id}
+          networkId={(lteNetwork as LteNetwork).id}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
           onSave={onClose}
