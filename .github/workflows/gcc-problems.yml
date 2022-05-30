@@ -22,7 +22,7 @@ on:
       - reopened
       - synchronize
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latestv2"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   BAZEL_CACHE: bazel-cache
   BAZEL_CACHE_REPO: bazel-cache-repo
   CACHE_SUB_KEY: build-warnings
