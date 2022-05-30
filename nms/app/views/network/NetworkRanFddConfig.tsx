@@ -9,22 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
+import type {NetworkRanConfigs} from '../../../generated-ts';
 
 import Grid from '@material-ui/core/Grid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 
 type Props = {
-  lteRanConfigs: network_ran_configs,
-  setLteRanConfigs: network_ran_configs => void,
+  lteRanConfigs: NetworkRanConfigs;
+  setLteRanConfigs: (c: NetworkRanConfigs) => void;
 };
 
 export default function FddConfig(props: Props) {
