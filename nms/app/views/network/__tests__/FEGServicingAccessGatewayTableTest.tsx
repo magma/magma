@@ -195,7 +195,6 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     const {getAllByRole} = render(<Wrapper />);
     await wait();
     //first get list of feg_lte networks
-    /* eslint-disable @typescript-eslint/unbound-method */
     expect(MagmaAPI.federatedLTENetworks.fegLteGet).toHaveBeenCalledTimes(1);
     //get info about each feg_lte network
     expect(
