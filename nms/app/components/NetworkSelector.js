@@ -28,6 +28,7 @@ import Text from '../theme/design-system/Text';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 // $FlowFixMe migrated to typescript
 import {LTE, coalesceNetworkType} from '../../shared/types/network';
+// $FlowFixMe migrated to typescript
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate} from 'react-router-dom';
