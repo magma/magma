@@ -102,7 +102,6 @@ struct proto_map_s {
   /* TODO (rsarwad): on final conversion to cpp,
    replace char array with std::string name;*/
   char name[1024];
-  bool log_enabled = false;
 
   void set_name(char* umap_name) {
     strncpy(name, umap_name, strlen(umap_name));
