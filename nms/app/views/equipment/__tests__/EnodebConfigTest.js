@@ -27,6 +27,8 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../../api/MagmaAPI';
+// $FlowFixMe migrated to typescript
 import {SetEnodebState} from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -34,10 +36,18 @@ import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 describe('<AddEditEnodeButton />', () => {
+  beforeEach(() => {
+    jest
+      .spyOn(MagmaAPI.enodebs, 'lteNetworkIdEnodebsPost')
+      .mockImplementation();
+    jest
+      .spyOn(MagmaAPI.enodebs, 'lteNetworkIdEnodebsEnodebSerialPut')
+      .mockImplementation();
+  });
+
   const ran = {
     bandwidth_mhz: 20,
     tdd_config: {
@@ -312,7 +322,7 @@ describe('<AddEditEnodeButton />', () => {
 
     fireEvent.click(getByText('Save And Continue'));
     await wait();
-    expect(MagmaAPIBindings.postLteByNetworkIdEnodebs).toHaveBeenCalledWith({
+    expect(MagmaAPI.enodebs.lteNetworkIdEnodebsPost).toHaveBeenCalledWith({
       enodeb: {
         config: {
           cell_id: 0,
@@ -370,7 +380,7 @@ describe('<AddEditEnodeButton />', () => {
     fireEvent.click(getByText('Save And Continue'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
+      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
     ).toHaveBeenCalledWith({
       enodeb: {
         config: {
@@ -395,7 +405,7 @@ describe('<AddEditEnodeButton />', () => {
     });
 
     // clear mock info
-    MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial.mockClear();
+    MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut.mockClear();
 
     // now tab should move to ran edit component
     expect(queryByTestId('configEdit')).toBeNull();
@@ -419,7 +429,7 @@ describe('<AddEditEnodeButton />', () => {
     fireEvent.click(getByText('Save And Add eNodeB'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
+      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
     ).toHaveBeenCalledWith({
       enodeb: {
         config: {
@@ -484,7 +494,7 @@ describe('<AddEditEnodeButton />', () => {
     fireEvent.click(getByText('Save'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
+      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
     ).toHaveBeenCalledWith({
       enodeb: {
         config: {
@@ -555,7 +565,7 @@ describe('<AddEditEnodeButton />', () => {
     fireEvent.click(getByText('Save'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
+      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
     ).toHaveBeenCalledWith({
       enodeb: {
         config: {
@@ -633,7 +643,7 @@ describe('<AddEditEnodeButton />', () => {
     fireEvent.click(getByText('Save'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
+      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
     ).toHaveBeenCalledWith({
       enodeb: {
         config: {

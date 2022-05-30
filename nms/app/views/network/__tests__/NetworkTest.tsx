@@ -47,15 +47,13 @@ import {
   UpdateNetworkState,
 } from '../../../state/lte/NetworkState';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 import MagmaAPI from '../../../../api/MagmaAPI';
 import axios from 'axios';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated-ts';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const forbiddenNetworkTypes = (Object.keys(CoreNetworkTypes) as Array<
@@ -271,32 +269,30 @@ describe('<NetworkDashboard />', () => {
   };
 
   beforeEach(() => {
+    (useEnqueueSnackbar as jest.MockedFunction<
+      typeof useEnqueueSnackbar
+    >).mockReturnValue(jest.fn());
+
     (axiosMock as jest.Mocked<typeof axios>).post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
+    jest.spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGet').mockImplementation();
     jest
       .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdPut')
-      .mockImplementation(() =>
-        Promise.resolve({data: {success: true}} as AxiosResponse),
-      );
+      .mockResolvedValue({data: {success: true}} as AxiosResponse);
+
     jest
       .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdCellularEpcPut')
-      .mockImplementation(() =>
-        Promise.resolve({data: {success: true}} as AxiosResponse),
-      );
+      .mockResolvedValue({data: {success: true}} as AxiosResponse);
     jest
       .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdCellularRanPut')
-      .mockImplementation(() =>
-        Promise.resolve({data: {success: true}} as AxiosResponse),
-      );
+      .mockResolvedValue({data: {success: true}} as AxiosResponse);
     jest
       .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdDnsPut')
-      .mockImplementation(() =>
-        Promise.resolve({data: {success: true}} as AxiosResponse),
-      );
+      .mockResolvedValue({data: {success: true}} as AxiosResponse);
     jest
       .spyOn(MagmaAPI.networks, 'networksGet')
-      .mockImplementation(() => Promise.resolve({data: []} as AxiosResponse));
+      .mockResolvedValue({data: []} as AxiosResponse);
   });
 
   const Wrapper = () => {

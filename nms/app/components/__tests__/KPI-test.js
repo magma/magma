@@ -19,11 +19,12 @@ import EnodebKPIs from '../EnodebKPIs';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
-import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -123,7 +124,6 @@ const mockEnbSt: enodeb_state = {
 };
 
 jest.mock('axios');
-jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
@@ -245,17 +245,23 @@ describe('<ServicingAccessGatewaysKPI />', () => {
   };
   const mockFegLteNetwork3 = {...mockFegLteNetwork, id: 'test_network3'};
   beforeEach(() => {
-    MagmaAPIBindings.getFegLte.mockResolvedValue(mockFegLteNetworks);
-    MagmaAPIBindings.getFegLteByNetworkId
-      .mockReturnValueOnce(mockFegLteNetwork)
-      .mockReturnValueOnce(mockFegLteNetwork2)
-      .mockResolvedValue(mockFegLteNetwork3);
-    MagmaAPIBindings.getLteByNetworkIdGateways
+    jest
+      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteGet')
+      .mockResolvedValue({data: mockFegLteNetworks});
+    jest
+      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
+      .mockReturnValueOnce({data: mockFegLteNetwork})
+      .mockReturnValueOnce({data: mockFegLteNetwork2})
+      .mockResolvedValue({data: mockFegLteNetwork3});
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet')
       .mockReturnValueOnce({
-        [mockGwSt.id]: mockGwSt,
-        test_gw2: {...mockGwSt, id: 'test_gw2'},
+        data: {
+          [mockGwSt.id]: mockGwSt,
+          test_gw2: {...mockGwSt, id: 'test_gw2'},
+        },
       })
-      .mockResolvedValue({[mockGwSt.id]: mockGwSt});
+      .mockResolvedValue({data: {[mockGwSt.id]: mockGwSt}});
   });
 
   const Wrapper = () => {
@@ -278,24 +284,38 @@ describe('<ServicingAccessGatewaysKPI />', () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
     // first get list of feg_lte networks
-    expect(MagmaAPIBindings.getFegLte).toHaveBeenCalledTimes(1);
+    expect(MagmaAPI.federatedLTENetworks.fegLteGet).toHaveBeenCalledTimes(1);
     // get info about each feg_lte network
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledTimes(3);
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledTimes(3);
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork.id,
     });
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork2.id,
     });
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
     // only 2 of the 3 feg_lte networks are serviced by current network
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(2);
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGet,
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork.id,
     });
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
     expect(getByTestId('Gateway Count')).toHaveTextContent('3');
