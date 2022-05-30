@@ -15,6 +15,7 @@ import codecs
 import gzip
 import hashlib
 import logging
+from typing import Union
 
 from Crypto.Cipher import AES, ARC4
 from Crypto.Hash import HMAC
@@ -27,7 +28,7 @@ def pad(m):
 
 
 def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
-    ret = ""
+    ret: Union[str, bytes]
     if encryption_algorithm == PipelineD.HEConfig.RC4:
         cipher = ARC4.new(key)
         ret = cipher.encrypt(s.encode('utf-8')).hex()
@@ -69,7 +70,7 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
     return ret
 
 
-def decrypt_str(data: str, key: bytes, encryption_algorithm, mac) -> str:
+def decrypt_str(data, key: bytes, encryption_algorithm, mac) -> str:
     ret = ""
     if encryption_algorithm == PipelineD.HEConfig.RC4:
         cipher = ARC4.new(key)
@@ -99,8 +100,7 @@ def decrypt_str(data: str, key: bytes, encryption_algorithm, mac) -> str:
         ret = decrypted.decode("utf-8").strip()
     elif encryption_algorithm == PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1:
         # Convert to hex str
-        hexlify = codecs.getencoder('hex')
-        data = hexlify(gzip.decompress(data))[0].decode('utf-8')
+        data = gzip.decompress(data).hex()
 
         verify = data[0:32]
         hmac = HMAC.new(mac)
@@ -117,8 +117,8 @@ def decrypt_str(data: str, key: bytes, encryption_algorithm, mac) -> str:
     return ret
 
 
-def get_hash(s: str, hash_function) -> bytes:
-    hash_bytes = bytes()
+def get_hash(s, hash_function) -> bytes:
+    hash_bytes: bytes
     if hash_function == PipelineD.HEConfig.MD5:
         m = hashlib.md5()
         m.update(s.encode('utf-8'))
