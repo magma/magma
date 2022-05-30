@@ -13,27 +13,27 @@
  * @flow strict-local
  * @format
  */
-import type {
-  apn,
-  lte_gateway,
-  lte_network,
-} from '../../../../generated/MagmaAPIBindings';
 
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {Apn, LteGateway, LteNetwork} from '../../generated-ts'; // eslint-disable-line import/no-unresolved
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayContext from '../../../components/context/GatewayContext';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
 // $FlowFixMe migrated to typescript
+//import {AxiosResponse} from 'axios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {DynamicServices} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -51,7 +51,7 @@ jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
-const mockGw0: lte_gateway = {
+const mockGw0: LteGateway = {
   apn_resources: {},
   id: ' testGatewayId0',
   name: ' testGateway0',
@@ -94,7 +94,7 @@ const mockGw0: lte_gateway = {
   checked_in_recently: false,
 };
 
-const mockGw1: lte_gateway = {
+const mockGw1: LteGateway = {
   apn_resources: {},
   id: ' testGatewayId1',
   name: ' testGateway1',
@@ -137,7 +137,7 @@ const mockGw1: lte_gateway = {
   checked_in_recently: false,
 };
 
-const mockNw: lte_network = {
+const mockNw: LteNetwork = {
   cellular: {
     epc: {
       default_rule_id: 'default_rule_1',
@@ -177,7 +177,7 @@ const mockNw: lte_network = {
   name: '1dev_agw',
 };
 
-const mockApns: {[string]: apn} = {
+const mockApns: {[string]: Apn} = {
   'oai.ipv4': {
     apn_configuration: {
       ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
@@ -287,6 +287,44 @@ describe('<AddEditGatewayButton />', () => {
   };
 
   it('Verify Gateway Add', async () => {
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysPost')
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdMagmadPut')
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+    jest
+      .spyOn(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularEpcPut',
+      )
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+    jest
+      .spyOn(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularDnsPut',
+      )
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+    jest
+      .spyOn(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularRanPut',
+      )
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdPut')
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdCellularPut')
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+
     const {getByTestId, getByText, queryByTestId} = render(<AddWrapper />);
     await wait();
     expect(queryByTestId('editDialog')).toBeNull();
@@ -344,7 +382,7 @@ describe('<AddEditGatewayButton />', () => {
 
     fireEvent.click(getByText('Save And Continue'));
     await wait();
-    expect(MagmaAPIBindings.postLteByNetworkIdGateways).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysPost).toHaveBeenCalledWith({
       gateway: {
         apn_resources: {},
         id: 'testGatewayID1',
@@ -400,9 +438,13 @@ describe('<AddEditGatewayButton />', () => {
     });
 
     // mock adding test gatewayID1 to ensure we invoke the put method
-    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue({
-      testGatewayID1: mockGw1,
-    });
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet')
+      .mockResolvedValue({
+        data: {
+          testGatewayID1: mockGw1,
+        },
+      });
 
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('dynamicServicesEdit')).not.toBeNull();
@@ -424,7 +466,7 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdMagmad,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdMagmadPut,
     ).toHaveBeenCalledWith({
       gatewayId: 'testGatewayID1',
       networkId: 'test',
@@ -484,7 +526,7 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularEpc,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularEpcPut,
     ).toHaveBeenCalledWith({
       gatewayId: 'testGatewayID1',
       networkId: 'test',
@@ -536,7 +578,7 @@ describe('<AddEditGatewayButton />', () => {
     fireEvent.click(getByText('Save And Continue'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularDns,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut,
     ).toHaveBeenCalledWith({
       config: {
         dhcp_server_enabled: false,
@@ -548,7 +590,7 @@ describe('<AddEditGatewayButton />', () => {
       networkId: 'test',
     });
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularRan,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularRanPut,
     ).toHaveBeenCalledWith({
       config: {
         pci: 260,
@@ -590,7 +632,7 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdPut,
     ).toHaveBeenCalledWith({
       gateway: {
         apn_resources: {'': {apn_name: '', id: '1', vlan_id: 1}},
@@ -692,7 +734,7 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellular,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPut,
     ).toHaveBeenCalledWith({
       config: {
         dns: {
@@ -732,6 +774,14 @@ describe('<AddEditGatewayButton />', () => {
   });
 
   it('Verify Gateway Ran Edit', async () => {
+    jest
+      .spyOn(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularDnsPut',
+      )
+      // $FlowFixMe[incompatible-call] for TypeScript migration
+      .mockImplementation();
+
     const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
     await wait();
     expect(queryByTestId('editDialog')).toBeNull();
@@ -772,7 +822,7 @@ describe('<AddEditGatewayButton />', () => {
     fireEvent.click(getByText('Save'));
     await wait();
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularDns,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut,
     ).toHaveBeenCalledWith({
       config: {
         dhcp_server_enabled: false,
