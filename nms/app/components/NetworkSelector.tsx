@@ -9,68 +9,61 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../components/context/AppContext';
 import Divider from '@material-ui/core/Divider';
-import MagmaV1API from '../../generated/WebClient';
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../api/MagmaAPI';
 import MenuButton from './MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
-// $FlowFixMe migrated to typescript
 import NetworkContext from './context/NetworkContext';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
-import useMagmaAPI from '../../api/useMagmaAPIFlow';
-// $FlowFixMe migrated to typescript
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {LTE, coalesceNetworkType} from '../../shared/types/network';
-// $FlowFixMe migrated to typescript
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../shared/types/network';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   button: {
     '&&': {
       textTransform: 'none',
     },
   },
-}));
+});
 
 const NetworkSelector = () => {
   const classes = useStyles();
   const navigate = useNavigate();
   const appContext = useContext(AppContext);
-  const [networkIds, setNetworkIds] = useState([]);
-  const [networkType, setNetworkType] = useState<?NetworkType>(null);
+  const [networkIds, setNetworkIds] = useState<Array<string>>([]);
+  const [networkType, setNetworkType] = useState<NetworkType | null>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const [isNetworkAddOpen, setNetworkAddOpen] = useState(false);
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
 
   useMagmaAPI(
-    MagmaV1API.getNetworks,
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    MagmaAPI.networks.networksGet,
     {},
-    useCallback(resp => setNetworkIds(resp), []),
+    useCallback((resp: Array<string>) => setNetworkIds(resp), []),
     lastRefreshTime,
   );
 
   useEffect(() => {
     const fetchNetworkType = async () => {
       if (selectedNetworkId) {
-        const networkType = await MagmaV1API.getNetworksByNetworkIdType({
-          networkId: selectedNetworkId,
-        });
+        const networkType = (
+          await MagmaAPI.networks.networksNetworkIdTypeGet({
+            networkId: selectedNetworkId,
+          })
+        ).data;
         setNetworkType(coalesceNetworkType(selectedNetworkId, networkType));
       }
     };
 
-    fetchNetworkType();
+    void fetchNetworkType();
   }, [selectedNetworkId]);
 
   if (!selectedNetworkId) {

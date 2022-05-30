@@ -9,41 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strit-local
- * @format
  */
 
-import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {AppContextProvider} from '../../../app/components/context/AppContext';
-// $FlowFixMe migrated to typescript
+import {AppContextProvider} from '../context/AppContext';
+import {AxiosResponse} from 'axios';
 import {LTE} from '../../../shared/types/network';
 import {MemoryRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
-
-// $FlowFixMe Upgrade react-testing-library
 import {fireEvent, render, waitFor} from '@testing-library/react';
-
-import type {Node} from 'react';
-
-jest.mock('../../../generated/MagmaAPIBindings');
+import type {EmbeddedData} from '../../../shared/types/embeddedData';
 
 const Wrapper = (props: {
-  currentNetworkId?: string,
-  children: Node,
-  isSuperUser: boolean,
+  currentNetworkId?: string;
+  children: React.ReactNode;
+  isSuperUser: boolean;
 }) => {
   window.CONFIG = {
     appData: {
       user: {
         isSuperUser: props.isSuperUser,
       },
-    },
+    } as EmbeddedData,
   };
 
   return (
@@ -64,7 +54,9 @@ const Wrapper = (props: {
 
 describe('NetworkSelector', () => {
   it('renders nothing without network for regular user', () => {
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksGet')
+      .mockResolvedValue({data: []} as AxiosResponse);
     const {container} = render(
       <Wrapper isSuperUser={false}>
         <NetworkSelector />
@@ -74,8 +66,12 @@ describe('NetworkSelector', () => {
   });
 
   it('renders text with single network for regular user', () => {
-    MagmaAPIBindings.getNetworks.mockResolvedValue(['test']);
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValueOnce(LTE);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksGet')
+      .mockResolvedValue({data: ['test']} as AxiosResponse);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
+      .mockResolvedValueOnce({data: LTE} as AxiosResponse);
 
     const {queryByRole, getByText} = render(
       <Wrapper isSuperUser={false} currentNetworkId="test">
@@ -87,8 +83,12 @@ describe('NetworkSelector', () => {
   });
 
   it('renders menu with network links for regular user', async () => {
-    MagmaAPIBindings.getNetworks.mockResolvedValue(['test', 'other']);
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValueOnce(LTE);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksGet')
+      .mockResolvedValue({data: ['test', 'other']} as AxiosResponse);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
+      .mockResolvedValueOnce({data: LTE} as AxiosResponse);
 
     const {getByRole, queryAllByRole} = render(
       <Wrapper isSuperUser={false} currentNetworkId="test">
@@ -110,8 +110,12 @@ describe('NetworkSelector', () => {
   });
 
   it('renders menu with network links and extra entries for super user', async () => {
-    MagmaAPIBindings.getNetworks.mockResolvedValueOnce(['test', 'other']);
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValueOnce(LTE);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksGet')
+      .mockResolvedValueOnce({data: ['test', 'other']} as AxiosResponse);
+    jest
+      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
+      .mockResolvedValueOnce({data: LTE} as AxiosResponse);
 
     const {getByRole, queryAllByRole} = render(
       <Wrapper isSuperUser={true} currentNetworkId="test">

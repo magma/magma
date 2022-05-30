@@ -42,7 +42,7 @@ module.exports = {
       transform: {
         '^.+\\.(js|ts|tsx)$': 'babel-jest',
       },
-      setupFilesAfterEnv: ['./jest.setup.app.js'],
+      setupFilesAfterEnv: ['./jest.setup.app.ts'],
       resetMocks: true,
       restoreMocks: true,
     },

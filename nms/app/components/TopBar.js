@@ -25,6 +25,7 @@ import Tabs from '@material-ui/core/Tabs';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 
+// $FlowFixMe migrated to typescript
 import NetworkSelector from './NetworkSelector';
 // $FlowFixMe migrated to typescript
 import {GetCurrentTabPos} from './TabUtils';
