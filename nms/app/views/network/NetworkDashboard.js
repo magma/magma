@@ -28,6 +28,7 @@ import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
 // $FlowFixMe migrated to typescript
 import NetworkKPI from './NetworkKPIs';
+// $FlowFixMe migrated to typescript
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
 import TopBar from '../../components/TopBar';

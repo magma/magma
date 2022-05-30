@@ -29,7 +29,6 @@ import React from 'react';
 import SvgIcon from '@material-ui/core/SvgIcon';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
-import {ComponentType} from 'react';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -227,7 +226,7 @@ type Data = {
   category?: string;
   value: number | string;
   obscure?: boolean;
-  collapse?: ComponentType | boolean;
+  collapse?: React.ReactElement | boolean;
   unit?: string;
   statusCircle?: boolean;
   statusInactive?: boolean;

@@ -9,16 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
+import type {NetworkRanConfigs} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -26,27 +21,24 @@ import FddConfig from './NetworkRanFddConfig';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe migrated to typescript
 import TddConfig from './NetworkRanTddConfig';
 
-// $FlowFixMe migrated to typescript
 import {AltFormField, FormDivider} from '../../components/FormField';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
-  lteRanConfigs: network_ran_configs,
+  lteRanConfigs: NetworkRanConfigs;
 };
 
 export default function NetworkRan(props: Props) {
-  const tdd: DataRows[] = [
+  const tdd: Array<DataRows> = [
     [
       {
         category: 'EARFCNDL',
@@ -67,7 +59,7 @@ export default function NetworkRan(props: Props) {
     ],
   ];
 
-  const fdd: DataRows[] = [
+  const fdd: Array<DataRows> = [
     [
       {
         category: 'EARFCNDL',
@@ -82,7 +74,7 @@ export default function NetworkRan(props: Props) {
     ],
   ];
 
-  const ran: DataRows[] = [
+  const ran: Array<DataRows> = [
     [
       {
         category: 'Bandwidth',
@@ -112,11 +104,11 @@ export default function NetworkRan(props: Props) {
 }
 
 type EditProps = {
-  saveButtonTitle: string,
-  networkId: string,
-  lteRanConfigs: ?network_ran_configs,
-  onClose: () => void,
-  onSave: network_ran_configs => void,
+  saveButtonTitle: string;
+  networkId: string;
+  lteRanConfigs: NetworkRanConfigs | undefined | null;
+  onClose: () => void;
+  onSave: (c: NetworkRanConfigs) => void;
 };
 type BandType = 'tdd' | 'fdd';
 const ValidBandwidths = [3, 5, 10, 15, 20];
@@ -147,7 +139,7 @@ export function NetworkRanEdit(props: EditProps) {
   );
 
   const onSave = async () => {
-    const config: network_ran_configs = {
+    const config: NetworkRanConfigs = {
       ...lteRanConfigs,
     };
     if (bandType === 'tdd') {
@@ -164,7 +156,7 @@ export function NetworkRanEdit(props: EditProps) {
       enqueueSnackbar('RAN configs saved successfully', {variant: 'success'});
       props.onSave(lteRanConfigs);
     } catch (e) {
-      setError(e.response?.data?.message ?? e?.message);
+      setError(getErrorMessage(e));
     }
   };
 
@@ -254,7 +246,9 @@ export function NetworkRanEdit(props: EditProps) {
         </Button>
         <Button
           data-testid="ranSaveButton"
-          onClick={onSave}
+          onClick={() => {
+            void onSave();
+          }}
           variant="contained"
           color="primary">
           {props.saveButtonTitle}
