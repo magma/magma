@@ -9,28 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+import {AxiosResponse} from 'axios';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render, wait} from '@testing-library/react';
 import type {
-  feg_lte_network,
-  feg_network,
-  lte_gateway,
-} from '../../../../generated/MagmaAPIBindings';
+  FegLteNetwork,
+  FegNetwork,
+  LteGateway,
+} from '../../../../generated-ts';
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',
@@ -38,7 +34,7 @@ const mockFegLteNetworks: Array<string> = [
   'test_network3',
 ];
 
-const mockFegLteNetwork: feg_lte_network = {
+const mockFegLteNetwork1: FegLteNetwork = {
   cellular: {
     epc: {
       gx_gy_relay_enabled: false,
@@ -65,7 +61,7 @@ const mockFegLteNetwork: feg_lte_network = {
   name: 'test network1',
 };
 
-const mockGw1: lte_gateway = {
+const mockGw1: LteGateway = {
   id: 'test_gw1',
   name: 'test gateway1',
   description: 'hello I am a gateway',
@@ -79,7 +75,6 @@ const mockGw1: lte_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   connected_enodeb_serials: [],
   cellular: {
@@ -105,12 +100,11 @@ const mockGw1: lte_gateway = {
   checked_in_recently: false,
 };
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
+//jest.mock('axios');
 jest.mock('../../../../app/hooks/useSnackbar');
 
 describe('<ServicingAccessGatewaysInfo />', () => {
-  const testNetwork: feg_network = {
+  const testNetwork: FegNetwork = {
     description: 'Test Network Description',
     federation: {
       aaa_server: {},
@@ -132,13 +126,13 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     },
   };
   const mockFegLteNetwork2 = {
-    ...mockFegLteNetwork,
-    federation: {feg_network_id: ''},
+    ...mockFegLteNetwork1,
+    federation: {FegNetwork_id: ''},
     id: 'test_network2',
     name: 'test network2',
   };
   const mockFegLteNetwork3 = {
-    ...mockFegLteNetwork,
+    ...mockFegLteNetwork1,
     id: 'test_network3',
     name: 'test network3',
   };
@@ -151,25 +145,31 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     status: {checkin_time: Date.now()},
   };
   beforeEach(() => {
-    MagmaAPIBindings.getFegLte.mockResolvedValue(mockFegLteNetworks);
-    MagmaAPIBindings.getFegLteByNetworkId
-      .mockReturnValueOnce(mockFegLteNetwork)
-      .mockReturnValueOnce(mockFegLteNetwork2)
-      .mockResolvedValue(mockFegLteNetwork3);
-    MagmaAPIBindings.getLteByNetworkIdGateways
-      .mockReturnValueOnce({
-        [mockGw1.id]: mockGw1,
-        [mockGw2.id]: mockGw2,
-      })
-      .mockResolvedValue({[mockGw3.id]: mockGw3});
+    jest
+      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteGet')
+      .mockResolvedValue({data: mockFegLteNetworks} as AxiosResponse);
+    jest
+      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
+      .mockResolvedValueOnce({data: mockFegLteNetwork1} as AxiosResponse)
+      .mockResolvedValueOnce({data: mockFegLteNetwork2} as AxiosResponse)
+      .mockResolvedValue({data: mockFegLteNetwork3} as AxiosResponse);
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsGet')
+      .mockResolvedValueOnce({
+        data: {
+          [mockGw1.id]: mockGw1,
+          [mockGw2.id]: mockGw2,
+        },
+      } as AxiosResponse)
+      .mockResolvedValue({
+        data: {[mockGw3.id]: mockGw3},
+      } as AxiosResponse);
   });
 
   const Wrapper = () => {
     const networkCtx = {
-      state: {
-        ...testNetwork,
-      },
-      updateNetworks: async _ => {},
+      state: {...testNetwork},
+      updateNetworks: async () => {},
     };
     return (
       <MemoryRouter
@@ -190,31 +190,47 @@ describe('<ServicingAccessGatewaysInfo />', () => {
       </MemoryRouter>
     );
   };
+
   it('renders serviced access gateway table correctly', async () => {
     const {getAllByRole} = render(<Wrapper />);
     await wait();
     //first get list of feg_lte networks
-    expect(MagmaAPIBindings.getFegLte).toHaveBeenCalledTimes(1);
+    /* eslint-disable @typescript-eslint/unbound-method */
+    expect(MagmaAPI.federatedLTENetworks.fegLteGet).toHaveBeenCalledTimes(1);
     //get info about each feg_lte network
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledTimes(3);
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
-      networkId: mockFegLteNetwork.id,
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledTimes(3);
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork1.id,
     });
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork2.id,
     });
-    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
     //only 2 of the 3 feg_lte networks are serviced by current network
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(2);
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
-      networkId: mockFegLteNetwork.id,
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGet,
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGet,
+    ).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork1.id,
     });
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
+    expect(
+      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGet,
+    ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Access Network');
     expect(rowItems[0]).toHaveTextContent('Access Gateway Id');

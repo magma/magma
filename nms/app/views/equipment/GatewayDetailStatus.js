@@ -27,6 +27,7 @@ import React from 'react';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+// $FlowFixMe migrated to typescript
 import {DynamicServices} from '../../components/GatewayUtils';
 
 import {
