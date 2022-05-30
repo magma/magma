@@ -18,6 +18,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import FEGGateway from './FEGEquipmentGateway';
 import FEGGatewayDetail from './FEGGatewayDetailMain';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 
 import {Navigate, Route, Routes} from 'react-router-dom';

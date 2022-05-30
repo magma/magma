@@ -21,6 +21,7 @@ import Paper from '@material-ui/core/Paper';
 import React, {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import TopBar from './TopBar';
 import axios from 'axios';
 // $FlowFixMe migrated to typescript

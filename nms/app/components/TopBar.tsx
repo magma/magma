@@ -9,32 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
+import SvgIcon from '@material-ui/core/SvgIcon';
 
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import NestedRouteLink from './NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 
-// $FlowFixMe migrated to typescript
 import NetworkSelector from './NetworkSelector';
-// $FlowFixMe migrated to typescript
 import {GetCurrentTabPos} from './TabUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useResolvedPath} from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   topBar: {
     backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
@@ -68,14 +61,14 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type BarLabel = {
-  icon?: SvgIcon,
-  label: string,
-  to: string,
-  key?: string,
-  filters?: React$Node,
+  icon?: typeof SvgIcon;
+  label: string;
+  to: string;
+  key?: string;
+  filters?: React.ReactNode;
 };
 
-type Props = {header: string, tabs: BarLabel[]};
+type Props = {header: string; tabs: Array<BarLabel>};
 
 export default function TopBar(props: Props) {
   const classes = useStyles();
@@ -84,7 +77,7 @@ export default function TopBar(props: Props) {
     pathname,
     props.tabs.map(tab => tab.to),
   );
-  function tabLabel(label, icon) {
+  function tabLabel(label: string, icon: typeof SvgIcon | undefined) {
     const Icon = icon;
 
     return (
@@ -123,6 +116,7 @@ export default function TopBar(props: Props) {
                 textColor="inherit"
                 className={classes.tabs}>
                 {props.tabs.map(tab => (
+                  // @ts-ignore
                   <Tab
                     key={tab.key ?? tab.label}
                     component={NestedRouteLink}

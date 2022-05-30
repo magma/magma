@@ -29,6 +29,7 @@ import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import RadioIcon from '@material-ui/icons/Radio';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
 import {AddEditCbsdButton} from '../domain-proxy/CbsdEdit';

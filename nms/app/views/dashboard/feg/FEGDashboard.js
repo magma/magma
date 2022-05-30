@@ -22,6 +22,7 @@ import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';
 import {EVENT_STREAM} from '../../events/EventsTable';

@@ -26,6 +26,7 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import SubscriberStateTable from './SubscriberStateTable';
 import SubscriberTable from './SubscriberTable';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import type {
   mutable_subscriber,

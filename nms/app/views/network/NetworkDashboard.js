@@ -33,6 +33,7 @@ import NetworkKPI from './NetworkKPIs';
 // $FlowFixMe migrated to typescript
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

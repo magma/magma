@@ -20,6 +20,7 @@ import AuditLog from './AuditLog';
 import Networks from './Networks';
 import PeopleIcon from '@material-ui/icons/People';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
+// $FlowFixMe migrated to typescript
 import TopBar from '../TopBar';
 import UsersSettings from '../UsersSettings';
 import {Navigate, Route, Routes} from 'react-router-dom';
