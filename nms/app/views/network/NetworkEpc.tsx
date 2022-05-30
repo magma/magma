@@ -9,16 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-import type {network_epc_configs} from '../../../generated/MagmaAPIBindings';
+import type {NetworkEpcConfigs} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -27,7 +22,6 @@ import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
@@ -37,18 +31,21 @@ import Switch from '@material-ui/core/Switch';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
+import {
+  NetworkEpcConfigsMobility,
+  NetworkEpcConfigsMobilityIpAllocationModeEnum,
+} from '../../../generated-ts';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
-  epcConfigs: network_epc_configs,
+  epcConfigs: NetworkEpcConfigs;
 };
 
 export default function NetworkEpc(props: Props) {
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Policy Enforcement Enabled',
@@ -86,11 +83,11 @@ export default function NetworkEpc(props: Props) {
 }
 
 type EditProps = {
-  saveButtonTitle: string,
-  networkId: string,
-  epcConfigs: ?network_epc_configs,
-  onClose: () => void,
-  onSave: network_epc_configs => void,
+  saveButtonTitle: string;
+  networkId: string;
+  epcConfigs: NetworkEpcConfigs | undefined | null;
+  onClose: () => void;
+  onSave: (c: NetworkEpcConfigs) => void;
 };
 
 export function NetworkEpcEdit(props: EditProps) {
@@ -99,7 +96,7 @@ export function NetworkEpcEdit(props: EditProps) {
   const [error, setError] = useState('');
   const ctx = useContext(LteNetworkContext);
   const IPallocationMode = ['NAT', 'DHCP_BROADCAST'];
-  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>(
+  const [epcConfigs, setEpcConfigs] = useState<NetworkEpcConfigs>(
     props.epcConfigs == null || Object.keys(props.epcConfigs).length === 0
       ? {
           cloud_subscriberdb_enabled: false,
@@ -116,15 +113,17 @@ export function NetworkEpcEdit(props: EditProps) {
         }
       : props.epcConfigs,
   );
-  const [epcMobility, setEpcMobility] = useState(
+  const [epcMobility, setEpcMobility] = useState<NetworkEpcConfigsMobility>(
     props.epcConfigs?.mobility || {
       ip_allocation_mode: 'NAT',
       enable_static_ip_assignments: false,
       enable_multi_apn_ip_allocation: false,
     },
   );
-  const handleMobilityChange = (key: string, val) =>
-    setEpcMobility({...epcMobility, [key]: val});
+  const handleMobilityChange = <K extends keyof NetworkEpcConfigsMobility>(
+    key: K,
+    val: NetworkEpcConfigsMobility[K],
+  ) => setEpcMobility({...epcMobility, [key]: val});
   const onSave = async () => {
     try {
       await ctx.updateNetworks({
@@ -134,7 +133,7 @@ export function NetworkEpcEdit(props: EditProps) {
       props.onSave({...epcConfigs, mobility: epcMobility});
       enqueueSnackbar('EPC configs saved successfully', {variant: 'success'});
     } catch (e) {
-      setError(e.response?.data?.message ?? e?.message);
+      setError(getErrorMessage(e));
     }
   };
 
@@ -153,7 +152,10 @@ export function NetworkEpcEdit(props: EditProps) {
               displayEmpty={true}
               value={epcMobility.ip_allocation_mode}
               onChange={({target}) =>
-                handleMobilityChange('ip_allocation_mode', target.value)
+                handleMobilityChange(
+                  'ip_allocation_mode',
+                  target.value as NetworkEpcConfigsMobilityIpAllocationModeEnum,
+                )
               }
               data-testid="IpAllocationMode"
               input={<OutlinedInput />}>
@@ -194,7 +196,7 @@ export function NetworkEpcEdit(props: EditProps) {
               onChange={({target}) => {
                 setEpcConfigs({
                   ...epcConfigs,
-                  relay_enabled: target.value === 1,
+                  hss_relay_enabled: target.value === 1,
                 });
               }}
               input={<OutlinedInput id="relayEnabled" />}>
@@ -270,7 +272,7 @@ export function NetworkEpcEdit(props: EditProps) {
         </Button>
         <Button
           data-testid="epcSaveButton"
-          onClick={onSave}
+          onClick={() => void onSave()}
           variant="contained"
           color="primary">
           {props.saveButtonTitle}
