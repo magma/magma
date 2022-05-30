@@ -39,7 +39,6 @@
 # agw code related to orc8r
 /orc8r/gateway/c/ @magma/approvers-agw
 /orc8r/gateway/python @magma/approvers-agw @magma/approvers-orc8r
-/src/go/ @magma/approvers-orc8r
 
 # approvers-agw-<subsection>
 /lte/gateway/c/session_manager @magma/approvers-agw-sessiond
