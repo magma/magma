@@ -26,7 +26,8 @@
 package zap
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -204,7 +205,7 @@ func NewLoggerAtLevel(lvl log.Level, paths ...string) *Logger {
 	}
 	ws, _, err := zap.Open(paths...)
 	if err != nil {
-		panic(errors.Wrapf(err, "paths=%s", paths))
+		panic(fmt.Errorf("paths=%s: %w", paths, err))
 	}
 
 	return New(
