@@ -27,6 +27,7 @@ import LineStyleIcon from '@material-ui/icons/LineStyle';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import TraceContext from '../../components/context/TraceContext';
 import withAlert from '../../components/Alert/withAlert';

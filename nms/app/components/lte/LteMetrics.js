@@ -27,7 +27,8 @@ import Grafana from '../Grafana';
 import NestedRouteLink from '../NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
-import TopBar from '../../components/TopBar';
+// $FlowFixMe migrated to typescript
+import TopBar from '../TopBar';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
 const CONFIGS: Array<MetricGraphConfig> = [

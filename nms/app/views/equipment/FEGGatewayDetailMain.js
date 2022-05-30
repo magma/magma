@@ -37,6 +37,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

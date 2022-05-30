@@ -27,6 +27,7 @@ import Grid from '@material-ui/core/Grid';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
 

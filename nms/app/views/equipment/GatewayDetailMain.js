@@ -50,6 +50,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

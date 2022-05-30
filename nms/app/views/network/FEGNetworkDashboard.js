@@ -27,6 +27,7 @@ import Grid from '@material-ui/core/Grid';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import nullthrows from '../../../shared/util/nullthrows';

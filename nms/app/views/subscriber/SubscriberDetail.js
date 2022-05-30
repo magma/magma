@@ -41,6 +41,7 @@ import SubscriberChart from './SubscriberChart';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

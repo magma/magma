@@ -32,6 +32,7 @@ import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
