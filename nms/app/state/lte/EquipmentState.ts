@@ -355,14 +355,15 @@ export async function SetGatewayState(props: GatewayStateProps) {
         networkId: networkId,
         gateway: value,
       });
-      setLteGateways({...lteGateways, [key]: value});
+      // TODO[TS-migration] does it make sense that value is of type MutableLteGateway?
+      setLteGateways({...lteGateways, [key]: value as LteGateway});
     } else {
       await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdPut({
         networkId: networkId,
         gatewayId: key,
         gateway: value,
       });
-      setLteGateways({...lteGateways, [key]: value});
+      setLteGateways({...lteGateways, [key]: value as LteGateway});
     }
   } else {
     await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdDelete({

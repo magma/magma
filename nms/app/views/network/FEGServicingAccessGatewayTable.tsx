@@ -71,9 +71,8 @@ async function getServicedAccessGatewaysInfo(
           gatewayId: servicedAccessGatewayId,
           gatewayName:
             servicedAccessGateways[servicedAccessGatewayId]?.name || '',
-          gatewayHealth:
-            servicedAccessGateways[servicedAccessGatewayId]
-          ?.checked_in_recently
+          gatewayHealth: servicedAccessGateways[servicedAccessGatewayId]
+            ?.checked_in_recently
             ? GatewayTypeEnum.HEALTHY_GATEWAY
             : GatewayTypeEnum.UNHEALTHY_GATEWAY,
         };
