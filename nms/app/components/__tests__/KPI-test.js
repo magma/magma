@@ -125,15 +125,12 @@ jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
   const Wrapper = () => {
-    const mockUpSt = Object.assign({}, mockGwSt);
-    mockUpSt['status'] = {
-      checkin_time: Date.now(),
-      meta: {
-        gps_latitude: '0',
-        gps_longitude: '0',
-        gps_connected: '0',
-        enodeb_connected: '0',
-        mme_connected: '0',
+    const mockUpSt = {
+      ...mockGwSt,
+      checked_in_recently: true,
+      status: {
+        ...mockGwSt.status,
+        checkin_time: Date.now(),
       },
     };
     const gatewayCtx = {

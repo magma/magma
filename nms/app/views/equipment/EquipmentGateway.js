@@ -35,7 +35,6 @@ import React, {useContext, useEffect, useState} from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
-import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 
@@ -350,7 +349,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         num_subscribers:
           // $FlowIgnore: gateway.device should be present
           gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
-        health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
+        health: gateway.checked_in_recently ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });
     });

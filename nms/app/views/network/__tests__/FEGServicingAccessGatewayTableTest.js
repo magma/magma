@@ -145,6 +145,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     ...mockGw1,
     id: 'test_gw3',
     name: 'test gateway3',
+    checked_in_recently: true,
     status: {checkin_time: Date.now()},
   };
   beforeEach(() => {
