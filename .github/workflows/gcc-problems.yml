@@ -23,9 +23,7 @@ on:
       - synchronize
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  BAZEL_CACHE: bazel-cache
-  BAZEL_CACHE_REPO: bazel-cache-repo
-  CACHE_SUB_KEY: build-warnings
+  CACHE_KEY: bazel-base-image
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -72,27 +70,6 @@ jobs:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@v2
-      - name: Bazel Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE }}-${{ env.CACHE_SUB_KEY }}-
-      - name: Bazel Cache Repo
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
-          key: ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.BAZEL_CACHE_REPO }}-
-      - name: Ensure cache size (only on master)
-        if: github.event_name == 'push'
-        env:
-          BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
-          BAZEL_CACHE_CUTOFF_MB: 5000
-        run: |
-          ./.github/workflows/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
       - name: Setup Bazel Base Image
         uses: addnab/docker-run-action@v3
         with:
@@ -117,6 +94,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma
           run: |
             cd /workspaces/magma
+            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}"
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
