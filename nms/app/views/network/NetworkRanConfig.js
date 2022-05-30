@@ -32,6 +32,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+// $FlowFixMe migrated to typescript
 import TddConfig from './NetworkRanTddConfig';
 
 // $FlowFixMe migrated to typescript

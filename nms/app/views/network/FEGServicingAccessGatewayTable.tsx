@@ -132,7 +132,7 @@ export default function ServicingAccessGatewayInfo() {
   return (
     <div>
       <ActionTable
-        data={servicedAccessGatewaysInfo}
+        data={servicedAccessGatewaysInfo!}
         columns={[
           {title: 'Access Network', field: 'networkName'},
           {title: 'Access Gateway Id', field: 'gatewayId'},
