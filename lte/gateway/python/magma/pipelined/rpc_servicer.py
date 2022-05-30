@@ -14,9 +14,8 @@ import concurrent.futures
 import logging
 import os
 import queue
-from collections import OrderedDict
 from concurrent.futures import Future
-from typing import List, Tuple
+from typing import List, OrderedDict, Tuple
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
@@ -74,7 +73,7 @@ from magma.pipelined.policy_converters import (
     convert_ipv6_bytes_to_ip_proto,
 )
 
-grpc_msg_queue = queue.Queue()
+grpc_msg_queue: queue.Queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 5
 
 
@@ -147,7 +146,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def _get_setup_result(self, controller, context):
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(self._setup_default_controller, controller, fut)
         try:
             return fut.result(timeout=self._call_timeout)
@@ -185,7 +184,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             if ret is not None:
                 return SetupFlowsResult(result=ret)
 
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
@@ -682,7 +681,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if ret is not None:
             return SetupFlowsResult(result=ret)
 
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(
             self._setup_ue_mac,
             request, fut,
@@ -819,7 +818,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if ret is not None:
             return SetupFlowsResult(result=ret)
 
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(
             self._setup_quota,
             request, fut,
@@ -945,7 +944,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             request.subscriber_id, request.session_version,
         )
         # Convert message containing PDR to Named Tuple Rules.
-        process_pdr_rules = OrderedDict()
+        process_pdr_rules: OrderedDict = OrderedDict()
         response = self._ng_servicer_app.ng_session_message_handler(
             request,
             process_pdr_rules,
@@ -1027,7 +1026,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self, request: SessionSet, pdr_entry: PDRRuleEntry,
     ) -> Tuple[List[RuleModResult], List[RuleModResult]]:
         enforcement_res = []
-        failed_policy_rules_results = []
+        failed_policy_rules_results: List = []
 
         local_f_teid_ng = request.local_f_teid
 
