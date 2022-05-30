@@ -9,29 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkContext from '../../components/context/FEGNetworkContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkInfo from './FEGNetworkInfo';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import nullthrows from '../../../shared/util/nullthrows';
-
+import {FegNetwork} from '../../../generated-ts';
 import {
   Navigate,
   Route,
@@ -40,14 +30,14 @@ import {
   useParams,
 } from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -59,7 +49,6 @@ const useStyles = makeStyles(theme => ({
     fontSize: typography.button.fontSize,
     lineHeight: typography.button.lineHeight,
     letterSpacing: typography.button.letterSpacing,
-
     '&:hover': {
       background: colors.primary.mirage,
     },
@@ -129,13 +118,17 @@ export function NetworkJsonConfig() {
       error={error}
       onSave={async fegNetwork => {
         try {
-          await ctx.updateNetworks({networkId, fegNetwork});
+          await ctx.updateNetworks({
+            networkId,
+            // TODO[TS-migration] FegNetwork partial state and usage inconsistent
+            fegNetwork: fegNetwork as FegNetwork,
+          });
           enqueueSnackbar('Network saved successfully', {
             variant: 'success',
           });
           setError('');
-        } catch (e) {
-          setError(e.response?.data?.message ?? e.message);
+        } catch (error) {
+          setError(getErrorMessage(error));
         }
       }}
     />

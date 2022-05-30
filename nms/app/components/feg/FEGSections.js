@@ -24,6 +24,7 @@ import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
 import FEGEquipmentDashboard from '../../views/equipment/FEGEquipmentDashboard';
 import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkDashboard from '../../views/network/FEGNetworkDashboard';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import React from 'react';
