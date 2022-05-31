@@ -305,17 +305,13 @@ describe('<ServicingAccessGatewaysKPI />', () => {
       networkId: mockFegLteNetwork3.id,
     });
     // only 2 of the 3 feg_lte networks are serviced by current network
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGet,
-    ).toHaveBeenCalledTimes(2);
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGet,
-    ).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysGet).toHaveBeenCalledTimes(
+      2,
+    );
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysGet).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork.id,
     });
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGet,
-    ).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysGet).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
     expect(getByTestId('Gateway Count')).toHaveTextContent('3');
