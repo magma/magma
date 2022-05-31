@@ -19,7 +19,6 @@ import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -160,10 +159,6 @@ describe('<ServicingAccessGatewaysInfo />', () => {
         [mockGw2.id]: mockGw2,
       })
       .mockResolvedValue({[mockGw3.id]: mockGw3});
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   const Wrapper = () => {

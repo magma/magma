@@ -28,29 +28,29 @@ import type {ApiUtil} from '../components/AlarmsApi';
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
 
 /**
- * I don't understand how to properly type these mocks so using any for now.
- * The consuming code is all strongly typed, this shouldn't be much of an issue.
- */
-// eslint-disable-next-line flowtype/no-weak-types
-export const useMagmaAPIMock = jest.fn<any, any>(
-  <TParams, TResponse>(
-    func: TParams => Promise<TResponse>,
-    params: TParams,
-    _cacheCounter?: string | number,
-  ) => ({
-    isLoading: false,
-    response: func(params),
-    error: null,
-  }),
-);
-
-/**
  * Make sure when adding new functions to ApiUtil to add their mocks here
  */
 export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
+  /**
+   * I don't understand how to properly type these mocks so using any for now.
+   * The consuming code is all strongly typed, this shouldn't be much of an issue.
+   */
+  // eslint-disable-next-line flowtype/no-weak-types
+  const useAlarmsApi = jest.fn<any, any>(
+    <TParams, TResponse>(
+      func: TParams => Promise<TResponse>,
+      params: TParams,
+      _cacheCounter?: string | number,
+    ) => ({
+      isLoading: false,
+      response: func(params),
+      error: null,
+    }),
+  );
+
   return Object.assign(
     {
-      useAlarmsApi: useMagmaAPIMock,
+      useAlarmsApi,
       viewFiringAlerts: jest.fn(),
       viewMatchingAlerts: jest.fn(),
       getTroubleshootingLink: jest.fn(),
@@ -86,7 +86,7 @@ export async function renderAsync(...renderArgs: Array<any>): Promise<any> {
   return result;
 }
 
-type AlarmsWrapperProps = {|
+export type AlarmsWrapperProps = {|
   children: React.Node,
   ...$Shape<AlarmContextType>,
 |};

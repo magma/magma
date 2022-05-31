@@ -21,7 +21,6 @@ import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
-import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -255,9 +254,6 @@ describe('<ServicingAccessGatewaysKPI />', () => {
       .mockResolvedValue({[mockGwSt.id]: mockGwSt});
   });
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
   const Wrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>

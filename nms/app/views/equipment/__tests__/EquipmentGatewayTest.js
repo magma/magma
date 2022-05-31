@@ -18,7 +18,6 @@ import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -28,12 +27,10 @@ import type {
   promql_return_object,
 } from '../../../../generated/MagmaAPIBindings';
 
-const enqueueSnackbarMock = jest.fn();
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
+
 const mockCheckinMetric: promql_return_object = {
   status: 'success',
   data: {
@@ -119,10 +116,6 @@ describe('<Gateway />', () => {
     );
   });
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
-
   const mockGw1 = {
     ...mockGw0,
     id: 'test_gw1',
@@ -169,10 +162,9 @@ describe('<Gateway />', () => {
     const {getByTestId, getAllByRole, getAllByTitle} = render(<Wrapper />);
     await wait();
 
-    // TODO(andreilee): Figure out why this expectation is broken
-    // expect(
-    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    // ).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+    ).toHaveBeenCalledTimes(1);
 
     expect(
       MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery,

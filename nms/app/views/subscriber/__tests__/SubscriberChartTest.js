@@ -29,11 +29,7 @@ import {render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
 
 const mockAvgCurDataUsage = {
   status: 'success',
@@ -98,10 +94,6 @@ describe('<SubscriberChart />', () => {
       .mockReturnValueOnce(mockAvgMonthlyDataUsage)
       // avg data usage in the past 1 year
       .mockReturnValueOnce(mockEmptyDataset);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   const Wrapper = () => {
