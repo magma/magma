@@ -78,29 +78,31 @@ func (s *ErrorCheckerTestSuite) TestErrorCheckerDefaultsToPostgres() {
 }
 
 func (s *ErrorCheckerTestSuite) TestSQLiteGetError() {
-	testCases := []sqliteGetErrorTestCase{
-		{
-			name:    "test sqlite constraint error with SQLiteErrorChecker",
-			checker: SQLiteErrorChecker{},
-			err: sqlite3.Error{
-				Code: sqlite3.ErrConstraint,
-			},
-			expectedError: merrors.ErrAlreadyExists,
+	testCases := []sqliteGetErrorTestCase{{
+		name:    "test sqlite constraint error with SQLiteErrorChecker",
+		checker: SQLiteErrorChecker{},
+		err: sqlite3.Error{
+			Code: sqlite3.ErrConstraint,
 		},
-		{
-			name:    "test other sqlite error with SQLiteErrorChecker",
-			checker: SQLiteErrorChecker{},
-			err: sqlite3.Error{
-				Code: sqlite3.ErrNotFound,
-			},
-			expectedError: sqlite3.Error{},
+		expectedError: merrors.ErrAlreadyExists,
+	}, {
+		name:    "test other sqlite error with SQLiteErrorChecker",
+		checker: SQLiteErrorChecker{},
+		err: sqlite3.Error{
+			Code: sqlite3.ErrNotFound,
 		},
-		{
-			name:          "test any other error with SQLiteErrorChecker",
-			checker:       SQLiteErrorChecker{},
-			err:           customError{},
-			expectedError: customError{},
-		},
+		expectedError: sqlite3.Error{},
+	}, {
+		name:          "test any other error with SQLiteErrorChecker",
+		checker:       SQLiteErrorChecker{},
+		err:           customError{},
+		expectedError: customError{},
+	}, {
+		name:          "test nil error returns nil",
+		checker:       SQLiteErrorChecker{},
+		err:           nil,
+		expectedError: nil,
+	},
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
@@ -111,30 +113,31 @@ func (s *ErrorCheckerTestSuite) TestSQLiteGetError() {
 }
 
 func (s *ErrorCheckerTestSuite) TestPostgresGetError() {
-	testCases := []psqlGetErrorTestCase{
-		{
-			name:    "test postgres constraint error with PostgresErrorChecker",
-			checker: PostgresErrorChecker{},
-			err: &pq.Error{
-				Code: uniqueViolationNum,
-			},
-			expectedError: merrors.ErrAlreadyExists,
+	testCases := []psqlGetErrorTestCase{{
+		name:    "test postgres constraint error with PostgresErrorChecker",
+		checker: PostgresErrorChecker{},
+		err: &pq.Error{
+			Code: uniqueViolationNum,
 		},
-		{
-			name:    "test other postgres error with PostgresErrorChecker",
-			checker: PostgresErrorChecker{},
-			err: &pq.Error{
-				Code: otherPsqlErrorNum,
-			},
-			expectedError: &pq.Error{},
+		expectedError: merrors.ErrAlreadyExists,
+	}, {
+		name:    "test other postgres error with PostgresErrorChecker",
+		checker: PostgresErrorChecker{},
+		err: &pq.Error{
+			Code: otherPsqlErrorNum,
 		},
-		{
-			name:          "test any other error with PostgresErrorChecker",
-			checker:       PostgresErrorChecker{},
-			err:           customError{},
-			expectedError: customError{},
-		},
-	}
+		expectedError: &pq.Error{},
+	}, {
+		name:          "test any other error with PostgresErrorChecker",
+		checker:       PostgresErrorChecker{},
+		err:           customError{},
+		expectedError: customError{},
+	}, {
+		name:          "test nil error returns nil",
+		checker:       SQLiteErrorChecker{},
+		err:           nil,
+		expectedError: nil,
+	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			err := tc.checker.GetError(tc.err)
