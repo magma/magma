@@ -25,6 +25,8 @@ import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -93,7 +95,11 @@ describe('<SubscriberDashboard />', () => {
       subscribers: subscribers,
       next_page_token: '',
     });
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+
+    jest.spyOn(MagmaAPI.networks, 'networksGet').mockResolvedValue({data: []});
+    jest
+      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
+      .mockResolvedValue({data: undefined});
   });
 
   const Wrapper = () => {
