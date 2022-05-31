@@ -66,6 +66,14 @@ py_patches:
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
 
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nicira_ext.py <$(PATCHES_DIR)/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nicira_ext.py <$(PATCHES_DIR)/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch && echo "ryu was patched" ) \
+	|| ( true && echo "skipping ryu patch since it was already applied")
+	
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_match.py <$(PATCHES_DIR)/0003-QFI-value-set-in-Openflow-controller-using-RYU.patch 2>/dev/null \
+ 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_match.py <$(PATCHES_DIR)/0003-QFI-value-set-in-Openflow-controller-using-RYU.patch && echo "ryu was patched" ) \
+	|| ( true && echo "skipping ryu patch since it was already applied")
+
 	$(VIRT_ENV_PIP_INSTALL) --force-reinstall git+https://github.com/URenko/aioh2.git
 
 swagger:: swagger_prereqs $(SWAGGER_LIST)

@@ -55,14 +55,6 @@ pytest_test(
 )
 
 pytest_test(
-    name = "service_manager_tests",
-    size = "small",
-    srcs = ["service_manager_tests.py"],
-    imports = [ORC8R_ROOT],
-    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
-)
-
-pytest_test(
     name = "service_poller_tests",
     size = "small",
     srcs = ["service_poller_tests.py"],

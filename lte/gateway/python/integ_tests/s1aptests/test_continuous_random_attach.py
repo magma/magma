@@ -21,14 +21,25 @@ import s1ap_wrapper
 
 
 class TestContinuousRandomAttach(unittest.TestCase):
+    """Integration Test: TestContinuousRandomAttach"""
 
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
+        print(
+            "The test case runs for a pre-defined duration and does not "
+            "guarantee complete detach of all the UEs. Restart sctpd service "
+            "to clear Redis state for subsequent test cases",
+        )
+        self._s1ap_wrapper.magmad_util.restart_sctpd()
+        self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def handle_msg(self, msg):
+        """Handle messages received from TFW"""
         if msg.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value:
             self.auth_req_ind_count += 1
             m = msg.cast(s1ap_types.ueAuthReqInd_t)
@@ -39,7 +50,8 @@ class TestContinuousRandomAttach(unittest.TestCase):
             sqn_recvd.pres = 0
             auth_res.sqnRcvd = sqn_recvd
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+                s1ap_types.tfwCmd.UE_AUTH_RESP,
+                auth_res,
             )
         elif msg.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value:
             self.sec_mod_cmd_ind_count += 1
@@ -48,12 +60,16 @@ class TestContinuousRandomAttach(unittest.TestCase):
             sec_mode_complete = s1ap_types.ueSecModeComplete_t()
             sec_mode_complete.ue_Id = m.ue_Id
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+                sec_mode_complete,
             )
         elif msg.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value:
             self.attach_accept_ind_count += 1
             m = msg.cast(s1ap_types.ueAttachAccept_t)
-            print("====================> Received UE_ATTACH_ACCEPT_IND ue-id", m.ue_Id)
+            print(
+                "====================> Received UE_ATTACH_ACCEPT_IND ue-id",
+                m.ue_Id,
+            )
             pdn_type = m.esmInfo.pAddr.pdnType
             addr = m.esmInfo.pAddr.addrInfo
             if self._s1ap_wrapper._s1_util.CM_ESM_PDN_IPV4 == pdn_type:
@@ -64,7 +80,8 @@ class TestContinuousRandomAttach(unittest.TestCase):
             attach_complete = s1ap_types.ueAttachComplete_t()
             attach_complete.ue_Id = m.ue_Id
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+                attach_complete,
             )
         elif msg.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value:
             self.identity_req_ind_count += 1
@@ -74,7 +91,8 @@ class TestContinuousRandomAttach(unittest.TestCase):
             us_identity_resp.ue_Id = m.ue_Id
             us_identity_resp.idType = m.idType
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_IDENTITY_RESP, us_identity_resp,
+                s1ap_types.tfwCmd.UE_IDENTITY_RESP,
+                us_identity_resp,
             )
         elif msg.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value:
             self.int_ctx_setup_ind_count += 1
@@ -86,6 +104,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
             print("Unhandled msg type", msg.msg_type)
 
     def send_attach_req(self, ue_id):
+        """Send Attach Request"""
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
@@ -96,58 +115,81 @@ class TestContinuousRandomAttach(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         self.attach_req_sent_count += 1
 
     def send_ue_detach(self, ue_id):
+        """Send Detach Request"""
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = (
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST,
+            detach_req,
         )
         self.detach_req_sent_count += 1
 
     def handle_detach_timer(self, ue_state):
+        """Trigger Detach Request and set Attach Timer"""
         print("Detaching ue_id", ue_state.ue_id)
         self.send_ue_detach(ue_state.ue_id)
-        attachTime = random.uniform(self.attach_delay_t0, self.attach_delay_t1)
+        attach_time = random.uniform(
+            self.attach_delay_t0,
+            self.attach_delay_t1,
+        )
         ue_state.attachTimer = threading.Timer(
-            attachTime, self.handle_attach_timer, args=(ue_state,),
+            attach_time,
+            self.handle_attach_timer,
+            args=(ue_state,),
         )
         ue_state.attachTimer.start()
 
     def handle_attach_timer(self, ue_state):
+        """Trigger Attach Request and set Detach Timer"""
         print("Attaching ue_id", ue_state.ue_id)
-        attachDuration = random.uniform(
-            self.attach_duration_t0, self.attach_duration_t1,
+        attach_duration = random.uniform(
+            self.attach_duration_t0,
+            self.attach_duration_t1,
         )
         ue_state.detachTimer = threading.Timer(
-            attachDuration, self.handle_detach_timer, args=(ue_state,),
+            attach_duration,
+            self.handle_detach_timer,
+            args=(ue_state,),
         )
         ue_state.detachTimer.start()
         self.send_attach_req(ue_state.ue_id)
 
     def start_ue(self, ue_state):
-        attachTime = random.uniform(self.attach_delay_t0, self.attach_delay_t1)
+        """Initiate attach timer for UE"""
+        attach_time = random.uniform(
+            self.attach_delay_t0,
+            self.attach_delay_t1,
+        )
         ue_state.attachTimer = threading.Timer(
-            attachTime, self.handle_attach_timer, args=(ue_state,),
+            attach_time,
+            self.handle_attach_timer,
+            args=(ue_state,),
         )
         ue_state.attachTimer.start()
 
     def hadle_end_timer(self):
+        """Mark the test case ending on end timer expiry"""
         self.test_ended = True
 
     class UeState(object):
+        """Class to hold UE State"""
+
         def __init__(self, ue_id):
             self.ue_id = ue_id
             self.attachTimer = threading.Timer(1, None)
             self.detachTimer = threading.Timer(1, None)
 
     def test_continuous_random_attach(self):
+        """Continuous Random Attach Test case"""
         test_duration = 30
         num_ues = 100
 
@@ -173,15 +215,15 @@ class TestContinuousRandomAttach(unittest.TestCase):
         self.ue_emm_information_count = 0
         self.ue_ctx_rel_ind_count = 0
 
-        for index in range(num_ues):
+        for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             ue_state = self.UeState(req.ue_id)
             self.ue_state_store.append(ue_state)
             self.start_ue(ue_state)
 
         # Schedule test end
-        endTimer = threading.Timer(test_duration, self.hadle_end_timer)
-        endTimer.start()
+        end_timer = threading.Timer(test_duration, self.hadle_end_timer)
+        end_timer.start()
 
         while True:
             if self.test_ended:

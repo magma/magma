@@ -14,7 +14,7 @@ limitations under the License.
 package servicers
 
 import (
-	"github.com/emakeev/milenage"
+	"github.com/magma/milenage"
 	"golang.org/x/net/context"
 
 	"magma/lte/cloud/go/protos"

@@ -38,6 +38,7 @@ class DPLog(object):
     """
     Class representation of DPLog. An abstraction for messages sent to and from DP.
     """
+    event_timestamp: str
     log_from: str
     log_to: str
     log_name: str

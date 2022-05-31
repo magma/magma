@@ -23,7 +23,6 @@ import (
 	configpb "github.com/magma/magma/src/go/protos/magma/config"
 	service_capture "github.com/magma/magma/src/go/service/capture"
 	service_config "github.com/magma/magma/src/go/service/config"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	"github.com/magma/magma/src/go/agwd/config"
@@ -63,7 +62,7 @@ func cleanupUnixSocket(
 		return nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "os.Stat(%s)", path)
+		return fmt.Errorf("os.Stat(%s): %w", path, err)
 	}
 
 	// attempt to connect to see if someone is still bound to the socket.
@@ -76,7 +75,7 @@ func cleanupUnixSocket(
 	}
 	logger.Warning().Printf("Removing existing socket file; previous unclean shutdown?")
 	if err := osRemove(path); err != nil {
-		return errors.Wrapf(err, "os.Stat(%s)", path)
+		return fmt.Errorf("os.Stat(%s): %w", path, err)
 	}
 
 	return nil
@@ -84,10 +83,10 @@ func cleanupUnixSocket(
 
 func cleanupUnixSocketOrDie(logger log.Logger, path string) {
 	if err := cleanupUnixSocket(logger, os.Stat, os.Remove, net.DialTimeout, path); err != nil {
-		panic(errors.Wrapf(
-			err,
-			"cleanupUnixSocket(logger=_, target.Endpoint=%s)",
-			path))
+		panic(fmt.Errorf(
+			"cleanupUnixSocket(logger=_, target.Endpoint=%s): %w",
+			path,
+			err))
 	}
 }
 
@@ -102,11 +101,11 @@ func startSctpdDownlinkServer(
 	listener, err := net.Listen(
 		target.Scheme, target.Endpoint)
 	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
+		panic(fmt.Errorf(
+			"net.Listen(network=%s, address=%s): %w",
 			target.Scheme,
-			target.Endpoint))
+			target.Endpoint,
+			err))
 	}
 
 	grpcServer := grpc.NewServer(so...)
@@ -114,11 +113,11 @@ func startSctpdDownlinkServer(
 	sctpdpb.RegisterSctpdDownlinkServer(grpcServer, sctpdDownlinkServer)
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
-			panic(errors.Wrapf(
-				err,
-				"startSctpdDownlinkServer(network=%s, address=%s)",
+			panic(fmt.Errorf(
+				"startSctpdDownlinkServer(network=%s, address=%s): %w",
 				target.Scheme,
-				target.Endpoint))
+				target.Endpoint,
+				err))
 		}
 	}()
 }
@@ -133,11 +132,11 @@ func startSctpdUplinkServer(
 
 	listener, err := net.Listen(target.Scheme, target.Endpoint)
 	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
+		panic(fmt.Errorf(
+			"net.Listen(network=%s, address=%s): %w",
 			target.Scheme,
-			target.Endpoint))
+			target.Endpoint,
+			err))
 	}
 
 	grpcServer := grpc.NewServer(so...)
@@ -145,11 +144,11 @@ func startSctpdUplinkServer(
 	sctpdpb.RegisterSctpdUplinkServer(grpcServer, sctpdUplinkServer)
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
-			panic(errors.Wrapf(
-				err,
-				"startSctpdUplinkServer(network=%s, address=%s)",
+			panic(fmt.Errorf(
+				"startSctpdUplinkServer(network=%s, address=%s): %w",
 				target.Scheme,
-				target.Endpoint))
+				target.Endpoint,
+				err))
 		}
 	}()
 }
@@ -159,22 +158,22 @@ func startPipelinedServer(cfgr config.Configer, logger log.Logger) {
 	listener, err := net.Listen(target.Scheme, target.Endpoint)
 
 	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
+		panic(fmt.Errorf(
+			"net.Listen(network=%s, address=%s): %w",
 			target.Scheme,
-			target.Endpoint))
+			target.Endpoint,
+			err))
 	}
 	grpcServer := grpc.NewServer()
 	pipelinedServer := pipelined.NewPipelinedServer(logger)
 	pipelinedpb.RegisterPipelinedServer(grpcServer, pipelinedServer)
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
-			panic(errors.Wrapf(
-				err,
-				"startPipelinedServer(network=%s, address=%s)",
+			panic(fmt.Errorf(
+				"startPipelinedServer(network=%s, address=%s): %w",
 				target.Scheme,
-				target.Endpoint))
+				target.Endpoint,
+				err))
 		}
 	}()
 }
@@ -185,11 +184,11 @@ func startCaptureServer(
 	address := fmt.Sprintf(":%s", cfgr.Config().GetCaptureServicePort())
 	listener, err := net.Listen(config.TCP, address)
 	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
+		panic(fmt.Errorf(
+			"net.Listen(network=%s, address=%s): %w",
 			config.TCP,
-			address))
+			address,
+			err))
 	}
 
 	grpcServer := grpc.NewServer()
@@ -205,11 +204,11 @@ func startConfigServer(
 
 	listener, err := net.Listen(config.TCP, address)
 	if err != nil {
-		panic(errors.Wrapf(
-			err,
-			"net.Listen(network=%s, address=%s)",
+		panic(fmt.Errorf(
+			"net.Listen(network=%s, address=%s): %w",
 			config.TCP,
-			address))
+			address,
+			err))
 	}
 
 	grpcServer := grpc.NewServer()

@@ -18,13 +18,11 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
-import type {SSOSelectedType} from '../../../shared/types/auth';
-import type {Tab} from '../../../shared/types/tabs';
+import type {SSOSelectedType} from '../../types/auth';
 
 type OrganizationInitAttributes = {
   id?: number,
   name: string,
-  tabs?: Array<Tab>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,
@@ -40,7 +38,6 @@ type OrganizationInitAttributes = {
 export type OrganizationPlainAttributes = {
   id: number,
   name: string,
-  tabs: Array<Tab>,
   customDomains: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,
@@ -78,11 +75,6 @@ export default (
     'Organization',
     {
       name: types.STRING,
-      tabs: {
-        type: types.JSON,
-        allowNull: false,
-        defaultValue: [],
-      },
       csvCharset: types.STRING,
       customDomains: {
         type: types.JSON,

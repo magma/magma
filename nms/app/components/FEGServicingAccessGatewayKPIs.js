@@ -132,7 +132,7 @@ export default function ServicingAccessGatewayKPIs() {
       {
         category: 'Gateway Count',
         value: servicedAccessGatewaysCount,
-        tooltip: 'Number of gateways checked in within last 5 minutes',
+        tooltip: 'Number of gateways checked in recently',
       },
     ],
   ];

@@ -12,13 +12,13 @@
 package crash_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/magma/magma/src/go/crash"
 	mock_crash "github.com/magma/magma/src/go/crash/mock_crash"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 

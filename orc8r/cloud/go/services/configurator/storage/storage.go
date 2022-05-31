@@ -19,7 +19,6 @@ import (
 	"sort"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"google.golang.org/protobuf/proto"
 
@@ -109,7 +108,7 @@ type ConfiguratorStorage interface {
 func RollbackLogOnError(store ConfiguratorStorage) {
 	err := store.Rollback()
 	if err != nil {
-		glog.Errorf("Error while rolling back tx: %+v", errors.WithStack(err))
+		glog.Errorf("Error while rolling back tx: %+v", err)
 	}
 }
 
@@ -118,7 +117,7 @@ func RollbackLogOnError(store ConfiguratorStorage) {
 func CommitLogOnError(store ConfiguratorStorage) {
 	err := store.Commit()
 	if err != nil {
-		glog.Errorf("Error while committing tx: %+v", errors.WithStack(err))
+		glog.Errorf("Error while committing tx: %+v", err)
 	}
 }
 

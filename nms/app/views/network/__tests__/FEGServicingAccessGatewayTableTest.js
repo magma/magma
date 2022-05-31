@@ -100,6 +100,7 @@ const mockGw1: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 jest.mock('axios');
@@ -144,6 +145,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     ...mockGw1,
     id: 'test_gw3',
     name: 'test gateway3',
+    checked_in_recently: true,
     status: {checkin_time: Date.now()},
   };
   beforeEach(() => {

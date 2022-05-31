@@ -1962,6 +1962,7 @@ definitions:
       - id
       - name
       - description
+      - checked_in_recently
       - magmad
       - tier
       - cellular
@@ -1977,6 +1978,8 @@ definitions:
         $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
       description:
         $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      checked_in_recently:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_checked_in_recently'
       magmad:
         $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
       tier:

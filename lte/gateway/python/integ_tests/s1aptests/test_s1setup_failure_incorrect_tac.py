@@ -51,6 +51,11 @@ class TestS1SetupFailureIncorrectTac(unittest.TestCase):
             magmad_util = MagmadUtil(magmad_client)
             magmad_util.restart_sctpd()
             magmad_util.print_redis_state()
+            if s1ap_wrapper.TestWrapper.TEST_CASE_EXECUTION_COUNT == 3:
+                s1ap_wrapper.TestWrapper.generate_flaky_summary()
+
+        elif s1ap_wrapper.TestWrapper.TEST_CASE_EXECUTION_COUNT > 1:
+            s1ap_wrapper.TestWrapper.generate_flaky_summary()
 
     def test_s1setup_failure_incorrect_tac(self):
         """S1 Setup Request with incorrect TAC value"""

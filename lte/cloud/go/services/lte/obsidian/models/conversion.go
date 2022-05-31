@@ -19,7 +19,6 @@ import (
 	"sort"
 
 	"github.com/go-openapi/swag"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -200,6 +199,9 @@ func (m *LteGateway) FromBackendModels(
 	}
 	sort.Strings(m.ConnectedEnodebSerials)
 
+	checkedInRecently := GatewayCheckedInRecently(orc8rModels.LastGatewayCheckInWasRecent(m.Status, m.Magmad))
+	m.CheckedInRecently = &checkedInRecently
+
 	return m
 }
 
@@ -307,7 +309,7 @@ func (m *MutableLteGateway) getAPNResourceChanges(
 	oldIDs := existingGateway.Associations.Filter(lte.APNResourceEntityType).Keys()
 	oldByAPN, err := LoadAPNResources(ctx, existingGateway.NetworkID, oldIDs)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "error loading existing APN resources")
+		return nil, nil, fmt.Errorf("error loading existing APN resources: %w", err)
 	}
 	oldResources := oldByAPN.GetByID()
 	newResources := m.ApnResources.GetByID()

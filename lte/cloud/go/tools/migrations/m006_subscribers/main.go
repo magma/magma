@@ -17,13 +17,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
@@ -47,18 +47,18 @@ func main() {
 	dbSource := migrations.GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")
 	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	tx, err := db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "error opening tx"))
+		log.Fatal(fmt.Errorf("error opening tx: %w", err))
 	}
 
 	defer func() {
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				glog.Errorf("tx failed to rollback: %s", err)
+				glog.Errorf("tx failed to rollback: %s", rollbackErr)
 			}
 			glog.Fatal(err)
 		}
@@ -91,13 +91,13 @@ func main() {
 		var conf []byte
 
 		if err = rows.Scan(&pk, &conf); err != nil {
-			err = errors.Wrap(err, "could not scan row")
+			err = fmt.Errorf("could not scan row: %w", err)
 			return
 		}
 
 		legacySub := &legacySubscriber{}
 		if err = json.Unmarshal(conf, legacySub); err != nil {
-			err = errors.Wrapf(err, "could not unmarshal subscriber config %s", pk)
+			err = fmt.Errorf("could not unmarshal subscriber config %s: %w", pk, err)
 			return
 		}
 		legacySubs[pk] = legacySub
@@ -109,7 +109,7 @@ func main() {
 			Where(squirrel.Eq{pkCol: pk}).
 			Exec()
 		if err != nil {
-			err = errors.Wrapf(err, "error updating subscriber %s", pk)
+			err = fmt.Errorf("error updating subscriber %s: %w", pk, err)
 			return
 		}
 	}

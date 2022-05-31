@@ -133,7 +133,7 @@ Creating orc8r_controller_1       ... done
 
 The Orchestrator application containers will bootstrap certificates on startup
 which are cached for future runs. Watch the directory `magma/.cache/test_certs`
-for a file `admin_operator.pfx` to show up (this may take a minute or 2), then:
+for a file `admin_operator.pfx` to show up (this may take a minute or two).
 
 ```bash
 HOST [magma/orc8r/cloud/docker]$ ls ../../../.cache/test_certs
@@ -141,7 +141,19 @@ HOST [magma/orc8r/cloud/docker]$ ls ../../../.cache/test_certs
 admin_operator.key.pem  bootstrapper.key        controller.crt          rootCA.key
 admin_operator.pem      certifier.key           controller.csr          rootCA.pem
 admin_operator.pfx      certifier.pem           controller.key          rootCA.srl
+```
 
+The owner and group of `admin_cert.key.pem` and `admin_cert.pfx` in `/magma/.cache/test_certs/` are `root`.
+You need to change ownership of these files to your user with `chown`, e.g.
+
+```bash
+HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.key.pem
+HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.pfx
+```
+
+Replace `username` with your username, then:
+
+```bash
 HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs
 ```
 
@@ -214,7 +226,8 @@ NMS can take upto 60 seconds to finish starting up.
 You will probably want to enable this organization (magma-test) to access all networks,
 so go to [host.localhost](https://host.localhost) and login with the same credentials.
 Once there, you can click on the "Organizations" tab on the left sidebar, choose
-`magma-test`, and then check "Enable all networks" in the subsequent pop-up window.
+`magma-test` (the three dots on the right) &rarr; View &rarr; Edit &rarr; Advanced Settings
+and then check "Enable all networks" in the subsequent pop-up window.
 
 **Note**: If you want to test the access gateway VM with a physical eNB and UE,
 refer to

@@ -15,10 +15,10 @@ package reindex
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -43,7 +43,10 @@ func (v *versioner) Initialize() error {
 			Column(desiredColVersions).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "initialize indexer versions table")
+		if err != nil {
+			return nil, fmt.Errorf("initialize indexer versions table: %w", err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(v.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead}, nil, txFn)
 	return err
@@ -101,7 +104,7 @@ func setIndexerActualVersion(builder sqorc.StatementBuilder, tx *sql.Tx, indexer
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		return errors.Wrapf(err, "update indexer actual version for %s to %d", indexerID, version)
+		return fmt.Errorf("update indexer actual version for %s to %d: %w", indexerID, version, err)
 	}
 	return nil
 }
@@ -114,7 +117,7 @@ func getTrackedVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 		RunWith(tx).
 		Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "get all indexer versions, select existing versions")
+		return nil, fmt.Errorf("get all indexer versions, select existing versions: %w", err)
 	}
 
 	defer sqorc.CloseRowsLogOnError(rows, "GetAllIndexerVersions")
@@ -124,7 +127,7 @@ func getTrackedVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 	for rows.Next() {
 		err = rows.Scan(&idVal, &actualVal, &desiredVal)
 		if err != nil {
-			return ret, errors.Wrap(err, "get all indexer versions, SQL row scan error")
+			return ret, fmt.Errorf("get all indexer versions, SQL row scan error: %w", err)
 		}
 		v, err := newVersions(idVal, actualVal, desiredVal)
 		if err != nil {
@@ -135,7 +138,7 @@ func getTrackedVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 
 	err = rows.Err()
 	if err != nil {
-		return ret, errors.Wrap(err, "get all indexer versions, SQL rows error")
+		return ret, fmt.Errorf("get all indexer versions, SQL rows error: %w", err)
 	}
 	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // make deterministic
 	return ret, nil
@@ -144,7 +147,7 @@ func getTrackedVersions(builder sqorc.StatementBuilder, tx *sql.Tx) ([]*indexer.
 func overwriteAllVersions(builder sqorc.StatementBuilder, tx *sql.Tx, versions []*indexer.Versions) error {
 	_, err := builder.Delete(versionTableName).RunWith(tx).Exec()
 	if err != nil {
-		return errors.Wrap(err, "overwrite all indexer versions, delete existing versions")
+		return fmt.Errorf("overwrite all indexer versions, delete existing versions: %w", err)
 	}
 
 	if len(versions) == 0 {
@@ -157,7 +160,7 @@ func overwriteAllVersions(builder sqorc.StatementBuilder, tx *sql.Tx, versions [
 	}
 	_, err = b.RunWith(tx).Exec()
 	if err != nil {
-		return errors.Wrapf(err, "overwrite all indexer desired versions, insert new versions %+v", versions)
+		return fmt.Errorf("overwrite all indexer desired versions, insert new versions %+v: %w", versions, err)
 	}
 
 	return nil
@@ -212,11 +215,11 @@ func getIndexerVersionsByID() (map[string]indexer.Version, error) {
 func newVersions(indexerID string, actualVersion, desiredVersion int64) (*indexer.Versions, error) {
 	actual, err := indexer.NewIndexerVersion(actualVersion)
 	if err != nil {
-		return nil, errors.Wrapf(err, "new actual version for indexer %s", indexerID)
+		return nil, fmt.Errorf("new actual version for indexer %s: %w", indexerID, err)
 	}
 	desired, err := indexer.NewIndexerVersion(desiredVersion)
 	if err != nil {
-		return nil, errors.Wrapf(err, "new desired version for indexer %s", indexerID)
+		return nil, fmt.Errorf("new desired version for indexer %s: %w", indexerID, err)
 	}
 	v := &indexer.Versions{
 		IndexerID: indexerID,

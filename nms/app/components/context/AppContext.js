@@ -18,7 +18,6 @@
 import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import type {FeatureID} from '../../../shared/types/features';
 import type {SSOSelectedType} from '../../../shared/types/auth';
-import type {Tab} from '../../../shared/types/tabs';
 
 import * as React from 'react';
 import {noop} from 'lodash';
@@ -27,13 +26,11 @@ export type AppContextType = {
   csrfToken: ?string,
   version: ?string,
   networkIds: string[],
-  tabs: $ReadOnlyArray<Tab>,
   user: User,
   showExpandButton: () => void,
   hideExpandButton: () => void,
   isOrganizations: boolean,
   isFeatureEnabled: FeatureID => boolean,
-  isTabEnabled: Tab => boolean,
   ssoEnabled: boolean,
   ssoSelectedType: SSOSelectedType,
   hasAccountSettings: boolean,
@@ -43,12 +40,10 @@ const appContextDefaults = {
   csrfToken: null,
   version: null,
   networkIds: [],
-  tabs: [],
   user: {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
   showExpandButton: noop,
   hideExpandButton: noop,
   isFeatureEnabled: () => false,
-  isTabEnabled: () => false,
   ssoEnabled: false,
   ssoSelectedType: 'none',
   hasAccountSettings: false,
@@ -72,9 +67,6 @@ export function AppContextProvider(props: Props) {
     hasAccountSettings: !appData.ssoEnabled,
     isOrganizations: !!props.isOrganizations, // is organizations management aka. the host site
     networkIds: props.networkIDs || [],
-    isTabEnabled: (tab: Tab): boolean => {
-      return appData.tabs?.indexOf(tab) !== -1;
-    },
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;
     },

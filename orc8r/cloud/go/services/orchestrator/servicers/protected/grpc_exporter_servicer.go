@@ -13,9 +13,9 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 
 	edge_hub "github.com/facebookincubator/prometheus-edge-hub/grpc"
-	"github.com/pkg/errors"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"google.golang.org/grpc"
 
@@ -77,7 +77,7 @@ func (s *GRPCPushExporterServicer) pushFamilies(families []*io_prometheus_client
 func (s *GRPCPushExporterServicer) getClient() (edge_hub.MetricsControllerClient, error) {
 	conn, err := s.registry.GetConnectionWithOptions(serviceName, lib_protos.ServiceType_SOUTHBOUND, dialOpts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "get exporter client connection")
+		return nil, fmt.Errorf("get exporter client connection: %w", err)
 	}
 	client := edge_hub.NewMetricsControllerClient(conn)
 	return client, nil

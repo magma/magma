@@ -41,7 +41,7 @@ class UplinkBridgeController(MagmaController):
     DEFAULT_DEV_VLAN_OUT = 'vlan_pop_out'
     SGI_INGRESS_FLOW_UPDATE_FREQ = 60
 
-    UplinkConfig = namedtuple(
+    UplinkBridgeConfig = namedtuple(
         'UplinkBridgeConfig',
         [
             'uplink_bridge', 'uplink_eth_port_name', 'uplink_patch',
@@ -97,7 +97,7 @@ class UplinkBridgeController(MagmaController):
         sgi_management_iface_ipv6_gw = config_dict.get('sgi_management_iface_ipv6_gw', "")
         sgi_ip_monitoring = config_dict.get('sgi_ip_monitoring', True)
 
-        return self.UplinkConfig(
+        return self.UplinkBridgeConfig(
             enable_nat=enable_nat,
             uplink_bridge=bridge_name,
             uplink_eth_port_name=uplink_eth_port_name,
@@ -476,11 +476,12 @@ class UplinkBridgeController(MagmaController):
 
         # Kill dhclient if running.
         pgrep_out = subprocess.Popen(
-            ["pgrep", "-f", "dhclient.*" + if_name],
+            ["pgrep", "-f", "^/sbin/dhclient.*" + if_name],
             stdout=subprocess.PIPE,
         )
-        for pid in pgrep_out.stdout.readlines():
-            subprocess.check_call(["kill", pid.strip()])
+        if pgrep_out.stdout is not None:
+            for pid in pgrep_out.stdout.readlines():
+                subprocess.check_call(["kill", pid.strip()])
 
     def _restart_dhclient(self, if_name: str, af_inet: int):
         if af_inet != netifaces.AF_INET:
@@ -512,7 +513,7 @@ class UplinkBridgeController(MagmaController):
         if af_inet != netifaces.AF_INET:
             self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
             return
-        release_eth_ip = ["dhclient", "-r", if_name]
+        release_eth_ip = ["/sbin/dhclient", "-r", if_name]
         try:
             subprocess.check_call(release_eth_ip)
         except subprocess.CalledProcessError as ex:
@@ -539,7 +540,7 @@ class UplinkBridgeController(MagmaController):
             self.logger.debug("DHCP for IPv6 is not supported: %s", if_name)
             return
 
-        setup_dhclient = ["dhclient", if_name]
+        setup_dhclient = ["/sbin/dhclient", if_name]
         try:
             subprocess.check_call(setup_dhclient)
             # delay to get DHCP address

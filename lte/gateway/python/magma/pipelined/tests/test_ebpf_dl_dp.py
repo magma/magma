@@ -14,6 +14,7 @@ import logging
 import socket
 import subprocess
 import unittest
+from typing import List
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
@@ -49,7 +50,7 @@ class eBpfDatapathDLTest(unittest.TestCase):
 
     imsi = '122321231222333'
 
-    packet_cap1 = []
+    packet_cap1: List = []
     sniffer = None
     ebpf_man = None
 

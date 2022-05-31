@@ -16,10 +16,10 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
@@ -45,7 +45,7 @@ func main() {
 	dbSource := migrations.GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")
 	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	_, err = migrations.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, doMigration)
@@ -66,7 +66,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		Where(squirrel.Eq{typeCol: subscriberType}).
 		Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "error loading subscriber configs")
+		return nil, fmt.Errorf("error loading subscriber configs: %w", err)
 	}
 
 	newConfsByPk := map[string][]byte{}
@@ -75,7 +75,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		var oldConf []byte
 
 		if err = rows.Scan(&pk, &oldConf); err != nil {
-			return nil, errors.Wrap(err, "error scanning subscriber row")
+			return nil, fmt.Errorf("error scanning subscriber row: %w", err)
 		}
 		shouldMigrate, err := shouldMigrateConf(oldConf)
 		if err != nil {
@@ -88,7 +88,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		newConf := SubscriberConfig{Lte: oldConf}
 		newConfBytes, err := json.Marshal(newConf)
 		if err != nil {
-			return nil, errors.Wrap(err, "error marshalling new subscriber config")
+			return nil, fmt.Errorf("error marshaling new subscriber config: %w", err)
 		}
 		newConfsByPk[pk] = newConfBytes
 	}
@@ -100,7 +100,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 			Where(squirrel.Eq{pkCol: pk}).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "error updating subscriber %s", pk)
+			return nil, fmt.Errorf("error updating subscriber %s: %w", pk, err)
 		}
 	}
 	return nil, nil
@@ -112,7 +112,7 @@ func shouldMigrateConf(oldConf []byte) (bool, error) {
 	parsedMessage := map[string]interface{}{}
 	err := json.Unmarshal(oldConf, &parsedMessage)
 	if err != nil {
-		return false, errors.Wrap(err, "could not unmarshal legacy config")
+		return false, fmt.Errorf("could not unmarshal legacy config: %w", err)
 	}
 
 	_, alreadyMigrated := parsedMessage["lte"]

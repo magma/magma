@@ -7351,6 +7351,15 @@ definitions:
         format: uint64
         type: integer
     type: object
+  distribution_package:
+    properties:
+      name:
+        example: magma
+        type: string
+      version:
+        example: 0.0.0
+        type: string
+    type: object
   dns_config_record:
     description: Mapping used for DNS resolving from a domain
     properties:
@@ -8032,6 +8041,11 @@ definitions:
     - epc
     - ran
     type: object
+  gateway_checked_in_recently:
+    description: |
+      Describes whether the last check-in happened recently, taking the magmad check-in interval into account.
+    example: true
+    type: boolean
   gateway_cwf_configs:
     description: CWF configuration for a gateway
     properties:
@@ -8889,6 +8903,8 @@ definitions:
         $ref: '#/definitions/apn_resources'
       cellular:
         $ref: '#/definitions/gateway_cellular_configs'
+      checked_in_recently:
+        $ref: '#/definitions/gateway_checked_in_recently'
       connected_enodeb_serials:
         $ref: '#/definitions/enodeb_serials'
       description:
@@ -8911,6 +8927,7 @@ definitions:
     - id
     - name
     - description
+    - checked_in_recently
     - magmad
     - tier
     - cellular
@@ -10019,15 +10036,6 @@ definitions:
       type: string
     description: neutral host PLMN ID to serving FeG network routes
     type: object
-  package:
-    properties:
-      name:
-        example: magma
-        type: string
-      version:
-        example: 0.0.0
-        type: string
-    type: object
   page_token:
     description: Base64-encoded page token for subsequent paginated API requests
     type: string
@@ -10216,7 +10224,7 @@ definitions:
         x-omitempty: true
       packages:
         items:
-          $ref: '#/definitions/package'
+          $ref: '#/definitions/distribution_package'
         type: array
         x-omitempty: true
       vpn_ip:

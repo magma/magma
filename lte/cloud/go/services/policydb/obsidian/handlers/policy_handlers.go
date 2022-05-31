@@ -14,12 +14,13 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
@@ -108,7 +109,7 @@ func CreateBaseName(c echo.Context) error {
 		}
 	}
 	if err := configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to create base name"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to create base name: %w", err))
 	}
 
 	return c.JSON(http.StatusCreated, string(bnr.Name))
@@ -159,7 +160,7 @@ func UpdateBaseName(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to check if base name exists"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to check if base name exists: %w", err))
 	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -198,7 +199,7 @@ func UpdateBaseName(c echo.Context) error {
 	}
 
 	if err = configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to update base name"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update base name: %w", err))
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -296,7 +297,7 @@ func CreateRule(c echo.Context) error {
 	}
 
 	if err := configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to create policy"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to create policy: %w", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -351,7 +352,7 @@ func UpdateRule(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to check if policy exists"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to check if policy exists: %w", err))
 	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -398,7 +399,7 @@ func UpdateRule(c echo.Context) error {
 	}
 
 	if err = configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to update policy rule"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update policy rule: %w", err))
 	}
 
 	return c.NoContent(http.StatusNoContent)

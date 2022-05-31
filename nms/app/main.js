@@ -17,6 +17,7 @@
 
 import './common/polyfill';
 
+import ApplicationMain from './components/ApplicationMain';
 import Main from './components/Main';
 import MomentUtils from '@date-io/moment';
 import React from 'react';
@@ -30,7 +31,9 @@ import {} from './common/axiosConfig';
 ReactDOM.render(
   <BrowserRouter>
     <MuiPickersUtilsProvider utils={MomentUtils}>
-      <Main />
+      <ApplicationMain>
+        <Main />
+      </ApplicationMain>
     </MuiPickersUtilsProvider>
   </BrowserRouter>,
   nullthrows(document.getElementById('root')),

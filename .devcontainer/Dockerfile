@@ -1,7 +1,7 @@
 ################################################################
 # Devcontainer Image (for local development and CI)
 ################################################################
-FROM ghcr.io/magma/magma/bazel-base:latestv2 as devcontainer
+FROM ghcr.io/magma/magma/bazel-base:latest as devcontainer
 
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
@@ -31,7 +31,6 @@ RUN apt-get update \
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
-ARG FEATURES=mme_oai
 ARG PYTHON_VERSION=3.8
 # PYTHON_VERSION must be in sync with "python.defaultInterpreterPath" and "python.analysis.extraPaths" in .devcontainer/devcontainer.json
 ENV MAGMA_ROOT=/workspaces/magma
@@ -78,9 +77,11 @@ RUN echo "Install general purpose packages" && \
 
 # Install golang 1.18
 WORKDIR /usr/local
-RUN curl https://artifactory.magmacore.org/artifactory/generic/go1.18.linux-amd64.tar.gz --remote-name --location && \
-    tar -xzf go1.18.linux-amd64.tar.gz && \
-    rm go1.18.linux-amd64.tar.gz
+ARG GOLANG_VERSION="1.18"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && rm ${GO_TARBALL}
 ENV PATH=$PATH:/usr/local/go/bin
 
 RUN echo "Install 3rd party dependencies" && \

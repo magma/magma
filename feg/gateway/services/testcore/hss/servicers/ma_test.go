@@ -21,6 +21,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/magma/milenage"
 	"github.com/stretchr/testify/assert"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -29,7 +30,6 @@ import (
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 )
 
@@ -252,10 +252,10 @@ func checkSIPAuthVectors(t *testing.T, maa definitions.MAA, expectedNumVectors u
 
 	for _, vector := range maa.SIPAuthDataItems {
 		assert.Equal(t, definitions.SipAuthScheme_EAP_AKA, vector.AuthScheme)
-		assert.Equal(t, crypto.RandChallengeBytes+crypto.AutnBytes, len(vector.Authenticate))
-		assert.Equal(t, crypto.XresBytes, len(vector.Authorization))
-		assert.Equal(t, crypto.ConfidentialityKeyBytes, len(vector.ConfidentialityKey))
-		assert.Equal(t, crypto.IntegrityKeyBytes, len(vector.IntegrityKey))
+		assert.Equal(t, milenage.RandChallengeBytes+milenage.AutnBytes, len(vector.Authenticate))
+		assert.Equal(t, milenage.XresBytes, len(vector.Authorization))
+		assert.Equal(t, milenage.ConfidentialityKeyBytes, len(vector.ConfidentialityKey))
+		assert.Equal(t, milenage.IntegrityKeyBytes, len(vector.IntegrityKey))
 	}
 }
 
