@@ -15,7 +15,7 @@ import logging
 import os
 import queue
 from concurrent.futures import Future
-from typing import List, OrderedDict, Tuple
+from typing import List, OrderedDict
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
@@ -1023,7 +1023,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _ng_qer_update(
         self, request: SessionSet, pdr_entry: PDRRuleEntry,
-    ) -> Tuple[List[RuleModResult], List[RuleModResult]]:
+    ) -> List[RuleModResult]:
         enforcement_res = []
         failed_policy_rules_results: List = []
 
