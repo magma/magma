@@ -14,7 +14,6 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
 import Menu, {MenuProps} from '@material-ui/core/Menu';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, shadows} from '../theme/default';
 import {withStyles} from '@material-ui/core/styles';
 

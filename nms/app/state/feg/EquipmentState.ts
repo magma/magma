@@ -262,7 +262,6 @@ type FetchProps = {
  */
 export async function FetchFegGateways(props: FetchProps) {
   const {networkId, id, enqueueSnackbar} = props;
-  // flow shows error when doing direct truthiness check on id: so doing it one by one
   if (id !== undefined && id !== null && id !== '') {
     try {
       const gateway = await MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdGet(
