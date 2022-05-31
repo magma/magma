@@ -19,6 +19,8 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
@@ -214,21 +216,27 @@ const mockClusterStatus: federation_network_cluster_status = {
 describe('<FEGEquipmentGateway />', () => {
   beforeEach(() => {
     // gateway context gets list of federation gateways
-    MagmaAPIBindings.getFegByNetworkIdGateways.mockResolvedValue(fegGateways);
+    jest
+      .spyOn(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGet')
+      .mockResolvedValue({data: fegGateways});
     // gateway context gets health status of the gateways
-    MagmaAPIBindings.getFegByNetworkIdGatewaysByGatewayIdHealthStatus.mockImplementation(
-      req => {
+    jest
+      .spyOn(
+        MagmaAPI.federationGateways,
+        'fegNetworkIdGatewaysGatewayIdHealthStatusGet',
+      )
+      .mockImplementation(req => {
         if (req.gatewayId == mockGw0.id) {
           // only gateway 0 is healthy
-          return mockHealthyGatewayStatus;
+          return {data: mockHealthyGatewayStatus};
         }
-        return mockUnhealthyGatewayStatus;
-      },
-    );
+        return {data: mockUnhealthyGatewayStatus};
+      });
     // gateway context gets the active gateway id
-    MagmaAPIBindings.getFegByNetworkIdClusterStatus.mockResolvedValue(
-      mockClusterStatus,
-    );
+    jest
+      .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdClusterStatusGet')
+      .mockResolvedValue({data: mockClusterStatus});
+
     // called by gateway checkin chart
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockCheckinMetric,

@@ -21,11 +21,12 @@ import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 // $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../../components/context/GatewayPoolsContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -40,7 +41,6 @@ import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const gwPoolStateMock = {
@@ -184,6 +184,13 @@ describe('<GatewayPools />', () => {
   );
 
   it('renders', async () => {
+    jest
+      .spyOn(
+        MagmaAPI.lteNetworks,
+        'lteNetworkIdGatewayPoolsGatewayPoolIdDelete',
+      )
+      .mockImplementation();
+
     const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
       <Wrapper />,
     );
@@ -231,7 +238,7 @@ describe('<GatewayPools />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.deleteLteByNetworkIdGatewayPoolsByGatewayPoolId,
+      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGatewayPoolIdDelete,
     ).toHaveBeenCalledWith({
       networkId: 'test',
       gatewayPoolId: 'pool3',
@@ -240,19 +247,34 @@ describe('<GatewayPools />', () => {
 });
 
 describe('<AddEditGatewayPoolButton />', () => {
+  let lteNetworkIdGatewayPoolsGatewayPoolIdGet;
+
   beforeEach(() => {
     (useEnqueueSnackbar: JestMockFn<
       Array<empty>,
       $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
-    MagmaAPIBindings.getLteByNetworkIdGatewayPoolsByGatewayPoolId.mockResolvedValue(
-      {
-        config: {mme_group_id: 4},
-        gateway_ids: [],
-        gateway_pool_id: 'pool4',
-        gateway_pool_name: 'pool4',
-      },
-    );
+      >).mockReturnValue(jest.fn());
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsPost')
+      .mockImplementation();
+
+    jest
+      .spyOn(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularPoolingPut',
+      )
+      .mockResolvedValue({data: undefined}); // TODO[TS-migration] What is the real response?
+
+    lteNetworkIdGatewayPoolsGatewayPoolIdGet = jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsGatewayPoolIdGet')
+      .mockResolvedValue({
+        data: {
+          config: {mme_group_id: 4},
+          gateway_ids: [],
+          gateway_pool_id: 'pool4',
+          gateway_pool_name: 'pool4',
+        },
+      });
   });
   const AddWrapper = () => {
     const [gwPoolsState, setGatewayPoolsState] = useState({});
@@ -347,21 +369,23 @@ describe('<AddEditGatewayPoolButton />', () => {
     };
 
     expect(
-      MagmaAPIBindings.postLteByNetworkIdGatewayPools,
+      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsPost,
     ).toHaveBeenCalledWith({
       networkId,
-      haGatewayPool: newGatewayPool,
+      hAGatewayPool: newGatewayPool,
     });
+
     await wait();
 
-    MagmaAPIBindings.getLteByNetworkIdGatewayPoolsByGatewayPoolId.mockResolvedValue(
-      {
+    // $FlowFixMe
+    lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
+      data: {
         config: {mme_group_id: 4},
         gateway_ids: [],
         gateway_pool_id: 'pool4',
         gateway_pool_name: 'pool4',
       },
-    );
+    });
 
     await wait();
     // check if only second tab (PrimaryEdit) is active
@@ -387,7 +411,7 @@ describe('<AddEditGatewayPoolButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularPooling,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
     ).toHaveBeenCalledWith({
       networkId: networkId,
       gatewayId: 'testGatewayId0',
@@ -401,14 +425,15 @@ describe('<AddEditGatewayPoolButton />', () => {
     });
 
     await wait();
-    MagmaAPIBindings.getLteByNetworkIdGatewayPoolsByGatewayPoolId.mockResolvedValue(
-      {
+    // $FlowFixMe
+    lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
+      data: {
         config: {mme_group_id: 4},
         gateway_ids: ['testGatewayId0'],
         gateway_pool_id: 'pool4',
         gateway_pool_name: 'pool4',
       },
-    );
+    });
 
     await wait();
     // check if only third tab (SecondaryEdit) is active
@@ -434,7 +459,7 @@ describe('<AddEditGatewayPoolButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularPooling,
+      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
     ).toHaveBeenCalledWith({
       networkId: networkId,
       gatewayId: 'testGatewayId1',
