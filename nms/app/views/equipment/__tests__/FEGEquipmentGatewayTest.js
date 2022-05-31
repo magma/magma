@@ -26,7 +26,8 @@ import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {render, wait} from '@testing-library/react';
+// $FlowFixMe upgrade testing-library types
+import {render, wait, waitFor} from '@testing-library/react';
 import type {
   csfb,
   federation_gateway,
@@ -292,35 +293,36 @@ describe('<FEGEquipmentGateway />', () => {
 
   it('renders federation gateway table correctly', async () => {
     const {getByTestId, getAllByRole, queryByTestId} = render(<Wrapper />);
-    await wait();
-    const rowItems = await getAllByRole('row');
-    // first row is the header
-    expect(rowItems[0]).toHaveTextContent('Name');
-    expect(rowItems[0]).toHaveTextContent('Primary');
-    expect(rowItems[0]).toHaveTextContent('Health');
-    expect(rowItems[0]).toHaveTextContent('Gx');
-    expect(rowItems[0]).toHaveTextContent('Gy');
-    expect(rowItems[0]).toHaveTextContent('SWx');
-    expect(rowItems[0]).toHaveTextContent('S6a');
-    expect(rowItems[0]).toHaveTextContent('CSFB');
+    await waitFor(() => {
+      const rowItems = getAllByRole('row');
+      // first row is the header
+      expect(rowItems[0]).toHaveTextContent('Name');
+      expect(rowItems[0]).toHaveTextContent('Primary');
+      expect(rowItems[0]).toHaveTextContent('Health');
+      expect(rowItems[0]).toHaveTextContent('Gx');
+      expect(rowItems[0]).toHaveTextContent('Gy');
+      expect(rowItems[0]).toHaveTextContent('SWx');
+      expect(rowItems[0]).toHaveTextContent('S6a');
+      expect(rowItems[0]).toHaveTextContent('CSFB');
 
-    expect(rowItems[1]).toHaveTextContent('test_gateway');
-    expect(getByTestId('test_feg_gw0 is primary')).toBeVisible();
-    expect(rowItems[1]).toHaveTextContent('Good');
-    expect(rowItems[1]).toHaveTextContent('174.16.1.14:3868');
-    expect(rowItems[1]).toHaveTextContent('174.18.1.0:3868');
-    expect(rowItems[1]).toHaveTextContent('-');
-    expect(rowItems[1]).toHaveTextContent('174.18.1.0:2000');
-    expect(rowItems[1]).toHaveTextContent('174.18.1.0:2200');
+      expect(rowItems[1]).toHaveTextContent('test_gateway');
+      expect(getByTestId('test_feg_gw0 is primary')).toBeVisible();
+      expect(rowItems[1]).toHaveTextContent('Good');
+      expect(rowItems[1]).toHaveTextContent('174.16.1.14:3868');
+      expect(rowItems[1]).toHaveTextContent('174.18.1.0:3868');
+      expect(rowItems[1]).toHaveTextContent('-');
+      expect(rowItems[1]).toHaveTextContent('174.18.1.0:2000');
+      expect(rowItems[1]).toHaveTextContent('174.18.1.0:2200');
 
-    expect(rowItems[2]).toHaveTextContent('test_gateway1');
-    expect(queryByTestId('test_gw1 is primary')).toBeNull();
-    expect(rowItems[2]).toHaveTextContent('Bad');
-    expect(rowItems[2]).toHaveTextContent('-');
-    expect(rowItems[2]).toHaveTextContent('-');
-    expect(rowItems[2]).toHaveTextContent('174.18.1.0:3869');
-    expect(rowItems[2]).toHaveTextContent('-');
-    expect(rowItems[2]).toHaveTextContent('-');
+      expect(rowItems[2]).toHaveTextContent('test_gateway1');
+      expect(queryByTestId('test_gw1 is primary')).toBeNull();
+      expect(rowItems[2]).toHaveTextContent('Bad');
+      expect(rowItems[2]).toHaveTextContent('-');
+      expect(rowItems[2]).toHaveTextContent('-');
+      expect(rowItems[2]).toHaveTextContent('174.18.1.0:3869');
+      expect(rowItems[2]).toHaveTextContent('-');
+      expect(rowItems[2]).toHaveTextContent('-');
+    });
   });
 
   it('renders cluster status correctly', async () => {
