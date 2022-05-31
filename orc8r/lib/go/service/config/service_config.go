@@ -23,8 +23,6 @@ import (
 
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
-
-	_ "magma/orc8r/lib/go/initflag"
 )
 
 var (

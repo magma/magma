@@ -16,19 +16,20 @@ EXTRA_COMMANDS="status"
 EXTRA_HELP="        status  check service status"
 
 if [ -z "${FLGS}" ]; then
-  FLGS="-logtostderr -stderr2syslog -stdout2stderr -grpc_keepalive -v=2"
+  FLGS="-logtostderr -grpc_keepalive -v=2"
 fi
 
+# Use " 2>&1 | logger &" syntax to pipe both stderr and stdout to syslog
 start() {
   ulimit -v 36000 -m 24000
   export GODEBUG=madvdontneed=1
-  service_start "/sbin/${CMD}" ${FLGS}
+  service_start "/sbin/${CMD}" ${FLGS} 2>&1 | logger &
 }
 
 stop() {
-  service_stop "/sbin/${CMD}" ${FLGS}
+  service_stop "/sbin/${CMD}" ${FLGS} 2>&1 | logger &
 }
 
 status() {
-  service_check "/sbin/${CMD}" ${FLGS}
+  service_check "/sbin/${CMD}" ${FLGS} 2>&1 | logger &
 }
