@@ -27,7 +27,9 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetGatewayState} from '../../../state/feg/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../../app/hooks/useSnackbar';
+import MagmaAPI from '../../../../api/MagmaAPI';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 import type {
   csfb,
@@ -165,6 +167,10 @@ describe('<FEGGatewayDetailConfig />', () => {
   beforeEach(() => {
     // Mocking value because it is called by FEGGatewayDialogue / Edit Gateway Page
     MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValue([]);
+
+    jest
+      .spyOn(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdPut')
+      .mockImplementation();
   });
 
   const Wrapper = () => (
@@ -288,7 +294,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     await wait();
     // verify that address, dest_host, and dest_realm were edited
     expect(
-      MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdPut,
     ).toHaveBeenCalledWith({
       networkId: 'mynetwork',
       gatewayId: mockGw0.id,
@@ -324,7 +330,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     await wait();
     // verify that address, host, and realm were edited
     expect(
-      MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdPut,
     ).toHaveBeenCalledWith({
       networkId: 'mynetwork',
       gatewayId: mockGw0.id,
@@ -358,7 +364,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     await wait();
     // verify that address and local_address were edited
     expect(
-      MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdPut,
     ).toHaveBeenCalledWith({
       networkId: 'mynetwork',
       gatewayId: mockGw0.id,
@@ -389,7 +395,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     await wait();
     // verify that protocol was edited
     expect(
-      MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdPut,
     ).toHaveBeenCalledWith({
       networkId: 'mynetwork',
       gatewayId: mockGw0.id,
@@ -421,7 +427,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     await wait();
     // verify that server_address and local_address were edited
     expect(
-      MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdPut,
     ).toHaveBeenCalledWith({
       networkId: 'mynetwork',
       gatewayId: mockGw0.id,

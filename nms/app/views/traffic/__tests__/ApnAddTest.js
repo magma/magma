@@ -23,6 +23,8 @@ import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 // $FlowFixMe migrated to typescript
 import {LTE} from '../../../../shared/types/network';
+// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../../api/MagmaAPI';
 
 import {
   ApnProvider,
@@ -72,7 +74,10 @@ const apns = {
 describe('<TrafficDashboard />', () => {
   beforeEach(() => {
     MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+    jest.spyOn(MagmaAPI.networks, 'networksGet').mockResolvedValue({data: []});
+    jest
+      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
+      .mockResolvedValue({data: []});
   });
 
   const {location} = window;
