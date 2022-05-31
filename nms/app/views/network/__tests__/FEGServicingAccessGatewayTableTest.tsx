@@ -14,6 +14,7 @@
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -101,6 +102,7 @@ const mockGw1: LteGateway = {
 };
 
 //jest.mock('axios');
+jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
 
 describe('<ServicingAccessGatewaysInfo />', () => {
@@ -154,7 +156,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
       .mockResolvedValueOnce({data: mockFegLteNetwork2} as AxiosResponse)
       .mockResolvedValue({data: mockFegLteNetwork3} as AxiosResponse);
     jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsGet')
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet')
       .mockResolvedValueOnce({
         data: {
           [mockGw1.id]: mockGw1,
@@ -215,20 +217,17 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     ).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
-    //only 2 of the 3 feg_lte networks are serviced by current network
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGet,
-    ).toHaveBeenCalledTimes(2);
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGet,
-    ).toHaveBeenCalledWith({
+    // only 2 of the 3 feg_lte networks are serviced by current network
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysGet).toHaveBeenCalledTimes(
+      2,
+    );
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysGet).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork1.id,
     });
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGet,
-    ).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysGet).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
+
     const rowItems = getAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Access Network');
