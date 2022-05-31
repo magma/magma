@@ -31,6 +31,9 @@ import {
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaV1API from '../../../../generated/WebClient';
 // $FlowFixMe Upgrade react-testing-library
 import {fireEvent, render, waitFor} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -157,9 +160,47 @@ describe('<TrafficDashboard />', () => {
     (useEnqueueSnackbar: JestMockFn<
       Array<empty>,
       $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
+      >).mockReturnValue(jest.fn());
+    jest
+      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
+      .mockResolvedValue({data: undefined});
+
+    jest
+      .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdGet')
+      .mockResolvedValue({data: feg_network});
+
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGet')
+      .mockResolvedValue({data: undefined});
+
+    jest
+      .spyOn(
+        MagmaAPI.federatedLTENetworks,
+        'fegLteNetworkIdSubscriberConfigPut',
+      )
+      .mockImplementation();
+
+    jest
+      .spyOn(
+        MagmaAPI.federatedLTENetworks,
+        'fegLteNetworkIdSubscriberConfigGet',
+      )
+      .mockResolvedValue({data: undefined});
+
+    jest
+      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdSubscriberConfigPut')
+      .mockImplementation();
+
+    jest
+      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
+      .mockResolvedValue({data: feg_lte_network});
+
+    jest
+      .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdSubscriberConfigPut')
+      .mockImplementation();
+
+    MagmaV1API.getFegByNetworkId.mockResolvedValue(feg_network);
     MagmaAPIBindings.getFegLteByNetworkId.mockResolvedValue(feg_lte_network);
-    MagmaAPIBindings.getFegByNetworkId.mockResolvedValue(feg_network);
     MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles.mockResolvedValue({});
     MagmaAPIBindings.getNetworksByNetworkIdPoliciesBaseNamesByBaseName.mockResolvedValue(
       {},
@@ -343,7 +384,7 @@ describe('<TrafficDashboard />', () => {
 
     // verify if network's subscriber config is populated as well
     expect(
-      MagmaAPIBindings.putFegLteByNetworkIdSubscriberConfig,
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdSubscriberConfigPut,
     ).toHaveBeenCalledWith({
       networkId: 'test',
       record: {
@@ -352,7 +393,7 @@ describe('<TrafficDashboard />', () => {
       },
     });
     expect(
-      MagmaAPIBindings.putFegByNetworkIdSubscriberConfig,
+      MagmaAPI.federationNetworks.fegNetworkIdSubscriberConfigPut,
     ).toHaveBeenCalledWith({
       networkId: 'test_feg_network',
       record: {
@@ -451,7 +492,7 @@ describe('<TrafficDashboard />', () => {
 
     // verify if network's subscriber config is populated as well
     expect(
-      MagmaAPIBindings.putLteByNetworkIdSubscriberConfig,
+      MagmaAPI.lteNetworks.lteNetworkIdSubscriberConfigPut,
     ).toHaveBeenCalledWith({
       networkId: 'test',
       record: {
