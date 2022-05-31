@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -24,9 +24,12 @@ TEST(test_map, test_map) {
   magma::proto_map_uint64_uint64_t imsi_map;
 
   imsi_map.map = mme_ue_context_proto.mutable_imsi_ue_id_htbl();
-  imsi_map.set_name("IMSI HASHTABLE");
+  char imsi_name[1024] = "IMSI HASHTABLE";
+  char rcvd_name[1024] = {0};
+  imsi_map.set_name(imsi_name);
 
-  EXPECT_EQ(imsi_map.get_name(), "IMSI HASHTABLE");
+  memcpy(rcvd_name, imsi_map.get_name(), strlen(imsi_name));
+  EXPECT_TRUE(!memcmp(rcvd_name, imsi_name, strlen(imsi_name)));
   // Trying to get from an empty map
   uint64_t data;
   EXPECT_EQ(imsi_map.get(1, &data), magma::PROTO_MAP_EMPTY);
@@ -55,18 +58,20 @@ TEST(test_map, test_map) {
   imsi_map.clear();
   EXPECT_TRUE(imsi_map.isEmpty());
   // Object table
-  std::string guti_1, guti_2, guti_3;
   // GUTI: mme-group-id = 0x0001, mme-code = 01 and mtmsi = remaining string
-  guti_1 = "0x0001011a82a179";
-  guti_2 = "0x0001011a82a190";
-  guti_3 = "0x0001011a82a222";
+  char guti_1[] = "0x0001011a82a179";
+  char guti_2[] = "0x0001011a82a190";
+  char guti_3[] = "0x0001011a82a222";
   uint64_t gutiData;
 
   magma::proto_map_string_uint64_t guti_map;
   guti_map.map = mme_ue_context_proto.mutable_guti_ue_id_htbl();
-  guti_map.set_name("GUTI HASHTABLE");
+  char guti_name[1024] = "GUTI HASHTABLE";
+  guti_map.set_name(guti_name);
 
-  EXPECT_EQ(guti_map.get_name(), "GUTI HASHTABLE");
+  memset(rcvd_name, 0, 1024);
+  memcpy(rcvd_name, guti_map.get_name(), strlen(guti_name));
+  EXPECT_TRUE(!memcmp(rcvd_name, guti_name, strlen(guti_name)));
   // Trying to get from an empty map
   EXPECT_EQ(guti_map.get(guti_1, &gutiData), magma::PROTO_MAP_EMPTY);
 

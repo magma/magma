@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -99,13 +99,13 @@ template <typename keyT, typename valueT>
 struct proto_map_s {
   google::protobuf::Map<keyT, valueT>* map;
   /* TODO (rsarwad): on final conversion to cpp,
-   replace char array with std::string name;*/
+   replace char array with std::string */
   char name[1024];
 
   void set_name(char* umap_name) {
     strncpy(name, umap_name, strlen(umap_name));
   }
-  std::string get_name() { return name; }
+  char* get_name() { return name; }
   /***************************************************************************
   **                                                                        **
   ** Name:    get()                                                         **
@@ -204,12 +204,12 @@ struct proto_map_s {
 
   /***************************************************************************
   **                                                                        **
-  ** Name:    remove_map()                                                  **
+  ** Name:    destroy_map()                                                  **
   **                                                                        **
   ** Description: Clears the contents of the map and also delete map        **
   **                                                                        **
   ***************************************************************************/
-  void remove_map() {
+  void destroy_map() {
     map->clear();
     delete map;
   }
@@ -222,11 +222,10 @@ struct proto_map_s {
   **              executed on each node                                     **
   **                                                                        **
   ***************************************************************************/
-  map_apply_callback_on_all_elements(bool funct_cb(const keyT key,
-                                                   const valueT value,
-                                                   void* parameterP,
-                                                   void** resultP),
-                                     void* parameterP, void** resultP) {
+  proto_map_rc_t map_apply_callback_on_all_elements(
+      bool funct_cb(const keyT key, const valueT value, void* parameterP,
+                    void** resultP),
+      void* parameterP, void** resultP) {
     if (map->empty()) {
       return PROTO_MAP_EMPTY;
     }
