@@ -29,6 +29,20 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#ifdef __cplusplus
+}
+#endif
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_CNDomain.h"
@@ -71,11 +85,8 @@
 #include "S1ap_UEPagingID.h"
 #include "S1ap_UERadioCapability.h"
 #include "asn_SEQUENCE_OF.h"
-#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
@@ -83,18 +94,14 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 typedef struct arg_s1ap_send_enb_dereg_ind_s {
@@ -274,7 +281,7 @@ status_code_e s1ap_mme_set_cause(S1ap_Cause_t* cause_p,
 }
 
 long s1ap_mme_get_cause_value(S1ap_Cause_t* cause) {
-  S1ap_Cause_PR cause_type = {0};
+  S1ap_Cause_PR cause_type = {S1ap_Cause_PR_NOTHING};
   long cause_value = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -321,10 +328,10 @@ status_code_e s1ap_mme_generate_s1_setup_failure(const sctp_assoc_id_t assoc_id,
                                                  const long time_to_wait) {
   uint8_t* buffer_p = 0;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu;
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_S1SetupFailure_t* out;
   S1ap_S1SetupFailureIEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -336,7 +343,8 @@ status_code_e s1ap_mme_generate_s1_setup_failure(const sctp_assoc_id_t assoc_id,
       S1ap_UnsuccessfulOutcome__value_PR_S1SetupFailure;
   out = &pdu.choice.unsuccessfulOutcome.value.choice.S1SetupFailure;
 
-  ie = (S1ap_S1SetupFailureIEs_t*)calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
+  ie = reinterpret_cast<S1ap_S1SetupFailureIEs_t*>(
+      calloc(1, sizeof(S1ap_S1SetupFailureIEs_t)));
   ie->id = S1ap_ProtocolIE_ID_id_Cause;
   ie->criticality = S1ap_Criticality_ignore;
   ie->value.present = S1ap_S1SetupFailureIEs__value_PR_Cause;
@@ -347,7 +355,8 @@ status_code_e s1ap_mme_generate_s1_setup_failure(const sctp_assoc_id_t assoc_id,
    * Include the optional field time to wait only if the value is > -1
    */
   if (time_to_wait > -1) {
-    ie = (S1ap_S1SetupFailureIEs_t*)calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
+    ie = reinterpret_cast<S1ap_S1SetupFailureIEs_t*>(
+        calloc(1, sizeof(S1ap_S1SetupFailureIEs_t)));
     ie->id = S1ap_ProtocolIE_ID_id_TimeToWait;
     ie->criticality = S1ap_Criticality_ignore;
     ie->value.present = S1ap_S1SetupFailureIEs__value_PR_TimeToWait;
@@ -454,7 +463,8 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
           (sctp_assoc_id ==
            ((ue_description_t*)oldnode->data)->sctp_assoc_id)) {
         pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-        s1ap_remove_ue(state, oldnode->data);
+        s1ap_remove_ue(state,
+                       reinterpret_cast<ue_description_t*>(oldnode->data));
         pthread_mutex_lock(&hashtblP->lock_nodes[i]);
       }
     }
@@ -468,7 +478,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
                                                const sctp_assoc_id_t assoc_id,
                                                const sctp_stream_id_t stream,
                                                S1ap_S1AP_PDU_t* pdu) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   S1ap_S1SetupRequest_t* container = NULL;
   S1ap_S1SetupRequestIEs_t* ie = NULL;
@@ -716,7 +726,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_s1_setup_response(
     s1ap_state_t* state, enb_description_t* enb_association) {
-  S1ap_S1AP_PDU_t pdu;
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_S1SetupResponse_t* out;
   S1ap_S1SetupResponseIEs_t* ie = NULL;
   S1ap_ServedGUMMEIsItem_t* servedGUMMEI = NULL;
@@ -724,7 +734,7 @@ status_code_e s1ap_generate_s1_setup_response(
   int enc_rval = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (enb_association == NULL) {
@@ -746,7 +756,8 @@ status_code_e s1ap_generate_s1_setup_response(
   ie->value.present = S1ap_S1SetupResponseIEs__value_PR_ServedGUMMEIs;
 
   // memset for gcc 4.8.4 instead of {0}, servedGUMMEI.servedPLMNs
-  servedGUMMEI = calloc(1, sizeof *servedGUMMEI);
+  servedGUMMEI = reinterpret_cast<S1ap_ServedGUMMEIsItem_t*>(
+      calloc(1, sizeof *servedGUMMEI));
 
   mme_config_read_lock(&mme_config);
   /*
@@ -768,7 +779,7 @@ status_code_e s1ap_generate_s1_setup_response(
     }
     if (false == plmn_added) {
       S1ap_PLMNidentity_t* plmn = NULL;
-      plmn = calloc(1, sizeof(*plmn));
+      plmn = reinterpret_cast<S1ap_PLMNidentity_t*>(calloc(1, sizeof(*plmn)));
       MCC_MNC_TO_PLMNID(mme_config.served_tai.plmn_mcc[i],
                         mme_config.served_tai.plmn_mnc[i],
                         mme_config.served_tai.plmn_mnc_len[i], plmn);
@@ -780,11 +791,12 @@ status_code_e s1ap_generate_s1_setup_response(
     S1ap_MME_Group_ID_t* mme_gid = NULL;
     S1ap_MME_Code_t* mmec = NULL;
 
-    mme_gid = calloc(1, sizeof(*mme_gid));
+    mme_gid =
+        reinterpret_cast<S1ap_MME_Group_ID_t*>(calloc(1, sizeof(*mme_gid)));
     INT16_TO_OCTET_STRING(mme_config.gummei.gummei[i].mme_gid, mme_gid);
     ASN_SEQUENCE_ADD(&servedGUMMEI->servedGroupIDs.list, mme_gid);
 
-    mmec = calloc(1, sizeof(*mmec));
+    mmec = reinterpret_cast<S1ap_MME_Code_t*>(calloc(1, sizeof(*mmec)));
     INT8_TO_OCTET_STRING(mme_config.gummei.gummei[i].mme_code, mmec);
     ASN_SEQUENCE_ADD(&servedGUMMEI->servedMMECs.list, mmec);
   }
@@ -837,7 +849,7 @@ status_code_e s1ap_mme_handle_ue_cap_indication(s1ap_state_t* state,
   ue_description_t* ue_ref_p = NULL;
   S1ap_UECapabilityInfoIndication_t* container;
   S1ap_UECapabilityInfoIndicationIEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -927,9 +939,9 @@ status_code_e s1ap_mme_handle_ue_cap_indication(s1ap_state_t* state,
     ue_cap_ind_p->mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
     ue_cap_ind_p->radio_capabilities_length =
         ie->value.choice.UERadioCapability.size;
-    ue_cap_ind_p->radio_capabilities =
+    ue_cap_ind_p->radio_capabilities = reinterpret_cast<uint8_t*>(
         calloc(ue_cap_ind_p->radio_capabilities_length,
-               sizeof(*ue_cap_ind_p->radio_capabilities));
+               sizeof(*ue_cap_ind_p->radio_capabilities)));
     memcpy(ue_cap_ind_p->radio_capabilities,
            ie->value.choice.UERadioCapability.buf,
            ue_cap_ind_p->radio_capabilities_length);
@@ -957,7 +969,7 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
   S1ap_E_RABSetupItemCtxtSUResIEs_t* eRABSetupItemCtxtSURes_p = NULL;
   ue_description_t* ue_ref_p = NULL;
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   imsi64_t imsi64;
@@ -1117,7 +1129,7 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
   S1ap_Cause_PR cause_type;
   long cause_value;
   enum s1cause s1_release_cause = S1AP_RADIO_EUTRAN_GENERATED_REASON;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -1294,10 +1306,10 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
     enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu;
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_UEContextReleaseCommand_t* out;
   S1ap_UEContextReleaseCommand_IEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   S1ap_Cause_PR cause_type;
   long cause_value;
 
@@ -1424,10 +1436,10 @@ status_code_e s1ap_mme_generate_ue_context_modification(
     imsi64_t imsi64) {
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_UEContextModificationRequest_t* container = NULL;
   S1ap_UEContextModificationRequestIEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (ue_ref_p == NULL) {
@@ -1473,7 +1485,8 @@ status_code_e s1ap_mme_generate_ue_context_modification(
 #define PLMN_SIZE 3
     S1ap_LAI_t* lai_item = &ie->value.choice.LAI;
     lai_item->pLMNidentity.size = PLMN_SIZE;
-    lai_item->pLMNidentity.buf = calloc(PLMN_SIZE, sizeof(uint8_t));
+    lai_item->pLMNidentity.buf =
+        reinterpret_cast<uint8_t*>(calloc(PLMN_SIZE, sizeof(uint8_t)));
     uint8_t mnc_length =
         mme_config_find_mnc_length(ue_context_mod_req_pP->lai.mccdigit1,
                                    ue_context_mod_req_pP->lai.mccdigit2,
@@ -1547,7 +1560,7 @@ status_code_e s1ap_handle_ue_context_release_command(
         ue_context_release_command_pP,
     imsi64_t imsi64) {
   ue_description_t* ue_ref_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
@@ -1586,7 +1599,7 @@ status_code_e s1ap_handle_ue_context_mod_req(
     const itti_s1ap_ue_context_mod_req_t* const ue_context_mod_req_pP,
     imsi64_t imsi64) {
   ue_description_t* ue_ref_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (ue_context_mod_req_pP == NULL) {
@@ -1641,10 +1654,10 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   } else {
     if (ue_ref_p->sctp_assoc_id == assoc_id) {
-      OAILOG_ERROR(LOG_S1AP,
-                   "UE Context Release complete: clearing S1 context for "
-                   "ueid " MME_UE_S1AP_ID_FMT "\n",
-                   (uint32_t)mme_ue_s1ap_id);
+      OAILOG_INFO(LOG_S1AP,
+                  "UE Context Release complete: clearing S1 context for "
+                  "ueid " MME_UE_S1AP_ID_FMT "\n",
+                  (uint32_t)mme_ue_s1ap_id);
       // Remove UE context only if UE is not handed over to another eNB
       imsi64_t imsi64 = INVALID_IMSI64;
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
@@ -1682,7 +1695,7 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
   MessageDef* message_p = NULL;
   S1ap_Cause_PR cause_type;
   long cause_value;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   imsi64_t imsi64 = INVALID_IMSI64;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
@@ -1820,7 +1833,7 @@ status_code_e s1ap_mme_handle_ue_context_modification_response(
   S1ap_UEContextModificationResponse_t* container = NULL;
   ue_description_t* ue_ref_p = NULL;
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -1907,8 +1920,8 @@ status_code_e s1ap_mme_handle_ue_context_modification_failure(
   S1ap_UEContextModificationFailure_t* container = NULL;
   ue_description_t* ue_ref_p = NULL;
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
-  S1ap_Cause_PR cause_type = {0};
+  status_code_e rc = RETURNok;
+  S1ap_Cause_PR cause_type = {S1ap_Cause_PR_NOTHING};
   int64_t cause_value;
   imsi64_t imsi64 = INVALID_IMSI64;
 
@@ -2204,7 +2217,7 @@ status_code_e s1ap_mme_handle_handover_failure(s1ap_state_t* state,
                                                S1ap_S1AP_PDU_t* pdu) {
   S1ap_HandoverFailure_t* container = NULL;
   S1ap_HandoverFailureIEs_t* ie = NULL;
-  S1ap_S1AP_PDU_t out_pdu = {0};
+  S1ap_S1AP_PDU_t out_pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_HandoverPreparationFailure_t* out;
   S1ap_HandoverPreparationFailureIEs_t* hpf_ie = NULL;
   ue_description_t* ue_ref_p = NULL;
@@ -2341,7 +2354,7 @@ status_code_e s1ap_mme_handle_handover_cancel(s1ap_state_t* state,
                                               S1ap_S1AP_PDU_t* pdu) {
   S1ap_HandoverCancel_t* container = NULL;
   S1ap_HandoverCancelIEs_t* ie = NULL;
-  S1ap_S1AP_PDU_t out_pdu = {0};
+  S1ap_S1AP_PDU_t out_pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_HandoverCancelAcknowledge_t* out;
   S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
   ue_description_t* ue_ref_p = NULL;
@@ -2485,7 +2498,7 @@ status_code_e s1ap_mme_handle_handover_request(
   uint8_t* buffer_p = NULL;
   uint8_t err = 0;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_HandoverRequest_t* out;
   S1ap_HandoverRequestIEs_t* ie = NULL;
   enb_description_t* target_enb = NULL;
@@ -2604,9 +2617,10 @@ status_code_e s1ap_mme_handle_handover_request(
     e_RABToBeSetup->e_RAB_ID = ho_request_p->e_rab_list.item[i].e_rab_id;
 
     // transportLayerAddress
-    e_RABToBeSetup->transportLayerAddress.buf = calloc(
-        blength(ho_request_p->e_rab_list.item[i].transport_layer_address),
-        sizeof(uint8_t));
+    e_RABToBeSetup->transportLayerAddress.buf =
+        reinterpret_cast<uint8_t*>(calloc(
+            blength(ho_request_p->e_rab_list.item[i].transport_layer_address),
+            sizeof(uint8_t)));
     memcpy(e_RABToBeSetup->transportLayerAddress.buf,
            ho_request_p->e_rab_list.item[i].transport_layer_address->data,
            blength(ho_request_p->e_rab_list.item[i].transport_layer_address));
@@ -2684,18 +2698,18 @@ status_code_e s1ap_mme_handle_handover_request(
       &ie->value.choice.UESecurityCapabilities;
 
   ue_security_capabilities->encryptionAlgorithms.buf =
-      calloc(1, sizeof(uint16_t));
+      reinterpret_cast<uint8_t*>(calloc(2, sizeof(uint8_t)));
   memcpy(ue_security_capabilities->encryptionAlgorithms.buf,
-         &ho_request_p->encryption_algorithm_capabilities, sizeof(uint16_t));
+         &ho_request_p->encryption_algorithm_capabilities, 2 * sizeof(uint8_t));
   ue_security_capabilities->encryptionAlgorithms.size = 2;
   ue_security_capabilities->encryptionAlgorithms.bits_unused = 0;
   OAILOG_DEBUG(LOG_S1AP, "security_capabilities_encryption_algorithms 0x%04X\n",
                ho_request_p->encryption_algorithm_capabilities);
 
   ue_security_capabilities->integrityProtectionAlgorithms.buf =
-      calloc(1, sizeof(uint16_t));
+      reinterpret_cast<uint8_t*>(calloc(2, sizeof(uint8_t)));
   memcpy(ue_security_capabilities->integrityProtectionAlgorithms.buf,
-         &ho_request_p->integrity_algorithm_capabilities, sizeof(uint16_t));
+         &ho_request_p->integrity_algorithm_capabilities, 2 * sizeof(uint8_t));
   ue_security_capabilities->integrityProtectionAlgorithms.size = 2;
   ue_security_capabilities->integrityProtectionAlgorithms.bits_unused = 0;
   OAILOG_DEBUG(LOG_S1AP, "security_capabilities_integrity_algorithms 0x%04X\n",
@@ -2712,7 +2726,7 @@ status_code_e s1ap_mme_handle_handover_request(
       &ie->value.choice.SecurityContext;
   security_context->nextHopChainingCount = ho_request_p->ncc;
   security_context->nextHopParameter.buf =
-      calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t));
+      reinterpret_cast<uint8_t*>(calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t)));
   memcpy(security_context->nextHopParameter.buf, &ho_request_p->nh,
          AUTH_NEXT_HOP_SIZE);
   security_context->nextHopParameter.size = AUTH_NEXT_HOP_SIZE;
@@ -2748,7 +2762,7 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   S1ap_HandoverType_t handover_type = -1;
-  S1ap_Cause_t cause = {0};
+  S1ap_Cause_t cause = {S1ap_Cause_PR_NOTHING};
   S1ap_Cause_PR cause_type;
   long cause_value;
   S1ap_TargeteNB_ID_t* targeteNB_ID = NULL;
@@ -2948,7 +2962,7 @@ status_code_e s1ap_mme_handle_handover_command(
   uint8_t* buffer_p = NULL;
   uint8_t err = 0;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_HandoverCommand_t* out;
   S1ap_HandoverCommandIEs_t* ie = NULL;
   ue_description_t* ue_ref_p = NULL;
@@ -3613,8 +3627,9 @@ typedef struct arg_s1ap_construct_enb_reset_req_s {
 bool construct_s1ap_mme_full_reset_req(const hash_key_t keyP,
                                        const uint64_t dataP, void* argP,
                                        void** resultP) {
-  arg_s1ap_construct_enb_reset_req_t* arg = argP;
-  ue_description_t* ue_ref = (ue_description_t*)dataP;
+  arg_s1ap_construct_enb_reset_req_t* arg =
+      reinterpret_cast<arg_s1ap_construct_enb_reset_req_t*>(argP);
+  ue_description_t* ue_ref = reinterpret_cast<ue_description_t*>(dataP);
 
   hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
   hashtable_ts_get(s1ap_ue_state, (const hash_key_t)dataP, (void**)&ue_ref);
@@ -3963,7 +3978,7 @@ status_code_e s1ap_mme_handle_erab_setup_response(
   MessageDef* message_p = NULL;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   container = &pdu->choice.successfulOutcome.value.choice.E_RABSetupResponse;
@@ -4090,7 +4105,7 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
   imsi64_t imsi64 = INVALID_IMSI64;
   arg_s1ap_construct_enb_reset_req_t arg = {0};
   uint32_t i = 0;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -4181,9 +4196,9 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
 
       reset_req->num_ue = enb_association->nb_ue_associated;
 
-      reset_req->ue_to_reset_list =
+      reset_req->ue_to_reset_list = reinterpret_cast<s1_sig_conn_id_t*>(
           calloc(enb_association->nb_ue_associated,
-                 sizeof(*reset_req->ue_to_reset_list));
+                 sizeof(*reset_req->ue_to_reset_list)));
 
       if (reset_req->ue_to_reset_list == NULL) {
         OAILOG_ERROR(LOG_S1AP, "ue_to_reset_list is NULL\n");
@@ -4200,9 +4215,9 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
       // Partial Reset
       increment_counter("s1_reset_from_enb", 1, 1, "type", "reset_partial");
       reset_req->num_ue = resetType->choice.partOfS1_Interface.list.count;
-      reset_req->ue_to_reset_list =
+      reset_req->ue_to_reset_list = reinterpret_cast<s1_sig_conn_id_t*>(
           calloc(resetType->choice.partOfS1_Interface.list.count,
-                 sizeof(*(reset_req->ue_to_reset_list)));
+                 sizeof(*(reset_req->ue_to_reset_list))));
       // Careful! This struct allocated will be re-used in another itti message.
       if (reset_req->ue_to_reset_list == NULL) {
         OAILOG_ERROR(LOG_S1AP, "ue_to_reset_list is NULL\n");
@@ -4332,11 +4347,11 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
     imsi64_t imsi64) {
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu;
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   /** Reset Acknowledgment. */
   S1ap_ResetAcknowledge_t* out;
   S1ap_ResetAcknowledgeIEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -4365,7 +4380,10 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
         &ie->value.choice.UE_associatedLogicalS1_ConnectionListResAck;
     for (uint32_t i = 0; i < enb_reset_ack_p->num_ue; i++) {
       S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t* sig_conn_item =
-          calloc(1, sizeof(S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t));
+          reinterpret_cast<S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t*>(
+              calloc(
+                  1,
+                  sizeof(S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t)));
       sig_conn_item->id =
           S1ap_ProtocolIE_ID_id_UE_associatedLogicalS1_ConnectionItem;
       sig_conn_item->criticality = S1ap_Criticality_ignore;
@@ -4375,7 +4393,8 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
           &sig_conn_item->value.choice.UE_associatedLogicalS1_ConnectionItem;
       if (enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id !=
           INVALID_MME_UE_S1AP_ID) {
-        item->mME_UE_S1AP_ID = calloc(1, sizeof(S1ap_MME_UE_S1AP_ID_t));
+        item->mME_UE_S1AP_ID = reinterpret_cast<S1ap_MME_UE_S1AP_ID_t*>(
+            calloc(1, sizeof(S1ap_MME_UE_S1AP_ID_t)));
         *item->mME_UE_S1AP_ID =
             enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id;
       } else {
@@ -4383,7 +4402,8 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
       }
       if (enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id !=
           INVALID_ENB_UE_S1AP_ID) {
-        item->eNB_UE_S1AP_ID = calloc(1, sizeof(S1ap_ENB_UE_S1AP_ID_t));
+        item->eNB_UE_S1AP_ID = reinterpret_cast<S1ap_ENB_UE_S1AP_ID_t*>(
+            calloc(1, sizeof(S1ap_ENB_UE_S1AP_ID_t)));
         *item->eNB_UE_S1AP_ID =
             enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id;
       } else {
@@ -4419,7 +4439,7 @@ status_code_e s1ap_handle_paging_request(
     OAILOG_ERROR(LOG_S1AP, "paging_request is NULL\n");
     return RETURNerror;
   }
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   uint8_t num_of_tac = 0;
   uint16_t tai_list_count = paging_request->tai_list_count;
 
@@ -4427,7 +4447,7 @@ status_code_e s1ap_handle_paging_request(
   uint32_t idx = 0;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_Paging_t* out = NULL;
   S1ap_PagingIEs_t* ie = NULL;
 
@@ -4492,7 +4512,8 @@ status_code_e s1ap_handle_paging_request(
     num_of_tac = paging_request->paging_tai_list[tai_idx].numoftac;
     // Total number of TACs = number of tac + current ENB's tac(1)
     for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-      S1ap_TAIItemIEs_t* tai_item_ies = calloc(1, sizeof(S1ap_TAIItemIEs_t));
+      S1ap_TAIItemIEs_t* tai_item_ies = reinterpret_cast<S1ap_TAIItemIEs_t*>(
+          calloc(1, sizeof(S1ap_TAIItemIEs_t)));
       if (tai_item_ies == NULL) {
         OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Failed to allocate memory\n");
         OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -4581,7 +4602,7 @@ status_code_e s1ap_mme_handle_erab_modification_indication(
   OAILOG_FUNC_IN(LOG_S1AP);
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   S1ap_E_RABModificationIndication_t* container = NULL;
   S1ap_E_RABModificationIndicationIEs_t* ie = NULL;
   ue_description_t* ue_ref_p = NULL;
@@ -4741,7 +4762,7 @@ void s1ap_mme_generate_erab_modification_confirm(
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   ue_description_t* ue_ref = NULL;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_E_RABModificationConfirm_t* out;
   S1ap_E_RABModificationConfirmIEs_t* ie = NULL;
 
@@ -4797,7 +4818,8 @@ void s1ap_mme_generate_erab_modification_confirm(
 
     for (int i = 0; i < conf->e_rab_modify_list.no_of_items; i++) {
       S1ap_E_RABModifyItemBearerModConfIEs_t* item =
-          calloc(1, sizeof(S1ap_E_RABModifyItemBearerModConfIEs_t));
+          reinterpret_cast<S1ap_E_RABModifyItemBearerModConfIEs_t*>(
+              calloc(1, sizeof(S1ap_E_RABModifyItemBearerModConfIEs_t)));
 
       item->id = S1ap_ProtocolIE_ID_id_E_RABModifyItemBearerModConf;
       item->criticality = S1ap_Criticality_reject;
@@ -4847,7 +4869,7 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint8_t* buffer = NULL;
   uint32_t length = 0;
   uint32_t idx = 0;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   // Not done according to Rel-15 (Target TAI and Source TAI)
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -5005,10 +5027,10 @@ status_code_e s1ap_handle_path_switch_req_ack(
   uint8_t* buffer = NULL;
   uint32_t length = 0;
   ue_description_t* ue_ref_p = NULL;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_PathSwitchRequestAcknowledge_t* out = NULL;
   S1ap_PathSwitchRequestAcknowledgeIEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
            path_switch_req_ack_p->mme_ue_s1ap_id)) == NULL) {
@@ -5056,7 +5078,7 @@ status_code_e s1ap_handle_path_switch_req_ack(
       S1ap_PathSwitchRequestAcknowledgeIEs__value_PR_SecurityContext;
   if (path_switch_req_ack_p->nh) {
     ie->value.choice.SecurityContext.nextHopParameter.buf =
-        calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t));
+        reinterpret_cast<uint8_t*>(calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t)));
     memcpy(ie->value.choice.SecurityContext.nextHopParameter.buf,
            path_switch_req_ack_p->nh, AUTH_NEXT_HOP_SIZE);
     ie->value.choice.SecurityContext.nextHopParameter.size = AUTH_NEXT_HOP_SIZE;
@@ -5096,9 +5118,9 @@ status_code_e s1ap_handle_path_switch_req_failure(
   uint8_t* buffer = NULL;
   uint32_t length = 0;
   ue_description_t* ue_ref_p = NULL;
-  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_PathSwitchRequestFailureIEs_t* ie = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -5203,7 +5225,7 @@ status_code_e s1ap_mme_handle_erab_rel_response(s1ap_state_t* state,
   S1ap_E_RABReleaseResponse_t* container = NULL;
   ue_description_t* ue_ref_p = NULL;
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   imsi64_t imsi64 = INVALID_IMSI64;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -5372,5 +5394,5 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
                   ue_ref_p->mme_ue_s1ap_id);
   // Remove UE context and inform MME_APP.
   s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
-  OAILOG_FUNC_OUT(LOG_S1AP);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

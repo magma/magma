@@ -22,8 +22,16 @@
    \version 0.1
 */
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_InitiatingMessage.h"
 #include "S1ap_ProcedureCode.h"
 #include "S1ap_S1AP-PDU.h"
@@ -32,8 +40,6 @@
 #include "asn_codecs.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "per_decoder.h"
 
 //-----------------------------------------------------------------------------
