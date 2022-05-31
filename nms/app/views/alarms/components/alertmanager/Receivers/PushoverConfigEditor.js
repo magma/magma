@@ -14,10 +14,12 @@
  * @format
  */
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ConfigEditor from './ConfigEditor';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {EditorProps} from './ConfigEditor';
 // $FlowFixMe migrated to typescript
 import type {ReceiverPushoverConfig} from '../../AlarmAPIType';

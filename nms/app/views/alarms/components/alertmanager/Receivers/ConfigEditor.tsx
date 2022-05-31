@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 import * as React from 'react';
 import ButtonBase from '@material-ui/core/ButtonBase';
@@ -23,21 +20,20 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import RootRef from '@material-ui/core/RootRef';
 import Typography from '@material-ui/core/Typography';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {colors} from '../../../../../../app/theme/default';
+import {Theme} from '@material-ui/core/styles';
+import {colors} from '../../../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 export type Props = {
-  RequiredFields: React.Node,
-  OptionalFields?: React.Node,
-  ...CommonProps,
-};
+  RequiredFields: React.ReactNode;
+  OptionalFields?: React.ReactNode;
+} & CommonProps;
 
-export type CommonProps = {|
-  onDelete: () => void,
-  onReset: () => void,
-  isNew: boolean,
-|};
+export type CommonProps = {
+  onDelete: () => void;
+  onReset: () => void;
+  isNew: boolean;
+};
 
 /**
  * This component is designed to be composed by a config editor such as the
@@ -45,12 +41,11 @@ export type CommonProps = {|
  * ConfigEditor.
  */
 export type EditorProps<TConfig> = {
-  ...CommonProps,
-  onUpdate: ($Shape<TConfig> | TConfig) => void,
-  config: TConfig,
-};
+  onUpdate: (config: Partial<TConfig> | TConfig) => void;
+  config: TConfig;
+} & CommonProps;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   expand: {
     transform: 'rotate(0deg)',
     marginLeft: 'auto',
@@ -136,11 +131,11 @@ function EditorMenuButton({
   onDelete,
   isNew,
 }: {
-  isNew: boolean,
-  onReset: () => void,
-  onDelete: () => void,
+  isNew: boolean;
+  onReset: () => void;
+  onDelete: () => void;
 }) {
-  const iconRef = React.useRef<?HTMLElement>();
+  const iconRef = React.useRef<HTMLElement>();
   const [isMenuOpen, setMenuOpen] = React.useState(false);
   return (
     <>

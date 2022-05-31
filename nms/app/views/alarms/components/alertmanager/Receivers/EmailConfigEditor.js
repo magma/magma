@@ -15,10 +15,12 @@
  */
 import * as React from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ConfigEditor from './ConfigEditor';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {EditorProps} from './ConfigEditor';
 // $FlowFixMe migrated to typescript
 import type {ReceiverEmailConfig} from '../../AlarmAPIType';
