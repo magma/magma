@@ -9,12 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-export type BinaryComparator = $Keys<typeof BINARY_COMPARATORS_MAP>;
+export type BinaryComparator = keyof typeof BINARY_COMPARATORS_MAP;
 export const BINARY_COMPARATORS_MAP = {
   '==': '==',
   '!=': '!=',
@@ -23,11 +20,11 @@ export const BINARY_COMPARATORS_MAP = {
   '<=': '<=',
   '>=': '>=',
 };
-export const BINARY_COMPARATORS: Array<BinaryComparator> = Object.keys(
-  BINARY_COMPARATORS_MAP,
-);
+export const BINARY_COMPARATORS = Object.keys(BINARY_COMPARATORS_MAP) as Array<
+  BinaryComparator
+>;
 
-export type BinaryArithmetic = $Keys<typeof BINARY_ARITHMETIC_OPS_MAP>;
+export type BinaryArithmetic = keyof typeof BINARY_ARITHMETIC_OPS_MAP;
 export const BINARY_ARITHMETIC_OPS_MAP = {
   '+': '+',
   '-': '-',
@@ -36,9 +33,9 @@ export const BINARY_ARITHMETIC_OPS_MAP = {
   '%': '%',
   '^': '^',
 };
-export const BINARY_ARITHMETIC_OPS: Array<BinaryArithmetic> = Object.keys(
+export const BINARY_ARITHMETIC_OPS = Object.keys(
   BINARY_ARITHMETIC_OPS_MAP,
-);
+) as Array<BinaryArithmetic>;
 
 export type BinarySet = 'and' | 'or' | 'unless';
 export const BINARY_SET_OPS: Array<BinarySet> = ['and', 'or', 'unless'];
@@ -52,7 +49,7 @@ export const BINARY_OPERATORS = [
 export type LabelOperator = '=' | '!=' | '=~' | '!~';
 export const LABEL_OPERATORS: Array<LabelOperator> = ['=', '!=', '=~', '!~'];
 
-export type AggregationOperator = $Keys<typeof AGGREGATION_OPERATORS_MAP>;
+export type AggregationOperator = keyof typeof AGGREGATION_OPERATORS_MAP;
 const AGGREGATION_OPERATORS_MAP = {
   sum: 'sum',
   min: 'min',
@@ -70,7 +67,7 @@ export const AGGREGATION_OPERATORS: Array<string> = Object.keys(
   AGGREGATION_OPERATORS_MAP,
 );
 
-export type FunctionName = $Keys<typeof FUNCTION_NAMES_MAP>;
+export type FunctionName = keyof typeof FUNCTION_NAMES_MAP;
 const FUNCTION_NAMES_MAP = {
   abs: 'abs',
   absent: 'absent',
@@ -119,7 +116,6 @@ const FUNCTION_NAMES_MAP = {
   avg_over_time: 'avg_over_time',
   stddev_over_time: 'stddev_over_time',
   stdvar_over_time: 'stdvar_over_time',
-  count_over_time: 'count_over_time',
   quantile_over_time: 'quantile_over_time',
   count_over_time: 'count_values',
 };

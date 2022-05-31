@@ -24,6 +24,7 @@ import type {
   LabelOperator,
   MatchClauseType,
   BinaryComparator as SimpleBinaryComparator,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './PromQLTypes';
 
 type Value = string | number;

@@ -25,6 +25,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
@@ -32,6 +33,7 @@ import {useNetworkId} from '../../../components/hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';
 

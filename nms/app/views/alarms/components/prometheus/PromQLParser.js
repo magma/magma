@@ -17,6 +17,7 @@
 import grammar from './__generated__/PromQLGrammar.js';
 import nearley from 'nearley';
 import {BinaryOperation} from './PromQL';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SyntaxError} from './PromQLTypes';
 
 export function Parser() {
