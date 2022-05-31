@@ -22,6 +22,7 @@ import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 // $FlowFixMe migrated to typescript
 import type {AlertRoutingTree} from './AlarmAPIType';
+// $FlowFixMe migrated to typescript
 import type {ApiUtil} from './AlarmsApi';
 import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 

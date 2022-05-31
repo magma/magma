@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe migrated to typescript
 import type {ApiRequest} from '../AlarmsApi';
 // $FlowFixMe migrated to typescript
 import type {FiringAlarm} from '../AlarmAPIType';

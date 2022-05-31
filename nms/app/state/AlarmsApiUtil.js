@@ -19,6 +19,7 @@ import MagmaV1API from '../../generated/WebClient';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 
+// $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../views/alarms/components/AlarmsApi';
 
 export const MagmaAlarmsApiUtil: ApiUtil = {

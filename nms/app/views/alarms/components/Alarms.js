@@ -40,6 +40,7 @@ import {
 } from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 
+// $FlowFixMe migrated to typescript
 import type {ApiUtil} from './AlarmsApi';
 import type {Element} from 'react';
 // $FlowFixMe migrated to typescript
