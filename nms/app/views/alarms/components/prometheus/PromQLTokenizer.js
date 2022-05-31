@@ -16,6 +16,7 @@
 
 import * as Moo from 'moo';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Range} from './PromQL';
 
 import {

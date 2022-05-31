@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../../../prometheus/PromQL';
 
 import {thresholdToPromQL} from '../ToggleableExpressionEditor';

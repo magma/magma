@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -59,7 +60,9 @@ const useStyles = makeStyles(theme => ({
 
 export type ThresholdExpression = {
   metricName: string,
+  // $FlowFixMe[value-as-type] migrated to TypeScript
   comparator: PromQL.BinaryComparator,
+  // $FlowFixMe[value-as-type] migrated to TypeScript
   filters: PromQL.Labels,
   value: number,
 };
