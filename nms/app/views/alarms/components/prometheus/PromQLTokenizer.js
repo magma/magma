@@ -28,6 +28,7 @@ import {
   LABEL_OPERATORS,
   MATCH_CLAUSE_TYPES,
   SyntaxError,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './PromQLTypes';
 
 type LexerRules = {[string]: LexerRule | $ReadOnlyArray<LexerRule>};
