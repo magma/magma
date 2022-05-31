@@ -17,6 +17,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {MultiGroupsCell, toLabels} from '../table/SimpleTable';
 import TableActionDialog from '../table/TableActionDialog';
 import {makeStyles} from '@material-ui/styles';

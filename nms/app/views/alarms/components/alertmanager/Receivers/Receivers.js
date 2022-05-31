@@ -23,6 +23,7 @@ import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {LabelsCell} from '../../table/SimpleTable';
 import TableActionDialog from '../../table/TableActionDialog';
 import TableAddButton from '../../table/TableAddButton';
