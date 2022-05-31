@@ -29,6 +29,8 @@ import type {
   federation_gateway_health_status,
   federation_network_cluster_status,
 } from '../../../../generated/MagmaAPIBindings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
@@ -117,7 +119,9 @@ const mockClusterStatus: federation_network_cluster_status = {
 describe('<FEGGatewaysTest />', () => {
   beforeEach(() => {
     // gateway context gets list of federation gateways
-    MagmaAPIBindings.getFegByNetworkIdGateways.mockResolvedValue(fegGateways);
+    jest
+      .spyOn(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGet')
+      .mockResolvedValue({data: fegGateways});
     // gateway context gets health status of the gateways
     MagmaAPIBindings.getFegByNetworkIdGatewaysByGatewayIdHealthStatus.mockImplementation(
       req => {
@@ -169,6 +173,11 @@ describe('<FEGGatewaysTest />', () => {
     );
   });
   it('test gateway delete is working', async () => {
+    jest.spyOn(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysGatewayIdDelete',
+    );
+
     const {getByTestId, getByText} = render(<Wrapper />);
     await wait();
     fireEvent.click(getByTestId(`delete ${mockGw0.id}`));
@@ -177,7 +186,7 @@ describe('<FEGGatewaysTest />', () => {
     await wait();
     // make sure gateway was deleted
     expect(
-      MagmaAPIBindings.deleteFegByNetworkIdGatewaysByGatewayId,
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdDelete,
     ).toHaveBeenCalledWith({
       networkId: 'mynetwork',
       gatewayId: mockGw0.id,

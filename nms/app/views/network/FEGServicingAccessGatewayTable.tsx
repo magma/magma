@@ -112,6 +112,7 @@ export default function ServicingAccessGatewayInfo() {
         setServicedAccessGatewaysInfo(newServicedAccessGatewaysInfo);
         setIsLoading(false);
       } catch (e) {
+        console.log(e);
         enqueueSnackbar?.(
           'failed fetching servicing access gateway information',
           {

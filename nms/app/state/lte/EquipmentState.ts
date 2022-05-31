@@ -614,9 +614,9 @@ export async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
 
     // delete primary/secondary gateways
     const resourcesIds = resources.map(resource => resource.gateway_id);
-    const deletedGateways = Array.from(
-      gatewayPools[key].gatewayPool.gateway_ids,
-    ).filter(gwId => !resourcesIds.includes(gwId));
+    const deletedGateways = gatewayPools[key].gatewayPool.gateway_ids.filter(
+      gwId => !resourcesIds.includes(gwId),
+    );
     const deleteRequests = deletedGateways.map(
       async gwId =>
         await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut(
@@ -663,7 +663,7 @@ export async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
       const pool = pools[poolId];
       try {
         // get primary/secondary gateways for each gateway pool
-        const records = Array.from(pool.gateway_ids).map(async id => {
+        const records = pool.gateway_ids.map(async id => {
           const gatewayRecords = (
             await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingGet(
               {
