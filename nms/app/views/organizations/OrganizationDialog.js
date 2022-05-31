@@ -13,9 +13,12 @@
  * @flow strict-local
  * @format
  */
-import AppContext from '../../../app/components/context/AppContext';
+
+import type {EditUser} from './OrganizationEdit';
+import type {Organization} from './Organizations';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
+import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -29,7 +32,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import {UserRoles} from '../../../shared/roles';
-import {colors} from '../../../app/theme/default';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../app/hooks';
 import {useContext, useEffect, useState} from 'react';
@@ -87,7 +90,6 @@ type Props = {
   organization: ?OrganizationPlainAttributes,
   // flag to display advanced fields
   hideAdvancedFields: boolean,
-  error: string,
 };
 
 type CreateUserType = {
