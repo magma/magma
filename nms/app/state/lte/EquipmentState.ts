@@ -84,7 +84,6 @@ export async function InitTierState(props: InitTierStateProps) {
 
   const tierResponse = await Promise.all(requests);
   const tiers: Record<string, Tier> = {};
-  // reduce function gives a flow lint, hence using forEach instead
   tierResponse
     .filter(Boolean)
     .map(res => res!.data)

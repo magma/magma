@@ -16,11 +16,9 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
 import InfoIcon from '@material-ui/icons/Info';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
 import classNames from 'classnames';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useSnackbar} from 'notistack';
