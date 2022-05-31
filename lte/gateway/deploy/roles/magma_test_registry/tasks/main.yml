@@ -23,6 +23,7 @@
   vars:
     packages:
       - ca-certificates
+      - libgnutls30
 
 - name: Copy gpg key from codebase
   copy:
