@@ -29,16 +29,40 @@ definitions:
         example: 2
         type: integer
         x-nullable: false
-      antenna_gain:
-        example: 15
-        type: number
     required:
-      - antenna_gain
       - min_power
       - max_power
       - number_of_antennas
+  installation_param:
+    properties:
+      latitude_deg:
+        description: latitude coordinates of the radio in degrees
+        type: number
+        x-nullable: true
+      longitude_deg:
+        description: longitude coordinates of the radio in degrees
+        type: number
+        x-nullable: true
+      indoor_deployment:
+        description: true if the CBSD is located indoors
+        type: boolean
+        x-nullable: true
+      height_m:
+        description: the CBSD antenna height in meters
+        type: number
+        x-nullable: true
+      height_type:
+        description: AGL - relative to the ground level. AMSL - relative to the mean sea level
+        type: string
+        enum:
+          - agl
+          - amsl
+        x-nullable: true
+      antenna_gain:
+        example: 15
+        type: number
+        x-nullable: true
     type: object
-    x-nullable: false
   cbsd:
     type: object
     properties:
@@ -102,6 +126,9 @@ definitions:
           - b
         type: string
         x-nullable: false
+      installation_param:
+        $ref: '#/definitions/installation_param'
+        x-nullable: false
     required:
       - capabilities
       - desired_state
@@ -114,6 +141,7 @@ definitions:
       - user_id
       - single_step_enabled
       - cbsd_category
+      - installation_param
   frequency_preferences:
     properties:
       bandwidth_mhz:
@@ -263,6 +291,8 @@ definitions:
         type: string
         default: b
         x-nullable: false
+      installation_param:
+        $ref: '#/definitions/installation_param'
     required:
       - capabilities
       - desired_state
