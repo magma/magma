@@ -25,6 +25,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {act, render} from '@testing-library/react';
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
+// $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../components/AlarmsApi';
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
 
