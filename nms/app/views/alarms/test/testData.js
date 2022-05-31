@@ -19,6 +19,7 @@ import type {
   AlertConfig,
   FiringAlarm,
   Labels,
+  // $FlowFixMe migrated to typescript
 } from '../components/AlarmAPIType';
 import type {
   AlertViewerProps,

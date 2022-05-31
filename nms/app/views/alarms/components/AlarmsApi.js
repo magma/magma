@@ -23,6 +23,7 @@ import type {
   FiringAlarm,
   PrometheusLabelset,
   TenancyConfig,
+  // $FlowFixMe migrated to typescript
 } from './AlarmAPIType';
 import type {CancelToken} from 'axios';
 

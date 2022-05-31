@@ -19,6 +19,7 @@ import ConfigEditor from './ConfigEditor';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import type {EditorProps} from './ConfigEditor';
+// $FlowFixMe migrated to typescript
 import type {ReceiverSlackConfig} from '../../AlarmAPIType';
 
 export default function SlackConfigEditor({

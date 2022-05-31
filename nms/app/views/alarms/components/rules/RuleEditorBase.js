@@ -35,6 +35,7 @@ import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver} from '../hooks';
 
 import type {Props as EditorProps} from '../common/Editor';
+// $FlowFixMe migrated to typescript
 import type {Labels} from '../AlarmAPIType';
 
 type Props = EditorProps & {

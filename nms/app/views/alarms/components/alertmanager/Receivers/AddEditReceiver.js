@@ -41,6 +41,7 @@ import type {
   ReceiverPushoverConfig,
   ReceiverSlackConfig,
   ReceiverWebhookConfig,
+  // $FlowFixMe migrated to typescript
 } from '../../AlarmAPIType';
 
 type Props = {

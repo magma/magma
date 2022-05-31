@@ -32,6 +32,7 @@ import {useNetworkId} from '../../hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
+// $FlowFixMe migrated to typescript
 import type {AlertReceiver} from '../../AlarmAPIType';
 
 const useStyles = makeStyles(theme => ({

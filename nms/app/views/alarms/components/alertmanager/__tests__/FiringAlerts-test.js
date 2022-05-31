@@ -21,6 +21,7 @@ import {alarmTestUtil} from '../../../test/testHelpers';
 
 import type {AlarmsWrapperProps} from '../../../test/testHelpers';
 import type {ApiUtil} from '../../AlarmsApi';
+// $FlowFixMe migrated to typescript
 import type {FiringAlarm} from '../../AlarmAPIType';
 
 describe('FiringAlerts', () => {

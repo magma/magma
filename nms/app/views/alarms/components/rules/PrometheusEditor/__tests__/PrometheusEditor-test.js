@@ -21,6 +21,7 @@ import {parseTimeString} from '../PrometheusEditor';
 import {render} from '@testing-library/react';
 
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
+// $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {ApiUtil} from '../../../AlarmsApi';
 import type {GenericRule} from '../../RuleInterface';

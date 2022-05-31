@@ -23,6 +23,7 @@ import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
 import {mockPrometheusRule} from '../../../test/testData';
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
+// $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../AlarmAPIType';
 import type {RuleEditorProps} from '../RuleInterface';
 
