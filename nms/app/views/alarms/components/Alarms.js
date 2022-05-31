@@ -47,6 +47,7 @@ import type {Element} from 'react';
 import type {FiringAlarm} from './AlarmAPIType';
 // $FlowFixMe migrated to typescript
 import type {Labels} from './AlarmAPIType';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 const useTabStyles = makeStyles(theme => ({

@@ -24,6 +24,7 @@ import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {ApiUtil} from '../../../AlarmsApi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule} from '../../RuleInterface';
 
 // TextField select is difficult to test so replace it with an Input

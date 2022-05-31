@@ -21,6 +21,7 @@ import {PROMETHEUS_RULE_TYPE} from './rules/PrometheusEditor/getRuleInterface';
 import type {ApiUtil} from './AlarmsApi';
 // $FlowFixMe migrated to typescript
 import type {FiringAlarm, Labels} from './AlarmAPIType';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 export type AlarmContext = {|

@@ -25,6 +25,7 @@ import {mockPrometheusRule} from '../../../test/testData';
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
 // $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../AlarmAPIType';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleEditorProps} from '../RuleInterface';
 
 const mockRuleMap = {

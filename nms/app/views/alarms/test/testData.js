@@ -27,6 +27,7 @@ import type {
   RuleEditorProps,
   RuleInterface,
   RuleViewerProps,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../components/rules/RuleInterface';
 
 export function mockPrometheusRule(merge?: $Shape<GenericRule<AlertConfig>>) {
@@ -93,7 +94,7 @@ export function mockRuleInterface<TRule>(
       },
     RuleViewer:
       RuleViewer ??
-      function (_props: RuleViewerProps<TRule>) {
+      function (_props: RuleViewerProps) {
         return <span />;
       },
     AlertViewer:

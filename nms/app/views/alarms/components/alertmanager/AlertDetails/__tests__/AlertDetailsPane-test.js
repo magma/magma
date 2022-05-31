@@ -20,6 +20,7 @@ import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../../../test/testHelpers';
 import {mockAlert, mockRuleInterface} from '../../../../test/testData';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlertViewerProps} from '../../../rules/RuleInterface';
 import type {ApiUtil} from '../../../AlarmsApi';
 

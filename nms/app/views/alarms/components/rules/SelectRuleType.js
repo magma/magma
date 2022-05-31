@@ -20,6 +20,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from './RuleInterface';
 
 const useRuleTypeStyles = makeStyles(theme => ({

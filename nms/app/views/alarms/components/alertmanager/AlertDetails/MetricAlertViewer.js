@@ -22,6 +22,7 @@ import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import {ObjectViewer} from './AlertDetailsPane';
 import {useAlarmContext} from '../../AlarmContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlertViewerProps} from '../../rules/RuleInterface';
 
 export default function MetricAlertViewer({alert}: AlertViewerProps) {
