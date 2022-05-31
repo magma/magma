@@ -412,9 +412,9 @@ jobs:
           for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers);
           do
             if [[ "$pod" == "postgres-database-0" ]]; then
-              kubectl logs $pod --container postgres-test > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
+              kubectl logs --timestamps=true $pod --container postgres-test > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
             else
-              kubectl logs $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
+              kubectl logs --timestamps=true $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
             fi;
           done
       - name: Collect Elasticsearch data
