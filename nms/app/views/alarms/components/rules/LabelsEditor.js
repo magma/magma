@@ -27,6 +27,7 @@ import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+// $FlowFixMe migrated to typescript
 import type {Labels} from '../AlarmAPIType';
 
 const filteredLabels = new Set(['networkID', 'severity']);

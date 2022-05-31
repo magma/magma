@@ -18,6 +18,7 @@
 import React from 'react';
 import {PROMETHEUS_RULE_TYPE} from './rules/PrometheusEditor/getRuleInterface';
 import type {ApiUtil} from './AlarmsApi';
+// $FlowFixMe migrated to typescript
 import type {FiringAlarm, Labels} from './AlarmAPIType';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 

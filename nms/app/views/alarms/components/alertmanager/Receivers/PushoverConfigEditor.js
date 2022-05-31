@@ -19,6 +19,7 @@ import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import type {EditorProps} from './ConfigEditor';
+// $FlowFixMe migrated to typescript
 import type {ReceiverPushoverConfig} from '../../AlarmAPIType';
 
 export default function PushoverConfigEditor({

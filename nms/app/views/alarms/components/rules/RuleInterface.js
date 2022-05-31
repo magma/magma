@@ -16,6 +16,7 @@
 
 import * as React from 'react';
 import type {ApiRequest} from '../AlarmsApi';
+// $FlowFixMe migrated to typescript
 import type {FiringAlarm} from '../AlarmAPIType';
 
 export type RuleEditorProps<TRule> = {

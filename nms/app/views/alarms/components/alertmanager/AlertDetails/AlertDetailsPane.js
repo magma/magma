@@ -43,7 +43,9 @@ import type {
   AlertViewerProps,
   RuleInterfaceMap,
 } from '../../rules/RuleInterface';
+// $FlowFixMe migrated to typescript
 import type {FiringAlarm} from '../../AlarmAPIType';
+// $FlowFixMe migrated to typescript
 import type {Labels} from '../../AlarmAPIType';
 import type {SvgIconProps} from '@material-ui/core/@@SvgIcon';
 

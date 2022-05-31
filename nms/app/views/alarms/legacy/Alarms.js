@@ -19,6 +19,7 @@ import * as React from 'react';
 import AppContext from '../../../components/context/AppContext';
 import FBCAlarms from '../components/Alarms';
 import type {ApiUtil} from '../components/AlarmsApi';
+// $FlowFixMe migrated to typescript
 import type {Labels} from '../components/AlarmAPIType';
 
 type Props = {

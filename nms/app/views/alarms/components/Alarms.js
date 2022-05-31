@@ -42,7 +42,9 @@ import {makeStyles} from '@material-ui/styles';
 
 import type {ApiUtil} from './AlarmsApi';
 import type {Element} from 'react';
+// $FlowFixMe migrated to typescript
 import type {FiringAlarm} from './AlarmAPIType';
+// $FlowFixMe migrated to typescript
 import type {Labels} from './AlarmAPIType';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
