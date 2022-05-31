@@ -19,7 +19,6 @@
 #include <iostream>
 #include <google/protobuf/map.h>
 
-
 namespace magma {
 
 /*Enum for Map Return code
@@ -203,6 +202,26 @@ struct proto_map_s {
   ***************************************************************************/
   size_t size() { return map->size(); }
 
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    remove_map()                                                  **
+  **                                                                        **
+  ** Description: Clears the contents of the map and also delete map        **
+  **                                                                        **
+  ***************************************************************************/
+  void remove_map() {
+    map->clear();
+    delete map;
+  }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    map_apply_callback_on_all_elements()                          **
+  **                                                                        **
+  ** Description: Traverses through map and call callback function to be    **
+  **              executed on each node                                     **
+  **                                                                        **
+  ***************************************************************************/
   map_apply_callback_on_all_elements(bool funct_cb(const keyT key,
                                                    const valueT value,
                                                    void* parameterP,
