@@ -42,6 +42,7 @@ import {useSnackbars} from '../../../../../hooks/useSnackbar';
 import type {
   AlertViewerProps,
   RuleInterfaceMap,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../rules/RuleInterface';
 // $FlowFixMe migrated to typescript
 import type {FiringAlarm} from '../../AlarmAPIType';

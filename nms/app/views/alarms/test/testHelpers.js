@@ -27,6 +27,7 @@ import {act, render} from '@testing-library/react';
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
 // $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../components/AlarmsApi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
 
 /**

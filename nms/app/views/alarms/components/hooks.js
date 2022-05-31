@@ -24,6 +24,7 @@ import {useParams} from 'react-router-dom';
 import type {AlertRoutingTree} from './AlarmAPIType';
 // $FlowFixMe migrated to typescript
 import type {ApiUtil} from './AlarmsApi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 
 /**

@@ -30,6 +30,7 @@ import {useLoadRules} from './hooks';
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
 import {useParams} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule} from './rules/RuleInterface';
 
 const useStyles = makeStyles(theme => ({

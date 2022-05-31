@@ -20,7 +20,8 @@ import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useState} from 'react';
 
-import type {GenericRule} from '../rules/RuleInterface';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {GenericRule} from './RuleInterface';
 
 type Props<TRuleUnion> = {
   onExit: () => void,

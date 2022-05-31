@@ -41,6 +41,7 @@ import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 // $FlowFixMe migrated to typescript
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
 import type {RuleEditorBaseFields} from '../RuleEditorBase';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
