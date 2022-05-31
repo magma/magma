@@ -6845,9 +6845,6 @@ definitions:
     type: object
   capabilities:
     properties:
-      antenna_gain:
-        example: 15
-        type: number
       max_power:
         description: max tx power available on cbsd
         example: 30
@@ -6861,12 +6858,9 @@ definitions:
         type: integer
         x-nullable: false
     required:
-    - antenna_gain
     - min_power
     - max_power
     - number_of_antennas
-    type: object
-    x-nullable: false
   carrier_wifi_gateway_health_status:
     description: Health status of a Carrier Wifi Gateway
     properties:
@@ -6940,6 +6934,9 @@ definitions:
         description: database id of cbsd
         type: integer
         x-nullable: false
+      installation_param:
+        $ref: '#/definitions/installation_param'
+        x-nullable: false
       is_active:
         description: false if cbsd have not contacted DP for certain amount of time
         type: boolean
@@ -6977,6 +6974,7 @@ definitions:
     - user_id
     - single_step_enabled
     - cbsd_category
+    - installation_param
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -8782,6 +8780,37 @@ definitions:
     required:
     - tac
     type: object
+  installation_param:
+    properties:
+      antenna_gain:
+        example: 15
+        type: number
+        x-nullable: true
+      height_m:
+        description: the CBSD antenna height in meters
+        type: number
+        x-nullable: true
+      height_type:
+        description: AGL - relative to the ground level. AMSL - relative to the mean
+          sea level
+        enum:
+        - agl
+        - amsl
+        type: string
+        x-nullable: true
+      indoor_deployment:
+        description: true if the CBSD is located indoors
+        type: boolean
+        x-nullable: true
+      latitude_deg:
+        description: latitude coordinates of the radio in degrees
+        type: number
+        x-nullable: true
+      longitude_deg:
+        description: longitude coordinates of the radio in degrees
+        type: number
+        x-nullable: true
+    type: object
   ip_address:
     description: IP address
     properties:
@@ -9197,6 +9226,8 @@ definitions:
         x-nullable: false
       frequency_preferences:
         $ref: '#/definitions/frequency_preferences'
+      installation_param:
+        $ref: '#/definitions/installation_param'
       serial_number:
         example: some_serial_number
         minLength: 1

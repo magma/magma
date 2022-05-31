@@ -141,7 +141,6 @@ export type call_trace_state = {
     call_trace_ending ? : boolean,
 };
 export type capabilities = {
-    antenna_gain: number,
     max_power: number,
     min_power: number,
     number_of_antennas: number,
@@ -167,6 +166,7 @@ export type cbsd = {
     frequency_preferences: frequency_preferences,
     grant ? : grant,
     id: number,
+    installation_param: installation_param,
     is_active: boolean,
     serial_number: string,
     single_step_enabled: boolean,
@@ -692,6 +692,14 @@ export type imei = {
     snr ? : string,
     tac: string,
 };
+export type installation_param = {
+    antenna_gain ? : number,
+    height_m ? : number,
+    height_type ? : "agl" | "amsl",
+    indoor_deployment ? : boolean,
+    latitude_deg ? : number,
+    longitude_deg ? : number,
+};
 export type ip_address = {
     address ? : string,
     version ? : "IPv4" | "IPv6",
@@ -819,6 +827,7 @@ export type mutable_cbsd = {
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
+    installation_param ? : installation_param,
     serial_number: string,
     single_step_enabled: boolean,
     user_id: string,
