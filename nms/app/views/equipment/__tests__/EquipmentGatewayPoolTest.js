@@ -253,7 +253,7 @@ describe('<AddEditGatewayPoolButton />', () => {
     (useEnqueueSnackbar: JestMockFn<
       Array<empty>,
       $Call<typeof useEnqueueSnackbar>,
-      >).mockReturnValue(jest.fn());
+    >).mockReturnValue(jest.fn());
     jest
       .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsPost')
       .mockImplementation();

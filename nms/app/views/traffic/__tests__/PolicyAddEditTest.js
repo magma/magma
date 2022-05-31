@@ -160,7 +160,7 @@ describe('<TrafficDashboard />', () => {
     (useEnqueueSnackbar: JestMockFn<
       Array<empty>,
       $Call<typeof useEnqueueSnackbar>,
-      >).mockReturnValue(jest.fn());
+    >).mockReturnValue(jest.fn());
     jest
       .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
       .mockResolvedValue({data: undefined});

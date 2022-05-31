@@ -739,10 +739,6 @@ describe('<FEGNetworkDashboard />', () => {
     },
   };
 
-  beforeEach(() => {
-    MagmaAPIBindings.getNetworks.mockImplementation(() => Promise.resolve([]));
-  });
-
   const Wrapper = () => {
     const networkCtx = {
       state: {
