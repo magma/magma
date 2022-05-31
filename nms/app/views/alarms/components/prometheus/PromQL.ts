@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import type {
@@ -24,13 +21,12 @@ import type {
   LabelOperator,
   MatchClauseType,
   BinaryComparator as SimpleBinaryComparator,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './PromQLTypes';
 
 type Value = string | number;
 
-export interface Expression<+T: Value> {
-  selectorName?: ?string;
+export interface Expression<T extends Value> {
+  selectorName?: string | null | undefined;
   value?: T;
   op?: string;
   toPromQL(): string;
@@ -54,12 +50,16 @@ export class Function implements Expression<Value> {
   }
 }
 
-export class InstantSelector implements Expression<*> {
-  selectorName: ?string;
-  labels: ?Labels;
-  offset: ?Range;
+export class InstantSelector implements Expression<any> {
+  selectorName: string | null | undefined;
+  labels: Labels | null | undefined;
+  offset: Range | null | undefined;
 
-  constructor(selectorName: ?string, labels: ?Labels, offset: ?Range) {
+  constructor(
+    selectorName: string | null | undefined,
+    labels: Labels | null | undefined,
+    offset?: Range | null,
+  ) {
     this.selectorName = selectorName;
     this.labels = labels || new Labels();
     this.offset = offset;
@@ -102,7 +102,7 @@ export class Range {
   }
 
   toString(): string {
-    return this.value + this.unit;
+    return `${this.value}${this.unit}`;
   }
 }
 
@@ -112,7 +112,7 @@ export class Range {
  */
 export class Labels {
   labels: Array<Label>;
-  constructor(labels: ?Array<Label>) {
+  constructor(labels?: Array<Label> | null) {
     this.labels = labels || [];
   }
 
@@ -151,7 +151,7 @@ export class Labels {
     i: number,
     name: string,
     value: string,
-    operator: ?LabelOperator,
+    operator: LabelOperator | null | undefined,
   ): Labels {
     if (i >= 0 && i < this.len()) {
       this.labels[i].name = name;
@@ -218,13 +218,13 @@ export class BinaryOperation implements Expression<string | number> {
   lh: Expression<string | number>;
   rh: Expression<string | number>;
   operator: BinaryOperator;
-  clause: ?VectorMatchClause;
+  clause: VectorMatchClause | null | undefined;
 
   constructor(
     lh: Expression<string | number>,
     rh: Expression<string | number>,
     operator: BinaryOperator,
-    clause: ?VectorMatchClause,
+    clause: VectorMatchClause | null | undefined,
   ) {
     this.lh = lh;
     this.rh = rh;
@@ -269,11 +269,11 @@ export class BinaryComparator {
 
 export class VectorMatchClause {
   matchClause: Clause<MatchClauseType>;
-  groupClause: ?Clause<GroupClauseType>;
+  groupClause: Clause<GroupClauseType> | null | undefined;
 
   constructor(
     matchClause: Clause<MatchClauseType>,
-    groupClause: ?Clause<GroupClauseType>,
+    groupClause: Clause<GroupClauseType> | null | undefined,
   ) {
     this.matchClause = matchClause;
     this.groupClause = groupClause;
@@ -288,11 +288,11 @@ export class VectorMatchClause {
 }
 
 export type ClauseType = AggrClauseType | MatchClauseType | GroupClauseType;
-export class Clause<ClauseType: ClauseType> {
-  operator: ClauseType;
+export class Clause<C extends ClauseType> {
+  operator: C;
   labelList: Array<string>;
 
-  constructor(operator: ClauseType, labelList: Array<string> = []) {
+  constructor(operator: C, labelList: Array<string> = []) {
     this.operator = operator;
     this.labelList = labelList;
   }
@@ -308,12 +308,12 @@ export class Clause<ClauseType: ClauseType> {
 export class AggregationOperation implements Expression<Value> {
   name: AggregationOperator;
   parameters: Array<Expression<Value>>;
-  clause: ?Clause<AggrClauseType>;
+  clause: Clause<AggrClauseType> | null | undefined;
 
   constructor(
     name: AggregationOperator,
     parameters: Array<Expression<Value>>,
-    clause: ?Clause<AggrClauseType>,
+    clause: Clause<AggrClauseType> | null | undefined,
   ) {
     this.name = name;
     this.parameters = parameters;
@@ -345,14 +345,14 @@ export class String implements Expression<string> {
 export class SubQuery implements Expression<Value> {
   expr: Expression<Value>;
   range: Range;
-  resolution: ?Range;
-  offset: ?Range;
+  resolution: Range | null | undefined;
+  offset: Range | null | undefined;
 
   constructor(
     expr: Expression<Value>,
     range: Range,
-    resolution: ?Range,
-    offset: ?Range,
+    resolution: Range | null | undefined,
+    offset: Range | null | undefined,
   ) {
     this.expr = expr;
     this.range = range;

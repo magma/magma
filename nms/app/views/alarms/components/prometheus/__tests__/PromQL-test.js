@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../PromQL';
 
 // Simple reusable PromQL Constructs to make tests cleaner

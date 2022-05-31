@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
@@ -30,6 +31,7 @@ import ToggleableExpressionEditor, {
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
 import useForm from '../../../hooks/useForm';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../severity/Severity';
@@ -458,6 +460,7 @@ function getMostSignificantTime(
 }
 
 function getThresholdExpression(
+  // $FlowFixMe[value-as-type] migrated to TypeScript
   exp: PromQL.Expression<string | number>,
 ): ?ThresholdExpression {
   if (
@@ -487,7 +490,9 @@ function getThresholdExpression(
 }
 
 function asBinaryComparator(
+  // $FlowFixMe[value-as-type] migrated to TypeScript
   operator: PromQL.BinaryOperator,
+  // $FlowFixMe[value-as-type] migrated to TypeScript
 ): ?PromQL.BinaryComparator {
   if (operator instanceof Object) {
     return operator;
