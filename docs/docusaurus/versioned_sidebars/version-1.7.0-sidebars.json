@@ -19,7 +19,6 @@
           "version-1.7.0-howtos/ipv6_agw",
           "version-1.7.0-howtos/he_api",
           "version-1.7.0-howtos/inbound_roaming",
-          "version-1.7.0-howtos/pcap",
           "version-1.7.0-howtos/l3_transport"
         ]
       },

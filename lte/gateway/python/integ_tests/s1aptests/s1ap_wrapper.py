@@ -18,7 +18,6 @@ import time
 
 import s1ap_types
 from integ_tests.common.magmad_client import MagmadServiceGrpc
-# from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import (
@@ -55,6 +54,7 @@ class TestWrapper(object):
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
     TEST_CASE_EXECUTION_COUNT = 0
+    TEST_ERROR_TRACEBACKS = []
 
     def __init__(
         self,
@@ -464,6 +464,15 @@ class TestWrapper(object):
         return self._magmad_util
 
     @classmethod
+    def generate_flaky_summary(cls):
+        """Print the flaky report summary"""
+        if TestWrapper.TEST_ERROR_TRACEBACKS:
+            print("\n===Flaky Test Report===\n")
+            for traceback in TestWrapper.TEST_ERROR_TRACEBACKS:
+                print(traceback)
+            print("===End Flaky Test Report===")
+
+    @classmethod
     def is_test_successful(cls, test) -> bool:
         """Get current test case execution status"""
         if test is None:
@@ -471,8 +480,22 @@ class TestWrapper(object):
         if test is not None and hasattr(test, "_outcome"):
             result = test.defaultTestResult()
             test._feedErrorsToResult(result, test._outcome.errors)
-            test_contains_error = result.errors and result.errors[-1][0] is test
-            test_contains_failure = result.failures and result.failures[-1][0] is test
+            test_contains_error = (
+                result.errors and result.errors[-1][0] is test
+            )
+            test_contains_failure = (
+                result.failures and result.failures[-1][0] is test
+            )
+            if test_contains_error or test_contains_failure:
+                TestWrapper.TEST_ERROR_TRACEBACKS.append(
+                    str(test)
+                    + " failed (Execution Count: "
+                    + str(TestWrapper.TEST_CASE_EXECUTION_COUNT)
+                    + ")."
+                    + result.failures[0][1]
+                    if test_contains_failure
+                    else result.errors[0][1],
+                )
             return not (test_contains_error or test_contains_failure)
 
     def cleanup(self, test=None):
@@ -497,6 +520,11 @@ class TestWrapper(object):
             print("The test has failed. Restarting Sctpd for cleanup")
             self.magmad_util.restart_sctpd()
             self.magmad_util.print_redis_state()
+            if TestWrapper.TEST_CASE_EXECUTION_COUNT == 3:
+                self.generate_flaky_summary()
+
+        elif TestWrapper.TEST_CASE_EXECUTION_COUNT > 1:
+            self.generate_flaky_summary()
 
     def multiEnbConfig(self, num_of_enbs, enb_list=None):
         """Configure multiple eNB in S1APTester"""

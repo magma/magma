@@ -158,9 +158,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     // Mocking value because it is called by FEGGatewayDialogue / Edit Gateway Page
     MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValue([]);
   });
-  afterEach(() => {
-    MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId.mockClear();
-  });
+
   const Wrapper = () => (
     <MemoryRouter
       initialEntries={[

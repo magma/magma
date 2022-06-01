@@ -17,7 +17,6 @@ import EventAlertChart from '../EventAlertChart';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import moment from 'moment';
 
@@ -56,11 +55,6 @@ describe('<EventAlertChart/>', () => {
     );
   });
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockClear();
-  });
-
   const testCases = [
     {
       startDate: moment().subtract(2, 'hours'),
@@ -82,52 +76,50 @@ describe('<EventAlertChart/>', () => {
     },
   ];
 
-  testCases.forEach((tc, _) => {
-    it('renders', async () => {
-      // const endDate = moment();
-      // const startDate = moment().subtract(3, 'hours');
-      const Wrapper = () => (
-        <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-          <MuiThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId"
-                  element={
-                    <EventAlertChart startEnd={[tc.startDate, tc.endDate]} />
-                  }
-                />
-              </Routes>
-            </MuiStylesThemeProvider>
-          </MuiThemeProvider>
-        </MemoryRouter>
-      );
-      render(<Wrapper />);
-      await wait();
-      if (tc.valid) {
-        expect(
-          MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
-            .calls[0][0].start,
-        ).toEqual(tc.startDate.toISOString());
-        expect(
-          MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
-            .calls[0][0].end,
-        ).toEqual(tc.endDate.toISOString());
-        expect(
-          MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
-            .calls[0][0].step,
-        ).toEqual(tc.step);
-      } else {
-        // negative test for invalid start end use default timerange
-        const defaultStep = '5m';
-        expect(
-          MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
-            .calls[0][0].step,
-        ).toEqual(defaultStep);
-      }
-    });
+  it.each(testCases)('renders', async tc => {
+    // const endDate = moment();
+    // const startDate = moment().subtract(3, 'hours');
+    const Wrapper = () => (
+      <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <Routes>
+              <Route
+                path="/nms/:networkId"
+                element={
+                  <EventAlertChart startEnd={[tc.startDate, tc.endDate]} />
+                }
+              />
+            </Routes>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+    render(<Wrapper />);
+    await wait();
+    if (tc.valid) {
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
+          .calls[0][0].start,
+      ).toEqual(tc.startDate.toISOString());
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
+          .calls[0][0].end,
+      ).toEqual(tc.endDate.toISOString());
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
+          .calls[0][0].step,
+      ).toEqual(tc.step);
+    } else {
+      // negative test for invalid start end use default timerange
+      const defaultStep = '5m';
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
+          .calls[0][0].step,
+      ).toEqual(defaultStep);
+    }
   });
 });

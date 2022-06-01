@@ -31,18 +31,16 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {setSubscriberState} from '../../../state/lte/SubscriberState';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const enqueueSnackbarMock = jest.fn();
+jest.mock('../../../hooks/useSnackbar');
+
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
   key => CoreNetworkTypes[key],
 );
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
 
 const subscribersMock = {
   IMSI00000000001002: {
@@ -212,11 +210,11 @@ const ran = {
 };
 
 describe('<AddSubscriberButton />', () => {
-  afterEach(() => {
-    MagmaAPIBindings.postLteByNetworkIdSubscribers.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdSubscribersBySubscriberId.mockClear();
-  });
   beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
     MagmaAPIBindings.getLteByNetworkIdSubscriberConfigBaseNames.mockResolvedValue(
       [],
     );

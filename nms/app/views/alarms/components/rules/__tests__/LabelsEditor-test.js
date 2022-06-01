@@ -22,9 +22,6 @@ const commonProps = {
   labels: {},
   onChange: jest.fn(),
 };
-afterEach(() => {
-  jest.resetAllMocks();
-});
 
 test('clicking the add button adds new textboxes', () => {
   const {getByTestId, queryAllByPlaceholderText} = render(

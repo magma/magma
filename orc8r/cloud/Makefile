@@ -183,7 +183,7 @@ nms_prereqs_ubuntu: nms_node_ubuntu
 	# get codegen dependency
 	npm install --global yarn
 	yarn add swagger-js-codegen
-	yarn add openapi-typescript-codegen
+	yarn add @openapitools/openapi-generator-cli
 
 nms_node_ubuntu:
 	# install pre-reqs
@@ -204,7 +204,7 @@ nms_prereqs_osx:
 	npm --version || brew install npm
 	yarn --version || npm install --global yarn
 	yarn add swagger-js-codegen
-	yarn add openapi-typescript-codegen
+	yarn add @openapitools/openapi-generator-cli
 
 nms_gen:
 	# generate Swagger API bindings for NMS

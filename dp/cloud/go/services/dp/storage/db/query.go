@@ -40,6 +40,7 @@ type arg struct {
 	nullable bool
 	filter   sq.Sqlizer
 	on       sq.Sqlizer
+	lock     string
 }
 
 func (q *Query) WithBuilder(builder sq.StatementBuilderType) *Query {
@@ -65,6 +66,11 @@ func (q *Query) As(alias string) *Query {
 
 func (q *Query) Where(filter sq.Sqlizer) *Query {
 	q.arg.filter = filter
+	return q
+}
+
+func (q *Query) Lock(lock string) *Query {
+	q.arg.lock = lock
 	return q
 }
 

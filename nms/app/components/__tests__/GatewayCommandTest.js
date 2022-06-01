@@ -57,11 +57,6 @@ describe('<verify successful aggregation validation/>', () => {
     MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(0);
   });
 
-  afterEach(() => {
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockClear();
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockClear();
-  });
-
   it('', async () => {
     const {getByTestId, getAllByTestId} = render(<Wrapper />);
     await wait();
@@ -93,11 +88,6 @@ describe('<verify control proxy validation failure/>', () => {
     MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(0);
   });
 
-  afterEach(() => {
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockClear();
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockClear();
-  });
-
   it('', async () => {
     const {getByTestId, getAllByTestId} = render(<Wrapper />);
     await wait();
@@ -121,11 +111,6 @@ describe('<verify api validation failure/>', () => {
     MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockRejectedValueOnce(
       new Error('error'),
     );
-  });
-
-  afterEach(() => {
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockClear();
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockClear();
   });
 
   it('', async () => {

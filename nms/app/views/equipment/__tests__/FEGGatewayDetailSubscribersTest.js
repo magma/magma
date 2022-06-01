@@ -25,7 +25,6 @@ import FEGSubscriberContext from '../../../components/context/FEGSubscriberConte
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -142,10 +141,6 @@ describe('<FEGGatewayDetailSubscribers />', () => {
     MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId
       .mockReturnValueOnce(mockSubscribers[0])
       .mockResolvedValue(mockSubscribers[1]);
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   const Wrapper = () => (

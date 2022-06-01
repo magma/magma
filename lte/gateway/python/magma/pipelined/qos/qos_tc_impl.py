@@ -187,6 +187,7 @@ class TrafficClass:
                 LOG.error("could not find rate: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
+        return None
 
     @staticmethod
     def _get_qdisc_type(intf: str) -> Optional[str]:
@@ -203,6 +204,7 @@ class TrafficClass:
                 LOG.error("could not qdisc type: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
+        return None
 
 
 class TCManager(object):

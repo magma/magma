@@ -24,12 +24,18 @@ include=/usr/local/include
 
 ignore=( -not -path '*/migrations/*' )
 
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  CPIO_FLAGS="-pdm"
+else
+  CPIO_FLAGS="-pdm --insecure"
+fi
+
 pushd ${magma}
-find -L . -name '*.proto' "${ignore[@]}" | cpio -pdm --insecure ${outdir}
+find -L . -name '*.proto' "${ignore[@]}" | cpio ${CPIO_FLAGS} ${outdir}
 popd
 
 pushd ${include}
-find -L . -name '*.proto' "${ignore[@]}" | cpio -pdm --insecure ${outdir}
+find -L . -name '*.proto' "${ignore[@]}" | cpio ${CPIO_FLAGS} ${outdir}
 popd
 
 echo

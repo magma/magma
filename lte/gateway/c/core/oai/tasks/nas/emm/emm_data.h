@@ -541,8 +541,6 @@ struct emm_context_s* emm_context_get(emm_data_t* emm_data,
                                       const mme_ue_s1ap_id_t ue_id);
 struct emm_context_s* emm_context_get_by_imsi(emm_data_t* emm_data,
                                               imsi64_t imsi64);
-struct emm_context_s* emm_context_get_by_guti(emm_data_t* emm_data,
-                                              guti_t* guti);
 
 status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
                                       struct emm_context_s* elm)
