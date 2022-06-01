@@ -27,6 +27,7 @@ import SlackConfigEditor from './SlackConfigEditor';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';

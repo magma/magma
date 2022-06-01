@@ -9,47 +9,47 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
 
 type InputChangeFunc<TFormState, TVal> = (
   formUpdate: FormUpdate<TFormState, TVal>,
-) => (event: $Shape<SyntheticInputEvent<HTMLElement>>) => void;
+) => (event: React.ChangeEvent<HTMLInputElement>) => void;
 type FormUpdate<TFormState, TVal = string> = (
   val: TVal,
-  event: SyntheticInputEvent<HTMLElement>,
-) => $Shape<TFormState>;
+  event: React.ChangeEvent<HTMLInputElement>,
+) => Partial<TFormState>;
 
-export default function useForm<TFormState: {}>({
+export default function useForm<TFormState extends Record<string, any>>({
   initialState,
   onFormUpdated,
 }: {
-  initialState: $Shape<TFormState>,
-  onFormUpdated?: (state: TFormState) => void,
-}): {|
-  formState: TFormState,
-  updateFormState: (update: $Shape<TFormState>) => TFormState,
-  handleInputChange: InputChangeFunc<TFormState, *>,
+  initialState: Partial<TFormState>;
+  onFormUpdated?: (state: TFormState) => void;
+}): {
+  formState: TFormState;
+  updateFormState: (update: Partial<TFormState>) => TFormState;
+  handleInputChange: InputChangeFunc<TFormState, any>;
   updateListItem: (
-    listName: $Keys<TFormState>,
+    listName: keyof TFormState,
     idx: number,
-    update: $ElementType<TFormState, $Keys<TFormState>>,
-  ) => void,
-  addListItem: (listName: $Keys<TFormState>, item: {}) => void,
-  removeListItem: (listName: $Keys<TFormState>, idx: number) => void,
-  setFormState: (f: TFormState) => void,
-|} {
-  const [formState, setFormState] = React.useState<TFormState>(initialState);
+    update: TFormState[keyof TFormState],
+  ) => void;
+  addListItem: (listName: keyof TFormState, item: object) => void;
+  removeListItem: (listName: keyof TFormState, idx: number) => void;
+  setFormState: (f: TFormState) => void;
+} {
+  // TODO[TS-migration] is formState a Partial TFormState?
+  const [formState, setFormState] = React.useState<TFormState>(
+    initialState as TFormState,
+  );
   const formUpdatedRef = React.useRef(onFormUpdated);
   React.useEffect(() => {
     formUpdatedRef.current = onFormUpdated;
   }, [onFormUpdated]);
   const updateFormState = React.useCallback(
-    update => {
+    (update: Partial<TFormState>) => {
       const nextState = {
         ...formState,
         ...update,
@@ -71,39 +71,41 @@ export default function useForm<TFormState: {}>({
    * //formState: {{list: [{x:0},{x:2}]}}
    */
   const updateListItem = React.useCallback(
-    (
-      listName: $Keys<TFormState>,
+    <K extends keyof TFormState, VALUE extends TFormState[K] & Array<any>>(
+      listName: K,
       idx: number,
-      update: $ElementType<TFormState, $Keys<TFormState>>,
+      update: Partial<VALUE[number]>,
     ) => {
       updateFormState({
         [listName]: immutablyUpdateArray(
-          formState[listName] || [],
+          (formState[listName] || []) as VALUE,
           idx,
           update,
         ),
-      });
+      } as Partial<TFormState>);
     },
     [formState, updateFormState],
   );
 
   const removeListItem = React.useCallback(
-    (listName: $Keys<TFormState>, idx: number) => {
+    (listName: keyof TFormState, idx: number) => {
       if (!formState[listName]) {
         return;
       }
       updateFormState({
-        [listName]: formState[listName].filter((_, i) => i !== idx),
-      });
+        [listName]: (formState[listName] as Array<any>).filter(
+          (_, i) => i !== idx,
+        ),
+      } as Partial<TFormState>);
     },
     [formState, updateFormState],
   );
 
   const addListItem = React.useCallback(
-    <TItem>(listName: $Keys<TFormState>, item: TItem) => {
+    <TItem>(listName: keyof TFormState, item: TItem) => {
       updateFormState({
         [listName]: [...(formState[listName] || []), item],
-      });
+      } as Partial<TFormState>);
     },
     [formState, updateFormState],
   );
@@ -113,7 +115,7 @@ export default function useForm<TFormState: {}>({
    */
   const handleInputChange = React.useCallback(
     (formUpdate: FormUpdate<TFormState>) => (
-      event: SyntheticInputEvent<HTMLElement>,
+      event: React.ChangeEvent<HTMLInputElement>,
     ) => {
       const value = event.target.value;
       updateFormState(formUpdate(value, event));
@@ -138,8 +140,8 @@ export default function useForm<TFormState: {}>({
 function immutablyUpdateArray<T>(
   array: Array<T>,
   idx: number,
-  update: $Shape<T>,
-) {
+  update: Partial<T>,
+): Array<T> {
   return array.map((item, i) => {
     if (i !== idx) {
       return item;
