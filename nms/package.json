@@ -93,6 +93,7 @@
     "@types/express-session": "^1.15.6",
     "@types/jest": "^27.5.0",
     "@types/lodash": "^4.14.182",
+    "@types/nearley": "^2.11.2",
     "@types/react": "^16.8.6",
     "@types/react-dom": "^16.8.6",
     "@typescript-eslint/eslint-plugin": "^5.22.0",

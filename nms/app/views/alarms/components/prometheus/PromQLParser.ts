@@ -9,23 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
+// @ts-ignore generated
 import grammar from './__generated__/PromQLGrammar.js';
 import nearley from 'nearley';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {BinaryOperation} from './PromQL';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SyntaxError} from './PromQLTypes';
 
 export function Parser() {
   return new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
 }
 
-export function Parse(input: ?string): ?BinaryOperation {
+export function Parse(input: string | undefined | null): BinaryOperation {
   if (!input) {
     throw 'empty input to parser';
   }
@@ -33,7 +29,7 @@ export function Parse(input: ?string): ?BinaryOperation {
   // parser returns array of all possible parsing trees, so access the first
   // element of results since this grammar should only produce 1 for each
   // input
-  const ast = parser.results[0];
+  const ast = parser.results[0] as BinaryOperation;
   if (ast === undefined) {
     throw new SyntaxError('Malformed PromQL expression');
   }
