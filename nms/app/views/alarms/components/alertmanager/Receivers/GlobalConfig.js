@@ -20,6 +20,7 @@
 import * as React from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import CircularProgress from '@material-ui/core/CircularProgress';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Editor from '../../common/Editor';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
@@ -36,6 +37,7 @@ import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 // $FlowFixMe migrated to typescript
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Props as EditorProps} from '../../common/Editor';
 
 type Props = $Diff<
