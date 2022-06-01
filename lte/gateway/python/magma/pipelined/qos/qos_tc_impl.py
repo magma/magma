@@ -23,7 +23,6 @@ from .types import QosInfo
 from .utils import IdManager
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
-# LOG.setLevel(logging.DEBUG)
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
