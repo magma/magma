@@ -14,13 +14,17 @@
 # -----------------------------------------------------------------------------
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
+ARG CPU_ARCH=x86_64
+ARG DEB_PORT=amd64
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
-ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/
+ARG EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
 ARG CLANG_VERSION=3.8
 ARG FEATURES=mme_oai
 
 FROM $OS_DIST:$OS_RELEASE AS builder
+ARG CPU_ARCH
+ARG DEB_PORT
 ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
@@ -39,13 +43,9 @@ RUN apt-get update && \
     # Setup necessary tools for adding the Magma repository
     apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget && \
     # Download Bazel
-    wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
-    chmod +x /usr/sbin/bazelisk-linux-amd64 && \
-    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
-
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
+    wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-"${DEB_PORT}" && \
+    chmod +x /usr/sbin/bazelisk-linux-"${DEB_PORT}" && \
+    ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
 # Install dependencies required for building
 RUN apt-get update && apt-get install -y \
@@ -62,7 +62,6 @@ RUN apt-get update && apt-get install -y \
   libgflags-dev \
   libc++-dev \
   protobuf-compiler \
-  grpc-dev \
   ninja-build \
   autogen \
   ccache \
@@ -71,17 +70,13 @@ RUN apt-get update && apt-get install -y \
   libxslt-dev \
   libyaml-cpp-dev \
   nlohmann-json3-dev \
-  magma-cpp-redis \
   libgoogle-glog-dev \
-  prometheus-cpp-dev \
-  libfolly-dev \
   libsctp-dev \
   libpcap-dev \
   libmnl-dev \
   uuid-dev \
   python3-pip \
   libcurl4-openssl-dev \
-  magma-libfluid \
   libdouble-conversion-dev \
   libboost-chrono-dev \
   libboost-context-dev \
@@ -89,18 +84,27 @@ RUN apt-get update && apt-get install -y \
   libboost-filesystem-dev \
   libboost-regex-dev \
   check \
-  liblfds710 \
   libssl-dev \
   libsctp-dev \
   libtspi-dev \
-  oai-asn1c \
-  oai-nettle \
-  oai-gnutls \
-  oai-freediameter \
-  prometheus-cpp-dev \
   libconfig-dev \
   libgmp3-dev \
   libczmq-dev
+
+RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
+RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
+RUN apt-get update && apt-get install -y \
+  libfolly-dev \
+  oai-asn1c \
+  oai-freediameter \
+  oai-gnutls \
+  oai-nettle \
+  magma-cpp-redis \
+  magma-libfluid \
+  grpc-dev \
+  prometheus-cpp-dev \
+  liblfds710
+RUN rm /etc/apt/sources.list.d/magma.list
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
@@ -143,6 +147,7 @@ RUN bazel build  \
   //lte/gateway/c/li_agent/src:liagentd \
   //lte/gateway/c/session_manager:sessiond \
   --define=folly_so=1
+
 RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
@@ -152,6 +157,7 @@ COPY lte/gateway/configs ${MAGMA_ROOT}/lte/gateway/configs
 # Dev/Production image
 # -----------------------------------------------------------------------------
 FROM $OS_DIST:$OS_RELEASE AS gateway_c
+ARG CPU_ARCH
 ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
@@ -184,37 +190,39 @@ RUN apt-get update && apt-get install -y \
   iptables \
   && rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://facebookconnectivity.jfrog.io/artifactory/api/security/keypair/default-gpg-key/public | apt-key add -
-
-RUN apt-get update && apt-get install -y libopenvswitch openvswitch-datapath-dkms openvswitch-common openvswitch-switch
+RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
+RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
+RUN apt-get update && apt-get install -y \
+  libopenvswitch \
+  openvswitch-datapath-dkms \
+  openvswitch-common \
+  openvswitch-switch
 
 # Copy pre-built shared object files
-COPY --from=builder /usr/lib/x86_64-linux-gnu/liblsan.so.0 /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libprotobuf.so /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libevent-* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libsnappy.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libdouble-conversion.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libicui18n.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libicuuc.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libicudata.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libconfig.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libczmq.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libevent* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libzmq* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libsodium* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libpgm* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libnorm* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libgflags* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi_krb5* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libk5crypto* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libkeyutils* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl.so.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/librtmp.so.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh.so.* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libtspi.so.* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/liblsan.so.0 /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libprotobuf.so /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libboost* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libevent-* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libsnappy.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libdouble-conversion.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libicui18n.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libicuuc.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libicudata.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libconfig.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libczmq.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libevent* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libzmq* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libsodium* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libpgm* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libnorm* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libgflags* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libgssapi_krb5* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libkrb5* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libk5crypto* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libkeyutils* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libcurl.so.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/librtmp.so.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
+COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/libssh.so.* /usr/lib/"${CPU_ARCH}"-linux-gnu/
 
 
 COPY --from=builder /usr/local/lib/liblfds710.so /usr/local/lib/

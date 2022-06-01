@@ -21,7 +21,6 @@ import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
-import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -101,6 +100,7 @@ const mockGwSt: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockEnbSt: enodeb_state = {
@@ -124,15 +124,12 @@ jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<GatewaysKPIs />', () => {
   const Wrapper = () => {
-    const mockUpSt = Object.assign({}, mockGwSt);
-    mockUpSt['status'] = {
-      checkin_time: Date.now(),
-      meta: {
-        gps_latitude: '0',
-        gps_longitude: '0',
-        gps_connected: '0',
-        enodeb_connected: '0',
-        mme_connected: '0',
+    const mockUpSt = {
+      ...mockGwSt,
+      checked_in_recently: true,
+      status: {
+        ...mockGwSt.status,
+        checkin_time: Date.now(),
       },
     };
     const gatewayCtx = {
@@ -257,9 +254,6 @@ describe('<ServicingAccessGatewaysKPI />', () => {
       .mockResolvedValue({[mockGwSt.id]: mockGwSt});
   });
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
   const Wrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>

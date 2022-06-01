@@ -14,11 +14,11 @@
 package storage
 
 import (
+	"fmt"
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -33,7 +33,7 @@ func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID
 	loadFilter := EntityLoadFilter{GraphID: &wrappers.StringValue{Value: graphID}}
 	ents, err := store.loadEntities(networkID, &loadFilter, criteria)
 	if err != nil {
-		return internalEntityGraph{}, errors.Wrap(err, "failed to load entities for graph")
+		return internalEntityGraph{}, fmt.Errorf("failed to load entities for graph: %w", err)
 	}
 	if funk.IsEmpty(ents) {
 		return internalEntityGraph{}, nil
@@ -43,7 +43,7 @@ func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID
 	// in the graph
 	assocs, err := store.loadAssocs(networkID, &loadFilter, criteria, loadChildren)
 	if err != nil {
-		return internalEntityGraph{}, errors.Wrap(err, "error loading child edges for graph")
+		return internalEntityGraph{}, fmt.Errorf("error loading child edges for graph: %w", err)
 	}
 
 	return internalEntityGraph{entsByTK: ents, edges: assocs}, nil
@@ -55,7 +55,7 @@ func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID
 func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, entToUpdateOut *NetworkEntity) error {
 	internalGraph, err := store.loadGraphInternal(networkID, graphID, &EntityLoadCriteria{})
 	if err != nil {
-		return errors.Wrap(err, "failed to load graph of updated entity")
+		return fmt.Errorf("failed to load graph of updated entity: %w", err)
 	}
 	if funk.IsEmpty(internalGraph.entsByTK) {
 		return nil
@@ -81,7 +81,7 @@ func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, 
 		newID := store.idGenerator.New()
 		err := store.updateGraphID(component, newID)
 		if err != nil {
-			return errors.Wrap(err, "failed to fix graph")
+			return fmt.Errorf("failed to fix graph: %w", err)
 		}
 	}
 	return nil
@@ -95,7 +95,7 @@ func (store *sqlConfiguratorStorage) updateGraphID(pksToUpdate []string, newGrap
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return errors.Wrap(err, "failed to update graph ID")
+		return fmt.Errorf("failed to update graph ID: %w", err)
 	}
 	return nil
 }

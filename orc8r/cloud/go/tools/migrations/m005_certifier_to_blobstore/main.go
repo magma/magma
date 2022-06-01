@@ -16,11 +16,11 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
@@ -79,19 +79,19 @@ func manuallyVerifyCertifierMigration() error {
 	certSrvAddr := "localhost:9086"
 	conn, err := grpc.Dial(certSrvAddr, grpc.WithInsecure())
 	if err != nil {
-		return errors.Wrap(err, "failed to connect to certifier server")
+		return fmt.Errorf("failed to connect to certifier server: %w", err)
 	}
 	client := certifierprotos.NewCertifierClient(conn)
 
 	snsProto, err := client.ListCertificates(context.Background(), &protos.Void{})
 	if err != nil {
-		return errors.Wrap(err, "failed to list certificates")
+		return fmt.Errorf("failed to list certificates: %w", err)
 	}
 	glog.Infof("[manually verify] serial number count: %d", len(snsProto.GetSns()))
 
 	certInfos, err := client.GetAll(context.Background(), &protos.Void{})
 	if err != nil {
-		return errors.Wrap(err, "failed to get all certificates")
+		return fmt.Errorf("failed to get all certificates: %w", err)
 	}
 	maxToPrint := 5
 	i := 0

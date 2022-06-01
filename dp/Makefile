@@ -116,6 +116,7 @@ _ci_init: _generate_certificates _generate_harness_config
 		service/orc8r-fluentd-forward \
 		deployment.apps/orc8r-fluentd-forward \
 		configmap/orc8r-fluentd-forward-configs \
+		deployment/fake-sas-deployment \
 		--ignore-not-found
 	helm uninstall domain-proxy orc8r orc8r-lte || true
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml

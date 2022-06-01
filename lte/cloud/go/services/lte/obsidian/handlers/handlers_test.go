@@ -1441,6 +1441,7 @@ func TestListAndGetGateways(t *testing.T) {
 			Status:                 models.NewDefaultGatewayStatus("hw1"),
 			ConnectedEnodebSerials: lteModels.EnodebSerials{},
 			ApnResources:           lteModels.ApnResources{},
+			CheckedInRecently:      checkedInRecently(false),
 		},
 		"g2": {
 			ID:   "g2",
@@ -1466,6 +1467,7 @@ func TestListAndGetGateways(t *testing.T) {
 			},
 			ConnectedEnodebSerials: []string{"enb1", "enb2"},
 			ApnResources:           lteModels.ApnResources{},
+			CheckedInRecently:      checkedInRecently(false),
 		},
 	}
 	expected["g1"].Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
@@ -1510,6 +1512,7 @@ func TestListAndGetGateways(t *testing.T) {
 		Status:                 models.NewDefaultGatewayStatus("hw1"),
 		ConnectedEnodebSerials: lteModels.EnodebSerials{},
 		ApnResources:           lteModels.ApnResources{},
+		CheckedInRecently:      checkedInRecently(false),
 	}
 	expectedGet.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 	tc = tests.Test{
@@ -1547,6 +1550,7 @@ func TestListAndGetGateways(t *testing.T) {
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb2"},
 		ApnResources:           lteModels.ApnResources{},
+		CheckedInRecently:      checkedInRecently(false),
 	}
 	tc = tests.Test{
 		Method:         "GET",
@@ -3315,6 +3319,7 @@ func TestAPNResource(t *testing.T) {
 	deleteAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers, "/magma/v1/lte/:network_id/apns/:apn_name", obsidian.DELETE).HandlerFunc
 
 	gw := newMutableGateway("gw0")
+	expectedGw := newGatewayResponse("gw0")
 
 	// Get all, initially empty
 	tc := tests.Test{
@@ -3405,6 +3410,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get all, posted gateway found
+	expectedGw.ApnResources = gw.ApnResources
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways",
@@ -3412,7 +3418,7 @@ func TestAPNResource(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.LteGateway{"gw0": expectedGw}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3512,6 +3518,7 @@ func TestAPNResource(t *testing.T) {
 	assert.False(t, exists)
 
 	// Get, changes are reflected
+	expectedGw.ApnResources = gw.ApnResources
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3519,7 +3526,7 @@ func TestAPNResource(t *testing.T) {
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
 		ExpectedStatus: 200,
-		ExpectedResult: gw,
+		ExpectedResult: expectedGw,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3599,7 +3606,7 @@ func TestAPNResource(t *testing.T) {
 	assert.Equal(t, "res2", ents[0].Key)
 
 	// Get, APN resource is gone
-	gw.ApnResources = lteModels.ApnResources{"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4}}
+	expectedGw.ApnResources = lteModels.ApnResources{"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3607,7 +3614,7 @@ func TestAPNResource(t *testing.T) {
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
 		ExpectedStatus: 200,
-		ExpectedResult: gw,
+		ExpectedResult: expectedGw,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -3635,6 +3642,8 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 
 	gw0 := newMutableGateway("gw0")
 	gw1 := newMutableGateway("gw1")
+	expectedGw0 := newGatewayResponse("gw0")
+	expectedGw1 := newGatewayResponse("gw1")
 
 	// Get all, initially empty
 	tc := tests.Test{
@@ -3693,7 +3702,7 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw0, "gw1": gw1}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.LteGateway{"gw0": expectedGw0, "gw1": expectedGw1}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3711,6 +3720,7 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get, changes are reflected
+	expectedGw0.ApnResources = gw0.ApnResources
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3718,7 +3728,7 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
 		ExpectedStatus: 200,
-		ExpectedResult: gw0,
+		ExpectedResult: expectedGw0,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3730,7 +3740,7 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw0, "gw1": gw1}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.LteGateway{"gw0": expectedGw0, "gw1": expectedGw1}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -3828,6 +3838,10 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	expectedGw0 := newGatewayResponse("gw0")
+	expectedGw0.ConnectedEnodebSerials = gw0.ConnectedEnodebSerials
+	expectedGw0.ApnResources = gw0.ApnResources
+
 	// Get all, posted gateway found
 	tc = tests.Test{
 		Method:         "GET",
@@ -3836,7 +3850,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw0}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.LteGateway{"gw0": expectedGw0}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3848,7 +3862,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
 		ExpectedStatus: 200,
-		ExpectedResult: gw0,
+		ExpectedResult: expectedGw0,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3877,6 +3891,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 
 	// Post gw0 with 0 apn_resources, successful
 	gw0.ApnResources = lteModels.ApnResources{}
+	expectedGw0.ApnResources = gw0.ApnResources
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            "/magma/v1/lte/n0/gateways",
@@ -3896,7 +3911,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
 		ExpectedStatus: 200,
-		ExpectedResult: gw0,
+		ExpectedResult: expectedGw0,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3930,6 +3945,8 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get, changes are reflected
+	expectedGw0.ApnResources = gw0.ApnResources
+	expectedGw0.ConnectedEnodebSerials = gw0.ConnectedEnodebSerials
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3937,7 +3954,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
 		ExpectedStatus: 200,
-		ExpectedResult: gw0,
+		ExpectedResult: expectedGw0,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -3949,7 +3966,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw0}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.LteGateway{"gw0": expectedGw0}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -4424,4 +4441,33 @@ func newMutableGateway(id string) *lteModels.MutableLteGateway {
 		ApnResources:           lteModels.ApnResources{},
 	}
 	return gw
+}
+
+func newGatewayResponse(id string) *lteModels.LteGateway {
+	gw := &lteModels.LteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: id + "_hwid",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          models2.GatewayID(id),
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular:               newDefaultGatewayConfig(),
+		ConnectedEnodebSerials: []string{},
+		Tier:                   "t0",
+		ApnResources:           lteModels.ApnResources{},
+		CheckedInRecently:      checkedInRecently(false),
+	}
+	return gw
+}
+
+func checkedInRecently(value bool) *lteModels.GatewayCheckedInRecently {
+	result := lteModels.GatewayCheckedInRecently(value)
+	return &result
 }

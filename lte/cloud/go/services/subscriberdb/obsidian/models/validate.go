@@ -15,10 +15,10 @@ package models
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/obsidian/models"
@@ -61,7 +61,7 @@ func (m *MutableSubscriber) ValidateModel(context.Context) error {
 	apnSet := funk.Map(m.ActiveApns, func(apn string) (string, bool) { return apn, true }).(map[string]bool)
 	for apn := range m.StaticIps {
 		if _, exists := apnSet[apn]; !exists {
-			return errors.Errorf("static IP assigned to APN %s which is not active for the subscriber", apn)
+			return fmt.Errorf("static IP assigned to APN %s which is not active for the subscriber", apn)
 		}
 	}
 	return nil

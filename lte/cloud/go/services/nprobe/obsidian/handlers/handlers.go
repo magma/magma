@@ -14,13 +14,13 @@
 package handlers
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
 
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
@@ -75,7 +75,7 @@ func listNetworkProbeTasks(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load existing NetworkProbeTasks"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load existing NetworkProbeTasks: %w", err))
 	}
 
 	ret := make(map[string]*models.NetworkProbeTask, len(ents))
@@ -115,7 +115,7 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 
 		taskID := string(payload.TaskID)
 		if err := storage.StoreNProbeData(networkID, taskID, data); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to store NetworkProbeData"))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to store NetworkProbeData: %w", err))
 		}
 
 		_, err := configurator.CreateEntity(

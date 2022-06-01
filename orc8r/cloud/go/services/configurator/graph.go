@@ -14,7 +14,7 @@
 package configurator
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/merrors"
@@ -53,7 +53,7 @@ func (eg *EntityGraph) GetFirstAncestorOfType(start NetworkEntity, targetType st
 
 	start, found := eg.entsByTK[start.GetTK()]
 	if !found {
-		return NetworkEntity{}, errors.Errorf("entity %s is not in graph", start.GetTK())
+		return NetworkEntity{}, fmt.Errorf("entity %s is not in graph", start.GetTK())
 	}
 
 	ancestor := eg.upwardsDFSForType(start.GetTK(), targetType, map[storage.TK]bool{})
@@ -68,7 +68,7 @@ func (eg *EntityGraph) GetAllChildrenOfType(parent NetworkEntity, targetType str
 
 	start, found := eg.entsByTK[parent.GetTK()]
 	if !found {
-		return nil, errors.Errorf("entity %s is not in graph", start.GetTK())
+		return nil, fmt.Errorf("entity %s is not in graph", start.GetTK())
 	}
 
 	ret := []NetworkEntity{}

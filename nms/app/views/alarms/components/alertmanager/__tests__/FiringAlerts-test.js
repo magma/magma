@@ -19,51 +19,60 @@ import FiringAlerts from '../FiringAlerts';
 import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../../test/testHelpers';
 
+import type {AlarmsWrapperProps} from '../../../test/testHelpers';
+import type {ApiUtil} from '../../AlarmsApi';
 import type {FiringAlarm} from '../../AlarmAPIType';
 
-const {apiUtil, AlarmsWrapper} = alarmTestUtil();
+describe('FiringAlerts', () => {
+  let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
+  let apiUtil: ApiUtil;
 
-test('renders with default props', () => {
-  const {getByText} = render(
-    <AlarmsWrapper>
-      <FiringAlerts />
-    </AlarmsWrapper>,
-  );
-  expect(getByText(/Start creating alert rules/i)).toBeInTheDocument();
-  expect(getByText(/Add Alert Rule/i)).toBeInTheDocument();
-});
-
-test('renders firing alerts', () => {
-  const firingAlarms: Array<$Shape<FiringAlarm>> = [
-    {
-      labels: {alertname: '<<testalert>>', severity: 'INFO'},
-    },
-  ];
-  jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
-  const {getByText} = render(
-    <AlarmsWrapper>
-      <FiringAlerts />
-    </AlarmsWrapper>,
-  );
-  expect(getByText('<<testalert>>')).toBeInTheDocument();
-  expect(getByText(/info/i)).toBeInTheDocument();
-});
-
-test('clicking view alert shows alert details pane', async () => {
-  const firingAlarms: Array<$Shape<FiringAlarm>> = [
-    {
-      labels: {alertname: '<<testalert>>', severity: 'INFO'},
-    },
-  ];
-  jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
-  const {getByText, getByTestId} = render(
-    <AlarmsWrapper>
-      <FiringAlerts />
-    </AlarmsWrapper>,
-  );
-  act(() => {
-    fireEvent.click(getByText('<<testalert>>'));
+  beforeEach(() => {
+    ({apiUtil, AlarmsWrapper} = alarmTestUtil());
   });
 
-  expect(getByTestId('alert-details-pane')).toBeInTheDocument();
+  it('renders with default props', () => {
+    const {getByText} = render(
+      <AlarmsWrapper>
+        <FiringAlerts />
+      </AlarmsWrapper>,
+    );
+    expect(getByText(/Start creating alert rules/i)).toBeInTheDocument();
+    expect(getByText(/Add Alert Rule/i)).toBeInTheDocument();
+  });
+
+  it('renders firing alerts', () => {
+    const firingAlarms: Array<$Shape<FiringAlarm>> = [
+      {
+        labels: {alertname: '<<testalert>>', severity: 'INFO'},
+      },
+    ];
+    jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
+    const {getByText} = render(
+      <AlarmsWrapper>
+        <FiringAlerts />
+      </AlarmsWrapper>,
+    );
+    expect(getByText('<<testalert>>')).toBeInTheDocument();
+    expect(getByText(/info/i)).toBeInTheDocument();
+  });
+
+  it('clicking view alert shows alert details pane', async () => {
+    const firingAlarms: Array<$Shape<FiringAlarm>> = [
+      {
+        labels: {alertname: '<<testalert>>', severity: 'INFO'},
+      },
+    ];
+    jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
+    const {getByText, getByTestId} = render(
+      <AlarmsWrapper>
+        <FiringAlerts />
+      </AlarmsWrapper>,
+    );
+    act(() => {
+      fireEvent.click(getByText('<<testalert>>'));
+    });
+
+    expect(getByTestId('alert-details-pane')).toBeInTheDocument();
+  });
 });

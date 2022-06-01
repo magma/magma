@@ -15,7 +15,7 @@ limitations under the License.
 #include <stdexcept>
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.hpp"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"

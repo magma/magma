@@ -60,13 +60,13 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 1. Install the following tools
    1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
-   3. [Vagrant](https://www.vagrantup.com/downloads)
+   3. [Vagrant](https://www.vagrantup.com/downloads) (Install by downloading the `.deb` file. Installing via the command line using `apt-get` can currently cause an issue with OpenSSL. See also [this discussion](https://github.com/hashicorp/vagrant/issues/12751).)
 2. Install golang version 18.
 
    1. Download the tar file.
 
       ```bash
-      wget https://golang.org/dl/go1.18.linux-amd64.tar.gz
+      wget https://artifactory.magmacore.org/artifactory/generic/go1.18.linux-amd64.tar.gz
       ```
 
    2. Extract the archive you downloaded into `/usr/local`, creating a Go tree in `/usr/local/go`.
@@ -107,6 +107,8 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev  libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
       ```
 
+      **Note**: For Ubuntu 22.04, use `python3-openssl` instead of `python-openssl`.
+
    3. Clone `pyenv` repository.
 
       ```bash
@@ -129,6 +131,8 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       pyenv global 3.7.3
       ```
 
+        **Note**: The `pyenv` installation [might fail with a segmentation fault](https://github.com/pyenv/pyenv/issues/2046). Try using `CFLAGS="-O2" pyenv install 3.7.3` in that case.
+
 4. Install `pip3` and its dependencies.
 
    1. Install `pip3`.
@@ -148,6 +152,8 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    ```bash
    vagrant plugin install vagrant-vbguest
    ```
+
+    Make sure `virtualbox` is the default provider for `vagrant` by adding the following line to your `.bashrc` (or equivalent) and restart your shell: `export VAGRANT_DEFAULT_PROVIDER="virtualbox"`.
 
 ## Downloading Magma
 

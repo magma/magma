@@ -141,10 +141,6 @@ describe('<CWFGateways />', () => {
     ]);
   });
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
-
   it('renders', async () => {
     const {getByTitle, getAllByTitle, getAllByRole} = render(<Wrapper />);
 

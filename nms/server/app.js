@@ -24,13 +24,13 @@ logging.configure({
 
 import OrganizationLocalStrategy from './auth/strategies/OrganizationLocalStrategy';
 import OrganizationSamlStrategy from './auth/strategies/OrganizationSamlStrategy';
-import alertRoutes from '../alerts/routes.js';
+import alertRoutes from './alerts/routes';
 import connectSession from 'connect-session-sequelize';
 import devWebpackConfig from '../config/webpack.config';
 import express from 'express';
 import fbcPassport from './auth/passport';
 import fs from 'fs';
-import grafanaRoutes from '../grafana/routes';
+import grafanaRoutes from './grafana/routes';
 import mainRoutes from './main/routes';
 import passport from 'passport';
 import path from 'path';
@@ -82,7 +82,7 @@ passport.use(
 );
 
 // Views
-app.set('views', path.join(__dirname, '..', 'views'));
+app.set('views', path.join(__dirname, '../server/', 'views'));
 app.set('view engine', 'pug');
 
 // Routes
@@ -105,15 +105,15 @@ app.use('/grafana', access(AccessRoles.SUPERUSER), grafanaRoutes);
 
 // add lte metrics json file handler
 const lteMetricsJsonData = fs.readFileSync(
-  path.join(__dirname, '..', 'data/LteMetrics.json'),
+  path.join(__dirname, '..', 'api/data/LteMetrics.json'),
   'utf-8',
 );
 const alertLinksJsonData = fs.readFileSync(
-  path.join(__dirname, '..', 'data/AlertLinks.json'),
+  path.join(__dirname, '..', 'api/data/AlertLinks.json'),
   'utf-8',
 );
-app.get('/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
-app.get('/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
+app.get('api/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
+app.get('api/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
 
 // Trigger syncing of automatically generated alerts
 app.use('/sync_alerts', access(AccessRoles.USER), alertRoutes);

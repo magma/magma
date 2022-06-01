@@ -14,14 +14,14 @@
  * @format
  */
 
-import type {DataRows} from '../../../app/components/DataGrid';
+import type {DataRows} from '../../components/DataGrid';
 
-import DataGrid from '../../../app/components/DataGrid';
+import DataGrid from '../../components/DataGrid';
 import React from 'react';
 
 type OverviewProps = {
-  name: string,
-  networkIds: Set<string>,
+  name?: string,
+  networkIds?: Array<string>,
 };
 
 /**
@@ -35,7 +35,7 @@ export default function OrganizationSummary(props: OverviewProps) {
     [
       {
         category: 'Organization Name',
-        value: name,
+        value: name || '',
       },
     ],
     [

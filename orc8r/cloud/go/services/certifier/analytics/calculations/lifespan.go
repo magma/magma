@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"magma/orc8r/cloud/go/services/analytics/calculations"
@@ -75,7 +74,7 @@ func calculateCertLifespanHours(certsDirectory string, certName string, metricCo
 	}
 	cert, err := x509.ParseCertificate(dat)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("failed to parse x509 certificate data for %s", certName))
+		return nil, fmt.Errorf("failed to parse x509 certificate data for %s: %w", certName, err)
 	}
 	// Hours remaining
 	hoursLeft := math.Floor(time.Until(cert.NotAfter).Hours())
@@ -99,7 +98,7 @@ func calculateCertLifespanHours(certsDirectory string, certName string, metricCo
 func getCert(certPath string) ([]byte, error) {
 	dat, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("failed to read cert file %s", certPath))
+		return nil, fmt.Errorf("failed to read cert file %s: %w", certPath, err)
 	}
 	if strings.HasSuffix(certPath, ".pem") || strings.HasSuffix(certPath, ".crt") {
 		block, _ := pem.Decode(dat)

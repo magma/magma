@@ -104,8 +104,8 @@ class HeaderEnrichmentController(MagmaController):
     APP_NAME = "proxy"
     APP_TYPE = ControllerType.PHYSICAL
 
-    UplinkConfig = namedtuple(
-        'heConfig',
+    UplinkHEConfig = namedtuple(
+        'UplinkHEConfig',
         [
             'he_proxy_port',
             'he_enabled',
@@ -154,7 +154,7 @@ class HeaderEnrichmentController(MagmaController):
             hash_function = mconfig.he_config.hashFunction
             encoding_type = mconfig.he_config.encodingType
 
-        return self.UplinkConfig(
+        return self.UplinkHEConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             he_proxy_port=he_proxy_port,
             he_enabled=he_enabled,

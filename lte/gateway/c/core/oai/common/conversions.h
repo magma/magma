@@ -156,11 +156,11 @@
   } while (0)
 
 /* Convert an integer on 32 bits to an octet string from aSN1c tool */
-#define INT32_TO_OCTET_STRING(x, aSN)        \
-  do {                                       \
-    (aSN)->buf = calloc(4, sizeof(uint8_t)); \
-    INT32_TO_BUFFER(x, ((aSN)->buf));        \
-    (aSN)->size = 4;                         \
+#define INT32_TO_OCTET_STRING(x, aSN)                  \
+  do {                                                 \
+    (aSN)->buf = (uint8_t*)calloc(4, sizeof(uint8_t)); \
+    INT32_TO_BUFFER(x, ((aSN)->buf));                  \
+    (aSN)->size = 4;                                   \
   } while (0)
 
 #define INT32_TO_BIT_STRING(x, aSN) \
@@ -181,25 +181,25 @@
     (aSN)->bits_unused = 2;               \
   } while (0)
 
-#define INT24_TO_OCTET_STRING(x, aSN)        \
-  do {                                       \
-    (aSN)->buf = calloc(3, sizeof(uint8_t)); \
-    (aSN)->size = 3;                         \
-    INT24_TO_BUFFER(x, (aSN)->buf);          \
+#define INT24_TO_OCTET_STRING(x, aSN)                  \
+  do {                                                 \
+    (aSN)->buf = (uint8_t*)calloc(3, sizeof(uint8_t)); \
+    (aSN)->size = 3;                                   \
+    INT24_TO_BUFFER(x, (aSN)->buf);                    \
   } while (0)
 
-#define INT16_TO_OCTET_STRING(x, aSN)        \
-  do {                                       \
-    (aSN)->buf = calloc(2, sizeof(uint8_t)); \
-    (aSN)->size = 2;                         \
-    INT16_TO_BUFFER(x, (aSN)->buf);          \
+#define INT16_TO_OCTET_STRING(x, aSN)                  \
+  do {                                                 \
+    (aSN)->buf = (uint8_t*)calloc(2, sizeof(uint8_t)); \
+    (aSN)->size = 2;                                   \
+    INT16_TO_BUFFER(x, (aSN)->buf);                    \
   } while (0)
 
-#define INT8_TO_OCTET_STRING(x, aSN)         \
-  do {                                       \
-    (aSN)->buf = calloc(1, sizeof(uint8_t)); \
-    (aSN)->size = 1;                         \
-    INT8_TO_BUFFER(x, (aSN)->buf);           \
+#define INT8_TO_OCTET_STRING(x, aSN)                   \
+  do {                                                 \
+    (aSN)->buf = (uint8_t*)calloc(1, sizeof(uint8_t)); \
+    (aSN)->size = 1;                                   \
+    INT8_TO_BUFFER(x, (aSN)->buf);                     \
   } while (0)
 
 #define MME_CODE_TO_OCTET_STRING INT8_TO_OCTET_STRING
@@ -267,7 +267,7 @@
 
 #define MCC_MNC_TO_PLMNID(mCC, mNC, mNCdIGITlENGTH, oCTETsTRING)              \
   do {                                                                        \
-    (oCTETsTRING)->buf = calloc(3, sizeof(uint8_t));                          \
+    (oCTETsTRING)->buf = (uint8_t*)calloc(3, sizeof(uint8_t));                \
     (oCTETsTRING)->buf[0] = (MCC_MNC_DECIMAL(mCC) << 4) | MCC_HUNDREDS(mCC);  \
     (oCTETsTRING)->buf[1] =                                                   \
         (MNC_HUNDREDS(mNC, mNCdIGITlENGTH) << 4) | MCC_MNC_DIGIT(mCC);        \
@@ -383,14 +383,14 @@
  * IE (see subclause 9.2.1.38) of each cell
  * served by the eNB.
  */
-#define MACRO_ENB_ID_TO_BIT_STRING(mACRO, bITsTRING) \
-  do {                                               \
-    (bITsTRING)->buf = calloc(3, sizeof(uint8_t));   \
-    (bITsTRING)->buf[0] = ((mACRO) >> 12);           \
-    (bITsTRING)->buf[1] = (mACRO) >> 4;              \
-    (bITsTRING)->buf[2] = ((mACRO)&0x0f) << 4;       \
-    (bITsTRING)->size = 3;                           \
-    (bITsTRING)->bits_unused = 4;                    \
+#define MACRO_ENB_ID_TO_BIT_STRING(mACRO, bITsTRING)         \
+  do {                                                       \
+    (bITsTRING)->buf = (uint8_t*)calloc(3, sizeof(uint8_t)); \
+    (bITsTRING)->buf[0] = ((mACRO) >> 12);                   \
+    (bITsTRING)->buf[1] = (mACRO) >> 4;                      \
+    (bITsTRING)->buf[2] = ((mACRO)&0x0f) << 4;               \
+    (bITsTRING)->size = 3;                                   \
+    (bITsTRING)->bits_unused = 4;                            \
   } while (0)
 /*
  * TS 36.413 v10.9.0 section 9.2.1.38:
@@ -401,7 +401,7 @@
  */
 #define MACRO_ENB_ID_TO_CELL_IDENTITY(mACRO, cELL_iD, bITsTRING)    \
   do {                                                              \
-    (bITsTRING)->buf = calloc(4, sizeof(uint8_t));                  \
+    (bITsTRING)->buf = (uint8_t*)calloc(4, sizeof(uint8_t));        \
     (bITsTRING)->buf[0] = ((mACRO) >> 12);                          \
     (bITsTRING)->buf[1] = (mACRO) >> 4;                             \
     (bITsTRING)->buf[2] = (((mACRO)&0x0f) << 4) | ((cELL_iD) >> 4); \
@@ -597,7 +597,7 @@ imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi);
     } else {                                                       \
       len = (iMsI_len / 2);                                        \
     }                                                              \
-    (aSN)->buf = calloc(len, sizeof(uint8_t));                     \
+    (aSN)->buf = (uint8_t*)calloc(len, sizeof(uint8_t));           \
     for (idx = 0; idx < (len); idx++) {                            \
       ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f) |             \
                           ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0); \

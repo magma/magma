@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from datetime import datetime, timezone
 from typing import Optional, Union
 
 from magma.db_service.utils import get_cbsd_basic_params
@@ -55,9 +56,14 @@ def make_dp_log(
     return func(*args)
 
 
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
 def _make_log_from_db_request(request: 'DBRequest') -> DPLog:  # noqa: F821
     fcc_id, network_id, serial_number = get_cbsd_basic_params(request.cbsd)
     return DPLog(
+        event_timestamp=now(),
         log_from='DP',
         log_to='SAS',
         log_name=str(request.type.name),
@@ -76,6 +82,7 @@ def _make_log_from_db_response(response: 'DBResponse') -> DPLog:  # noqa: F821
         'response', {},
     ).get('responseCode', None)
     return DPLog(
+        event_timestamp=now(),
         log_from='SAS',
         log_to='DP',
         log_name=str(log_name),
@@ -95,6 +102,7 @@ def _make_dp_log_from_grpc_request(
     fcc_id, network_id, _ = get_cbsd_basic_params(cbsd)
 
     return DPLog(
+        event_timestamp=now(),
         log_from='CBSD',
         log_to='DP',
         log_name=method_name + 'Request',
@@ -114,6 +122,7 @@ def _make_dp_log_from_grpc_response(
     fcc_id, network_id, _ = get_cbsd_basic_params(cbsd)
 
     return DPLog(
+        event_timestamp=now(),
         log_from='DP',
         log_to='CBSD',
         log_name=method_name + 'Response',

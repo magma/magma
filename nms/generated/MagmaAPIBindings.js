@@ -141,7 +141,6 @@ export type call_trace_state = {
     call_trace_ending ? : boolean,
 };
 export type capabilities = {
-    antenna_gain: number,
     max_power: number,
     min_power: number,
     number_of_antennas: number,
@@ -167,6 +166,7 @@ export type cbsd = {
     frequency_preferences: frequency_preferences,
     grant ? : grant,
     id: number,
+    installation_param: installation_param,
     is_active: boolean,
     serial_number: string,
     single_step_enabled: boolean,
@@ -272,6 +272,10 @@ export type disk_partition = {
     mount_point ? : string,
     total ? : number,
     used ? : number,
+};
+export type distribution_package = {
+    name ? : string,
+    version ? : string,
 };
 export type dns_config_record = {
     a_record ? : Array < string >
@@ -475,6 +479,7 @@ export type gateway_cellular_configs = {
     pooling ? : cellular_gateway_pool_records,
     ran: gateway_ran_configs,
 };
+export type gateway_checked_in_recently = boolean;
 export type gateway_cwf_configs = {
     allowed_gre_peers: allowed_gre_peers,
     gateway_health_configs ? : gateway_health_configs,
@@ -687,6 +692,14 @@ export type imei = {
     snr ? : string,
     tac: string,
 };
+export type installation_param = {
+    antenna_gain ? : number,
+    height_m ? : number,
+    height_type ? : "agl" | "amsl",
+    indoor_deployment ? : boolean,
+    latitude_deg ? : number,
+    longitude_deg ? : number,
+};
 export type ip_address = {
     address ? : string,
     version ? : "IPv4" | "IPv6",
@@ -721,6 +734,7 @@ export type log = {
 export type lte_gateway = {
     apn_resources ? : apn_resources,
     cellular: gateway_cellular_configs,
+    checked_in_recently: gateway_checked_in_recently,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
     device ? : gateway_device,
@@ -813,6 +827,7 @@ export type mutable_cbsd = {
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
+    installation_param ? : installation_param,
     serial_number: string,
     single_step_enabled: boolean,
     user_id: string,
@@ -1056,10 +1071,6 @@ export type network_type = string;
 export type nh_routes = {
     [string]: string,
 };
-export type package_type = {
-    name ? : string,
-    version ? : string,
-};
 export type page_token = string;
 export type paginated_cbsds = {
     cbsds: Array < cbsd >
@@ -1120,7 +1131,7 @@ export type platform_info = {
     kernel_version ? : string,
     kernel_versions_installed ? : Array < string >
         ,
-    packages ? : Array < package_type >
+    packages ? : Array < distribution_package >
         ,
     vpn_ip ? : string,
 };

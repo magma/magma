@@ -63,15 +63,6 @@ export default (
           return this.getDataValue('networkIDs') || [];
         },
       },
-      // Unused should be removed together with a migration as a breaking change
-      tabs: {
-        type: types.JSON,
-        allowNull: true,
-        defaultValue: ['nms'],
-        get() {
-          return this.getDataValue('tabs') || ['nms'];
-        },
-      },
     },
     {
       getterMethods: {

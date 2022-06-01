@@ -133,10 +133,6 @@ describe('<FEGGatewaysTest />', () => {
     );
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/gateways']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>

@@ -32,6 +32,8 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
+      resetMocks: true,
+      restoreMocks: true,
     },
     {
       name: 'app',
@@ -41,6 +43,8 @@ module.exports = {
         '^.+\\.js$': 'babel-jest',
       },
       setupFilesAfterEnv: ['./jest.setup.app.js'],
+      resetMocks: true,
+      restoreMocks: true,
     },
   ],
   testEnvironment: 'jsdom',
