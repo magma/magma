@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import React from 'react';
@@ -19,18 +16,13 @@ import type {
   AlertConfig,
   FiringAlarm,
   Labels,
-  // $FlowFixMe migrated to typescript
 } from '../components/AlarmAPIType';
 import type {
-  AlertViewerProps,
   GenericRule,
-  RuleEditorProps,
   RuleInterface,
-  RuleViewerProps,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../components/rules/RuleInterface';
 
-export function mockPrometheusRule(merge?: $Shape<GenericRule<AlertConfig>>) {
+export function mockPrometheusRule(merge?: Partial<GenericRule<AlertConfig>>) {
   return {
     name: '<<test>>',
     severity: 'info',
@@ -50,32 +42,34 @@ export function mockPrometheusRule(merge?: $Shape<GenericRule<AlertConfig>>) {
   };
 }
 
-export function mockAlert(merge?: $Shape<FiringAlarm>): FiringAlarm {
+export function mockAlert(merge?: Partial<FiringAlarm>): FiringAlarm {
   const {labels, annotations, ...otherFields} = merge || {};
-  const defaultLabels: Labels = {alertname: 'test', severity: 'NOTICE'};
-  const defaultAnnotations: Labels = {description: 'test description'};
+  const defaultLabels: Labels = {
+    alertname: 'test',
+    severity: 'NOTICE',
+  };
+  const defaultAnnotations: Labels = {
+    description: 'test description',
+  };
   return {
-    startsAt: '2020-02-10T21:09:12Z',
+    annotations: {...defaultAnnotations, ...(annotations || {})},
     endsAt: '',
     fingerprint: '',
+    labels: {...defaultLabels, ...(labels || {})},
     receivers: [],
-    status: {inhibitedBy: [], silencedBy: [], state: ''},
-    labels: {
-      ...defaultLabels,
-      ...(labels || {}),
+    startsAt: '2020-02-10T21:09:12Z',
+    status: {
+      inhibitedBy: [],
+      silencedBy: [],
+      state: '',
     },
-    annotations: {
-      ...defaultAnnotations,
-      ...(annotations || {}),
-    },
-    ...(otherFields: $Shape<
-      $Rest<FiringAlarm, {|labels: Labels, annotations: Labels|}>,
-    >),
+    updatedAt: '',
+    ...(otherFields as Partial<Omit<FiringAlarm, 'labels' | 'annotations'>>),
   };
 }
 
 export function mockRuleInterface<TRule>(
-  overrides?: $Shape<RuleInterface<TRule>>,
+  overrides?: Partial<RuleInterface<TRule>>,
 ): RuleInterface<TRule> {
   const {
     friendlyName,
@@ -89,17 +83,17 @@ export function mockRuleInterface<TRule>(
     friendlyName: friendlyName ?? 'mock rule',
     RuleEditor:
       RuleEditor ??
-      function (_props: RuleEditorProps<TRule>) {
+      function () {
         return <span />;
       },
     RuleViewer:
       RuleViewer ??
-      function (_props: RuleViewerProps) {
+      function () {
         return <span />;
       },
     AlertViewer:
       AlertViewer ??
-      function (_props: AlertViewerProps) {
+      function () {
         return <span />;
       },
     deleteRule: deleteRule ?? jest.fn(() => Promise.resolve()),

@@ -21,6 +21,7 @@ import RuleEditorBase from '../RuleEditorBase';
 import nullthrows from '../../../../../../shared/util/nullthrows';
 import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockPrometheusRule} from '../../../test/testData';
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
 // $FlowFixMe migrated to typescript
