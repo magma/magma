@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
@@ -19,13 +16,12 @@ import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 
 type Props = {
-  onChange: (receiverName: string) => void,
-  receiver: ?string,
+  onChange: (receiverName: string) => void;
+  receiver: string | null | undefined;
 };
 
 export default function SelectReceiver({
@@ -35,15 +31,16 @@ export default function SelectReceiver({
 }: Props) {
   const {apiUtil} = useAlarmContext();
   const params = useParams();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getReceivers,
     {
-      networkId: params.networkId,
+      networkId: params.networkId!,
     },
   );
   const handleChange = React.useCallback(
-    (e: SyntheticInputEvent<HTMLInputElement>) => {
-      onChange(e.target.value);
+    (e: React.ChangeEvent<{name?: string | undefined; value: unknown}>) => {
+      onChange(e.target.value as string);
     },
     [onChange],
   );
@@ -62,8 +59,8 @@ export default function SelectReceiver({
       inputProps={{'data-testid': 'select-receiver-input'}}
       renderValue={value => (
         <Chip
-          key={value}
-          label={value}
+          key={value as string}
+          label={value as string}
           variant="outlined"
           color="primary"
           size="small"
