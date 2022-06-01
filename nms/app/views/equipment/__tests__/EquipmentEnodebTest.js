@@ -21,21 +21,19 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
 import * as hooks from '../../../components/context/RefreshContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {render, wait} from '@testing-library/react';
 
-const enqueueSnackbarMock = jest.fn();
+// $FlowFixMe Upgrade react-testing-library
+import {render, waitFor} from '@testing-library/react';
+
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
 
 const mockThroughput: promql_return_object = {
   status: 'success',
@@ -53,15 +51,11 @@ const mockThroughput: promql_return_object = {
 const currTime = Date.now();
 
 describe('<Enodeb />', () => {
-  beforeAll(() => {
+  beforeEach(() => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockThroughput,
     );
-    //   MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(enbInfo);
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
+    MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(enbInfo);
   });
 
   const enbInfo0 = {
@@ -153,36 +147,35 @@ describe('<Enodeb />', () => {
 
   it('renders', async () => {
     const {getAllByRole} = render(<Wrapper />);
-    await wait();
+    await waitFor(() => {
+      expect(
+        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+      ).toHaveBeenCalledTimes(1);
 
-    // TODO(andreilee): Figure out what's broken with this expectation
-    //expect(
-    //  MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    //).toHaveBeenCalledTimes(1);
+      const rowItems = getAllByRole('row');
 
-    const rowItems = await getAllByRole('row');
+      // first row is the header
+      expect(rowItems[0]).toHaveTextContent('Name');
+      expect(rowItems[0]).toHaveTextContent('Serial Number');
+      expect(rowItems[0]).toHaveTextContent('Session State Name');
+      expect(rowItems[0]).toHaveTextContent('Health');
+      expect(rowItems[0]).toHaveTextContent('Reported Time');
 
-    // first row is the header
-    expect(rowItems[0]).toHaveTextContent('Name');
-    expect(rowItems[0]).toHaveTextContent('Serial Number');
-    expect(rowItems[0]).toHaveTextContent('Session State Name');
-    expect(rowItems[0]).toHaveTextContent('Health');
-    expect(rowItems[0]).toHaveTextContent('Reported Time');
+      expect(rowItems[1]).toHaveTextContent('testEnodeb0');
+      expect(rowItems[1]).toHaveTextContent('testEnodebSerial0');
+      expect(rowItems[1]).toHaveTextContent(
+        'Completed provisioning eNB. Awaiting new Inform.',
+      );
+      expect(rowItems[1]).toHaveTextContent('Bad');
+      expect(rowItems[1]).toHaveTextContent(new Date(0).toLocaleDateString());
 
-    expect(rowItems[1]).toHaveTextContent('testEnodeb0');
-    expect(rowItems[1]).toHaveTextContent('testEnodebSerial0');
-    expect(rowItems[1]).toHaveTextContent(
-      'Completed provisioning eNB. Awaiting new Inform.',
-    );
-    expect(rowItems[1]).toHaveTextContent('Bad');
-    expect(rowItems[1]).toHaveTextContent(new Date(0).toLocaleDateString());
-
-    expect(rowItems[2]).toHaveTextContent('testEnodeb1');
-    expect(rowItems[2]).toHaveTextContent('testEnodebSerial1');
-    expect(rowItems[2]).toHaveTextContent('initializing');
-    expect(rowItems[2]).toHaveTextContent('Good');
-    expect(rowItems[2]).toHaveTextContent(
-      new Date(currTime).toLocaleDateString(),
-    );
+      expect(rowItems[2]).toHaveTextContent('testEnodeb1');
+      expect(rowItems[2]).toHaveTextContent('testEnodebSerial1');
+      expect(rowItems[2]).toHaveTextContent('initializing');
+      expect(rowItems[2]).toHaveTextContent('Good');
+      expect(rowItems[2]).toHaveTextContent(
+        new Date(currTime).toLocaleDateString(),
+      );
+    });
   });
 });

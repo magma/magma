@@ -67,6 +67,7 @@ const mockGatewaySt: lte_gateway = {
     },
   },
   tier: 'default',
+  checked_in_recently: false,
 };
 
 describe('<GatewaySummary />', () => {

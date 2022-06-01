@@ -77,3 +77,42 @@ extern "C" int verify_service_area_restriction(
   }
   OAILOG_FUNC_RETURN(LOG_COMMON, RETURNerror);
 }
+
+//------------------------------------------------------------------------------
+int mme_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,
+                               const char mcc_digit3P, const char mnc_digit1P,
+                               const char mnc_digit2P, const char mnc_digit3P) {
+  uint16_t mcc = 100 * mcc_digit1P + 10 * mcc_digit2P + mcc_digit3P;
+  uint16_t mnc3 = 100 * mnc_digit1P + 10 * mnc_digit2P + mnc_digit3P;
+  uint16_t mnc2 = 10 * mnc_digit1P + mnc_digit2P;
+  int plmn_index = 0;
+
+  if (mcc_digit1P < 0 || mcc_digit1P > 9 || mcc_digit2P < 0 ||
+      mcc_digit2P > 9 || mcc_digit3P < 0 || mcc_digit3P > 9) {
+    OAILOG_ERROR(LOG_MME_APP, "BAD MCC PARAMETER (%d%d%d)!\n", mcc_digit1P,
+                 mcc_digit2P, mcc_digit3P);
+    return 0;
+  }
+  if (mnc_digit2P < 0 || mnc_digit2P > 9 || mnc_digit1P < 0 ||
+      mnc_digit1P > 9) {
+    OAILOG_ERROR(LOG_MME_APP, "BAD MNC PARAMETER (%d%d%d)!\n", mnc_digit1P,
+                 mnc_digit2P, mnc_digit3P);
+    return 0;
+  }
+
+  while (plmn_index < mme_config.served_tai.nb_tai) {
+    if (mme_config.served_tai.plmn_mcc[plmn_index] == mcc) {
+      if ((mme_config.served_tai.plmn_mnc[plmn_index] == mnc2) &&
+          (mme_config.served_tai.plmn_mnc_len[plmn_index] == 2)) {
+        return 2;
+      } else if ((mme_config.served_tai.plmn_mnc[plmn_index] == mnc3) &&
+                 (mme_config.served_tai.plmn_mnc_len[plmn_index] == 3)) {
+        return 3;
+      }
+    }
+
+    plmn_index += 1;
+  }
+
+  return 0;
+}

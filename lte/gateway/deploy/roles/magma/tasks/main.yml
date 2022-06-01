@@ -424,6 +424,20 @@
   when: full_provision
   ignore_errors: true
 
+- name: Copy ryu qfi patch1 for 3.8
+  copy:
+    src: patches/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch
+    dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nicira_ext.py
+  when: full_provision
+  ignore_errors: true
+
+- name: Copy ryu qfi patch2 for 3.8
+  copy:
+    src: patches/0003-QFI-value-set-in-Openflow-controller-using-RYU.patch
+    dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nx_match.py
+  when: full_provision
+  ignore_errors: true
+
 - name: Change build folder ownership
   ansible.builtin.file:
     path: /home/vagrant/build

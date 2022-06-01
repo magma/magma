@@ -44,10 +44,6 @@ const commonProps = {
   onExit: jest.fn(),
 };
 
-afterEach(() => {
-  jest.resetAllMocks();
-});
-
 describe('Receiver select', () => {
   function assertType<T, I>(value: ?T, shouldBe: Class<I>): I {
     if (value instanceof shouldBe) {

@@ -25,7 +25,7 @@ $(PYTHON_BUILD)/setupinteg_env:
 # TODO T21489739 - Don't sleep and don't stop after a failure
 RESULTS_DIR := /var/tmp/test_results
 ifdef enable-flaky-retry
-	FLAKY_CMD_ARGS := --with-flaky --force-flaky --no-success-flaky-report --max-runs=3 --min-passes=1
+	FLAKY_CMD_ARGS := --with-flaky --force-flaky --no-flaky-report --max-runs=3 --min-passes=1
 else
 	FLAKY_CMD_ARGS :=
 endif

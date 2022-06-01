@@ -23,112 +23,116 @@ import {
   wait,
   waitForElement,
 } from '@testing-library/react';
-import {alarmTestUtil, useMagmaAPIMock} from '../../../../test/testHelpers';
+import {alarmTestUtil} from '../../../../test/testHelpers';
+import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
+import type {ApiUtil} from '../../../AlarmsApi';
 
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+describe('Receivers', () => {
+  let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
+  let apiUtil: ApiUtil;
 
-const {AlarmsWrapper} = alarmTestUtil();
+  beforeEach(() => {
+    ({AlarmsWrapper, apiUtil} = alarmTestUtil());
+  });
 
-test('renders', () => {
-  render(
-    <AlarmsWrapper>
-      <Receivers />
-    </AlarmsWrapper>,
-  );
-});
+  it('renders', () => {
+    render(
+      <AlarmsWrapper>
+        <Receivers />
+      </AlarmsWrapper>,
+    );
+  });
 
-test('clicking the View button on a row shows the view dialog', async () => {
-  useMagmaAPIMock.mockReturnValueOnce({
-    response: [
-      {
-        name: 'test_receiver',
-        slack_configs: [
-          {
-            api_url: 'test.com',
-            channel: '#test',
-            text: '{{text}}',
-            title: '{{title}}',
-          },
-        ],
-      },
-    ],
-  });
-  const {getByText, getAllByText, queryByText, getAllByTitle} = render(
-    <AlarmsWrapper>
-      <Receivers />
-    </AlarmsWrapper>,
-  );
-  const actionMenu = getAllByTitle('Actions');
-  expect(actionMenu[0]).toBeInTheDocument();
-  act(() => {
-    fireEvent.click(actionMenu[0]);
-  });
-  act(() => {
-    fireEvent.click(getAllByText('View')[0]);
-  });
-  // clicking View should open the dialog
-  await waitForElement(() => getByText(/View Receiver/i));
-  expect(getByText(/View Receiver/i)).toBeInTheDocument();
+  it('clicking the View button on a row shows the view dialog', async () => {
+    jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
+      response: [
+        {
+          name: 'test_receiver',
+          slack_configs: [
+            {
+              api_url: 'test.com',
+              channel: '#test',
+              text: '{{text}}',
+              title: '{{title}}',
+            },
+          ],
+        },
+      ],
+    });
+    const {getByText, getAllByText, queryByText, getAllByTitle} = render(
+      <AlarmsWrapper>
+        <Receivers />
+      </AlarmsWrapper>,
+    );
+    const actionMenu = getAllByTitle('Actions');
+    expect(actionMenu[0]).toBeInTheDocument();
+    act(() => {
+      fireEvent.click(actionMenu[0]);
+    });
+    act(() => {
+      fireEvent.click(getAllByText('View')[0]);
+    });
+    // clicking View should open the dialog
+    await waitForElement(() => getByText(/View Receiver/i));
+    expect(getByText(/View Receiver/i)).toBeInTheDocument();
 
-  // clicking Close should close the dialog
-  act(() => {
-    fireEvent.click(getByText(/close/i));
+    // clicking Close should close the dialog
+    act(() => {
+      fireEvent.click(getByText(/close/i));
+    });
+    await wait(() => {
+      expect(queryByText(/View Receiver/i)).not.toBeInTheDocument();
+    });
   });
-  await wait(() => {
-    expect(queryByText(/View Receiver/i)).not.toBeInTheDocument();
-  });
-});
 
-test('clicking edit button should show AddEditReceiver in edit mode', () => {
-  useMagmaAPIMock.mockReturnValueOnce({
-    response: [
-      {
-        name: 'test_receiver',
-        slack_configs: [
-          {
-            api_url: 'test.com',
-            channel: '#test',
-            text: '{{text}}',
-            title: '{{title}}',
-          },
-        ],
-      },
-    ],
-  });
-  const {getAllByText, getByTestId, queryByTestId, getAllByTitle} = render(
-    <AlarmsWrapper>
-      <Receivers />
-    </AlarmsWrapper>,
-  );
+  it('clicking edit button should show AddEditReceiver in edit mode', () => {
+    jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
+      response: [
+        {
+          name: 'test_receiver',
+          slack_configs: [
+            {
+              api_url: 'test.com',
+              channel: '#test',
+              text: '{{text}}',
+              title: '{{title}}',
+            },
+          ],
+        },
+      ],
+    });
+    const {getAllByText, getByTestId, queryByTestId, getAllByTitle} = render(
+      <AlarmsWrapper>
+        <Receivers />
+      </AlarmsWrapper>,
+    );
 
-  const actionMenu = getAllByTitle('Actions');
-  expect(actionMenu[0]).toBeInTheDocument();
-  act(() => {
-    fireEvent.click(actionMenu[0]);
+    const actionMenu = getAllByTitle('Actions');
+    expect(actionMenu[0]).toBeInTheDocument();
+    act(() => {
+      fireEvent.click(actionMenu[0]);
+    });
+    expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
+    act(() => {
+      fireEvent.click(getAllByText('Edit')[0]);
+    });
+    expect(getByTestId('add-edit-receiver')).toBeInTheDocument();
   });
-  expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
-  act(() => {
-    fireEvent.click(getAllByText('Edit')[0]);
-  });
-  expect(getByTestId('add-edit-receiver')).toBeInTheDocument();
-});
 
-test('clicking add button should show AddEditReceiver', () => {
-  useMagmaAPIMock.mockReturnValueOnce({
-    response: [],
-  });
-  const {getByTestId, queryByTestId} = render(
-    <AlarmsWrapper>
-      <Receivers />
-    </AlarmsWrapper>,
-  );
+  it('clicking add button should show AddEditReceiver', () => {
+    jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
+      response: [],
+    });
+    const {getByTestId, queryByTestId} = render(
+      <AlarmsWrapper>
+        <Receivers />
+      </AlarmsWrapper>,
+    );
 
-  expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
-  act(() => {
-    fireEvent.click(getByTestId('add-receiver-button'));
+    expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
+    act(() => {
+      fireEvent.click(getByTestId('add-receiver-button'));
+    });
+    expect(getByTestId('add-edit-receiver')).toBeInTheDocument();
   });
-  expect(getByTestId('add-edit-receiver')).toBeInTheDocument();
 });

@@ -14,6 +14,7 @@
  * @format
  */
 
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 import type {UserType} from '../../../shared/sequelize_models/models/user.js';
 import type {WithAlert} from '../../components/Alert/withAlert';

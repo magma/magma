@@ -28,6 +28,10 @@ type LteGateway struct {
 	// Required: true
 	Cellular *GatewayCellularConfigs `json:"cellular"`
 
+	// checked in recently
+	// Required: true
+	CheckedInRecently *GatewayCheckedInRecently `json:"checked_in_recently"`
+
 	// connected enodeb serials
 	// Required: true
 	ConnectedEnodebSerials EnodebSerials `json:"connected_enodeb_serials"`
@@ -71,6 +75,10 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateCellular(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCheckedInRecently(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -147,6 +155,30 @@ func (m *LteGateway) validateCellular(formats strfmt.Registry) error {
 				return ve.ValidateName("cellular")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
 				return ce.ValidateName("cellular")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) validateCheckedInRecently(formats strfmt.Registry) error {
+
+	if err := validate.Required("checked_in_recently", "body", m.CheckedInRecently); err != nil {
+		return err
+	}
+
+	if err := validate.Required("checked_in_recently", "body", m.CheckedInRecently); err != nil {
+		return err
+	}
+
+	if m.CheckedInRecently != nil {
+		if err := m.CheckedInRecently.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("checked_in_recently")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("checked_in_recently")
 			}
 			return err
 		}
@@ -334,6 +366,10 @@ func (m *LteGateway) ContextValidate(ctx context.Context, formats strfmt.Registr
 		res = append(res, err)
 	}
 
+	if err := m.contextValidateCheckedInRecently(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.contextValidateConnectedEnodebSerials(ctx, formats); err != nil {
 		res = append(res, err)
 	}
@@ -398,6 +434,22 @@ func (m *LteGateway) contextValidateCellular(ctx context.Context, formats strfmt
 				return ve.ValidateName("cellular")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
 				return ce.ValidateName("cellular")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *LteGateway) contextValidateCheckedInRecently(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.CheckedInRecently != nil {
+		if err := m.CheckedInRecently.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("checked_in_recently")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("checked_in_recently")
 			}
 			return err
 		}

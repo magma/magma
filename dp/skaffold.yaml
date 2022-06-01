@@ -54,6 +54,8 @@ deploy:
         - host:
             command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "deployment/elasticsearch-deployment"]
         - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/fake_sas.yml"]
+        - host:
             command: ["dp/tools/skaffold_hooks/hooks.sh", "create_secrets"]
             dir: ..
         - host:
@@ -82,8 +84,6 @@ deploy:
           helm: {}
   kubectl:
     defaultNamespace: default
-    manifests:
-      - "./tools/deployment/vendor/fake_sas.yml"
 profiles:
   - name: integration-tests-no-orc8
     patches:
@@ -120,20 +120,25 @@ profiles:
           apply:
             - "--force=true"
       - op: add
-        path: /deploy/kubectl/manifests/1
-        value: "./tools/deployment/tests/test_runner_deployment.yml"
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment.yml"
     activation:
       - env: CI=true
   - name: integration-tests-orc8r-only
     patches:
-      - op: replace
-        path: /deploy/kubectl/manifests/1
-        value: "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
   - name: integration-tests-all
     patches:
-      - op: replace
-        path: /deploy/kubectl/manifests/1
-        value: "./tools/deployment/tests/test_runner_*.yml"
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests: "./tools/deployment/tests/test_runner_*.yml"
 
   - name: remote
     deploy:
@@ -256,7 +261,7 @@ profiles:
                 - "-c"
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
       - op: remove
-        path: /deploy/helm/hooks/before/5
+        path: /deploy/helm/hooks/before/6
   - name: remote-push
     patches:
       - op: remove

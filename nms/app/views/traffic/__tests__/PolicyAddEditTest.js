@@ -30,13 +30,12 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe Upgrade react-testing-library
 import {fireEvent, render, waitFor} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
+
 const policies = {
   policy_0: {
     flow_list: [],
@@ -150,14 +149,11 @@ const feg_lte_network = {
 };
 
 describe('<TrafficDashboard />', () => {
-  afterEach(() => {
-    MagmaAPIBindings.getFegLteByNetworkId.mockClear();
-    MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules.mockClear();
-    MagmaAPIBindings.putFegLteByNetworkIdSubscriberConfig.mockClear();
-    MagmaAPIBindings.putFegByNetworkIdSubscriberConfig.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdSubscriberConfig.mockClear();
-  });
   beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
     MagmaAPIBindings.getFegLteByNetworkId.mockResolvedValue(feg_lte_network);
     MagmaAPIBindings.getFegByNetworkId.mockResolvedValue(feg_network);
     MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles.mockResolvedValue({});

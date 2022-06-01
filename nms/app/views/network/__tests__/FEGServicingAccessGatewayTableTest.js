@@ -19,7 +19,6 @@ import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -100,6 +99,7 @@ const mockGw1: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 jest.mock('axios');
@@ -144,6 +144,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     ...mockGw1,
     id: 'test_gw3',
     name: 'test gateway3',
+    checked_in_recently: true,
     status: {checkin_time: Date.now()},
   };
   beforeEach(() => {
@@ -158,10 +159,6 @@ describe('<ServicingAccessGatewaysInfo />', () => {
         [mockGw2.id]: mockGw2,
       })
       .mockResolvedValue({[mockGw3.id]: mockGw3});
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   const Wrapper = () => {

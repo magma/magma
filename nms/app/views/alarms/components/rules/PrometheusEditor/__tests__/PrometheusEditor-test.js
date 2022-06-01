@@ -20,17 +20,10 @@ import {alarmTestUtil} from '../../../../test/testHelpers';
 import {parseTimeString} from '../PrometheusEditor';
 import {render} from '@testing-library/react';
 
+import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 import type {AlertConfig} from '../../../AlarmAPIType';
+import type {ApiUtil} from '../../../AlarmsApi';
 import type {GenericRule} from '../../RuleInterface';
-
-jest.mock('../../../../../../hooks/useSnackbar');
-
-const {AlarmsWrapper, apiUtil} = alarmTestUtil();
-
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../../../hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
 
 // TextField select is difficult to test so replace it with an Input
 jest.mock('@material-ui/core/TextField', () => {
@@ -43,61 +36,70 @@ jest.mock('@material-ui/core/TextField', () => {
   );
 });
 
-const commonProps = {
-  onRuleUpdated: () => {},
-  onExit: () => {},
-  isNew: false,
-  onRuleSaved: jest.fn(),
-};
+describe('PrometheusEditor', () => {
+  let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
+  let apiUtil: ApiUtil;
 
-test('editing a threshold alert opens the PrometheusEditor with the threshold expression editor enabled', async () => {
-  jest.spyOn(apiUtil, 'getMetricSeries').mockResolvedValue([]);
-  const testThresholdRule: GenericRule<AlertConfig> = {
-    severity: '',
-    ruleType: '',
-    rawRule: {alert: '', expr: 'metric > 123'},
-    period: '',
-    name: '',
-    description: '',
-    expression: 'metric > 123',
+  beforeEach(() => {
+    ({apiUtil, AlarmsWrapper} = alarmTestUtil());
+  });
+
+  const commonProps = {
+    onRuleUpdated: () => {},
+    onExit: () => {},
+    isNew: false,
+    onRuleSaved: jest.fn(),
   };
-  const {getByDisplayValue} = render(
-    <AlarmsWrapper thresholdEditorEnabled={true}>
-      <PrometheusEditor {...commonProps} rule={testThresholdRule} />
-    </AlarmsWrapper>,
-  );
-  expect(getByDisplayValue('metric')).toBeInTheDocument();
-  expect(getByDisplayValue('123')).toBeInTheDocument();
-});
 
-test('editing a non-threshold alert opens the PrometheusEditor with the advanced editor enabled', async () => {
-  const testThresholdRule: GenericRule<AlertConfig> = {
-    severity: '',
-    ruleType: '',
-    rawRule: {alert: '', expr: 'vector(1)'},
-    period: '',
-    name: '',
-    description: '',
-    expression: 'vector(1)',
-  };
-  const {getByDisplayValue} = render(
-    <AlarmsWrapper thresholdEditorEnabled={true}>
-      <PrometheusEditor {...commonProps} rule={testThresholdRule} />
-    </AlarmsWrapper>,
-  );
-  expect(getByDisplayValue('vector(1)')).toBeInTheDocument();
-});
+  test('editing a threshold alert opens the PrometheusEditor with the threshold expression editor enabled', async () => {
+    jest.spyOn(apiUtil, 'getMetricSeries').mockResolvedValue([]);
+    const testThresholdRule: GenericRule<AlertConfig> = {
+      severity: '',
+      ruleType: '',
+      rawRule: {alert: '', expr: 'metric > 123'},
+      period: '',
+      name: '',
+      description: '',
+      expression: 'metric > 123',
+    };
+    const {getByDisplayValue} = render(
+      <AlarmsWrapper thresholdEditorEnabled={true}>
+        <PrometheusEditor {...commonProps} rule={testThresholdRule} />
+      </AlarmsWrapper>,
+    );
+    expect(getByDisplayValue('metric')).toBeInTheDocument();
+    expect(getByDisplayValue('123')).toBeInTheDocument();
+  });
 
-describe('Duration Parser', () => {
-  const testCases = [
-    ['empty input', '', {hours: 0, minutes: 0, seconds: 0}],
-    ['out of order units', '1s2m3h', {hours: 0, minutes: 0, seconds: 0}],
-    ['all units', '1h2m3s', {hours: 1, minutes: 2, seconds: 3}],
-    ['hour', '1h', {hours: 1, minutes: 0, seconds: 0}],
-    ['minute', '1m', {hours: 0, minutes: 1, seconds: 0}],
-    ['second', '1s', {hours: 0, minutes: 0, seconds: 1}],
-  ];
-  test.each(testCases)('%s', (name, input, expectedDuration) => {
-    expect(parseTimeString(input)).toEqual(expectedDuration);
+  test('editing a non-threshold alert opens the PrometheusEditor with the advanced editor enabled', async () => {
+    const testThresholdRule: GenericRule<AlertConfig> = {
+      severity: '',
+      ruleType: '',
+      rawRule: {alert: '', expr: 'vector(1)'},
+      period: '',
+      name: '',
+      description: '',
+      expression: 'vector(1)',
+    };
+    const {getByDisplayValue} = render(
+      <AlarmsWrapper thresholdEditorEnabled={true}>
+        <PrometheusEditor {...commonProps} rule={testThresholdRule} />
+      </AlarmsWrapper>,
+    );
+    expect(getByDisplayValue('vector(1)')).toBeInTheDocument();
+  });
+
+  describe('Duration Parser', () => {
+    const testCases = [
+      ['empty input', '', {hours: 0, minutes: 0, seconds: 0}],
+      ['out of order units', '1s2m3h', {hours: 0, minutes: 0, seconds: 0}],
+      ['all units', '1h2m3s', {hours: 1, minutes: 2, seconds: 3}],
+      ['hour', '1h', {hours: 1, minutes: 0, seconds: 0}],
+      ['minute', '1m', {hours: 0, minutes: 1, seconds: 0}],
+      ['second', '1s', {hours: 0, minutes: 0, seconds: 1}],
+    ];
+    test.each(testCases)('%s', (name, input, expectedDuration) => {
+      expect(parseTimeString(input)).toEqual(expectedDuration);
+    });
   });
 });
