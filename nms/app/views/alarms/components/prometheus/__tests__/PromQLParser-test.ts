@@ -14,20 +14,18 @@
  * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../PromQL';
 import {Parse} from '../PromQLParser';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Tokenize} from '../PromQLTokenizer';
 
 class ErrorMatcher {
-  messageRegex: ?RegExp;
-  constructor(messageRegex: ?RegExp) {
+  messageRegex: RegExp | undefined;
+  constructor(messageRegex: RegExp | undefined) {
     this.messageRegex = messageRegex;
   }
 }
 
-function expectSyntaxError(msg: ?RegExp): ErrorMatcher {
+function expectSyntaxError(msg?: RegExp): ErrorMatcher {
   return new ErrorMatcher(msg);
 }
 
@@ -852,10 +850,10 @@ const testCases = [
       new PromQL.Range(10, 'm'),
     ),
   ],
-];
+] as const;
 
 describe('Tokenize', () => {
-  test.each(testCases)('%s', (name, input, expectedTokens, _) => {
+  it.each(testCases)('%s', (name, input, expectedTokens, _) => {
     if (expectedTokens instanceof ErrorMatcher) {
       expect(() => Tokenize(input)).toThrowError(expectedTokens.messageRegex);
     } else {
@@ -865,7 +863,7 @@ describe('Tokenize', () => {
 });
 
 describe('Parser', () => {
-  test.each(testCases)('%s', (name, input, _, expected) => {
+  it.each(testCases)('%s', (name, input, _, expected) => {
     if (expected instanceof ErrorMatcher) {
       expect(() => Parse(input)).toThrowError(expected.messageRegex);
     } else if (expected !== null) {
