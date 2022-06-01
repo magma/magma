@@ -9,27 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip, {TooltipProps} from '@material-ui/core/Tooltip';
 
 import copy from 'copy-to-clipboard';
 import {useState} from 'react';
 
 type Props = {
-  ...React.ElementConfig<typeof Tooltip>,
-  children: (props: {copyString: (content: string) => void}) =>
-    | React.Element<typeof Button>
-    | React.Element<typeof IconButton>,
+  children: (props: {
+    copyString: (content: string) => void;
+  }) =>
+    | React.ReactElement<typeof Button>
+    | React.ReactElement<typeof IconButton>;
   // We set the title appropriately later
-  title?: React.Node,
-};
+  title?: React.ReactNode;
+} & Omit<TooltipProps, 'title'>;
 
 const COPIED_MESSAGE = 'Copied to clipboard!';
 
@@ -52,8 +50,12 @@ export default function ClipboardLink({title, ...props}: Props) {
 
 // If they pass in a title, we need to change that title briefly to
 // COPIED_MESSAGE whenever the content is copied.
-function ClipboardLinkWithTitle(props: {...Props, title: React.Node}) {
-  const [currentTitle, setCurrentTitle] = useState<React.Node>(props.title);
+function ClipboardLinkWithTitle(
+  props: Props & {title: NonNullable<React.ReactNode>},
+) {
+  const [currentTitle, setCurrentTitle] = useState<
+    NonNullable<React.ReactNode>
+  >(props.title);
   return (
     <Tooltip
       {...props}
