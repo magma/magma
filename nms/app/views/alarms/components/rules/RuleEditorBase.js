@@ -29,6 +29,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import LabelsEditor from './LabelsEditor';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectRuleType from './SelectRuleType';
