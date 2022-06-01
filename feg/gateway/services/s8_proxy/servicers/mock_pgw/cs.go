@@ -19,7 +19,6 @@ import (
 	"net"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
@@ -50,7 +49,7 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 				case *gtpv2.UnknownIMSIError:
 					// whole new session. just ignore.
 				default:
-					return errors.Wrap(err2, "got something unexpected")
+					return fmt.Errorf("got something unexpected: %w", err2)
 				}
 			} else {
 				fmt.Printf("Existing IMSI during Create Session Request on PGW (%s). Deleting previous session\n", imsi)
@@ -409,7 +408,7 @@ func (mPgw *MockPgw) getHandleCreateSessionResponseWithMissingIE() gtpv2.Handler
 		csRspFromPGW := message.NewCreateSessionResponse(
 			sgwTEID.MustTEID(), msg.Sequence(),
 			ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
-			//pgwFTEIDc,
+			// pgwFTEIDc,
 			ie.NewPDNAddressAllocation("10.1.2.3"),
 			ie.NewAPNRestriction(gtpv2.APNRestrictionPublic2),
 			ie.NewBearerContext(
