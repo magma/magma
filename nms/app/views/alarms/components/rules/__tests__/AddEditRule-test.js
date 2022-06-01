@@ -17,6 +17,7 @@
 import * as React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditRule from '../AddEditRule';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleEditorBase from '../RuleEditorBase';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../../../../shared/util/nullthrows';

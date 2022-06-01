@@ -22,6 +22,7 @@ import {useParams} from 'react-router-dom';
 type Props = {
   onChange: (receiverName: string) => void;
   receiver: string | null | undefined;
+  fullWidth: boolean;
 };
 
 export default function SelectReceiver({
