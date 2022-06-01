@@ -92,6 +92,8 @@
     "@types/express-session": "^1.15.6",
     "@types/jest": "^27.5.0",
     "@types/lodash": "^4.14.182",
+    "@types/react": "^16.8.6",
+    "@types/react-dom": "^16.8.6",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
     "autoprefixer": "^7.1.6",
@@ -149,7 +151,8 @@
     "node-forge": "^1.0.0",
     "refractor/prismjs": "^1.27.0",
     "jspdf": "^2.3.1",
-    "cacache/ssri": "6.0.2"
+    "cacache/ssri": "6.0.2",
+    "@types/react": "^16.8.6"
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",

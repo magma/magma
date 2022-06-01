@@ -10,9 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
- *
  * Edit rule labels
  */
 
@@ -27,14 +24,13 @@ import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-// $FlowFixMe migrated to typescript
 import type {Labels} from '../AlarmAPIType';
 
 const filteredLabels = new Set(['networkID', 'severity']);
 
 type Props = {
-  labels: {[string]: string},
-  onChange: (newLabels: Labels) => void,
+  labels: Record<string, string>;
+  onChange: (newLabels: Labels) => void;
 };
 
 export default function LabelsEditor({labels, onChange}: Props) {
@@ -60,7 +56,7 @@ export default function LabelsEditor({labels, onChange}: Props) {
   const updateLabel = React.useCallback(
     (index: number, key: string, value: string) => {
       const labelsStateCopy = [...labelsState];
-      const newLabel = [key, value];
+      const newLabel: [string, string] = [key, value];
 
       if (labelsStateCopy[index]) {
         // edit existing label
@@ -92,7 +88,7 @@ export default function LabelsEditor({labels, onChange}: Props) {
   }, [updateLabels, labelsState]);
 
   const removeLabel = React.useCallback(
-    index => {
+    (index: number) => {
       updateLabels([
         ...labelsState.slice(0, index - 1),
         ...labelsState.slice(index + 1, labelsState.length),
@@ -182,5 +178,5 @@ function convertPairsToLabels(pairs: Array<[string, string]>): Labels {
       map[key] = val;
     }
     return map;
-  }, {});
+  }, {} as Labels);
 }

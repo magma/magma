@@ -25,6 +25,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LabelsEditor from './LabelsEditor';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
