@@ -9,29 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
+
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {MultiGroupsCell, toLabels} from '../table/SimpleTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from '../table/TableActionDialog';
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../../../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useNetworkId} from '../hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../hooks/useSnackbar';
-
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   addButton: {
     position: 'fixed',
     bottom: 0,
@@ -45,31 +39,28 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
   },
 }));
-
 export default function Suppressions() {
   const {apiUtil} = useAlarmContext();
-  const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [currentRow, setCurrentRow] = useState<{}>({});
+  const [menuAnchorEl, setMenuAnchorEl] = useState<
+    HTMLElement | null | undefined
+  >(null);
+  const [currentRow, setCurrentRow] = useState({});
   const [showDialog, setShowDialog] = useState(false);
-  const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
-    new Date().toLocaleString(),
-  );
-  const [_isAddEditAlert, _setIsAddEditAlert] = useState<boolean>(false);
+  const [lastRefreshTime] = useState<string>(new Date().toLocaleString());
   const classes = useStyles();
   const snackbars = useSnackbars();
   const networkId = useNetworkId();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getSuppressions,
-    {networkId},
+    {
+      networkId,
+    },
     lastRefreshTime,
   );
 
   if (error) {
-    snackbars.error(
-      `Unable to load suppressions: ${
-        error.response ? error.response.data.message : error.message
-      }`,
-    );
+    snackbars.error(`Unable to load suppressions: ${getErrorMessage(error)}`);
   }
 
   const silencesList = response || [];
@@ -79,9 +70,18 @@ export default function Suppressions() {
       <SimpleTable
         onRowClick={row => setCurrentRow(row)}
         columnStruct={[
-          {title: 'Name', field: 'comment'},
-          {title: 'Active', field: 'status.state'},
-          {title: 'Created By', field: 'createdBy'},
+          {
+            title: 'Name',
+            field: 'comment',
+          },
+          {
+            title: 'Active',
+            field: 'status.state',
+          },
+          {
+            title: 'Created By',
+            field: 'createdBy',
+          },
           {
             title: 'Matchers',
             field: 'matchers',
