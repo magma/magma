@@ -9,12 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../PromQL';
 
 // Simple reusable PromQL Constructs to make tests cleaner
@@ -61,8 +57,8 @@ describe('Labels', () => {
       `{label="value",label="value"}`,
     ],
     ['no labels', new PromQL.Labels([]), ''],
-  ];
-  test.each(testCases)('%s', (_, labels, expectedString) => {
+  ] as const;
+  it.each(testCases)('%s', (_, labels, expectedString) => {
     expect(labels.toPromQL()).toEqual(expectedString);
   });
 });
@@ -111,9 +107,9 @@ describe('Selectors', () => {
       ),
       `http_requests_total offset 5m`,
     ],
-  ];
+  ] as const;
 
-  test.each(testCases)('%s', (_, instantSelector, expectedString) => {
+  it.each(testCases)('%s', (_, instantSelector, expectedString) => {
     expect(instantSelector.toPromQL()).toEqual(expectedString);
   });
 });
@@ -145,8 +141,9 @@ describe('Functions', () => {
       ]),
       'sum(rate(metric[5m]))',
     ],
-  ];
-  test.each(testCases)('%s', (_, f, expectedString) => {
+  ] as const;
+
+  it.each(testCases)('%s', (_, f, expectedString) => {
     expect(f.toPromQL()).toEqual(expectedString);
   });
 });
@@ -233,9 +230,9 @@ describe('Binary Operators', () => {
       ),
       `metric / on (label1,label2) group_left metric2`,
     ],
-  ];
+  ] as const;
 
-  test.each(testCases)('%s', (_, binOp, expectedString) => {
+  it.each(testCases)('%s', (_, binOp, expectedString) => {
     expect(binOp.toPromQL()).toEqual(expectedString);
   });
 });
@@ -268,9 +265,9 @@ describe('Aggregation Operators', () => {
       ]),
       'topk(5,metric)',
     ],
-  ];
+  ] as const;
 
-  test.each(testCases)('%s', (_, aggOp, expectedString) => {
+  it.each(testCases)('%s', (_, aggOp, expectedString) => {
     expect(aggOp.toPromQL()).toEqual(expectedString);
   });
 });
@@ -314,7 +311,7 @@ describe('Sub-queries', () => {
       ),
       'topk(5,metric)[1h:5m]',
     ],
-  ];
+  ] as const;
 
   test.each(testCases)('%s', (_, subQuery, expectedString) => {
     expect(subQuery.toPromQL()).toEqual(expectedString);
@@ -346,9 +343,9 @@ describe('realistic examples', () => {
       ),
       `avg(rate(http_status{code="500"}[5m])) by (region) > 5`,
     ],
-  ];
+  ] as const;
 
-  test.each(testCases)('%s', (_, exp, expectedString) => {
+  it.each(testCases)('%s', (_, exp, expectedString) => {
     expect(exp.toPromQL()).toEqual(expectedString);
   });
 });

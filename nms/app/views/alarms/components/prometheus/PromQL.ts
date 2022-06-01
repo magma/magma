@@ -57,7 +57,7 @@ export class InstantSelector implements Expression<any> {
 
   constructor(
     selectorName: string | null | undefined,
-    labels: Labels | null | undefined,
+    labels?: Labels | null,
     offset?: Range | null,
   ) {
     this.selectorName = selectorName;
@@ -224,7 +224,7 @@ export class BinaryOperation implements Expression<string | number> {
     lh: Expression<string | number>,
     rh: Expression<string | number>,
     operator: BinaryOperator,
-    clause: VectorMatchClause | null | undefined,
+    clause?: VectorMatchClause | null,
   ) {
     this.lh = lh;
     this.rh = rh;
@@ -273,7 +273,7 @@ export class VectorMatchClause {
 
   constructor(
     matchClause: Clause<MatchClauseType>,
-    groupClause: Clause<GroupClauseType> | null | undefined,
+    groupClause?: Clause<GroupClauseType> | null,
   ) {
     this.matchClause = matchClause;
     this.groupClause = groupClause;
@@ -313,7 +313,7 @@ export class AggregationOperation implements Expression<Value> {
   constructor(
     name: AggregationOperator,
     parameters: Array<Expression<Value>>,
-    clause: Clause<AggrClauseType> | null | undefined,
+    clause?: Clause<AggrClauseType> | null,
   ) {
     this.name = name;
     this.parameters = parameters;
@@ -351,8 +351,8 @@ export class SubQuery implements Expression<Value> {
   constructor(
     expr: Expression<Value>,
     range: Range,
-    resolution: Range | null | undefined,
-    offset: Range | null | undefined,
+    resolution?: Range | null,
+    offset?: Range | null,
   ) {
     this.expr = expr;
     this.range = range;
