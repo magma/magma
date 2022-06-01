@@ -33,6 +33,7 @@ import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useContext} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

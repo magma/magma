@@ -41,6 +41,7 @@ import {
   // $FlowFixMe migrated to typescript
 } from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {triggerAlertSync} from '../../state/SyncAlerts';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
