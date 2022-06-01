@@ -18,7 +18,7 @@ import time
 import unittest
 import warnings
 from concurrent.futures import Future
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
 from magma.pipelined.app import egress
@@ -46,7 +46,7 @@ def mocked_get_mobilityd_gw_info() -> List[GWInfo]:
     global gw_info_lock
 
     with gw_info_lock:
-        return gw_info_map.values()
+        return list(gw_info_map.values())
 
 
 def mocked_set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
@@ -535,7 +535,7 @@ def mocked_setmacbyip6(ipv6_addr: str, mac: str):
         ipv6_mac_table[ipv6_addr] = mac
 
 
-def mocked_getmacbyip6(ipv6_addr: str) -> str:
+def mocked_getmacbyip6(ipv6_addr: str) -> Optional[str]:
     global ipv6_mac_table
     with gw_info_lock:
         return ipv6_mac_table.get(ipv6_addr)
