@@ -15,10 +15,15 @@ package metrics
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 
+	mconfigprotos "magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/registry"
 	service_health_metrics "magma/feg/gateway/service_health/metrics"
+	"magma/gateway/mconfig"
 )
 
 const DefaultRequestFailureThreshold = 0.50
@@ -95,12 +100,33 @@ func NewS8HealthTracker() *S8HealthTracker {
 		BearerDeleteRequests:  0,
 		BearerDeleteFails:     0,
 	}
-	HealthTracker := &S8HealthTracker{
+	defaultHealthTracker := &S8HealthTracker{
 		Metrics:                 initMetrics,
 		RequestFailureThreshold: float32(DefaultRequestFailureThreshold),
 		MinimumRequestThreshold: uint32(DefaultMinimumRequiredRequests),
 	}
-	return HealthTracker
+	s8Cfg := &mconfigprotos.S8Config{}
+	err := mconfig.GetServiceConfigs(strings.ToLower(registry.S8_PROXY), s8Cfg)
+	if err != nil {
+		return defaultHealthTracker
+	}
+
+	reqFailureThreshold := s8Cfg.GetRequestFailureThreshold()
+	minReqThreshold := s8Cfg.GetMinimumRequestThreshold()
+
+	if reqFailureThreshold == 0 {
+		glog.Info("Request failure threshold cannot be 0; Using default health parameters...")
+		return defaultHealthTracker
+	}
+	if minReqThreshold == 0 {
+		glog.Info("Minimum request threshold cannot be 0; Using default health parameters...")
+		return defaultHealthTracker
+	}
+	return &S8HealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: reqFailureThreshold,
+		MinimumRequestThreshold: minReqThreshold,
+	}
 }
 
 func GetCurrentHealthMetrics() (*S8HealthMetrics, error) {
