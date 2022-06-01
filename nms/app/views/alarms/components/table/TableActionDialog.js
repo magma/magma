@@ -15,7 +15,8 @@
  */
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
-import ClipboardLink from '../../components/ClipboardLink';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import ClipboardLink from '../ClipboardLink';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
