@@ -274,7 +274,7 @@ export default function SimpleTable<T extends object>(
   );
 }
 
-export function toLabels(obj: Record<string, any>): Labels {
+export function toLabels(obj: Record<string, any> | undefined): Labels {
   if (!obj) {
     return {};
   }
