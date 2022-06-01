@@ -20,14 +20,10 @@ import copy from 'copy-to-clipboard';
 import {useState} from 'react';
 
 type Props = {
-  children: (props: {
-    copyString: (content: string) => void;
-  }) =>
-    | React.ReactElement<typeof Button>
-    | React.ReactElement<typeof IconButton>;
+  children: (props: {copyString: (content: string) => void}) => JSX.Element;
   // We set the title appropriately later
   title?: React.ReactNode;
-} & Omit<TooltipProps, 'title'>;
+} & Omit<TooltipProps, 'title' | 'children'>;
 
 const COPIED_MESSAGE = 'Copied to clipboard!';
 

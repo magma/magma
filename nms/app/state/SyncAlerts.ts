@@ -12,6 +12,7 @@
  */
 
 import axios from 'axios';
+import {getErrorMessage} from '../util/ErrorUtils';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export async function triggerAlertSync(
@@ -24,7 +25,7 @@ export async function triggerAlertSync(
       variant: 'success',
     });
   } catch (e) {
-    enqueueSnackbar(`Error syncing alerts: ${e?.response?.data}`, {
+    enqueueSnackbar(`Error syncing alerts: ${getErrorMessage(e)}`, {
       variant: 'error',
     });
   }

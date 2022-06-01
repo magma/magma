@@ -9,13 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ClipboardLink from '../ClipboardLink';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -23,7 +19,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   paper: {
     minWidth: 360,
   },
@@ -31,18 +27,18 @@ const useStyles = makeStyles(() => ({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-all',
   },
-}));
+});
 
 type Props<TRow> = {
-  open: boolean,
-  onClose: () => void,
-  title: React.Node,
-  additionalContent?: React.Node,
-  row: TRow,
-  showCopyButton?: boolean,
-  showDeleteButton?: boolean,
-  onDelete?: () => Promise<void>,
-  RowViewer: React.ComponentType<{row: TRow}>,
+  open: boolean;
+  onClose: () => void;
+  title: React.ReactNode;
+  additionalContent?: React.ReactNode;
+  row: TRow;
+  showCopyButton?: boolean;
+  showDeleteButton?: boolean;
+  onDelete?: () => Promise<void>;
+  RowViewer: React.ComponentType<{row: TRow}>;
 };
 
 export default function TableActionDialog<TRow>(props: Props<TRow>) {
