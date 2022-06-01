@@ -17,6 +17,7 @@
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../PromQL';
 import {Parse} from '../PromQLParser';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Tokenize} from '../PromQLTokenizer';
 
 class ErrorMatcher {

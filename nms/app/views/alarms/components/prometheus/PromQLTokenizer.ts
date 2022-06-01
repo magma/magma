@@ -9,14 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as Moo from 'moo';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Range} from './PromQL';
 
 import {
@@ -29,14 +25,10 @@ import {
   LABEL_OPERATORS,
   MATCH_CLAUSE_TYPES,
   SyntaxError,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './PromQLTypes';
 
-type LexerRules = {[string]: LexerRule | $ReadOnlyArray<LexerRule>};
-type LexerRule = string | RegExp | ComplexRule;
-type ComplexRule = {match: RegExp, value?: string => string | number | Range};
-
-const lexerRules: LexerRules = {
+// TODO[TS-migration] as unknown as string casts because Moo.Rules says value must return a string
+const lexerRules: Moo.Rules = {
   WS: /[ \t]+/,
   lBrace: '{',
   rBrace: '}',
@@ -48,35 +40,37 @@ const lexerRules: LexerRules = {
   colon: ':',
   range: {
     match: /[0-9]+[smhdwy]/,
-    value: s =>
-      new Range(
+    value: (s: string) =>
+      (new Range(
         parseInt(s.substring(0, s.length - 1), 10),
         s.substring(s.length - 1),
-      ),
+      ) as unknown) as string,
   },
   scalar: [
     {
       // binary integers
       match: /0b[01]+/,
-      value: s => Number.parseInt(s.substring(2), 2),
+      value: (s: string) =>
+        (Number.parseInt(s.substring(2), 2) as unknown) as string,
     },
     {
       // octal integers
       // in accordance with https://golang.org/pkg/strconv/#ParseInt spec
       match: /0o[0-7]+/,
-      value: s => Number.parseInt(s.substring(2), 8),
+      value: (s: string) =>
+        (Number.parseInt(s.substring(2), 8) as unknown) as string,
     },
     {
       // hexadecimal integers
       match: /0x[0-9a-fA-F]+/,
-      value: s => Number.parseInt(s.substring(2), 16),
+      value: s => (Number.parseInt(s.substring(2), 16) as unknown) as string,
     },
     {
       // decimal floats and integers
       // TODO remove sign from lexer
       // it can only be correcly processed by parser
       match: /[-+]?[0-9]*\.?[0-9]+(?:e|E[0-9]+)?/,
-      value: s => Number.parseFloat(s),
+      value: s => (Number.parseFloat(s) as unknown) as string,
     },
   ],
   // `!=` needs explicit token because it is ambiguous:
@@ -105,28 +99,28 @@ const lexerRules: LexerRules = {
       // double-quoted string with no escape sequences;
       // shortcut for performance
       match: /"[^"\\]*"/,
-      value: s => s.slice(1, -1),
+      value: (s: string) => s.slice(1, -1),
     },
     {
       // single-quoted string with no escape sequences;
       // shortcut for performance
       match: /'[^'\\]*'/,
-      value: s => s.slice(1, -1),
+      value: (s: string) => s.slice(1, -1),
     },
     {
       // back-ticked string, raw, no escape sequences
       match: /`[^`]*`/,
-      value: s => s.slice(1, -1),
+      value: (s: string) => s.slice(1, -1),
     },
     {
       // double-quoted string with escape sequences
       match: /"[^"\\]*(?:\\.[^"\\]*)*"/,
-      value: s => unescapeString(s.slice(1, -1), `"`),
+      value: (s: string) => unescapeString(s.slice(1, -1), `"`),
     },
     {
       // single-quoted string with escape sequences
       match: /'[^'\\]*(?:\\.[^'\\]*)*'/,
-      value: s => unescapeString(s.slice(1, -1), `'`),
+      value: (s: string) => unescapeString(s.slice(1, -1), `'`),
     },
   ],
   // Comments must be stripped by tokenzier,
@@ -155,7 +149,7 @@ function unescapeString(s: string, quote: '"' | "'"): string {
   return result;
 }
 
-type CharAndIndex = {char: string, newIndex: number};
+type CharAndIndex = {char: string; newIndex: number};
 
 function unescapeCharAt(s: string, i: number, quote: '"' | "'"): CharAndIndex {
   let currentChar = s.charAt(i);
@@ -176,12 +170,17 @@ function unescapeCharAt(s: string, i: number, quote: '"' | "'"): CharAndIndex {
   }
 
   if (currentChar in simpleUnescaper) {
-    return {char: simpleUnescaper[currentChar], newIndex: currentIndex + 1};
+    return {
+      char: simpleUnescaper[currentChar as keyof typeof simpleUnescaper],
+      newIndex: currentIndex + 1,
+    };
   }
 
-  const hexUnescaper = hexUnescapers[currentChar];
-  if (hexUnescaper !== undefined) {
-    return hexUnescaper(s, currentIndex + 1);
+  if (currentChar in hexUnescapers) {
+    return hexUnescapers[currentChar as keyof typeof hexUnescapers](
+      s,
+      currentIndex + 1,
+    );
   }
 
   return unescapeOctAt(s, currentIndex);
@@ -198,9 +197,9 @@ const simpleUnescaper = {
 };
 
 const hexUnescapers = {
-  x: (s, i) => unescapeHexAt(s, i, 2),
-  u: (s, i) => unescapeHexAt(s, i, 4),
-  U: (s, i) => unescapeHexAt(s, i, 8),
+  x: (s: string, i: number) => unescapeHexAt(s, i, 2),
+  u: (s: string, i: number) => unescapeHexAt(s, i, 4),
+  U: (s: string, i: number) => unescapeHexAt(s, i, 8),
 };
 
 function unescapeHexAt(s: string, i: number, width: 2 | 4 | 8): CharAndIndex {
@@ -239,27 +238,31 @@ function unescapeOctAt(s: string, i: number): CharAndIndex {
 const unterminatedEscape = 'Unterminated escape sequence';
 
 export type Token = {
-  value: string,
-  type: TokenType,
+  value: string;
+  type: TokenType;
 };
 
-type TokenType = $Keys<typeof lexerRules>;
+type TokenType = keyof typeof lexerRules;
 
 export const lexer = Moo.compile(lexerRules);
 // Ignore whitespace and comment tokens
 lexer.next = (next => () => {
   let tok;
-  while ((tok = next.call(lexer)) && ['WS', 'comment'].includes(tok.type)) {}
+  while (
+    (tok = next.call(lexer)) &&
+    tok.type &&
+    ['WS', 'comment'].includes(tok.type)
+  ) {}
   return tok;
 })(lexer.next);
 
 export function Tokenize(input: string): Array<Token> {
   lexer.reset(input);
 
-  const tokens = [];
+  const tokens: Array<Token> = [];
   let token;
   while ((token = lexer.next())) {
-    tokens.push({value: token.value, type: token.type});
+    tokens.push({value: token.value, type: token.type!});
   }
   return tokens;
 }
