@@ -25,6 +25,7 @@ import {
 } from '@testing-library/react';
 import {alarmTestUtil} from '../../../../test/testHelpers';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ApiUtil} from '../../../AlarmsApi';
 
 describe('Receivers', () => {

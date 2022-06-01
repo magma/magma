@@ -22,6 +22,7 @@ import {alarmTestUtil} from '../../../../test/testHelpers';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe migrated to typescript
 import type {AlertManagerGlobalConfig} from '../../../AlarmAPIType';
+// $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../../../AlarmsApi';
 import type {ComponentType} from 'react';
 

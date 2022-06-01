@@ -22,6 +22,7 @@ import {mockAlert, mockRuleInterface} from '../../../../test/testData';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlertViewerProps} from '../../../rules/RuleInterface';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ApiUtil} from '../../../AlarmsApi';
 
 describe('AlertDetailsPane', () => {
