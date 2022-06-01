@@ -9,21 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from './RuleInterface';
 
 export type RuleContext<TRuleUnion> = {
-  ruleMap: RuleInterfaceMap<TRuleUnion>,
-  ruleType: string,
-  selectRuleType: string => void,
+  ruleMap: RuleInterfaceMap<TRuleUnion>;
+  ruleType: string;
+  selectRuleType: (ruleType: string) => void;
 };
 
-const context = React.createContext<RuleContext<*>>({});
+const context = React.createContext<RuleContext<any>>({} as RuleContext<any>);
 
 export default context;
