@@ -734,7 +734,7 @@ int ascii_to_hex(uint8_t* dst, const char* h);
       ((bYtE)&0x02 ? '1' : '0'), ((bYtE)&0x01 ? '1' : '0')
 
 int get_time_zone(void);
-
+#define GUTI_STRING_LEN 21
 /* Clear GUTI without free it */
 void clear_guti(guti_t* const guti);
 /* Clear IMSI without free it */
@@ -757,4 +757,5 @@ bstring paa_to_bstring(const paa_t* paa);
 // Return the hex representation of a char array
 char* bytes_to_hex(char* byte_array, int length, char* hex_array);
 
+void convert_guti_to_string(guti_t* guti_p, char (*guti_str)[GUTI_STRING_LEN]);
 #endif /* FILE_CONVERSIONS_SEEN */
