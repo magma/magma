@@ -14,6 +14,7 @@
  * @format
  */
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmContext from '../components/AlarmContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -24,6 +25,7 @@ import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {act, render} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
 // $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../components/AlarmsApi';

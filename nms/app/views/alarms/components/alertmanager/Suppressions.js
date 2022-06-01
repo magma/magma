@@ -22,6 +22,7 @@ import SimpleTable, {MultiGroupsCell, toLabels} from '../table/SimpleTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from '../table/TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
 import {useNetworkId} from '../hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

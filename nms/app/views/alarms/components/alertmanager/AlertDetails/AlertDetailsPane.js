@@ -36,6 +36,7 @@ import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';

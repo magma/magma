@@ -19,6 +19,7 @@ import Chip from '@material-ui/core/Chip';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 

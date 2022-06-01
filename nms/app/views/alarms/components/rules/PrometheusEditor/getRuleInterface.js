@@ -22,8 +22,9 @@ import type {AlertConfig} from '../../AlarmAPIType';
 import type {ApiUtil} from '../../AlarmsApi';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule, RuleInterfaceMap} from '../RuleInterface';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {PROMETHEUS_RULE_TYPE} from "../../AlarmContext";
 
-export const PROMETHEUS_RULE_TYPE = 'prometheus';
 
 export default function getPrometheusRuleInterface({
   apiUtil,
