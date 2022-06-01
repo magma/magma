@@ -21,6 +21,7 @@ import SeverityIndicator from './severity/SeverityIndicator';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable from './table/SimpleTable';
 import TableActionDialog from './table/TableActionDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
 import {Parse} from './prometheus/PromQLParser';

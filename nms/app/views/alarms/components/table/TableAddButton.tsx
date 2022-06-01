@@ -10,23 +10,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
- *
  * The add button at the bottom right of the tables
  */
 
 import * as React from 'react';
 import AddIcon from '@material-ui/icons/Add';
 import Fab from '@material-ui/core/Fab';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
-  label: string,
-  onClick: () => void,
+  label: string;
+  onClick: () => void;
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   addButton: {
     position: 'fixed',
     bottom: 0,
