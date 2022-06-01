@@ -17,6 +17,7 @@ import * as React from 'react';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Editor from '../../common/Editor';
 import EmailConfigEditor from './EmailConfigEditor';
 import Grid from '@material-ui/core/Grid';

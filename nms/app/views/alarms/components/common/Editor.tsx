@@ -10,9 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
- *
  * Wrappper component for editors such as AddEditRule, AddEditReceiver, etc
  */
 
@@ -20,17 +17,18 @@ import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 
 export type Props = {
-  children: React.Node,
-  onExit: () => void,
-  onSave: () => Promise<void> | void,
-  isNew: boolean,
-  title?: string,
-  description?: string,
+  children: React.ReactNode;
+  onExit: () => void;
+  onSave: () => Promise<void> | void;
+  isNew: boolean;
+  title?: string;
+  description?: string;
 };
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   gridContainer: {
     flexGrow: 1,
   },
@@ -56,7 +54,7 @@ export default function Editor({
         <form
           onSubmit={e => {
             e.preventDefault();
-            onSave();
+            void onSave();
           }}
           data-testid="editor-form">
           <Grid container spacing={4} direction="column" wrap="nowrap">

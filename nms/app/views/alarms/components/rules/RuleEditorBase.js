@@ -21,6 +21,7 @@ import * as React from 'react';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -35,6 +36,7 @@ import useForm from '../../hooks/useForm';
 import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver} from '../hooks';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Props as EditorProps} from '../common/Editor';
 // $FlowFixMe migrated to typescript
 import type {Labels} from '../AlarmAPIType';
