@@ -24,6 +24,7 @@ import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleEditorBase from '../RuleEditorBase';
 import TextField from '@material-ui/core/TextField';
 import ToggleableExpressionEditor, {
@@ -49,6 +50,7 @@ import {useSnackbars} from '../../../../../hooks/useSnackbar';
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleEditorBaseFields} from '../RuleEditorBase';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 

@@ -10,9 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
- *
  * Base component for rule editors to render. Handles rendering common elements
  * such as receiver config and label editor.
  */
@@ -21,42 +18,32 @@ import * as React from 'react';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LabelsEditor from './LabelsEditor';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../hooks/useForm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlertRuleReceiver} from '../hooks';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Props as EditorProps} from '../common/Editor';
-// $FlowFixMe migrated to typescript
 import type {Labels} from '../AlarmAPIType';
 
 type Props = EditorProps & {
-  onChange: (form: RuleEditorBaseFields) => void,
-  initialState: ?RuleEditorBaseFields,
+  onChange: (form: RuleEditorBaseFields) => void;
+  initialState: RuleEditorBaseFields | null | undefined;
 };
 
 // Fields for inputs which are standard between different rule editors
 export type RuleEditorBaseFields = {
-  name: string,
-  description: string,
-  labels: Labels,
+  name: string;
+  description: string;
+  labels: Labels;
 };
 
 export default function RuleEditorBase({
@@ -114,7 +101,7 @@ export default function RuleEditorBase({
                     placeholder="Ex: Link down"
                     fullWidth
                     value={formState.name}
-                    onChange={handleInputChange(val => ({name: val}))}
+                    onChange={handleInputChange(val => ({name: val as string}))}
                   />
                 </Grid>
                 <Grid item>
@@ -124,7 +111,9 @@ export default function RuleEditorBase({
                     placeholder="Ex: The link is down"
                     fullWidth
                     value={formState.description}
-                    onChange={handleInputChange(val => ({description: val}))}
+                    onChange={handleInputChange(val => ({
+                      description: val as string,
+                    }))}
                   />
                 </Grid>
               </CardContent>
