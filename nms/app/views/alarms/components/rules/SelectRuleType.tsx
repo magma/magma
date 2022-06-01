@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
@@ -19,11 +16,11 @@ import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from './RuleInterface';
 
-const useRuleTypeStyles = makeStyles(theme => ({
+const useRuleTypeStyles = makeStyles<Theme>(theme => ({
   buttonGroup: {
     paddingTop: theme.spacing(1),
   },
@@ -34,17 +31,18 @@ const useRuleTypeStyles = makeStyles(theme => ({
     fontSize: theme.typography.pxToRem(14),
   },
 }));
+
 export default function SelectRuleType<TRuleUnion>({
   ruleMap,
   value,
   onChange,
 }: {
-  ruleMap: RuleInterfaceMap<TRuleUnion>,
-  onChange: string => void,
-  value: string,
+  ruleMap: RuleInterfaceMap<TRuleUnion>;
+  onChange: (ruleType: string) => void;
+  value: string;
 }) {
   const classes = useRuleTypeStyles();
-  const ruleTypes = React.useMemo<Array<{type: string, friendlyName: string}>>(
+  const ruleTypes = React.useMemo<Array<{type: string; friendlyName: string}>>(
     () =>
       Object.keys(ruleMap || {}).map(key => ({
         type: key,
@@ -54,7 +52,7 @@ export default function SelectRuleType<TRuleUnion>({
   );
 
   const handleChange = React.useCallback(
-    (_e: SyntheticInputEvent<HTMLInputElement>, val: string) => {
+    (_e: React.MouseEvent<HTMLElement>, val: string) => {
       onChange(val);
     },
     [onChange],
@@ -76,7 +74,6 @@ export default function SelectRuleType<TRuleUnion>({
         className={classes.buttonGroup}
         size="medium"
         color="primary"
-        variant="outlined"
         value={value}
         onChange={handleChange}
         exclusive>
