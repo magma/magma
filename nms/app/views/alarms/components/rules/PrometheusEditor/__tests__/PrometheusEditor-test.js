@@ -23,6 +23,7 @@ import {render} from '@testing-library/react';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../../AlarmAPIType';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ApiUtil} from '../../../AlarmsApi';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule} from '../../RuleInterface';
