@@ -528,8 +528,8 @@ jobs:
           fi
       - name: Build xwf go radius
         run: |
-          cd ${MAGMA_ROOT}/feg
-          docker build --build-arg BUILD_NUM=${TAG} --tag goradius -f radius/src/Dockerfile ./
+          cd ${MAGMA_ROOT}/
+          docker build --build-arg BUILD_NUM=${TAG} --tag goradius -f feg/radius/src/Dockerfile ./
       - name: Load openvswitch kernel module for xwf integ test
         # yamllint enable
         run: sudo modprobe openvswitch
