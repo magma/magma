@@ -94,19 +94,7 @@ setup(
         "rfc3987>=1.3.0",
         "webcolors>=1.11.1",
         'systemd-python>=234',
-        'itsdangerous>=0.24',
-        'click>=5.1',
-        'pycares>=2.3.0',
-        'python-dateutil>=1.4',
-        # force same requests version as lte/gateway/python/setup.py
-        'requests==2.22.0',
-        'jsonpickle',
-        'bravado-core==5.16.1',
-        'jsonschema==3.1.0',
-        "strict-rfc3339>=0.7",
-        "rfc3987>=1.3.0",
         "jsonpointer>=1.14",
-        "webcolors>=1.11.1",
     ],
     extras_require={
         'dev': [

@@ -38,7 +38,7 @@ func buildRegistrationRequest(cbsd *active_mode.Cbsd) *registrationRequest {
 			Latitude:         installation.GetLatitudeDeg(),
 			Longitude:        installation.GetLongitudeDeg(),
 			Height:           installation.GetHeightM(),
-			HeightType:       installation.GetHeightType(),
+			HeightType:       strings.ToUpper(installation.GetHeightType()),
 			IndoorDeployment: installation.GetIndoorDeployment(),
 			AntennaGain:      installation.GetAntennaGainDbi(),
 		},

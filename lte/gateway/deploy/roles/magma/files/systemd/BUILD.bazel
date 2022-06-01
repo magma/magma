@@ -1,4 +1,4 @@
-# Copyright 2020 The Magma Authors.
+# Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -8,16 +8,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-[Unit]
-Description=Dummy service for unit testing
 
-[Service]
-Type=simple
-EnvironmentFile=/etc/environment
-ExecStart=/usr/bin/env python3 -m magma.magmad.tests.dummy_service
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=dummy_service
-
-[Install]
+exports_files(["sctpd.service"])

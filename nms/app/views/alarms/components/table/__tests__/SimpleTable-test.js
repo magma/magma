@@ -21,10 +21,6 @@ import defaultTheme from '../../../../../theme/default';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
 
-afterEach(() => {
-  jest.resetAllMocks();
-});
-
 // replace the default chip with a more easily queryable version
 jest.mock('@material-ui/core/Chip', () => ({label, ...props}) => (
   <div data-chip {...props} children={label} />

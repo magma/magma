@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
@@ -18,26 +18,14 @@ import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../../theme/default';
+import useMagmaAPI from '../../../../../api/useMagmaAPI';
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {render} from '@testing-library/react';
 
-jest.mock('../../../../../app/hooks/useSnackbar');
-const useSnackbar = require('../../../../../app/hooks/useSnackbar');
-const snackbarsMock = {error: jest.fn(), success: jest.fn()};
-jest
-  .spyOn(useSnackbar, 'useSnackbars')
-  .mockReturnValue(jest.fn(() => snackbarsMock));
-
-const useSnackbarsMock = jest.fn();
-jest
-  .spyOn(require('../../../../../app/hooks/useSnackbar'), 'useSnackbars')
-  .mockReturnValue(useSnackbarsMock);
-const useMagmaAPIMock = jest
-  .spyOn(require('../../../../../api/useMagmaAPI'), 'default')
-  .mockReturnValue({response: []});
+jest.mock('../../../../../api/useMagmaAPI');
 
 const Wrapper = (props: {route: string, children: React.Node}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>
@@ -50,10 +38,6 @@ const Wrapper = (props: {route: string, children: React.Node}) => (
 );
 
 const AlarmsWrapper = () => <Alarms apiUtil={MagmaAlarmsApiUtil} />;
-
-afterEach(() => {
-  useMagmaAPIMock.mockClear();
-});
 
 describe('react router tests', () => {
   test('/alerts renders the no alerts icon', () => {
@@ -70,7 +54,8 @@ describe('react router tests', () => {
 
 describe('Firing Alerts', () => {
   test('renders currently firing alerts if api returns alerts', () => {
-    useMagmaAPIMock.mockReturnValue({
+    // eslint-disable-next-line flowtype/no-weak-types
+    (useMagmaAPI: any).mockReturnValue({
       response: [
         {
           labels: {alertname: '<<TEST ALERT>>', team: '<<TEST TEAM>>'},

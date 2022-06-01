@@ -40,7 +40,7 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     return [];
   },
   getTroubleshootingLink: async ({alertName}) => {
-    return fetch('/data/AlertLinks')
+    return fetch('api/data/AlertLinks')
       .then(result => result.json())
       .then(result => {
         return {

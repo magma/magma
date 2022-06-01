@@ -199,6 +199,9 @@ func (m *LteGateway) FromBackendModels(
 	}
 	sort.Strings(m.ConnectedEnodebSerials)
 
+	checkedInRecently := GatewayCheckedInRecently(orc8rModels.LastGatewayCheckInWasRecent(m.Status, m.Magmad))
+	m.CheckedInRecently = &checkedInRecently
+
 	return m
 }
 

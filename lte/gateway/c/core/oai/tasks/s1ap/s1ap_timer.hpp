@@ -18,7 +18,6 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 typedef struct s1ap_timer_arg_s {

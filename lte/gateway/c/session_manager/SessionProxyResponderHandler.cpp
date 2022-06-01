@@ -111,7 +111,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
                    << " with session_id " << session_id;
       PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
       ans.set_result(ReAuthResult::SESSION_NOT_FOUND);
-      Status status(grpc::NOT_FOUND, "Sesion Not found");
+      Status status(grpc::NOT_FOUND, "Session not found");
       response_callback(status, ans);
       return;
     }

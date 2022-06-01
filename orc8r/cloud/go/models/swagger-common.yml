@@ -151,6 +151,12 @@ definitions:
     minLength: 1
     x-nullable: false
     example: Sample Gateway description
+  gateway_checked_in_recently:
+    type: boolean
+    example: true
+    description: >
+      Describes whether the last check-in happened recently, taking the
+      magmad check-in interval into account.
 
   error:
     type: object
