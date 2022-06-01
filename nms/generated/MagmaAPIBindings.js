@@ -298,6 +298,7 @@ export type eap_aka_timeouts = {
     error_notification_ms ? : number,
     session_authenticated_ms ? : number,
     session_ms ? : number,
+    test_field_obatalla ? : number,
 };
 export type eap_sim = {
     mnc_len ? : number,

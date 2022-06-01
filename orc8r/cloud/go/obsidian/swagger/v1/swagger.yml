@@ -7443,6 +7443,12 @@ definitions:
         format: uint32
         type: integer
         x-nullable: false
+      test_field_obatalla:
+        default: 1
+        example: 1
+        format: uint32
+        type: integer
+        x-nullable: false
     type: object
   eap_sim:
     description: eap_sim configuration

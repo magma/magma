@@ -1240,6 +1240,12 @@ definitions:
         x-nullable: false
         default: 5000
         example: 5000
+      test_field_obatalla:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 1
+        example: 1
 
   eap_sim_timeouts:
     type: object

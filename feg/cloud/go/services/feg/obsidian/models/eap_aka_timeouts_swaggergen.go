@@ -32,6 +32,10 @@ type EapAkaTimeouts struct {
 	// session ms
 	// Example: 43200000
 	SessionMs uint32 `json:"session_ms,omitempty"`
+
+	// test field obatalla
+	// Example: 1
+	TestFieldObatalla uint32 `json:"test_field_obatalla,omitempty"`
 }
 
 // Validate validates this eap aka timeouts
