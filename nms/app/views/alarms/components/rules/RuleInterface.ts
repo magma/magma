@@ -23,7 +23,7 @@ export type RuleEditorProps<TRule> = {
   isNew: boolean;
 };
 
-export type RuleViewerProps = Record<string, never>;
+export type RuleViewerProps = {row?: any};
 
 export type AlertViewerProps = {
   alert: FiringAlarm;

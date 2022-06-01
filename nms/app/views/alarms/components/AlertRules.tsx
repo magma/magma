@@ -9,39 +9,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditRule from './rules/AddEditRule';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SeverityIndicator from './severity/SeverityIndicator';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import SimpleTable from './table/SimpleTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import SimpleTable, {SimpleTableProps} from './table/SimpleTable';
 import TableActionDialog from './table/TableActionDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {PROMETHEUS_RULE_TYPE, useAlarmContext} from './AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useLoadRules} from './hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../../../util/ErrorUtils';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule} from './rules/RuleInterface';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     paddingTop: theme.spacing(4),
   },
@@ -70,16 +59,15 @@ export default function AlertRules<TRuleUnion>() {
   const [lastRefreshTime, setLastRefreshTime] = React.useState(
     new Date().getTime().toString(),
   );
-  const [
-    selectedRow,
-    setSelectedRow,
-  ] = React.useState<?GenericRule<TRuleUnion>>(null);
+  const [selectedRow, setSelectedRow] = React.useState<
+    GenericRule<TRuleUnion> | null | undefined
+  >(null);
   const [isNewAlert, setIsNewAlert] = React.useState(false);
   const [isAddEditAlert, setIsAddEditAlert] = React.useState(false);
   const [isViewAlertModalOpen, setIsViewAlertModalOpen] = React.useState(false);
-  const [matchingAlertsCount, setMatchingAlertsCount] = React.useState<?number>(
-    null,
-  );
+  const [matchingAlertsCount, setMatchingAlertsCount] = React.useState<
+    number | null | undefined
+  >(null);
   const {rules, isLoading} = useLoadRules({
     ruleMap,
     lastRefreshTime,
@@ -90,7 +78,7 @@ export default function AlertRules<TRuleUnion>() {
       // only show matching alerts for prometheus rules for now
       if (selectedRow && selectedRow.ruleType === PROMETHEUS_RULE_TYPE) {
         const response = await apiUtil.viewMatchingAlerts({
-          networkId: params.networkId,
+          networkId: params.networkId!,
           expression: selectedRow.expression,
         });
         setMatchingAlertsCount(response.length);
@@ -104,7 +92,7 @@ export default function AlertRules<TRuleUnion>() {
     setIsNewAlert(false);
   }, []);
   const handleView = React.useCallback(() => {
-    loadMatchingAlerts();
+    void loadMatchingAlerts();
     setIsViewAlertModalOpen(true);
   }, [loadMatchingAlerts]);
   const handleDelete = React.useCallback(async () => {
@@ -113,7 +101,7 @@ export default function AlertRules<TRuleUnion>() {
         const cancelSource = axios.CancelToken.source();
         const {deleteRule} = ruleMap[selectedRow.ruleType];
         await deleteRule({
-          networkId: params.networkId,
+          networkId: params.networkId!,
           ruleName: selectedRow.name,
           cancelToken: cancelSource.token,
         });
@@ -121,9 +109,9 @@ export default function AlertRules<TRuleUnion>() {
       }
     } catch (error) {
       snackbars.error(
-        `Unable to delete alert rule: ${
-          error.response ? error.response?.data?.message : error.message
-        }. Please try again.`,
+        `Unable to delete alert rule: ${getErrorMessage(
+          error,
+        )}. Please try again.`,
       );
     } finally {
       setLastRefreshTime(new Date().toLocaleString());
@@ -135,37 +123,40 @@ export default function AlertRules<TRuleUnion>() {
     setMatchingAlertsCount(null);
   }, [setIsViewAlertModalOpen, setMatchingAlertsCount]);
   const columns = React.useMemo(
-    () => [
-      {
-        title: 'Name',
-        field: 'name',
-      },
-      {
-        title: 'Severity',
-        field: 'severity',
-        render: currRow => <SeverityIndicator severity={currRow.severity} />,
-      },
-      {
-        title: 'Fire Alert When',
-        field: 'fireAlertWhen',
-        render: currRow => {
-          try {
-            const exp = Parse(currRow.expression);
-            if (exp) {
-              const metricName = exp.lh.selectorName?.toUpperCase() || '';
-              const operator = exp.operator?.toString() || '';
-              const value = exp.rh.value?.toString() || '';
-              return `${metricName} ${operator} ${value} for ${currRow.period}`;
-            }
-          } catch {}
-          return 'error';
+    () =>
+      [
+        {
+          title: 'Name',
+          field: 'name',
         },
-      },
-      {
-        title: 'Description',
-        field: 'description',
-      },
-    ],
+        {
+          title: 'Severity',
+          field: 'severity',
+          render: (currRow: GenericRule<any>) => (
+            <SeverityIndicator severity={currRow.severity} />
+          ),
+        },
+        {
+          title: 'Fire Alert When',
+          field: 'fireAlertWhen',
+          render: (currRow: GenericRule<any>) => {
+            try {
+              const exp = Parse(currRow.expression);
+              if (exp) {
+                const metricName = exp.lh.selectorName?.toUpperCase() || '';
+                const operator = exp.operator?.toString() || '';
+                const value = exp.rh.value?.toString() || '';
+                return `${metricName} ${operator} ${value} for ${currRow.period}`;
+              }
+            } catch {}
+            return 'error';
+          },
+        },
+        {
+          title: 'Description',
+          field: 'description',
+        },
+      ] as SimpleTableProps<GenericRule<any>>['columnStruct'],
     [],
   );
 
@@ -202,7 +193,7 @@ export default function AlertRules<TRuleUnion>() {
           {
             name: 'Delete',
             handleFunc: () => {
-              handleDelete();
+              void handleDelete();
             },
           },
         ]}
