@@ -9,41 +9,35 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
 import {useState} from 'react';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule} from './RuleInterface';
 
 type Props<TRuleUnion> = {
-  onExit: () => void,
+  onExit: () => void;
   //TODO rename?
-  initialConfig: ?GenericRule<TRuleUnion>,
-  isNew: boolean,
-  defaultRuleType?: string,
+  initialConfig: GenericRule<TRuleUnion> | null | undefined;
+  isNew: boolean;
+  defaultRuleType?: string;
 };
 
-const useStyles = makeStyles(_theme => ({
+const useStyles = makeStyles({
   gridContainer: {
     flexGrow: 1,
   },
-}));
+});
 
 export default function AddEditRule<TRuleUnion>(props: Props<TRuleUnion>) {
   const {ruleMap} = useAlarmContext();
   const {isNew, onExit} = props;
   const classes = useStyles();
-  const [rule, setRule] = useState<?GenericRule<TRuleUnion>>(
+  const [rule, setRule] = useState<GenericRule<TRuleUnion> | null | undefined>(
     props.initialConfig,
   );
 
@@ -53,7 +47,7 @@ export default function AddEditRule<TRuleUnion>(props: Props<TRuleUnion>) {
 
   // null out in-progress rule so next editor doesnt see an incompatible schema
   const selectRuleType = React.useCallback(
-    type => {
+    (type: string) => {
       setRule(null);
       return setSelectedRuleType(type);
     },
