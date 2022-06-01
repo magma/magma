@@ -21,6 +21,7 @@ import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import {ObjectViewer} from './AlertDetailsPane';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlertViewerProps} from '../../rules/RuleInterface';

@@ -27,9 +27,10 @@ import TableActionDialog from './table/TableActionDialog';
 import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {PROMETHEUS_RULE_TYPE, useAlarmContext} from './AlarmContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
-import {useAlarmContext} from './AlarmContext';
 import {useLoadRules} from './hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../hooks/useSnackbar';
@@ -58,8 +59,6 @@ const useStyles = makeStyles(theme => ({
     color: 'black',
   },
 }));
-
-const PROMETHEUS_RULE_TYPE = 'prometheus';
 
 export default function AlertRules<TRuleUnion>() {
   const {apiUtil, ruleMap} = useAlarmContext();

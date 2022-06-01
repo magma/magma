@@ -30,6 +30,7 @@ import Typography from '@material-ui/core/Typography';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

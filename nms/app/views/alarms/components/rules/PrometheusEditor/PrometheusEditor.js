@@ -39,6 +39,7 @@ import {Parse} from '../../prometheus/PromQLParser';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

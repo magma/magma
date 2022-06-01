@@ -29,6 +29,7 @@ import TextField from '@material-ui/core/TextField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../../components/hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

@@ -18,6 +18,7 @@ import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
 import {useState} from 'react';
 
