@@ -9,24 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {LabelsCell, toLabels} from '../table/SimpleTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from '../table/TableActionDialog';
+import {getErrorMessage} from '../../../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useNetworkId} from '../hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../hooks/useSnackbar';
 import {useState} from 'react';
 
@@ -40,21 +33,20 @@ const useStyles = makeStyles(() => ({
 }));
 export default function Routes() {
   const {apiUtil} = useAlarmContext();
-  const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [currentRow, setCurrentRow] = useState<{}>({});
-  const [showDialog, setShowDialog] = useState<?'view'>(null);
-  const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
-    new Date().toLocaleString(),
-  );
+  const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
+  const [currentRow, setCurrentRow] = useState({});
+  const [showDialog, setShowDialog] = useState<'view' | null>(null);
+  const [lastRefreshTime] = useState<string>(new Date().toLocaleString());
   const classes = useStyles();
   const snackbars = useSnackbars();
 
-  const onDialogAction = args => {
+  const onDialogAction = (args: 'view' | null) => {
     setShowDialog(args);
     setMenuAnchorEl(null);
   };
 
   const networkId = useNetworkId();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getRouteTree,
     {networkId},
@@ -62,11 +54,7 @@ export default function Routes() {
   );
 
   if (error) {
-    snackbars.error(
-      `Unable to load receivers: ${
-        error.response ? error.response.data.message : error.message
-      }`,
-    );
+    snackbars.error(`Unable to load receivers: ${getErrorMessage(error)}`);
   }
 
   const routesList = response?.routes || [];

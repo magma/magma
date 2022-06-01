@@ -18,6 +18,7 @@ import AccountTreeIcon from '@material-ui/icons/AccountTree';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertmanagerRoutes from './alertmanager/Routes';
 import FiringAlerts from './alertmanager/FiringAlerts';
 import Grid from '@material-ui/core/Grid';
