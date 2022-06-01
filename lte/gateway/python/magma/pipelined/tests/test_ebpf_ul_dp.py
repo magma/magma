@@ -14,6 +14,7 @@ import logging
 import socket
 import subprocess
 import unittest
+from typing import List
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
@@ -44,7 +45,7 @@ class eBpfDatapathULTest(unittest.TestCase):
     gtp_pkt_dst = '11.1.1.1'
     gtp_pkt_src = '11.1.1.2'
 
-    packet_cap1 = []
+    packet_cap1: List = []
     sniffer = None
     ebpf_man = None
 

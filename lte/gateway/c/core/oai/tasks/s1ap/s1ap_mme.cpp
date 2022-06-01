@@ -22,34 +22,39 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
-
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
-#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 static void start_stats_timer(void);
@@ -127,7 +132,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * New message received from SCTP layer.
        * * * * Decode and handle it.
        */
-      S1ap_S1AP_PDU_t pdu = {0};
+      S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
 
       // Invoke S1AP message decoder
       if (s1ap_mme_decode_pdu(&pdu, SCTP_DATA_IND(received_message_p).payload) <
@@ -305,9 +310,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_S1AP);
-  init_task_context(TASK_S1AP,
-                    (task_id_t[]){TASK_MME_APP, TASK_SCTP, TASK_SERVICE303}, 3,
-                    handle_message, &s1ap_task_zmq_ctx);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP, TASK_SCTP, TASK_SERVICE303};
+  init_task_context(TASK_S1AP, peer_task_ids, 3, handle_message,
+                    &s1ap_task_zmq_ctx);
 
   if (s1ap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
@@ -323,7 +328,9 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
+// TODO(rsarwad): remove extern C, when complete functionality of MME is
+// migrated to cpp
+extern "C" status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
 
@@ -369,7 +376,8 @@ void s1ap_mme_exit(void) {
 enb_description_t* s1ap_new_enb(void) {
   enb_description_t* enb_ref = NULL;
 
-  enb_ref = calloc(1, sizeof(enb_description_t));
+  enb_ref = reinterpret_cast<enb_description_t*>(
+      calloc(1, sizeof(enb_description_t)));
   /*
    * Something bad happened during malloc...
    * * * * May be we are running out of memory.
@@ -392,7 +400,8 @@ ue_description_t* s1ap_new_ue(s1ap_state_t* state,
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
-  ue_ref = calloc(1, sizeof(ue_description_t));
+  ue_ref =
+      reinterpret_cast<ue_description_t*>(calloc(1, sizeof(ue_description_t)));
   /*
    * Something bad happened during malloc...
    * * * * May be we are running out of memory.

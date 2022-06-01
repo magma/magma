@@ -21,19 +21,24 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.h"
-
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-
-#include "S1ap_CauseRadioNetwork.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
+#include "S1ap_CauseRadioNetwork.h"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
@@ -175,7 +180,8 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   S1AP_INITIAL_UE_MESSAGE(message_p).tai = *tai;
 
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi = *ecgi;
-  S1AP_INITIAL_UE_MESSAGE(message_p).rrc_establishment_cause = rrc_cause + 1;
+  S1AP_INITIAL_UE_MESSAGE(message_p).rrc_establishment_cause =
+      (rrc_establishment_cause_t)(rrc_cause + 1);
 
   if (opt_s_tmsi) {
     S1AP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = true;

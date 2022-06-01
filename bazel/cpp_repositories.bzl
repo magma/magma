@@ -117,8 +117,6 @@ def cpp_repositories():
         commit = "b813a0e546ed54e54b3873bdf180cf885c39bbca",
         remote = "https://github.com/liblfds/liblfds.git",
         shallow_since = "1464682027 +0300",
-        patches = ["//third_party/build/patches/liblfds:0001-arm64-support.patch"],
-        patch_args = ["--strip=1"],
     )
 
     new_git_repository(

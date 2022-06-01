@@ -27,11 +27,7 @@ import {render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
 
 const mockEvents = [
   {
@@ -118,10 +114,6 @@ describe('<EventsTable />', () => {
       mockEvents.length,
     );
     MagmaAPIBindings.getEventsByNetworkId.mockResolvedValue(mockEvents);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   const Wrapper = () => {

@@ -35,7 +35,6 @@ esproposal.optional_chaining=enable
 .*/flow-typed/npm/@testing-library/.*
 .*/node_modules/react-beautiful-dnd/.*
 .*/node_modules/express/.*
-.*/app/views/organizations/.*
 
 [lints]
 all=warn

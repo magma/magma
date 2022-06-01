@@ -59,11 +59,6 @@ class MmeNasStateConverter : public StateConverter {
   static void proto_to_ue(const oai::UeContext& ue_ctxt_proto,
                           ue_mm_context_t* ue_ctxt);
 
-  static void mme_app_convert_string_to_guti(guti_t* guti_p,
-                                             const std::string& guti_str);
-
-  static char* mme_app_convert_guti_to_string(guti_t* guti_p);
-
   static void mme_app_ueip_imsi_map_to_proto(const UeIpImsiMap& ueip_map,
                                              oai::MmeUeIpImsiMap* ueip_proto);
 

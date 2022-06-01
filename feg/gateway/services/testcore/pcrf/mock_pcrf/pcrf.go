@@ -15,6 +15,7 @@ package mock_pcrf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -25,7 +26,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -292,7 +292,7 @@ func (srv *PCRFServer) AbortSession(
 	srv.mux.Handle(diam.ASA, asaHandler)
 	err := sendASR(account.CurrentState, srv.mux.Settings())
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to send Gx ASR")
+		return nil, fmt.Errorf("Failed to send Gx ASR: %w", err)
 	}
 	select {
 	case asa := <-resp:

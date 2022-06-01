@@ -15,20 +15,20 @@
  */
 import ActionTable from '../../components/ActionTable';
 import React from 'react';
-import Text from '../../../app/theme/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 import type {EditUser} from './OrganizationEdit';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import {UserRoles} from '../../../shared/roles';
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 type OrganizationUsersTableProps = WithAlert & {
   editUser: (user: ?EditUser) => void,
-  tableRef: {current: null | React.ElementRef<ElementType>},
+  tableRef: {current: null | {onQueryChange(): void}},
 };
 
 /**
@@ -59,7 +59,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
               props.tableRef.current?.onQueryChange();
             })
             .catch(() => {
-              enqueueSnackbar(`Unable to delete user: ${user.name}`, {
+              enqueueSnackbar(`Unable to delete user: ${user.id}`, {
                 variant: 'error',
               });
             });

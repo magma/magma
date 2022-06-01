@@ -11,12 +11,19 @@ spec:
   initContainers:
     - name: wait-for-elasticsearch
       image: curlimages/curl
-      command: ['sh', '-c', "until curl -sf http://elasticsearch:9200/_cluster/health; do echo \"waiting for elasticsearch...\"; sleep 0.2; done"]
+      command:
+        - sh
+        - -c
+        - |
+          until curl -sf http://elasticsearch:9200/_cluster/health; do
+            echo "Waiting for elasticsearch...";
+            sleep 0.2;
+          done
   containers:
     - image: test_runner_image
-      name: test-runner
+      name: test-runner-dev
       imagePullPolicy: IfNotPresent
-      command: ["python"]
+      command: ["/entrypoint.sh"]
       args: ["-m", "pytest", "-vvv", "-s", "-m", "local", "--junit-xml=/backend/test_runner/test-results/test_report.xml", "tests"]
       volumeMounts:
         - name: test-results

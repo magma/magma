@@ -20,7 +20,8 @@ option go_package = "magma/dp/cloud/go/protos";
 
 service CbsdManagement {
   rpc CreateCbsd (CreateCbsdRequest) returns (CreateCbsdResponse) {}
-  rpc UpdateCbsd (UpdateCbsdRequest) returns (UpdateCbsdResponse) {}
+  rpc UserUpdateCbsd (UpdateCbsdRequest) returns (UpdateCbsdResponse) {}
+  rpc EnodebdUpdateCbsd (EnodebdUpdateCbsdRequest) returns (UpdateCbsdResponse) {}
   rpc DeleteCbsd (DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
   rpc FetchCbsd(FetchCbsdRequest) returns (FetchCbsdResponse) {}
   rpc ListCbsds(ListCbsdRequest) returns (ListCbsdResponse) {}
@@ -38,6 +39,12 @@ message UpdateCbsdRequest {
   string network_id = 1;
   int64 id = 2;
   CbsdData data = 3;
+}
+
+message EnodebdUpdateCbsdRequest {
+  string serial_number = 1;
+  InstallationParam installation_param = 2;
+  string cbsd_category = 3;
 }
 
 message UpdateCbsdResponse {}
@@ -85,13 +92,22 @@ message CbsdData {
   string desired_state = 6;
   Capabilities capabilities = 7;
   FrequencyPreferences preferences = 8;
+  InstallationParam installation_param = 9;
+}
+
+message InstallationParam {
+  google.protobuf.DoubleValue latitude_deg = 1;
+  google.protobuf.DoubleValue longitude_deg = 2;
+  google.protobuf.BoolValue indoor_deployment = 3;
+  google.protobuf.DoubleValue height_m = 4;
+  google.protobuf.StringValue height_type = 5;
+  google.protobuf.DoubleValue antenna_gain = 6;
 }
 
 message Capabilities {
   double min_power = 1;
   double max_power = 2;
   int64 number_of_antennas = 3;
-  double antenna_gain = 4;
 }
 
 message FrequencyPreferences {

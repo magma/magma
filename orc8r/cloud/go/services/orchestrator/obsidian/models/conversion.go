@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
@@ -624,6 +625,31 @@ func (m *GatewayVpnConfigs) FromBackendModels(ctx context.Context, networkID str
 	}
 	*m = *config.(*MagmadGatewayConfigs).Vpn
 	return nil
+}
+
+const (
+	// Number of check-in intervals used for gateway health checks. If the
+	// last check-in of a gateway was longer ago than N check-in intervals,
+	// this indicates a problem.
+	graceFactor = 5
+
+	// Check-in interval that is used if no config can be found
+	defaultCheckinInterval = time.Minute
+)
+
+func LastGatewayCheckInWasRecent(gatewayStatus *GatewayStatus, magmadConfig *MagmadGatewayConfigs) bool {
+	if gatewayStatus == nil {
+		return false
+	}
+	checkinTime := time.UnixMilli(int64(gatewayStatus.CheckinTime))
+
+	var checkinInterval time.Duration
+	if magmadConfig != nil {
+		checkinInterval = time.Duration(int64(magmadConfig.CheckinInterval)) * time.Second
+	} else {
+		checkinInterval = defaultCheckinInterval
+	}
+	return time.Now().Before(checkinTime.Add(graceFactor * checkinInterval))
 }
 
 func getGatewayTKs(gateways []models.GatewayID) storage.TKs {

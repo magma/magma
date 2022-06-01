@@ -26,13 +26,13 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
 #include "lte/protos/oai/s1ap_state.pb.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"

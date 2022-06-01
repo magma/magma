@@ -22,16 +22,17 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S1AP_MME_SEEN
-#define FILE_S1AP_MME_SEEN
-
+#pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
 #if MME_CLIENT_TEST == 0
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
-#include "lte/gateway/c/core/oai/include/s1ap_types.h"
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 
 #define S1AP_ZMQ_LATENCY_TH \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages
@@ -71,4 +72,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref);
  **/
 void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
 
-#endif /* FILE_S1AP_MME_SEEN */
+#ifdef __cplusplus
+}
+#endif

@@ -195,6 +195,7 @@ func getGateway(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load cellular gateway: %w", err))
 	}
 
+	checkedInRecently := lte_models.GatewayCheckedInRecently(orc8r_models.LastGatewayCheckInWasRecent(magmadModel.Status, magmadModel.Magmad))
 	ret := &lte_models.LteGateway{
 		ID:                     magmadModel.ID,
 		Name:                   magmadModel.Name,
@@ -204,6 +205,7 @@ func getGateway(c echo.Context) error {
 		Status:                 magmadModel.Status,
 		Tier:                   magmadModel.Tier,
 		Magmad:                 magmadModel.Magmad,
+		CheckedInRecently:      &checkedInRecently,
 		ConnectedEnodebSerials: lte_models.EnodebSerials{},
 		ApnResources:           lte_models.ApnResources{},
 	}

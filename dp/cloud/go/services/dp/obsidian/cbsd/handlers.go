@@ -209,7 +209,7 @@ func updateCbsd(c echo.Context) error {
 	data := models.CbsdToBackend(payload)
 	req := protos.UpdateCbsdRequest{NetworkId: networkId, Id: int64(id), Data: data}
 	ctx := c.Request().Context()
-	_, ierr := client.UpdateCbsd(ctx, &req)
+	_, ierr := client.UserUpdateCbsd(ctx, &req)
 	if ierr != nil {
 		return getHttpError(ierr)
 	}

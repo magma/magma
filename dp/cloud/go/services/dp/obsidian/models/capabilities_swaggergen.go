@@ -19,11 +19,6 @@ import (
 // swagger:model capabilities
 type Capabilities struct {
 
-	// antenna gain
-	// Example: 15
-	// Required: true
-	AntennaGain *float64 `json:"antenna_gain"`
-
 	// max tx power available on cbsd
 	// Example: 30
 	// Required: true
@@ -44,10 +39,6 @@ type Capabilities struct {
 func (m *Capabilities) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAntennaGain(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateMaxPower(formats); err != nil {
 		res = append(res, err)
 	}
@@ -63,15 +54,6 @@ func (m *Capabilities) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *Capabilities) validateAntennaGain(formats strfmt.Registry) error {
-
-	if err := validate.Required("antenna_gain", "body", m.AntennaGain); err != nil {
-		return err
-	}
-
 	return nil
 }
 
