@@ -68,10 +68,10 @@ ENV GOPROXY https://proxy.golang.org
 
 RUN printenv > /etc/environment
 
-COPY feg/radius/lib/go/ /radius/lib/go
-COPY feg/radius/src/go.* /radius/src/
-COPY orc8r/lib/go/go.* /orc8r/lib/go/
-WORKDIR /radius/src
+COPY feg/radius/lib/go/ $MAGMA_ROOT/feg/radius/lib/go
+COPY feg/radius/src/go.* $MAGMA_ROOT/feg/radius/src/
+COPY orc8r/lib/go/go.* $MAGMA_ROOT/orc8r/lib/go/
+WORKDIR $MAGMA_ROOT/feg/radius/src
 RUN go mod download
 
 # Copy just the go.mod and go.sum files to download the golang deps.
