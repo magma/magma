@@ -26,6 +26,7 @@ import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import LabelsEditor from './LabelsEditor';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';

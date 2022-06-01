@@ -15,6 +15,7 @@
  */
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
