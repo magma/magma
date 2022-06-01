@@ -30,6 +30,7 @@ import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../hooks/useForm';
 import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver} from '../hooks';

@@ -26,6 +26,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';

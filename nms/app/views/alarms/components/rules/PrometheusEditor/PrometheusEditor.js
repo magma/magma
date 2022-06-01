@@ -30,6 +30,7 @@ import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Labels} from '../../prometheus/PromQL';
