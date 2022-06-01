@@ -31,6 +31,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Link from '@material-ui/core/Link';
 import MetricAlertViewer from './MetricAlertViewer';
 import Paper from '@material-ui/core/Paper';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';

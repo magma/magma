@@ -19,6 +19,7 @@ import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SeverityIndicator from '../severity/SeverityIndicator';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable from '../table/SimpleTable';

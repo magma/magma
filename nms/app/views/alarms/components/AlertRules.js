@@ -17,6 +17,7 @@ import * as React from 'react';
 import AddEditRule from './rules/AddEditRule';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SeverityIndicator from './severity/SeverityIndicator';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable from './table/SimpleTable';
