@@ -25,7 +25,7 @@
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 #define MAX_NUM_PARTIAL_S1_CONN_RESET 256
 

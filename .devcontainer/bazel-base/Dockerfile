@@ -3,6 +3,8 @@
 ################################################################
 FROM ubuntu:focal as bazel_builder
 
+ARG DEB_PORT=amd64
+
 ARG PYTHON_VERSION=3.8
 
 ENV TZ=UTC
@@ -119,9 +121,9 @@ RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/pub
 
 # Install bazel
 WORKDIR /usr/sbin
-RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
-    chmod +x bazelisk-linux-amd64 && \
-    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-"${DEB_PORT}" && \
+    chmod +x bazelisk-linux-"${DEB_PORT}" && \
+    ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
 # Update shared library configuration
 RUN ldconfig -v

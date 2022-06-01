@@ -57,10 +57,6 @@ describe.each`
     MagmaAPIBindings.getNetworks.mockResolvedValueOnce(networks);
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
   it(`renders for ${path} path`, async () => {
     global.CONFIG = {
       appData: {

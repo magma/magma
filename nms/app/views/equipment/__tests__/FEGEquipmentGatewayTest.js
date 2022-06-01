@@ -18,7 +18,6 @@ import FEGEquipmentGateway from '../FEGEquipmentGateway';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
@@ -37,13 +36,10 @@ import type {
   swx,
 } from '../../../../generated/MagmaAPIBindings.js';
 
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings');
-jest.mock('../../../../app/hooks/useSnackbar');
+jest.mock('../../../hooks/useSnackbar');
+
 const mockGx: gx = {
   server: {
     address: '174.16.1.14:3868',
@@ -252,10 +248,6 @@ describe('<FEGEquipmentGateway />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
       mockFalloverStatus,
     );
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   const Wrapper = () => (

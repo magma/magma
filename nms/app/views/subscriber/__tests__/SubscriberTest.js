@@ -28,14 +28,12 @@ import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const enqueueSnackbarMock = jest.fn();
+jest.mock('../../../hooks/useSnackbar');
+
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
   key => CoreNetworkTypes[key],
 );
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+
 const subscribers = {
   IMSI0000000000: {
     name: 'subscriber0',

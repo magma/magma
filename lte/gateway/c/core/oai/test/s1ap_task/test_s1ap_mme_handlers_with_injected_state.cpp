@@ -21,10 +21,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
 }
 
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"

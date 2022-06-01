@@ -31,10 +31,8 @@ import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
+
 const apns = {
   apn_0: {
     apn_configuration: {
@@ -69,10 +67,6 @@ const apns = {
 };
 
 describe('<TrafficDashboard />', () => {
-  afterEach(() => {
-    MagmaAPIBindings.postLteByNetworkIdApns.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdApnsByApnName.mockClear();
-  });
   beforeEach(() => {
     MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
     MagmaAPIBindings.getNetworks.mockResolvedValue([]);

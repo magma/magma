@@ -18,25 +18,29 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.hpp"
 
-static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
-                                             uint8_t** buffer,
-                                             uint32_t* length);
-static inline int s1ap_mme_encode_successful_outcome(S1ap_S1AP_PDU_t* pdu,
-                                                     uint8_t** buffer,
-                                                     uint32_t* len);
-static inline int s1ap_mme_encode_unsuccessful_outcome(S1ap_S1AP_PDU_t* pdu,
+static inline status_code_e s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
                                                        uint8_t** buffer,
-                                                       uint32_t* len);
+                                                       uint32_t* length);
+static inline status_code_e s1ap_mme_encode_successful_outcome(
+    S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
+static inline status_code_e s1ap_mme_encode_unsuccessful_outcome(
+    S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_encode_pdu(S1ap_S1AP_PDU_t* pdu, uint8_t** buffer,
                                   uint32_t* length) {
-  int ret = -1;
+  status_code_e ret = RETURNerror;
 
   if (pdu == NULL) {
     OAILOG_DEBUG(LOG_S1AP, "PDU is NULL\n");
@@ -74,9 +78,9 @@ status_code_e s1ap_mme_encode_pdu(S1ap_S1AP_PDU_t* pdu, uint8_t** buffer,
 }
 
 //------------------------------------------------------------------------------
-static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
-                                             uint8_t** buffer,
-                                             uint32_t* length) {
+static inline status_code_e s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
+                                                       uint8_t** buffer,
+                                                       uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
 
   if (pdu == NULL) {
@@ -111,15 +115,14 @@ static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t* pdu,
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_S1ap_S1AP_PDU, pdu);
-  *buffer = res.buffer;
+  *buffer = reinterpret_cast<uint8_t*>(res.buffer);
   *length = res.result.encoded;
   return RETURNok;
 }
 
 //------------------------------------------------------------------------------
-static inline int s1ap_mme_encode_successful_outcome(S1ap_S1AP_PDU_t* pdu,
-                                                     uint8_t** buffer,
-                                                     uint32_t* length) {
+static inline status_code_e s1ap_mme_encode_successful_outcome(
+    S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
 
   if (pdu == NULL) {
@@ -145,15 +148,14 @@ static inline int s1ap_mme_encode_successful_outcome(S1ap_S1AP_PDU_t* pdu,
   }
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_S1ap_S1AP_PDU, pdu);
-  *buffer = res.buffer;
+  *buffer = reinterpret_cast<uint8_t*>(res.buffer);
   *length = res.result.encoded;
   return RETURNok;
 }
 
 //------------------------------------------------------------------------------
-static inline int s1ap_mme_encode_unsuccessful_outcome(S1ap_S1AP_PDU_t* pdu,
-                                                       uint8_t** buffer,
-                                                       uint32_t* length) {
+static inline status_code_e s1ap_mme_encode_unsuccessful_outcome(
+    S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
 
   if (pdu == NULL) {
@@ -178,7 +180,7 @@ static inline int s1ap_mme_encode_unsuccessful_outcome(S1ap_S1AP_PDU_t* pdu,
   }
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_S1ap_S1AP_PDU, pdu);
-  *buffer = res.buffer;
+  *buffer = reinterpret_cast<uint8_t*>(res.buffer);
   *length = res.result.encoded;
   return RETURNok;
 }

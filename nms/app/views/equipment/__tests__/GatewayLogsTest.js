@@ -20,7 +20,6 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
@@ -135,10 +134,6 @@ describe('<GatewayLogs />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdLogsSearch.mockResolvedValue(
       mockLogs,
     );
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   it('verify gateway logs rendering', async () => {

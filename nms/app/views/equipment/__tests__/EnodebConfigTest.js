@@ -26,16 +26,12 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetEnodebState} from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
 
 describe('<AddEditEnodeButton />', () => {
   const ran = {
@@ -96,9 +92,11 @@ describe('<AddEditEnodeButton />', () => {
     },
   };
 
-  afterEach(() => {
-    MagmaAPIBindings.postLteByNetworkIdEnodebs.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial.mockClear();
+  beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
   });
 
   const AddWrapper = () => {

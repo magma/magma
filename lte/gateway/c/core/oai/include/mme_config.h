@@ -456,10 +456,6 @@ typedef struct mme_config_s {
 
 extern mme_config_t mme_config;
 
-int mme_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,
-                               const char mcc_digit3P, const char mnc_digit1P,
-                               const char mnc_digit2P, const char mnc_digit3P);
-
 void mme_config_init(mme_config_t*);
 int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 int mme_config_parse_file(mme_config_t*);

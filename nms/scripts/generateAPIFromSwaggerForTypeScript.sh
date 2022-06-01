@@ -56,8 +56,9 @@ if [ "$FORCE" = false ] && [ -d "${OUTPUT}"  ] ; then
     fi
 fi
 
+(set -x; yarn --silent openapi-generator-cli version-manager set 6.0.0)
 (set -x;
-yarn --silent openapi --client axios --useUnionTypes -i "${INPUT}" -o "${OUTPUT}")
+yarn --silent openapi-generator-cli generate -i "${INPUT}" --output "${OUTPUT}" --skip-validate-spec --additional-properties=useSingleRequestParameter=true -g typescript-axios)
 
 addHeader() {
   local file="$1"
@@ -83,9 +84,9 @@ EOF
   mv "${TEMPORARY_FILE}" "${file}"
 }
 
-for file in "${OUTPUT}"/*.ts "${OUTPUT}"/**/*.ts; do
+for file in "${OUTPUT}"/*.ts; do
   addHeader "${file}"
-  # TODO #12768 remove sed replacements
-  sed -i 's/?view=full(/_view_full(/g' "${file}"
-  sed -i 's/?verbose=false(/_verbose_false(/g' "${file}"
 done
+
+# Workaround for https://github.com/OpenAPITools/openapi-generator/issues/11746
+sed -i 's/Set<string>/Array<string>/g' "${OUTPUT}/api.ts"
