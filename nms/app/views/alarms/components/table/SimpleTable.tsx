@@ -57,14 +57,9 @@ type ActionMenuItems = {
   handleFunc?: () => any;
 };
 
-type ActionTableColumn = {
-  title: string;
-  field: string;
-};
-
 type ActionTableProps<T extends object> = {
   onRowClick?: (rowData: T) => void;
-  columnStruct: Array<ActionTableColumn>;
+  columnStruct: MaterialTableProps<T>['columns'];
   menuItems?: Array<ActionMenuItems>;
   actions?: MaterialTableProps<T>['actions'];
   tableData: MaterialTableProps<T>['data'];

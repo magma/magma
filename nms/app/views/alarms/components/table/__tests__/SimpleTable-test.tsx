@@ -9,26 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {LabelsCell} from '../SimpleTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../../../theme/default';
+import {ChipProps} from '@material-ui/core/Chip';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
 
 // replace the default chip with a more easily queryable version
-jest.mock('@material-ui/core/Chip', () => ({label, ...props}) => (
+jest.mock('@material-ui/core/Chip', () => ({label, ...props}: ChipProps) => (
   <div data-chip {...props} children={label} />
 ));
 
-function Wrapper(props: {route?: string, children: React.Node}) {
+function Wrapper(props: {route?: string; children: React.ReactNode}) {
   return (
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
@@ -71,7 +67,7 @@ test('rendered row is transformed by path expression', () => {
     },
   ];
 
-  const {getByText, ..._result} = render(
+  const {getByText} = render(
     <Wrapper>
       <SimpleTable
         columnStruct={[
@@ -135,7 +131,7 @@ describe('column renderers', () => {
      * chip text is broken up by multiple elements. textContent combines text
      * from all children so we can check for that instead.
      */
-    const textContent = [].map.call(chips, chip => chip.textContent);
+    const textContent = Array.from(chips).map(chip => chip.textContent);
     expect(textContent).toContain('name=name');
     expect(textContent).toContain('age=age');
   });
