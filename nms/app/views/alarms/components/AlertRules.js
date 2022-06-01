@@ -21,6 +21,7 @@ import Grid from '@material-ui/core/Grid';
 import SeverityIndicator from './severity/SeverityIndicator';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable from './table/SimpleTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from './table/TableActionDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableAddButton from './table/TableAddButton';

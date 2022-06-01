@@ -25,6 +25,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import SettingsIcon from '@material-ui/icons/Settings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {LabelsCell} from '../../table/SimpleTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from '../../table/TableActionDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableAddButton from '../../table/TableAddButton';

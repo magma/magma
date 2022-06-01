@@ -19,6 +19,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {LabelsCell, toLabels} from '../table/SimpleTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from '../table/TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../AlarmContext';
