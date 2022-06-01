@@ -30,6 +30,7 @@ import LabelsEditor from './LabelsEditor';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleContext from './RuleContext';
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
