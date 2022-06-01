@@ -86,14 +86,15 @@ COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
 RUN go mod download
+
 # Install protoc-gen-go
-RUN go install github.com/golang/protobuf/protoc-gen-go
-RUN go get -u github.com/vektra/mockery/v2/.../
-RUN go get github.com/deepmap/oapi-codegen/cmd/oapi-codegen
+RUN go install github.com/golang/protobuf/protoc-gen-go \
+ && go get -u github.com/vektra/mockery/v2/.../ \
+ && go get github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 
 # Symlink python scripts.
-RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
-RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
+RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py \
+ && ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
 
 # Build the code.
 COPY feg $MAGMA_ROOT/feg
