@@ -57,7 +57,7 @@ type ActionMenuItems = {
   handleFunc?: () => any;
 };
 
-type ActionTableProps<T extends object> = {
+export type SimpleTableProps<T extends object> = {
   onRowClick?: (rowData: T) => void;
   columnStruct: MaterialTableProps<T>['columns'];
   menuItems?: Array<ActionMenuItems>;
@@ -190,7 +190,7 @@ const tableIcons = {
 };
 
 export default function SimpleTable<T extends object>(
-  props: ActionTableProps<T>,
+  props: SimpleTableProps<T>,
 ) {
   const {columnStruct, tableData, onRowClick} = props;
   const actionTableJSX = [];

@@ -38,7 +38,7 @@ type Props<TRow> = {
   showCopyButton?: boolean;
   showDeleteButton?: boolean;
   onDelete?: () => Promise<void>;
-  RowViewer: React.ComponentType<{row: TRow}>;
+  RowViewer: React.ComponentType<{row?: TRow}>;
 };
 
 export default function TableActionDialog<TRow>(props: Props<TRow>) {
