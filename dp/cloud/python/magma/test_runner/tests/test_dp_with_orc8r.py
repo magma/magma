@@ -61,9 +61,11 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
             .with_desired_state() \
             .with_antenna_gain() \
             .with_serial_number(self.serial_number)
+
         cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
 
-        self.then_provision_logs_are_sent()
+        with self.while_cbsd_is_active():
+            self.then_provision_logs_are_sent()
 
         self.delete_cbsd(cbsd_id)
 
@@ -78,7 +80,8 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
         self.given_single_step_cbsd_provisioned(builder)
 
-        self.then_provision_logs_are_sent()
+        with self.while_cbsd_is_active():
+            self.then_provision_logs_are_sent()
 
     def test_cbsd_unregistered_when_requested_by_desired_state(self):
         builder = CbsdAPIDataBuilder() \
@@ -470,14 +473,13 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         return cbsd
 
     def then_provision_logs_are_sent(self):
-        with self.while_cbsd_is_active():
-            self.then_logs_are(
-                get_current_sas_filters(self.serial_number),
-                self.get_sas_provision_messages(),
-            )
+        self.then_logs_are(
+            get_current_sas_filters(self.serial_number),
+            self.get_sas_provision_messages(),
+        )
 
-            filters = get_filters_for_request_type('heartbeat', self.serial_number)
-            self.then_message_is_eventually_sent(filters)
+        filters = get_filters_for_request_type('heartbeat', self.serial_number)
+        self.then_message_is_eventually_sent(filters)
 
     def when_cbsd_is_created(self, data: Dict[str, Any], expected_status: int = HTTPStatus.CREATED):
         r = send_request_to_backend('post', 'cbsds', json=data)
