@@ -9,23 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
 import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from './AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
 import type {AlertRoutingTree} from './AlarmAPIType';
-// $FlowFixMe migrated to typescript
 import type {ApiUtil} from './AlarmsApi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 
 /**
@@ -37,9 +29,9 @@ export function useLoadRules<TRuleUnion>({
   ruleMap,
   lastRefreshTime,
 }: {
-  ruleMap: RuleInterfaceMap<TRuleUnion>,
-  lastRefreshTime: string,
-}): {rules: Array<GenericRule<TRuleUnion>>, isLoading: boolean} {
+  ruleMap: RuleInterfaceMap<TRuleUnion>;
+  lastRefreshTime: string;
+}): {rules: Array<GenericRule<TRuleUnion>>; isLoading: boolean} {
   const networkId = useNetworkId();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [isLoading, setIsLoading] = React.useState(true);
@@ -55,7 +47,7 @@ export function useLoadRules<TRuleUnion>({
 
       const ruleInterface = ruleMap[ruleType];
 
-      return new Promise(resolve => {
+      return new Promise<Array<GenericRule<TRuleUnion>>>(resolve => {
         ruleInterface
           .getRules(request)
           .then(response => resolve(response))
@@ -72,8 +64,8 @@ export function useLoadRules<TRuleUnion>({
       });
     });
 
-    Promise.all(promises).then(results => {
-      const allResults = [].concat.apply([], results);
+    void Promise.all(promises).then(results => {
+      const allResults = results.flat();
       setRules(allResults);
       setIsLoading(false);
     });
@@ -94,8 +86,8 @@ export function useAlertRuleReceiver({
   ruleName,
   apiUtil,
 }: {
-  ruleName: string,
-  apiUtil: ApiUtil,
+  ruleName: string;
+  apiUtil: ApiUtil;
 }) {
   const networkId = useNetworkId();
   const {response} = apiUtil.useAlarmsApi(apiUtil.getRouteTree, {
@@ -118,8 +110,8 @@ export function useAlertRuleReceiver({
     return matchingRoutes;
   }, [response, ruleName]);
 
-  const [initialReceiver, setInitialReceiver] = React.useState<?string>();
-  const [receiver, setReceiver] = React.useState<?string>();
+  const [initialReceiver, setInitialReceiver] = React.useState<string | null>();
+  const [receiver, setReceiver] = React.useState<string | null>();
 
   /**
    * once the routes are loaded, set the initial receiver so we can determine
@@ -186,10 +178,10 @@ export function useAlertRuleReceiver({
 }
 
 export function useNetworkId(): string {
-  const params = useParams();
+  const params = useParams<{networkId: string}>();
   const {getNetworkId} = useAlarmContext();
   if (typeof getNetworkId === 'function') {
     return getNetworkId();
   }
-  return params.networkId;
+  return params.networkId!;
 }

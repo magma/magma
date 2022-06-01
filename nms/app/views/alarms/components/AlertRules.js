@@ -31,6 +31,7 @@ import {PROMETHEUS_RULE_TYPE, useAlarmContext} from './AlarmContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Parse} from './prometheus/PromQLParser';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useLoadRules} from './hooks';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../hooks/useSnackbar';
