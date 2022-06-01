@@ -35,6 +35,7 @@ import useForm from '../../../hooks/useForm';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';

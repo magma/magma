@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import grey from '@material-ui/core/colors/grey';
@@ -19,15 +16,7 @@ import orange from '@material-ui/core/colors/orange';
 import red from '@material-ui/core/colors/red';
 import yellow from '@material-ui/core/colors/yellow';
 
-type SeverityMap = {
-  [string]: {
-    name: string,
-    order: number,
-    color: string,
-  },
-};
-
-export const SEVERITY: SeverityMap = {
+export const SEVERITY = {
   NOTICE: {
     name: 'NOTICE',
     order: 0,
@@ -58,4 +47,4 @@ export const SEVERITY: SeverityMap = {
     order: 5,
     color: red.A400,
   },
-};
+} as const;

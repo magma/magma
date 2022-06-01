@@ -9,18 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import * as React from 'react';
 import Chip from '@material-ui/core/Chip';
 import Typography from '@material-ui/core/Typography';
 import classnames from 'classnames';
 import {SEVERITY} from './Severity';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   // the circle
   indicator: {
     display: 'inline-block',
@@ -63,9 +61,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  severity: string,
+  severity: string;
   // display a chip instead of a circle
-  chip?: boolean,
+  chip?: boolean;
 };
 
 export default function SeverityIndicator(props: Props) {
