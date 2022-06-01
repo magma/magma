@@ -12,13 +12,27 @@ Deploying Orc8r on Minikube is the easiest way to test changes to the Helm chart
 
 ### Spin up Minikube
 
-Set up Minikube with the following command, including sufficient resources and seeding the metrics config files
+Set up Minikube with one of the following commands, including sufficient resources and seeding the metrics config files:
 
-```bash
-minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --kubernetes-version='v1.20.2' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
-```
+- On macOS
 
-> Note: This has been tested on MacOS. There are a lot of things that can go wrong with spinning up Minikube, so if you have problems check for documentation specific to your system. Also make sure you are not connected to a VPN when running this command.
+  ```bash
+  minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --kubernetes-version='v1.20.2' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
+  ```
+
+- On Linux
+
+  ```bash
+  minikube start --cni=bridge --driver=docker --memory=8gb --cpus=8 --kubernetes-version='v1.20.2' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
+  ```
+
+where the only difference between the two is the driver used.
+
+> Note:
+>
+> - There are a lot of things that can go wrong with spinning up Minikube, so if you have problems check for documentation specific to your system.
+> - Make sure you are not connected to a VPN when running this command.
+> - For further information on the recommended drivers used above, see [Minikube configs](#minikube-configs).
 
 Now install prerequisites for Orc8r and create the `orc8r` K8s namespace
 
@@ -187,6 +201,6 @@ Log in to NMS at <https://magma-test.localhost:8081> using credentials: `admin@m
 
 ### Minikube configs
 
-We use the [HyperKit driver](https://minikube.sigs.k8s.io/docs/drivers/hyperkit/) instead of the default [Docker driver](https://minikube.sigs.k8s.io/docs/drivers/docker/) because the former is more performant in supporting [hairpin mode](https://github.com/kubernetes/minikube/issues/1568) (via the [CNI network plugin](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)). I.e., Orc8r has some services that make requests to themselves, which requires K8s support.
+We use the [HyperKit driver](https://minikube.sigs.k8s.io/docs/drivers/hyperkit/) on macOS instead of the default [Docker driver](https://minikube.sigs.k8s.io/docs/drivers/docker/) because the former is more performant in supporting [hairpin mode](https://github.com/kubernetes/minikube/issues/1568) (via the [CNI network plugin](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)). I.e., Orc8r has some services that make requests to themselves, which requires K8s support.
 
-You could also accomplish this with `--cni=bridge --driver=docker`, but this causes a 2x increase in pod startup times.
+You could also accomplish this with `--cni=bridge --driver=docker`, but this causes a 2x increase in pod startup times. Note that the HyperKit driver is not supported on [Linux](https://minikube.sigs.k8s.io/docs/drivers/#linux).
