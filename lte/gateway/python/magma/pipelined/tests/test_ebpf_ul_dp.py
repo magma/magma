@@ -107,14 +107,12 @@ class eBpfDatapathULTest(unittest.TestCase):
 
     @classmethod
     def pkt_cap_fun(cls, packet):
-        # print("got packet: %s", packet)
         cls.packet_cap1.append(packet)
 
     @classmethod
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            # print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1

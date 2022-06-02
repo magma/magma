@@ -52,7 +52,7 @@ class TcOpsCmd(TcOpsBase):
         LOG.info("initialized")
 
     def create_htb(
-        self, iface: str, qid: str, max_bw: str, rate: str,
+        self, iface: str, qid: str, max_bw: int, rate: str,
         parent_qid: str = None,
     ) -> int:
         tc_cmd = "tc class add dev {intf} parent {parent_qid} "
