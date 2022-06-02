@@ -24,7 +24,9 @@ import {
   wait,
   waitForElement,
 } from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ApiUtil} from '../../../AlarmsApi';

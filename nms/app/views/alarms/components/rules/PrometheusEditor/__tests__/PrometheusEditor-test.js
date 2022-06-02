@@ -17,11 +17,13 @@
 import * as React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PrometheusEditor from '../PrometheusEditor';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {parseTimeString} from '../PrometheusEditor';
 import {render} from '@testing-library/react';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../../AlarmAPIType';
