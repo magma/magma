@@ -24,10 +24,18 @@ import type {AlarmContext as AlarmContextType} from '../components/AlarmContext'
 import type {ApiUtil} from '../components/AlarmsApi';
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
 
+type MakeSync<U extends object> = {
+  [k in keyof U]: U[k] extends (...args: [...(infer ARGS)]) => Promise<infer V>
+    ? (args: ARGS) => V
+    : U[k];
+};
+
+export type MockApiUtil = MakeSync<ApiUtil>;
+
 /**
  * Make sure when adding new functions to ApiUtil to add their mocks here
  */
-export function mockApiUtil(merge?: Partial<ApiUtil>): ApiUtil {
+export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
   /**
    * I don't understand how to properly type these mocks so using any for now.
    * The consuming code is all strongly typed, this shouldn't be much of an issue.
@@ -115,7 +123,7 @@ export function AlarmsTestWrapper({
 
 export type AlarmTestUtil = {
   AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
-  apiUtil: ApiUtil;
+  apiUtil: MockApiUtil;
   ruleMap: RuleInterfaceMap<any>;
 };
 
@@ -143,13 +151,17 @@ export function alarmTestUtil(
   const ruleMap =
     overrides?.ruleMap ??
     getPrometheusRuleInterface({
-      apiUtil,
+      apiUtil: (apiUtil as unknown) as ApiUtil,
     });
   return {
     apiUtil,
     ruleMap,
     AlarmsWrapper: (props: Partial<AlarmsWrapperProps>) => (
-      <AlarmsWrapper apiUtil={apiUtil} ruleMap={ruleMap} {...props} />
+      <AlarmsWrapper
+        apiUtil={(apiUtil as unknown) as ApiUtil}
+        ruleMap={ruleMap}
+        {...props}
+      />
     ),
   };
 }

@@ -9,28 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FiringAlerts from '../FiringAlerts';
+import {MockApiUtil, alarmTestUtil} from '../../../test/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {alarmTestUtil} from '../../../test/testHelpers';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../test/testHelpers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {ApiUtil} from '../../AlarmsApi';
-// $FlowFixMe migrated to typescript
 import type {FiringAlarm} from '../../AlarmAPIType';
 
 describe('FiringAlerts', () => {
-  let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
-  let apiUtil: ApiUtil;
+  let AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
+  let apiUtil: MockApiUtil;
 
   beforeEach(() => {
     ({apiUtil, AlarmsWrapper} = alarmTestUtil());
@@ -47,10 +38,10 @@ describe('FiringAlerts', () => {
   });
 
   it('renders firing alerts', () => {
-    const firingAlarms: Array<$Shape<FiringAlarm>> = [
-      {
+    const firingAlarms = [
+      ({
         labels: {alertname: '<<testalert>>', severity: 'INFO'},
-      },
+      } as unknown) as FiringAlarm,
     ];
     jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
     const {getByText} = render(
@@ -62,11 +53,11 @@ describe('FiringAlerts', () => {
     expect(getByText(/info/i)).toBeInTheDocument();
   });
 
-  it('clicking view alert shows alert details pane', async () => {
-    const firingAlarms: Array<$Shape<FiringAlarm>> = [
-      {
+  it('clicking view alert shows alert details pane', () => {
+    const firingAlarms = [
+      ({
         labels: {alertname: '<<testalert>>', severity: 'INFO'},
-      },
+      } as unknown) as FiringAlarm,
     ];
     jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
     const {getByText, getByTestId} = render(
