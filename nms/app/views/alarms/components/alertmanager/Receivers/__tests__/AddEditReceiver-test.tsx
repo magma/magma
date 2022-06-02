@@ -9,16 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditReceiver from '../AddEditReceiver';
 import {act, fireEvent, render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
 import {screen} from '@testing-library/dom';
 
@@ -43,7 +38,7 @@ test('renders', () => {
   expect(getByText(/Pushover/i)).toBeInTheDocument();
 });
 
-test('clicking the add button adds a new config entry', async () => {
+test('clicking the add button adds a new config entry', () => {
   const {getByTestId, queryByTestId} = render(
     <AlarmsWrapper>
       <AddEditReceiver {...commonProps} receiver={{name: ''}} />
