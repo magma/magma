@@ -17,6 +17,7 @@ import type {SectionsConfigs} from '../layout/Section';
 
 import * as React from 'react';
 import AlarmIcon from '@material-ui/icons/Alarm';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';

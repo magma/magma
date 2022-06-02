@@ -16,6 +16,7 @@
 import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
