@@ -26,6 +26,7 @@ import Grid from '@material-ui/core/Grid';
 import GroupIcon from '@material-ui/icons/Group';
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Receivers from './alertmanager/Receivers/Receivers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Suppressions from './alertmanager/Suppressions';
