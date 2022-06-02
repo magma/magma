@@ -19,6 +19,7 @@ import * as React from 'react';
 import AddEditReceiver from './AddEditReceiver';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GlobalConfig from './GlobalConfig';
 import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';

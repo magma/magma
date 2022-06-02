@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GlobalConfig from '../GlobalConfig';
 import React from 'react';
 import {act, fireEvent, render} from '@testing-library/react';
