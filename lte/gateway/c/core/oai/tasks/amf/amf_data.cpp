@@ -68,7 +68,7 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(amf_context_t* ctxt,
   ctxt->ksi = eksi;
 
   OAILOG_TRACE(
-      LOG_NAS_AMF,
+      LOG_AMF_APP,
       "ue_id= " AMF_UE_NGAP_ID_FMT " set security context eksi %d\n",
       (PARENT_STRUCT(ctxt, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id,
       eksi);
@@ -88,7 +88,7 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_type(amf_context_t* ctxt,
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ctxt->_security.sc_type = sc_type;
   OAILOG_TRACE(
-      LOG_NAS_AMF,
+      LOG_AMF_APP,
       "ue_id= " AMF_UE_NGAP_ID_FMT " set security context security type %d\n",
       (PARENT_STRUCT(ctxt, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id,
       sc_type);
@@ -115,7 +115,7 @@ void nas_amf_smc_proc_t::amf_ctx_clear_security(amf_context_t* ctxt) {
   ctxt->_security.direction_decode = SECU_DIRECTION_UPLINK;
   ctxt->_security.direction_encode = SECU_DIRECTION_DOWNLINK;
   OAILOG_DEBUG(
-      LOG_NAS_AMF, "ue_id= " AMF_UE_NGAP_ID_FMT " cleared security context \n",
+      LOG_AMF_APP, "ue_id= " AMF_UE_NGAP_ID_FMT " cleared security context \n",
       (PARENT_STRUCT(ctxt, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }

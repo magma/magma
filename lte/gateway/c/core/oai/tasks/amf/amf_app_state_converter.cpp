@@ -58,7 +58,7 @@ void AmfNasStateConverter::chars_to_plmn(const char* plmn_array,
 std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
     const guti_m5_t& guti) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  #define GUTI_M5_STRING_LEN 25
+#define GUTI_M5_STRING_LEN 25
   char* temp_str =
       reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_M5_STRING_LEN));
   snprintf(temp_str, GUTI_M5_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
