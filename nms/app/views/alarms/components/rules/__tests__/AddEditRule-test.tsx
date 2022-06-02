@@ -9,28 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditRule from '../AddEditRule';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleEditorBase from '../RuleEditorBase';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../../../../shared/util/nullthrows';
 import {act, fireEvent, render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockPrometheusRule} from '../../../test/testData';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
-// $FlowFixMe migrated to typescript
 import type {AlertConfig} from '../../AlarmAPIType';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleEditorProps} from '../RuleInterface';
 
 const mockRuleMap = {
@@ -52,12 +41,17 @@ const commonProps = {
   onExit: jest.fn(),
 };
 
+type InstanceType<C> = C extends {new (): infer I} ? I : never;
+
 describe('Receiver select', () => {
-  function assertType<T, I>(value: ?T, shouldBe: Class<I>): I {
+  function assertType<C extends {new (): any}>(
+    value: unknown,
+    shouldBe: C,
+  ): InstanceType<C> {
     if (value instanceof shouldBe) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return value;
     }
-    // $FlowFixMe: shouldBe.name does exist
     throw new Error('value is not of type ' + shouldBe.name);
   }
 
@@ -126,7 +120,7 @@ describe('Receiver select', () => {
     expect(receiverInput.value).toBe('new_receiver');
   });
 
-  test('setting a receiver adds a new route', async () => {
+  test('setting a receiver adds a new route', () => {
     mockUseAlarms();
     jest
       .spyOn(apiUtil, 'getReceivers')
@@ -149,7 +143,7 @@ describe('Receiver select', () => {
     act(() => {
       fireEvent.change(selectReceiver, {target: {value: 'test_receiver'}});
     });
-    await act(async () => {
+    act(() => {
       fireEvent.submit(getByTestId('editor-form'));
     });
     expect(editRouteTreeMock).toHaveBeenCalledWith({
@@ -167,7 +161,7 @@ describe('Receiver select', () => {
       },
     });
   });
-  test('selecting a new receiver updates an existing route', async () => {
+  test('selecting a new receiver updates an existing route', () => {
     mockUseAlarms();
     jest
       .spyOn(apiUtil, 'getReceivers')
@@ -198,7 +192,7 @@ describe('Receiver select', () => {
     act(() => {
       fireEvent.change(selectReceiver, {target: {value: 'new_receiver'}});
     });
-    await act(async () => {
+    act(() => {
       fireEvent.submit(getByTestId('editor-form'));
     });
 
@@ -217,7 +211,7 @@ describe('Receiver select', () => {
       },
     });
   });
-  test('un-selecting receiver removes the existing route', async () => {
+  test('un-selecting receiver removes the existing route', () => {
     mockUseAlarms();
     jest
       .spyOn(apiUtil, 'getReceivers')
@@ -247,7 +241,7 @@ describe('Receiver select', () => {
       // select option None
       fireEvent.change(selectReceiver, {target: {value: ''}});
     });
-    await act(async () => {
+    act(() => {
       fireEvent.submit(getByTestId('editor-form'));
     });
 
@@ -278,7 +272,9 @@ function MockRuleEditor(props: RuleEditorProps<AlertConfig>) {
 function mockUseAlarms() {
   jest.spyOn(apiUtil, 'useAlarmsApi').mockImplementation((fn, params) => {
     return {
-      response: fn(params),
+      error: null,
+      isLoading: false,
+      response: fn(params) as unknown,
     };
   });
 }
