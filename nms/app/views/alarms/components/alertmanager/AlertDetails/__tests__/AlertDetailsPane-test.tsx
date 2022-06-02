@@ -13,15 +13,14 @@
 
 import * as React from 'react';
 import AlertDetailsPane from '../AlertDetailsPane';
+import {MockApiUtil, alarmTestUtil} from '../../../../test/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-import {alarmTestUtil} from '../../../../test/testHelpers';
 import {mockAlert, mockRuleInterface} from '../../../../test/testData';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
-import type {ApiUtil} from '../../../AlarmsApi';
 
 describe('AlertDetailsPane', () => {
   let AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
-  let apiUtil: ApiUtil;
+  let apiUtil: MockApiUtil;
 
   const commonProps = {
     alert: mockAlert({
@@ -88,7 +87,7 @@ describe('AlertDetailsPane', () => {
 
   it('shows troubleshooting link', () => {
     const alert = mockAlert({labels: {testLabel: 'testValue'}});
-    jest.spyOn(apiUtil, 'getTroubleshootingLink').mockResolvedValue({
+    jest.spyOn(apiUtil, 'getTroubleshootingLink').mockReturnValue({
       link: 'www.example.com',
       title: 'View troubleshooting documentation',
     });

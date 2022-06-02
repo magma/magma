@@ -53,7 +53,7 @@ describe('react router tests', () => {
 
 describe('Firing Alerts', () => {
   test('renders currently firing alerts if api returns alerts', () => {
-    // eslint-disable-next-line flowtype/no-weak-types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
     (useMagmaAPI as any).mockReturnValue({
       response: [
         {
