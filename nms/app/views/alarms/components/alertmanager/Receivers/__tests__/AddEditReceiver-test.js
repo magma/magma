@@ -18,6 +18,7 @@ import * as React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditReceiver from '../AddEditReceiver';
 import {act, fireEvent, render} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
 import {screen} from '@testing-library/dom';
 

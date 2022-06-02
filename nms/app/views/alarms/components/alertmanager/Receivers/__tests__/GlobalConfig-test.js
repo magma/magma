@@ -18,8 +18,10 @@
 import GlobalConfig from '../GlobalConfig';
 import React from 'react';
 import {act, fireEvent, render} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe migrated to typescript
 import type {AlertManagerGlobalConfig} from '../../../AlarmAPIType';

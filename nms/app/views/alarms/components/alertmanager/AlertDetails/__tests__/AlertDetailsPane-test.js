@@ -18,9 +18,11 @@ import * as React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertDetailsPane from '../AlertDetailsPane';
 import {act, fireEvent, render} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockAlert, mockRuleInterface} from '../../../../test/testData';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlertViewerProps} from '../../../rules/RuleInterface';
