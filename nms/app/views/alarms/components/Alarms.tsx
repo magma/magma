@@ -9,31 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import AccountTreeIcon from '@material-ui/icons/AccountTree';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmContext from './AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertRules from './AlertRules';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertmanagerRoutes from './alertmanager/Routes';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FiringAlerts from './alertmanager/FiringAlerts';
 import Grid from '@material-ui/core/Grid';
 import GroupIcon from '@material-ui/icons/Group';
 import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Receivers from './alertmanager/Receivers/Receivers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Suppressions from './alertmanager/Suppressions';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
 import {
   Link,
@@ -47,17 +37,13 @@ import {
 } from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 
-// $FlowFixMe migrated to typescript
+import {Theme} from '@material-ui/core/styles';
 import type {ApiUtil} from './AlarmsApi';
-import type {Element} from 'react';
-// $FlowFixMe migrated to typescript
 import type {FiringAlarm} from './AlarmAPIType';
-// $FlowFixMe migrated to typescript
 import type {Labels} from './AlarmAPIType';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
-const useTabStyles = makeStyles(theme => ({
+const useTabStyles = makeStyles<Theme>(theme => ({
   root: {
     minWidth: 'auto',
     minHeight: theme.spacing(4),
@@ -71,16 +57,7 @@ const useTabStyles = makeStyles(theme => ({
   },
 }));
 
-type TabData = {
-  icon: Element<*>,
-  name: string,
-};
-
-type TabMap = {
-  [string]: TabData,
-};
-
-const TABS: TabMap = {
+const TABS = {
   alerts: {
     name: 'Alerts',
     icon: <NotificationsActiveIcon />,
@@ -101,23 +78,23 @@ const TABS: TabMap = {
     name: 'Teams',
     icon: <GroupIcon />,
   },
-};
+} as const;
 
 const DEFAULT_TAB_NAME = 'alerts';
 
 type Props<TRuleUnion> = {
   //props specific to this component
-  makeTabLink: ({networkId?: string, keyName: string}) => string,
-  disabledTabs?: Array<string>,
+  makeTabLink: (tabData: {networkId?: string; keyName: string}) => string;
+  disabledTabs?: Array<string>;
   // context props
-  apiUtil: ApiUtil,
-  getNetworkId?: () => string,
-  ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
-  thresholdEditorEnabled?: boolean,
-  alertManagerGlobalConfigEnabled?: boolean,
-  filterLabels?: (labels: Labels) => Labels,
-  getAlertType?: (alert: FiringAlarm) => string,
-  emptyAlerts?: React$Node,
+  apiUtil: ApiUtil;
+  getNetworkId?: () => string;
+  ruleMap?: RuleInterfaceMap<TRuleUnion> | null | undefined;
+  thresholdEditorEnabled?: boolean;
+  alertManagerGlobalConfigEnabled?: boolean;
+  filterLabels?: (labels: Labels) => Labels;
+  getAlertType?: (alert: FiringAlarm) => string;
+  emptyAlerts?: React.ReactNode;
 };
 
 export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
@@ -165,7 +142,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
             value={currentTabMatch?.params?.tabName || DEFAULT_TAB_NAME}
             indicatorColor="primary"
             textColor="primary">
-            {Object.keys(TABS).map(keyName => {
+            {(Object.keys(TABS) as Array<keyof typeof TABS>).map(keyName => {
               if (disabledTabSet.has(keyName)) {
                 return null;
               }
@@ -188,22 +165,9 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
       <Routes>
         <Route
           path="/alerts"
-          element={
-            <FiringAlerts
-              emptyAlerts={emptyAlerts}
-              filterLabels={filterLabels}
-            />
-          }
+          element={<FiringAlerts emptyAlerts={emptyAlerts} />}
         />
-        <Route
-          path="/rules"
-          element={
-            <AlertRules
-              ruleMap={ruleMap}
-              thresholdEditorEnabled={thresholdEditorEnabled}
-            />
-          }
-        />
+        <Route path="/rules" element={<AlertRules />} />
         <Route path="/suppressions" element={<Suppressions />} />
         <Route path="/routes" element={<AlertmanagerRoutes />} />
         <Route path="/teams" element={<Receivers />} />
@@ -218,8 +182,8 @@ function useMergedRuleMap<TRuleUnion>({
   ruleMap,
   apiUtil,
 }: {
-  ruleMap: ?RuleInterfaceMap<TRuleUnion>,
-  apiUtil: ApiUtil,
+  ruleMap: RuleInterfaceMap<TRuleUnion> | null | undefined;
+  apiUtil: ApiUtil;
 }): RuleInterfaceMap<TRuleUnion> {
   const mergedRuleMap = React.useMemo<RuleInterfaceMap<TRuleUnion>>(
     () =>
