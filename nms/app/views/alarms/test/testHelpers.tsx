@@ -9,34 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
+
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmContext from '../components/AlarmContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
-
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {act, render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
-// $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../components/AlarmsApi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
 
 /**
  * Make sure when adding new functions to ApiUtil to add their mocks here
  */
-export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
+export function mockApiUtil(merge?: Partial<ApiUtil>): ApiUtil {
   /**
    * I don't understand how to properly type these mocks so using any for now.
    * The consuming code is all strongly typed, this shouldn't be much of an issue.
@@ -44,7 +35,7 @@ export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
   // eslint-disable-next-line flowtype/no-weak-types
   const useAlarmsApi = jest.fn<any, any>(
     <TParams, TResponse>(
-      func: TParams => Promise<TResponse>,
+      func: (arg0: TParams) => Promise<TResponse>,
       params: TParams,
       _cacheCounter?: string | number,
     ) => ({
@@ -84,18 +75,16 @@ export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
 }
 
 // eslint-disable-next-line flowtype/no-weak-types
-export async function renderAsync(...renderArgs: Array<any>): Promise<any> {
+export async function renderAsync(renderElement: JSX.Element): Promise<any> {
   let result;
   await act(async () => {
-    result = await render(...renderArgs);
+    result = await Promise.resolve().then(() => render(renderElement));
   });
   return result;
 }
-
-export type AlarmsWrapperProps = {|
-  children: React.Node,
-  ...$Shape<AlarmContextType>,
-|};
+export type AlarmsWrapperProps = AlarmContextType & {
+  children?: React.ReactNode;
+};
 export function AlarmsWrapper({children, ...contextProps}: AlarmsWrapperProps) {
   return (
     <AlarmsTestWrapper>
@@ -110,8 +99,8 @@ export function AlarmsTestWrapper({
   route,
   children,
 }: {
-  route?: string,
-  children: React.Node,
+  route?: string;
+  children: React.ReactNode;
 }) {
   return (
     <MemoryRouter initialEntries={[route || '/']} initialIndex={0}>
@@ -124,11 +113,11 @@ export function AlarmsTestWrapper({
   );
 }
 
-export type AlarmTestUtil = {|
-  AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>,
-  apiUtil: ApiUtil,
-  ruleMap: RuleInterfaceMap<*>,
-|};
+export type AlarmTestUtil = {
+  AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
+  apiUtil: ApiUtil;
+  ruleMap: RuleInterfaceMap<any>;
+};
 
 /**
  * All in one function to setup alarm tests.
@@ -148,14 +137,18 @@ export type AlarmTestUtil = {|
  * })
  */
 export function alarmTestUtil(
-  overrides?: $Shape<AlarmTestUtil>,
+  overrides?: Partial<AlarmTestUtil>,
 ): AlarmTestUtil {
   const apiUtil = overrides?.apiUtil ?? mockApiUtil();
-  const ruleMap = overrides?.ruleMap ?? getPrometheusRuleInterface({apiUtil});
+  const ruleMap =
+    overrides?.ruleMap ??
+    getPrometheusRuleInterface({
+      apiUtil,
+    });
   return {
     apiUtil,
     ruleMap,
-    AlarmsWrapper: (props: AlarmsWrapperProps) => (
+    AlarmsWrapper: (props: Partial<AlarmsWrapperProps>) => (
       <AlarmsWrapper apiUtil={apiUtil} ruleMap={ruleMap} {...props} />
     ),
   };
