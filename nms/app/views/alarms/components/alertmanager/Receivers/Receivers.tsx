@@ -15,34 +15,27 @@
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditReceiver from './AddEditReceiver';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GlobalConfig from './GlobalConfig';
 import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable, {LabelsCell} from '../../table/SimpleTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableActionDialog from '../../table/TableActionDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TableAddButton from '../../table/TableAddButton';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useNetworkId} from '../../hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
-// $FlowFixMe migrated to typescript
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertReceiver} from '../../AlarmAPIType';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     paddingTop: theme.spacing(4),
   },
@@ -61,8 +54,10 @@ export default function Receivers() {
   const [isNewReceiver, setIsNewReceiver] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [selectedRow, setSelectedRow] = React.useState<?AlertReceiver>(null);
-  const menuAnchorEl = React.useRef<?HTMLElement>(null);
+  const [selectedRow, setSelectedRow] = React.useState<AlertReceiver | null>(
+    null,
+  );
+  const menuAnchorEl = React.useRef<HTMLElement | null>(null);
   const [lastRefreshTime, setLastRefreshTime] = React.useState<string>(
     new Date().toLocaleString(),
   );
@@ -95,15 +90,15 @@ export default function Receivers() {
         }
       } catch (error) {
         snackbars.error(
-          `Unable to delete receiver: ${
-            error.response ? error.response?.data?.message : error.message
-          }. Please try again.`,
+          `Unable to delete receiver: ${getErrorMessage(
+            error,
+          )}. Please try again.`,
         );
       } finally {
         setLastRefreshTime(new Date().toLocaleString());
       }
     }
-    makeRequest();
+    void makeRequest();
   }, [apiUtil, networkId, selectedRow, snackbars]);
 
   const handleViewDialogOpen = React.useCallback(() => {
@@ -122,11 +117,7 @@ export default function Receivers() {
   );
 
   if (error) {
-    snackbars.error(
-      `Unable to load receivers: ${
-        error.response ? error.response.data.message : error.message
-      }`,
-    );
+    snackbars.error(`Unable to load receivers: ${getErrorMessage(error)}`);
   }
 
   const receiversData = response || [];
@@ -246,7 +237,7 @@ function newReceiver(): AlertReceiver {
 }
 
 function getNotificationsSummary(receiver: AlertReceiver) {
-  const summary = {};
+  const summary: Record<string, string> = {};
   const {
     slack_configs,
     email_configs,
@@ -255,12 +246,15 @@ function getNotificationsSummary(receiver: AlertReceiver) {
     pushover_configs,
   } = receiver;
   if (slack_configs) {
-    const channelNames = slack_configs.reduce((list, {channel}) => {
-      if (channel != null && channel.trim() !== '') {
-        list.push(channel.replace(/#/, ''));
-      }
-      return list;
-    }, []);
+    const channelNames = slack_configs.reduce<Array<string>>(
+      (list, {channel}) => {
+        if (channel != null && channel.trim() !== '') {
+          list.push(channel.replace(/#/, ''));
+        }
+        return list;
+      },
+      [],
+    );
     if (channelNames.length > 0) {
       summary['Slack Channels'] = channelNames.join(', ');
     } else {
