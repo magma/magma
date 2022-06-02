@@ -16,32 +16,25 @@
 
 import AddAlertIcon from '@material-ui/icons/AddAlert';
 import AlarmIcon from '@material-ui/icons/Alarm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alarms from './components/Alarms';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import ContactMailIcon from '@material-ui/icons/ContactMail';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {triggerAlertSync} from '../../state/SyncAlerts';
 import {useContext} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     padding: theme.spacing(4),
   },
@@ -106,8 +99,8 @@ function EmptyAlerts() {
           size="large"
           variant="contained"
           className={classes.appBarBtn}
-          onClick={async () => {
-            await triggerAlertSync(networkId, enqueueSnackbar);
+          onClick={() => {
+            void triggerAlertSync(networkId, enqueueSnackbar);
           }}>
           {'Enable Alerts'}
         </Button>
@@ -135,7 +128,7 @@ function AlarmsDashboard() {
   );
 }
 
-function makeTabLink(input: {networkId?: string, keyName: string}): string {
+function makeTabLink(input: {networkId?: string; keyName: string}): string {
   return input.keyName;
 }
 
