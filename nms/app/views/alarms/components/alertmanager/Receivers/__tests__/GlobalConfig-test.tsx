@@ -9,24 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GlobalConfig from '../GlobalConfig';
 import React from 'react';
+import {MockApiUtil, alarmTestUtil} from '../../../../test/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {alarmTestUtil} from '../../../../test/testHelpers';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
-// $FlowFixMe migrated to typescript
 import type {AlertManagerGlobalConfig} from '../../../AlarmAPIType';
-// $FlowFixMe migrated to typescript
-import type {ApiUtil} from '../../../AlarmsApi';
 import type {ComponentType} from 'react';
 
 const commonProps = {
@@ -65,8 +55,8 @@ const defaultResponse: AlertManagerGlobalConfig = {
 };
 
 describe('GlobalConfig', () => {
-  let AlarmsWrapper: ComponentType<$Shape<AlarmsWrapperProps>>;
-  let apiUtil: ApiUtil;
+  let AlarmsWrapper: ComponentType<Partial<AlarmsWrapperProps>>;
+  let apiUtil: MockApiUtil;
 
   beforeEach(() => {
     ({apiUtil, AlarmsWrapper} = alarmTestUtil());
@@ -156,11 +146,13 @@ describe('GlobalConfig', () => {
     );
   });
 
-  it('submitting form submits updated values to backend', async () => {
-    jest.spyOn(apiUtil, 'getGlobalConfig').mockReturnValue({});
+  it('submitting form submits updated values to backend', () => {
+    jest
+      .spyOn(apiUtil, 'getGlobalConfig')
+      .mockReturnValue({} as AlertManagerGlobalConfig);
     const editConfigMock = jest
       .spyOn(apiUtil, 'editGlobalConfig')
-      .mockImplementationOnce(() => Promise.resolve());
+      .mockImplementation();
     const {getByTestId} = render(
       <AlarmsWrapper>
         <GlobalConfig {...commonProps} />
@@ -175,7 +167,7 @@ describe('GlobalConfig', () => {
       });
     });
     expect(editConfigMock).not.toHaveBeenCalled();
-    await act(async () => {
+    act(() => {
       fireEvent.click(getByTestId('editor-submit-button'));
     });
 
@@ -184,14 +176,14 @@ describe('GlobalConfig', () => {
     });
   });
 
-  it('erasing values from form removes keys from request', async () => {
+  it('erasing values from form removes keys from request', () => {
     jest.spyOn(apiUtil, 'getGlobalConfig').mockReturnValue({
       resolve_timeout: '5m',
       slack_api_url: 'https://hooks.slack.com',
-    });
+    } as AlertManagerGlobalConfig);
     const editConfigMock = jest
       .spyOn(apiUtil, 'editGlobalConfig')
-      .mockImplementationOnce(() => Promise.resolve());
+      .mockImplementation();
     const {getByTestId} = render(
       <AlarmsWrapper>
         <GlobalConfig {...commonProps} />
@@ -200,7 +192,7 @@ describe('GlobalConfig', () => {
     act(() => {
       fireEvent.change(getByTestId('resolve_timeout'), {target: {value: ''}});
     });
-    await act(async () => {
+    act(() => {
       fireEvent.click(getByTestId('editor-submit-button'));
     });
     expect(editConfigMock).toHaveBeenCalledWith({
