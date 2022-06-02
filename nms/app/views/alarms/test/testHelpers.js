@@ -19,6 +19,7 @@ import AlarmContext from '../components/AlarmContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
 
 import {MemoryRouter} from 'react-router-dom';
