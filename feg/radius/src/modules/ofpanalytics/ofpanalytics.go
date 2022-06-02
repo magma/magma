@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -27,7 +28,6 @@ import (
 	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -115,7 +115,7 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 	}
 	encodedMsg, err := json.Marshal(jsonPacket)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to marshal radius packet")
+		return nil, fmt.Errorf("unable to marshal radius packet: %w", err)
 	}
 	req, err := http.NewRequest(http.MethodPost, ctx.URI, bytes.NewReader(encodedMsg))
 	if err != nil {
@@ -126,7 +126,7 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 
 	resp, err := ctx.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "error sending response to endpoint")
+		return nil, fmt.Errorf("error sending response to endpoint: %w", err)
 	}
 	defer resp.Body.Close()
 	rc.Logger.Debug("got response", zap.String("status", resp.Status),
@@ -145,7 +145,7 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 	}
 	var endPointResponse EndpointResponse
 	if err := json.NewDecoder(resp.Body).Decode(&endPointResponse); err != nil {
-		return nil, errors.Wrap(err, "unable to decode endpoint response")
+		return nil, fmt.Errorf("unable to decode endpoint response: %w", err)
 	}
 
 	if len(endPointResponse.Auth) == 0 {
