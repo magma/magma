@@ -151,7 +151,7 @@ export class Labels {
     i: number,
     name: string,
     value: string,
-    operator: LabelOperator | null | undefined,
+    operator?: LabelOperator | null,
   ): Labels {
     if (i >= 0 && i < this.len()) {
       this.labels[i].name = name;

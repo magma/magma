@@ -9,12 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -26,21 +22,18 @@ import MenuItem from '@material-ui/core/MenuItem';
 import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useNetworkId} from '../../hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {SelectProps} from '@material-ui/core/Select/Select';
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
-import type {InputChangeFunc} from './PrometheusEditor';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   button: {
     marginLeft: -theme.spacing(0.5),
     margin: theme.spacing(1.5),
@@ -61,12 +54,12 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export type ThresholdExpression = {
-  metricName: string,
+  metricName: string;
   // $FlowFixMe[value-as-type] migrated to TypeScript
-  comparator: PromQL.BinaryComparator,
+  comparator: PromQL.BinaryComparator;
   // $FlowFixMe[value-as-type] migrated to TypeScript
-  filters: PromQL.Labels,
-  value: number,
+  filters: PromQL.Labels;
+  value: number;
 };
 
 type LabelValuesLookup = Map<string, Set<string>>;
@@ -87,13 +80,17 @@ export function thresholdToPromQL(
   return exp.toPromQL();
 }
 
+type ExpressionChangeFunc = (
+  formUpdate: (val: string) => {expression: string},
+) => (event: React.ChangeEvent<HTMLElement>) => void;
+
 export default function ToggleableExpressionEditor(props: {
-  onChange: InputChangeFunc,
-  onThresholdExpressionChange: (expresion: ThresholdExpression) => void,
-  expression: ThresholdExpression,
-  stringExpression: string,
-  toggleOn: boolean,
-  onToggleChange: void => void,
+  onChange: ExpressionChangeFunc;
+  onThresholdExpressionChange: (expresion: ThresholdExpression) => void;
+  expression: ThresholdExpression;
+  stringExpression: string;
+  toggleOn: boolean;
+  onToggleChange: () => void;
 }) {
   const {apiUtil} = useAlarmContext();
   const snackbars = useSnackbars();
@@ -103,7 +100,7 @@ export default function ToggleableExpressionEditor(props: {
   });
 
   if (error) {
-    snackbars.error('Error retrieving metrics: ' + error);
+    snackbars.error(`Error retrieving metrics: ${getErrorMessage(error)}`);
   }
 
   return (
@@ -119,8 +116,8 @@ export default function ToggleableExpressionEditor(props: {
 }
 
 export function AdvancedExpressionEditor(props: {
-  onChange: InputChangeFunc,
-  expression: string,
+  onChange: ExpressionChangeFunc;
+  expression: string;
 }) {
   return (
     <Grid item>
@@ -138,8 +135,8 @@ export function AdvancedExpressionEditor(props: {
 }
 
 function ConditionSelector(props: {
-  onChange: (expression: ThresholdExpression) => void,
-  expression: ThresholdExpression,
+  onChange: (expression: ThresholdExpression) => void;
+  expression: ThresholdExpression;
 }) {
   const conditions: Array<BinaryComparator> = [
     '>',
@@ -163,7 +160,7 @@ function ConditionSelector(props: {
             ...props.expression,
             comparator: new PromQL.BinaryComparator(
               // Cast to element type of conditions as it's item type
-              ((target.value: any): $ElementType<typeof conditions, 0>),
+              target.value as typeof conditions[number],
             ),
           });
         }}>
@@ -178,8 +175,8 @@ function ConditionSelector(props: {
 }
 
 function ValueSelector(props: {
-  onChange: (expression: ThresholdExpression) => void,
-  expression: ThresholdExpression,
+  onChange: (expression: ThresholdExpression) => void;
+  expression: ThresholdExpression;
 }) {
   return (
     <Grid item>
@@ -201,9 +198,9 @@ function ValueSelector(props: {
 }
 
 function MetricSelector(props: {
-  expression: ThresholdExpression,
-  onChange: (expression: ThresholdExpression) => void,
-  metricNames: Array<string>,
+  expression: ThresholdExpression;
+  onChange: (expression: ThresholdExpression) => void;
+  metricNames: Array<string>;
 }) {
   const {metricNames} = props;
   return (
@@ -215,9 +212,9 @@ function MetricSelector(props: {
         groupBy={getMetricNamespace}
         value={props.expression.metricName}
         onChange={(_e, value) => {
-          props.onChange({...props.expression, metricName: value});
+          props.onChange({...props.expression, metricName: value!});
         }}
-        renderInput={params => <TextField {...(params: any)} required />}
+        renderInput={params => <TextField {...params} required />}
       />
     </Grid>
   );
@@ -229,10 +226,10 @@ function ThresholdExpressionEditor({
   onToggleChange,
   metricNames,
 }: {
-  onChange: (expression: ThresholdExpression) => void,
-  expression: ThresholdExpression,
-  metricNames: Array<string>,
-  onToggleChange: void => void,
+  onChange: (expression: ThresholdExpression) => void;
+  expression: ThresholdExpression;
+  metricNames: Array<string>;
+  onToggleChange: () => void;
 }) {
   const networkId = useNetworkId();
   const {apiUtil} = useAlarmContext();
@@ -265,7 +262,7 @@ function ThresholdExpressionEditor({
       setLabels(labelValues);
     }
     if (metricName != null && metricName !== '') {
-      getMetricLabels();
+      void getMetricLabels();
     }
   }, [metricName, networkId, setLabels, apiUtil]);
 
@@ -305,11 +302,11 @@ function ThresholdExpressionEditor({
 }
 
 function MetricFilters(props: {
-  labelNames: Array<string>,
-  labelValues: LabelValuesLookup,
-  expression: ThresholdExpression,
-  onChange: (expression: ThresholdExpression) => void,
-  onToggleChange: void => void,
+  labelNames: Array<string>;
+  labelValues: LabelValuesLookup;
+  expression: ThresholdExpression;
+  onChange: (expression: ThresholdExpression) => void;
+  onToggleChange: () => void;
 }) {
   const classes = useStyles();
   const isMetricSelected =
@@ -365,26 +362,25 @@ function MetricFilters(props: {
 }
 
 function LabelFilter(props: {
-  labelNames: Array<string>,
-  labelValues: LabelValuesLookup,
-  onChange: (expression: ThresholdExpression) => void,
-  onRemove: (filerIdx: number) => void,
-  expression: ThresholdExpression,
-  filterIdx: number,
-  selectedLabel: string,
-  selectedValue: string,
+  labelNames: Array<string>;
+  labelValues: LabelValuesLookup;
+  onChange: (expression: ThresholdExpression) => void;
+  onRemove: (filerIdx: number) => void;
+  expression: ThresholdExpression;
+  filterIdx: number;
+  selectedLabel: string;
+  selectedValue: string;
 }) {
   const currentFilter = props.expression.filters.labels[props.filterIdx];
   const values = Array.from(props.labelValues.get(props.selectedLabel) ?? []);
   return (
     <Grid item container xs={12} spacing={1} alignItems="flex-start">
       <Grid item xs={6}>
-        <InputLabel htmlFor={'metric-input-' + props.filterIdx}>
+        <InputLabel htmlFor={`metric-input-${props.filterIdx}`}>
           Label
         </InputLabel>
         <FilterSelector
-          id={'metric-input-' + props.filterIdx}
-          fullWidth
+          id={`metric-input-${props.filterIdx}`}
           values={props.labelNames}
           defaultVal=""
           onChange={({target}) => {
@@ -397,11 +393,11 @@ function LabelFilter(props: {
       </Grid>
       <Grid item xs={2}>
         <Grid>
-          <InputLabel htmlFor={'condition-input-' + props.filterIdx}>
+          <InputLabel htmlFor={`condition-input-${props.filterIdx}`}>
             Condition
           </InputLabel>
           <TextField
-            id={'condition-input-' + props.filterIdx}
+            id={`condition-input-${props.filterIdx}`}
             fullWidth
             required
             select
@@ -427,7 +423,7 @@ function LabelFilter(props: {
       </Grid>
       <Grid item xs={3}>
         <Grid item>
-          <InputLabel htmlFor={'value-input-' + props.filterIdx}>
+          <InputLabel htmlFor={`value-input-${props.filterIdx}`}>
             Value
           </InputLabel>
           <Autocomplete
@@ -439,7 +435,7 @@ function LabelFilter(props: {
               filtersCopy.setIndex(
                 props.filterIdx,
                 currentFilter.name,
-                value,
+                value!,
                 currentFilter.operator,
               );
               props.onChange({
@@ -449,9 +445,9 @@ function LabelFilter(props: {
             }}
             renderInput={params => (
               <TextField
-                {...(params: any)}
+                {...params}
                 required
-                id={'value-input-' + props.filterIdx}
+                id={`value-input-${props.filterIdx}`}
               />
             )}
           />
@@ -467,11 +463,12 @@ function LabelFilter(props: {
 }
 
 function FilterSelector(props: {
-  values: Array<string>,
-  defaultVal: string,
-  onChange: (event: SyntheticInputEvent<HTMLElement>) => void,
-  selectedValue: string,
-  disabled?: boolean,
+  id: string;
+  values: Array<string>;
+  defaultVal: string;
+  onChange: (event: React.ChangeEvent<{value: string}>) => void;
+  selectedValue: string;
+  disabled?: boolean;
 }) {
   const classes = useStyles();
   const menuItems = props.values.map(val => (
@@ -482,12 +479,13 @@ function FilterSelector(props: {
 
   return (
     <Select
+      id={props.id}
       fullWidth
       disabled={props.disabled}
       displayEmpty
       className={classes.metricFilterItem}
       value={props.selectedValue}
-      onChange={props.onChange}>
+      onChange={props.onChange as SelectProps['onChange']}>
       <MenuItem disabled value="">
         {props.defaultVal}
       </MenuItem>

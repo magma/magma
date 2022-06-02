@@ -30,6 +30,7 @@ import TextField from '@material-ui/core/TextField';
 import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
   thresholdToPromQL,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './ToggleableExpressionEditor';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
@@ -52,6 +53,7 @@ import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleEditorBaseFields} from '../RuleEditorBase';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
 type MenuItemProps = {key: string, value: string, children: string};

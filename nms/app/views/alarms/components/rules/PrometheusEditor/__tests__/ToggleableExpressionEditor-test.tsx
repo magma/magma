@@ -9,25 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../../../prometheus/PromQL';
 
 import {thresholdToPromQL} from '../ToggleableExpressionEditor';
 
 import type {ThresholdExpression} from '../ToggleableExpressionEditor';
 
-afterEach(() => {
-  jest.resetAllMocks();
-});
-
 type ToPromQLTestCase = {
-  expression: ThresholdExpression,
-  expectedPromQL: string,
+  expression: ThresholdExpression;
+  expectedPromQL: string;
 };
 
 test('correctly converts a ThresholdExpression to PromQL', () => {
