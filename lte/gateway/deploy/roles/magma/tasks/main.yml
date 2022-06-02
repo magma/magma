@@ -115,7 +115,6 @@
     remote_src: yes
   with_items:
     - config_stateless_agw.py
-    - config_iface_for_ipv6.py
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
