@@ -34,7 +34,7 @@ export default function useForm<TFormState extends Record<string, any>>({
   updateListItem: (
     listName: keyof TFormState,
     idx: number,
-    update: TFormState[keyof TFormState],
+    update: Partial<TFormState[keyof TFormState][number]>,
   ) => void;
   addListItem: (listName: keyof TFormState, item: object) => void;
   removeListItem: (listName: keyof TFormState, idx: number) => void;
