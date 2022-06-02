@@ -88,7 +88,7 @@ func TestCbsdFromBackendWithoutInstallationParam(t *testing.T) {
 	details := b.NewDetailedProtoCbsdBuilder(
 		b.NewCbsdProtoPayloadBuilder()).Details
 	data := models.CbsdFromBackend(details)
-	assert.Nil(t, data.InstallationParam)
+	assert.Empty(t, data.InstallationParam)
 }
 
 func TestCbsdFromBackendWithInstallationParam(t *testing.T) {
