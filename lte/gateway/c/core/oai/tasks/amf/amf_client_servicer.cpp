@@ -27,10 +27,13 @@ namespace magma5g {
 status_code_e AMFClientServicerBase::amf_send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_INFO(LOG_AMF_APP, "Sending msg to :[%s] id: [%d]-[%s]\n",
               itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
               ITTI_MSG_NAME(message));
-  return (send_msg_to_task(task_zmq_ctx_p, destination_task_id, message));
+  OAILOG_FUNC_RETURN(
+      LOG_AMF_APP,
+      (send_msg_to_task(task_zmq_ctx_p, destination_task_id, message)));
 }
 
 bool AMFClientServicerBase::get_subs_auth_info(const std::string& imsi,
@@ -133,8 +136,9 @@ bool AMFClientServicerBase::set_smf_notification(
 }
 
 AMFClientServicer& AMFClientServicer::getInstance() {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   static AMFClientServicer instance;
-  return instance;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, instance);
 }
 
 status_code_e amf_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,

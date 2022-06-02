@@ -16,13 +16,13 @@ from typing import Optional  # noqa
 
 from lte.protos.policydb_pb2 import FlowMatch
 
+from .tc_ops import TcOpsBase
 from .tc_ops_cmd import TcOpsCmd, argSplit, run_cmd
 from .tc_ops_pyroute2 import TcOpsPyRoute2
 from .types import QosInfo
 from .utils import IdManager
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
-# LOG.setLevel(logging.DEBUG)
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
@@ -35,7 +35,7 @@ class TrafficClass:
     Creates/Deletes queues in linux. Using Qdiscs for flow based
     rate limiting(traffic shaping) of user traffic.
     """
-    tc_ops = None
+    tc_ops: Optional[TcOpsBase] = None
 
     @staticmethod
     def delete_class(intf: str, qid: int, skip_filter=False) -> int:

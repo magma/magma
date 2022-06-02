@@ -15,7 +15,7 @@ import logging
 import threading
 import traceback
 from enum import Enum
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.common.redis.client import get_default_client
@@ -107,13 +107,11 @@ class SubscriberState(object):
     def remove_session(self, ip_addr: str) -> None:
         del self.sessions[ip_addr]
 
-    def find_session_with_rule(self, rule_num: int) -> SubscriberSession:
-        session_with_rule = None
+    def find_session_with_rule(self, rule_num: int) -> Optional[SubscriberSession]:
         for session in self.sessions.values():
             if rule_num in session.rules:
-                session_with_rule = session
-                break
-        return session_with_rule
+                return session
+        return None
 
     def _update_rules_map(
         self, ip_addr: str, rule_num: int, d: FlowMatch.Direction,
@@ -148,9 +146,9 @@ class SubscriberState(object):
                 )
                 if get_key_json(k) in self._redis_store:
                     del self._redis_store[get_key_json(k)]
+            session_with_rule.rules.remove(rule_num)
 
         del self.rules[rule_num]
-        session_with_rule.rules.remove(rule_num)
 
     def find_rule(self, rule_num: int):
         return self.rules.get(rule_num)

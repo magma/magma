@@ -44,6 +44,7 @@ static int32_t ngap_tai_item_slice_compare(
   Ngap_S_NSSAI_t* s_NSSAI = NULL;
   int32_t ret = NGAP_SLICE_CMP_MATCH_FAILED_SD;
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (uint8_t i = 0; i < slice_list_count; i++) {
     s_NSSAI = &(slice_support_list->list.array[i]->s_NSSAI);
 
@@ -66,7 +67,7 @@ static int32_t ngap_tai_item_slice_compare(
     ret = NGAP_SLICE_CMP_MATCH_SUCCESS;
     break;
   }
-  return ret;
+  OAILOG_FUNC_RETURN(LOG_NGAP, ret);
 }
 
 /* Compare the list against PLMN Support List */
@@ -80,6 +81,7 @@ static int ngap_amf_compare_plmn(
   bool is_plmn_present = false;
   int ret = TA_LIST_NO_MATCH;
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   OAILOG_DEBUG(LOG_NGAP, " :%s, %d", plmn->buf, (int)plmn->size);
   OAILOG_INFO(LOG_NGAP, "[TRACE] :%02x %02x %02x ", plmn->buf[0], plmn->buf[1],
               plmn->buf[2]);
@@ -123,7 +125,7 @@ static int ngap_amf_compare_plmn(
   }        // Plmn Match Found
 
   amf_config_unlock(&amf_config);
-  return ret;
+  OAILOG_FUNC_RETURN(LOG_NGAP, ret);
 }
 
 /* @brief compare a list of broadcasted plmns against the AMF configured.
@@ -133,6 +135,7 @@ static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
   int matching_occurrence = 0;
   DevAssert(b_plmns != NULL);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (i = 0; i < b_plmns->list.count; i++) {
     if (ngap_amf_compare_plmn(&b_plmns->list.array[i]->pLMNIdentity,
                               &b_plmns->list.array[i]->tAISliceSupportList) ==
@@ -142,11 +145,11 @@ static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
   }
 
   if (matching_occurrence == 0)
-    return TA_LIST_NO_MATCH;
+    OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_NO_MATCH);
   else if (matching_occurrence == b_plmns->list.count - 1)
-    return TA_LIST_COMPLETE_MATCH;
+    OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_COMPLETE_MATCH);
   else
-    return TA_LIST_AT_LEAST_ONE_MATCH;
+    OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_AT_LEAST_ONE_MATCH);
 }
 
 /* @brief compare a TAC
@@ -159,16 +162,17 @@ static int ngap_amf_compare_tac(const Ngap_TAC_t* tac) {
   OCTET_STRING_TO_TAC_5G(tac, tac_value);
   amf_config_read_lock(&amf_config);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (i = 0; i < amf_config.served_tai.nb_tai; i++) {
     OAILOG_TRACE(LOG_NGAP, "Comparing config tac %d, received tac = %d\n",
                  amf_config.served_tai.tac[i], tac_value);
 
     if (amf_config.served_tai.tac[i] == tac_value)
-      return TA_LIST_AT_LEAST_ONE_MATCH;
+      OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_AT_LEAST_ONE_MATCH);
   }
 
   amf_config_unlock(&amf_config);
-  return TA_LIST_NO_MATCH;
+  OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_NO_MATCH);
 }
 
 /* @brief compare a given ta list against the one provided by amf configuration.
@@ -186,6 +190,7 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
   /*
    * Parse every item in the list and try to find matching parameters
    */
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (i = 0; i < ta_list->list.count; i++) {
     Ngap_SupportedTAItem_t* ta;
 
@@ -195,17 +200,17 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
     bplmn_ret = ngap_amf_compare_plmns(&ta->broadcastPLMNList);
 
     if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
-      return TA_LIST_UNKNOWN_PLMN + TA_LIST_UNKNOWN_TAC;
+      OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_PLMN + TA_LIST_UNKNOWN_TAC);
     } else {
       if (tac_ret > TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
-        return TA_LIST_UNKNOWN_PLMN;
+        OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_PLMN);
       } else if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret > TA_LIST_NO_MATCH) {
-        return TA_LIST_UNKNOWN_TAC;
+        OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_TAC);
       }
     }
   }
 
-  return TA_LIST_RET_OK;
+  OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_RET_OK);
 }
 
 /* @brief compare PLMNs
@@ -214,12 +219,13 @@ static int ngap_paging_compare_plmns(m5g_supported_tai_items_t* gnb_tai_item,
                                      const paging_tai_list_t* p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (plmn_idx = 0; plmn_idx < gnb_tai_item->bplmnlist_count; plmn_idx++) {
     plmn_t* gnb_plmn = NULL;
     gnb_plmn = &gnb_tai_item->bplmn_list[plmn_idx].plmn_id;
     if (gnb_plmn == NULL) {
       OAILOG_ERROR(LOG_NGAP, "PLMN Information not found in eNB tai list\n");
-      return false;
+      OAILOG_FUNC_RETURN(LOG_NGAP, false);
     }
 
     for (p_plmn_idx = 0; p_plmn_idx < (p_tai_list->numoftac + 1);
@@ -233,24 +239,25 @@ static int ngap_paging_compare_plmns(m5g_supported_tai_items_t* gnb_tai_item,
           (gnb_plmn->mnc_digit1 == p_plmn.plmn.mnc_digit1) &&
           (gnb_plmn->mnc_digit2 == p_plmn.plmn.mnc_digit2) &&
           (gnb_plmn->mnc_digit3 == p_plmn.plmn.mnc_digit3)) {
-        return true;
+        OAILOG_FUNC_RETURN(LOG_NGAP, true);
       }
     }
   }
-  return false;
+  OAILOG_FUNC_RETURN(LOG_NGAP, false);
 }
 
 /* @brief compare a TAC
  */
 static int ngap_paging_compare_tac(uint8_t gnb_tac,
                                    const paging_tai_list_t* p_tai_list) {
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (int p_tac_count = 0; p_tac_count < (p_tai_list->numoftac + 1);
        p_tac_count++) {
     if (gnb_tac == p_tai_list->tai_list[p_tac_count].tac) {
-      return true;
+      OAILOG_FUNC_RETURN(LOG_NGAP, true);
     }
   }
-  return false;
+  OAILOG_FUNC_RETURN(LOG_NGAP, false);
 }
 
 /* @brief compare given tai list against the one stored in eNB structure.
@@ -265,33 +272,34 @@ int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t* gnb_ta_list,
   bool tac_ret = false, bplmn_ret = false;
   int gnb_tai_count, p_list_count;
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   for (gnb_tai_count = 0; gnb_tai_count < gnb_ta_list->list_count;
        gnb_tai_count++) {
     m5g_supported_tai_items_t* gnb_tai_item = NULL;
     gnb_tai_item = &gnb_ta_list->supported_tai_items[gnb_tai_count];
     if (gnb_tai_item == NULL) {
       OAILOG_ERROR(LOG_NGAP, "TAI Item not found in eNB TA List\n");
-      return false;
+      OAILOG_FUNC_RETURN(LOG_NGAP, false);
     }
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
       const paging_tai_list_t* tai = NULL;
       tai = &p_tai_list[p_list_count];
       if (tai == NULL) {
         OAILOG_ERROR(LOG_NGAP, "Paging TAI list not found\n");
-        return false;
+        OAILOG_FUNC_RETURN(LOG_NGAP, false);
       }
 
       tac_ret = ngap_paging_compare_tac(gnb_tai_item->tac, tai);
       if (tac_ret != true) {
-        return false;
+        OAILOG_FUNC_RETURN(LOG_NGAP, false);
       } else {
         bplmn_ret = ngap_paging_compare_plmns(gnb_tai_item, tai);
       }
       // Returns TRUE only if both TAC and PLMN matches
       if (tac_ret && bplmn_ret) {
-        return true;
+        OAILOG_FUNC_RETURN(LOG_NGAP, true);
       }
     }
   }
-  return false;
+  OAILOG_FUNC_RETURN(LOG_NGAP, false);
 }

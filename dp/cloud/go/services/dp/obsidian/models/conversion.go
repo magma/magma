@@ -36,14 +36,16 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 			BandwidthMhz:   m.FrequencyPreferences.BandwidthMhz,
 			FrequenciesMhz: m.FrequencyPreferences.FrequenciesMhz,
 		},
-		DesiredState:      m.DesiredState,
-		InstallationParam: getProtoInstallationParam(m.InstallationParam),
+		DesiredState: m.DesiredState,
+		InstallationParam: &protos.InstallationParam{
+			AntennaGain: to_pointer.FloatToDoubleValue(m.InstallationParam.AntennaGain),
+		},
 	}
 }
 
 func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 	return &Cbsd{
-		Capabilities: &Capabilities{
+		Capabilities: Capabilities{
 			MaxPower:         &details.Data.Capabilities.MaxPower,
 			MinPower:         &details.Data.Capabilities.MinPower,
 			NumberOfAntennas: details.Data.Capabilities.NumberOfAntennas,
@@ -63,7 +65,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		UserID:            details.Data.UserId,
 		SingleStepEnabled: details.Data.SingleStepEnabled,
 		CbsdCategory:      details.Data.CbsdCategory,
-		InstallationParam: getModelInstallationParam(details.Data.GetInstallationParam()),
+		InstallationParam: getModelInstallationParam(details.Data.InstallationParam),
 	}
 }
 
@@ -88,31 +90,14 @@ func getGrant(grant *protos.GrantDetails) *Grant {
 	}
 }
 
-func getModelInstallationParam(params *protos.InstallationParam) *InstallationParam {
-	if params == nil {
-		return nil
-	}
-	return &InstallationParam{
+func getModelInstallationParam(params *protos.InstallationParam) InstallationParam {
+	return InstallationParam{
 		AntennaGain:      to_pointer.DoubleValueToFloat(params.AntennaGain),
 		Heightm:          to_pointer.DoubleValueToFloat(params.HeightM),
 		HeightType:       to_pointer.StringValueToString(params.HeightType),
 		IndoorDeployment: to_pointer.BoolValueToBool(params.IndoorDeployment),
 		LatitudeDeg:      to_pointer.DoubleValueToFloat(params.LatitudeDeg),
 		LongitudeDeg:     to_pointer.DoubleValueToFloat(params.LongitudeDeg),
-	}
-}
-
-func getProtoInstallationParam(params *InstallationParam) *protos.InstallationParam {
-	if params == nil {
-		return nil
-	}
-	return &protos.InstallationParam{
-		AntennaGain:      to_pointer.FloatToDoubleValue(params.AntennaGain),
-		HeightM:          to_pointer.FloatToDoubleValue(params.Heightm),
-		HeightType:       to_pointer.StringToStringValue(params.HeightType),
-		IndoorDeployment: to_pointer.BoolToBoolValue(params.IndoorDeployment),
-		LatitudeDeg:      to_pointer.FloatToDoubleValue(params.LatitudeDeg),
-		LongitudeDeg:     to_pointer.FloatToDoubleValue(params.LongitudeDeg),
 	}
 }
 

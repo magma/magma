@@ -27,22 +27,24 @@ extern "C" {
 namespace magma5g {
 status_code_e amf_smf_context_ue_aggregate_max_bit_rate_set(
     amf_context_s* amf_ctxt_p, ambr_t subscribed_ue_ambr) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   memcpy(&amf_ctxt_p->subscribed_ue_ambr, &subscribed_ue_ambr, sizeof(ambr_t));
 
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 status_code_e amf_smf_context_ue_aggregate_max_bit_rate_get(
     const amf_context_s* amf_ctxt_p, bit_rate_t* subscriber_ambr_dl,
     bit_rate_t* subscriber_ambr_ul) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ctxt_p == NULL) {
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   *subscriber_ambr_dl = amf_ctxt_p->subscribed_ue_ambr.br_dl;
   *subscriber_ambr_ul = amf_ctxt_p->subscribed_ue_ambr.br_ul;
 
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /***************************************************************************
@@ -55,11 +57,12 @@ status_code_e amf_smf_context_ue_aggregate_max_bit_rate_get(
 ***************************************************************************/
 void amf_config_get_default_slice_config(uint8_t* slice_type,
                                          uint8_t* slice_differentiator) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_config_read_lock(&amf_config);
 
   /* Validate the input parameter */
   if ((slice_type == NULL) || (slice_differentiator == NULL)) {
-    return;
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
   /* Get the default ST value */
@@ -73,14 +76,16 @@ void amf_config_get_default_slice_config(uint8_t* slice_type,
   }
 
   amf_config_unlock(&amf_config);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 // Function to fill the slice information in pdu session establishment
 // accept message
 void amf_smf_get_slice_configuration(std::shared_ptr<smf_context_t> smf_ctx,
                                      s_nssai_t* slice_config) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (slice_config == NULL) {
-    return;
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
   // Check if there is an requested slice value
@@ -95,6 +100,7 @@ void amf_smf_get_slice_configuration(std::shared_ptr<smf_context_t> smf_ctx,
     // Fill in the default if requested slice information is not found
     amf_config_get_default_slice_config(&(slice_config->sst), slice_config->sd);
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 }  // namespace magma5g
