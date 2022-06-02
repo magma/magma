@@ -14,6 +14,7 @@
  * @format
  */
 import AddAlertTwoToneIcon from '@material-ui/icons/AddAlertTwoTone';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertDetailsPane from './AlertDetails/AlertDetailsPane';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
