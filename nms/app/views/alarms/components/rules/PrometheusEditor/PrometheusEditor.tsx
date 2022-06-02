@@ -9,12 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
@@ -24,43 +20,33 @@ import Grid from '@material-ui/core/Grid';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RuleEditorBase from '../RuleEditorBase';
 import TextField from '@material-ui/core/TextField';
 import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
   thresholdToPromQL,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './ToggleableExpressionEditor';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Labels} from '../../prometheus/PromQL';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Parse} from '../../prometheus/PromQLParser';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SEVERITY} from '../../severity/Severity';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
-// $FlowFixMe migrated to typescript
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {RuleEditorBaseFields} from '../RuleEditorBase';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {Theme} from '@material-ui/core/styles';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
-type MenuItemProps = {key: string, value: string, children: string};
+type MenuItemProps = {key: string; value: string; children: string};
 
-type TimeUnit = {value: string, label: string};
+type TimeUnit = {value: string; label: string};
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   button: {
     marginLeft: -theme.spacing(0.5),
     margin: theme.spacing(1.5),
@@ -94,22 +80,21 @@ const timeUnits: Array<TimeUnit> = [
  * to and from the AlertConfig type for posting to the api.
  */
 type FormState = {
-  ruleName: string,
-  expression: string,
-  severity: string,
-  timeNumber: number,
-  timeUnit: string,
-  description: string,
-  labels: LabelsMap,
+  ruleName: string;
+  expression: string;
+  severity: string;
+  timeNumber: number;
+  timeUnit: string;
+  description: string;
+  labels: LabelsMap;
 };
 
 export type InputChangeFunc = (
-  formUpdate: (val: string) => $Shape<FormState>,
-) => (event: SyntheticInputEvent<HTMLElement>) => void;
+  formUpdate: (val: string) => Partial<FormState>,
+) => (event: React.ChangeEvent<HTMLInputElement>) => void;
 
-type PrometheusEditorProps = {
-  ...RuleEditorProps<AlertConfig>,
-};
+type PrometheusEditorProps = RuleEditorProps<AlertConfig>;
+
 export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {apiUtil, thresholdEditorEnabled} = useAlarmContext();
   const {isNew, onRuleUpdated, onExit, rule} = props;
@@ -126,7 +111,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       const updatedConfig = toAlertConfig(state);
       onRuleUpdated({
         ...rule,
-        ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
+        ...({rawRule: updatedConfig} as GenericRule<AlertConfig>),
       });
     },
     [onRuleUpdated, rule],
@@ -152,7 +137,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
    * RuleEditorForm -> AlertConfig
    */
   const handleEditorBaseChange = React.useCallback(
-    editorBaseState => {
+    (editorBaseState: RuleEditorBaseFields) => {
       updateFormState({
         ruleName: editorBaseState.name,
         description: editorBaseState.description,
@@ -172,7 +157,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
         throw new Error('Alert config empty');
       }
       const request = {
-        networkId: params.networkId,
+        networkId: params.networkId!,
         rule: toAlertConfig(formState),
       };
       if (isNew) {
@@ -183,11 +168,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       snackbars.success(`Successfully ${isNew ? 'added' : 'saved'} alert rule`);
       onExit();
     } catch (error) {
-      snackbars.error(
-        `Unable to create rule: ${
-          error.response ? error.response.data.message : error.message
-        }.`,
-      );
+      snackbars.error(`Unable to create rule: ${getErrorMessage(error)}.`);
     }
   };
 
@@ -272,20 +253,20 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   );
 }
 
-const useSeverityMenuItemStyles = makeStyles(_theme => ({
+const useSeverityMenuItemStyles = makeStyles({
   root: {
     textTransform: 'capitalize',
   },
-}));
-const useSeveritySelectStyles = makeStyles(_theme => ({
+});
+const useSeveritySelectStyles = makeStyles({
   root: {
     textTransform: 'capitalize',
   },
-}));
+});
 function SeverityEditor(props: {
-  onChange: InputChangeFunc,
-  severity: string,
-  options: Array<MenuItemProps>,
+  onChange: InputChangeFunc;
+  severity: string;
+  options: Array<MenuItemProps>;
 }) {
   const severitySelectClasses = useSeveritySelectStyles();
   const severityMenuItemClasses = useSeverityMenuItemStyles();
@@ -301,6 +282,7 @@ function SeverityEditor(props: {
         onChange={props.onChange(value => ({severity: value}))}
         classes={severitySelectClasses}>
         {props.options.map(opt => (
+          // @ts-ignore somehow TypeScript does understand that ListItemClasses is a valid prop
           <MenuItem {...opt} ListItemClasses={severityMenuItemClasses} />
         ))}
       </TextField>
@@ -309,9 +291,9 @@ function SeverityEditor(props: {
 }
 
 function TimeEditor(props: {
-  onChange: InputChangeFunc,
-  timeNumber: number,
-  timeUnit: string,
+  onChange: InputChangeFunc;
+  timeNumber: number;
+  timeUnit: string;
 }) {
   return (
     <>
@@ -329,8 +311,8 @@ function TimeEditor(props: {
 }
 
 function TimeNumberEditor(props: {
-  onChange: InputChangeFunc,
-  timeNumber: number,
+  onChange: InputChangeFunc;
+  timeNumber: number;
 }) {
   return (
     <Grid item xs={6}>
@@ -350,9 +332,9 @@ function TimeNumberEditor(props: {
 }
 
 function TimeUnitEditor(props: {
-  onChange: InputChangeFunc,
-  timeUnit: string,
-  timeUnits: Array<TimeUnit>,
+  onChange: InputChangeFunc;
+  timeUnit: string;
+  timeUnits: Array<TimeUnit>;
 }) {
   const severitySelectClasses = useSeveritySelectStyles();
   const severityMenuItemClasses = useSeverityMenuItemStyles();
@@ -379,7 +361,7 @@ function TimeUnitEditor(props: {
   );
 }
 
-function fromAlertConfig(rule: ?AlertConfig): FormState {
+function fromAlertConfig(rule: AlertConfig | undefined | null): FormState {
   if (!rule) {
     return {
       ruleName: '',
@@ -425,7 +407,7 @@ function toAlertConfig(form: FormState): AlertConfig {
  * Map from rule-specific type to the generic RuleEditorBaseFields
  */
 export function toBaseFields(
-  rule: ?GenericRule<AlertConfig>,
+  rule: GenericRule<AlertConfig> | null | undefined,
 ): RuleEditorBaseFields {
   return {
     name: rule?.name || '',
@@ -435,9 +417,9 @@ export function toBaseFields(
 }
 
 export type Duration = {
-  hours: number,
-  minutes: number,
-  seconds: number,
+  hours: number;
+  minutes: number;
+  seconds: number;
 };
 
 export function parseTimeString(timeStamp: string): Duration {
@@ -458,7 +440,7 @@ export function parseTimeString(timeStamp: string): Duration {
 
 function getMostSignificantTime(
   duration: Duration,
-): {timeNumber: number, timeUnit: string} {
+): {timeNumber: number; timeUnit: string} {
   if (duration.hours) {
     return {timeNumber: duration.hours, timeUnit: 'h'};
   } else if (duration.minutes) {
@@ -470,7 +452,7 @@ function getMostSignificantTime(
 function getThresholdExpression(
   // $FlowFixMe[value-as-type] migrated to TypeScript
   exp: PromQL.Expression<string | number>,
-): ?ThresholdExpression {
+): ThresholdExpression | null | undefined {
   if (
     !(
       exp instanceof PromQL.BinaryOperation &&
@@ -501,7 +483,7 @@ function asBinaryComparator(
   // $FlowFixMe[value-as-type] migrated to TypeScript
   operator: PromQL.BinaryOperator,
   // $FlowFixMe[value-as-type] migrated to TypeScript
-): ?PromQL.BinaryComparator {
+): PromQL.BinaryComparator | null | undefined {
   if (operator instanceof Object) {
     return operator;
   }
@@ -512,18 +494,17 @@ function useThresholdExpressionEditorState({
   expression,
   thresholdEditorEnabled,
 }: {
-  expression: ?string,
-  thresholdEditorEnabled: ?boolean,
+  expression: string | null | undefined;
+  thresholdEditorEnabled: boolean | null | undefined;
 }): {
-  thresholdExpression: ThresholdExpression,
-  setThresholdExpression: ThresholdExpression => void,
-  advancedEditorMode: boolean,
-  setAdvancedEditorMode: boolean => void,
+  thresholdExpression: ThresholdExpression;
+  setThresholdExpression: (exp: ThresholdExpression) => void;
+  advancedEditorMode: boolean;
+  setAdvancedEditorMode: (advancedMode: boolean) => void;
 } {
-  const [
-    thresholdExpression,
-    setThresholdExpression,
-  ] = React.useState<ThresholdExpression>({
+  const [thresholdExpression, setThresholdExpression] = React.useState<
+    ThresholdExpression
+  >({
     metricName: '',
     comparator: new PromQL.BinaryComparator('=='),
     value: 0,
