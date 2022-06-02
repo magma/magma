@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FiringAlerts from '../FiringAlerts';
 import {act, fireEvent, render} from '@testing-library/react';
 import {alarmTestUtil} from '../../../test/testHelpers';

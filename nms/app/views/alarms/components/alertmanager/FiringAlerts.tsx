@@ -9,40 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import AddAlertTwoToneIcon from '@material-ui/icons/AddAlertTwoTone';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertDetailsPane from './AlertDetails/AlertDetailsPane';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SeverityIndicator from '../severity/SeverityIndicator';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SimpleTable from '../table/SimpleTable';
 import Slide from '@material-ui/core/Slide';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import {Link, useResolvedPath} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useNetworkId} from '../hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../hooks/useSnackbar';
 
-// $FlowFixMe migrated to typescript
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../../../../util/ErrorUtils';
 import type {FiringAlarm} from '../AlarmAPIType';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     paddingTop: theme.spacing(4),
   },
@@ -63,17 +54,17 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  emptyAlerts?: React$Node,
+  emptyAlerts?: React.ReactNode;
 };
 
 export default function FiringAlerts(props: Props) {
   const resolvedPath = useResolvedPath('');
   const {apiUtil, filterLabels} = useAlarmContext();
-  const [selectedRow, setSelectedRow] = useState<?FiringAlarm>(null);
+  const [selectedRow, setSelectedRow] = useState<FiringAlarm | null>(null);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
-  const [alertData, setAlertData] = useState<?Array<FiringAlarm>>(null);
+  const [alertData, setAlertData] = useState<Array<FiringAlarm> | null>(null);
   const classes = useStyles();
   const snackbars = useSnackbars();
   const networkId = useNetworkId();
@@ -117,9 +108,7 @@ export default function FiringAlerts(props: Props) {
   React.useEffect(() => {
     if (error) {
       snackbars.error(
-        `Unable to load firing alerts. ${
-          error.response ? error.response.data.message : error.message || ''
-        }`,
+        `Unable to load firing alerts. ${getErrorMessage(error)}`,
       );
     }
   }, [error, snackbars]);

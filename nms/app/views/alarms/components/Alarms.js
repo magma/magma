@@ -21,6 +21,7 @@ import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertmanagerRoutes from './alertmanager/Routes';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FiringAlerts from './alertmanager/FiringAlerts';
 import Grid from '@material-ui/core/Grid';
 import GroupIcon from '@material-ui/icons/Group';
