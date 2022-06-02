@@ -18,8 +18,8 @@ import defaultTheme from '../../../theme/default';
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {RenderResult, act, render} from '@testing-library/react';
 import {SnackbarProvider} from 'notistack';
-import {act, render} from '@testing-library/react';
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
 import type {ApiUtil} from '../components/AlarmsApi';
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
@@ -83,8 +83,10 @@ export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
 }
 
 // eslint-disable-next-line flowtype/no-weak-types
-export async function renderAsync(renderElement: JSX.Element): Promise<any> {
-  let result;
+export async function renderAsync(
+  renderElement: JSX.Element,
+): Promise<RenderResult> {
+  let result!: RenderResult;
   await act(async () => {
     result = await Promise.resolve().then(() => render(renderElement));
   });
