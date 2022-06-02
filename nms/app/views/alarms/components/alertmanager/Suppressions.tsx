@@ -50,7 +50,6 @@ export default function Suppressions() {
   const classes = useStyles();
   const snackbars = useSnackbars();
   const networkId = useNetworkId();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getSuppressions,
     {

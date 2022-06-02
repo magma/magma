@@ -43,7 +43,11 @@ export type ApiUtil = {
     func: (params: TParams) => Promise<TResponse>,
     params: TParams,
     cacheCounter?: string | number,
-  ) => {response: TResponse | null | undefined; error: any; isLoading: boolean};
+  ) => {
+    response: TResponse | null | undefined;
+    error: unknown;
+    isLoading: boolean;
+  };
 
   //alerts
   viewFiringAlerts: (req: ApiRequest) => Promise<Array<FiringAlarm>>;
