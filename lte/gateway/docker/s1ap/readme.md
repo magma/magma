@@ -1,132 +1,156 @@
-# Prequisites
-
-Your host must have the following to build and run all the images necessary for running the containerized AGW s1ap tests.
-
-- Ubuntu 20.04 Focal
-- x64 (ARM support to come later)
-- 20 GB of space for building/storing images, 64 GB recommended for running AGW
-
-AGW:
-
-Must have an eth1 address of 192.168.60.142
-Must have eth0 and eth1 interfaces.
-
-s1aptester:
-
-eth0, eth1, eth2 interfaces.
-eth0 management address
-eth1 address of 192.168.60.142
-
-trfgen:
-
-Must have an eth1 address of 192.168.60.142
-
-
 # Build and publish s1aptester images
 
-1. Clone the magma repository on an Ubuntu 20.04 host and move into AGW docker directory in the repo and run build script.
+1. Clone the magma repository and move into the AGW docker directory in the repo and run build script.
 
 ```
-cd lte/gateway/docker
+git clone https://github.com/magma/magma
+cd magma/lte/gateway/docker
 s1ap/build-s1ap.sh
 ```
 
 2. Publish images to your registry
 
 ```
-s1ap/publish.sh yourregistry.com/yourrepo/
+s1ap/publish-s1ap.sh yourregistry.com/yourrepo/
 ```
 
-# Run s1aptester
+# Deploy containerized S1APTester
 
-### Add your authentication to s1aptester and trfgen hosts from the agw vm. Here's an example
+## Create your environment
 
-#### Generate your ssh key on the AGW host
+### AWS Environment
 
-ssh-keygen
+* VPC (vpc-s1ap) with a CIDR of 192.168.0.0/16
+* Internet Gateway (igw1) attached to VPC (vpc-s1ap)
+* Route table (rt1) with a default gateway to the Internet Gateway (igw1)
+* 3 Subnets with an associated Route Table (rt1)
+  * SGi: 192.168.60.0/24 (subnet-sgi)
+  * S1: 192.168.128.0/23 (subnet-s1)
+  * S1AP Management: 192.168.59.0/24 (subnet-management)
+* Import/Create Key Pair (kp1)
 
+### AGW instance
 
+* Ubuntu 20.04 x86
+* t2.large
+* Security group
+  * Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
+  * Allow all traffic from 192.168.60.0/24
+  * Allow all traffic from 192.168.128.0/23
+* 3 Interfaces
+  * eth0: 192.168.129.1 (subnet-s1)
+    * Add Public IP
+  * eth1: 192.168.60.142 (subnet-sgi)
+  * eth2: Auto-assign (subnet-management)
+* 50 GB Disk
+* Key Pair (kp1)
 
-### test your connection with
+### s1aptester instance
 
-ansible -m ping all -i /opt/magma/lte/gateway/deploy/agw_hosts -u ubuntu
+* Ubuntu 20.04 x86
+* t2.large
+* Security group
+  * Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
+  * Allow all traffic from 192.168.60.0/24
+  * Allow all traffic from 192.168.128.0/23
+* 3 Interfaces
+  * eth0: Auto-assign (subnet-management)
+    * Add Public IP
+  * eth1: 192.168.60.141 (subnet-sgi)
+  * eth2: 192.168.128.11 (subnet-s1)
+* 50 GB Disk
+* Key Pair (kp1)
 
+### Traffic Generator instance
 
+* Ubuntu 20.04 x86
+* t2.large
+* Security group
+  * Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
+  * Allow all traffic from 192.168.60.0/24
+  * Allow all traffic from 192.168.128.0/23
+* 3 Interfaces
+  * eth0: Auto-assign (subnet-management)
+    * Add Public IP
+  * eth1: 192.168.60.144 (subnet-sgi)
+  * eth2: 192.168.129.42 (subnet-s1)
+* 50 GB Disk
+* Key Pair (kp1)
 
-
-### build images on the s1aptester vm and don't define docker_registry or define with the address
-
-### ansible-playbook -i ~/agw_hosts magma_docker_s1ap_setup.yml -u ubuntu -l s1aptester -b -e "docker_registry=public.ecr.aws/z2g3r6f7/"
-
-
-
-1. [Deploy a containerized AGW](https://github.com/magma/magma/tree/master/lte/gateway/docker), move into AGW docker directory `/var/opt/magma/docker` on the host and run the s1aptester start script `s1ap/start-s1ap.sh`. Make sure that your `DOCKER_REGISTRY` variable in the `.env` file points to your registry with your AGW and s1aptester images. Leave blank if your images exist in the local docker registry.
-
-If you're not using the standard eth0 and eth1 interface names, change the values of the `SGI_INTERFACE` and `S1_INTERFACE` variables in `start-s1ap.sh` and `stop-s1ap.sh`.
+## Add your ssh key pair (kp1) used when creating the instances to your ssh-agent
 
 ```
-cd /var/opt/magma/docker
-
-# Remote registry
-grep DOCKER_REGISTRY .env
-DOCKER_REGISTRY=public.ecr.aws/yourrepo/
-
-s1ap/start-s1ap.sh
+ssh-add .ssh/id_rsa
+ssh-add -l
+3072 SHA256:KWaiSLPiTYy5tRGXSKpkuwJcYDGy92NTMi0v3khLjJY (RSA)
 ```
 
-2. This will drop you into a shell that you can start to run an individual test from, or run the full suite of tests.
-```
-root@472f8708ec12:/magma/lte/gateway/python/integ_tests#
-# Run individual test(s)
-make integ_test TESTS=s1aptests/test_attach_detach.py
-# Run full suite
-make integ_test
-```
+## Run S1APTester playbook
 
-# Stop s1aptester
-
-Move into AGW docker directory on the host and run stop script.
-```
-cd /var/opt/magma/docker
-s1ap/stop-s1ap.sh
-```
-
-If inside of container, CTRL+d or exit from container and run stop script
-```
-root@472f8708ec12:/magma/lte/gateway/python/integ_tests# exit
-s1ap/stop-s1ap.sh
-```
-
-# Simple example
+### ssh to the agw instance and deploy as a containerized AGW
 
 ```
-sudo -i
+# ssh to AGW instance
+ssh -A ubuntu@184.72.47.28
+
+# Download containerized AGW bootstrap script
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_docker.sh
-mkdir -p /var/opt/magma/certs
-echo "-----BEGIN CERTIFICATE-----
-MIIDXzCCAkegAwIBAgIUakfCUNf7JMKbLDqHnuiG1QNhCQ8wDQYJKoZIhvcNAQEL
-BQAwPzELMAkGA1UEBhMCVVMxMDAuBgNVBAMMJ3Jvb3RjYS5tYWdtYS0xNi1zeWRu
-ZXkuZmFpbGVkd2l6YXJkLmRldjAeFw0yMTA3MTQyMjI5MjNaFw0zMTA3MTIyMjI5
-MjNaMD8xCzAJBgNVBAYTAlVTMTAwLgYDVQQDDCdyb290Y2EubWFnbWEtMTYtc3lk
-bmV5LmZhaWxlZHdpemFyZC5kZXYwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
-AoIBAQDFVmNFaAOkVD3c8W28FkGUVmBKDyj/T7N8C7PE43WvbBZJmO5TO1c887Dt
-yiX8Ua2mpCQ2SF8DZtXojkLGKOFM85uxzTV1YI656u5BDSejRkm1UDeMT5R+tQJK
-fyHYTt5ZNprX/dUrxYnp+h2zEl0PlzO5ijrktuZgM4KZjtQVaC1VirSC//2ZKQEo
-2aX3L81ALrjVzsmH4TePKEY8StjDHC2Mg6LOaYR/+Gu272P39/heULrm147g1k0k
-haeKv8qrI0dfvBcZveTzYf77iA6/OeVzYtWwM3zr1Z1cFALZrcuS6R6DrsAInseH
-qeiMh4kLfyoh0vQCNpEAJQgt5PmVAgMBAAGjUzBRMB0GA1UdDgQWBBTpk41oSZDv
-hSlsCLboVWzT5w414TAfBgNVHSMEGDAWgBTpk41oSZDvhSlsCLboVWzT5w414TAP
-BgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBWeu3+kB2WmxXbIDPU
-1JGw4rvj/+u4mvN1maYkibqCZyKMXLuqwOy9wMhtniHgKp/RIxFI+W3FTq4Tik++
-kwDemaYq3nwbHMwBXwFh/T9I9ExtWBCogj+LLFUsrPDJNmUwYnnEMRh6beF8oT1E
-Da3oNVZ70Tyv0DnWozW+4TQZ8bTOQ/bpjoFNZPVB3Jr7tjVLfPez8m/clM8+War+
-gjTiiUsJkJP2uhKmWkb58CCiH+k2EH3fw2IUmc0fgTMGZ5vv8g1OjCBrXspnGSpk
-iJf9ryw/jIH/9RGxSUO7tiQxe/IShf65clsyxlAjrSr7JvbYwOyIXAbgNA7vk0lc
-nmmv
------END CERTIFICATE-----" > /var/opt/magma/certs/rootCA.pem
-bash agw_install_docker.sh
-sed -i 's/DOCKER_REGISTRY=/DOCKER_REGISTRY=public.ecr.aws\/yourrepo\//' /var/opt/magma/docker/.env
-cd /var/opt/magma/docker
-s1ap/start-s1ap.sh
+
+# Create certs directory and populate with your orc8r rootCA
+sudo mkdir -p /var/opt/magma/certs
+sudo su root -c 'sudo echo "-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----" > /var/opt/magma/certs/rootCA.pem'
+
+# Run bootstrap script and reboot
+sudo su -c 'bash -x agw_install_docker.sh'
+sudo reboot
+```
+
+### After reboot, add the s1ap and trfgen ssh keys to known_hosts of the AGW Instance
+
+```
+ssh -A ubuntu@184.72.47.28
+ssh-keyscan -H 192.168.60.144 >> ~/.ssh/known_hosts
+ssh-keyscan -H 192.168.60.141 >> ~/.ssh/known_hosts
+```
+
+### move to deploy folder and test your connection to s1ap and trfgen instances
+
+```
+cd /opt/magma/lte/gateway/deploy
+
+ansible -m ping all -i agw_hosts -b
+127.0.0.1 | SUCCESS => {
+192.168.60.141 | SUCCESS => {
+192.168.60.144 | SUCCESS => {
+```
+
+### Deploy s1aptester
+
+Depending on whether you already have your AGW and s1aptest images in your registry, or want to build them, your can supply the `docker_registry` environment variable to the playbook. If you don't supply the variable, it will build the images and start the services. If you supply it, it will pull down the images from the registry and start the services.
+
+#### Without registry
+
+```
+ansible-playbook -i agw_hosts magma_docker_s1ap_setup.yml -b
+```
+
+#### With registry
+
+```
+ansible-playbook -i agw_hosts magma_docker_s1ap_setup.yml -b -e "docker_registry=public.ecr.aws/yourrepo/"
+```
+
+### Running tests Commands
+
+#### ssh to the s1aptester instance and attach to the s1aptester container to run tests
+
+```
+ssh 192.168.60.141
+sudo docker attach s1aptester
 make integ_test TESTS=s1aptests/test_attach_detach.py
+```
+#### You could also exec the test running command from the AGW instance
+```
+ssh 192.168.60.141 sudo docker exec -t s1aptester make integ_test TESTS=s1aptests/test_attach_detach.py
 ```

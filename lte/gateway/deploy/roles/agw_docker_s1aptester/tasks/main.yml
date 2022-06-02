@@ -15,7 +15,7 @@
 - name: Verify eth2 address
   assert:
     that: ansible_facts['eth2']['ipv4']['address']  == eth2_address
-    fail_msg: "eth1 must have address {{ eth2_address }}"
+    fail_msg: "eth2 must have address {{ eth2_address }}"
 
 - name: Download Docker install script
   get_url:
@@ -34,9 +34,9 @@
   shell: ~/get-docker.sh
   when: get_docker.changed
 
-- name: Git checkout
+- name: Git checkout magma repository
   git:
-    repo: '{{ magma_repo}}'
+    repo: '{{ magma_repo }}'
     dest: /opt/magma
     version: '{{ magma_version }}'
   when: get_docker.changed
