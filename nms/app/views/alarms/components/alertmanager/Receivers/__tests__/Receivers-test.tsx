@@ -9,14 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Receivers from '../Receivers';
+import {MockApiUtil, alarmTestUtil} from '../../../../test/testHelpers';
 import {
   act,
   fireEvent,
@@ -24,16 +21,16 @@ import {
   wait,
   waitForElement,
 } from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {alarmTestUtil} from '../../../../test/testHelpers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {ApiUtil} from '../../../AlarmsApi';
 
 describe('Receivers', () => {
-  let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
-  let apiUtil: ApiUtil;
+  let AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
+  let apiUtil: MockApiUtil;
+
+  const defaultResponse = {
+    error: null,
+    isLoading: false,
+  };
 
   beforeEach(() => {
     ({AlarmsWrapper, apiUtil} = alarmTestUtil());
@@ -49,6 +46,7 @@ describe('Receivers', () => {
 
   it('clicking the View button on a row shows the view dialog', async () => {
     jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
+      ...defaultResponse,
       response: [
         {
           name: 'test_receiver',
@@ -91,6 +89,7 @@ describe('Receivers', () => {
 
   it('clicking edit button should show AddEditReceiver in edit mode', () => {
     jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
+      ...defaultResponse,
       response: [
         {
           name: 'test_receiver',
@@ -125,6 +124,7 @@ describe('Receivers', () => {
 
   it('clicking add button should show AddEditReceiver', () => {
     jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
+      ...defaultResponse,
       response: [],
     });
     const {getByTestId, queryByTestId} = render(
