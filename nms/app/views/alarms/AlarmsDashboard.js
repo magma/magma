@@ -16,6 +16,7 @@
 
 import AddAlertIcon from '@material-ui/icons/AddAlert';
 import AlarmIcon from '@material-ui/icons/Alarm';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alarms from './components/Alarms';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../components/context/AppContext';
