@@ -19,6 +19,7 @@ import shlex
 import socket
 import subprocess
 import threading
+import time
 
 import iperf3
 import pyroute2
@@ -109,6 +110,9 @@ class TrafficUtil(object):
             "{user}@{host} {command}"
         )
 
+        self.ue_ipv6_block = "fdee:0005:006c::/64"
+        self.agw_ipv6 = "3001::10"
+
     def exec_command(self, command):
         """
         Run a command remotely on magma_trfserver VM.
@@ -136,6 +140,10 @@ class TrafficUtil(object):
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
             "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
         )
+        ret_code = self.exec_command(
+            "sudo ip -6 route flush via " + self.agw_ipv6 + " && sudo ip -6 route "
+            "replace " + self.ue_ipv6_block + " via " + self.agw_ipv6 + " dev eth3",
+        )
         return ret_code == 0
 
     def close_running_iperf_servers(self):
@@ -144,6 +152,19 @@ class TrafficUtil(object):
             "pidof iperf3 && pidof iperf3 | xargs sudo kill -9",
         )
         return ret_code == 0
+
+    def update_mtu_size(self, set_mtu=False):
+        """ Update MTU size in TRF server """
+        # Set MTU size to 1400 for ipv6
+        if set_mtu == True:
+            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400")
+            if ret_code != 0:
+                return False
+        else:
+            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500")
+            if ret_code != 0:
+                return False
+        return True
 
     def _init_lib(self):
         """Initialize the trfgen library by loading in binary compiled from C
@@ -297,7 +318,8 @@ class TrafficTest(object):
     _alias_counter = 0
     _alias_lock = threading.Lock()
     _iproute = pyroute2.IPRoute()
-    _net_iface = "eth2"
+    _net_iface_ipv4 = "eth2"
+    _net_iface_ipv6 = "eth3"
     _port = 7000
     _port_lock = threading.Lock()
 
@@ -345,11 +367,11 @@ class TrafficTest(object):
             return TrafficTest._port
 
     @staticmethod
-    def _iface_up(ip):
-        """Brings up an iface for the given IP
+    def _iface_up_ipv4(ip):
+        """Brings up an iface for the given IPv4
 
         Args:
-            ip (ipaddress.ip_address): the IP address to use for bringing up
+            ip (ipaddress.ip_address): the IPv4 address to use for bringing up
                 the iface
 
         Returns:
@@ -358,13 +380,13 @@ class TrafficTest(object):
         # Generate a unique alias
         with TrafficTest._alias_lock:
             TrafficTest._alias_counter += 1
-            net_iface = TrafficTest._net_iface
+            net_iface = TrafficTest._net_iface_ipv4
             alias = TrafficTest._alias_counter
         net_alias = "%s:UE%d" % (net_iface, alias)
 
         # Bring up the iface alias
         net_iface_index = TrafficTest._iproute.link_lookup(
-            ifname=TrafficTest._net_iface,
+            ifname=TrafficTest._net_iface_ipv4,
         )[0]
         TrafficTest._iproute.addr(
             "add",
@@ -372,8 +394,27 @@ class TrafficTest(object):
             label=net_alias,
             address=ip.exploded,
         )
-
         return net_alias
+
+    @staticmethod
+    def _iface_up_ipv6(ip):
+        ''' Brings up an iface for the given IPv6
+
+        Args:
+            ip (ipaddress.ip_address): the IPv6 address to use for bringing up
+                the iface
+
+        '''
+        # Bring up the iface alias
+        net_iface_index = TrafficTest._iproute.link_lookup(
+            ifname=TrafficTest._net_iface_ipv6,
+        )[0]
+        TrafficTest._iproute.addr(
+            'add', index=net_iface_index, address=ip.exploded,
+        )
+        os.system(
+            'sudo route -A inet6 add 3001::10/64 dev eth3',
+        ),
 
     @staticmethod
     def _network_from_ip(ip, mask_len):
@@ -421,8 +462,20 @@ class TrafficTest(object):
             self.sc.settimeout(IPERF_DATA_TIMEOUT_SEC)
 
             # Flush all the addresses left by previous failed tests
+            net_iface = 0
+
+            # For now multiple UEs with mixed ip addresses is not supported
+            # so check the version of the first ip address
+            # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
+            # addresses
+            for instance in self.instances:
+                if instance.ip.version == 4:
+                    net_iface = TrafficTest._net_iface_ipv4
+                else:
+                    net_iface = TrafficTest._net_iface_ipv6
+                break
             net_iface_index = TrafficTest._iproute.link_lookup(
-                ifname=TrafficTest._net_iface,
+                ifname=net_iface,
             )[0]
             for instance in self.instances:
                 TrafficTest._iproute.flush_addr(
@@ -431,9 +484,11 @@ class TrafficTest(object):
                 )
 
             # Set up network ifaces and get UL port assignments for DL
-            aliases = ()
             for instance in self.instances:
-                aliases += (TrafficTest._iface_up(instance.ip),)
+                if instance.ip.version == 4:
+                    (TrafficTest._iface_up_ipv4(instance.ip),)
+                else:
+                    (TrafficTest._iface_up_ipv6(instance.ip),)
                 if not instance.is_uplink:
                     # Assign a local port for the downlink UE server
                     instance.port = TrafficTest._get_port()
@@ -462,7 +517,7 @@ class TrafficTest(object):
 
                 # Add ip network route
                 net_iface_index = TrafficTest._iproute.link_lookup(
-                    ifname=TrafficTest._net_iface,
+                    ifname=net_iface,
                 )[0]
                 server_instance_network = TrafficTest._network_from_ip(
                     server_instance.ip,
@@ -477,13 +532,20 @@ class TrafficTest(object):
                 )
 
                 # Add arp table entry
-                os.system(
-                    "/usr/sbin/arp -s %s %s"
-                    % (
-                        server_instance.ip.exploded,
-                        server_instance.mac,
-                    ),
-                )
+                if server_instance.ip.version == 4:
+                    os.system(
+                        "/usr/sbin/arp -s %s %s"
+                        % (
+                            server_instance.ip.exploded,
+                            server_instance.mac,
+                        ),
+                    )
+                else:
+                    os.system(
+                        'ip -6 neigh add %s lladdr %s dev eth3' % (
+                            server_instance.ip.exploded, server_instance.mac,
+                        ),
+                    )
 
                 if instance.is_uplink:
                     # Port should be the port of the remote for uplink
@@ -660,8 +722,17 @@ class TrafficTest(object):
         msg.send(self.sc_out)
 
         # Close out network ifaces
+        # For now multiple UEs with mixed ip addresses is not supported
+        # so check the version of the first ip address
+        # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
+        # addresses
+        intf = TrafficTest._net_iface_ipv4
+        for instance in self.instances:
+            if instance.ip.version == 6:
+                intf = TrafficTest._net_iface_ipv6
+            break
         net_iface = TrafficTest._iproute.link_lookup(
-            ifname=TrafficTest._net_iface,
+            ifname=intf,
         )
         if net_iface:
             net_iface_index = net_iface[0]
