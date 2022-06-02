@@ -9,27 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PrometheusEditor from './PrometheusEditor';
 
-// $FlowFixMe migrated to typescript
-import type {AlertConfig} from '../../AlarmAPIType';
-// $FlowFixMe migrated to typescript
-import type {ApiUtil} from '../../AlarmsApi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {GenericRule, RuleInterfaceMap} from '../RuleInterface';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {PROMETHEUS_RULE_TYPE} from '../../AlarmContext';
+import type {AlertConfig} from '../../AlarmAPIType';
+import type {ApiUtil} from '../../AlarmsApi';
+import type {GenericRule, RuleInterfaceMap} from '../RuleInterface';
 
 export default function getPrometheusRuleInterface({
   apiUtil,
 }: {
-  apiUtil: ApiUtil,
+  apiUtil: ApiUtil;
 }): RuleInterfaceMap<AlertConfig> {
   return {
     [PROMETHEUS_RULE_TYPE]: {
