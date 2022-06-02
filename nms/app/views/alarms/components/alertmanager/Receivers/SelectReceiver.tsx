@@ -32,7 +32,6 @@ export default function SelectReceiver({
 }: Props) {
   const {apiUtil} = useAlarmContext();
   const params = useParams();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getReceivers,
     {

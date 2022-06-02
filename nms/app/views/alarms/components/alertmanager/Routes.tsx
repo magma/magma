@@ -46,7 +46,6 @@ export default function Routes() {
   };
 
   const networkId = useNetworkId();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getRouteTree,
     {networkId},
