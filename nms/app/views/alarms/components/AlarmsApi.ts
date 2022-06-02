@@ -87,7 +87,7 @@ export type ApiUtil = {
   //alertmanager global config
   getGlobalConfig: (req: ApiRequest) => Promise<AlertManagerGlobalConfig>;
   editGlobalConfig: (
-    req: ApiRequest & {config: AlertManagerGlobalConfig},
+    req: ApiRequest & {config: Partial<AlertManagerGlobalConfig>},
   ) => Promise<void>;
 
   // tenants

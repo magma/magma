@@ -20,39 +20,26 @@
 import * as React from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import CircularProgress from '@material-ui/core/CircularProgress';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Editor from '../../common/Editor';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useNetworkId} from '../../hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
-// $FlowFixMe migrated to typescript
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Props as EditorProps} from '../../common/Editor';
 
-type Props = $Diff<
-  EditorProps,
-  {
-    children: React.Node,
-    title?: string,
-    onSave: () => Promise<void> | void,
-    isNew: boolean,
-  },
->;
+type Props = Omit<EditorProps, 'children' | 'title' | 'onSave' | 'isNew'>;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     padding: theme.spacing(4),
   },
@@ -68,7 +55,7 @@ export default function GlobalConfig(props: Props) {
   const classes = useStyles();
   const {apiUtil} = useAlarmContext();
   const snackbars = useSnackbars();
-  const [lastRefreshTime, _setLastRefreshTime] = React.useState(new Date());
+  const [lastRefreshTime] = React.useState(new Date());
   const networkId = useNetworkId();
   const {response, isLoading} = apiUtil.useAlarmsApi(
     apiUtil.getGlobalConfig,
@@ -77,7 +64,7 @@ export default function GlobalConfig(props: Props) {
   );
 
   const {formState, handleInputChange, updateFormState, setFormState} = useForm<
-    $Shape<AlertManagerGlobalConfig>,
+    Partial<AlertManagerGlobalConfig>
   >({
     initialState: {
       smtp_require_tls: true,
@@ -85,7 +72,7 @@ export default function GlobalConfig(props: Props) {
   });
 
   const updateHttpConfigState = React.useCallback(
-    (update: $Shape<HTTPConfig>) => {
+    (update: Partial<HTTPConfig>) => {
       updateFormState({
         http_config: {
           ...(formState.http_config || {}),
@@ -112,9 +99,7 @@ export default function GlobalConfig(props: Props) {
       snackbars.success('Successfully saved global config');
     } catch (error) {
       snackbars.error(
-        `Unable to save global config: ${
-          error.response ? error.response?.data?.message : error.message
-        }`,
+        `Unable to save global config: ${getErrorMessage(error)}`,
       );
     }
   }, [networkId, apiUtil, formState, snackbars]);
@@ -143,7 +128,9 @@ export default function GlobalConfig(props: Props) {
                   placeholder="Ex: 5s"
                   {...getIdProps('resolve_timeout')}
                   value={formState.resolve_timeout || ''}
-                  onChange={handleInputChange(val => ({resolve_timeout: val}))}
+                  onChange={handleInputChange((val: string) => ({
+                    resolve_timeout: val,
+                  }))}
                   fullWidth
                 />
               </Grid>
@@ -154,7 +141,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: https://hooks.slack.com/services/T0/B0/XXX"
                     {...getIdProps('slack_api_url')}
                     value={formState.slack_api_url || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       slack_api_url: val,
                     }))}
                     fullWidth
@@ -168,7 +155,9 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: https://api.pagerduty.com"
                     {...getIdProps('pagerduty_url')}
                     value={formState.pagerduty_url || ''}
-                    onChange={handleInputChange(val => ({pagerduty_url: val}))}
+                    onChange={handleInputChange((val: string) => ({
+                      pagerduty_url: val,
+                    }))}
                     fullWidth
                   />
                 </Grid>
@@ -180,7 +169,9 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: alert@terragraph.link"
                     {...getIdProps('smtp_from')}
                     value={formState.smtp_from || ''}
-                    onChange={handleInputChange(val => ({smtp_from: val}))}
+                    onChange={handleInputChange((val: string) => ({
+                      smtp_from: val,
+                    }))}
                     fullWidth
                   />
                 </Grid>
@@ -190,7 +181,9 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: terragraph.link"
                     {...getIdProps('smtp_hello')}
                     value={formState.smtp_hello || ''}
-                    onChange={handleInputChange(val => ({smtp_hello: val}))}
+                    onChange={handleInputChange((val: string) => ({
+                      smtp_hello: val,
+                    }))}
                     fullWidth
                   />
                 </Grid>
@@ -199,7 +192,9 @@ export default function GlobalConfig(props: Props) {
                     label="Smarthost"
                     {...getIdProps('smtp_smarthost')}
                     value={formState.smtp_smarthost || ''}
-                    onChange={handleInputChange(val => ({smtp_smarthost: val}))}
+                    onChange={handleInputChange((val: string) => ({
+                      smtp_smarthost: val,
+                    }))}
                     fullWidth
                   />
                 </Grid>
@@ -208,7 +203,7 @@ export default function GlobalConfig(props: Props) {
                     label="Username"
                     {...getIdProps('smtp_auth_username')}
                     value={formState.smtp_auth_username || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       smtp_auth_username: val,
                     }))}
                     fullWidth
@@ -219,7 +214,7 @@ export default function GlobalConfig(props: Props) {
                     label="Password"
                     {...getIdProps('smtp_auth_password')}
                     value={formState.smtp_auth_password || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       smtp_auth_password: val,
                     }))}
                     fullWidth
@@ -230,7 +225,7 @@ export default function GlobalConfig(props: Props) {
                     label="Secret"
                     {...getIdProps('smtp_auth_secret')}
                     value={formState.smtp_auth_secret || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       smtp_auth_secret: val,
                     }))}
                     fullWidth
@@ -241,7 +236,7 @@ export default function GlobalConfig(props: Props) {
                     label="Identity"
                     {...getIdProps('smtp_auth_identity')}
                     value={formState.smtp_auth_identity || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       smtp_auth_identity: val,
                     }))}
                     fullWidth
@@ -275,7 +270,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: https://api.opsgenie.com/"
                     {...getIdProps('opsgenie_api_url')}
                     value={formState.opsgenie_api_url || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       opsgenie_api_url: val,
                     }))}
                     fullWidth
@@ -287,7 +282,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: xxxxxxxx-xxxx-xxxx-xxxxx-xxxxxxxxxxxx"
                     {...getIdProps('opsgenie_api_key')}
                     value={formState.opsgenie_api_key || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       opsgenie_api_key: val,
                     }))}
                     fullWidth
@@ -301,7 +296,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: https://api.hipchat.com/v2"
                     {...getIdProps('hipchat_api_url')}
                     value={formState.hipchat_api_url || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       hipchat_api_url: val,
                     }))}
                     fullWidth
@@ -313,7 +308,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: xxx-xxx-xxxx"
                     {...getIdProps('hipchat_auth_token')}
                     value={formState.hipchat_auth_token || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       hipchat_auth_token: val,
                     }))}
                     fullWidth
@@ -327,7 +322,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: https://qyapi.weixin.qq.com/cgi-bin/"
                     {...getIdProps('wechat_api_url')}
                     value={formState.wechat_api_url || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       wechat_api_url: val,
                     }))}
                     fullWidth
@@ -339,7 +334,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: xxxxx"
                     {...getIdProps('wechat_api_secret')}
                     value={formState.wechat_api_secret || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       wechat_api_secret: val,
                     }))}
                     fullWidth
@@ -351,7 +346,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: xxxxx"
                     {...getIdProps('wechat_api_corp_id')}
                     value={formState.wechat_api_corp_id || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       wechat_api_corp_id: val,
                     }))}
                     fullWidth
@@ -365,7 +360,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: https://api.hipchat.com/v2"
                     {...getIdProps('victorops_api_url')}
                     value={formState.victorops_api_url || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       victorops_api_url: val,
                     }))}
                     fullWidth
@@ -377,7 +372,7 @@ export default function GlobalConfig(props: Props) {
                     placeholder="Ex: xxx-xxx-xxxx"
                     {...getIdProps('victorops_api_key')}
                     value={formState.victorops_api_key || ''}
-                    onChange={handleInputChange(val => ({
+                    onChange={handleInputChange((val: string) => ({
                       victorops_api_key: val,
                     }))}
                     fullWidth
@@ -458,8 +453,8 @@ function ConfigSection({
   title,
   children,
 }: {
-  title: React.Node,
-  children: React.Node,
+  title: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <Grid item container direction="column">
@@ -476,14 +471,13 @@ function ConfigSection({
 }
 
 // Omit config keys that are set to empty strings
-function removeEmptys(
-  obj: $Shape<AlertManagerGlobalConfig>,
-): $Shape<AlertManagerGlobalConfig> {
-  const cleaned = {};
-  for (const key in obj) {
+function removeEmptys<Obj extends Record<string, any>>(obj: Obj): Partial<Obj> {
+  const cleaned: Partial<Record<keyof Obj, any>> = {};
+  let key: keyof typeof obj;
+  for (key in obj) {
     const val = obj[key];
     if (typeof val === 'string') {
-      if (val.trim() !== '') {
+      if ((val as string).trim() !== '') {
         cleaned[key] = val;
       }
     } else if (typeof val === 'object') {
