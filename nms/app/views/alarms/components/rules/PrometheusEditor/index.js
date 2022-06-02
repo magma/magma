@@ -14,5 +14,6 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PrometheusEditor from './PrometheusEditor';
 export default PrometheusEditor;

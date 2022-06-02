@@ -29,6 +29,7 @@ import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
+import {InputChangeFunc} from './PrometheusEditor';
 import {SelectProps} from '@material-ui/core/Select/Select';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
@@ -85,7 +86,7 @@ type ExpressionChangeFunc = (
 ) => (event: React.ChangeEvent<HTMLElement>) => void;
 
 export default function ToggleableExpressionEditor(props: {
-  onChange: ExpressionChangeFunc;
+  onChange: InputChangeFunc;
   onThresholdExpressionChange: (expresion: ThresholdExpression) => void;
   expression: ThresholdExpression;
   stringExpression: string;
@@ -116,7 +117,7 @@ export default function ToggleableExpressionEditor(props: {
 }
 
 export function AdvancedExpressionEditor(props: {
-  onChange: ExpressionChangeFunc;
+  onChange: InputChangeFunc;
   expression: string;
 }) {
   return (

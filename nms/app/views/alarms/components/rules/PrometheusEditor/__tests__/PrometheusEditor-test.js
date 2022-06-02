@@ -15,8 +15,10 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PrometheusEditor from '../PrometheusEditor';
 import {alarmTestUtil} from '../../../../test/testHelpers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {parseTimeString} from '../PrometheusEditor';
 import {render} from '@testing-library/react';
 
