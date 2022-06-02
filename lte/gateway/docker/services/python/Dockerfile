@@ -119,11 +119,6 @@ RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/pub
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
 
-RUN if [ "${CPU_ARCH}" = "aarch64" ]; then apt-get update && apt-get install -y \
-  bpfcc-tools \
-  python3-bpfcc; \
-  fi
-
 RUN apt-get update && apt-get install -y \
   td-agent-bit \
   libopenvswitch \

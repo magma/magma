@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include "lte/gateway/c/session_manager/RestartHandler.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
 #include <cxxabi.h>
 #include <glog/logging.h>
@@ -141,6 +142,8 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
             directoryd_res.set_value(false);
             return;
           }
+          PrintGrpcMessage(
+              static_cast<const google::protobuf::Message&>(response));
           for (auto& record : response.records()) {
             auto session_iter = record.fields().find("session_id");
             if (session_iter == record.fields().end()) {

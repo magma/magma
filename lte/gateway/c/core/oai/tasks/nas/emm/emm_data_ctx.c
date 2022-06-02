@@ -663,26 +663,6 @@ struct emm_context_s* emm_context_get_by_imsi(
 }
 
 //------------------------------------------------------------------------------
-struct emm_context_s* emm_context_get_by_guti(emm_data_t* emm_data,
-                                              guti_t* guti) {
-  struct emm_context_s* emm_context_p = NULL;
-
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t* ue_mm_context =
-      mme_ue_context_exists_guti(&mme_app_desc_p->mme_ue_contexts, guti);
-  if (ue_mm_context) {
-    emm_context_p = &ue_mm_context->emm_context;
-  }
-  if (emm_context_p) {
-    OAILOG_DEBUG(LOG_NAS_EMM,
-                 "EMM-CTX - get UE id " MME_UE_S1AP_ID_FMT
-                 " context %p by guti " GUTI_FMT "\n",
-                 ue_mm_context->mme_ue_s1ap_id, emm_context_p, GUTI_ARG(guti));
-  }
-  return emm_context_p;
-}
-
-//------------------------------------------------------------------------------
 
 status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
                                       struct emm_context_s* elm) {

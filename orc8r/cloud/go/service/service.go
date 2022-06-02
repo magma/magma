@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -26,7 +27,6 @@ import (
 	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/orc8r"

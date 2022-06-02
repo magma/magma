@@ -15,8 +15,8 @@ package protected
 
 import (
 	"context"
+	"errors"
 
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

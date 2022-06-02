@@ -17,7 +17,7 @@ from collections import namedtuple
 from ryu.lib import hub
 
 FlowStats = namedtuple(
-    'FlowData', [
+    'FlowStats', [
         'packets', 'bytes', 'duration_sec',
         'cookie',
     ],

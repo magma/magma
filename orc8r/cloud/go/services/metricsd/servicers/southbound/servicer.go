@@ -15,9 +15,9 @@ package southbound
 
 import (
 	"context"
+	"errors"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	prom_proto "github.com/prometheus/client_model/go"
 
 	"magma/orc8r/cloud/go/serdes"

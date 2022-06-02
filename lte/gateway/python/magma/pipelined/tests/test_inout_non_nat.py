@@ -18,7 +18,7 @@ import time
 import unittest
 import warnings
 from concurrent.futures import Future
-from typing import List
+from typing import Dict, List, Optional
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
 from magma.pipelined.app import egress
@@ -37,7 +37,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-gw_info_map = {}
+gw_info_map: Dict = {}
 gw_info_lock = threading.RLock()  # re-entrant locks
 
 
@@ -46,7 +46,7 @@ def mocked_get_mobilityd_gw_info() -> List[GWInfo]:
     global gw_info_lock
 
     with gw_info_lock:
-        return gw_info_map.values()
+        return list(gw_info_map.values())
 
 
 def mocked_set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
@@ -155,10 +155,10 @@ class InOutNonNatTest(unittest.TestCase):
 
         cls.service_manager = create_service_manager([])
 
-        ingress_controller_reference = Future()
-        middle_controller_reference = Future()
-        egress_controller_reference = Future()
-        testing_controller_reference = Future()
+        ingress_controller_reference: Future = Future()
+        middle_controller_reference: Future = Future()
+        egress_controller_reference: Future = Future()
+        testing_controller_reference: Future = Future()
 
         if non_nat_arp_egress_port is None:
             non_nat_arp_egress_port = cls.DHCP_PORT
@@ -535,10 +535,10 @@ def mocked_setmacbyip6(ipv6_addr: str, mac: str):
         ipv6_mac_table[ipv6_addr] = mac
 
 
-def mocked_getmacbyip6(ipv6_addr: str) -> str:
+def mocked_getmacbyip6(ipv6_addr: str) -> Optional[str]:
     global ipv6_mac_table
     with gw_info_lock:
-        return ipv6_mac_table.get(ipv6_addr, None)
+        return ipv6_mac_table.get(ipv6_addr)
 
 
 class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):

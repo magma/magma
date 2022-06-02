@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+from typing import List, Optional
 
 import grpc
 from magma.common.service_registry import ServiceRegistry
@@ -57,7 +58,7 @@ def update_record(imsi: str, ip_addr: str) -> None:
         )
 
 
-def get_record(imsi: str, field: str) -> str:
+def get_record(imsi: str, field: str) -> Optional[str]:
     """
     Make RPC call to 'GetDirectoryField' method of local directoryD service
     """
@@ -68,7 +69,7 @@ def get_record(imsi: str, field: str) -> str:
         )
     except ValueError:
         logging.error('Cant get RPC channel to %s', DIRECTORYD_SERVICE_NAME)
-        return
+        return None
     client = GatewayDirectoryServiceStub(chan)
     if not imsi.startswith("IMSI"):
         imsi = "IMSI" + imsi
@@ -88,7 +89,7 @@ def get_record(imsi: str, field: str) -> str:
     return None
 
 
-def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> [dict]:
+def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> Optional[List[dict]]:
     """
     Make RPC call to 'GetAllDirectoryRecords' method of local directoryD service
     """
@@ -99,7 +100,7 @@ def get_all_records(retries: int = 3, sleep_time: float = 0.1) -> [dict]:
         )
     except ValueError:
         logging.error('Cant get RPC channel to %s', DIRECTORYD_SERVICE_NAME)
-        return
+        return None
     client = GatewayDirectoryServiceStub(chan)
     for _ in range(0, retries):
         try:

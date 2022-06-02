@@ -23,7 +23,6 @@ import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
@@ -97,7 +96,7 @@ export default function EquipmentGatewayKPIs() {
     .map((gwId: string) => lteGateways[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map((gateway: lte_gateway) => {
-      isGatewayHealthy(gateway) ? upCount++ : downCount++;
+      gateway.checked_in_recently ? upCount++ : downCount++;
     });
   let pctHealthyGw = 0;
   if (upCount > 0 && upCount + downCount > 0) {
@@ -130,7 +129,7 @@ export default function EquipmentGatewayKPIs() {
       {
         category: '% Healthy Gateways',
         value: pctHealthyGw,
-        tooltip: '% of gateways which have checked in within last 5 minutes',
+        tooltip: '% of gateways which have checked in recently',
       },
     ],
   ];

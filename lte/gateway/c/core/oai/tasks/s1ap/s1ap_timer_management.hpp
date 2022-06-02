@@ -23,7 +23,6 @@ limitations under the License.
 // C includes --------------------------------------------------------------
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.h"
 }
 
 // Other includes ----------------------------------------------------------

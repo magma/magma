@@ -360,8 +360,10 @@ ue_mm_context_t* mme_ue_context_exists_guti(
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   uint64_t mme_ue_s1ap_id64 = 0;
 
+  char guti_str[GUTI_STRING_LEN] = {0};
+  convert_guti_to_string(guti_p, &guti_str);
   h_rc = obj_hashtable_uint64_ts_get(mme_ue_context_p->guti_ue_context_htbl,
-                                     (const void*)guti_p, sizeof(*guti_p),
+                                     (const void*)guti_str, strlen(guti_str),
                                      &mme_ue_s1ap_id64);
 
   if (HASH_TABLE_OK == h_rc) {
@@ -519,13 +521,17 @@ void mme_ue_context_update_coll_keys(
          ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3) ||
         (ue_context_p->mme_ue_s1ap_id != mme_ue_s1ap_id)) {
       // may check guti_p with a kind of instanceof()?
+      char guti_str[GUTI_STRING_LEN] = {0};
+      convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
       h_rc = obj_hashtable_uint64_ts_remove(
-          mme_ue_context_p->guti_ue_context_htbl,
-          &ue_context_p->emm_context._guti, sizeof(*guti_p));
+          mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
+          strlen(guti_str));
       if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+        char guti_str[GUTI_STRING_LEN] = {0};
+        convert_guti_to_string(guti_p, &guti_str);
         h_rc = obj_hashtable_uint64_ts_insert(
-            mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_p,
-            sizeof(*guti_p), (uint64_t)mme_ue_s1ap_id);
+            mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
+            strlen(guti_str), (uint64_t)mme_ue_s1ap_id);
       } else {
         h_rc = HASH_TABLE_KEY_NOT_EXISTS;
       }
@@ -689,11 +695,11 @@ status_code_e mme_insert_ue_context(
                   .mcc_digit1) ||  // MCC 000 does not exist in ITU table
         (0 != ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
         (0 != ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
+      char guti_str[GUTI_STRING_LEN] = {0};
+      convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
       h_rc = obj_hashtable_uint64_ts_insert(
-          mme_ue_context_p->guti_ue_context_htbl,
-          (const void* const) & ue_context_p->emm_context._guti,
-          sizeof(ue_context_p->emm_context._guti),
-          ue_context_p->mme_ue_s1ap_id);
+          mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
+          strlen(guti_str), ue_context_p->mme_ue_s1ap_id);
 
       if (HASH_TABLE_OK != h_rc) {
         OAILOG_WARNING(LOG_MME_APP,
@@ -757,10 +763,11 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
       (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
       (ue_context_p->emm_context._guti.gummei.plmn
            .mcc_digit3)) {  // MCC 000 does not exist in ITU table
+    char guti_str[GUTI_STRING_LEN] = {0};
+    convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
     hash_rc = obj_hashtable_uint64_ts_remove(
-        mme_ue_context_p->guti_ue_context_htbl,
-        (const void* const) & ue_context_p->emm_context._guti,
-        sizeof(ue_context_p->emm_context._guti));
+        mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
+        strlen(guti_str));
     if (HASH_TABLE_OK != hash_rc)
       OAILOG_ERROR(LOG_MME_APP,
                    "UE Context not found!\n"

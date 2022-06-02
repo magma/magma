@@ -32,8 +32,9 @@ COPY dp/cloud/python/magma/db_service /dp/cloud/python/magma/db_service/
 COPY dp/cloud/python/magma/mappings /dp/cloud/python/magma/mappings/
 COPY dp/cloud/python/magma/test_runner /dp/cloud/python/magma/test_runner/
 COPY dp/cloud/python/magma/fixtures /dp/cloud/python/magma/fixtures/
+COPY --chmod=755 dp/cloud/docker/python/test_runner/entrypoint.sh /entrypoint.sh
 COPY --from=protos-generator /magma/build/gen /magma/build/gen
 
 WORKDIR /dp/cloud/python/magma/test_runner
 ENV PYTHONPATH=/magma/build/gen:/dp/cloud/python
-ENTRYPOINT ["python"]
+ENTRYPOINT ["/entrypoint.sh"]

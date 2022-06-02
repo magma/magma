@@ -8,9 +8,18 @@ FROM ${REPO_LOCATION}/agw_gateway_c AS c_builder
 ARG GHZ_REPO=https://github.com/bojand/ghz
 
 RUN apt-get update && apt-get install -y \
+  curl \
   git \
-  golang \
   build-essential
+
+# Install golang 1.18
+WORKDIR /usr/local
+ARG GOLANG_VERSION="1.18"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+ && rm ${GO_TARBALL}
 
 WORKDIR ${MAGMA_ROOT}
 
@@ -25,9 +34,18 @@ FROM ${REPO_LOCATION}/agw_gateway_python as python_builder
 ARG GHZ_REPO=https://github.com/bojand/ghz
 
 RUN apt-get update && apt-get install -y \
+  curl \
   git \
-  golang \
   build-essential
+
+# Install golang 1.18
+WORKDIR /usr/local
+ARG GOLANG_VERSION="1.18"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+ && rm ${GO_TARBALL}
 
 ENV MAGMA_ROOT /magma
 

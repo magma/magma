@@ -34,6 +34,12 @@ orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
 
+.PHONY: dev_integration_tests
+dev_integration_tests: init_orc8r _ci_init cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner-dev --ignore-not-found=true
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-dev --trigger=manual
+
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
 
@@ -116,6 +122,7 @@ _ci_init: _generate_certificates _generate_harness_config
 		service/orc8r-fluentd-forward \
 		deployment.apps/orc8r-fluentd-forward \
 		configmap/orc8r-fluentd-forward-configs \
+		deployment/fake-sas-deployment \
 		--ignore-not-found
 	helm uninstall domain-proxy orc8r orc8r-lte || true
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml

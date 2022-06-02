@@ -14,11 +14,11 @@ limitations under the License.
 package index
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -200,5 +200,5 @@ func wrap(err error, sentinel Error, indexerID string) error {
 	default:
 		wrap = fmt.Sprintf("%s for idx %s", sentinel, indexerID)
 	}
-	return errors.Wrap(err, wrap)
+	return fmt.Errorf(wrap+": %w", err)
 }

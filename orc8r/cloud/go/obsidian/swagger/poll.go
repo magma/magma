@@ -14,8 +14,9 @@
 package swagger
 
 import (
+	"fmt"
+
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/parallel"
@@ -41,7 +42,7 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 		if err != nil {
 			// Swallow error because the polling should continue
 			// even if it fails to receive from a single servicer
-			err = errors.Wrapf(err, "get Swagger spec from %s service", s.GetService())
+			err = fmt.Errorf("get Swagger spec from %s service: %w", s.GetService(), err)
 			glog.Error(err)
 		}
 		return yamlSpec, nil

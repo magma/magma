@@ -38,7 +38,7 @@
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 /* FreeDiameter headers for support of S6A interface */

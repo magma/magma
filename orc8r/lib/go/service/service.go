@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
@@ -145,7 +144,7 @@ func (service *Service) Run() error {
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
 	if err != nil || perr != nil {
-		return errors.Errorf("error running grpc server: %v; error running proteced grpc server: %v", err, perr)
+		return fmt.Errorf("error running grpc server: %v; error running proteced grpc server: %v", err, perr)
 	} else {
 		return nil
 	}

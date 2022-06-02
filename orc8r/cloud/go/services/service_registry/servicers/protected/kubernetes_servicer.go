@@ -21,7 +21,6 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	corev1types "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -194,7 +193,7 @@ func (k *KubernetesServiceRegistryServicer) refreshServicesCache() {
 	services, err := k.client.Services(k.namespace).List(opts)
 	if err != nil {
 		// Log error and leave previous cache intact
-		err = errors.Wrap(err, "refresh service registry cache of K8s services")
+		err = fmt.Errorf("refresh service registry cache of K8s services: %w", err)
 		glog.Error(err)
 		return
 	}

@@ -22,6 +22,7 @@ from .types import QosInfo
 from .utils import IdManager
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
+# LOG.setLevel(logging.DEBUG)
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
@@ -47,9 +48,15 @@ class TrafficClass:
 
     @staticmethod
     def create_class(
-        intf: str, qid: int, max_bw: int, rate=DEFAULT_RATE,
-        parent_qid=ROOT_QID, skip_filter=False,
+        intf: str, qid: int, max_bw: int, rate=None,
+        parent_qid=None, skip_filter=False,
     ) -> int:
+        if not rate:
+            rate = DEFAULT_RATE
+
+        if not parent_qid:
+            parent_qid = ROOT_QID
+
         if parent_qid == qid:
             # parent qid should only be self for root case, everything else
             # should be the child of root class
@@ -187,6 +194,7 @@ class TrafficClass:
                 LOG.error("could not find rate: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
+        return None
 
     @staticmethod
     def _get_qdisc_type(intf: str) -> Optional[str]:
@@ -203,6 +211,7 @@ class TrafficClass:
                 LOG.error("could not qdisc type: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
+        return None
 
 
 class TCManager(object):

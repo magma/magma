@@ -14,6 +14,7 @@ import ipaddress
 import socket
 import subprocess
 from collections import namedtuple
+from typing import Optional
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -262,7 +263,7 @@ class Classifier(MagmaController):
 
     def _install_uplink_tunnel_flows(
         self, priority: int, i_teid: int,
-        gtp_portno: int, sid: int, o_teid: int,
+        gtp_portno: int, sid: Optional[int], o_teid: int,
     ):
 
         parser = self._datapath.ofproto_parser
@@ -301,7 +302,7 @@ class Classifier(MagmaController):
         self, priority: int, i_teid: int,
         o_teid: int, in_port: int,
         ue_ip_adr: IPAddress, enodeb_ip_addr: str,
-        gtp_portno: int, sid: int, ng_flag: bool, ue_ipv6_adr: IPAddress = None,
+        gtp_portno: int, sid: Optional[int], ng_flag: bool, ue_ipv6_adr: IPAddress = None,
     ):
 
         parser = self._datapath.ofproto_parser
@@ -324,7 +325,7 @@ class Classifier(MagmaController):
 
     def _install_downlink_arp_flows(
         self, priority: int, in_port: int,
-        ue_ip_adr: IPAddress, sid: int,
+        ue_ip_adr: IPAddress, sid: Optional[int],
     ):
 
         parser = self._datapath.ofproto_parser
@@ -347,7 +348,7 @@ class Classifier(MagmaController):
     def add_tunnel_flows(
         self, precedence: int, i_teid: int,
         o_teid: int, enodeb_ip_addr: str,
-        ue_ip_adr: IPAddress = None, sid: int = None,
+        ue_ip_adr: IPAddress = None, sid: Optional[int] = None,
         ng_flag: bool = True,
         ue_ipv6_address: IPAddress = None,
         unused_apn: str = None, unused_vlan: int = 0,
@@ -824,8 +825,8 @@ class Classifier(MagmaController):
     def add_s8_tunnel_flows(
         self, precedence: int, i_teid: int,
         o_teid: int, ue_ip_adr: IPAddress,
-        enodeb_ip_addr: str, sid: int = None,
-        pgw_ip_addr: str = None,
+        enodeb_ip_addr: str, sid: Optional[int] = None,
+        pgw_ip_addr: Optional[str] = None,
         pgw_gtp_port: int = 0,
         ng_flag: bool = True,
         unused_ue_ipv6_address: IPAddress = None,
@@ -883,8 +884,8 @@ class Classifier(MagmaController):
 
     def _install_uplink_s8_tunnel_flows(
         self, priority: int, i_teid: int,
-        o_teid: int, pgw_ip_addr: str,
-        gtp_portno: int, sid: int,
+        o_teid: int, pgw_ip_addr: Optional[str],
+        gtp_portno: int, sid: Optional[int],
         pgw_gtp_port: int,
     ):
 

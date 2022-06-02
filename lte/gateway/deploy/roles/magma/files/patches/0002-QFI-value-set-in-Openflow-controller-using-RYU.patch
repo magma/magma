@@ -1,0 +1,41 @@
+From 82cb817858258fab69aabf5c3ed007f28d0aa0d3 Mon Sep 17 00:00:00 2001
+From: Prabina Pattnaik <prabinak@wavelabs.ai>
+Date: Wed, 20 Apr 2022 13:53:50 +0530
+Subject: [PATCH] QFI value set in Openflow controller using RYU
+
+Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
+---
+ ryu/ofproto/nicira_ext.py |  3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ryu/ofproto/nicira_ext.py b/ryu/ofproto/nicira_ext.py
+index 9c2d2aaf..7c5f9ef4 100644
+--- a/ryu/ofproto/nicira_ext.py
++++ b/ryu/ofproto/nicira_ext.py
+@@ -435,6 +435,7 @@ NXM_NX_PKT_MARK_W = nxm_header_w(0x0001, 33, 4)
+ NXM_NX_TCP_FLAGS = nxm_header(0x0001, 34, 2)
+ NXM_NX_TCP_FLAGS_W = nxm_header_w(0x0001, 34, 2)
+ 
++NXM_NX_QFI = nxm_header(0x0001, 126, 1)
+ 
+ def nxm_nx_reg(idx):
+     return nxm_header(0x0001, idx, 4)
+@@ -632,6 +633,7 @@ reg<idx>         Integer 32bit   Packet register.
+                                  <idx> is register number 0-15.
+ xxreg<idx>       Integer 128bit  Packet extended-extended register.
+                                  <idx> is register number 0-3.
++qfi              Integer 8bit    QFI Value Set.
+ ================ =============== ==============================================
+ 
+ .. Note::
+@@ -709,6 +711,7 @@ oxm_types = [
+     oxm_fields.NiciraExtended1('ct_label', 108, type_desc.Int16),
+     oxm_fields.NiciraExtended1('tun_ipv6_src', 109, type_desc.IPv6Addr),
+     oxm_fields.NiciraExtended1('tun_ipv6_dst', 110, type_desc.IPv6Addr),
++    oxm_fields.NiciraExtended1("qfi", 126, type_desc.Int1),
+ 
+     # Prefix the name with '_' to indicate this is not intended to be used
+     # in wild.
+-- 
+2.11.0
+

@@ -17,6 +17,7 @@ cc_binary(
     name = "sctpd",
     srcs = ["sctpd.cpp"],
     linkstatic = True,
+    visibility = ["//lte/gateway/release:__pkg__"],
     deps = [
         ":config",
         ":sctpd_downlink_impl",

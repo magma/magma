@@ -19,6 +19,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
@@ -29,8 +30,6 @@ import (
 	"time"
 
 	"fbc/lib/go/http/httputil"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -142,10 +141,10 @@ func (m *MACMiddleware) verify(r *http.Request) error {
 	}
 	n, err := strconv.ParseInt(ts, 10, 64)
 	if err != nil {
-		return errors.Wrapf(err, "parse timestamp: %v", ts)
+		return fmt.Errorf("parse timestamp: %v: %w", ts, err)
 	}
 	if ts := time.Unix(n, 0); abs(time.Since(ts)) > m.TimeSkew {
-		return errors.Errorf("stable timestamp: %v", ts)
+		return fmt.Errorf("stable timestamp: %v", ts)
 	}
 	h := m.Hash.New()
 	if err := hashRequest(h, r, ts); err != nil {
@@ -153,11 +152,11 @@ func (m *MACMiddleware) verify(r *http.Request) error {
 	}
 	pk, err := m.KeyGetter()
 	if err != nil {
-		return errors.Wrap(err, "failed to get public key")
+		return fmt.Errorf("failed to get public key: %w", err)
 	}
 	sig, err := base64.StdEncoding.DecodeString(sg)
 	if err != nil {
-		return errors.Wrap(err, "failed to decode signature header")
+		return fmt.Errorf("failed to decode signature header: %w", err)
 	}
 	if err := rsa.VerifyPKCS1v15(pk, m.Hash, h.Sum(nil), sig); err != nil {
 		return errors.New("unauthorized")
@@ -198,12 +197,12 @@ func hashRequest(h hash.Hash, r *http.Request, ts string) error {
 	b.WriteString(r.URL.RequestURI())
 	b.WriteString(ts)
 	if _, err := io.Copy(h, b); err != nil {
-		return errors.Wrap(err, "failed to copy request info")
+		return fmt.Errorf("failed to copy request info: %w", err)
 	}
 	if r.Body != nil {
 		b.Reset()
 		if _, err := io.Copy(io.MultiWriter(h, b), r.Body); err != nil {
-			return errors.Wrap(err, "failed to copy request body")
+			return fmt.Errorf("failed to copy request body: %w", err)
 		}
 		r.Body = ioutil.NopCloser(b)
 	}

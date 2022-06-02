@@ -15,10 +15,10 @@ package servicers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -87,7 +87,7 @@ func (s *smsdServicer) ReportDelivery(ctx context.Context, request *lteProtos.Re
 
 	decoded, err := s.serde.DecodeDelivery(request.Report.NasMessageContainer)
 	if err != nil {
-		return ret, errors.Wrap(err, "failed to decode report")
+		return ret, fmt.Errorf("failed to decode report: %w", err)
 	}
 
 	delivered, failed := map[string][]storage.SMSRef{}, map[string][]storage.SMSFailureReport{}
@@ -102,7 +102,7 @@ func (s *smsdServicer) ReportDelivery(ctx context.Context, request *lteProtos.Re
 
 	err = s.store.ReportDelivery(networkID, delivered, failed)
 	if err != nil {
-		return ret, errors.Wrap(err, "failed to report delivery")
+		return ret, fmt.Errorf("failed to report delivery: %w", err)
 	}
 	return ret, nil
 }

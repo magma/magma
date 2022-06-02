@@ -66,9 +66,7 @@
 /.bazel-cache-repo/ @magma/approvers-bazel
 /.github/workflows/bazel-cache-push.yml @magma/approvers-bazel
 /.github/workflows/bazel.yml @magma/approvers-bazel
-/.github/workflows/docker-builder-bazel-base.yml @magma/approvers-bazel
 /bazel/ @magma/approvers-bazel
-/experimental/bazel-base/ @magma/approvers-bazel
 /.bazelignore @magma/approvers-bazel
 /.bazelrc @magma/approvers-bazel
 *.bazel @magma/approvers-bazel
@@ -83,3 +81,4 @@
 /orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @ghost
 /orc8r/cloud/api/ @ghost
 /nms/generated/MagmaAPIBindings.js @ghost
+/nms/generated-ts/ @ghost

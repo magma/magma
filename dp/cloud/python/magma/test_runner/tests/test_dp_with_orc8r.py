@@ -446,7 +446,6 @@ class CbsdAPIDataBuilder:
     def build_post_data(self) -> Dict[str, Any]:
         return {
             'capabilities': {
-                'antenna_gain': 15,
                 'max_power': 20,
                 'min_power': 0,
                 'number_of_antennas': 2,
@@ -461,6 +460,10 @@ class CbsdAPIDataBuilder:
             'desired_state': self.desired_state,
             "single_step_enabled": False,
             "cbsd_category": "b",
+            'installation_param': {
+                'antenna_gain': 15,
+                'indoor_deployment': False,
+            },
         }
 
     def build_unregistered_single_step_data(self):

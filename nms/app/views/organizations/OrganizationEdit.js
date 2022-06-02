@@ -15,6 +15,7 @@
  */
 
 import type {Organization} from './Organizations';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
@@ -35,12 +36,12 @@ import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 
-import {AltFormField} from '../../../app/components/FormField';
+import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../app/hooks';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
-import {useParams} from 'react-router-dom';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(_ => ({
   arrowBack: {
@@ -98,6 +99,14 @@ type Props = {
   hideAdvancedFields?: boolean,
 };
 
+type DialogConfirmationProps = {
+  title: string,
+  message: string,
+  confirmationPhrase: string,
+  onClose: () => void,
+  onConfirm: () => void | Promise<void>,
+};
+
 function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
   const [confirmationPhrase, setConfirmationPhrase] = useState('');
   const {title, message, onClose, onConfirm} = props;
@@ -141,6 +150,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
  */
 function OrganizationEdit(props: WithAlert & Props) {
   const params = useParams();
+  const navigate = useNavigate();
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -248,7 +258,7 @@ function OrganizationEdit(props: WithAlert & Props) {
             }
           }}
         />
-        {(organizationToDelete ?? false) && (
+        {organizationToDelete !== null && (
           <DialogWithConfirmationPhrase
             title="Warning"
             message={`Please type the Organization name below to remove it.`}
@@ -260,7 +270,7 @@ function OrganizationEdit(props: WithAlert & Props) {
               await axios.delete(
                 `/host/organization/async/${organization?.id || ''}`,
               );
-              history.push('/host/organizations');
+              navigate('/host/organizations');
               setOrganizationToDelete(null);
             }}
           />
@@ -271,7 +281,7 @@ function OrganizationEdit(props: WithAlert & Props) {
               <Grid container alignItems="center">
                 <Grid>
                   <IconButton
-                    onClick={() => history.goBack()}
+                    onClick={() => navigate(-1)}
                     className={classes.arrowBack}
                     color="primary">
                     <ArrowBackIcon />
@@ -290,7 +300,9 @@ function OrganizationEdit(props: WithAlert & Props) {
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  setOrganizationToDelete(organization?.name);
+                  if (organization) {
+                    setOrganizationToDelete(organization.name);
+                  }
                 }}>
                 Remove Organization
               </Button>
