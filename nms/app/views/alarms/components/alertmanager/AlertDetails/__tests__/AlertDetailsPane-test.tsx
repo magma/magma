@@ -9,32 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlertDetailsPane from '../AlertDetailsPane';
 import {act, fireEvent, render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {alarmTestUtil} from '../../../../test/testHelpers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockAlert, mockRuleInterface} from '../../../../test/testData';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {AlertViewerProps} from '../../../rules/RuleInterface';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ApiUtil} from '../../../AlarmsApi';
 
 describe('AlertDetailsPane', () => {
-  let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
+  let AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
   let apiUtil: ApiUtil;
 
   const commonProps = {
-    alert: mockAlert({labels: {alertname: '<<test alert>>'}}),
+    alert: mockAlert({
+      labels: {
+        alertname: '<<test alert>>',
+      },
+    }),
     onClose: jest.fn(),
   };
 
@@ -94,7 +88,7 @@ describe('AlertDetailsPane', () => {
 
   it('shows troubleshooting link', () => {
     const alert = mockAlert({labels: {testLabel: 'testValue'}});
-    jest.spyOn(apiUtil, 'getTroubleshootingLink').mockReturnValue({
+    jest.spyOn(apiUtil, 'getTroubleshootingLink').mockResolvedValue({
       link: 'www.example.com',
       title: 'View troubleshooting documentation',
     });
@@ -110,8 +104,7 @@ describe('AlertDetailsPane', () => {
   });
 
   describe('Alert type selection', () => {
-    let AlarmsWrapper: React.ComponentType<$Shape<AlarmsWrapperProps>>;
-
+    let AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
     beforeEach(() => {
       ({AlarmsWrapper} = alarmTestUtil());
     });
@@ -160,9 +153,11 @@ describe('AlertDetailsPane', () => {
       () => {
         const mockAlertType = 'test';
         const getAlertTypeMock = jest.fn(() => mockAlertType);
-        function MockAlertViewer(_props: AlertViewerProps) {
+
+        function MockAlertViewer() {
           return <div data-testid="mock-alert-viewer" />;
         }
+
         const alert = mockAlert();
         const {getByTestId} = render(
           <AlarmsWrapper
