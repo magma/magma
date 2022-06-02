@@ -26,9 +26,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "../..", "/home/vagrant/magma"
 
   config.vm.define :cwag, primary: true do |cwag|
-    cwag.vm.box = "generic/ubuntu1804"
+    cwag.vm.box = "generic/ubuntu2004"
     cwag.disksize.size = '50GB'
-    cwag.vm.box_version = "1.9.12"
+    cwag.vm.box_version = "4.0.2"
     cwag.vbguest.auto_update = false
     cwag.vm.hostname = "cwag-dev"
     cwag.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
@@ -114,8 +114,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :cwag_test, primary: true do |cwag_test|
-    cwag_test.vm.box = "generic/ubuntu1804"
-    cwag_test.vm.box_version = "1.9.12"
+    cwag_test.vm.box = "generic/ubuntu2004"
+    cwag_test.vm.box_version = "4.0.2"
     cwag_test.vm.hostname = "cwag-test"
     cwag_test.vm.network "private_network", ip: "192.168.70.102", nic_type: "82540EM"
     cwag_test.vm.network "private_network", ip: "192.168.40.12", nic_type: "82540EM"
