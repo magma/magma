@@ -79,6 +79,7 @@ func TestPreprocessCloudMetrics(t *testing.T) {
 	assert.Equal(t, 2, len(labels))
 	assert.True(t, tests.HasLabel(labels, "cloudHost", "hostA"))
 	assert.True(t, tests.HasLabel(labels, testLabels[0].GetName(), testLabels[0].GetValue()))
+	assert.Equal(t, testFamily.GetName(), metricAndContext.Context.MetricName)
 }
 
 func TestPushedMetricsToMetricsAndContext(t *testing.T) {
