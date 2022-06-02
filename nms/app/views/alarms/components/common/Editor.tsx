@@ -17,6 +17,7 @@ import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import {GridSize} from '@material-ui/core/Grid';
 import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 
@@ -27,6 +28,7 @@ export type Props = {
   isNew: boolean;
   title?: string;
   description?: string;
+  xs?: boolean | GridSize;
 };
 const useStyles = makeStyles<Theme>(theme => ({
   gridContainer: {

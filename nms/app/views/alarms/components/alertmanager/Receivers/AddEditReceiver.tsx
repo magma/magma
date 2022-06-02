@@ -9,38 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 import * as React from 'react';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Editor from '../../common/Editor';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EmailConfigEditor from './EmailConfigEditor';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PagerDutyConfigEditor from './PagerDutyConfigEditor';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PushoverConfigEditor from './PushoverConfigEditor';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SlackConfigEditor from './SlackConfigEditor';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import WebhookConfigEditor from './WebhookConfigEditor';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useForm from '../../../hooks/useForm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {
   AlertReceiver,
   ReceiverConfigListName,
@@ -49,23 +38,15 @@ import type {
   ReceiverPushoverConfig,
   ReceiverSlackConfig,
   ReceiverWebhookConfig,
-  // $FlowFixMe migrated to typescript
 } from '../../AlarmAPIType';
 
 type Props = {
-  receiver: AlertReceiver,
-  isNew: boolean,
-  onExit: () => void,
+  receiver: AlertReceiver;
+  isNew: boolean;
+  onExit: () => void;
 };
 
-const CONFIG_TYPES: {
-  [string]: {
-    listName: ReceiverConfigListName,
-    friendlyName: string,
-    createConfig: () => {},
-    ConfigEditor: React.ComponentType<*>,
-  },
-} = {
+const CONFIG_TYPES = {
   slack: {
     friendlyName: 'Slack Channel',
     listName: 'slack_configs',
@@ -96,7 +77,7 @@ const CONFIG_TYPES: {
     createConfig: emptyPushoverReceiver,
     ConfigEditor: PushoverConfigEditor,
   },
-};
+} as const;
 
 export default function AddEditReceiver(props: Props) {
   const {apiUtil} = useAlarmContext();
@@ -116,7 +97,9 @@ export default function AddEditReceiver(props: Props) {
 
   const handleAddConfig = React.useCallback(
     (configType: string) => {
-      const {listName, createConfig} = CONFIG_TYPES[configType];
+      const {listName, createConfig} = CONFIG_TYPES[
+        configType as keyof typeof CONFIG_TYPES
+      ];
       addListItem(listName, createConfig());
     },
     [addListItem],
@@ -127,7 +110,7 @@ export default function AddEditReceiver(props: Props) {
       try {
         const request = {
           receiver: formState,
-          networkId: params.networkId,
+          networkId: params.networkId!,
         };
         if (isNew) {
           await apiUtil.createReceiver(request);
@@ -137,14 +120,10 @@ export default function AddEditReceiver(props: Props) {
         }
         snackbars.success(`Successfully ${isNew ? 'added' : 'saved'} receiver`);
       } catch (error) {
-        snackbars.error(
-          `Unable to save receiver: ${
-            error.response ? error.response.data.message : error.message
-          }.`,
-        );
+        snackbars.error(`Unable to save receiver: ${getErrorMessage(error)}.`);
       }
     }
-    makeApiCall();
+    void makeApiCall();
   }, [apiUtil, formState, isNew, params.networkId, onExit, snackbars]);
 
   const configEditorSharedProps = {
@@ -173,40 +152,43 @@ export default function AddEditReceiver(props: Props) {
               placeholder="Ex: Support Team"
               disabled={!isNew}
               value={formState.name}
-              onChange={handleInputChange(val => ({name: val}))}
+              onChange={handleInputChange((val: string) => ({name: val}))}
               fullWidth
             />
           </CardContent>
         </Card>
       </Grid>
 
-      {Object.keys(CONFIG_TYPES).map(key => {
-        const {
-          friendlyName,
-          createConfig,
-          listName,
-          ConfigEditor,
-        } = CONFIG_TYPES[key];
-        const list = formState[listName];
-        return (
-          <ConfigSection
-            title={friendlyName}
-            onAddConfigClicked={() => handleAddConfig(key)}>
-            {list && list.map
-              ? list.map((config, idx) => (
-                  <ConfigEditor
-                    {...getConfigEditorProps({
-                      listName: listName,
-                      index: idx,
-                      createConfig,
-                      ...configEditorSharedProps,
-                    })}
-                  />
-                ))
-              : null}
-          </ConfigSection>
-        );
-      })}
+      {(Object.keys(CONFIG_TYPES) as Array<keyof typeof CONFIG_TYPES>).map(
+        key => {
+          const {
+            friendlyName,
+            createConfig,
+            listName,
+            ConfigEditor,
+          } = CONFIG_TYPES[key];
+          const list = formState[listName];
+          return (
+            // TODO[TS-migration] Typing of the ConfigEditor is weak here because the association between field name and editor is lost here
+            <ConfigSection
+              title={friendlyName}
+              onAddConfigClicked={() => handleAddConfig(key)}>
+              {list && list.map
+                ? list.map((config, idx) => (
+                    <ConfigEditor
+                      {...getConfigEditorProps({
+                        listName: listName,
+                        index: idx,
+                        createConfig,
+                        ...configEditorSharedProps,
+                      })}
+                    />
+                  ))
+                : null}
+            </ConfigSection>
+          );
+        },
+      )}
     </Editor>
   );
 }
@@ -216,9 +198,9 @@ function ConfigSection({
   title,
   onAddConfigClicked,
 }: {
-  children?: ?React.Node,
-  title: string,
-  onAddConfigClicked: () => void,
+  children?: React.ReactNode;
+  title: string;
+  onAddConfigClicked: () => void;
 }) {
   return (
     <Grid item>
@@ -267,11 +249,11 @@ function emptyWebhookReceiver(): ReceiverWebhookConfig {
 }
 
 function emptyPagerDutyReceiver(): ReceiverPagerDutyConfig {
-  return {};
+  return ({} as unknown) as ReceiverPagerDutyConfig;
 }
 
 function emptyPushoverReceiver(): ReceiverPushoverConfig {
-  return {};
+  return ({} as unknown) as ReceiverPushoverConfig;
 }
 
 /**
@@ -290,29 +272,31 @@ function getConfigEditorProps<TConfig>({
   updateListItem,
   removeListItem,
 }: {
-  listName: ReceiverConfigListName,
-  index: number,
-  receiver: AlertReceiver,
-  formState: {[string]: Array<$Shape<TConfig>>, name: string},
-  createConfig: () => $Shape<TConfig>,
+  listName: ReceiverConfigListName;
+  index: number;
+  receiver: AlertReceiver;
+  formState: Record<ReceiverConfigListName, Array<Partial<TConfig>>> & {
+    name: string;
+  };
+  createConfig: () => Partial<TConfig>;
   updateListItem: (
     listName: ReceiverConfigListName,
     index: number,
-    update: $Shape<TConfig> | TConfig,
-  ) => void,
-  removeListItem: (listName: ReceiverConfigListName, index: number) => void,
+    update: Partial<TConfig> | TConfig,
+  ) => void;
+  removeListItem: (listName: ReceiverConfigListName, index: number) => void;
 }): {
-  config: TConfig,
-  onUpdate: ($Shape<TConfig>) => void,
-  onReset: () => void,
-  onDelete: () => void,
-  isNew: boolean,
+  config: any;
+  onUpdate: (update: Partial<TConfig>) => void;
+  onReset: () => void;
+  onDelete: () => void;
+  isNew: boolean;
 } {
   // The instance of a config such as ReceiverSlackConfig or ReceiverEmailConfig
   const config = formState[listName][index];
-  const isNew = !receiver[listName] || !receiver[listName][index];
+  const isNew = !receiver[listName]?.[index];
 
-  const onUpdate = (update: $Shape<TConfig> | TConfig) =>
+  const onUpdate = (update: Partial<TConfig> | TConfig) =>
     updateListItem(listName, index, update);
   const onDelete = () => removeListItem(listName, index);
   const onReset = () =>
@@ -325,9 +309,9 @@ function getConfigEditorProps<TConfig>({
        * contain a definition for this config, it's new and we can reset it
        * by generating a new instance of the config
        */
-      receiver[listName] && receiver[listName][index]
-        ? receiver[listName][index]
-        : null || createConfig(),
+      (receiver[listName]?.[index] || createConfig()) as
+        | Partial<TConfig>
+        | TConfig,
     );
 
   return {
