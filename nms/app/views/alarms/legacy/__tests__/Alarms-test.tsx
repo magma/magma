@@ -9,17 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
 import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../../theme/default';
-import useMagmaAPI from '../../../../../api/useMagmaAPIFlow';
+
+// @ts-ignore
+import useMagmaAPI from '../../../../../api/useMagmaAPIFlow'; // eslint-disable-line import/namespace,import/default
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -28,7 +26,7 @@ import {render} from '@testing-library/react';
 
 jest.mock('../../../../../api/useMagmaAPIFlow');
 
-const Wrapper = (props: {route: string, children: React.Node}) => (
+const Wrapper = (props: {route: string; children: React.ReactNode}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
@@ -56,7 +54,7 @@ describe('react router tests', () => {
 describe('Firing Alerts', () => {
   test('renders currently firing alerts if api returns alerts', () => {
     // eslint-disable-next-line flowtype/no-weak-types
-    (useMagmaAPI: any).mockReturnValue({
+    (useMagmaAPI as any).mockReturnValue({
       response: [
         {
           labels: {alertname: '<<TEST ALERT>>', team: '<<TEST TEAM>>'},

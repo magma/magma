@@ -9,23 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../components/context/AppContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FBCAlarms from '../components/Alarms';
-// $FlowFixMe migrated to typescript
 import type {ApiUtil} from '../components/AlarmsApi';
-// $FlowFixMe migrated to typescript
 import type {Labels} from '../components/AlarmAPIType';
 
 type Props = {
-  apiUtil: ApiUtil,
+  apiUtil: ApiUtil;
 };
 
 export default function Alarms(props: Props) {
@@ -37,7 +30,7 @@ export default function Alarms(props: Props) {
         isFeatureEnabled('alert_receivers') ? null : 'receivers',
         isFeatureEnabled('alert_routes') ? null : 'routes',
         isFeatureEnabled('alert_suppressions') ? null : 'suppressions',
-      ].filter(Boolean),
+      ].filter(Boolean) as Array<string>,
     [isFeatureEnabled],
   );
   return (
