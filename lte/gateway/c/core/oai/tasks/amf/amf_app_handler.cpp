@@ -163,12 +163,14 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
       ue_context_p->amf_context.m5_guti = *guti_p;
     }
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /* Insert guti into guti_ue_context_table */
 void amf_ue_context_on_new_guti(ue_m5gmm_context_t* const ue_context_p,
                                 const guti_m5_t* const guti_p) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  OAILOG_FUNC_IN(LOG_AMF_APP);
 
   if (ue_context_p) {
     amf_ue_context_update_coll_keys(
@@ -239,6 +241,7 @@ static bool amf_app_construct_guti(const plmn_t* const plmn_p,
    * using AMF code. Assumption is that within one PLMN only one pool of AMF
    * will be configured
    */
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_config.guamfi.nb > 1) {
     OAILOG_DEBUG(LOG_AMF_APP, "More than one AMFs are configured.");
   }
@@ -274,7 +277,7 @@ static bool amf_app_construct_guti(const plmn_t* const plmn_p,
   }
 
   amf_config_unlock(&amf_config);
-  return is_guti_valid;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, is_guti_valid);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -537,19 +540,20 @@ int amf_app_handle_pdu_session_response(
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context) {
     smf_ctx = amf_get_smf_context_by_pdu_session_id(
         ue_context, pdu_session_resp->pdu_session_id);
     if (smf_ctx == NULL) {
       OAILOG_ERROR(LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
                    pdu_session_resp->pdu_session_id);
-      return RETURNerror;
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
     ue_id = ue_context->amf_ue_ngap_id;
   } else {
     OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the imsi=%lu\n",
                  imsi64);
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   convert_ambr(&pdu_session_resp->session_ambr.downlink_unit_type,
@@ -642,7 +646,7 @@ int amf_app_handle_pdu_session_response(
     }
   }
 
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 /****************************************************************************
 **                                                                        **
@@ -665,12 +669,13 @@ void convert_ambr(const uint32_t* pdu_ambr_response_unit,
   uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
 
   // minimum rate unit is KBPS
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (*pdu_ambr_response_unit == BPS &&
       temp_pdu_ambr_response_value / 1000 == 0) {
     // Values less than 1Kbps are defaulted to 1Kbps
     *ambr_value = static_cast<uint16_t>(1);
     *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
-    return;
+    OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
   if (*pdu_ambr_response_unit == BPS) {
@@ -694,15 +699,17 @@ void convert_ambr(const uint32_t* pdu_ambr_response_unit,
       break;
   }
   *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 // Utility function to convert address to buffer
 int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
                         uint8_t* pdu_address_length) {
   uint32_t ip_int = 0;
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((paa == nullptr) || (pdu_address_info == nullptr) ||
       (pdu_address_length == nullptr)) {
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   switch (paa->pdn_type) {
     case IPv4:
@@ -720,7 +727,7 @@ int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
       } else {
         OAILOG_ERROR(LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
                      paa->ipv6_prefix_length);
-        return RETURNerror;
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
       }
       break;
     case IPv4_AND_v6:
@@ -734,13 +741,13 @@ int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
       } else {
         OAILOG_ERROR(LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
                      paa->ipv6_prefix_length);
-        return RETURNerror;
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
       }
       break;
     default:
       break;
   }
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /****************************************************************************
@@ -772,11 +779,12 @@ int amf_app_handle_pdu_session_accept(
 
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!ue_context) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
                  ue_id);
-    return M5G_AS_FAILURE;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
   }
 
   smf_ctx = amf_get_smf_context_by_pdu_session_id(
@@ -784,7 +792,7 @@ int amf_app_handle_pdu_session_accept(
   if (!smf_ctx) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT, ue_id);
-    return M5G_AS_FAILURE;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
   }
   // updating session state
   smf_ctx->pdu_session_state = ACTIVE;
@@ -947,7 +955,7 @@ int amf_app_handle_pdu_session_accept(
                  "Slice Configuration does not exist:" AMF_UE_NGAP_ID_FMT,
                  ue_id);
 
-    return M5G_AS_FAILURE;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
   }
 
   if (slice_information.sd[0]) {
@@ -1019,7 +1027,7 @@ int amf_app_handle_pdu_session_accept(
   /* Clean up the pco of pdu session establishment accept message */
   sm_free_protocol_configuration_options(&msg_accept_pco);
 
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }  // namespace magma5g
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
@@ -1040,7 +1048,7 @@ void amf_app_handle_resource_setup_response(
    */
   OAILOG_DEBUG(LOG_AMF_APP,
                "Handling uplink PDU session setup response message\n");
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (session_seup_resp.pduSessionResource_setup_list.no_of_items > 0) {
     ue_id = session_seup_resp.amf_ue_ngap_id;
 
@@ -1049,7 +1057,7 @@ void amf_app_handle_resource_setup_response(
       OAILOG_ERROR(LOG_AMF_APP,
                    "UE context not found for the ue_id = " AMF_UE_NGAP_ID_FMT,
                    ue_id);
-      return;
+      OAILOG_FUNC_OUT(LOG_AMF_APP);
     }
 
     smf_ctx = amf_get_smf_context_by_pdu_session_id(
@@ -1059,7 +1067,7 @@ void amf_app_handle_resource_setup_response(
       OAILOG_ERROR(LOG_AMF_APP, "PDU session  not found for session_id = %lu\n",
                    session_seup_resp.pduSessionResource_setup_list.item[0]
                        .Pdu_Session_ID);
-      return;
+      OAILOG_FUNC_OUT(LOG_AMF_APP);
     }
 
     /* This is success case and we need not to send message to SMF
@@ -1129,6 +1137,7 @@ void amf_app_handle_resource_setup_response(
     OAILOG_DEBUG(LOG_AMF_APP,
                  " Failure message not handled and dropping the message\n");
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /* Handling Resource Release Response from gNB */
@@ -1241,7 +1250,7 @@ static void amf_app_handle_ngap_ue_context_release(
           " Action -- Handle the "
           "message\n ",
           ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      OAILOG_FUNC_OUT(LOG_AMF_APP);
     }
     OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                     "ERROR: UE Context Release Request: UE state : IDLE. "

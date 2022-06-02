@@ -46,6 +46,7 @@ int nas_proc_establish_ind(const amf_ue_ngap_id_t ue_id,
                            const tai_t originating_tai, const ecgi_t ecgi,
                            const m5g_rrc_establishment_cause_t as_cause,
                            const s_tmsi_m5_t s_tmsi, bstring msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_sap_t amf_sap = {};
   uint32_t rc = RETURNerror;
   if (msg) {
@@ -76,21 +77,24 @@ int nas_proc_establish_ind(const amf_ue_ngap_id_t ue_id,
 **                                                                        **
 ***************************************************************************/
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_procedures_t* amf_procedures = new amf_procedures_t();
   LIST_INIT(&amf_procedures->amf_common_procs);
-  return amf_procedures;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, amf_procedures);
 }
 
 //-----------------------------------------------------------------------------
 static void nas5g_delete_auth_info_procedure(
     struct amf_context_s* amf_context,
     nas5g_auth_info_proc_t** auth_info_proc) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (*auth_info_proc) {
     if ((*auth_info_proc)->cn_proc.base_proc.parent) {
       (*auth_info_proc)->cn_proc.base_proc.parent->child = NULL;
     }
     free_wrapper((void**)auth_info_proc);
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /***********************************************************************
@@ -107,6 +111,7 @@ static void nas5g_delete_auth_info_procedure(
  ***********************************************************************/
 void amf_delete_child_procedures(amf_context_t* amf_ctx,
                                  struct nas5g_base_proc_t* const parent_proc) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ctx && amf_ctx->amf_procedures) {
     nas_amf_common_procedure_t* p1 =
         LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
@@ -119,6 +124,7 @@ void amf_delete_child_procedures(amf_context_t* amf_ctx,
       p1 = p2;
     }
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 //---------------------------------------------------------------------------------
@@ -267,6 +273,7 @@ static void nas5g_delete_common_procedures(amf_context_t* amf_context) {
 ***************************************************************************/
 void nas5g_delete_cn_procedure(struct amf_context_s* amf_context,
                                nas5g_cn_proc_t* cn_proc) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_context->amf_procedures) {
     nas5g_cn_procedure_t* p1 =
         LIST_FIRST(&amf_context->amf_procedures->cn_procs);
@@ -287,12 +294,13 @@ void nas5g_delete_cn_procedure(struct amf_context_s* amf_context,
         }
         LIST_REMOVE(p1, entries);
         free_wrapper((void**)&p1);
-        return;
+        OAILOG_FUNC_OUT(LOG_AMF_APP);
       }
       p1 = p2;
     }
     nas_amf_procedure_gc(amf_context);
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /***************************************************************************
@@ -305,6 +313,7 @@ void nas5g_delete_cn_procedure(struct amf_context_s* amf_context,
 **                                                                        **
 ***************************************************************************/
 static void nas5g_delete_cn_procedures(struct amf_context_s* amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_context->amf_procedures) {
     nas5g_cn_procedure_t* p1 =
         LIST_FIRST(&amf_context->amf_procedures->cn_procs);
@@ -323,6 +332,7 @@ static void nas5g_delete_cn_procedures(struct amf_context_s* amf_context) {
     }
     nas_amf_procedure_gc(amf_context);
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 //-----------------------------------------------------------------------------
@@ -352,6 +362,7 @@ void nas_delete_all_amf_procedures(amf_context_t* const amf_context) {
 ***************************************************************************/
 nas5g_auth_info_proc_t* nas5g_new_cn_auth_info_procedure(
     amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
@@ -366,11 +377,11 @@ nas5g_auth_info_proc_t* nas5g_new_cn_auth_info_procedure(
   if (wrapper) {
     wrapper->proc = &auth_info_proc->cn_proc;
     LIST_INSERT_HEAD(&amf_context->amf_procedures->cn_procs, wrapper, entries);
-    return auth_info_proc;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, auth_info_proc);
   } else {
     free_wrapper((void**)&auth_info_proc);
   }
-  return NULL;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
 
 /***************************************************************************
@@ -383,14 +394,16 @@ nas5g_auth_info_proc_t* nas5g_new_cn_auth_info_procedure(
 ***************************************************************************/
 nas_amf_registration_proc_t* get_nas_specific_procedure_registration(
     const amf_context_t* ctxt) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((ctxt) && (ctxt->amf_procedures) &&
       (ctxt->amf_procedures->amf_specific_proc) &&
       ((AMF_SPEC_PROC_TYPE_REGISTRATION ==
         ctxt->amf_procedures->amf_specific_proc->type))) {
-    return (nas_amf_registration_proc_t*)
-        ctxt->amf_procedures->amf_specific_proc;
+    OAILOG_FUNC_RETURN(
+        LOG_AMF_APP,
+        (nas_amf_registration_proc_t*)ctxt->amf_procedures->amf_specific_proc);
   }
-  return NULL;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
 
 /***************************************************************************
@@ -402,12 +415,13 @@ nas_amf_registration_proc_t* get_nas_specific_procedure_registration(
 **                                                                        **
 ***************************************************************************/
 bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((ctxt) && (ctxt->amf_procedures) &&
       (ctxt->amf_procedures->amf_specific_proc) &&
       ((AMF_SPEC_PROC_TYPE_REGISTRATION ==
         ctxt->amf_procedures->amf_specific_proc->type)))
-    return true;
-  return false;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, true);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, false);
 }
 
 /***************************************************************************
@@ -420,6 +434,7 @@ bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt) {
 ***************************************************************************/
 nas_amf_ident_proc_t* nas5g_new_identification_procedure(
     amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
@@ -433,11 +448,11 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
     wrapper->proc = &ident_proc->amf_com_proc;
     LIST_INSERT_HEAD(&amf_context->amf_procedures->amf_common_procs, wrapper,
                      entries);
-    return ident_proc;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, ident_proc);
   } else {
     free_wrapper((void**)&ident_proc);
   }
-  return ident_proc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, ident_proc);
 }
 
 /***************************************************************************
@@ -653,6 +668,7 @@ int amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
 }
 
 static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_ue_ngap_id_t ue_id = 0;
   amf_context_t* amf_ctxt_p = nullptr;
   int amf_cause = -1;
@@ -773,7 +789,7 @@ int amf_nas_proc_authentication_info_answer(
       OAILOG_WARNING(
           LOG_NAS_AMF,
           "nb_of_vectors should be lesser than max_eps_auth_vectors");
-      return RETURNerror;
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
     OAILOG_DEBUG(LOG_NAS_AMF,
@@ -966,12 +982,14 @@ void amf_nas_proc_clean_up(ue_m5gmm_context_s* ue_context_p) {
 }
 
 void nas_amf_procedure_gc(amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (LIST_EMPTY(&amf_context->amf_procedures->amf_common_procs) &&
       LIST_EMPTY(&amf_context->amf_procedures->cn_procs) &&
       (!amf_context->amf_procedures->amf_specific_proc)) {
     delete amf_context->amf_procedures;
     amf_context->amf_procedures = nullptr;
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 }  // namespace magma5g
