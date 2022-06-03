@@ -169,8 +169,6 @@ func TestCollect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
-	// check that label protos are converted
-	// assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
 	// clear queue
 	e.queue = e.queue[:0]
@@ -180,9 +178,7 @@ func TestCollect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
-	// assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
-	//assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Collect summaries
@@ -191,9 +187,7 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, 2, len(e.queue))
 	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[0].Value())
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
-	// assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
-	//assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Collect histograms
@@ -204,9 +198,7 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[1].Value())
 	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[2].Value())
 	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[3].Value())
-	// assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
-	//assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Test Collect with empty collection
@@ -269,8 +261,6 @@ func TestCollectMismatchedGateway(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
-	// check that label protos are converted
-	// assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.GatewayLabelName, gatewayID))
 
