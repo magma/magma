@@ -106,13 +106,11 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
             .with_capabilities() \
             .with_frequency_preferences() \
             .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number) \
-            .with_latitude_deg(100) \
-            .with_longitude_deg(1000) \
-            .with_cbsd_category("b")
+            .with_full_installation_param() \
+            .with_cbsd_category("a")
 
-        self.given_multi_step_cbsd_provisioned(builder)
+        self.given_single_step_cbsd_provisioned(builder)
         with self.while_cbsd_is_active():
             filters = get_filters_for_request_type('deregistration', self.serial_number)
 
@@ -120,31 +118,31 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
                 serial_number=self.serial_number,
                 installation_param=InstallationParam(
                     antenna_gain=DoubleValue(value=15),
-                    latitude_deg=DoubleValue(value=100.1),
-                    longitude_deg=DoubleValue(value=1000.1),
-                    indoor_deployment=BoolValue(value=False),
+                    latitude_deg=DoubleValue(value=10.6),
+                    longitude_deg=DoubleValue(value=11.6),
+                    indoor_deployment=BoolValue(value=True),
+                    height_type=StringValue(value="agl"),
+                    height_m=DoubleValue(value=12.5),
                 ),
-                cbsd_category="b",
+                cbsd_category="a",
             )
 
             self.when_cbsd_is_updated_by_enodebd(update_request)
             cbsd = self.when_cbsd_is_fetched(self.serial_number)
-            self.then_cbsd_is(cbsd, builder.with_latitude_deg(100.1).with_longitude_deg(1000.1).payload)
+            self.then_cbsd_is(cbsd, builder.with_latitude_deg(10.6).with_longitude_deg(11.6).payload)
             self.then_message_is_eventually_sent(filters)
 
     def test_cbsd_not_unregistered_when_coordinates_change_less_than_10_m(self):
-        builder = CbsdAPIDataBuilder() \
+        builder = CbsdAPIDataBuilder()\
+            .with_single_step_enabled(True) \
             .with_capabilities() \
             .with_frequency_preferences() \
             .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number) \
-            .with_indoor_deployment(False) \
-            .with_latitude_deg(100) \
-            .with_longitude_deg(1000) \
-            .with_cbsd_category("b")
+            .with_full_installation_param() \
+            .with_cbsd_category("a")
 
-        self.given_multi_step_cbsd_provisioned(builder)
+        self.given_single_step_cbsd_provisioned(builder)
         with self.while_cbsd_is_active():
             filters = get_filters_for_request_type('deregistration', self.serial_number)
 
@@ -152,11 +150,13 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
                 serial_number=self.serial_number,
                 installation_param=InstallationParam(
                     antenna_gain=DoubleValue(value=15),
-                    latitude_deg=DoubleValue(value=100.000001),
-                    longitude_deg=DoubleValue(value=1000.000001),
-                    indoor_deployment=BoolValue(value=False),
+                    latitude_deg=DoubleValue(value=10.500001),
+                    longitude_deg=DoubleValue(value=11.5000001),
+                    indoor_deployment=BoolValue(value=True),
+                    height_type=StringValue(value="agl"),
+                    height_m=DoubleValue(value=12.5),
                 ),
-                cbsd_category="b",
+                cbsd_category="a",
             )
 
             self.when_cbsd_is_updated_by_enodebd(update_request)

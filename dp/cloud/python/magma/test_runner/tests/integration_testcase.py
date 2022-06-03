@@ -13,7 +13,7 @@ class DomainProxyIntegrationTestCase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-
+        cls.maxDiff = None
         grpc_channel = grpc.insecure_channel(
             f"{config.GRPC_SERVICE}:{config.GRPC_PORT}",
         )
@@ -28,7 +28,7 @@ class Orc8rIntegrationTestCase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-
+        cls.maxDiff = None
         grpc_channel = grpc.insecure_channel(
             f"{config.ORC8R_DP_GRPC_SERVICE}:{config.ORC8R_DP_GRPC_PORT}",
         )
