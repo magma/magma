@@ -90,7 +90,7 @@ class S1ApUtil(object):
     datapath = get_datapath()
     SPGW_TABLE = 0
     LOCAL_PORT = "LOCAL"
-    LOCAL_PORT_NON_NAT_IPV6 = 15577
+    LOCAL_PORT_NON_NAT_IPV6 = 2
 
     class Msg(object):
         """Message class to store TFW response messages"""
@@ -1510,7 +1510,7 @@ class SpgwUtil(object):
         # DL Flow description #1
         dl_flow1 = {
             "ipv6_src": "3001::2",  # IPv6 source address
-            "tcp_src_port": 7001 + port_idx,  # TCP source port
+            "tcp_src_port": 5001 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1518,7 +1518,7 @@ class SpgwUtil(object):
         # DL Flow description #2
         dl_flow2 = {
             "ipv6_src": "3001::2",  # IPv6 source address
-            "tcp_src_port": 7002 + port_idx,  # TCP source port
+            "tcp_src_port": 5002 + port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }

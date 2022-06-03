@@ -157,11 +157,11 @@ class TrafficUtil(object):
         """ Update MTU size in TRF server """
         # Set MTU size to 1400 for ipv6
         if set_mtu == True:
-            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400")
+            ret_code = self.exec_command("sudo ip link set dev eth3 mtu 1400")
             if ret_code != 0:
                 return False
         else:
-            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500")
+            ret_code = self.exec_command("sudo ip link set dev eth3 mtu 1500")
             if ret_code != 0:
                 return False
         return True
@@ -320,7 +320,7 @@ class TrafficTest(object):
     _iproute = pyroute2.IPRoute()
     _net_iface_ipv4 = "eth2"
     _net_iface_ipv6 = "eth3"
-    _port = 7000
+    _port = 5000
     _port_lock = threading.Lock()
 
     # Remote iperf3 superserver (IP, port) tuple. Port 62462 is chosen because
