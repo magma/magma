@@ -89,7 +89,14 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-            bazel build //...
+            bazel build //... \
+              --profile=Bazel_build_all_profile
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Bazel build all profile
+          path: Bazel_build_all_profile
       - name: Build space left after run
         shell: bash
         run: |
@@ -139,7 +146,14 @@ jobs:
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             bazel test //... \
               --cache_test_results=no \
-              --test_output=errors
+              --test_output=errors \
+              --profile=Bazel_test_all_profile
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Bazel test all profile
+          path: Bazel_test_all_profile
       - name: Run `bazel run //:check_starlark_format`
         uses: addnab/docker-run-action@v3
         with:
@@ -206,7 +220,15 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-            bazel build lte/gateway/release:sctpd_deb_pkg --config=production
+            bazel build lte/gateway/release:sctpd_deb_pkg \
+              --config=production \
+              --profile=Bazel_build_package_profile
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Bazel build package profile
+          path: Bazel_build_package_profile
       - name: Build space left after run
         shell: bash
         run: |
