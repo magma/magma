@@ -59,7 +59,8 @@ git clone "${GIT_URL}" freediameter
 cd freediameter
 git checkout "${GIT_COMMIT}"
 
-patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch
+patch -p1 < $MAGMA_ROOT/lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch
+patch -p1 < $MAGMA_ROOT/lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch
 
 awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt
 
