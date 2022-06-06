@@ -15,6 +15,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"math"
 	"net"
@@ -30,7 +31,6 @@ import (
 	"fbc/lib/go/log"
 
 	"github.com/justinas/alice"
-	"github.com/pkg/errors"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 )
@@ -105,7 +105,7 @@ func New(config Config, options ...Option) (*Server, error) {
 	srv := &Server{Server: http.Server{Addr: config.Addr}}
 	err := srv.Apply(options[:idx]...)
 	if err != nil {
-		return nil, errors.Wrap(err, "applying early options")
+		return nil, fmt.Errorf("applying early options: %w", err)
 	}
 
 	if srv.Logger == nil {
@@ -119,7 +119,7 @@ func New(config Config, options ...Option) (*Server, error) {
 	srv.Mux, srv.Handler = config.createServeMux(srv.Logger)
 	err = srv.Apply(options[idx:]...)
 	if err != nil {
-		return nil, errors.Wrap(err, "applying late options")
+		return nil, fmt.Errorf("applying late options: %w", err)
 	}
 
 	return srv, nil

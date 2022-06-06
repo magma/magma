@@ -53,6 +53,7 @@ nas_amf_smc_proc_t* get_nas5g_common_procedure_smc(const amf_context_t* ctxt) {
 
 nas5g_cn_proc_t* get_nas5g_cn_procedure(const amf_context_t* ctxt,
                                         cn5g_proc_type_t proc_type) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ctxt) {
     if (ctxt->amf_procedures) {
       nas5g_cn_procedure_t* p1 = LIST_FIRST(&ctxt->amf_procedures->cn_procs);
@@ -60,13 +61,13 @@ nas5g_cn_proc_t* get_nas5g_cn_procedure(const amf_context_t* ctxt,
       while (p1) {
         p2 = LIST_NEXT(p1, entries);
         if (p1->proc->type == proc_type) {
-          return p1->proc;
+          OAILOG_FUNC_RETURN(LOG_AMF_APP, p1->proc);
         }
         p1 = p2;
       }
     }
   }
-  return NULL;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
 
 static int calculate_amf_serving_network_name(amf_context_t* amf_ctx,
@@ -133,6 +134,7 @@ static int start_authentication_information_procedure(
 }
 
 status_code_e amf_authentication_request_sent(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_mm_context = nullptr;
   amf_context_t* amf_context = nullptr;
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
@@ -219,6 +221,7 @@ static int start_authentication_information_procedure_synch(
 ***************************************************************************/
 nas_amf_common_proc_t* get_nas5g_common_procedure(
     const amf_context_t* const ctxt, amf_common_proc_type_t proc_type) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ctxt) {
     if (ctxt->amf_procedures) {
       nas_amf_common_procedure_t* p1 =
@@ -227,13 +230,13 @@ nas_amf_common_proc_t* get_nas5g_common_procedure(
       while (p1) {
         p2 = LIST_NEXT(p1, entries);
         if (p1->proc->type == proc_type) {
-          return p1->proc;
+          OAILOG_FUNC_RETURN(LOG_AMF_APP, p1->proc);
         }
         p1 = p2;
       }
     }
   }
-  return NULL;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
 
 /***************************************************************************
@@ -291,6 +294,7 @@ static int amf_authentication_abort(amf_context_t* amf_ctx,
 ***************************************************************************/
 nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
     amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
@@ -307,11 +311,11 @@ nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
     LIST_INSERT_HEAD(&amf_context->amf_procedures->amf_common_procs, wrapper,
                      entries);
     OAILOG_TRACE(LOG_NAS_AMF, "New AMF_COMM_PROC_AUTH\n");
-    return auth_proc;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, auth_proc);
   } else {
     free_wrapper((void**)&auth_proc);
   }
-  return NULL;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
 
 /***************************************************************************
@@ -660,11 +664,14 @@ int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
 
 inline void amf_ctx_clear_attribute_present(amf_context_t* const ctxt,
                                             const int attribute_bit_pos) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ctxt->member_present_mask &= ~attribute_bit_pos;
   ctxt->member_valid_mask &= ~attribute_bit_pos;
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_ctx_clear_attribute_present(ctxt, AMF_CTXT_MEMBER_AUTH_VECTORS);
 
   for (int i = 0; i < MAX_EPS_AUTH_VECTORS; i++) {
@@ -673,9 +680,11 @@ void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
   }
 
   ctxt->_security.vector_index = AMF_SECURITY_VECTOR_INDEX_INVALID;
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNerror;
   ue_m5gmm_context_s* ue_mm_context = nullptr;
   amf_sap_t amf_sap = {};
@@ -687,7 +696,7 @@ int amf_auth_auth_rej(amf_ue_ngap_id_t ue_id) {
 
   amf_free_ue_context(ue_mm_context);
 
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /****************************************************************************
@@ -914,6 +923,7 @@ int amf_send_authentication_request(amf_context_t* amf_ctx,
 // Fetch the serving network name
 static int calculate_amf_serving_network_name(amf_context_t* amf_ctx,
                                               unsigned char* snni) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   uint32_t mcc = 0;
   uint32_t mnc = 0;
   uint32_t mnc_digit_length = 0;
@@ -930,14 +940,14 @@ static int calculate_amf_serving_network_name(amf_context_t* amf_ctx,
       snprintf(snni_buffer, 40, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
 
   if (snni_buf_len != 32) {
-    OAILOG_ERROR(LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    OAILOG_ERROR(LOG_AMF_APP, "Failed to create proper SNNI String: %s ", snni);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   } else {
     memcpy(snni, snni_buffer, snni_buf_len);
-    OAILOG_DEBUG(LOG_NAS_AMF, "Serving network name: %s\n", snni);
+    OAILOG_DEBUG(LOG_AMF_APP, "Serving network name: %s\n", snni);
   }
 
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /****************************************************************************

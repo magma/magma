@@ -37,14 +37,15 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 uint64_t get_bit_rate(uint8_t ambr_unit) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ambr_unit < 6) {
-    return (1000);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 1000);
   } else if (ambr_unit < 11) {
-    return (1000 * 1000);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 1000 * 1000);
   } else if (ambr_unit < 16) {
-    return (1000 * 1000 * 1000);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 1000 * 1000 * 1000);
   }
-  return (0);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
 }
 
 /*
@@ -56,11 +57,13 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
                                   M5GSessionAmbrUnit ul_ambr_unit,
                                   uint64_t* dl_pdu_ambr,
                                   uint64_t* ul_pdu_ambr) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   *dl_pdu_ambr =
       (*dl_session_ambr) * get_bit_rate(static_cast<uint8_t>(dl_ambr_unit));
 
   *ul_pdu_ambr =
       (*ul_session_ambr) * get_bit_rate(static_cast<uint8_t>(ul_ambr_unit));
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /*
@@ -71,6 +74,7 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
 int pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   pdu_session_resource_setup_request_transfer_t*
       amf_pdu_ses_setup_transfer_req = nullptr;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
@@ -142,7 +146,7 @@ int pdu_session_resource_setup_request(
   // Send message to NGAP task
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /* Resource release request to gNB through NGAP */
@@ -150,6 +154,7 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
                                          amf_ue_ngap_id_t amf_ue_ngap_id,
                                          std::shared_ptr<smf_context_t> smf_ctx,
                                          bool retransmit) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   bstring buffer;
   uint32_t bytes = 0;
   DLNASTransportMsg* encode_msg = NULL;
@@ -246,7 +251,7 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
       OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
       bdestroy_wrapper(&buffer);
     }
-    return rc;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
@@ -290,9 +295,9 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
   } else {
     bdestroy(buffer);
     OAILOG_ERROR(LOG_AMF_APP, "NAS encode failed for PDU Release Command\n");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 }  // namespace magma5g
