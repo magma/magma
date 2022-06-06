@@ -1,17 +1,17 @@
 ---
 name: PR Hello
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   # Use pull_request_target to gain write permissions.
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
   pull_request_target:
-    types: [opened]
+    types: [ opened ]
 
 jobs:
   # This job is a manual approximation of https://github.com/peter-evans/create-or-update-comment
   comment:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v3
+      - uses: actions/github-script@f05a81df23035049204b043b50c3322045ce7eb3 # pin@v3
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |

@@ -1,7 +1,7 @@
 ---
 name: "Bazel Build & Test"
-on:  # yamllint disable-line rule:truthy
-  workflow_dispatch:
+on: # yamllint disable-line rule:truthy
+  workflow_dispatch: null
   pull_request:
     types:
       - opened
@@ -19,7 +19,6 @@ env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   CACHE_KEY: bazel-base-image
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
@@ -31,7 +30,7 @@ jobs:
       files_changed: ${{ steps.changes.outputs.files_changed }}
     steps:
       # Need to get git on push event
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         if: github.event_name == 'pull_request'
         id: changes
         with:
@@ -71,9 +70,9 @@ jobs:
           df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           options: --pull always
@@ -81,7 +80,7 @@ jobs:
           run: |
             echo "Pulled the bazel base image!"
       - name: Run `bazel build //...`
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -92,7 +91,7 @@ jobs:
             bazel build //... \
               --profile=Bazel_build_all_profile
       - name: Publish bazel profile
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel build all profile
@@ -126,9 +125,9 @@ jobs:
           df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           options: --pull always
@@ -136,11 +135,12 @@ jobs:
           run: |
             echo "Pulled the bazel base image!"
       - name: Run `bazel test //...`
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace
+            }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
@@ -149,13 +149,13 @@ jobs:
               --test_output=errors \
               --profile=Bazel_test_all_profile
       - name: Publish bazel profile
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel test all profile
           path: Bazel_test_all_profile
       - name: Run `bazel run //:check_starlark_format`
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -164,7 +164,7 @@ jobs:
             cd /workspaces/magma
             bazel run //:check_starlark_format
       - name: Test python services for missing modules
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -202,9 +202,9 @@ jobs:
           df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           options: --pull always
@@ -212,11 +212,12 @@ jobs:
           run: |
             echo "Pulled the bazel base image!"
       - name: Build .deb Packages
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
-          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace
+            }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
@@ -224,7 +225,7 @@ jobs:
               --config=production \
               --profile=Bazel_build_package_profile
       - name: Publish bazel profile
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel build package profile
@@ -240,7 +241,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Execute check
         shell: bash
         run: |
@@ -251,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Execute check
         shell: bash
         run: |
