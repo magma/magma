@@ -38,6 +38,7 @@ namespace magma5g {
 int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
     const amf_nas_message_decode_status_t decode_status) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNok;
   ue_m5gmm_context_s* ue_context = nullptr;
   notify_ue_event notify_ue_event_type;
@@ -211,6 +212,7 @@ int amf_handle_service_request(
 
 void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
                            supi_as_imsi_t& supi_imsi) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   supi_imsi.plmn.mcc_digit1 = imsi.mcc_digit1;
   supi_imsi.plmn.mcc_digit2 = imsi.mcc_digit2;
   supi_imsi.plmn.mcc_digit3 = imsi.mcc_digit3;
@@ -218,13 +220,15 @@ void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
   supi_imsi.plmn.mnc_digit1 = imsi.mnc_digit1;
   supi_imsi.plmn.mnc_digit2 = imsi.mnc_digit2;
   supi_imsi.plmn.mnc_digit3 = imsi.mnc_digit3;
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
                              ue_m5gmm_context_s* ue_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit1 = imsi.mcc_digit1;
@@ -233,13 +237,13 @@ int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
   ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit1 = imsi.mnc_digit1;
   ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit2 = imsi.mnc_digit2;
   ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3 = imsi.mnc_digit3;
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 void amf_get_registration_type_request(
     uint8_t received_reg_type, amf_proc_registration_type_t* params_reg_type) {
   std::string reg_type;
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (received_reg_type == AMF_REGISTRATION_TYPE_INITIAL) {
     reg_type = "INITIAL REGISTRATION TYPE";
   } else if (received_reg_type == AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
@@ -258,6 +262,7 @@ void amf_get_registration_type_request(
       static_cast<amf_proc_registration_type_t>(received_reg_type);
 
   OAILOG_INFO(LOG_AMF_APP, "Received registration type %s", reg_type.c_str());
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /* Identifies 5GS Registration type and processes the Message accordingly */
@@ -266,6 +271,7 @@ int amf_handle_registration_request(
     RegistrationRequestMsg* msg, const bool is_initial,
     const bool is_amf_ctx_new, int amf_cause,
     const amf_nas_message_decode_status_t decode_status) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNok;
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
@@ -510,7 +516,7 @@ int amf_handle_registration_request(
   rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /****************************************************************************

@@ -16,6 +16,7 @@ from typing import Optional  # noqa
 
 from lte.protos.policydb_pb2 import FlowMatch
 
+from .tc_ops import TcOpsBase
 from .tc_ops_cmd import TcOpsCmd, argSplit, run_cmd
 from .tc_ops_pyroute2 import TcOpsPyRoute2
 from .types import QosInfo
@@ -34,7 +35,7 @@ class TrafficClass:
     Creates/Deletes queues in linux. Using Qdiscs for flow based
     rate limiting(traffic shaping) of user traffic.
     """
-    tc_ops = None
+    tc_ops: Optional[TcOpsBase] = None
 
     @staticmethod
     def delete_class(intf: str, qid: int, skip_filter=False) -> int:
@@ -47,9 +48,15 @@ class TrafficClass:
 
     @staticmethod
     def create_class(
-        intf: str, qid: int, max_bw: int, rate=DEFAULT_RATE,
-        parent_qid=ROOT_QID, skip_filter=False,
+        intf: str, qid: int, max_bw: int, rate=None,
+        parent_qid=None, skip_filter=False,
     ) -> int:
+        if not rate:
+            rate = DEFAULT_RATE
+
+        if not parent_qid:
+            parent_qid = ROOT_QID
+
         if parent_qid == qid:
             # parent qid should only be self for root case, everything else
             # should be the child of root class

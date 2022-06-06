@@ -1,8 +1,9 @@
 package census
 
 import (
+	"fmt"
+
 	ocprom "contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
@@ -31,7 +32,7 @@ func WithProcessCollector() Option {
 		if err := opts.Registry.Register(prometheus.NewProcessCollector(
 			prometheus.ProcessCollectorOpts{Namespace: opts.Namespace},
 		)); err != nil {
-			return errors.Wrap(err, "registering process collector")
+			return fmt.Errorf("registering process collector: %w", err)
 		}
 		return nil
 	}
@@ -41,7 +42,7 @@ func WithProcessCollector() Option {
 func WithGoCollector() Option {
 	return func(opts *ocprom.Options) error {
 		if err := opts.Registry.Register(prometheus.NewGoCollector()); err != nil {
-			return errors.Wrap(err, "registering go collector")
+			return fmt.Errorf("registering go collector: %w", err)
 		}
 		return nil
 	}

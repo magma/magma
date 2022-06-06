@@ -133,12 +133,13 @@ profiles:
         value:
           manifests:
             - "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
-  - name: integration-tests-all
+  - name: integration-tests-dev
     patches:
       - op: add
         path: /deploy/kubectl
         value:
-          manifests: "./tools/deployment/tests/test_runner_*.yml"
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment_dev.yml"
 
   - name: remote
     deploy:
