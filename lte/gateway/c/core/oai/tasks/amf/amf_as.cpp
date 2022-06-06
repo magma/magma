@@ -81,7 +81,7 @@ int amf_as_send(amf_as_t* msg) {
   int rc = RETURNok;
   int amf_cause = AMF_CAUSE_SUCCESS;
   amf_as_primitive_t primitive = msg->primitive;
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   switch (primitive) {
     case _AMFAS_DATA_IND:
     case _AMFAS_ESTABLISH_REQ:
@@ -119,6 +119,7 @@ int amf_as_send(amf_as_t* msg) {
 **                                                                        **
 ***************************************************************************/
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_security_context_t* amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
   memset(&decode_status, 0, sizeof(decode_status));
@@ -228,7 +229,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
                    static_cast<uint8_t>(amf_msg->header.message_type),
                    __FUNCTION__);
   }
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /**************************************************************************
@@ -871,6 +872,7 @@ static int amf_identity_request(const amf_as_security_t* msg,
  **************************************************************************/
 static int amf_auth_reject(const amf_as_security_t* msg,
                            AuthenticationRejectMsg* amf_msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int size = AUTHENTICATION_REJECT_MINIMUM_LENGTH;
   amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -1007,7 +1009,7 @@ static int amf_as_security_req(const amf_as_security_t* msg,
         } else {
           OAILOG_ERROR(LOG_AMF_APP, "UE not found : " AMF_UE_NGAP_ID_FMT "\n",
                        as_msg->ue_id);
-          return -2;
+          OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
         }
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .nas_key_set_identifier.tsc = 0;
@@ -1172,6 +1174,7 @@ static int amf_as_security_rej(const amf_as_security_t* msg,
 
 int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
                                   amf_context_t* amf_ctx, bstring nas_msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/
 
@@ -1186,7 +1189,7 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     OAILOG_ERROR(
         LOG_AMF_APP,
         "Failed to allocate memory for ngap_initial_context_setup_req\n");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   req = &message_p->ittiMsg.ngap_initial_context_setup_req;
   memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
@@ -1270,11 +1273,11 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     req->nas_pdu = nas_msg;
   } else {
     OAILOG_DEBUG(LOG_AMF_APP, "Invalid nas_msg for registration accept");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /****************************************************************************

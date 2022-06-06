@@ -50,7 +50,6 @@ class TcSetypTest(unittest.TestCase):
             ln = ln.strip()
             if not ln:
                 continue
-            # print(ln)
             tokens = ln.split(" ")
 
             if len(tokens) > 11 and tokens[11] == qid:

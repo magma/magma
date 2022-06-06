@@ -96,6 +96,12 @@ jobs:
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             ./.github/workflows/generate-gcc-warnings.sh "${{ steps.changed_files.outputs.all }}"
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Bazel build gcc problems profile
+          path: Bazel_build_gcc_problems_profile
       - name: Load problem matcher
         # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
         #

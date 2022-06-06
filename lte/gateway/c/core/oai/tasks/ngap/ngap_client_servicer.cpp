@@ -24,9 +24,9 @@ namespace magma5g {
 NGAPClientServicer::NGAPClientServicer() {}
 
 NGAPClientServicer& NGAPClientServicer::getInstance() {
+  OAILOG_FUNC_IN(LOG_NGAP);
   static NGAPClientServicer instance;
-
-  return instance;
+  OAILOG_FUNC_RETURN(LOG_NGAP, instance);
 }
 
 status_code_e NGAPClientServicer::send_message_to_amf(
@@ -34,6 +34,7 @@ status_code_e NGAPClientServicer::send_message_to_amf(
     MessageDef* message) {
   status_code_e ret = RETURNok;
 
+  OAILOG_FUNC_IN(LOG_NGAP);
 #if !MME_UNIT_TEST
   ret = send_msg_to_task(task_zmq_ctx_p, destination_task_id, message);
 #else  /* !MME_UNIT_TEST */
@@ -43,7 +44,7 @@ status_code_e NGAPClientServicer::send_message_to_amf(
   free(message);
 #endif /* !MME_UNIT_TEST */
 
-  return (ret);
+  OAILOG_FUNC_RETURN(LOG_NGAP, ret);
 }
 
 }  // namespace magma5g

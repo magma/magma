@@ -4105,10 +4105,10 @@ export interface MutableCbsd {
     'frequency_preferences': FrequencyPreferences;
     /**
      * 
-     * @type {InstallationParam}
+     * @type {MutableInstallationParam}
      * @memberof MutableCbsd
      */
-    'installation_param'?: InstallationParam;
+    'installation_param'?: MutableInstallationParam;
     /**
      * 
      * @type {string}
@@ -4295,6 +4295,19 @@ export interface MutableFederationGateway {
      * @memberof MutableFederationGateway
      */
     'tier': string;
+}
+/**
+ * 
+ * @export
+ * @interface MutableInstallationParam
+ */
+export interface MutableInstallationParam {
+    /**
+     * 
+     * @type {number}
+     * @memberof MutableInstallationParam
+     */
+    'antenna_gain'?: number | null;
 }
 /**
  * LTE gateway object with read-only fields omitted

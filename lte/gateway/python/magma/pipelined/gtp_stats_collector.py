@@ -106,7 +106,7 @@ def _get_ovsdb_dump_params(params: OVSDBDumpCommandParams) -> List[str]:
 
 
 def _parse_ovsdb_dump_output(
-    stdout: str, stderr: str,
+    stdout: bytes, stderr: str,
     _,
 ) -> OVSDBCommandResult:
     """

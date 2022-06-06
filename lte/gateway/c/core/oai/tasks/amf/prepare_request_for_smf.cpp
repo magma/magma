@@ -64,6 +64,7 @@ namespace magma5g {
 ***************************************************************************/
 int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
                                              char* imsi, uint32_t version) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
 
@@ -100,7 +101,7 @@ int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
 
   AMFClientServicer::getInstance().set_smf_session(req);
 
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /***************************************************************************
@@ -119,7 +120,7 @@ int amf_smf_create_session_req(
   imsi64_t imsi64 = INVALID_IMSI64;
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctxt_p = NULL;
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_INFO(
       LOG_AMF_APP,
       "Sending msg(grpc) to :[sessiond] for ue: [%s] pdu session: [%u]\n", imsi,
@@ -137,10 +138,11 @@ int amf_smf_create_session_req(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  return AMFClientServicer::getInstance().amf_smf_create_pdu_session(
-      imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr, state_ambr, VERSION_0,
-      qos_profile);
+  OAILOG_FUNC_RETURN(
+      LOG_AMF_APP, AMFClientServicer::getInstance().amf_smf_create_pdu_session(
+                       imsi, apn, pdu_session_id, pdu_session_type,
+                       gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr, ue_ipv4_addr,
+                       ue_ipv6_addr, state_ambr, VERSION_0, qos_profile));
 }
 
 /***************************************************************************
@@ -153,6 +155,7 @@ int amf_smf_create_session_req(
  * ***************************************************************************/
 int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
                                           char* imsi, uint32_t version) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_mm_context = NULL;
@@ -195,7 +198,7 @@ int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
         message->gnb_gtp_teid_ip_addr, 4);
   }
 
-  return (RETURNok);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /***************************************************************************
@@ -207,6 +210,7 @@ int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
 **                                                                        **
 ***************************************************************************/
 int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::lte::SetSMSessionContext req;
   auto imsi_str = std::string(imsi);
   auto* req_common = req.mutable_common_context();
@@ -233,6 +237,6 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
 
   AMFClientServicer::getInstance().set_smf_session(req);
 
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 }  // namespace magma5g

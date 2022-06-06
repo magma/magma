@@ -18,7 +18,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
@@ -128,7 +127,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load federation gateway"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load federation gateway: %w", err))
 	}
 
 	ret := &fegModels.FederationGateway{

@@ -79,7 +79,7 @@ func (srv *CloudMetricsControllerServer) ConsumeCloudMetrics(inputChan chan *pro
 
 func preprocessCloudMetrics(family *prom_proto.MetricFamily, hostName string) exporters.MetricAndContext {
 	ctx := exporters.MetricContext{
-		MetricName: protos.GetDecodedName(family),
+		MetricName: family.GetName(),
 		AdditionalContext: &exporters.CloudMetricContext{
 			CloudHost: hostName,
 		},

@@ -11,7 +11,6 @@ require (
 	fbc/lib/go/log v0.0.0
 	github.com/google/uuid v1.1.1
 	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
-	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
 	go.opencensus.io v0.21.0
 	go.uber.org/multierr v1.1.0

@@ -34,6 +34,12 @@ orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
 	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
 
+.PHONY: dev_integration_tests
+dev_integration_tests: init_orc8r _ci_init cleanup_test_db
+	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
+	kubectl delete pods test-runner-dev --ignore-not-found=true
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-dev --trigger=manual
+
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
 
@@ -147,7 +153,7 @@ _generate_harness_config:
 .PHONY: _ci_integration_tests_no_orc8r
 _ci_integration_tests_no_orc8r: _install_skaffold_ci
 	skaffold run -p integration-tests-no-orc8
-	kubectl logs test-runner -f | tee /tmp/integration-tests-results/$@.txt
+	kubectl logs test-runner --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner -o jsonpath='{.status.phase}');\
@@ -156,7 +162,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
 	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
-	kubectl logs test-runner-orc8r -f | tee /tmp/integration-tests-results/$@.txt
+	kubectl logs test-runner-orc8r --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner-orc8r -o jsonpath='{.status.phase}');\
