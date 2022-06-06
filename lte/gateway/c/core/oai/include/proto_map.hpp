@@ -39,7 +39,7 @@ typedef enum proto_map_return_code_e {
 **                                                                        **
 ** Name:    map_rc_code2string()                                          **
 **                                                                        **
-** Description: This converts the proto_map_rc_t, return code to string **
+** Description: This converts the proto_map_rc_t, return code to string   **
 **                                                                        **
 ***************************************************************************/
 
@@ -84,7 +84,7 @@ static std::string map_rc_code2string(proto_map_rc_t rc) {
 
 /***************************************************************************
 **                                                                        **
-** Name:    proto_map_s **
+** Name:    proto_map_s                                                   **
 **                                                                        **
 ** Description: This is a generic structure for maps.It is implemented    **
 **              using template struct definitions.                        **
@@ -204,7 +204,7 @@ struct proto_map_s {
 
   /***************************************************************************
   **                                                                        **
-  ** Name:    destroy_map()                                                  **
+  ** Name:    destroy_map()                                                 **
   **                                                                        **
   ** Description: Clears the contents of the map and also delete map        **
   **                                                                        **
