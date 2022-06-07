@@ -29,6 +29,7 @@ import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
 // $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
+// $FlowFixMe migrated to typescript
 import TraceContext from '../../components/context/TraceContext';
 import withAlert from '../../components/Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';

@@ -9,20 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  call_trace,
-  mutable_call_trace,
-} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
+import type {CallTrace, MutableCallTrace} from '../../../generated-ts';
 
 export type TraceContextType = {
-  state: {[string]: call_trace},
-  setState?: (key: string, val?: mutable_call_trace) => Promise<void>,
+  state: Record<string, CallTrace>;
+  setState?: (key: string, val?: MutableCallTrace) => Promise<void>;
 };
-
-export default React.createContext<TraceContextType>({});
+export default React.createContext<TraceContextType>({} as TraceContextType);

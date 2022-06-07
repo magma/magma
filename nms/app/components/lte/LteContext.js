@@ -36,6 +36,7 @@ import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../context/SubscriberContext';
+// $FlowFixMe migrated to typescript
 import TraceContext from '../context/TraceContext';
 // $FlowFixMe migrated to typescript
 import type {EnodebInfo} from './EnodebUtils';
