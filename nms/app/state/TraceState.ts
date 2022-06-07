@@ -40,7 +40,8 @@ export async function InitTraceState(props: InitTraceStateProps) {
     ).data;
 
     if (traces) {
-      setTraceMap(traces);
+      // TODO[ts-migration] type of generated API is incorrect - fix swagger.yaml
+      setTraceMap((traces as unknown) as Record<string, CallTrace>);
     }
   } catch (e) {
     enqueueSnackbar?.('failed fetching call trace information', {
