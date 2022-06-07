@@ -19,6 +19,8 @@ type Props<T extends string | number> = {
   value: T;
   onChange: (value: T) => void;
   items: Record<T, string>;
+  className?: string;
+  input?: React.ReactElement<any, any>;
 };
 
 export default function TypedSelect<T extends string | number>(
