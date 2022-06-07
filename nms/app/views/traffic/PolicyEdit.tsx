@@ -9,44 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
-import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
-// $FlowFixMe migrated to typescript
 import PolicyAppEdit from './PolicyApp';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyFlowsEdit from './PolicyFlows';
 import PolicyHeaderEnrichmentEdit from './PolicyHeaderEnrichment';
 import PolicyInfoEdit from './PolicyInfo';
 import PolicyRedirectEdit from './PolicyRedirect';
 import PolicyTrackingEdit from './PolicyTracking';
-import React from 'react';
+import React, {SetStateAction} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {PolicyRule} from '../../../generated-ts';
 import {colors} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+
 const DEFAULT_POLICY_RULE = {
   qos_profile: undefined,
   id: '',
@@ -74,9 +64,9 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  open: boolean,
-  onClose: () => void,
-  rule?: policy_rule,
+  open: boolean;
+  onClose: () => void;
+  rule?: PolicyRule;
 };
 
 export default function PolicyRuleEditDialog(props: Props) {
@@ -114,10 +104,13 @@ export default function PolicyRuleEditDialog(props: Props) {
     'Redirect',
     'Header Enrichment',
   ];
+
   if (lteNetwork?.cellular?.epc?.network_services?.includes('dpi')) {
     tabList.push('App');
   }
-  const isAdd = props.rule ? false : true;
+
+  const isAdd = !props.rule;
+
   const onSave = async () => {
     try {
       if (isAdd) {
@@ -128,15 +121,18 @@ export default function PolicyRuleEditDialog(props: Props) {
           setError('empty rule id');
           return;
         }
+
         if (tabPos === 0 && rule.id in ctx.state) {
           setError(`Policy ${rule.id} already exists`);
           return;
         }
       }
+
       await ctx.setState(rule.id, rule, isNetworkWide);
       enqueueSnackbar('Policy saved successfully', {
         variant: 'success',
       });
+
       if (props.rule) {
         props.onClose();
       } else {
@@ -146,8 +142,8 @@ export default function PolicyRuleEditDialog(props: Props) {
           props.onClose();
         }
       }
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -157,7 +153,7 @@ export default function PolicyRuleEditDialog(props: Props) {
 
   const editProps = {
     policyRule: rule,
-    onChange: (policyRule: policy_rule) => {
+    onChange: (policyRule: PolicyRule) => {
       setRule(policyRule);
     },
     isNetworkWide,
@@ -179,7 +175,7 @@ export default function PolicyRuleEditDialog(props: Props) {
       />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v: SetStateAction<number>) => setTabPos(v)}
         indicatorColor="primary"
         variant="scrollable"
         scrollButtons="auto"
@@ -208,7 +204,10 @@ export default function PolicyRuleEditDialog(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Close</Button>
-        <Button variant="contained" color="primary" onClick={onSave}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => void onSave()}>
           {props.rule ? 'Save' : 'Save And Continue'}
         </Button>
       </DialogActions>

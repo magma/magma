@@ -29,6 +29,7 @@ import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview, {PolicyJsonConfig} from './PolicyOverview';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyRuleEditDialog from './PolicyEdit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileEditDialog from './ProfileEdit';
