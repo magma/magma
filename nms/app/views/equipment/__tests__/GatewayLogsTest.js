@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as customHistogram from '../../../components/CustomMetrics';
 import GatewayLogs from '../GatewayLogs';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

@@ -37,6 +37,7 @@ import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

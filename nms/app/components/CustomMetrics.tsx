@@ -9,22 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {ChartData, ChartTooltipItem} from 'react-chartjs-2';
-
 import React from 'react';
 import moment from 'moment';
 
 import {Bar, Line} from 'react-chartjs-2';
+import {ChartData, ChartTooltipItem, TimeUnit} from 'chart.js';
 
 export function getStepString(delta: number, unit: string) {
   return delta.toString() + unit[0];
 }
 
-export function getStep(start: moment, end: moment): [number, string, string] {
+export function getStep(
+  start: moment.Moment,
+  end: moment.Moment,
+): [number, string, string] {
   const d = moment.duration(end.diff(start));
   if (d.asMinutes() <= 60.5) {
     return [5, 'minute', 'HH:mm'];
@@ -50,12 +49,12 @@ export function getStep(start: moment, end: moment): [number, string, string] {
 // hence we have to split the start and end window into several sets of
 // [start, end] queries which can then be queried in parallel
 export function getQueryRanges(
-  start: moment,
-  end: moment,
+  start: moment.Moment,
+  end: moment.Moment,
   delta: number,
-  unit: string,
-): Array<[moment, moment]> {
-  const queries = [];
+  unit: TimeUnit,
+): Array<[moment.Moment, moment.Moment]> {
+  const queries: Array<[moment.Moment, moment.Moment]> = [];
   let s = start.clone();
   // go back delta time so that we get the total number of events
   // or logs at that 's' point of time
@@ -70,27 +69,36 @@ export function getQueryRanges(
 }
 
 export type DatasetType = {
-  t: number,
-  y: number,
+  t: number;
+  y: number;
 };
 
 export type Dataset = {
-  label: string,
-  borderWidth: number,
-  backgroundColor: string,
-  borderColor: string,
-  hoverBorderColor: string,
-  hoverBackgroundColor: string,
-  data: Array<DatasetType>,
+  label: string;
+  borderWidth: number;
+  backgroundColor: string;
+  borderColor: string;
+  hoverBorderColor: string;
+  hoverBackgroundColor: string;
+  data: Array<DatasetType>;
 };
 
 type Props = {
-  dataset: Array<Dataset>,
-  unit?: string,
-  yLabel?: string,
+  dataset: Array<Dataset>;
+  unit?: TimeUnit;
+  yLabel?: string;
   // $FlowFixMe[value-as-type] Unresolved types
-  tooltipHandler?: (ChartTooltipItem, ChartData) => string,
+  tooltipHandler?: (tooltipItem: ChartTooltipItem, data: ChartData) => string;
 };
+
+function defaultTooltip(
+  tooltipItem: ChartTooltipItem,
+  data: ChartData,
+  props: Props,
+) {
+  const dataSet = data.datasets![tooltipItem.datasetIndex!];
+  return `${dataSet.label!}: ${tooltipItem.yLabel!} ${props.unit ?? ''}`;
+}
 
 export default function CustomHistogram(props: Props) {
   return (
@@ -100,6 +108,8 @@ export default function CustomHistogram(props: Props) {
         data={{datasets: props.dataset}}
         options={{
           maintainAspectRatio: false,
+          // TODO[TS-migration is this a valid chart.js option?]
+          // @ts-ignore
           scaleShowValues: true,
           scales: {
             xAxes: [
@@ -143,14 +153,10 @@ export default function CustomHistogram(props: Props) {
             enabled: true,
             mode: 'nearest',
             callbacks: {
-              label: (tooltipItem, data) => {
+              label: (tooltipItem: ChartTooltipItem, data: ChartData) => {
                 return (
                   props.tooltipHandler?.(tooltipItem, data) ??
-                  data.datasets[tooltipItem.datasetIndex].label +
-                    ': ' +
-                    tooltipItem.yLabel +
-                    ' ' +
-                    (data.datasets[tooltipItem.datasetIndex].unit ?? '')
+                  defaultTooltip(tooltipItem, data, props)
                 );
               },
             },
@@ -179,6 +185,8 @@ export function CustomLineChart(props: Props) {
         }}
         options={{
           maintainAspectRatio: false,
+          // TODO[TS-migration is this a valid chart.js option?]
+          // @ts-ignore
           scaleShowValues: true,
           scales: {
             xAxes: [
@@ -221,14 +229,10 @@ export function CustomLineChart(props: Props) {
             enabled: true,
             mode: 'nearest',
             callbacks: {
-              label: (tooltipItem, data) => {
+              label: (tooltipItem: ChartTooltipItem, data: ChartData) => {
                 return (
                   props.tooltipHandler?.(tooltipItem, data) ??
-                  data.datasets[tooltipItem.datasetIndex].label +
-                    ': ' +
-                    tooltipItem.yLabel +
-                    ' ' +
-                    (data.datasets[tooltipItem.datasetIndex].unit ?? '')
+                  defaultTooltip(tooltipItem, data, props)
                 );
               },
             },
