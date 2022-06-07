@@ -9,59 +9,55 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
+import MagmaAPI from '../../api/MagmaAPI';
 import type {
-  base_name_record,
-  network_id,
-  policy_id,
-  policy_qos_profile,
-  policy_rule,
-  rating_group,
-} from '../../generated/MagmaAPIBindings';
-
-import MagmaV1API from '../../generated/WebClient';
+  BaseNameRecord,
+  PolicyQosProfile,
+  PolicyRule,
+  RatingGroup,
+} from '../../generated-ts';
+import type {NetworkId, PolicyId} from '../../shared/types/network';
 
 type Props = {
-  networkId: network_id,
-  policies: {[string]: policy_rule},
-  setPolicies: ({[string]: policy_rule}) => void,
-  key: policy_id,
-  value?: policy_rule,
+  networkId: NetworkId;
+  policies: Record<string, PolicyRule>;
+  setPolicies: (arg0: Record<string, PolicyRule>) => void;
+  key: PolicyId;
+  value?: PolicyRule;
 };
 
 export async function SetPolicyState(props: Props) {
   const {networkId, policies, setPolicies, key, value} = props;
+
   if (value != null) {
     if (!(key in policies)) {
-      await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
+      await MagmaAPI.policies.networksNetworkIdPoliciesRulesPost({
         networkId: networkId,
         policyRule: value,
       });
     } else {
-      await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+      await MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut({
         networkId: networkId,
         ruleId: key,
         policyRule: value,
       });
     }
-    // eslint-disable-next-line max-len
-    const policyRule = await MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId(
-      {
+
+    const policyRule = (
+      await MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet({
         networkId: networkId,
         ruleId: key,
-      },
-    );
+      })
+    ).data;
 
     if (policyRule) {
       const newPolicies = {...policies, [key]: policyRule};
       setPolicies(newPolicies);
     }
   } else {
-    await MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId({
+    await MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdDelete({
       networkId: networkId,
       ruleId: key,
     });
@@ -72,42 +68,44 @@ export async function SetPolicyState(props: Props) {
 }
 
 type BaseNameProps = {
-  networkId: network_id,
-  baseNames: {[string]: base_name_record},
-  setBaseNames: ({[string]: base_name_record}) => void,
-  key: string, // base name id
-  value?: base_name_record,
+  networkId: NetworkId;
+  baseNames: Record<string, BaseNameRecord>;
+  setBaseNames: (arg0: Record<string, BaseNameRecord>) => void;
+  key: string;
+  // base name id
+  value?: BaseNameRecord;
 };
 
 export async function SetBaseNameState(props: BaseNameProps) {
   const {networkId, baseNames, setBaseNames, key, value} = props;
+
   if (value != null) {
     if (!(key in baseNames)) {
-      await MagmaV1API.postNetworksByNetworkIdPoliciesBaseNames({
+      await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesPost({
         networkId: networkId,
         baseNameRecord: value,
       });
     } else {
-      await MagmaV1API.putNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+      await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNamePut({
         networkId: networkId,
         baseName: key,
         baseNameRecord: value,
       });
     }
-    // eslint-disable-next-line max-len
-    const baseName = await MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName(
-      {
+
+    const baseName = (
+      await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
         networkId: networkId,
         baseName: key,
-      },
-    );
+      })
+    ).data;
 
     if (baseName) {
       const newBaseNames = {...baseNames, [key]: baseName};
       setBaseNames(newBaseNames);
     }
   } else {
-    await MagmaV1API.deleteNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+    await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameDelete({
       networkId: networkId,
       baseName: key,
     });
@@ -118,11 +116,11 @@ export async function SetBaseNameState(props: BaseNameProps) {
 }
 
 type QosProfileProps = {
-  networkId: network_id,
-  qosProfiles: {[string]: policy_qos_profile},
-  setQosProfiles: ({[string]: policy_qos_profile}) => void,
-  key: string,
-  value?: policy_qos_profile,
+  networkId: NetworkId;
+  qosProfiles: Record<string, PolicyQosProfile>;
+  setQosProfiles: (arg0: Record<string, PolicyQosProfile>) => void;
+  key: string;
+  value?: PolicyQosProfile;
 };
 
 /* SetQosProfileState
@@ -134,33 +132,34 @@ if value is not present, the profile is deleted (DELETE)
 */
 export async function SetQosProfileState(props: QosProfileProps) {
   const {networkId, qosProfiles, setQosProfiles, key, value} = props;
+
   if (value != null) {
     if (!(key in qosProfiles)) {
-      await MagmaV1API.postLteByNetworkIdPolicyQosProfiles({
+      await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesPost({
         networkId: networkId,
         policy: value,
       });
     } else {
-      await MagmaV1API.putLteByNetworkIdPolicyQosProfilesByProfileId({
+      await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesProfileIdPut({
         networkId: networkId,
         profileId: key,
         profile: value,
       });
     }
-    // eslint-disable-next-line max-len
-    const qosProfile = await MagmaV1API.getLteByNetworkIdPolicyQosProfilesByProfileId(
-      {
+
+    const qosProfile = (
+      await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesProfileIdGet({
         networkId: networkId,
         profileId: key,
-      },
-    );
+      })
+    ).data;
 
     if (qosProfile) {
       const newPolicies = {...qosProfiles, [key]: qosProfile};
       setQosProfiles(newPolicies);
     }
   } else {
-    await MagmaV1API.deleteLteByNetworkIdPolicyQosProfilesByProfileId({
+    await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesProfileIdDelete({
       networkId: networkId,
       profileId: key,
     });
@@ -171,11 +170,11 @@ export async function SetQosProfileState(props: QosProfileProps) {
 }
 
 type RatingGroupProps = {
-  networkId: network_id,
-  ratingGroups: {[string]: rating_group},
-  setRatingGroups: ({[string]: rating_group}) => void,
-  key: string,
-  value?: rating_group,
+  networkId: NetworkId;
+  ratingGroups: Record<string, RatingGroup>;
+  setRatingGroups: (arg0: Record<string, RatingGroup>) => void;
+  key: string;
+  value?: RatingGroup;
 };
 
 /* SetRatingGroupState
@@ -187,36 +186,43 @@ if value is not present, the profile is deleted (DELETE)
 */
 export async function SetRatingGroupState(props: RatingGroupProps) {
   const {networkId, ratingGroups, setRatingGroups, key, value} = props;
+
   if (value != null) {
     if (!(key in ratingGroups)) {
-      await MagmaV1API.postNetworksByNetworkIdRatingGroups({
+      await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsPost({
         networkId: networkId,
         ratingGroup: value,
       });
     } else {
-      await MagmaV1API.putNetworksByNetworkIdRatingGroupsByRatingGroupId({
-        networkId: networkId,
-        ratingGroupId: parseInt(key),
-        ratingGroup: value,
-      });
+      await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsRatingGroupIdPut(
+        {
+          networkId: networkId,
+          ratingGroupId: parseInt(key),
+          ratingGroup: value,
+        },
+      );
     }
-    // eslint-disable-next-line max-len
-    const ratingGroup = await MagmaV1API.getNetworksByNetworkIdRatingGroupsByRatingGroupId(
-      {
-        networkId: networkId,
-        ratingGroupId: parseInt(key),
-      },
-    );
+
+    const ratingGroup = (
+      await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsRatingGroupIdGet(
+        {
+          networkId: networkId,
+          ratingGroupId: parseInt(key),
+        },
+      )
+    ).data;
 
     if (ratingGroup) {
       const newRatingGroups = {...ratingGroups, [key]: ratingGroup};
       setRatingGroups(newRatingGroups);
     }
   } else {
-    await MagmaV1API.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId({
-      networkId: networkId,
-      ratingGroupId: parseInt(key),
-    });
+    await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsRatingGroupIdDelete(
+      {
+        networkId: networkId,
+        ratingGroupId: parseInt(key),
+      },
+    );
     const newRatingGroups = {...ratingGroups};
     delete newRatingGroups[key];
     setRatingGroups(newRatingGroups);
