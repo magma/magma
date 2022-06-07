@@ -13,10 +13,12 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CustomHistogram from '../../components/CustomMetrics';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
@@ -28,6 +30,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

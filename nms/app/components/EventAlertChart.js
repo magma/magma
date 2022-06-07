@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Dataset} from './CustomMetrics';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {network_id} from '../../generated/MagmaAPIBindings';
@@ -35,6 +36,7 @@ import {
   getQueryRanges,
   getStep,
   getStepString,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './CustomMetrics';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
