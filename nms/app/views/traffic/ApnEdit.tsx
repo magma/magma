@@ -9,24 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  aggregated_maximum_bitrate,
-  apn,
-  apn_configuration,
-  qos_profile,
-} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -38,14 +27,12 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import type {Apn, ApnConfiguration, QosProfile} from '../../../generated-ts';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
@@ -65,14 +52,14 @@ const DEFAULT_APN_CONFIG = {
 };
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  apn?: apn,
+  open: boolean;
+  onClose: () => void;
+  apn?: Apn;
 };
 
 export default function ApnEditDialog(props: DialogProps) {
   const [_, setError] = useState('');
-  const [apn, setApn] = useState<apn>(props.apn || DEFAULT_APN_CONFIG);
+  const [apn, setApn] = useState<Apn>(props.apn || DEFAULT_APN_CONFIG);
   const isAdd = props.apn ? false : true;
 
   useEffect(() => {
@@ -98,7 +85,7 @@ export default function ApnEditDialog(props: DialogProps) {
         isAdd={isAdd}
         apn={apn}
         onClose={onClose}
-        onSave={(apn: apn) => {
+        onSave={(apn: Apn) => {
           setApn(apn);
           onClose();
         }}
@@ -108,48 +95,42 @@ export default function ApnEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  isAdd: boolean,
-  apn: apn,
-  apnConfig?: apn_configuration,
-  onClose: () => void,
-  onSave: apn => void,
+  isAdd: boolean;
+  apn: Apn;
+  apnConfig?: ApnConfiguration;
+  onClose: () => void;
+  onSave: (arg0: Apn) => void;
 };
-
-const PDNTypeEnum = Object.freeze({
-  IPv4: 0,
-  IPv6: 1,
-  IPv4v6: 2,
-  IPv4orv6: 3,
-});
 
 export function ApnEdit(props: Props) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(ApnContext);
-  const [apn, setApn] = useState<apn>(props.apn || DEFAULT_APN_CONFIG);
-  const [maxBandwidth, setMaxBandwidth] = useState<aggregated_maximum_bitrate>(
+  const [apn, setApn] = useState<Apn>(props.apn || DEFAULT_APN_CONFIG);
+  const [maxBandwidth, setMaxBandwidth] = useState(
     props.apn?.apn_configuration?.ambr ||
       DEFAULT_APN_CONFIG.apn_configuration.ambr,
   );
-  const [qosProfile, setQosProfile] = useState<qos_profile>(
+  const [qosProfile, setQosProfile] = useState(
     props.apn?.apn_configuration?.qos_profile ||
       DEFAULT_APN_CONFIG.apn_configuration.qos_profile,
   );
-
-  const [pdnType, setPdnType] = useState<$Values<typeof PDNTypeEnum>>(
+  const [pdnType, setPdnType] = useState(
     props.apn?.apn_configuration?.pdn_type ||
       DEFAULT_APN_CONFIG.apn_configuration.pdn_type,
   );
+
   const onSave = async () => {
     if (apn.apn_name === '') {
       throw Error('Invalid Name');
     }
+
     if (props.isAdd && apn.apn_name in ctx.state) {
       setError(`APN ${apn.apn_name} already exists`);
-      return;
     }
+
     try {
-      const newApn: apn = {
+      const newApn: Apn = {
         ...apn,
         apn_configuration: {
           ambr: maxBandwidth,
@@ -162,10 +143,11 @@ export function ApnEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(newApn);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e?.message);
+    } catch (error) {
+      getErrorMessage(error);
     }
   };
+
   return (
     <>
       <DialogContent data-testid="apnEditDialog">
@@ -195,7 +177,6 @@ export function ApnEdit(props: Props) {
                 data-testid="classID"
                 placeholder="9"
                 type="number"
-                min={0}
                 fullWidth={true}
                 value={qosProfile.class_id}
                 onChange={({target}) =>
@@ -211,7 +192,6 @@ export function ApnEdit(props: Props) {
                 data-testid="apnPriority"
                 placeholder="Value between 1 and 15"
                 type="number"
-                min={0}
                 fullWidth={true}
                 value={qosProfile.priority_level}
                 onChange={({target}) =>
@@ -228,7 +208,6 @@ export function ApnEdit(props: Props) {
                   data-testid="apnBandwidthUL"
                   placeholder="1000000"
                   type="number"
-                  min={0}
                   value={maxBandwidth.max_bandwidth_ul}
                   onChange={({target}) =>
                     setMaxBandwidth({
@@ -248,7 +227,6 @@ export function ApnEdit(props: Props) {
                   data-testid="apnBandwidthDL"
                   placeholder="1000000"
                   type="number"
-                  min={0}
                   value={maxBandwidth.max_bandwidth_dl}
                   onChange={({target}) =>
                     setMaxBandwidth({
@@ -294,8 +272,7 @@ export function ApnEdit(props: Props) {
                 variant={'outlined'}
                 value={pdnType || 0}
                 onChange={({target}) => {
-                  // $FlowIgnore: value guaranteed to match the number literals
-                  setPdnType(parseInt(target.value));
+                  setPdnType(parseInt(target.value as string));
                 }}
                 input={<OutlinedInput data-testId="pdnType" />}>
                 <MenuItem value={0}>
@@ -317,6 +294,7 @@ export function ApnEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
+        {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
         <Button onClick={onSave} variant="contained" color="primary">
           Save
         </Button>

@@ -13,6 +13,8 @@
  * @flow strict-local
  * @format
  */
+
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnEditDialog from './ApnEdit';
 import ApnOverview, {ApnJsonConfig} from './ApnOverview';
 import BaseNameEditDialog from './BaseNameEdit';
