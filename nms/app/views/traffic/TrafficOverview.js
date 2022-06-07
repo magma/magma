@@ -18,6 +18,7 @@ import ApnOverview, {ApnJsonConfig} from './ApnOverview';
 import BaseNameEditDialog from './BaseNameEdit';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataPlanEditDialog from './DataPlanEdit';
 import DataPlanOverview from './DataPlanOverview';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
