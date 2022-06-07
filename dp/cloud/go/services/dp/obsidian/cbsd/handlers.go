@@ -20,7 +20,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -17,7 +17,7 @@ import (
 	"html/template"
 	"testing"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/handlers"

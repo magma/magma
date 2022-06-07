@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/olivere/elastic/v7"
 
 	"magma/orc8r/cloud/go/obsidian"

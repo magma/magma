@@ -20,7 +20,7 @@ import (
 	"time"
 
 	strfmt "github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
