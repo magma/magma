@@ -86,6 +86,7 @@ import {
   // $FlowFixMe migrated to typescript
 } from '../../state/lte/EquipmentState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
+// $FlowFixMe migrated to typescript
 import {SetApnState} from '../../state/lte/ApnState';
 import {
   SetBaseNameState,
