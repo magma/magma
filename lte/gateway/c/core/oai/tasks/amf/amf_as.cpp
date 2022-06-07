@@ -63,6 +63,8 @@ static AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
                                  const amf_as_security_data_t* security);
 static int amf_service_rejectmsg(const amf_as_establish_t* msg,
                                  ServiceRejectMsg* service_reject);
+static int amf_service_reject(const amf_as_data_t* msg,
+                              ServiceRejectMsg* service_reject);
 /**************************************************************************
 **                                                                       **
 ** Name        : amf_as_send()                                           **
@@ -701,6 +703,14 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
         size = amf_de_reg_acceptmsg(msg, as_msg, &nas_msg,
                                     &amf_msg->msg.deregistrationacceptmsg);
       } break;
+      case AMF_AS_NAS_INFO_SR_REJ: {
+        size = amf_service_reject(msg, &amf_msg->msg.service_reject);
+        nas_msg.plain.amf.header.message_type =
+            M5GMessageType::M5G_SERVICE_REJECT;
+        nas_msg.plain.amf.header.extended_protocol_discriminator =
+            M5G_MOBILITY_MANAGEMENT_MESSAGES;
+      } break;
+
       default:
         // Send other NAS messages as already encoded SMF messages
         size = msg->nas_msg.length();
@@ -1588,11 +1598,36 @@ static int amf_service_rejectmsg(const amf_as_establish_t* msg,
 
   if (msg->amf_cause == AMF_CAUSE_CONGESTION) {
     service_reject->t3346Value.iei = GPRS_TIMER2;
-    service_reject->t3346Value.len = 1;
-    service_reject->t3346Value.timervalue = 60;
+    service_reject->t3346Value.len = SERVICE_REJ_T3346_LEN;
+    service_reject->t3346Value.timervalue = SERVICE_REJ_T3346_VALUE;
   }
 
   size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
+
+static int amf_service_reject(const amf_as_data_t* msg,
+                              ServiceRejectMsg* service_reject) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int size = M5G_SERVICE_REJECT_MINIMUM_LENGTH;
+
+  service_reject->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  service_reject->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REJECT);
+  service_reject->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+
+  service_reject->cause.iei = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
+  service_reject->cause.m5gmm_cause = msg->amf_cause;
+
+  if (msg->amf_cause == AMF_CAUSE_CONGESTION) {
+    service_reject->t3346Value.iei = GPRS_TIMER2;
+    service_reject->t3346Value.len = SERVICE_REJ_T3346_LEN;
+    service_reject->t3346Value.timervalue = SERVICE_REJ_T3346_VALUE;
+  }
+
+  size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+}
+
 }  // namespace magma5g

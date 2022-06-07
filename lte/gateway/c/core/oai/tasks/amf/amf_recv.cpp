@@ -158,6 +158,7 @@ int amf_handle_service_request(
           amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
           rc = amf_sap_send(&amf_sap);
         } else {
+          bool is_pdu_session_id_exist = false;
           ue_context->pending_service_response = true;
 
           IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
@@ -166,6 +167,7 @@ int amf_handle_service_request(
             if (smf_ctxt) {
               if (msg->uplink_data_status.uplinkDataStatus &
                   (1 << smf_ctxt->smf_proc_data.pdu_session_id)) {
+                is_pdu_session_id_exist = true;
                 OAILOG_DEBUG(
                     LOG_NAS_AMF,
                     "Sending session request to SMF on service request for"
@@ -178,6 +180,16 @@ int amf_handle_service_request(
                     smf_ctxt->smf_proc_data.pdu_session_id);
               }
             }
+          }
+          if (!is_pdu_session_id_exist) {
+            // Send prepare and send reject message.
+            OAILOG_INFO(LOG_NAS_AMF, "Sending service reject");
+            amf_sap.primitive = AMFAS_DATA_REQ;
+            amf_sap.u.amf_as.u.data.ue_id = ue_id;
+            amf_sap.u.amf_as.u.data.nas_info = AMF_AS_NAS_INFO_SR_REJ;
+            amf_sap.u.amf_as.u.data.amf_cause =
+                AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED;
+            rc = amf_sap_send(&amf_sap);
           }
         }
       }
