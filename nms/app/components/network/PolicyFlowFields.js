@@ -32,6 +32,7 @@ import TextField from '@material-ui/core/TextField';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../TypedSelect';
 
+// $FlowFixMe migrated to typescript
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {makeStyles} from '@material-ui/styles';
 
