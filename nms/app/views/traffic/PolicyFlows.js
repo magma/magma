@@ -46,6 +46,7 @@ import {
 // $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
 import {useState} from 'react';
 
