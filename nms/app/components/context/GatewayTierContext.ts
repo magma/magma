@@ -9,22 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {tier, tier_id} from '../../../generated/MagmaAPIBindings';
 
 import React from 'react';
+import type {Tier, TierId} from '../../../shared/types/network';
 
 type GatewayTierState = {
-  tiers: {[string]: tier},
-  supportedVersions: Array<string>,
+  tiers: Record<string, Tier>;
+  supportedVersions: Array<string>;
 };
 
 export type GatewayTierContextType = {
-  state: GatewayTierState,
-  setState: (key: tier_id, val?: tier) => Promise<void>,
+  state: GatewayTierState;
+  setState: (key: TierId, val?: Tier) => Promise<void>;
 };
-
-export default React.createContext<GatewayTierContextType>({});
+export default React.createContext<GatewayTierContextType>(
+  {} as GatewayTierContextType,
+);

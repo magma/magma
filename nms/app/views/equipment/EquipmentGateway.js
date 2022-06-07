@@ -30,6 +30,7 @@ import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
+// $FlowFixMe migrated to typescript
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
