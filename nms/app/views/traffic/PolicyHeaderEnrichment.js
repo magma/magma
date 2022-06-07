@@ -30,6 +30,7 @@ import React from 'react';
 import Text from '../../theme/design-system/Text';
 
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
 import {useEffect, useState} from 'react';
 

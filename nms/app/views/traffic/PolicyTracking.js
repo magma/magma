@@ -27,6 +27,7 @@ import {AltFormField} from '../../components/FormField';
 // $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
 
 const useStyles = makeStyles(() => policyStyles);

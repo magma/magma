@@ -31,6 +31,7 @@ import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
 
 const useStyles = makeStyles(() => policyStyles);
