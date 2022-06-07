@@ -42,6 +42,7 @@ import Typography from '@material-ui/core/Typography';
 
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe migrated to typescript
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 // $FlowFixMe migrated to typescript
 import {CWF, FEG, LTE} from '../../../shared/types/network';
