@@ -9,37 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {policy_qos_profile} from '../../../generated/MagmaAPIBindings';
+import type {PolicyQosProfile} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
@@ -50,12 +43,12 @@ const useStyles = makeStyles(() => ({
     width: '50%',
     fullWidth: true,
   },
-}));
+});
 
 type Props = {
-  open: boolean,
-  onClose: () => void,
-  profile?: policy_qos_profile,
+  open: boolean;
+  onClose: () => void;
+  profile?: PolicyQosProfile;
 };
 
 export default function ProfileEditDialog(props: Props) {
@@ -65,7 +58,7 @@ export default function ProfileEditDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
 
-  const [profile, setProfile] = useState<policy_qos_profile>(
+  const [profile, setProfile] = useState<PolicyQosProfile>(
     props.profile || {
       id: '',
       class_id: 0,
@@ -87,7 +80,7 @@ export default function ProfileEditDialog(props: Props) {
   }, [props.open, props.profile]);
 
   const isAdd = props.profile ? false : true;
-  const handleProfileChange = (key: string, val) => {
+  const handleProfileChange = (key: string, val: string | number) => {
     setProfile({...profile, [key]: val});
   };
   const onSave = async () => {
@@ -108,8 +101,8 @@ export default function ProfileEditDialog(props: Props) {
       });
 
       props.onClose();
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -166,7 +159,7 @@ export default function ProfileEditDialog(props: Props) {
               className={classes.input}
               type="number"
               fullWidth={true}
-              min={0}
+              inputProps={{min: 0}}
               data-testid="maxReqBwDl"
               placeholder="1000"
               value={profile.max_req_bw_dl}
@@ -198,7 +191,10 @@ export default function ProfileEditDialog(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Close</Button>
-        <Button variant="contained" color="primary" onClick={onSave}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => void onSave()}>
           Save
         </Button>
       </DialogActions>
