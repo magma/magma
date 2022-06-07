@@ -9,11 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -21,26 +17,26 @@ import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
+import type {
+  PolicyRule,
+  PolicyRuleAppNameEnum,
+  PolicyRuleAppServiceTypeEnum,
+} from '../../../generated-ts';
 
 const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
-  policyRule: policy_rule,
-  onChange: policy_rule => void,
+  policyRule: PolicyRule;
+  onChange: (arg0: PolicyRule) => void;
 };
 
 export default function PolicyAppEdit(props: Props) {
   const {policyRule} = props;
   const classes = useStyles();
-
   const appList = [
     'NO_APP_NAME',
     'FACEBOOK',
@@ -81,8 +77,7 @@ export default function PolicyAppEdit(props: Props) {
           onChange={({target}) => {
             props.onChange({
               ...policyRule,
-              // $FlowIgnore: value guaranteed to match the string literals
-              app_name: target.value,
+              app_name: target.value as PolicyRuleAppNameEnum,
             });
           }}
           input={<OutlinedInput id="appName" />}>
@@ -101,8 +96,7 @@ export default function PolicyAppEdit(props: Props) {
           onChange={({target}) => {
             props.onChange({
               ...policyRule,
-              // $FlowIgnore: value guaranteed to match the string literals
-              app_service_type: target.value,
+              app_service_type: target.value as PolicyRuleAppServiceTypeEnum,
             });
           }}
           input={<OutlinedInput id="appServiceType" />}>
