@@ -9,36 +9,36 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import MagmaV1API from '../../generated/WebClient';
-import type {EnqueueSnackbarOptions} from 'notistack';
-
+import MagmaAPI from '../../api/MagmaAPI';
 import type {
-  call_trace,
-  call_trace_config,
-  mutable_call_trace,
-  network_id,
-} from '../../generated/MagmaAPIBindings';
+  CallTrace,
+  CallTraceConfig,
+  MutableCallTrace,
+} from '../../generated-ts';
+import type {NetworkId} from '../../shared/types/network';
+import type {OptionsObject} from 'notistack';
 
 type InitTraceStateProps = {
-  networkId: network_id,
-  setTraceMap: ({[string]: call_trace}) => void,
+  networkId: NetworkId;
+  setTraceMap: (arg0: Record<string, CallTrace>) => void;
   enqueueSnackbar?: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => (string | number) | null | undefined;
 };
 
 export async function InitTraceState(props: InitTraceStateProps) {
   const {networkId, setTraceMap, enqueueSnackbar} = props;
+
   try {
-    const traces = await MagmaV1API.getNetworksByNetworkIdTracing({
-      networkId,
-    });
+    const traces = (
+      await MagmaAPI.callTracing.networksNetworkIdTracingGet({
+        networkId,
+      })
+    ).data;
+
     if (traces) {
       setTraceMap(traces);
     }
@@ -51,11 +51,11 @@ export async function InitTraceState(props: InitTraceStateProps) {
 }
 
 type CallTraceProps = {
-  networkId: network_id,
-  callTraces: {[string]: call_trace},
-  setCallTraces: ({[string]: call_trace}) => void,
-  key: string,
-  value?: $Shape<call_trace_config & mutable_call_trace>,
+  networkId: NetworkId;
+  callTraces: Record<string, CallTrace>;
+  setCallTraces: (arg0: Record<string, CallTrace>) => void;
+  key: string;
+  value?: Partial<CallTraceConfig & MutableCallTrace>;
 };
 
 /* SetCallTraceState
@@ -67,30 +67,34 @@ if value is not present, the trace is deleted (DELETE)
 */
 export async function SetCallTraceState(props: CallTraceProps) {
   const {networkId, callTraces, setCallTraces, key, value} = props;
+
   if (value != null) {
     if (!(key in callTraces)) {
-      await MagmaV1API.postNetworksByNetworkIdTracing({
+      await MagmaAPI.callTracing.networksNetworkIdTracingPost({
         networkId: networkId,
-        callTraceConfiguration: value, // call_trace_config
+        callTraceConfiguration: value as CallTraceConfig,
       });
     } else {
-      await MagmaV1API.putNetworksByNetworkIdTracingByTraceId({
+      await MagmaAPI.callTracing.networksNetworkIdTracingTraceIdPut({
         networkId: networkId,
         traceId: key,
-        callTraceConfiguration: value, // mutable_call_trace
+        callTraceConfiguration: value as MutableCallTrace,
       });
     }
-    const callTrace = await MagmaV1API.getNetworksByNetworkIdTracingByTraceId({
-      networkId: networkId,
-      traceId: key,
-    });
+
+    const callTrace = (
+      await MagmaAPI.callTracing.networksNetworkIdTracingTraceIdGet({
+        networkId: networkId,
+        traceId: key,
+      })
+    ).data;
 
     if (callTrace) {
       const newTraces = {...callTraces, [key]: callTrace};
       setCallTraces(newTraces);
     }
   } else {
-    await MagmaV1API.deleteNetworksByNetworkIdTracingByTraceId({
+    await MagmaAPI.callTracing.networksNetworkIdTracingTraceIdDelete({
       networkId: networkId,
       traceId: key,
     });

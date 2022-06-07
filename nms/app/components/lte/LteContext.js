@@ -85,6 +85,7 @@ import {
   UpdateGatewayPoolRecords,
   // $FlowFixMe migrated to typescript
 } from '../../state/lte/EquipmentState';
+// $FlowFixMe migrated to typescript
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 // $FlowFixMe migrated to typescript
 import {SetApnState} from '../../state/lte/ApnState';
@@ -107,7 +108,7 @@ import {
 } from '../../state/lte/SubscriberState';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,
