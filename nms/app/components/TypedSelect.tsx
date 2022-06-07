@@ -9,29 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-type Props<T: string | number> = {
-  value: T,
-  onChange: T => void,
-  items: {[T]: string},
+type Props<T extends string | number> = {
+  value: T;
+  onChange: (value: T) => void;
+  items: Record<T, string>;
 };
 
-export default function TypedSelect<T: string | number>(props: Props<T>) {
+export default function TypedSelect<T extends string | number>(
+  props: Props<T>,
+) {
   const {onChange, ...otherProps} = props;
   return (
     <Select
       {...otherProps}
-      // $FlowIgnore the selected values can only be the values in the MenuItems
-      onChange={({target}) => onChange(((target.value: any): T))}>
-      {Object.keys(props.items).map(key => (
+      onChange={({target}) => onChange(target.value as T)}>
+      {(Object.keys(props.items) as Array<T>).map(key => (
         <MenuItem value={key} key={key}>
           {props.items[key]}
         </MenuItem>

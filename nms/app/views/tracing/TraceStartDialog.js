@@ -28,6 +28,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 // $FlowFixMe migrated to typescript
 import TraceContext from '../../components/context/TraceContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 

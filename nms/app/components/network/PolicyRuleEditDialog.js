@@ -36,6 +36,7 @@ import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
