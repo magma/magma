@@ -20,6 +20,7 @@ import ActionTable from '../../components/ActionTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataPlanEditDialog from './DataPlanEdit';
 import Link from '@material-ui/core/Link';
 // $FlowFixMe migrated to typescript
@@ -40,6 +41,7 @@ import type {UpdateNetworkContextProps} from '../../components/context/LteNetwor
 import {
   BITRATE_MULTIPLIER,
   DATA_PLAN_UNLIMITED_RATES,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/network/DataPlanConst';
 
 const useStyles = makeStyles(theme => ({

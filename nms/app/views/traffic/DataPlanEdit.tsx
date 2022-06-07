@@ -9,54 +9,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import type {network_epc_configs} from '../../../generated/MagmaAPIBindings';
+import type {NetworkEpcConfigsSubProfilesValue} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
-// $FlowFixMe migrated to typescript
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
 
 import {
   BITRATE_MULTIPLIER,
   DATA_PLAN_UNLIMITED_RATES,
 } from '../../components/network/DataPlanConst';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useParams} from 'react-router-dom';
-
-type CellularNetworkProfile = $Values<
-  $NonMaybeType<$PropertyType<network_epc_configs, 'sub_profiles'>>,
->;
 
 /**
  * Calculates the bitrate value in bps based on the default
  * value input in the form, and the previous (default) bitrate.
  *
- * @param {?CellularNetworkProfile} dataPlan
+ * @param {?NetworkEpcConfigsSubProfilesValue} dataPlan
  *    - network epc configs including dataplans
  * @param {?editedValue} editedValue
  *    - the new specified bit rate in Mbps
@@ -64,18 +51,15 @@ type CellularNetworkProfile = $Values<
  *    - specifies whether we are editing upload of download bitrate
  */
 function _getBitRateValue(props: {
-  dataPlan: ?CellularNetworkProfile,
-  editedValue: ?string,
-  field: 'max_ul_bit_rate' | 'max_dl_bit_rate',
+  dataPlan: NetworkEpcConfigsSubProfilesValue | null | undefined;
+  editedValue: string | null;
+  field: 'max_ul_bit_rate' | 'max_dl_bit_rate';
 }): number {
   const {dataPlan, editedValue, field} = props;
   if (editedValue !== null && editedValue === '') {
     return DATA_PLAN_UNLIMITED_RATES[field];
   } else if (editedValue !== null) {
-    return Math.max(
-      parseFloat(0),
-      parseFloat(editedValue) * BITRATE_MULTIPLIER,
-    );
+    return Math.max(0, parseFloat(editedValue) * BITRATE_MULTIPLIER);
   }
   return dataPlan ? dataPlan[field] : DATA_PLAN_UNLIMITED_RATES[field];
 }
@@ -90,9 +74,9 @@ function _getBitRateValue(props: {
  *      Not supplied if creating a new data plan.
  */
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  dataPlanId: ?string,
+  open: boolean;
+  onClose: () => void;
+  dataPlanId: string | null | undefined;
 };
 
 /**
@@ -138,9 +122,9 @@ export default function DataPlanEditDialog(props: DialogProps) {
  * @property {string} dataPlanId
  */
 type Props = {
-  onSave: () => void,
-  onClose: () => void,
-  dataPlanId: string,
+  onSave: () => void;
+  onClose: () => void;
+  dataPlanId: string;
 };
 
 /**
@@ -155,7 +139,7 @@ export function DataPlanEdit(props: Props) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
-  const epcConfig = ctx.state.cellular.epc;
+  const epcConfig = ctx.state.cellular!.epc;
   const [editedName, setEditedName] = useState(props.dataPlanId || '');
   const dataPlan =
     (props.dataPlanId && epcConfig.sub_profiles?.[props.dataPlanId]) || null;
@@ -207,7 +191,7 @@ export function DataPlanEdit(props: Props) {
         variant: 'success',
       });
     } catch (error) {
-      setError(error.response?.data?.message || error);
+      setError(getErrorMessage(error));
     }
   };
   return (
@@ -238,7 +222,7 @@ export function DataPlanEdit(props: Props) {
                   data-testid="dataPlanMaxDlBitRate"
                   placeholder="Unlimited"
                   type="number"
-                  min={0}
+                  inputProps={{min: 0}}
                   value={editedMaxDlBitRate}
                   onChange={({target}) => setEditedMaxDlBitRate(target.value)}
                   endAdornment={
@@ -253,7 +237,7 @@ export function DataPlanEdit(props: Props) {
                   data-testid="dataPlanMaxUlBitRate"
                   placeholder="Unlimited"
                   type="number"
-                  min={0}
+                  inputProps={{min: 0}}
                   value={editedMaxUlBitRate}
                   onChange={({target}) => setEditedMaxUlBitRate(target.value)}
                   endAdornment={
@@ -269,7 +253,10 @@ export function DataPlanEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </DialogActions>
