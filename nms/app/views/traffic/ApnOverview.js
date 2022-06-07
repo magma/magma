@@ -19,6 +19,7 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 import ActionTable from '../../components/ActionTable';
 // $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnEditDialog from './ApnEdit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
