@@ -27,6 +27,7 @@ import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview, {PolicyJsonConfig} from './PolicyOverview';
 import PolicyRuleEditDialog from './PolicyEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileEditDialog from './ProfileEdit';
 import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
