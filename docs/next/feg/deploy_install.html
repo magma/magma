@@ -176,9 +176,10 @@ registration is still in-progress.</p>
 <p>To register the FeG, go to the Orchestrator's Swagger UI in your browser.
 (i.e. <a href="https://controller.url.sample:9443/swagger/v1/ui/">https://controller.url.sample:9443/swagger/v1/ui/</a>).</p>
 <p>Now, create a Federation Network. This is found at <code>/feg</code> under the
-<strong>Federation Networks</strong> section. Then register the gateway under the
-<strong>Federation Gateway</strong> section at <code>/feg/{network_id}/gateways</code> using the
-network ID of the Federation Network and the hardware ID and challenge key
+<strong>Federation Networks</strong> section. If you have not registered any gateways before, you
+must set up a tier under the <strong>Orchestrator</strong> section at <code>/networks/{network_id}/tiers</code>.
+Then register the gateway under the <strong>Federation Gateway</strong> section at <code>/feg/{network_id}/gateways</code>
+using the network ID of the Federation Network and the hardware ID and challenge key
 from the previous step.</p>
 <p>To verify that the gateway was correctly registered, run:</p>
 <pre><code class="hljs css language-console">INSTALL_HOST [~/]$ cd /var/opt/magma/docker
