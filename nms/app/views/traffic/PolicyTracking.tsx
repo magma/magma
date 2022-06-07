@@ -9,34 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
+import type {PolicyRule} from '../../../generated-ts';
 
 const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
-  policyRule: policy_rule,
-  onChange: policy_rule => void,
-  inputClass: string,
+  policyRule: PolicyRule;
+  onChange: (arg0: PolicyRule) => void;
+  inputClass: string;
 };
 
 export default function PolicyTrackingEdit(props: Props) {
@@ -57,10 +48,7 @@ export default function PolicyTrackingEdit(props: Props) {
           fullWidth={true}
           value={props.policyRule.monitoring_key ?? ''}
           onChange={({target}) => {
-            props.onChange({
-              ...props.policyRule,
-              monitoring_key: target.value,
-            });
+            props.onChange({...props.policyRule, monitoring_key: target.value});
           }}
         />
       </AltFormField>
@@ -115,7 +103,6 @@ export default function PolicyTrackingEdit(props: Props) {
           onChange={value => {
             props.onChange({
               ...props.policyRule,
-              // $FlowIgnore: value guaranteed to match the string literals
               tracking_type: value,
             });
           }}
