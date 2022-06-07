@@ -9,11 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -26,25 +22,23 @@ import ListItemText from '@material-ui/core/ListItemText';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
 import {useEffect, useState} from 'react';
+import type {PolicyRule} from '../../../generated-ts';
 
 const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
-  policyRule: policy_rule,
-  onChange: policy_rule => void,
+  policyRule: PolicyRule;
+  onChange: (arg0: PolicyRule) => void;
 };
 
 export default function PolicyHeaderEnrichmentEdit(props: Props) {
   const classes = useStyles();
-  const [newUrl, setNewUrl] = useState<string>('');
-  const [urlList, setUrlList] = useState<Array<string>>(
+  const [newUrl, setNewUrl] = useState('');
+  const [urlList, setUrlList] = useState(
     props.policyRule.header_enrichment_targets || [],
   );
 
