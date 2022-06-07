@@ -20,6 +20,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
 
 // $FlowFixMe migrated to typescript

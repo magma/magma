@@ -41,6 +41,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';

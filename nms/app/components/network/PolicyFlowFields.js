@@ -29,6 +29,7 @@ import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../TypedSelect';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
