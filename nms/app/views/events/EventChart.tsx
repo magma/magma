@@ -9,43 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CustomHistogram from '../../components/CustomMetrics';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
+import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type Props = {
-  start: moment,
-  end: moment,
-  delta: number,
-  unit: string,
-  format: string,
-  streams: string,
-  tags: string,
-  setEventCount: number => void,
+  start: moment.Moment;
+  end: moment.Moment;
+  delta: number;
+  unit: TimeUnit;
+  format: string;
+  streams: string;
+  tags: string;
+  setEventCount: (eventCount: number) => void;
 };
 
 export default function EventChart(props: Props) {
@@ -66,18 +57,20 @@ export default function EventChart(props: Props) {
 
   useEffect(() => {
     // build queries
-    let requestError = '';
+    let requestError: unknown;
     const queries = getQueryRanges(start, end, delta, unit);
-    const requests = queries.map(async (query, _) => {
+    const requests = queries.map(async query => {
       try {
         const [s, e] = query;
-        const response = await MagmaV1API.getEventsByNetworkIdAboutCount({
-          networkId: networkId,
-          streams: streams,
-          tags: tags,
-          start: s.toISOString(),
-          end: e.toISOString(),
-        });
+        const response = (
+          await MagmaAPI.events.eventsNetworkIdAboutCountGet({
+            networkId: networkId,
+            streams: streams,
+            tags: tags,
+            start: s.toISOString(),
+            end: e.toISOString(),
+          })
+        ).data;
         return response;
       } catch (error) {
         requestError = error;
