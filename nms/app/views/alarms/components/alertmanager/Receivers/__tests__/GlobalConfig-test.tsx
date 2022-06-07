@@ -72,7 +72,9 @@ describe('GlobalConfig', () => {
   });
 
   it('fills form inputs with values from backend', () => {
-    jest.spyOn(apiUtil, 'getGlobalConfig').mockReturnValue(defaultResponse);
+    jest
+      .spyOn(apiUtil, 'getGlobalConfig')
+      .mockReturnValue({data: defaultResponse});
     const {getByTestId} = render(
       <AlarmsWrapper>
         <GlobalConfig {...commonProps} />
@@ -149,7 +151,7 @@ describe('GlobalConfig', () => {
   it('submitting form submits updated values to backend', () => {
     jest
       .spyOn(apiUtil, 'getGlobalConfig')
-      .mockReturnValue({} as AlertManagerGlobalConfig);
+      .mockReturnValue({data: {} as AlertManagerGlobalConfig});
     const editConfigMock = jest
       .spyOn(apiUtil, 'editGlobalConfig')
       .mockImplementation();
@@ -178,9 +180,11 @@ describe('GlobalConfig', () => {
 
   it('erasing values from form removes keys from request', () => {
     jest.spyOn(apiUtil, 'getGlobalConfig').mockReturnValue({
-      resolve_timeout: '5m',
-      slack_api_url: 'https://hooks.slack.com',
-    } as AlertManagerGlobalConfig);
+      data: {
+        resolve_timeout: '5m',
+        slack_api_url: 'https://hooks.slack.com',
+      } as AlertManagerGlobalConfig,
+    });
     const editConfigMock = jest
       .spyOn(apiUtil, 'editGlobalConfig')
       .mockImplementation();

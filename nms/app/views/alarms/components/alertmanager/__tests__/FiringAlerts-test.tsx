@@ -16,8 +16,8 @@ import FiringAlerts from '../FiringAlerts';
 import {MockApiUtil, alarmTestUtil} from '../../../test/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 
+import {PromFiringAlert} from '../../../../../../generated-ts';
 import type {AlarmsWrapperProps} from '../../../test/testHelpers';
-import type {FiringAlarm} from '../../AlarmAPIType';
 
 describe('FiringAlerts', () => {
   let AlarmsWrapper: React.ComponentType<Partial<AlarmsWrapperProps>>;
@@ -41,9 +41,11 @@ describe('FiringAlerts', () => {
     const firingAlarms = [
       ({
         labels: {alertname: '<<testalert>>', severity: 'INFO'},
-      } as unknown) as FiringAlarm,
+      } as unknown) as PromFiringAlert,
     ];
-    jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
+    jest
+      .spyOn(apiUtil, 'viewFiringAlerts')
+      .mockReturnValue({data: firingAlarms});
     const {getByText} = render(
       <AlarmsWrapper>
         <FiringAlerts />
@@ -57,9 +59,11 @@ describe('FiringAlerts', () => {
     const firingAlarms = [
       ({
         labels: {alertname: '<<testalert>>', severity: 'INFO'},
-      } as unknown) as FiringAlarm,
+      } as unknown) as PromFiringAlert,
     ];
-    jest.spyOn(apiUtil, 'viewFiringAlerts').mockReturnValue(firingAlarms);
+    jest
+      .spyOn(apiUtil, 'viewFiringAlerts')
+      .mockReturnValue({data: firingAlarms});
     const {getByText, getByTestId} = render(
       <AlarmsWrapper>
         <FiringAlerts />

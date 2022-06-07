@@ -12,8 +12,8 @@
  */
 
 import * as React from 'react';
+import {PromFiringAlert} from '../../../../../generated-ts';
 import type {ApiRequest} from '../AlarmsApi';
-import type {FiringAlarm} from '../AlarmAPIType';
 
 export type RuleEditorProps<TRule> = {
   rule: GenericRule<TRule> | undefined | null;
@@ -26,7 +26,7 @@ export type RuleEditorProps<TRule> = {
 export type RuleViewerProps = {row?: any};
 
 export type AlertViewerProps = {
-  alert: FiringAlarm;
+  alert: PromFiringAlert;
 };
 
 /**
@@ -66,7 +66,7 @@ export type RuleInterface<TRule> = {
    * Retrieve all rules for this rule type
    */
   getRules: (req: ApiRequest) => Promise<Array<GenericRule<TRule>>>;
-  deleteRule: (req: {ruleName: string} & ApiRequest) => Promise<void>;
+  deleteRule: (req: {ruleName: string} & ApiRequest) => Promise<{data: void}>;
 };
 
 export type RuleInterfaceMap<TUnion> = Record<string, RuleInterface<TUnion>>;

@@ -11,18 +11,6 @@
  * limitations under the License.
  */
 
-export type FiringAlarm = {
-  annotations: Labels;
-  endsAt: string;
-  fingerprint: string;
-  labels: Labels;
-  receivers: Array<GettableReceiver>;
-  startsAt: string;
-  status: FiringAlarmStatus;
-  updatedAt: string;
-  generatorURL?: string;
-};
-
 type GettableReceiver = {
   name: string;
 };

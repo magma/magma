@@ -31,7 +31,7 @@ export default function getPrometheusRuleInterface({
        * Get alert rules from backend and map to generic
        */
       getRules: async req => {
-        const rules = await apiUtil.getAlertRules(req);
+        const rules = (await apiUtil.getAlertRules(req)).data;
         return rules.map<GenericRule<AlertConfig>>(rule => ({
           name: rule.alert,
           description: rule.annotations?.description || '',

@@ -39,8 +39,8 @@ import {makeStyles} from '@material-ui/styles';
 
 import {Theme} from '@material-ui/core/styles';
 import type {ApiUtil} from './AlarmsApi';
-import type {FiringAlarm} from './AlarmAPIType';
 import type {Labels} from './AlarmAPIType';
+import type {PromFiringAlert} from '../../../../generated-ts';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 const useTabStyles = makeStyles<Theme>(theme => ({
@@ -93,7 +93,7 @@ type Props<TRuleUnion> = {
   thresholdEditorEnabled?: boolean;
   alertManagerGlobalConfigEnabled?: boolean;
   filterLabels?: (labels: Labels) => Labels;
-  getAlertType?: (alert: FiringAlarm) => string;
+  getAlertType?: (alert: PromFiringAlert) => string;
   emptyAlerts?: React.ReactNode;
 };
 

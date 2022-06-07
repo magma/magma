@@ -244,10 +244,12 @@ function ThresholdExpressionEditor({
   );
   React.useEffect(() => {
     async function getMetricLabels() {
-      const response = await apiUtil.getMetricSeries({
-        name: metricName,
-        networkId: networkId,
-      });
+      const response = (
+        await apiUtil.getMetricSeries({
+          name: metricName,
+          networkId: networkId,
+        })
+      ).data;
       const labelValues = new Map<string, Set<string>>();
       for (const metric of response) {
         for (const labelName of Object.keys(metric)) {

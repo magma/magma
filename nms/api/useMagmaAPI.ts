@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import {AxiosError, AxiosPromise} from 'axios';
+import {AxiosError} from 'axios';
 import {BASE_API} from './MagmaAPI';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../app/hooks/useSnackbar';
 
 export default function <TParams, TResponse>(
-  func: (params: TParams) => AxiosPromise<TResponse>,
+  func: (params: TParams) => Promise<{data: TResponse}>,
   params: TParams,
   onResponse?: (response: TResponse) => void,
   cacheCounter?: string | number,

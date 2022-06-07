@@ -88,8 +88,10 @@ describe('AlertDetailsPane', () => {
   it('shows troubleshooting link', () => {
     const alert = mockAlert({labels: {testLabel: 'testValue'}});
     jest.spyOn(apiUtil, 'getTroubleshootingLink').mockReturnValue({
-      link: 'www.example.com',
-      title: 'View troubleshooting documentation',
+      data: {
+        link: 'www.example.com',
+        title: 'View troubleshooting documentation',
+      },
     });
 
     const {getByText} = render(
