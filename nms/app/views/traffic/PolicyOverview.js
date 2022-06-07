@@ -34,6 +34,7 @@ import PolicyContext from '../../components/context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileEditDialog from './ProfileEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
