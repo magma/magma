@@ -29,16 +29,19 @@ import (
 )
 
 const (
-	registered       = "registered"
-	unregistered     = "unregistered"
-	someCbsdIdStr    = "some_cbsd_id"
-	authorized       = "authorized"
-	someNetwork      = "some_network"
-	otherNetwork     = "other_network_id"
-	someCbsdId       = 123
-	someFccId        = "some_fcc_id"
-	someUserId       = "some_user_id"
-	someSerialNumber = "some_serial_number"
+	registered            = "registered"
+	unregistered          = "unregistered"
+	someCbsdIdStr         = "some_cbsd_id"
+	authorized            = "authorized"
+	someNetwork           = "some_network"
+	otherNetwork          = "other_network_id"
+	someCbsdId            = 123
+	someFccId             = "some_fcc_id"
+	someUserId            = "some_user_id"
+	someSerialNumber      = "some_serial_number"
+	someOtherSerialNumber = "some_other_serial_number"
+	anotherSerialNumber   = "another_serial_number"
+	differentSerialNumber = "different_serial_number"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -231,6 +234,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 		name     string
 		input    *storage.DBCbsd
 		toUpdate *storage.DBCbsd
+		expected *storage.DBCbsd
 	}{{
 		name: "test enodebd update",
 		input: b.NewDBCbsdBuilder().
@@ -246,41 +250,93 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			WithCbsdCategory("a").
 			WithFullInstallationParam().
 			Cbsd,
+		expected: b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithSerialNumber(someSerialNumber).
+			WithDesiredStateId(state).
+			WithShouldDeregister(true).
+			WithCbsdCategory("a").
+			WithFullInstallationParam().
+			Cbsd,
 	}, {
-		name: "test enodebd only updates allowed fields",
+		name: "test enodebd should not update if coordinates change is less than 10 m",
 		input: b.NewDBCbsdBuilder().
 			WithId(2).
 			WithNetworkId(someNetwork).
-			WithSerialNumber("some_other_serial_number").
+			WithSerialNumber(someOtherSerialNumber).
+			WithDesiredStateId(state).
+			WithIndoorDeployment(true).
+			WithLatitude(10).
+			WithLongitude(100).
+			WithStateId(state).
+			Cbsd,
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber(someOtherSerialNumber).
+			WithCbsdCategory("a").
+			WithIndoorDeployment(true).
+			WithLatitude(10.00001).
+			WithLongitude(100.00001).
+			Cbsd,
+		expected: b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithSerialNumber(someOtherSerialNumber).
+			WithDesiredStateId(state).
+			WithIndoorDeployment(true).
+			WithShouldDeregister(false).
+			WithLatitude(10).
+			WithLongitude(100).
+			Cbsd,
+	}, {
+		name: "test enodebd only updates allowed fields",
+		input: b.NewDBCbsdBuilder().
+			WithId(3).
+			WithNetworkId(someNetwork).
+			WithSerialNumber(anotherSerialNumber).
 			WithDesiredStateId(state).
 			WithStateId(state).
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
-			WithSerialNumber("some_other_serial_number").
+			WithSerialNumber(anotherSerialNumber).
 			WithFccId(someFccId).
 			WithUserId(someUserId).
-			WithDesiredStateId(s.enumMaps[storage.CbsdStateTable][unregistered]).
-			WithNetworkId("some_other_network").
+			WithDesiredStateId(s.enumMaps[storage.CbsdStateTable][registered]).
+			WithNetworkId(anotherSerialNumber).
 			WithSingleStepEnabled(false).
 			WithCbsdCategory("a").
 			WithFullInstallationParam().
+			Cbsd,
+		expected: b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithSerialNumber(anotherSerialNumber).
+			WithDesiredStateId(state).
+			WithFullInstallationParam().
+			WithCbsdCategory("a").
+			WithShouldDeregister(true).
 			Cbsd,
 	}, {
 		name: "test enodebd nulls out unfilled installation params",
 		input: b.NewDBCbsdBuilder().
-			WithId(3).
+			WithId(4).
 			WithNetworkId(someNetwork).
-			WithSerialNumber("different_serial_number").
+			WithSerialNumber(differentSerialNumber).
 			WithFullInstallationParam().
 			WithDesiredStateId(state).
 			WithStateId(state).
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
-			WithSerialNumber("different_serial_number").
-			WithSingleStepEnabled(false).
+			WithSerialNumber(differentSerialNumber).
 			WithCbsdCategory("a").
+			WithIncompleteInstallationParam().
+			Cbsd,
+		expected: b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithSerialNumber(differentSerialNumber).
+			WithCbsdCategory("a").
+			WithDesiredStateId(state).
+			WithShouldDeregister(true).
 			WithIncompleteInstallationParam().
 			Cbsd,
 	}}
@@ -288,8 +344,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 		s.Run(tc.name, func() {
 			s.givenResourcesInserted(tc.input)
 
-			c := tc.toUpdate
-			err := s.cbsdManager.EnodebdUpdateCbsd(c)
+			err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
 			s.Require().NoError(err)
 
 			err = s.resourceManager.InTransaction(func() {
@@ -301,19 +356,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					Where(sq.Eq{"cbsd_serial_number": tc.input.CbsdSerialNumber}).
 					Fetch()
 				s.Require().NoError(err)
-				expectedBuilder := b.NewDBCbsdBuilder().Empty()
-				expectedBuilder.Cbsd = tc.toUpdate
-				expectedBuilder.WithSingleStepEnabled(false).
-					WithShouldDeregister(true).
-					WithDesiredStateId(s.enumMaps[storage.CbsdStateTable][registered]).
-					WithNetworkId(someNetwork).
-					WithFccId(someFccId).
-					WithUserId(someUserId).
-					WithPreferredFrequenciesMHz("[3600]").
-					WithPreferredBandwidthMHz(20).
-					WithMinPower(10).WithMaxPower(20).
-					WithNumberOfPorts(2)
-				expected := []db.Model{expectedBuilder.Cbsd}
+				expected := []db.Model{tc.expected}
 				s.Assert().Equal(expected, actual)
 			})
 			s.Require().NoError(err)
