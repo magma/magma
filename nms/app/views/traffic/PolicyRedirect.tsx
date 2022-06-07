@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import ListItem from '@material-ui/core/ListItem';
@@ -21,30 +18,26 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
+import {PolicyRule} from '../../../generated-ts';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
-import type {policy_rule} from '../../../generated/MagmaAPIBindings';
 
 const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
-  policyRule: policy_rule,
-  onChange: policy_rule => void,
-  inputClass: string,
+  policyRule: PolicyRule;
+  onChange: (arg0: PolicyRule) => void;
+  inputClass: string;
 };
 
 export default function PolicyRedirectEdit(props: Props) {
   const classes = useStyles();
   const {policyRule} = props;
   // eslint-disable-next-line no-warning-comments
-  // $FlowFixMe policy_rule type will be updated to include field
-  const redInfo = policyRule?.redirect_information || {
+  // $FlowFixMe PolicyRule type will be updated to include field
+  const redInfo = policyRule?.redirect || {
     server_address: '',
     address_type: 'IPv4',
     support: 'DISABLED',
@@ -53,10 +46,7 @@ export default function PolicyRedirectEdit(props: Props) {
   const handleFieldChange = (field: string, value: number | string) => {
     props.onChange({
       ...policyRule,
-      redirect_information: {
-        ...redInfo,
-        [field]: value,
-      },
+      redirect: {...redInfo, [field]: value},
     });
   };
 
@@ -92,7 +82,7 @@ export default function PolicyRedirectEdit(props: Props) {
           // $FlowFixMe redirect_info type needed
           value={redInfo.address_type || 'IPv4'}
           onChange={({target}) => {
-            handleFieldChange('address_type', target.value);
+            handleFieldChange('address_type', target.value as string);
           }}
           input={<OutlinedInput id="addressType" />}>
           <MenuItem value={'IPv4'}>
