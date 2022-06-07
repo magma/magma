@@ -38,4 +38,4 @@ export const policyStyles = {
     color: colors.primary.mirage,
   },
   switch: {margin: 'auto 0px'},
-};
+} as const;
