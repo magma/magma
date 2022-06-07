@@ -9,14 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  policy_qos_profile,
-  policy_rule,
-} from '../../../generated/MagmaAPIBindings';
 
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -25,24 +18,21 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
+import type {PolicyQosProfile, PolicyRule} from '../../../generated-ts';
 
 const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
-  policyRule: policy_rule,
-  qosProfiles: {[string]: policy_qos_profile},
-  onChange: policy_rule => void,
-  isNetworkWide: boolean,
-  setIsNetworkWide: boolean => void,
-  inputClass: string,
+  policyRule: PolicyRule;
+  qosProfiles: Record<string, PolicyQosProfile>;
+  onChange: (arg0: PolicyRule) => void;
+  isNetworkWide: boolean;
+  setIsNetworkWide: (arg0: boolean) => void;
+  inputClass: string;
 };
 
 export default function PolicyInfoEdit(props: Props) {
@@ -99,7 +89,10 @@ export default function PolicyInfoEdit(props: Props) {
           variant={'outlined'}
           value={policyRule?.qos_profile ?? ''}
           onChange={({target}) => {
-            props.onChange({...policyRule, qos_profile: target.value});
+            props.onChange({
+              ...policyRule,
+              qos_profile: target.value as string,
+            });
           }}
           input={<OutlinedInput id="qosProfile" />}>
           {Object.keys(qosProfiles).map(profileID => (
