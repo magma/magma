@@ -9,15 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
-import type {
-  flow_description,
-  policy_rule,
-} from '../../../generated/MagmaAPIBindings';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -33,50 +25,53 @@ import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-
 import {
   ACTION,
   DIRECTION,
   PROTOCOL,
 } from '../../components/network/PolicyTypes';
-// $FlowFixMe migrated to typescript
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
+import {
+  FlowDescriptionActionEnum,
+  FlowMatch,
+  FlowMatchDirectionEnum,
+  FlowMatchIpProtoEnum,
+} from '../../../generated-ts';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {policyStyles} from './PolicyStyles';
 import {useState} from 'react';
+import type {FlowDescription, PolicyRule} from '../../../generated-ts';
 
 const useStyles = makeStyles(() => policyStyles);
 
 type FieldProps = {
-  index: number,
-  flow: flow_description,
-  handleDelete: number => void,
-  onChange: (number, flow_description) => void,
+  index: number;
+  flow: FlowDescription;
+  handleDelete: (arg0: number) => void;
+  onChange: (arg0: number, arg1: FlowDescription) => void;
 };
 
 function PolicyFlowFields2(props: FieldProps) {
   const classes = useStyles();
   const {flow} = props;
   const [ipAddrType, setIPAddrType] = useState<'IPv4' | 'IPv6'>('IPv4');
-  const handleActionChange = action =>
+
+  const handleActionChange = (action: FlowDescriptionActionEnum) =>
     props.onChange(props.index, {
       ...props.flow,
-      // $FlowIgnore: value guaranteed to match the string literals
       action,
     });
 
-  const handleFieldChange = (field: string, value: number | string | {}) =>
+  const handleFieldChange = <K extends keyof FlowMatch>(
+    field: K,
+    value: FlowMatch[K],
+  ) =>
     props.onChange(props.index, {
       ...props.flow,
-      match: {
-        ...props.flow.match,
-        [field]: value,
-      },
+      match: {...props.flow.match, [field]: value},
     });
 
   return (
@@ -103,7 +98,10 @@ function PolicyFlowFields2(props: FieldProps) {
             </Grid>
           </Grid>
         </AccordionSummary>
-        <AccordionDetails classes={{root: classes.block}}>
+        <AccordionDetails
+          classes={{
+            root: classes.block,
+          }}>
           <div className={classes.flex}>
             <Grid container spacing={2}>
               <Grid item xs={4}>
@@ -113,7 +111,9 @@ function PolicyFlowFields2(props: FieldProps) {
                     variant={'outlined'}
                     value={flow.action}
                     onChange={({target}) => {
-                      handleActionChange(target.value);
+                      handleActionChange(
+                        target.value as FlowDescriptionActionEnum,
+                      );
                     }}
                     input={<OutlinedInput id="action" />}>
                     <MenuItem value={ACTION.PERMIT}>
@@ -168,7 +168,7 @@ function PolicyFlowFields2(props: FieldProps) {
                         value={ipAddrType}
                         exclusive
                         onChange={(_, nextAddrType) =>
-                          setIPAddrType(nextAddrType)
+                          setIPAddrType(nextAddrType as 'IPv4' | 'IPv6')
                         }>
                         <ToggleButton value="IPv4">{'IPv4'}</ToggleButton>
                         <ToggleButton value="IPv6">{'IPv6'}</ToggleButton>
@@ -184,7 +184,10 @@ function PolicyFlowFields2(props: FieldProps) {
                     variant={'outlined'}
                     value={flow.match.direction}
                     onChange={({target}) => {
-                      handleFieldChange('direction', target.value);
+                      handleFieldChange(
+                        'direction',
+                        target.value as FlowMatchDirectionEnum,
+                      );
                     }}
                     input={<OutlinedInput id="direction" />}>
                     <MenuItem value={DIRECTION.UPLINK}>
@@ -241,7 +244,10 @@ function PolicyFlowFields2(props: FieldProps) {
                     variant={'outlined'}
                     value={flow.match.ip_proto}
                     onChange={({target}) => {
-                      handleFieldChange('ip_proto', target.value);
+                      handleFieldChange(
+                        'ip_proto',
+                        target.value as FlowMatchIpProtoEnum,
+                      );
                     }}
                     input={<OutlinedInput id="protocol" />}>
                     <MenuItem value={PROTOCOL.IPPROTO_IP}>
@@ -306,29 +312,29 @@ function PolicyFlowFields2(props: FieldProps) {
 }
 
 type Props = {
-  policyRule: policy_rule,
-  onChange: policy_rule => void,
-  inputClass: string,
+  policyRule: PolicyRule;
+  onChange: (arg0: PolicyRule) => void;
+  inputClass: string;
 };
 
 export default function PolicyFlowsEdit(props: Props) {
   const classes = useStyles();
+
   const handleAddFlow = () => {
-    const flowList = [
+    const flowList: Array<FlowDescription> = [
       ...(props.policyRule.flow_list || []),
       {
-        action: ACTION.DENY,
+        action: FlowDescriptionActionEnum.Deny,
         match: {
           direction: DIRECTION.UPLINK,
           ip_proto: PROTOCOL.IPPROTO_IP,
         },
       },
     ];
-
     props.onChange({...props.policyRule, flow_list: flowList});
   };
 
-  const onFlowChange = (index, flow) => {
+  const onFlowChange = (index: number, flow: FlowDescription) => {
     const flowList = [...(props.policyRule.flow_list || [])];
     flowList[index] = flow;
     props.onChange({...props.policyRule, flow_list: flowList});
