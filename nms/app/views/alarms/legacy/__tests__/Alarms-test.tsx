@@ -16,15 +16,14 @@ import Alarms from '../Alarms';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../../theme/default';
 
-// @ts-ignore
-import useMagmaAPI from '../../../../../api/useMagmaAPIFlow'; // eslint-disable-line import/namespace,import/default
+import useMagmaAPI from '../../../../../api/useMagmaAPI';
 import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {render} from '@testing-library/react';
 
-jest.mock('../../../../../api/useMagmaAPIFlow');
+jest.mock('../../../../../api/useMagmaAPI');
 
 const Wrapper = (props: {route: string; children: React.ReactNode}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>

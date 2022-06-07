@@ -40,15 +40,15 @@ export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
    * I don't understand how to properly type these mocks so using any for now.
    * The consuming code is all strongly typed, this shouldn't be much of an issue.
    */
-  // eslint-disable-next-line flowtype/no-weak-types
   const useAlarmsApi = jest.fn<any, any>(
     <TParams, TResponse>(
-      func: (arg0: TParams) => Promise<TResponse>,
+      func: (arg0: TParams) => Promise<{data: TResponse}>,
       params: TParams,
       _cacheCounter?: string | number,
     ) => ({
       isLoading: false,
-      response: func(params),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+      response: (func(params) as any)?.data,
       error: null,
     }),
   );

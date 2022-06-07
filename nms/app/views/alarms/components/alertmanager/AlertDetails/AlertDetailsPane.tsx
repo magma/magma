@@ -31,6 +31,7 @@ import Paper from '@material-ui/core/Paper';
 import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
+import {PromFiringAlert} from '../../../../../../generated-ts';
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -40,7 +41,7 @@ import type {
   AlertViewerProps,
   RuleInterfaceMap,
 } from '../../rules/RuleInterface';
-import type {FiringAlarm, Labels} from '../../AlarmAPIType';
+import type {Labels} from '../../AlarmAPIType';
 import type {SvgIconProps} from '@material-ui/core';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -60,7 +61,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
 }));
 type Props = {
-  alert: FiringAlarm;
+  alert: PromFiringAlert;
   onClose: () => void;
 };
 export default function AlertDetailsPane({alert, onClose}: Props) {

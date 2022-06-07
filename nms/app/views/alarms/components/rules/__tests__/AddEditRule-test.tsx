@@ -15,7 +15,7 @@ import * as React from 'react';
 import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';
 import nullthrows from '../../../../../../shared/util/nullthrows';
-import {act, fireEvent, render} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 import {alarmTestUtil, renderAsync} from '../../../test/testHelpers';
 import {mockPrometheusRule} from '../../../test/testData';
 import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
@@ -59,17 +59,19 @@ describe('Receiver select', () => {
     mockUseAlarms();
     jest
       .spyOn(apiUtil, 'getReceivers')
-      .mockImplementation(() => [{name: 'test_receiver'}]);
+      .mockImplementation(() => ({data: [{name: 'test_receiver'}]}));
     jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
-      receiver: 'network_base_route',
-      routes: [
-        {
-          receiver: 'test_receiver',
-          match: {
-            alertname: 'TESTRULE',
+      data: {
+        receiver: 'network_base_route',
+        routes: [
+          {
+            receiver: 'test_receiver',
+            match: {
+              alertname: 'TESTRULE',
+            },
           },
-        },
-      ],
+        ],
+      },
     });
     const {getByTestId} = await renderAsync(
       <AlarmsWrapper>
@@ -88,19 +90,21 @@ describe('Receiver select', () => {
 
   test('selecting a receiver sets the value in the select box', () => {
     mockUseAlarms();
-    jest
-      .spyOn(apiUtil, 'getReceivers')
-      .mockReturnValue([{name: 'test_receiver'}, {name: 'new_receiver'}]);
+    jest.spyOn(apiUtil, 'getReceivers').mockReturnValue({
+      data: [{name: 'test_receiver'}, {name: 'new_receiver'}],
+    });
     jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
-      receiver: 'network_base_route',
-      routes: [
-        {
-          receiver: 'test_receiver',
-          match: {
-            alertname: 'TESTRULE',
+      data: {
+        receiver: 'network_base_route',
+        routes: [
+          {
+            receiver: 'test_receiver',
+            match: {
+              alertname: 'TESTRULE',
+            },
           },
-        },
-      ],
+        ],
+      },
     });
     const {getByTestId} = render(
       <AlarmsWrapper>
@@ -120,14 +124,16 @@ describe('Receiver select', () => {
     expect(receiverInput.value).toBe('new_receiver');
   });
 
-  test('setting a receiver adds a new route', () => {
+  test('setting a receiver adds a new route', async () => {
     mockUseAlarms();
     jest
       .spyOn(apiUtil, 'getReceivers')
-      .mockReturnValue([{name: 'test_receiver'}]);
+      .mockReturnValue({data: [{name: 'test_receiver'}]});
     jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
-      receiver: 'network_base_route',
-      routes: [],
+      data: {
+        receiver: 'network_base_route',
+        routes: [],
+      },
     });
 
     const editRouteTreeMock = jest.spyOn(apiUtil, 'editRouteTree');
@@ -146,9 +152,30 @@ describe('Receiver select', () => {
     act(() => {
       fireEvent.submit(getByTestId('editor-form'));
     });
-    expect(editRouteTreeMock).toHaveBeenCalledWith({
-      networkId: undefined,
-      route: {
+    await waitFor(() => {
+      expect(editRouteTreeMock).toHaveBeenCalledWith({
+        networkId: undefined,
+        route: {
+          receiver: 'network_base_route',
+          routes: [
+            {
+              receiver: 'test_receiver',
+              match: {
+                alertname: 'TESTRULE',
+              },
+            },
+          ],
+        },
+      });
+    });
+  });
+  test('selecting a new receiver updates an existing route', async () => {
+    mockUseAlarms();
+    jest.spyOn(apiUtil, 'getReceivers').mockReturnValue({
+      data: [{name: 'test_receiver'}, {name: 'new_receiver'}],
+    });
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
+      data: {
         receiver: 'network_base_route',
         routes: [
           {
@@ -159,23 +186,6 @@ describe('Receiver select', () => {
           },
         ],
       },
-    });
-  });
-  test('selecting a new receiver updates an existing route', () => {
-    mockUseAlarms();
-    jest
-      .spyOn(apiUtil, 'getReceivers')
-      .mockReturnValue([{name: 'test_receiver'}, {name: 'new_receiver'}]);
-    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
-      receiver: 'network_base_route',
-      routes: [
-        {
-          receiver: 'test_receiver',
-          match: {
-            alertname: 'TESTRULE',
-          },
-        },
-      ],
     });
 
     const editRouteTreeMock = jest.spyOn(apiUtil, 'editRouteTree');
@@ -196,36 +206,40 @@ describe('Receiver select', () => {
       fireEvent.submit(getByTestId('editor-form'));
     });
 
-    expect(editRouteTreeMock).toHaveBeenCalledWith({
-      networkId: undefined,
-      route: {
+    await waitFor(() => {
+      expect(editRouteTreeMock).toHaveBeenCalledWith({
+        networkId: undefined,
+        route: {
+          receiver: 'network_base_route',
+          routes: [
+            {
+              receiver: 'new_receiver',
+              match: {
+                alertname: 'TESTRULE',
+              },
+            },
+          ],
+        },
+      });
+    });
+  });
+  test('un-selecting receiver removes the existing route', async () => {
+    mockUseAlarms();
+    jest.spyOn(apiUtil, 'getReceivers').mockReturnValue({
+      data: [{name: 'test_receiver'}, {name: 'new_receiver'}],
+    });
+    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
+      data: {
         receiver: 'network_base_route',
         routes: [
           {
-            receiver: 'new_receiver',
+            receiver: 'test_receiver',
             match: {
               alertname: 'TESTRULE',
             },
           },
         ],
       },
-    });
-  });
-  test('un-selecting receiver removes the existing route', () => {
-    mockUseAlarms();
-    jest
-      .spyOn(apiUtil, 'getReceivers')
-      .mockReturnValue([{name: 'test_receiver'}, {name: 'new_receiver'}]);
-    jest.spyOn(apiUtil, 'getRouteTree').mockReturnValue({
-      receiver: 'network_base_route',
-      routes: [
-        {
-          receiver: 'test_receiver',
-          match: {
-            alertname: 'TESTRULE',
-          },
-        },
-      ],
     });
     const editRouteTreeMock = jest.spyOn(apiUtil, 'editRouteTree');
     const {getByTestId} = render(
@@ -245,12 +259,14 @@ describe('Receiver select', () => {
       fireEvent.submit(getByTestId('editor-form'));
     });
 
-    expect(editRouteTreeMock).toHaveBeenCalledWith({
-      networkId: undefined,
-      route: {
-        receiver: 'network_base_route',
-        routes: [],
-      },
+    await waitFor(() => {
+      expect(editRouteTreeMock).toHaveBeenCalledWith({
+        networkId: undefined,
+        route: {
+          receiver: 'network_base_route',
+          routes: [],
+        },
+      });
     });
   });
 });
@@ -272,9 +288,10 @@ function MockRuleEditor(props: RuleEditorProps<AlertConfig>) {
 function mockUseAlarms() {
   jest.spyOn(apiUtil, 'useAlarmsApi').mockImplementation((fn, params) => {
     return {
-      error: null,
+      error: undefined,
       isLoading: false,
-      response: fn(params) as unknown,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      response: (fn(params) as any)?.data,
     };
   });
 }

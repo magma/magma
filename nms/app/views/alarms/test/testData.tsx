@@ -12,11 +12,8 @@
  */
 
 import React from 'react';
-import type {
-  AlertConfig,
-  FiringAlarm,
-  Labels,
-} from '../components/AlarmAPIType';
+import {PromFiringAlert} from '../../../../generated-ts';
+import type {AlertConfig, Labels} from '../components/AlarmAPIType';
 import type {
   GenericRule,
   RuleInterface,
@@ -42,7 +39,7 @@ export function mockPrometheusRule(merge?: Partial<GenericRule<AlertConfig>>) {
   };
 }
 
-export function mockAlert(merge?: Partial<FiringAlarm>): FiringAlarm {
+export function mockAlert(merge?: Partial<PromFiringAlert>): PromFiringAlert {
   const {labels, annotations, ...otherFields} = merge || {};
   const defaultLabels: Labels = {
     alertname: 'test',
@@ -56,7 +53,7 @@ export function mockAlert(merge?: Partial<FiringAlarm>): FiringAlarm {
     endsAt: '',
     fingerprint: '',
     labels: {...defaultLabels, ...(labels || {})},
-    receivers: [],
+    receivers: {name: 'foo'},
     startsAt: '2020-02-10T21:09:12Z',
     status: {
       inhibitedBy: [],
@@ -64,7 +61,9 @@ export function mockAlert(merge?: Partial<FiringAlarm>): FiringAlarm {
       state: '',
     },
     updatedAt: '',
-    ...(otherFields as Partial<Omit<FiringAlarm, 'labels' | 'annotations'>>),
+    ...(otherFields as Partial<
+      Omit<PromFiringAlert, 'labels' | 'annotations'>
+    >),
   };
 }
 
@@ -96,7 +95,7 @@ export function mockRuleInterface<TRule>(
       function () {
         return <span />;
       },
-    deleteRule: deleteRule ?? jest.fn(() => Promise.resolve()),
+    deleteRule: deleteRule ?? jest.fn(() => Promise.resolve({data: undefined})),
     getRules: getRules ?? jest.fn(() => Promise.resolve([])),
   };
 }

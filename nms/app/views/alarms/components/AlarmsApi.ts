@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
+import {PromFiringAlert} from '../../../../generated-ts';
 import type {
   AlertConfig,
   AlertManagerGlobalConfig,
   AlertReceiver,
   AlertRoutingTree,
   AlertSuppression,
-  FiringAlarm,
   PrometheusLabelset,
   TenancyConfig,
 } from './AlarmAPIType';
@@ -40,59 +40,77 @@ export type ApiUtil = {
    * don't break the normal rules of react hooks.
    */
   useAlarmsApi: <TParams, TResponse>(
-    func: (params: TParams) => Promise<TResponse>,
+    func: (params: TParams) => Promise<{data: TResponse}>,
     params: TParams,
     cacheCounter?: string | number,
   ) => {
     response: TResponse | null | undefined;
-    error: unknown;
+    error?: Error;
     isLoading: boolean;
   };
 
   //alerts
-  viewFiringAlerts: (req: ApiRequest) => Promise<Array<FiringAlarm>>;
+  viewFiringAlerts: (
+    req: ApiRequest,
+  ) => Promise<{data: Array<PromFiringAlert>}>;
   getTroubleshootingLink: (req: {
     alertName: string;
-  }) => Promise<TroubleshootingLinkType | undefined | null>;
+  }) => Promise<{data: TroubleshootingLinkType | undefined | null}>;
   //rules
   viewMatchingAlerts: (
     req: {expression: string} & ApiRequest,
-  ) => Promise<Array<FiringAlarm>>;
-  createAlertRule: (req: {rule: AlertConfig} & ApiRequest) => Promise<void>;
+  ) => Promise<{data: Array<PromFiringAlert>}>;
+  createAlertRule: (
+    req: {rule: AlertConfig} & ApiRequest,
+  ) => Promise<{data: void}>;
   // TODO: support renaming alerts by passing old alert name separately
-  editAlertRule: (req: {rule: AlertConfig} & ApiRequest) => Promise<void>;
-  getAlertRules: (req: ApiRequest) => Promise<Array<AlertConfig>>;
-  deleteAlertRule: (req: {ruleName: string} & ApiRequest) => Promise<void>;
+  editAlertRule: (
+    req: {rule: AlertConfig} & ApiRequest,
+  ) => Promise<{data: void}>;
+  getAlertRules: (req: ApiRequest) => Promise<{data: Array<AlertConfig>}>;
+  deleteAlertRule: (
+    req: {ruleName: string} & ApiRequest,
+  ) => Promise<{data: void}>;
 
   // suppressions
-  getSuppressions: (req: ApiRequest) => Promise<Array<AlertSuppression>>;
+  getSuppressions: (
+    req: ApiRequest,
+  ) => Promise<{data: Array<AlertSuppression>}>;
 
   // receivers
   createReceiver: (
     req: {receiver: AlertReceiver} & ApiRequest,
-  ) => Promise<void>;
-  editReceiver: (req: {receiver: AlertReceiver} & ApiRequest) => Promise<void>;
-  getReceivers: (req: ApiRequest) => Promise<Array<AlertReceiver>>;
-  deleteReceiver: (req: {receiverName: string} & ApiRequest) => Promise<void>;
+  ) => Promise<{data: void}>;
+  editReceiver: (
+    req: {receiver: AlertReceiver} & ApiRequest,
+  ) => Promise<{data: void}>;
+  getReceivers: (req: ApiRequest) => Promise<{data: Array<AlertReceiver>}>;
+  deleteReceiver: (
+    req: {receiverName: string} & ApiRequest,
+  ) => Promise<{data: void}>;
 
   // routes
-  getRouteTree: (req: ApiRequest) => Promise<AlertRoutingTree>;
-  editRouteTree: (req: {route: AlertRoutingTree} & ApiRequest) => Promise<void>;
+  getRouteTree: (req: ApiRequest) => Promise<{data: AlertRoutingTree}>;
+  editRouteTree: (
+    req: {route: AlertRoutingTree} & ApiRequest,
+  ) => Promise<{data: void}>;
 
-  getMetricNames: (req: ApiRequest) => Promise<Array<string>>;
+  getMetricNames: (req: ApiRequest) => Promise<{data: Array<string>}>;
   getMetricSeries: (
     req: {name: string} & ApiRequest,
-  ) => Promise<Array<PrometheusLabelset>>;
+  ) => Promise<{data: Array<PrometheusLabelset>}>;
 
   //alertmanager global config
-  getGlobalConfig: (req: ApiRequest) => Promise<AlertManagerGlobalConfig>;
+  getGlobalConfig: (
+    req: ApiRequest,
+  ) => Promise<{data: AlertManagerGlobalConfig}>;
   editGlobalConfig: (
     req: ApiRequest & {config: Partial<AlertManagerGlobalConfig>},
-  ) => Promise<void>;
+  ) => Promise<{data: void}>;
 
   // tenants
-  getTenants: (req: ApiRequest) => Promise<Array<string>>;
+  getTenants: (req: ApiRequest) => Promise<{data: Array<string>}>;
 
-  getAlertmanagerTenancy: (req: ApiRequest) => Promise<TenancyConfig>;
-  getPrometheusTenancy: (req: ApiRequest) => Promise<TenancyConfig>;
+  getAlertmanagerTenancy: (req: ApiRequest) => Promise<{data: TenancyConfig}>;
+  getPrometheusTenancy: (req: ApiRequest) => Promise<{data: TenancyConfig}>;
 };

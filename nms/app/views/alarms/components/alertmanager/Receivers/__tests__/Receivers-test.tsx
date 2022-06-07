@@ -28,7 +28,7 @@ describe('Receivers', () => {
   let apiUtil: MockApiUtil;
 
   const defaultResponse = {
-    error: null,
+    error: undefined,
     isLoading: false,
   };
 

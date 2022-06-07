@@ -50,7 +50,7 @@ describe('PrometheusEditor', () => {
   };
 
   test('editing a threshold alert opens the PrometheusEditor with the threshold expression editor enabled', () => {
-    jest.spyOn(apiUtil, 'getMetricSeries').mockReturnValue([]);
+    jest.spyOn(apiUtil, 'getMetricSeries').mockReturnValue({data: []});
     const testThresholdRule: GenericRule<AlertConfig> = {
       severity: '',
       ruleType: '',

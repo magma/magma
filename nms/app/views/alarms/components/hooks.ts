@@ -13,10 +13,10 @@
 
 import * as React from 'react';
 import axios from 'axios';
+import {AlertRoutingTree} from './AlarmAPIType';
 import {useAlarmContext} from './AlarmContext';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import type {AlertRoutingTree} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';
 import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 
@@ -101,11 +101,8 @@ export function useAlertRuleReceiver({
     }
     // only go one level deep for now
     const matchingRoutes = response.routes.filter(route => {
-      return (
-        route.match &&
-        route.match['alertname'] &&
-        route.match['alertname'] === ruleName
-      );
+      const match = (route.match as unknown) as Record<string, string>;
+      return match && match['alertname'] && match['alertname'] === ruleName;
     });
     return matchingRoutes;
   }, [response, ruleName]);

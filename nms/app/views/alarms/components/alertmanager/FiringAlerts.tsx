@@ -31,7 +31,7 @@ import {useSnackbars} from '../../../../hooks/useSnackbar';
 
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../../../../util/ErrorUtils';
-import type {FiringAlarm} from '../AlarmAPIType';
+import type {PromFiringAlert} from '../../../../../generated-ts';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -60,11 +60,13 @@ type Props = {
 export default function FiringAlerts(props: Props) {
   const resolvedPath = useResolvedPath('');
   const {apiUtil, filterLabels} = useAlarmContext();
-  const [selectedRow, setSelectedRow] = useState<FiringAlarm | null>(null);
+  const [selectedRow, setSelectedRow] = useState<PromFiringAlert | null>(null);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
-  const [alertData, setAlertData] = useState<Array<FiringAlarm> | null>(null);
+  const [alertData, setAlertData] = useState<Array<PromFiringAlert> | null>(
+    null,
+  );
   const classes = useStyles();
   const snackbars = useSnackbars();
   const networkId = useNetworkId();
@@ -96,7 +98,7 @@ export default function FiringAlerts(props: Props) {
   }, [filterLabels, isLoading, response, setAlertData]);
 
   const showRowDetailsPane = React.useCallback(
-    (row: FiringAlarm) => {
+    (row: PromFiringAlert) => {
       setSelectedRow(row);
     },
     [setSelectedRow],

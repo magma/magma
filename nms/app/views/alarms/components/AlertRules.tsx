@@ -77,10 +77,12 @@ export default function AlertRules<TRuleUnion>() {
     try {
       // only show matching alerts for prometheus rules for now
       if (selectedRow && selectedRow.ruleType === PROMETHEUS_RULE_TYPE) {
-        const response = await apiUtil.viewMatchingAlerts({
-          networkId: params.networkId!,
-          expression: selectedRow.expression,
-        });
+        const response = (
+          await apiUtil.viewMatchingAlerts({
+            networkId: params.networkId!,
+            expression: selectedRow.expression,
+          })
+        ).data;
         setMatchingAlertsCount(response.length);
       }
     } catch (error) {

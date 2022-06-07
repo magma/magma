@@ -12,8 +12,9 @@
  */
 
 import React from 'react';
+import {PromFiringAlert} from '../../../../generated-ts';
 import type {ApiUtil} from './AlarmsApi';
-import type {FiringAlarm, Labels} from './AlarmAPIType';
+import type {Labels} from './AlarmAPIType';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 export const PROMETHEUS_RULE_TYPE = 'prometheus';
@@ -35,7 +36,7 @@ export type AlarmContext = {
  * the source by inspecting the labels/annotations.
  */
 export type GetAlertType = (
-  alert: FiringAlarm,
+  alert: PromFiringAlert,
   ruleMap?: RuleInterfaceMap<any>,
 ) => keyof RuleInterfaceMap<any>;
 
