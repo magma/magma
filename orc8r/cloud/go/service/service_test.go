@@ -54,7 +54,7 @@ func TestServiceRun(t *testing.T) {
 	assert.Equal(t, protos.ServiceInfo_APP_HEALTHY, srv.Health)
 
 	// Create a rpc stub and query the Service303 interface
-	conn, err := registry.GetConnection(serviceName, protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(serviceName, protos.ServiceType_PROTECTED)
 	assert.NoError(t, err, "err in getting connection to service")
 	client := protos.NewService303Client(conn)
 

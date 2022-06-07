@@ -119,7 +119,7 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 		StartTimeSecs:       uint64(time.Now().Unix()),
 		Config:              configMap,
 	}
-	protos.RegisterService303Server(service.GrpcServer, service)
+	protos.RegisterService303Server(service.ProtectedGrpcServer, service)
 
 	// Store into global for future access
 	currentlyRunningServicesMu.Lock()
