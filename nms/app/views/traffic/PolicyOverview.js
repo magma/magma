@@ -21,6 +21,7 @@ import type {
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import BaseNameEditDialog from './BaseNameEdit';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
