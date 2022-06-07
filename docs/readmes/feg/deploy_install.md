@@ -143,9 +143,10 @@ To register the FeG, go to the Orchestrator's Swagger UI in your browser.
 (i.e. <https://controller.url.sample:9443/swagger/v1/ui/>).
 
 Now, create a Federation Network. This is found at `/feg` under the
-**Federation Networks** section. Then register the gateway under the
-**Federation Gateway** section at `/feg/{network_id}/gateways` using the
-network ID of the Federation Network and the hardware ID and challenge key
+**Federation Networks** section. If you have not registered any gateways before, you
+must set up a tier under the **Orchestrator** section at `/networks/{network_id}/tiers`.
+Then register the gateway under the **Federation Gateway** section at `/feg/{network_id}/gateways`
+using the network ID of the Federation Network and the hardware ID and challenge key
 from the previous step.
 
 To verify that the gateway was correctly registered, run:
