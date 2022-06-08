@@ -9,47 +9,35 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {ActionQuery} from '../../components/ActionTable';
-import type {event as MagmaEvent} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventChart from './EventChart';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
 import {DateTimePicker} from '@material-ui/pickers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Event as MagmaEvent} from '../../../generated-ts';
+import {MaterialTableProps} from '@material-table/core';
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback} from 'react';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
+import type {ActionQuery} from '../../components/ActionTable';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   eventDetailTable: {
     // maxWidth: <value>, //TODO: This should be set to the parent table size
     width: '100%',
@@ -71,20 +59,26 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function getEventDescription(event) {
+function getEventDescription(event: {event_type: string}) {
   switch (event.event_type) {
     case 'processed_updates':
       return 'Updates streamed from orchestrator were processed by the gateway';
+
     case 'updated_stored_mconfig':
       return "The gateway's stored mconfig was updated from the orchestrator";
+
     case 'session_created':
       return 'Subscriber session was created';
+
     case 'session_terminated':
       return 'Subscriber session was terminated';
+
     case 'attach_success':
       return 'UE attaches successfully';
+
     case 'detach_success':
       return 'UE detaches successfully';
+
     default:
       return event.event_type;
   }
@@ -92,12 +86,12 @@ function getEventDescription(event) {
 
 export type magmaEventStream = 'NETWORK' | 'GATEWAY' | 'SUBSCRIBER';
 type EventRowType = {
-  ts: string,
-  eventType: string,
-  eventDescription: string,
-  value: {},
-  hardwareId: string,
-  tag: string,
+  ts: string;
+  eventType: string;
+  eventDescription: string;
+  value: Record<string, any>;
+  hardwareId: string;
+  tag: string;
 };
 
 export const EVENT_STREAM = {
@@ -107,18 +101,19 @@ export const EVENT_STREAM = {
 };
 
 type EventDescriptionProps = {
-  rowData: EventRowType,
+  rowData: EventRowType;
 };
 
 function ExpandEvent(props: EventDescriptionProps) {
   const classes = useStyles();
-  const eventDetails = {
+  const eventDetails: Record<string, any> = {
     hardware_id: props.rowData.hardwareId,
     tag: props.rowData.tag,
   };
 
   if (props.rowData.value) {
     for (const [key, value] of Object.entries(props.rowData.value)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       eventDetails[key] = value;
     }
   }
@@ -140,115 +135,134 @@ function ExpandEvent(props: EventDescriptionProps) {
 }
 
 function buildEventQueryFromFilters(q: ActionQuery) {
-  const queryFilters = {};
+  const queryFilters: Record<string, any> = {};
+
   if (q.filters !== undefined) {
-    q.filters.forEach((filter, _) => {
+    q.filters.forEach(filter => {
       switch (filter.column.field) {
         case 'streamName':
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           queryFilters['streams'] = filter.value;
           break;
+
         case 'eventType':
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           queryFilters['events'] = filter.value;
           break;
+
         case 'tag':
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           queryFilters['tags'] = filter.value;
           break;
       }
     });
   }
+
   return queryFilters;
 }
 
-function handleEventQuery(
-  networkId,
-  hardwareId,
-  streams,
-  tags,
-  q,
-  from,
-  start,
-  end,
-) {
-  const filters = buildEventQueryFromFilters(q);
-  return new Promise(async (resolve, reject) => {
-    try {
-      const eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
+async function handleEventQuery(
+  networkId: string,
+  hardwareId: string | undefined,
+  streams: string,
+  tags: string,
+  query: ActionQuery,
+  from: number,
+  start: moment.Moment,
+  end: moment.Moment,
+): Promise<{data: Array<EventRowType>; page: number; totalCount: number}> {
+  const filters = buildEventQueryFromFilters(query);
+  try {
+    const eventCount = (
+      await MagmaAPI.events.eventsNetworkIdAboutCountGet({
         networkId: networkId,
         streams: streams,
         hwIds: hardwareId,
         tags: tags,
+        // TODO[ts-migration] "from" does not appear in API
+        // @ts-ignore
         from,
         start: start.toISOString(),
         end: end.toISOString(),
         ...filters,
-      });
-      const eventResp = await MagmaV1API.getEventsByNetworkId({
+      })
+    ).data;
+    const eventResp = (
+      await MagmaAPI.events.eventsNetworkIdGet({
         networkId: networkId,
         hwIds: hardwareId,
         streams: streams,
         tags: tags,
-        from: (q.page * q.pageSize).toString(),
-        size: q.pageSize.toString(),
+        from: (query.page * query.pageSize).toString(),
+        size: query.pageSize.toString(),
         start: start.toISOString(),
         end: end.toISOString(),
         ...filters,
-      });
-      const page =
-        eventCount < q.page * q.pageSize ? eventCount / q.pageSize : q.page;
-
-      // flowlint-next-line unclear-type:off
-      const unfiltered: Array<MagmaEvent> = (eventResp: any);
-      const data = unfiltered.map(event => {
-        return {
-          ts: event.timestamp,
-          streamName: event.stream_name,
-          eventType: event.event_type,
-          eventDescription: getEventDescription(event),
-          value: event.value,
-          hardwareId: event.hardware_id,
-          tag: event.tag,
-        };
-      });
-      resolve({
-        data: data,
-        page: page,
-        totalCount: eventCount,
-      });
-    } catch (e) {
-      reject(e?.message ?? 'error retrieving events');
+      })
+    ).data;
+    const page =
+      eventCount < query.page * query.pageSize
+        ? eventCount / query.pageSize
+        : query.page;
+    // TODO[ts-migration] There is a serious type mismatch here. Investigate!
+    const unfiltered = (eventResp as unknown) as Array<MagmaEvent>;
+    const data = unfiltered.map(event => {
+      return {
+        ts: event.timestamp,
+        streamName: event.stream_name,
+        eventType: event.event_type,
+        eventDescription: getEventDescription(event),
+        value: event.value,
+        hardwareId: event.hardware_id,
+        tag: event.tag,
+      };
+    });
+    return {
+      data: data,
+      page: page,
+      totalCount: eventCount,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message) {
+      throw error;
+    } else {
+      throw new Error('error retrieving events');
     }
-  });
+  }
 }
 
 type EventTableProps = {
-  eventStream: magmaEventStream,
-  tags?: string,
-  hardwareId?: string,
-  sz: 'sm' | 'md' | 'lg',
-  inStartDate?: moment,
-  inEndDate?: moment,
-  isAutoRefreshing?: boolean,
+  eventStream: magmaEventStream;
+  tags?: string;
+  hardwareId?: string;
+  sz: 'sm' | 'md' | 'lg';
+  inStartDate?: moment.Moment;
+  inEndDate?: moment.Moment;
+  isAutoRefreshing?: boolean;
 };
 
 export default function EventsTable(props: EventTableProps) {
   const {hardwareId, eventStream, sz} = props;
   const classes = useStyles();
   const [eventCount, setEventCount] = useState(0);
-  const tableRef = useRef(null);
+  const tableRef: MaterialTableProps<EventRowType>['tableRef'] = useRef(null);
   const params = useParams();
   const networkId = nullthrows(params.networkId);
   const streams = '';
+
   const buildTags = (tags: string) => {
     let allTags = tags;
     const tagsDelimter = ',';
+
     if (eventStream == EVENT_STREAM.SUBSCRIBER) {
       // sessionD requires tag to include the prefix IMSI together with n digits but mme doesn't require the prefix IMSI
       allTags = [tags, tags.replace(/IMSI/, '')].join(tagsDelimter);
     }
+
     return allTags;
   };
-  const tags = buildTags(props.tags ?? '');
 
+  const tags = buildTags(props.tags ?? '');
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(
     props.isAutoRefreshing ?? false,
   );
@@ -256,6 +270,7 @@ export default function EventsTable(props: EventTableProps) {
     isAutoRefreshing,
     30000,
     useCallback(() => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
       tableRef.current?.onQueryChange();
     }, []),
   );
@@ -282,14 +297,14 @@ export default function EventsTable(props: EventTableProps) {
     }
   }, [props.inEndDate, setEndDate]);
 
-  let actionTableOptions = {
+  let actionTableOptions: MaterialTableProps<EventRowType>['options'] = {
     actionsColumnIndex: -1,
     pageSize: 5,
     pageSizeOptions: [5, 10, 20],
     toolbar: false,
   };
 
-  let actionColumns = [
+  let actionColumns: MaterialTableProps<EventRowType>['columns'] = [
     {
       title: 'Timestamp',
       field: 'ts',
@@ -297,21 +312,32 @@ export default function EventsTable(props: EventTableProps) {
       width: 200,
       filtering: false,
     },
-    {title: 'Stream Name', field: 'streamName', width: 200},
-    {title: 'Event Type', field: 'eventType', width: 200},
+    {
+      title: 'Stream Name',
+      field: 'streamName',
+      width: 200,
+    },
+    {
+      title: 'Event Type',
+      field: 'eventType',
+      width: 200,
+    },
   ];
 
   if (sz !== 'sm') {
     actionColumns = [
       ...actionColumns,
-      {title: 'Tag', field: 'tag'},
-      {title: 'Event Description', field: 'eventDescription', filtering: false},
+      {
+        title: 'Tag',
+        field: 'tag',
+      },
+      {
+        title: 'Event Description',
+        field: 'eventDescription',
+        filtering: false,
+      },
     ];
-    actionTableOptions = {
-      ...actionTableOptions,
-      pageSize: 10,
-      filtering: true,
-    };
+    actionTableOptions = {...actionTableOptions, pageSize: 10, filtering: true};
   }
 
   const actionTable = (
@@ -335,7 +361,7 @@ export default function EventsTable(props: EventTableProps) {
         {
           icon: ExpandMore,
           openIcon: ExpandLess,
-          render: rowData => {
+          render: ({rowData}) => {
             return <ExpandEvent rowData={rowData} />;
           },
         },
@@ -346,6 +372,7 @@ export default function EventsTable(props: EventTableProps) {
   if (sz === 'sm' || sz === 'md') {
     return actionTable;
   }
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -373,7 +400,7 @@ export default function EventsTable(props: EventTableProps) {
                       maxDate={endDate}
                       disableFuture
                       value={startDate}
-                      onChange={val => {
+                      onChange={(val: moment.Moment) => {
                         setStartDate(val);
                         setIsAutoRefreshing(false);
                       }}
@@ -391,7 +418,7 @@ export default function EventsTable(props: EventTableProps) {
                       inputVariant="outlined"
                       disableFuture
                       value={endDate}
-                      onChange={val => {
+                      onChange={(val: moment.Moment) => {
                         setEndDate(val);
                         setIsAutoRefreshing(false);
                       }}

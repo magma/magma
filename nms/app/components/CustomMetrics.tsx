@@ -23,7 +23,7 @@ export function getStepString(delta: number, unit: string) {
 export function getStep(
   start: moment.Moment,
   end: moment.Moment,
-): [number, string, string] {
+): [number, TimeUnit, string] {
   const d = moment.duration(end.diff(start));
   if (d.asMinutes() <= 60.5) {
     return [5, 'minute', 'HH:mm'];

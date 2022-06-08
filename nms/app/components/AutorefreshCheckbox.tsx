@@ -82,7 +82,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   autorefreshEnabled: boolean;
-  onToggle: () => undefined;
+  onToggle: () => void;
 };
 
 export default function AutorefreshCheckbox(props: Props) {
