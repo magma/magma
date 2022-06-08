@@ -9,12 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-
-import type {Node} from 'react';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -22,26 +17,26 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   paper: {
     minWidth: `${theme.breakpoints.values.sm / 2}px`,
   },
 }));
 
-type Props = {|
-  cancelLabel?: Node,
-  confirmLabel?: Node,
-  message: Node,
-  onCancel?: () => void,
-  onClose?: () => void,
-  onConfirm?: () => void,
-  title?: ?Node,
-  open?: boolean,
-|};
+type Props = {
+  cancelLabel?: React.ReactNode;
+  confirmLabel?: React.ReactNode;
+  message: React.ReactNode;
+  onCancel?: () => void;
+  onClose?: () => void;
+  onConfirm?: () => void;
+  title?: React.ReactNode | null;
+  open?: boolean;
+};
 
 const Alert = ({
   cancelLabel,
@@ -59,7 +54,7 @@ const Alert = ({
   return (
     <Dialog
       classes={{paper: classes.paper}}
-      open={open}
+      open={!!open}
       onClose={onCancel}
       TransitionProps={{onExited: onClose}}
       maxWidth="sm">
