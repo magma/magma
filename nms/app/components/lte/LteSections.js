@@ -32,6 +32,7 @@ import RouterIcon from '@material-ui/icons/Router';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
 import TracingDashboard from '../../views/tracing/TracingDashboard';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TrafficDashboard from '../../views/traffic/TrafficOverview';
 import WifiTetheringIcon from '@material-ui/icons/WifiTethering';
 

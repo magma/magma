@@ -9,40 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnEditDialog from './ApnEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnOverview, {ApnJsonConfig} from './ApnOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import BaseNameEditDialog from './BaseNameEdit';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataPlanEditDialog from './DataPlanEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataPlanOverview from './DataPlanOverview';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-// $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyOverview, {PolicyJsonConfig} from './PolicyOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyRuleEditDialog from './PolicyEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileEditDialog from './ProfileEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
@@ -149,7 +134,7 @@ function DataPlanMenu() {
  *  - data plans
  *
  * "Read" and "Edit" functionality provided through tables
- * "Create" functiona provided through a header with "Create New"
+ * "Create" functionality provided through a header with "Create New"
  * button.
  */
 export default function TrafficDashboard() {
