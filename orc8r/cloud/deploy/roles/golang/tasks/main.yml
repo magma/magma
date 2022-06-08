@@ -13,7 +13,7 @@
 
 - name: Download Golang
   get_url:
-    url: "https://dl.google.com/go/{{ golang_tar }}"
+    url: "https://artifactory.magmacore.org/artifactory/generic/{{ golang_tar }}"
     dest: "/home/{{ user }}/{{ golang_tar }}"
     checksum: "{{ golang_tar_checksum }}"
   when: preburn
