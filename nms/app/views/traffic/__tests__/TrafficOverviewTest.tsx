@@ -9,38 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import MagmaAPI from '../../../../api/MagmaAPI';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TrafficDashboard from '../TrafficOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
+import {
+  Apn,
+  PolicyQosProfile,
+  PolicyRule,
+  RatingGroup,
+} from '../../../../generated-ts';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe migrated to typescript
+import {PolicyId} from '../../../../shared/types/network';
 import {SetApnState} from '../../../state/lte/ApnState';
 import {
   SetPolicyState,
   SetQosProfileState,
   SetRatingGroupState,
-  // $FlowFixMe migrated to typescript
 } from '../../../state/PolicyState';
 import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
 const apns = {
   apn_0: {
@@ -75,7 +71,7 @@ const apns = {
   },
 };
 
-const policies = {
+const policies: Record<string, PolicyRule> = {
   policy_0: {
     flow_list: [],
     id: 'policy_0',
@@ -111,7 +107,7 @@ const policies = {
   },
 };
 
-const qosProfiles = {
+const qosProfiles: Record<string, PolicyQosProfile> = {
   profile_1: {
     id: 'profile_1',
     class_id: 1,
@@ -125,7 +121,7 @@ const qosProfiles = {
     max_req_bw_dl: 10,
   },
 };
-const ratingGroups = {
+const ratingGroups: Record<string, RatingGroup> = {
   '0': {
     id: 0,
     limit_type: 'FINITE',
@@ -141,10 +137,10 @@ describe('<TrafficDashboard />', () => {
   const policyCtx = {
     state: policies,
     baseNames: {},
-    qosProfiles: qosProfiles,
-    ratingGroups: ratingGroups,
-    setBaseNames: (_key, _value?) => Promise.resolve(),
-    setRatingGroups: (key, value?) => {
+    qosProfiles,
+    ratingGroups,
+    setBaseNames: () => Promise.resolve(),
+    setRatingGroups: (key: string, value?: RatingGroup) => {
       return SetRatingGroupState({
         ratingGroups,
         setRatingGroups: () => {},
@@ -153,7 +149,7 @@ describe('<TrafficDashboard />', () => {
         value,
       });
     },
-    setQosProfiles: (key, value?) => {
+    setQosProfiles: (key: string, value?: PolicyQosProfile) => {
       return SetQosProfileState({
         qosProfiles,
         setQosProfiles: () => {},
@@ -162,7 +158,7 @@ describe('<TrafficDashboard />', () => {
         value,
       });
     },
-    setState: (key, value?) => {
+    setState: (key: PolicyId, value?: PolicyRule) => {
       return SetPolicyState({
         policies,
         setPolicies: () => {},
@@ -175,7 +171,7 @@ describe('<TrafficDashboard />', () => {
 
   const apnCtx = {
     state: apns,
-    setState: (key, value?) => {
+    setState: (key: string, value?: Apn) => {
       return SetApnState({
         apns,
         setApns: () => {},
@@ -187,7 +183,7 @@ describe('<TrafficDashboard />', () => {
   };
 
   beforeEach(() => {
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+    jest.spyOn(MagmaAPIBindings, 'getNetworks').mockResolvedValue([]);
   });
 
   const Wrapper = () => (
@@ -217,7 +213,7 @@ describe('<TrafficDashboard />', () => {
     );
     await wait();
     // Policy tables rows
-    const rowItemsPolicy = await getAllByRole('row');
+    const rowItemsPolicy = getAllByRole('row');
     // first row is the header
     expect(rowItemsPolicy[0]).toHaveTextContent('Policy ID');
     expect(rowItemsPolicy[0]).toHaveTextContent('Flows');
@@ -254,7 +250,7 @@ describe('<TrafficDashboard />', () => {
     // Profiles tab
     fireEvent.click(getByText('Profiles'));
     await wait();
-    const rowItemsProfile = await getAllByRole('row');
+    const rowItemsProfile = getAllByRole('row');
     // first row is the header
     expect(rowItemsProfile[0]).toHaveTextContent('Profile ID');
     expect(rowItemsProfile[0]).toHaveTextContent('Class ID');
@@ -275,7 +271,7 @@ describe('<TrafficDashboard />', () => {
     //Rating Groups Tab
     fireEvent.click(getByText('Rating Groups'));
     await wait();
-    const rowItemsRatingGroups = await getAllByRole('row');
+    const rowItemsRatingGroups = getAllByRole('row');
     // first row is the header
     expect(rowItemsRatingGroups[0]).toHaveTextContent('Rating Group ID');
     expect(rowItemsRatingGroups[0]).toHaveTextContent('Limit type');
@@ -296,7 +292,7 @@ describe('<TrafficDashboard />', () => {
   it('shows prompt when remove policy is clicked', async () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdDelete')
-      .mockResolvedValueOnce({});
+      .mockImplementation();
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
     // click remove action for policy 0
@@ -320,7 +316,7 @@ describe('<TrafficDashboard />', () => {
   it('shows prompt when remove profile is clicked', async () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesProfileIdDelete')
-      .mockResolvedValueOnce({});
+      .mockImplementation();
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
     // Profiles tab
@@ -350,7 +346,7 @@ describe('<TrafficDashboard />', () => {
         MagmaAPI.ratingGroups,
         'networksNetworkIdRatingGroupsRatingGroupIdDelete',
       )
-      .mockResolvedValueOnce({});
+      .mockImplementation();
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
     // Rating Groups tab
@@ -379,14 +375,13 @@ describe('<TrafficDashboard />', () => {
 describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
   beforeEach(() => {
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+    jest.spyOn(MagmaAPIBindings, 'getNetworks').mockResolvedValue([]);
   });
 
   beforeAll((): void => {
-    delete window.location;
     window.location = {
       pathname: '/nms/test/traffic/apn',
-    };
+    } as Location;
   });
 
   afterAll((): void => {
@@ -402,7 +397,7 @@ describe('<TrafficDashboard APNs/>', () => {
     setBaseNames: async () => {},
     setRatingGroups: async () => {},
     setQosProfiles: async () => {},
-    setState: (key, value?) => {
+    setState: (key: PolicyId, value?: PolicyRule) => {
       return SetPolicyState({
         policies,
         setPolicies: () => {},
@@ -414,7 +409,7 @@ describe('<TrafficDashboard APNs/>', () => {
   };
   const apnCtx = {
     state: apns,
-    setState: (key, value?) => {
+    setState: (key: string, value?: Apn) => {
       return SetApnState({
         apns,
         setApns: () => {},
@@ -452,7 +447,7 @@ describe('<TrafficDashboard APNs/>', () => {
     expect(apnTitles.length).toBe(2);
 
     // Apn tables rows
-    const rowItemsApns = await getAllByRole('row');
+    const rowItemsApns = getAllByRole('row');
     // first row is the header
     expect(rowItemsApns[0]).toHaveTextContent('Apn ID');
     expect(rowItemsApns[0]).toHaveTextContent('Class ID');
@@ -489,12 +484,12 @@ describe('<TrafficDashboard APNs/>', () => {
   });
 
   it('shows prompt when remove apn is clicked', async () => {
-    MagmaAPIBindings.deleteLteByNetworkIdApnsByApnName.mockResolvedValueOnce(
-      {},
-    );
+    jest
+      .spyOn(MagmaAPIBindings, 'deleteLteByNetworkIdApnsByApnName')
+      .mockImplementation();
     const deleteMock = jest
       .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNameDelete')
-      .mockResolvedValueOnce({});
+      .mockImplementation();
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
 
