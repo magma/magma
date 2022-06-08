@@ -13,8 +13,8 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
-
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -26,8 +26,8 @@ import Link from '@material-ui/core/Link';
 // $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';

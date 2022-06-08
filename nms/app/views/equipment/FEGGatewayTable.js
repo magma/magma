@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
   federation_gateway,
@@ -36,8 +37,8 @@ import Link from '@material-ui/core/Link';
 import React, {useContext, useEffect, useState} from 'react';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-
 // $FlowFixMe migrated to typescript
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {

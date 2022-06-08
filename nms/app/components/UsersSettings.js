@@ -15,8 +15,8 @@
  */
 
 import type {EditUser} from './EditUserDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from './Alert/withAlert';
-
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
@@ -39,6 +39,7 @@ import axios from 'axios';
 import {UserRoles} from '../../shared/roles';
 
 import renderList from '../util/renderList';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from './Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../app/hooks';

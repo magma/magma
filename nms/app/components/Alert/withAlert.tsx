@@ -9,62 +9,54 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local strict-local
- * @format
  */
 
-'use strict';
-
-import type {ComponentType, ElementConfig, Node} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alert from './Alert';
 import React from 'react';
 
-type State = {|
-  dialogs: Map<DialogMapKey, boolean>,
-|};
+type State = {
+  dialogs: Map<DialogMapKey, boolean>;
+};
 
-export type DialogProps = {|
-  cancelLabel?: Node,
-  confirmLabel?: Node,
-  message: Node,
-  title?: ?Node,
-|};
+export type DialogProps = {
+  cancelLabel?: React.ReactNode;
+  confirmLabel?: React.ReactNode;
+  message: React.ReactNode;
+  title?: React.ReactNode | null;
+};
 
-export type DialogMapKey = {|
-  key: number,
-  onCancel: () => void,
-  onClose: () => void,
-  onConfirm: () => void,
-  ...DialogProps,
-|};
+export type DialogMapKey = {
+  key: number;
+  onCancel: () => void;
+  onClose: () => void;
+  onConfirm: () => void;
+} & DialogProps;
 
-export type WithAlert = {|
-  alert: (Node | Error, ?Node) => Promise<boolean>,
-  confirm: (Node | DialogProps) => Promise<boolean>,
-|};
+export type WithAlert = {
+  alert: (
+    message: React.ReactNode | Error,
+    confirmLabel: React.ReactNode | null | undefined,
+  ) => Promise<boolean>;
+  confirm: (messageOrProps: React.ReactNode | DialogProps) => Promise<boolean>;
+};
 
-function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
-  Component: TComponent,
-): ComponentType<$Diff<ElementConfig<TComponent>, WithAlert>> {
-  return class extends React.Component<
-    $Diff<ElementConfig<TComponent>, WithAlert>,
-    State,
-  > {
+function withAlert<Props>(
+  Component: React.ComponentType<Props & WithAlert>,
+): React.ComponentType<Props> {
+  return class extends React.Component<Props, State> {
     state = {
       dialogs: new Map<DialogMapKey, boolean>(),
     };
 
     lastKey = 0;
 
-    removeDialog(alert) {
+    removeDialog(alert: DialogMapKey) {
       const nextAlerts = new Map<DialogMapKey, boolean>(this.state.dialogs);
       nextAlerts.delete(alert);
       this.setState({dialogs: nextAlerts});
     }
 
-    closeDialog(alert) {
+    closeDialog(alert: DialogMapKey) {
       this.setState({dialogs: this.state.dialogs.set(alert, false)});
     }
 
@@ -92,8 +84,8 @@ function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
     }
 
     alert = (
-      message: Node | Error,
-      confirmLabel?: Node = 'OK',
+      message: React.ReactNode | Error,
+      confirmLabel: React.ReactNode = 'OK',
     ): Promise<boolean> => {
       return this.addDialog({
         message: message instanceof Error ? String(message) : message,
@@ -104,7 +96,9 @@ function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
       });
     };
 
-    confirm = (messageOrProps: DialogProps | Node): Promise<boolean> => {
+    confirm = (
+      messageOrProps: DialogProps | React.ReactNode,
+    ): Promise<boolean> => {
       let dialogProps: DialogProps;
       const confirmLabel = 'Confirm';
       const cancelLabel = 'Cancel';
@@ -116,15 +110,13 @@ function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
         dialogProps = {
           confirmLabel,
           cancelLabel,
-          // $FlowFixMe - we validated props is a Node
-          message: (messageOrProps: Node),
+          message: messageOrProps as React.ReactNode,
         };
       } else {
         dialogProps = {
           confirmLabel,
           cancelLabel,
-          // $FlowFixMe - we validated props is DialogProps
-          ...(messageOrProps: DialogProps),
+          ...(messageOrProps as DialogProps),
         };
       }
       return this.addDialog(dialogProps);

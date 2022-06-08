@@ -13,12 +13,13 @@
  * @flow
  * @format
  */
-import type {WithAlert} from '../../components/Alert/withAlert';
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import ListItemText from '@material-ui/core/ListItemText';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {WithAlert} from '../../components/Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
@@ -32,8 +33,8 @@ import TextareaAutosize from 'react-textarea-autosize';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-
 // $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 // $FlowFixMe migrated to typescript

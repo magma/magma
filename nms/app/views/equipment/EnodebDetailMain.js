@@ -13,8 +13,8 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
-
 // $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
@@ -38,8 +38,8 @@ import TopBar from '../../components/TopBar';
 import moment from 'moment';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-
 import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';

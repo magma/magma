@@ -48,6 +48,7 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 
 import {AddSubscriberDialog} from './SubscriberAddDialog';
