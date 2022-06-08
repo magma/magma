@@ -9,42 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataPlanEditDialog from './DataPlanEdit';
 import Link from '@material-ui/core/Link';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import withAlert from '../../components/Alert/withAlert';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+import withAlert from '../../components/Alert/withAlert';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
 import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 import {
   BITRATE_MULTIPLIER,
   DATA_PLAN_UNLIMITED_RATES,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/network/DataPlanConst';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -61,9 +49,9 @@ const useStyles = makeStyles(theme => ({
  *    - bit rate specified in Mbps
  */
 type DataPlanRowType = {
-  dataPlanID: string,
-  maxUploadBitRate: string,
-  maxDownloadBitRate: string,
+  dataPlanID: string;
+  maxUploadBitRate: string;
+  maxDownloadBitRate: string;
 };
 
 /**
@@ -79,12 +67,14 @@ function DataPlanOverview(props: WithAlert) {
   const networkID = nullthrows(params.networkId);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [currRow, setCurrRow] = useState<DataPlanRowType>({});
+  const [currRow, setCurrRow] = useState<DataPlanRowType>(
+    {} as DataPlanRowType,
+  );
   const [open, setOpen] = React.useState(false);
   const ctx = useContext(LteNetworkContext);
-  const epcConfig = ctx.state.cellular.epc;
+  const epcConfig = ctx.state.cellular!.epc;
 
-  const dataPlans = ctx.state.cellular.epc.sub_profiles;
+  const dataPlans = ctx.state.cellular!.epc.sub_profiles;
   const dataPlanRows: Array<DataPlanRowType> = dataPlans
     ? Object.keys(dataPlans || {}).map((id: string) => {
         const profile = nullthrows(dataPlans)[id];
@@ -94,12 +84,12 @@ function DataPlanOverview(props: WithAlert) {
             profile.max_dl_bit_rate ===
             DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
               ? 'Unlimited'
-              : profile.max_dl_bit_rate / BITRATE_MULTIPLIER + ' Mbps',
+              : `${profile.max_dl_bit_rate / BITRATE_MULTIPLIER} Mbps`,
           maxDownloadBitRate:
             profile.max_ul_bit_rate ===
             DATA_PLAN_UNLIMITED_RATES.max_ul_bit_rate
               ? 'Unlimited'
-              : profile.max_ul_bit_rate / BITRATE_MULTIPLIER + ' Mbps',
+              : `${profile.max_ul_bit_rate / BITRATE_MULTIPLIER} Mbps`,
         };
       })
     : [];
@@ -178,7 +168,7 @@ function DataPlanOverview(props: WithAlert) {
             {
               name: 'Remove',
               handleFunc: () => {
-                props
+                void props
                   .confirm(
                     `Are you sure you want to delete data plan ${currRow.dataPlanID}?`,
                   )
