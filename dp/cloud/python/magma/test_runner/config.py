@@ -27,6 +27,10 @@ class TestConfig(object):
         'GRPC_SERVICE', 'domain-proxy-radio-controller',
     )
     GRPC_PORT = int(os.environ.get('GRPC_PORT', 50053))
+    ORC8R_DP_GRPC_SERVICE = os.environ.get(
+        'ORC8R_DP_GRPC_SERVICE', 'orc8r-dp',
+    )
+    ORC8R_DP_GRPC_PORT = int(os.environ.get('ORC8R_DP_GRPC_PORT', 9180))
     HTTP_SERVER = os.environ.get(
         'HTTP_SERVER', 'https://orc8r-nginx-proxy',
     )

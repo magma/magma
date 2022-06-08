@@ -118,7 +118,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
-      OAILOG_INFO(LOG_MME_APP,
+      OAILOG_INFO(LOG_AMF_APP,
                   "Received S6A Update Location Answer from subscriberd\n");
       amf_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);

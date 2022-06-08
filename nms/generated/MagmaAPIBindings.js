@@ -827,7 +827,7 @@ export type mutable_cbsd = {
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
-    installation_param ? : installation_param,
+    installation_param ? : mutable_installation_param,
     serial_number: string,
     single_step_enabled: boolean,
     user_id: string,
@@ -860,6 +860,9 @@ export type mutable_federation_gateway = {
     magmad: magmad_gateway_configs,
     name: gateway_name,
     tier: tier_id,
+};
+export type mutable_installation_param = {
+    antenna_gain ? : number,
 };
 export type mutable_lte_gateway = {
     apn_resources ? : apn_resources,

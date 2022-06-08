@@ -33,36 +33,8 @@ definitions:
       - min_power
       - max_power
       - number_of_antennas
-  installation_param:
-    properties:
-      latitude_deg:
-        description: latitude coordinates of the radio in degrees
-        type: number
-        x-nullable: true
-      longitude_deg:
-        description: longitude coordinates of the radio in degrees
-        type: number
-        x-nullable: true
-      indoor_deployment:
-        description: true if the CBSD is located indoors
-        type: boolean
-        x-nullable: true
-      height_m:
-        description: the CBSD antenna height in meters
-        type: number
-        x-nullable: true
-      height_type:
-        description: AGL - relative to the ground level. AMSL - relative to the mean sea level
-        type: string
-        enum:
-          - agl
-          - amsl
-        x-nullable: true
-      antenna_gain:
-        example: 15
-        type: number
-        x-nullable: true
     type: object
+    x-nullable: false
   cbsd:
     type: object
     properties:
@@ -200,6 +172,37 @@ definitions:
       - frequency_mhz
       - max_eirp
       - state
+  installation_param:
+    properties:
+      antenna_gain:
+        example: 15
+        type: number
+        x-nullable: true
+      height_m:
+        description: the CBSD antenna height in meters
+        type: number
+        x-nullable: true
+      height_type:
+        description: AGL - relative to the ground level. AMSL - relative to the mean sea level
+        type: string
+        enum:
+          - agl
+          - amsl
+        x-nullable: true
+      indoor_deployment:
+        description: true if the CBSD is located indoors
+        type: boolean
+        x-nullable: true
+      latitude_deg:
+        description: latitude coordinates of the radio in degrees
+        type: number
+        x-nullable: true
+      longitude_deg:
+        description: longitude coordinates of the radio in degrees
+        type: number
+        x-nullable: true
+    type: object
+    x-nullable: false
   log:
     properties:
       body:
@@ -292,7 +295,7 @@ definitions:
         default: b
         x-nullable: false
       installation_param:
-        $ref: '#/definitions/installation_param'
+        $ref: '#/definitions/mutable_installation_param'
     required:
       - capabilities
       - desired_state
@@ -302,6 +305,14 @@ definitions:
       - user_id
       - single_step_enabled
       - cbsd_category
+  mutable_installation_param:
+    properties:
+      antenna_gain:
+        example: 15
+        type: number
+        x-nullable: true
+    type: object
+    x-nullable: false
   paginated_cbsds:
     description: Page of cbsds
     properties:

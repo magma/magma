@@ -17,7 +17,6 @@ require (
 	fbc/lib/go/oc/helpers v0.0.0
 	github.com/jessevdk/go-flags v1.4.1-0.20181221193153-c0795c8afcf4
 	github.com/kelseyhightower/envconfig v1.3.0
-	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/stretchr/testify v1.3.0
 	go.opencensus.io v0.21.0

@@ -40,6 +40,7 @@ nas_amf_smc_proc_t smc_data;
 
 void amf_ctx_set_valid_imsi(amf_context_t* ctxt, imsi_t* imsi,
                             const imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ctxt->imsi = *imsi;
   ctxt->imsi64 = imsi64;
   ctxt->is_initial_identity_imsi = true;
@@ -49,6 +50,7 @@ void amf_ctx_set_valid_imsi(amf_context_t* ctxt, imsi_t* imsi,
           ->amf_ue_ngap_id;
 
   amf_api_notify_imsi(ue_id, imsi64);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /***************************************************************************
@@ -61,14 +63,16 @@ void amf_ctx_set_valid_imsi(amf_context_t* ctxt, imsi_t* imsi,
 ***************************************************************************/
 void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(amf_context_t* ctxt,
                                                    ksi_t eksi) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ctxt->_security.eksi = eksi;
   ctxt->ksi = eksi;
 
   OAILOG_TRACE(
-      LOG_NAS_AMF,
+      LOG_AMF_APP,
       "ue_id= " AMF_UE_NGAP_ID_FMT " set security context eksi %d\n",
       (PARENT_STRUCT(ctxt, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id,
       eksi);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /***************************************************************************
@@ -81,12 +85,14 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_eksi(amf_context_t* ctxt,
 ***************************************************************************/
 void nas_amf_smc_proc_t::amf_ctx_set_security_type(amf_context_t* ctxt,
                                                    amf_sc_type_t sc_type) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   ctxt->_security.sc_type = sc_type;
   OAILOG_TRACE(
-      LOG_NAS_AMF,
+      LOG_AMF_APP,
       "ue_id= " AMF_UE_NGAP_ID_FMT " set security context security type %d\n",
       (PARENT_STRUCT(ctxt, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id,
       sc_type);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /***************************************************************************
@@ -98,6 +104,7 @@ void nas_amf_smc_proc_t::amf_ctx_set_security_type(amf_context_t* ctxt,
 **                                                                        **
 ***************************************************************************/
 void nas_amf_smc_proc_t::amf_ctx_clear_security(amf_context_t* ctxt) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   memset(&ctxt->_security, 0, sizeof(ctxt->_security));
   smc_data.amf_ctx_set_security_type(ctxt, SECURITY_CTX_TYPE_NOT_AVAILABLE);
   smc_data.amf_ctx_set_security_eksi(ctxt, KSI_NO_KEY_AVAILABLE);
@@ -108,8 +115,9 @@ void nas_amf_smc_proc_t::amf_ctx_clear_security(amf_context_t* ctxt) {
   ctxt->_security.direction_decode = SECU_DIRECTION_UPLINK;
   ctxt->_security.direction_encode = SECU_DIRECTION_DOWNLINK;
   OAILOG_DEBUG(
-      LOG_NAS_AMF, "ue_id= " AMF_UE_NGAP_ID_FMT " cleared security context \n",
+      LOG_AMF_APP, "ue_id= " AMF_UE_NGAP_ID_FMT " cleared security context \n",
       (PARENT_STRUCT(ctxt, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 }  // namespace magma5g
