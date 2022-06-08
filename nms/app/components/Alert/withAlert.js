@@ -17,7 +17,7 @@
 'use strict';
 
 import type {ComponentType, ElementConfig, Node} from 'react';
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alert from './Alert';
 import React from 'react';
 

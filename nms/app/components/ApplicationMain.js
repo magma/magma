@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alert from './Alert/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
