@@ -30,6 +30,7 @@ import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 // $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyOverview, {PolicyJsonConfig} from './PolicyOverview';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyRuleEditDialog from './PolicyEdit';
