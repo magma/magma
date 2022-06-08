@@ -22,6 +22,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe migrated to typescript
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TrafficDashboard from '../TrafficOverview';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
