@@ -9,55 +9,37 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {PolicyRule, QosClassId} from '../../../generated-ts';
 import type {WithAlert} from '../../components/Alert/withAlert';
-import type {
-  policy_rule,
-  qos_class_id,
-} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import BaseNameEditDialog from './BaseNameEdit';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyRuleEditDialog from './PolicyEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileEditDialog from './ProfileEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {Checkbox} from '@material-ui/core';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme, withStyles} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -125,32 +107,32 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type PolicyRowType = {
-  policyID: string,
-  numFlows: number,
-  priority: number,
-  numSubscribers: number,
-  monitoringKey: string,
-  rating: string,
-  trackingType: string,
-  networkWide: string,
+  policyID: string;
+  numFlows: number;
+  priority: number;
+  numSubscribers: number;
+  monitoringKey: string;
+  rating: string;
+  trackingType: string;
+  networkWide: string;
 };
 
 type BaseNameRowType = {
-  baseNameID: string,
-  ruleNames: Array<string>,
-  numSubscribers: number,
+  baseNameID: string;
+  ruleNames: Array<string>;
+  numSubscribers: number;
 };
 
 type ProfileRowType = {
-  classID: qos_class_id,
-  profileID: string,
-  uplinkBandwidth: number,
-  downlinkBandwidth: number,
+  classID: QosClassId;
+  profileID: string;
+  uplinkBandwidth: number;
+  downlinkBandwidth: number;
 };
 
 type RatingGroupRowType = {
-  ratingGroupID: string,
-  limitType: string,
+  ratingGroupID: string;
+  limitType: string;
 };
 
 const MagmaTabs = withStyles({
@@ -202,7 +184,7 @@ export default function PolicyOverview() {
 export function PolicyTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [open, setOpen] = React.useState(false);
-  const [currRow, setCurrRow] = useState<PolicyRowType>({});
+  const [currRow, setCurrRow] = useState<PolicyRowType>({} as PolicyRowType);
   const navigate = useNavigate();
   const ctx = useContext(PolicyContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
@@ -295,7 +277,7 @@ export function PolicyTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(`Are you sure you want to delete ${currRow.policyID}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
@@ -304,7 +286,7 @@ export function PolicyTableRaw(props: WithAlert) {
 
                   try {
                     // trigger deletion
-                    ctx.setState(currRow.policyID);
+                    await ctx.setState(currRow.policyID);
                   } catch (e) {
                     enqueueSnackbar(
                       'failed deleting policy ' + currRow.policyID,
@@ -329,7 +311,9 @@ export function PolicyTableRaw(props: WithAlert) {
 export function BaseNameTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [open, setOpen] = React.useState(false);
-  const [currRow, setCurrRow] = useState<BaseNameRowType>({});
+  const [currRow, setCurrRow] = useState<BaseNameRowType>(
+    {} as BaseNameRowType,
+  );
   const ctx = useContext(PolicyContext);
   const baseNames = ctx.baseNames;
   const baseNameRows: Array<BaseNameRowType> = baseNames
@@ -400,7 +384,7 @@ export function BaseNameTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(
                   `Are you sure you want to delete ${currRow.baseNameID}?`,
                 )
@@ -411,7 +395,7 @@ export function BaseNameTableRaw(props: WithAlert) {
 
                   try {
                     // trigger deletion
-                    ctx.setBaseNames(currRow.baseNameID);
+                    await ctx.setBaseNames(currRow.baseNameID);
                   } catch (e) {
                     enqueueSnackbar(
                       'failed deleting base name ' + currRow.baseNameID,
@@ -436,7 +420,7 @@ export function BaseNameTableRaw(props: WithAlert) {
 export function ProfileTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [open, setOpen] = React.useState(false);
-  const [currRow, setCurrRow] = useState<ProfileRowType>({});
+  const [currRow, setCurrRow] = useState<ProfileRowType>({} as ProfileRowType);
   const ctx = useContext(PolicyContext);
   const profiles = ctx.qosProfiles;
   const profileRows: Array<ProfileRowType> = profiles
@@ -501,7 +485,7 @@ export function ProfileTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(
                   `Are you sure you want to delete ${currRow.profileID}?`,
                 )
@@ -512,7 +496,7 @@ export function ProfileTableRaw(props: WithAlert) {
 
                   try {
                     // trigger deletion
-                    ctx.setQosProfiles(currRow.profileID);
+                    await ctx.setQosProfiles(currRow.profileID);
                   } catch (e) {
                     enqueueSnackbar(
                       'failed deleting profile ' + currRow.profileID,
@@ -537,7 +521,9 @@ export function ProfileTableRaw(props: WithAlert) {
 export function RatingGroupTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [open, setOpen] = React.useState(false);
-  const [currRow, setCurrRow] = useState<RatingGroupRowType>({});
+  const [currRow, setCurrRow] = useState<RatingGroupRowType>(
+    {} as RatingGroupRowType,
+  );
   const ctx = useContext(PolicyContext);
   const ratingGroups = ctx.ratingGroups;
   const ratingGroupRow: Array<RatingGroupRowType> = ratingGroups
@@ -591,7 +577,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(
                   `Are you sure you want to delete Rating Group ${currRow.ratingGroupID}?`,
                 )
@@ -601,7 +587,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
                   }
 
                   try {
-                    ctx.setRatingGroups(currRow.ratingGroupID.toString());
+                    await ctx.setRatingGroups(currRow.ratingGroupID.toString());
                   } catch (e) {
                     enqueueSnackbar(
                       'failed deleting rating group ' + currRow.ratingGroupID,
@@ -636,19 +622,19 @@ export function PolicyJsonConfig() {
   const navigate = useNavigate();
   const params = useParams();
   const [error, setError] = useState('');
-  const policyID: string = params.policyId;
+  const policyID: string = params.policyId!;
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(PolicyContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
   const policies = ctx.state;
-  const policy: policy_rule = policies[policyID] || DEFAULT_POLICY_CONFIG;
+  const policy: PolicyRule = policies[policyID] || DEFAULT_POLICY_CONFIG;
   const lteNetwork = lteNetworkCtx.state;
   const [isNetworkWide, setIsNetworkWide] = useState(false);
 
   useEffect(() => {
     if (policyID) {
       setIsNetworkWide(
-        lteNetwork?.subscriber_config?.network_wide_rule_names?.includes(
+        !!lteNetwork?.subscriber_config?.network_wide_rule_names?.includes(
           policyID,
         ),
       );
@@ -685,7 +671,7 @@ export function PolicyJsonConfig() {
           setError('');
           navigate(-1);
         } catch (e) {
-          setError(e.response?.data?.message ?? e.message);
+          setError(getErrorMessage(e));
         }
       }}
     />
