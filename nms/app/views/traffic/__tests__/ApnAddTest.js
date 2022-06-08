@@ -78,6 +78,10 @@ describe('<TrafficDashboard />', () => {
     jest
       .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
       .mockResolvedValue({data: []});
+    jest.spyOn(MagmaAPI.apns, 'lteNetworkIdApnsPost').mockImplementation();
+    jest
+      .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNamePut')
+      .mockImplementation();
   });
 
   const {location} = window;
@@ -213,7 +217,7 @@ describe('<TrafficDashboard />', () => {
       apn_name: 'apn_2',
     };
 
-    expect(MagmaAPIBindings.postLteByNetworkIdApns).toHaveBeenCalledWith({
+    expect(MagmaAPI.apns.lteNetworkIdApnsPost).toHaveBeenCalledWith({
       networkId,
       apn: newApn,
     });
@@ -270,9 +274,7 @@ describe('<TrafficDashboard />', () => {
       apn_name: 'apn_0',
     };
 
-    expect(
-      MagmaAPIBindings.putLteByNetworkIdApnsByApnName,
-    ).toHaveBeenCalledWith({
+    expect(MagmaAPI.apns.lteNetworkIdApnsApnNamePut).toHaveBeenCalledWith({
       networkId: 'test',
       apn: newApn,
       apnName: newApn.apn_name,

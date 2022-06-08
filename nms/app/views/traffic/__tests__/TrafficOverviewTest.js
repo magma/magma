@@ -15,6 +15,8 @@
  */
 // $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe migrated to typescript
@@ -291,9 +293,9 @@ describe('<TrafficDashboard />', () => {
   });
 
   it('shows prompt when remove policy is clicked', async () => {
-    MagmaAPIBindings.deleteNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValueOnce(
-      {},
-    );
+    const deleteMock = jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdDelete')
+      .mockResolvedValueOnce({});
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
     // click remove action for policy 0
@@ -309,17 +311,15 @@ describe('<TrafficDashboard />', () => {
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
-    expect(
-      MagmaAPIBindings.deleteNetworksByNetworkIdPoliciesRulesByRuleId,
-    ).toHaveBeenCalledWith({
+    expect(deleteMock).toHaveBeenCalledWith({
       networkId: 'test',
       ruleId: 'policy_0',
     });
   });
   it('shows prompt when remove profile is clicked', async () => {
-    MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId.mockResolvedValueOnce(
-      {},
-    );
+    const deleteMock = jest
+      .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesProfileIdDelete')
+      .mockResolvedValueOnce({});
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
     // Profiles tab
@@ -338,17 +338,18 @@ describe('<TrafficDashboard />', () => {
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
-    expect(
-      MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId,
-    ).toHaveBeenCalledWith({
+    expect(deleteMock).toHaveBeenCalledWith({
       networkId: 'test',
       profileId: 'profile_1',
     });
   });
   it('shows prompt when remove rating group is clicked', async () => {
-    MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId.mockResolvedValueOnce(
-      {},
-    );
+    const deleteMock = jest
+      .spyOn(
+        MagmaAPI.ratingGroups,
+        'networksNetworkIdRatingGroupsRatingGroupIdDelete',
+      )
+      .mockResolvedValueOnce({});
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
     // Rating Groups tab
@@ -367,9 +368,7 @@ describe('<TrafficDashboard />', () => {
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
-    expect(
-      MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId,
-    ).toHaveBeenCalledWith({
+    expect(deleteMock).toHaveBeenCalledWith({
       networkId: 'test',
       ratingGroupId: 0,
     });
@@ -492,6 +491,9 @@ describe('<TrafficDashboard APNs/>', () => {
     MagmaAPIBindings.deleteLteByNetworkIdApnsByApnName.mockResolvedValueOnce(
       {},
     );
+    const deleteMock = jest
+      .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNameDelete')
+      .mockResolvedValueOnce({});
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
 
@@ -507,9 +509,7 @@ describe('<TrafficDashboard APNs/>', () => {
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
-    expect(
-      MagmaAPIBindings.deleteLteByNetworkIdApnsByApnName,
-    ).toHaveBeenCalledWith({
+    expect(deleteMock).toHaveBeenCalledWith({
       networkId: 'test',
       apnName: 'apn_0',
     });
