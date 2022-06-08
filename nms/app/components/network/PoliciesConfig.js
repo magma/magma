@@ -14,13 +14,14 @@
  * @format
  */
 
-import type {WithAlert} from '../Alert/withAlert';
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {WithAlert} from '../Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
@@ -42,6 +43,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../Alert/withAlert';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {findIndex} from 'lodash';

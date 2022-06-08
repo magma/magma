@@ -19,11 +19,13 @@ import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import axios from 'axios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import type {EditUser} from './OrganizationEdit';
-import type {WithAlert} from '../../components/Alert/withAlert';
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {UserRoles} from '../../../shared/roles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {WithAlert} from '../../components/Alert/withAlert';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

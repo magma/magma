@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
 import type {call_trace} from '../../../generated/MagmaAPIBindings';
 
@@ -31,6 +32,7 @@ import React from 'react';
 import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import TraceContext from '../../components/context/TraceContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';

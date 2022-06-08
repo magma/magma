@@ -17,8 +17,8 @@
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 import type {UserType} from '../../../shared/sequelize_models/models/user.js';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
-
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import BusinessIcon from '@material-ui/icons/Business';
@@ -43,8 +43,8 @@ import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import axios from 'axios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';

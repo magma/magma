@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../Alert/withAlert';
 import type {cwf_gateway} from '../../../generated/MagmaAPIBindings';
 import type {cwf_ha_pair} from '../../../generated/MagmaAPIBindings';
@@ -49,8 +50,8 @@ import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-import withAlert from '../Alert/withAlert';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import withAlert from '../Alert/withAlert'; // $FlowFixMe migrated to typescript
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

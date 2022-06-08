@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../Alert/withAlert';
 import type {magmad_gateway, tier} from '../../../generated/MagmaAPIBindings';
 
@@ -38,8 +39,8 @@ import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../Alert/withAlert';
-
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';

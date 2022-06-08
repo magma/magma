@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../Alert/withAlert';
 import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
@@ -40,8 +41,8 @@ import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../Alert/withAlert';
-
 // $FlowFixMe migrated to typescript
 import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';

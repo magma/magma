@@ -31,6 +31,7 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {
   DEFAULT_PAGE_SIZE,
@@ -43,6 +44,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
   lte_subscription,

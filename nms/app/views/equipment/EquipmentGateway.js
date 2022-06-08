@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
   gateway_id,
@@ -45,8 +46,8 @@ import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
