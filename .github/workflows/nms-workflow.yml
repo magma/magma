@@ -59,7 +59,7 @@ jobs:
             cd ${MAGMA_ROOT}/nms
             # Extract the specified flow version from the .flowconfig
             yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
-      - uses: borales/actions-yarn@v2.3.0
+      - uses: borales/actions-yarn@v3.0.0
         with:
           cmd: install  # will run `yarn install` command
       - name: flow typecheck
@@ -141,7 +141,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@v2
-      - uses: borales/actions-yarn@v2.3.0
+      - uses: borales/actions-yarn@v3.0.0
         with:
           cmd: install  # will run `yarn install` command
       - name: run yarn test
@@ -200,7 +200,7 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
             sudo rm -rf /var/lib/apt/lists/*
-      - uses: borales/actions-yarn@v2.3.0
+      - uses: borales/actions-yarn@v3.0.0
         with:
           cmd: install  # will run `yarn install` command
       - name: run e2e_test_setup.sh
