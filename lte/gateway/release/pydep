@@ -394,18 +394,14 @@ def get_latest_apt_pkg_version(pkgname: str, py2: bool = False) -> Optional[str]
     """
     cache = apt.Cache()
     sys_pkgname = gen_sys_package_name(pkgname, py2)
+
     try:
-        avail_versions = cache[sys_pkgname].versions
+        package = cache[sys_pkgname]
     except KeyError:
         # package isn't available
         return None
 
-    latest = None
-    for v in avail_versions:
-        if not latest or v.version > latest:
-            latest = v.version
-
-    return latest
+    return package.candidate.version
 
 
 def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:

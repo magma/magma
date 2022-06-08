@@ -71,10 +71,6 @@ func TestMutableCbsd_Validate(t *testing.T) {
 		name:          "Should validate cbsd category value",
 		data:          b.NewMutableCbsdModelPayloadBuilder().WithCbsdCategory("c").Payload,
 		expectedError: "cbsd_category in body should be one of [a b]",
-	}, {
-		name:          "Should validate height type",
-		data:          b.NewMutableCbsdModelPayloadBuilder().WithHeightType("c").Payload,
-		expectedError: "installation_param.height_type in body should be one of [agl amsl]",
 	}}
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {

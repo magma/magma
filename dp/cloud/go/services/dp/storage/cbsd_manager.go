@@ -240,10 +240,14 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 }
 
 func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) error {
-	mask := db.NewIncludeMask("id")
+	mask := db.NewIncludeMask(getEnodebdWritableFields()...)
 	filters := sq.Eq{"cbsd_serial_number": data.CbsdSerialNumber}
-	if _, err := c.selectForUpdateIfCbsdExists(mask, filters); err != nil {
+	cbsd, err := c.selectForUpdateIfCbsdExists(mask, filters)
+	if err != nil {
 		return err
+	}
+	if !ShouldENodeBDUpdate(cbsd, data) {
+		return nil
 	}
 	data.ShouldDeregister = db.MakeBool(true)
 	columns := append(getEnodebdWritableFields(), "should_deregister")

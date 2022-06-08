@@ -52,6 +52,7 @@ ssize_t ngap_generate_successful_outcome(uint8_t** buffer, uint32_t* length,
   pdu.choice.successfulOutcome.criticality = criticality;
   // ANY_fromType_aper(&pdu.choice.successfulOutcome.value, td, sptr);
 
+  OAILOG_FUNC_IN(LOG_NGAP);
   if (asn1_xer_print) {
     xer_fprint(stdout, &asn_DEF_Ngap_PDUSessionType, (void*)&pdu);
   }
@@ -64,12 +65,12 @@ ssize_t ngap_generate_successful_outcome(uint8_t** buffer, uint32_t* length,
   if ((encoded = aper_encode_to_new_buffer(&asn_DEF_Ngap_PDUSessionType, 0,
                                            &pdu, (void**)buffer)) < 0) {
     OAILOG_ERROR(LOG_NGAP, "Encoding of %s failed\n", td->name);
-    return -1;
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
   // Might need this if there is a leak here
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_PDUSessionType, &pdu);
 
   *length = encoded;
-  return encoded;
+  OAILOG_FUNC_RETURN(LOG_NGAP, encoded);
 }

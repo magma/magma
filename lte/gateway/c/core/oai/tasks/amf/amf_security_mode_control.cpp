@@ -44,6 +44,7 @@ amf_as_data_t amf_data_sec_ctrl;
 //-----------------------------------------------------------------------------
 
 void format_plmn(amf_plmn_t* plmn) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int loop = 0;
   uint8_t* octet = (uint8_t*)plmn;
   /*TODO handle this better; for 2 digit mnc, the mnc_digit3 will be coming in
@@ -74,6 +75,7 @@ void format_plmn(amf_plmn_t* plmn) {
     plmn->mnc_digit2 = temp_plmn.mnc_digit1;
     plmn->mnc_digit3 = temp_plmn.mnc_digit2;
   }
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
@@ -87,6 +89,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
  **                                                                        **
  ***************************************************************************/
 nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
@@ -105,11 +108,11 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
     LIST_INSERT_HEAD(&amf_context->amf_procedures->amf_common_procs, wrapper,
                      entries);
     OAILOG_TRACE(LOG_NAS_EMM, "New EMM_COMM_PROC_AUTH\n");
-    return smc_proc;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, smc_proc);
   } else {
     free_wrapper((void**)&smc_proc);
   }
-  return NULL;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
 
 /****************************************************************************

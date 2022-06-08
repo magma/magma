@@ -248,6 +248,7 @@ func NewCbsdProtoPayloadBuilder() *CbsdProtoPayloadBuilder {
 			DesiredState:      registered,
 			CbsdCategory:      catB,
 			SingleStepEnabled: false,
+			InstallationParam: &protos.InstallationParam{},
 		},
 	}
 }
@@ -441,7 +442,7 @@ type CbsdModelPayloadBuilder struct {
 
 func NewCbsdModelPayloadBuilder() *CbsdModelPayloadBuilder {
 	return &CbsdModelPayloadBuilder{Payload: &models.Cbsd{
-		Capabilities: &models.Capabilities{
+		Capabilities: models.Capabilities{
 			MaxPower:         to_pointer.Float(20),
 			MinPower:         to_pointer.Float(10),
 			NumberOfAntennas: 2,
@@ -496,7 +497,7 @@ type MutableCbsdModelBuilder struct {
 
 func NewMutableCbsdModelPayloadBuilder() *MutableCbsdModelBuilder {
 	return &MutableCbsdModelBuilder{Payload: &models.MutableCbsd{
-		Capabilities: &models.Capabilities{
+		Capabilities: models.Capabilities{
 			MaxPower:         to_pointer.Float(20),
 			MinPower:         to_pointer.Float(10),
 			NumberOfAntennas: 2,
@@ -530,22 +531,11 @@ func (b *MutableCbsdModelBuilder) WithFccId(id string) *MutableCbsdModelBuilder 
 }
 
 func (b *MutableCbsdModelBuilder) WithEmptyInstallationParam() *MutableCbsdModelBuilder {
-	b.Payload.InstallationParam = &models.InstallationParam{}
-	return b
-}
-
-func (b *MutableCbsdModelBuilder) WithHeightType(heightType string) *MutableCbsdModelBuilder {
-	if b.Payload.InstallationParam == nil {
-		b.Payload.InstallationParam = &models.InstallationParam{}
-	}
-	b.Payload.InstallationParam.HeightType = to_pointer.String(heightType)
+	b.Payload.InstallationParam = models.MutableInstallationParam{}
 	return b
 }
 
 func (b *MutableCbsdModelBuilder) WithAntennaGain(gain float64) *MutableCbsdModelBuilder {
-	if b.Payload.InstallationParam == nil {
-		b.Payload.InstallationParam = &models.InstallationParam{}
-	}
 	b.Payload.InstallationParam.AntennaGain = to_pointer.Float(gain)
 	return b
 }
@@ -575,18 +565,6 @@ func (b *MutableCbsdModelBuilder) WithSingleStepEnabled(enabled *bool) *MutableC
 		b.Payload.SingleStepEnabled = nil
 	} else {
 		b.Payload.SingleStepEnabled = to_pointer.Bool(*enabled)
-	}
-	return b
-}
-
-func (b *MutableCbsdModelBuilder) WithIndoorDeployment(indoor *bool) *MutableCbsdModelBuilder {
-	if b.Payload.InstallationParam == nil {
-		b.Payload.InstallationParam = &models.InstallationParam{}
-	}
-	if indoor == nil {
-		b.Payload.InstallationParam.IndoorDeployment = nil
-	} else {
-		b.Payload.InstallationParam.IndoorDeployment = to_pointer.Bool(*indoor)
 	}
 	return b
 }

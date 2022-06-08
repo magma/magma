@@ -91,7 +91,7 @@ func metricsContainerToMetricAndContexts(
 	ret := make([]exporters.MetricAndContext, 0, len(in.Family))
 	for _, fam := range in.Family {
 		ctx := exporters.MetricContext{
-			MetricName: protos.GetDecodedName(fam),
+			MetricName: fam.GetName(),
 			AdditionalContext: &exporters.GatewayMetricContext{
 				NetworkID: networkID,
 				GatewayID: gatewayID,
