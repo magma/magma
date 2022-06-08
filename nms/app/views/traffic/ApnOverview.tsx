@@ -9,36 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnEditDialog from './ApnEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EmptyState from '../../components/EmptyState';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Apn} from '../../../generated-ts';
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
@@ -59,7 +50,7 @@ const EMPTY_STATE_OVERVIEW =
   'APN is an access point name. APN is used to identify the packet data network(PDN), the UE wants to be connected to.' +
   ' From Magma’s perspective, APN configuration consists of two main entities: The APN id and the QoS profile being applied to it.';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -120,13 +111,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type ApnRowType = {
-  apnID: string,
-  classID: number,
-  arpPriorityLevel: number,
-  maxReqdULBw: number,
-  maxReqDLBw: number,
-  arpPreEmptionCapability: boolean,
-  arpPreEmptionVulnerability: boolean,
+  apnID: string;
+  classID: number;
+  arpPriorityLevel: number;
+  maxReqdULBw: number;
+  maxReqDLBw: number;
+  arpPreEmptionCapability: boolean;
+  arpPreEmptionVulnerability: boolean;
 };
 
 const APN_TITLE = 'APNs';
@@ -134,7 +125,7 @@ function ApnOverview(props: WithAlert) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const navigate = useNavigate();
-  const [currRow, setCurrRow] = useState<ApnRowType>({});
+  const [currRow, setCurrRow] = useState<ApnRowType>({} as ApnRowType);
   const [open, setOpen] = React.useState(false);
   const ctx = useContext(ApnContext);
   const apns = ctx.state;
@@ -231,9 +222,8 @@ function ApnOverview(props: WithAlert) {
                 {
                   name: 'Remove',
                   handleFunc: () => {
-                    props
-                      .confirm(
-                        `Are you sure you want to delete ${currRow.apnID}?`,
+                    void props
+                  .confirm(`Are you sure you want to delete ${currRow.apnID}?`,
                       )
                       .then(async confirmed => {
                         if (!confirmed) {
@@ -242,10 +232,9 @@ function ApnOverview(props: WithAlert) {
 
                         try {
                           // trigger deletion
-                          ctx.setState(currRow.apnID);
-                        } catch (e) {
-                          enqueueSnackbar(
-                            'failed deleting APN ' + currRow.apnID,
+                          await ctx.setState(currRow.apnID);
+                    } catch (e) {
+                      enqueueSnackbar('failed deleting APN ' + currRow.apnID,
                             {
                               variant: 'error',
                             },
@@ -283,11 +272,11 @@ export function ApnJsonConfig() {
   const navigate = useNavigate();
   const params = useParams();
   const [error, setError] = useState('');
-  const apnName: string = params.apnId;
+  const apnName: string = params.apnId!;
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(ApnContext);
   const apns = ctx.state;
-  const apn: apn = apns[apnName] || DEFAULT_APN_CONFIG;
+  const apn: Apn = apns[apnName] || DEFAULT_APN_CONFIG;
   return (
     <JsonEditor
       content={apn}
@@ -297,14 +286,14 @@ export function ApnJsonConfig() {
           if (apn.apn_name === '') {
             throw Error('Invalid Name');
           }
-          ctx.setState(apn.apn_name, apn);
+          await ctx.setState(apn.apn_name, apn);
           enqueueSnackbar('APN saved successfully', {
             variant: 'success',
           });
           setError('');
           navigate(-1);
         } catch (e) {
-          setError(e.response?.data?.message ?? e.message);
+          setError(getErrorMessage(e));
         }
       }}
     />
