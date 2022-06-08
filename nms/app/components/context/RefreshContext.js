@@ -22,7 +22,9 @@ import {
   getFegGatewaysHealthStatus,
   // $FlowFixMe migrated to typescript
 } from '../../state/feg/EquipmentState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
 import type {EnqueueSnackbarOptions} from 'notistack';
