@@ -33,35 +33,35 @@ const DefaultMinimumRequiredRequests = 1
 // Counters reset to zero on service restart
 var (
 	SessionCreateRequests = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "session_create_requests_total",
+		Name: "s8_session_create_requests_total",
 		Help: "Total number of create session requests.",
 	})
 	SessionCreateFails = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "session_create_fails",
+		Name: "s8_session_create_failures",
 		Help: "Total number of create session requests that failed.",
 	})
 	SessionDeleteRequests = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "session_delete_requests_total",
+		Name: "s8_session_delete_requests_total",
 		Help: "Total number of delete session requests.",
 	})
 	SessionDeleteFails = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "session_delete_fails",
+		Name: "s8_session_delete_failures",
 		Help: "Total number of delete session requests that failed.",
 	})
 	BearerCreateRequests = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bearer_create_requests_total",
+		Name: "s8_bearer_create_requests_total",
 		Help: "Total number of create bearer requests.",
 	})
 	BearerCreateFails = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bearer_create_fails",
+		Name: "s8_bearer_create_failures",
 		Help: "Total number of create bearer requests that failed.",
 	})
 	BearerDeleteRequests = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bearer_delete_requests_total",
+		Name: "s8_bearer_delete_requests_total",
 		Help: "Total number of delete bearer requests.",
 	})
 	BearerDeleteFails = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "bearer_delete_fails",
+		Name: "s8_bearer_delete_failures",
 		Help: "Total number of delete bearer requests that failed.",
 	})
 )
@@ -130,35 +130,35 @@ func NewS8HealthTracker() *S8HealthTracker {
 }
 
 func GetCurrentHealthMetrics() (*S8HealthMetrics, error) {
-	sessionCreateRequests, err := service_health_metrics.GetInt64("session_create_requests_total")
+	sessionCreateRequests, err := service_health_metrics.GetInt64("s8_session_create_requests_total")
 	if err != nil {
 		return nil, err
 	}
-	sessionCreateFailsNoResponse, err := service_health_metrics.GetInt64("session_create_fails")
+	sessionCreateFailsNoResponse, err := service_health_metrics.GetInt64("s8_session_create_failures")
 	if err != nil {
 		return nil, err
 	}
-	sessionDeleteRequests, err := service_health_metrics.GetInt64("session_delete_requests_total")
+	sessionDeleteRequests, err := service_health_metrics.GetInt64("s8_session_delete_requests_total")
 	if err != nil {
 		return nil, err
 	}
-	sessionDeleteFailsNoResponse, err := service_health_metrics.GetInt64("session_delete_fails")
+	sessionDeleteFailsNoResponse, err := service_health_metrics.GetInt64("s8_session_delete_failures")
 	if err != nil {
 		return nil, err
 	}
-	bearerCreateRequests, err := service_health_metrics.GetInt64("bearer_create_requests_total")
+	bearerCreateRequests, err := service_health_metrics.GetInt64("s8_bearer_create_requests_total")
 	if err != nil {
 		return nil, err
 	}
-	bearerCreateFails, err := service_health_metrics.GetInt64("bearer_create_fails")
+	bearerCreateFails, err := service_health_metrics.GetInt64("s8_bearer_create_failures")
 	if err != nil {
 		return nil, err
 	}
-	bearerDeleteRequests, err := service_health_metrics.GetInt64("bearer_create_delete_total")
+	bearerDeleteRequests, err := service_health_metrics.GetInt64("s8_bearer_create_delete_total")
 	if err != nil {
 		return nil, err
 	}
-	bearerDeleteFails, err := service_health_metrics.GetInt64("bearer_delete_fails")
+	bearerDeleteFails, err := service_health_metrics.GetInt64("s8_bearer_delete_failures")
 	if err != nil {
 		return nil, err
 	}
