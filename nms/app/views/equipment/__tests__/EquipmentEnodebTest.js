@@ -29,6 +29,8 @@ import * as hooks from '../../../components/context/RefreshContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 
 // $FlowFixMe Upgrade react-testing-library
 import {render, wait, waitFor} from '@testing-library/react';
@@ -57,7 +59,9 @@ describe('<Enodeb />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
       mockThroughput,
     );
-    MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(enbInfo);
+    jest
+      .spyOn(MagmaAPI.enodebs, 'lteNetworkIdEnodebsGet')
+      .mockResolvedValue({data: enbInfo});
   });
 
   const enbInfo0 = {

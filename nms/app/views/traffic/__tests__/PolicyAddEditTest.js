@@ -221,10 +221,49 @@ describe('<TrafficDashboard />', () => {
         priority: 1,
         qos_profile: undefined,
         rating_group: 0,
-        redirect_information: {},
+        redirect: {},
       },
     );
     MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+
+    jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesPost')
+      .mockImplementation();
+    jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdPut')
+      .mockImplementation();
+
+    jest
+      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
+      .mockResolvedValue({data: feg_lte_network});
+    jest
+      .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet')
+      .mockResolvedValue({data: {}});
+    jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesBaseNameGet')
+      .mockResolvedValue({data: {}});
+    jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet')
+      .mockResolvedValue({data: []});
+    jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesviewfullGet')
+      .mockResolvedValue({data: policies});
+    jest
+      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdGet')
+      .mockResolvedValue({
+        data: {
+          app_name: undefined,
+          app_service_type: undefined,
+          assigned_subscribers: undefined,
+          flow_list: [],
+          id: 'test_policy_0',
+          monitoring_key: '',
+          priority: 1,
+          qos_profile: undefined,
+          rating_group: 0,
+          redirect: {},
+        },
+      });
   });
 
   const PolicyWrapper = ({networkType}) => (
@@ -280,13 +319,16 @@ describe('<TrafficDashboard />', () => {
       MagmaAPIBindings.getFegLteByNetworkIdSubscriberConfig,
     ).toHaveBeenCalledWith({networkId});
     expect(
+      // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
       MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
     ).toHaveBeenCalledWith({networkId});
     expect(
+      // MagmaAPI.policies.LteNetworkIdPolicyQosProfilesGet,
       MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
     ).toHaveBeenCalledWith({networkId});
     await waitFor(() =>
       expect(
+        // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
         MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
       ).toHaveBeenCalledWith({networkId: fegNetworkId}),
     );
@@ -344,7 +386,7 @@ describe('<TrafficDashboard />', () => {
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesPost,
       ).toHaveBeenCalledWith({
         networkId: 'test',
         policyRule: {
@@ -357,13 +399,13 @@ describe('<TrafficDashboard />', () => {
           priority: 1,
           qos_profile: undefined,
           rating_group: 0,
-          redirect_information: {},
+          redirect: {},
         },
       }),
     );
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesPost,
       ).toHaveBeenCalledWith({
         networkId: 'test_feg_network',
         policyRule: {
@@ -376,7 +418,7 @@ describe('<TrafficDashboard />', () => {
           priority: 1,
           qos_profile: undefined,
           rating_group: 0,
-          redirect_information: {},
+          redirect: {},
         },
       }),
     );
@@ -410,15 +452,20 @@ describe('<TrafficDashboard />', () => {
 
     // verify if lte api calls are invoked
     await waitFor(() =>
-      expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+      expect(
+        MagmaAPIBindings.getLteByNetworkId,
+        // MagmaAPI.policies.LteNetworkIdGet
+      ).toHaveBeenCalledWith({
         networkId,
       }),
     );
     expect(
       MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+      //MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
     ).toHaveBeenCalledWith({networkId});
     expect(
       MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
+      // MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
     ).toHaveBeenCalledWith({networkId});
 
     expect(queryByTestId('editDialog')).toBeNull();
@@ -471,7 +518,7 @@ describe('<TrafficDashboard />', () => {
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesPost,
       ).toHaveBeenCalledWith({
         networkId: 'test',
         policyRule: {
@@ -484,7 +531,7 @@ describe('<TrafficDashboard />', () => {
           priority: 1,
           qos_profile: undefined,
           rating_group: 0,
-          redirect_information: {},
+          redirect: {},
         },
       }),
     );
@@ -516,12 +563,14 @@ describe('<TrafficDashboard />', () => {
     await waitFor(() =>
       expect(
         MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+        // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
       ).toHaveBeenCalledWith({networkId}),
     );
     await waitFor(
       () =>
         expect(
           MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
+          // MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
         ).toHaveBeenCalled(),
       {timeout: 5000},
     );
@@ -565,12 +614,12 @@ describe('<TrafficDashboard />', () => {
       priority: 1,
       qos_profile: undefined,
       rating_group: 0,
-      redirect_information: {},
+      redirect: {},
     };
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesPost,
       ).toHaveBeenCalledWith({networkId, policyRule: newRule}),
     );
 
@@ -618,13 +667,13 @@ describe('<TrafficDashboard />', () => {
         },
       },
     ];
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValue(
-      newRule,
+    MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(
+      {data: newRule},
     );
     await waitFor(() => fireEvent.click(getByText('Save And Continue')));
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut,
       ).toHaveBeenCalledWith({
         networkId,
         ruleId: 'test_policy_0',
@@ -648,14 +697,14 @@ describe('<TrafficDashboard />', () => {
     }
 
     newRule['rating_group'] = 1;
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValue(
+    MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(
       newRule,
     );
     fireEvent.click(getByText('Save And Continue'));
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut,
       ).toHaveBeenCalledWith({
         networkId,
         ruleId: 'test_policy_0',
@@ -677,17 +726,17 @@ describe('<TrafficDashboard />', () => {
     } else {
       throw 'invalid type';
     }
-    (newRule['redirect_information'] = {
+    newRule['redirect'] = {
       server_address: '192.168.1.1',
-    }),
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValue(
-        newRule,
-      );
+    };
+    MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(
+      newRule,
+    );
     fireEvent.click(getByText('Save And Continue'));
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut,
       ).toHaveBeenCalledWith({
         networkId,
         ruleId: 'test_policy_0',
@@ -715,7 +764,7 @@ describe('<TrafficDashboard />', () => {
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut,
       ).toHaveBeenCalledWith({
         networkId,
         ruleId: 'test_policy_0',
@@ -741,12 +790,14 @@ describe('<TrafficDashboard />', () => {
     );
     await waitFor(() =>
       expect(
+        // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
         MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
       ).toHaveBeenCalledWith({networkId}),
     );
     await waitFor(() =>
       expect(
         MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
+        //MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
       ).toHaveBeenCalledWith({networkId}),
     );
 
@@ -774,7 +825,7 @@ describe('<TrafficDashboard />', () => {
 
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.putNetworksByNetworkIdPoliciesRulesByRuleId,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut,
       ).toHaveBeenCalledWith({
         networkId,
         ruleId: 'policy_0',

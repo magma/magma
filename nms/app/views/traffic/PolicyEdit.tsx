@@ -30,20 +30,20 @@ import React, {SetStateAction} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {AltFormField} from '../../components/FormField';
-import {PolicyRule} from '../../../generated-ts';
+import {PolicyRule, RedirectInformation} from '../../../generated-ts';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const DEFAULT_POLICY_RULE = {
+const DEFAULT_POLICY_RULE: PolicyRule = {
   qos_profile: undefined,
   id: '',
   priority: 1,
   flow_list: [],
   rating_group: 0,
-  redirect_information: {},
+  redirect: {} as RedirectInformation,
   monitoring_key: '',
   app_name: undefined,
   app_service_type: undefined,
