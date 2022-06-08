@@ -35,6 +35,8 @@ import type {
 
 import {Navigate, Route, Routes, useNavigate} from 'react-router-dom';
 import {useContext} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {SubscriberRowType} from '../../state/lte/SubscriberState';
 
 const TITLE = 'Subscribers';
 
@@ -55,18 +57,6 @@ export default function SubscriberDashboard() {
     </Routes>
   );
 }
-
-export type SubscriberRowType = {
-  name: string,
-  imsi: string,
-  activeApns?: string,
-  ipAddresses?: string,
-  activeSessions?: number,
-  service: string,
-  currentUsage: string,
-  dailyAvg: string,
-  lastReportedTime: Date | string,
-};
 
 type Props = {
   open: boolean,

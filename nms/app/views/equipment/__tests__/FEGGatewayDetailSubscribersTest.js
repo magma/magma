@@ -22,12 +22,13 @@ import type {
 
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
 import FEGSubscriberContext from '../../../components/context/FEGSubscriberContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render, wait} from '@testing-library/react';
@@ -138,10 +139,11 @@ const mockGw0: federation_gateway = {
 
 describe('<FEGGatewayDetailSubscribers />', () => {
   beforeEach(() => {
-    // called when getting subscriber name and service status
-    MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId
-      .mockReturnValueOnce(mockSubscribers[0])
-      .mockResolvedValue(mockSubscribers[1]);
+    jest
+      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdGet')
+      .mockResolvedValueOnce({data: mockSubscribers[0]})
+      // $FlowFixMe[incompatible-call] TypeScript migration
+      .mockResolvedValue({data: mockSubscribers[1]});
   });
 
   const Wrapper = () => (
@@ -182,8 +184,9 @@ describe('<FEGGatewayDetailSubscribers />', () => {
     await wait();
     // two subscribers in the network
     expect(
-      MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId,
+      MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdGet,
     ).toHaveBeenCalledTimes(2);
+
     const rowItems = await getAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');

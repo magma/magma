@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
@@ -33,7 +32,6 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
@@ -91,10 +89,14 @@ const subscribers = {
 
 describe('<SubscriberDashboard />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdSubscribers.mockResolvedValue({
-      subscribers: subscribers,
-      next_page_token: '',
-    });
+    jest
+      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersGet')
+      .mockResolvedValue({
+        data: {
+          subscribers: subscribers,
+          next_page_token: '',
+        },
+      });
 
     jest.spyOn(MagmaAPI.networks, 'networksGet').mockResolvedValue({data: []});
     jest

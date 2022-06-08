@@ -36,7 +36,10 @@ import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {setSubscriberState} from '../../../state/lte/SubscriberState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
@@ -226,6 +229,14 @@ describe('<AddSubscriberButton />', () => {
       [],
     );
     MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+
+    jest
+      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost')
+      .mockImplementation();
+
+    jest
+      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdPut')
+      .mockImplementation();
   });
 
   const AddWrapper = () => {
@@ -455,26 +466,26 @@ describe('<AddSubscriberButton />', () => {
 
     // Save subscriber
     fireEvent.click(getByTestId('saveSubscriber'));
-    expect(MagmaAPIBindings.postLteByNetworkIdSubscribers).toHaveBeenCalledWith(
-      {
-        networkId: 'test',
-        subscribers: [
-          {
-            active_apns: undefined,
-            active_policies: undefined,
-            id: 'IMSI00000000001004',
-            lte: {
-              auth_algo: 'MILENAGE',
-              auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
-              auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
-              state: 'ACTIVE',
-              sub_profile: 'default',
-            },
-            name: 'IMSI00000000001004',
+    expect(
+      MagmaAPI.subscribers.lteNetworkIdSubscribersPost,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      subscribers: [
+        {
+          active_apns: undefined,
+          active_policies: undefined,
+          id: 'IMSI00000000001004',
+          lte: {
+            auth_algo: 'MILENAGE',
+            auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+            auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+            state: 'ACTIVE',
+            sub_profile: 'default',
           },
-        ],
-      },
-    );
+          name: 'IMSI00000000001004',
+        },
+      ],
+    });
   });
 
   it('Verify Subscriber edit', async () => {
@@ -499,7 +510,7 @@ describe('<AddSubscriberButton />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.putLteByNetworkIdSubscribersBySubscriberId,
+      MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdPut,
     ).toHaveBeenCalledWith({
       networkId: 'test',
       subscriberId: 'IMSI00000000001002',

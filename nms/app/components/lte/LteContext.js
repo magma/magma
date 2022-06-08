@@ -24,6 +24,7 @@ import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 // $FlowFixMe migrated to typescript
 import GatewayTierContext from '../context/GatewayTierContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import InitSubscriberState from '../../state/lte/SubscriberState';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
@@ -101,6 +102,7 @@ import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/Netwo
 import {
   getGatewaySubscriberMap,
   setSubscriberState,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
