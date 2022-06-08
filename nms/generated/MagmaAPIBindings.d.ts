@@ -15,6 +15,13 @@ class MagmaAPIBindings {
   public static async getNetworksByNetworkIdType(parameters: {
     networkId: string;
   }): Promise<string>;
+
+  public static async deleteLteByNetworkIdApnsByApnName(parameters: {
+    networkId: string;
+    apnName: string;
+  }): Promise<'Success'>;
+
+  public static async getNetworks(): Promise<Array<string>>;
 }
 
 export default MagmaAPIBindings;
