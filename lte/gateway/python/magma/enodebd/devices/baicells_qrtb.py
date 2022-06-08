@@ -35,7 +35,11 @@ from magma.enodebd.device_config.enodeb_config_postprocessor import (
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.dp_client import get_cbsd_state
+from magma.enodebd.dp_client import (
+    build_enodebd_update_cbsd_request,
+    enodebd_update_cbsd,
+    get_cbsd_state,
+)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
 from magma.enodebd.state_machines.acs_state_utils import process_inform_message
@@ -379,11 +383,22 @@ class BaicellsQRTBNotifyDPState(NotifyDPState):
         """
         Enter the state
         """
-        request = CBSDRequest(
+        get_cbsd_state_request = CBSDRequest(
             serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
         )
-        state = get_cbsd_state(request)
+        state = get_cbsd_state(get_cbsd_state_request)
         qrtb_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
+        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+            serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
+            longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
+            indoor_deployment=self.acs.device_cfg.get_parameter(ParameterName.INDOOR_DEPLOYMENT),
+            antenna_height=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT),
+            antenna_height_type=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT_TYPE),
+            antenna_gain=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_GAIN),
+            cbsd_category=self.acs.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
+        )
+        enodebd_update_cbsd(enodebd_update_cbsd_request)
 
 
 class BaicellsQRTBTrDataModel(DataModel):
@@ -449,6 +464,26 @@ class BaicellsQRTBTrDataModel(DataModel):
         ),
         ParameterName.SERIAL_NUMBER: TrParam(
             path=DEVICE_PATH + 'DeviceInfo.SerialNumber', is_invasive=True,
+            type=TrParameterType.STRING, is_optional=False,
+        ),
+        ParameterName.INDOOR_DEPLOYMENT: TrParam(
+            path=DEVICE_PATH + 'DeviceInfo.indoorDeployment', is_invasive=False,
+            type=TrParameterType.BOOLEAN, is_optional=False,
+        ),
+        ParameterName.ANTENNA_HEIGHT: TrParam(
+            path=DEVICE_PATH + 'DeviceInfo.AntennaInfo.Height', is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        ),
+        ParameterName.ANTENNA_HEIGHT_TYPE: TrParam(
+            path=DEVICE_PATH + 'DeviceInfo.AntennaInfo.HeightType', is_invasive=True,
+            type=TrParameterType.STRING, is_optional=False,
+        ),
+        ParameterName.ANTENNA_GAIN: TrParam(
+            path=DEVICE_PATH + 'DeviceInfo.AntennaInfo.Gain', is_invasive=True,
+            type=TrParameterType.INT, is_optional=False,
+        ),
+        ParameterName.CBSD_CATEGORY: TrParam(
+            path=DEVICE_PATH + 'DeviceInfo.cbsdCategory', is_invasive=True,
             type=TrParameterType.STRING, is_optional=False,
         ),
 
