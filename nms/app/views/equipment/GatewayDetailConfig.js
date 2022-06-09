@@ -15,6 +15,7 @@
  */
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {EditProps} from './GatewayDetailConfigEdit';
 // $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
@@ -22,6 +23,7 @@ import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

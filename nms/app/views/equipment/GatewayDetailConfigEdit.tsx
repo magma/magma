@@ -9,30 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import type {
-  apn_resources,
-  challenge_key,
-  distribution_package,
-  enodeb_serials,
-  gateway_device,
-  gateway_dns_configs,
-  gateway_epc_configs,
-  gateway_he_config,
-  gateway_logging_configs,
-  gateway_ran_configs,
-  lte_gateway,
-  magmad_gateway_configs,
-} from '../../../generated/MagmaAPIBindings';
+  ApnResource,
+  ChallengeKey,
+  DistributionPackage,
+  GatewayDevice,
+  GatewayDnsConfigs,
+  GatewayEpcConfigs,
+  GatewayHeConfig,
+  GatewayHeConfigHeEncodingTypeEnum,
+  GatewayLoggingConfigs,
+  GatewayRanConfigs,
+  LteGateway,
+  MagmadGatewayConfigs,
+} from '../../../generated-ts';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AddIcon from '@material-ui/icons/Add';
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -40,14 +36,11 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -55,7 +48,6 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
@@ -64,27 +56,28 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {
   DEFAULT_DNS_CONFIG,
   DEFAULT_GATEWAY_CONFIG,
   DEFAULT_HE_CONFIG,
   DynamicServices,
-  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {
+  GatewayHeConfigHeEncryptionAlgorithmEnum,
+  GatewayHeConfigHeHashFunctionEnum,
+} from '../../../generated-ts';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+
+type EnodebSerials = Array<string>;
 
 const GATEWAY_TITLE = 'Gateway';
 const RAN_TITLE = 'Ran';
@@ -138,19 +131,19 @@ const EditTableType = {
 };
 
 export type EditProps = {
-  editTable: $Keys<typeof EditTableType>,
+  editTable: keyof typeof EditTableType;
 };
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  editProps?: EditProps,
+  open: boolean;
+  onClose: () => void;
+  editProps?: EditProps;
 };
 
 type ButtonProps = {
-  title: string,
-  isLink: boolean,
-  editProps?: EditProps,
+  title: string;
+  isLink: boolean;
+  editProps?: EditProps;
 };
 
 export default function AddEditGatewayButton(props: ButtonProps) {
@@ -196,8 +189,8 @@ function GatewayEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
   const params = useParams();
-  const [gateway, setGateway] = useState<lte_gateway>(DEFAULT_GATEWAY_CONFIG);
-  const gatewayId: string = params.gatewayId;
+  const [gateway, setGateway] = useState<LteGateway>(DEFAULT_GATEWAY_CONFIG);
+  const gatewayId: string = params.gatewayId!;
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
@@ -219,38 +212,38 @@ function GatewayEditDialog(props: DialogProps) {
       />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v) => setTabPos(v as number)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="gateway" data-testid="gatewayTab" label={GATEWAY_TITLE} />;
         <Tab
           key="aggregations"
           data-testid="aggregationsTab"
-          disabled={editProps ? false : true}
+          disabled={!editProps}
           label={AGGREGATION_TITLE}
         />
         <Tab
           key="epc"
           data-testid="EPCTab"
-          disabled={editProps ? false : true}
+          disabled={!editProps}
           label={EPC_TITLE}
         />
         <Tab
           key="ran"
           data-testid="ranTab"
-          disabled={editProps ? false : true}
+          disabled={!editProps}
           label={RAN_TITLE}
         />
         <Tab
           key="apnResources"
           data-testid="apnResourcesTab"
-          disabled={editProps ? false : true}
+          disabled={!editProps}
           label={APN_RESOURCES_TITLE}
         />
         <Tab
           key="headerEnrichment"
           data-testid="headerEnrichmentTab"
-          disabled={editProps ? false : true}
+          disabled={!editProps}
           label={HEADER_ENRICHMENT_TITLE}
         />
         ;
@@ -260,7 +253,7 @@ function GatewayEditDialog(props: DialogProps) {
           isAdd={!editProps}
           gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
-          onSave={(gateway: lte_gateway) => {
+          onSave={(gateway: LteGateway) => {
             setGateway(gateway);
             if (editProps) {
               onClose();
@@ -275,7 +268,7 @@ function GatewayEditDialog(props: DialogProps) {
           isAdd={!editProps}
           gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
-          onSave={(gateway: lte_gateway) => {
+          onSave={(gateway: LteGateway) => {
             setGateway(gateway);
             if (editProps) {
               onClose();
@@ -290,7 +283,7 @@ function GatewayEditDialog(props: DialogProps) {
           isAdd={!editProps}
           gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
-          onSave={(gateway: lte_gateway) => {
+          onSave={(gateway: LteGateway) => {
             setGateway(gateway);
             if (editProps) {
               onClose();
@@ -305,7 +298,7 @@ function GatewayEditDialog(props: DialogProps) {
           isAdd={!editProps}
           gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
-          onSave={(gateway: lte_gateway) => {
+          onSave={(gateway: LteGateway) => {
             setGateway(gateway);
             if (editProps) {
               onClose();
@@ -320,7 +313,7 @@ function GatewayEditDialog(props: DialogProps) {
           isAdd={!editProps}
           gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
-          onSave={(gateway: lte_gateway) => {
+          onSave={(gateway: LteGateway) => {
             setGateway(gateway);
             if (editProps) {
               onClose();
@@ -335,7 +328,7 @@ function GatewayEditDialog(props: DialogProps) {
           isAdd={!editProps}
           gateway={!editProps ? gateway : ctx.state[gatewayId]}
           onClose={onClose}
-          onSave={(gateway: lte_gateway) => {
+          onSave={(gateway: LteGateway) => {
             setGateway(gateway);
             if (editProps) {
               onClose();
@@ -349,32 +342,34 @@ function GatewayEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  isAdd: boolean,
-  gateway: lte_gateway,
-  onClose: () => void,
-  onSave: lte_gateway => void,
+  isAdd: boolean;
+  gateway: LteGateway;
+  onClose: () => void;
+  onSave: (gateway: LteGateway) => void;
 };
 
-type VersionType = $PropertyType<distribution_package, 'version'>;
+type VersionType = DistributionPackage['version'];
 
 export function ConfigEdit(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
 
-  const [gateway, setGateway] = useState<lte_gateway>({
+  const [gateway, setGateway] = useState<LteGateway>({
     ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
     connected_enodeb_serials:
       props.gateway?.connected_enodeb_serials ||
       DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
   });
 
-  const [gatewayDevice, SetGatewayDevice] = useState<gateway_device>(
-    props.gateway?.device || (DEFAULT_GATEWAY_CONFIG.device ?? {}),
+  const [gatewayDevice, SetGatewayDevice] = useState<GatewayDevice>(
+    props.gateway?.device ||
+      (DEFAULT_GATEWAY_CONFIG.device ?? ({} as GatewayDevice)),
   );
 
-  const [challengeKey, setChallengeKey] = useState<challenge_key>(
-    props.gateway?.device?.key || (DEFAULT_GATEWAY_CONFIG.device?.key ?? {}),
+  const [challengeKey, setChallengeKey] = useState<ChallengeKey>(
+    props.gateway?.device?.key ||
+      (DEFAULT_GATEWAY_CONFIG.device?.key ?? ({} as ChallengeKey)),
   );
 
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
@@ -410,8 +405,8 @@ export function ConfigEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(gatewayInfos);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
   return (
@@ -498,7 +493,10 @@ export function ConfigEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
@@ -512,7 +510,7 @@ export function DynamicServicesEdit(props: Props) {
   const ctx = useContext(GatewayContext);
   const params = useParams();
   const gatewayId: string = props.gateway.id || nullthrows(params.gatewayId);
-  const [config, setConfig] = useState<magmad_gateway_configs>(
+  const [config, setConfig] = useState<MagmadGatewayConfigs>(
     props.gateway.magmad,
   );
 
@@ -539,7 +537,7 @@ export function DynamicServicesEdit(props: Props) {
   const onSave = async () => {
     try {
       if (config.dynamic_services?.includes(DynamicServices.TD_AGENT_BIT)) {
-        const logging: gateway_logging_configs = {
+        const logging: GatewayLoggingConfigs = {
           aggregation: {
             target_files_by_tag: {
               mme: 'var/log/mme.log',
@@ -563,8 +561,8 @@ export function DynamicServicesEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(gateway);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -614,7 +612,10 @@ export function DynamicServicesEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
@@ -627,11 +628,14 @@ export function EPCEdit(props: Props) {
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
 
-  const handleEPCChange = (key: string, val) => {
+  const handleEPCChange = <K extends keyof GatewayEpcConfigs>(
+    key: K,
+    val: GatewayEpcConfigs[K],
+  ) => {
     setEPCConfig({...EPCConfig, [key]: val});
   };
 
-  const [EPCConfig, setEPCConfig] = useState<gateway_epc_configs>(
+  const [EPCConfig, setEPCConfig] = useState<GatewayEpcConfigs>(
     props.gateway.cellular.epc,
   );
 
@@ -655,8 +659,8 @@ export function EPCEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(gateway);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
   return (
@@ -792,7 +796,10 @@ export function EPCEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
@@ -806,19 +813,25 @@ export function RanEdit(props: Props) {
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
   const enbsCtx = useContext(EnodebContext);
-  const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
+  const [ranConfig, setRanConfig] = useState<GatewayRanConfigs>(
     props.gateway.cellular.ran,
   );
-  const [dnsConfig, setDnsConfig] = useState<gateway_dns_configs>(
-    props.gateway.cellular.dns ?? {},
+  const [dnsConfig, setDnsConfig] = useState<GatewayDnsConfigs>(
+    props.gateway.cellular.dns ?? ({} as GatewayDnsConfigs),
   );
-  const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
+  const [connectedEnodebs, setConnectedEnodebs] = useState<EnodebSerials>(
     props.gateway.connected_enodeb_serials,
   );
-  const handleRanChange = (key: string, val) => {
+  const handleRanChange = <K extends keyof GatewayRanConfigs>(
+    key: K,
+    val: GatewayRanConfigs[K],
+  ) => {
     setRanConfig({...ranConfig, [key]: val});
   };
-  const handleDnsChange = (key: string, val) => {
+  const handleDnsChange = <K extends keyof GatewayDnsConfigs>(
+    key: string,
+    val: GatewayDnsConfigs[K],
+  ) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
   const onSave = async () => {
@@ -844,8 +857,8 @@ export function RanEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(gateway);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
   return (
@@ -878,14 +891,14 @@ export function RanEdit(props: Props) {
               displayEmpty={true}
               value={connectedEnodebs}
               onChange={({target}) => {
-                setConnectedEnodebs(Array.from(target.value));
+                setConnectedEnodebs(Array.from(target.value as string));
               }}
               MenuProps={{classes: {paper: classes.selectMenu}}}
               renderValue={selected => {
-                if (!selected.length) {
+                if (!(selected as EnodebSerials).length) {
                   return 'Select eNodeBs';
                 }
-                return selected.join(', ');
+                return (selected as EnodebSerials).join(', ');
               }}
               input={
                 <OutlinedInput
@@ -930,7 +943,10 @@ export function RanEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
@@ -945,16 +961,21 @@ export function ApnResourcesEdit(props: Props) {
   const ctx = useContext(GatewayContext);
   const apnCtx = useContext(ApnContext);
   const lteCtx = useContext(LteNetworkContext);
-  const apnResources: apn_resources = props.gateway.apn_resources ?? {};
+  const apnResources: Record<string, ApnResource> =
+    props.gateway.apn_resources ?? {};
   const [apnResourcesRows, setApnResourcesRows] = useState(
     Object.keys(apnResources).map(apn => apnResources[apn]),
   );
-  const handleApnResourcesChange = (key: string, val, index: number) => {
+  const handleApnResourcesChange = <K extends keyof ApnResource>(
+    key: K,
+    val: ApnResource[K],
+    index: number,
+  ) => {
     const rows = apnResourcesRows;
     rows[index][key] = val;
     setApnResourcesRows([...rows]);
   };
-  const deleteApn = deletedApn =>
+  const deleteApn = (deletedApn: ApnResource) =>
     setApnResourcesRows([
       ...apnResourcesRows.filter(apn => apn !== deletedApn),
     ]);
@@ -962,13 +983,13 @@ export function ApnResourcesEdit(props: Props) {
   const addApnResource = () => {
     setApnResourcesRows([
       ...apnResourcesRows,
-      {apn_name: '', id: '', vlan_id: null},
+      {apn_name: '', id: '', vlan_id: undefined},
     ]);
   };
 
   const onSave = async () => {
     try {
-      const gatewayApnResources = {};
+      const gatewayApnResources: Record<string, ApnResource> = {};
       apnResourcesRows.forEach(
         apn => (gatewayApnResources[apn.apn_name] = apn),
       );
@@ -982,8 +1003,8 @@ export function ApnResourcesEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(gateway);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -1000,7 +1021,7 @@ export function ApnResourcesEdit(props: Props) {
             data-testid="apnResourcesAdd"
             onClick={addApnResource}
             disabled={
-              !lteCtx.state.cellular.epc.mobility
+              !lteCtx.state.cellular!.epc.mobility
                 ?.enable_multi_apn_ip_allocation ?? false
             }>
             Add New APN Resource
@@ -1045,7 +1066,7 @@ export function ApnResourcesEdit(props: Props) {
                       value={apn.apn_name}
                       onChange={({target}) => {
                         const apns = apnResourcesRows;
-                        apns[index].apn_name = target.value;
+                        apns[index].apn_name = target.value as string;
                         setApnResourcesRows([...apns]);
                       }}
                       input={<OutlinedInput />}>
@@ -1095,7 +1116,10 @@ export function ApnResourcesEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
@@ -1107,11 +1131,14 @@ export function HeaderEnrichmentConfig(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
-  const [heConfig, setHeConfig] = useState<gateway_he_config>(
+  const [heConfig, setHeConfig] = useState<GatewayHeConfig>(
     props.gateway.cellular.he_config || DEFAULT_HE_CONFIG,
   );
 
-  const handleHEChange = (key: string, val) => {
+  const handleHEChange = <K extends keyof GatewayHeConfig>(
+    key: K,
+    val: GatewayHeConfig[K],
+  ) => {
     setHeConfig({...heConfig, [key]: val});
   };
   const heEncodingTypes = ['BASE64', 'HEX2BIN'];
@@ -1147,8 +1174,8 @@ export function HeaderEnrichmentConfig(props: Props) {
         variant: 'success',
       });
       props.onSave(gateway);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -1213,7 +1240,10 @@ export function HeaderEnrichmentConfig(props: Props) {
                     DEFAULT_HE_CONFIG.he_encoding_type
                   }
                   onChange={({target}) => {
-                    handleHEChange('he_encoding_type', target.value);
+                    handleHEChange(
+                      'he_encoding_type',
+                      target.value as GatewayHeConfigHeEncodingTypeEnum,
+                    );
                   }}
                   input={<OutlinedInput id="encodingType" />}>
                   {heEncodingTypes.map(type => (
@@ -1233,7 +1263,10 @@ export function HeaderEnrichmentConfig(props: Props) {
                     DEFAULT_HE_CONFIG.he_encoding_type
                   }
                   onChange={({target}) => {
-                    handleHEChange('he_encryption_algorithm', target.value);
+                    handleHEChange(
+                      'he_encryption_algorithm',
+                      target.value as GatewayHeConfigHeEncryptionAlgorithmEnum,
+                    );
                   }}
                   input={<OutlinedInput id="encryptionAlgorithm" />}>
                   {heEncryptionAlgorithmTypes.map(type => (
@@ -1253,7 +1286,10 @@ export function HeaderEnrichmentConfig(props: Props) {
                     DEFAULT_HE_CONFIG.he_encoding_type
                   }
                   onChange={({target}) => {
-                    handleHEChange('he_hash_function', target.value);
+                    handleHEChange(
+                      'he_hash_function',
+                      target.value as GatewayHeConfigHeHashFunctionEnum,
+                    );
                   }}
                   input={<OutlinedInput id="hashFunction" />}>
                   {heHashFunctionTypes.map(type => (
@@ -1269,7 +1305,10 @@ export function HeaderEnrichmentConfig(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Close' : 'Save'}
         </Button>
       </DialogActions>
