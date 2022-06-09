@@ -155,12 +155,12 @@ admin_operator.key.pem  bootstrapper.key        controller.crt          rootCA.k
 admin_operator.pem      certifier.key           controller.csr          rootCA.pem
 admin_operator.pfx      certifier.pem           controller.key          rootCA.srl
 </code></pre>
-<p>The owner and group of <code>admin_cert.key.pem</code> and <code>admin_cert.pfx</code> in <code>/magma/.cache/test_certs/</code> are <code>root</code>.
+<p>The owner and group of <code>admin_operator.key.pem</code> and <code>admin_operator.pfx</code> in <code>/magma/.cache/test_certs/</code> are <code>root</code>.
 You need to change ownership of these files to your user with <code>chown</code>, e.g.</p>
-<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.key.pem
-HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.pfx
+<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker] sudo chown <span class="hljs-variable">${USER}</span>:<span class="hljs-variable">${USER}</span> ../../../.cache/test_certs/admin_operator.key.pem
+HOST [magma/orc8r/cloud/docker] sudo chown <span class="hljs-variable">${USER}</span>:<span class="hljs-variable">${USER}</span> ../../../.cache/test_certs/admin_operator.pfx
 </code></pre>
-<p>Replace <code>username</code> with your username, then:</p>
+<p>then:</p>
 <pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs
 </code></pre>
 <p>In the Finder window that pops up, double-click <code>admin_operator.pfx</code> to add the
