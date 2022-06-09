@@ -264,12 +264,12 @@ export async function FetchFegGateways(props: FetchProps) {
   const {networkId, id, enqueueSnackbar} = props;
   if (id !== undefined && id !== null && id !== '') {
     try {
-      const gateway = await MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdGet(
-        {
+      const gateway = (
+        await MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdGet({
           networkId: networkId,
           gatewayId: id,
-        },
-      );
+        })
+      ).data;
       if (gateway) {
         return {
           [id]: gateway,
@@ -285,9 +285,11 @@ export async function FetchFegGateways(props: FetchProps) {
     }
   } else {
     try {
-      return await MagmaAPI.federationGateways.fegNetworkIdGatewaysGet({
-        networkId: networkId,
-      });
+      return (
+        await MagmaAPI.federationGateways.fegNetworkIdGatewaysGet({
+          networkId: networkId,
+        })
+      ).data;
     } catch (e) {
       enqueueSnackbar?.('Failed fetching gateway information', {
         variant: 'error',
