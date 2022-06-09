@@ -26,7 +26,7 @@ export type AppContextType = {
   showExpandButton: () => void;
   hideExpandButton: () => void;
   isOrganizations: boolean;
-  isFeatureEnabled: (arg0: FeatureID) => boolean;
+  isFeatureEnabled: (feature: FeatureID) => boolean;
   ssoEnabled: boolean;
   ssoSelectedType: SSOSelectedType;
   hasAccountSettings: boolean;
@@ -67,8 +67,8 @@ export function AppContextProvider(props: Props) {
     ...appContextDefaults,
     ...appData,
     hasAccountSettings: !appData.ssoEnabled,
-    isOrganizations: !!props.isOrganizations,
     // is organizations management aka. the host site
+    isOrganizations: !!props.isOrganizations,
     networkIds: props.networkIDs || [],
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;
