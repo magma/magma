@@ -18,7 +18,6 @@ import type {promql_return_object} from '../../../../generated/MagmaAPIBindings'
 import Enodeb from '../EquipmentEnodeb';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -34,9 +33,10 @@ import MagmaAPI from '../../../../api/MagmaAPI';
 
 // $FlowFixMe Upgrade react-testing-library
 import {render, wait, waitFor} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const mockThroughput: promql_return_object = {
@@ -56,12 +56,13 @@ const currTime = Date.now();
 
 describe('<Enodeb />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryRangeGet',
       mockThroughput,
     );
-    jest
-      .spyOn(MagmaAPI.enodebs, 'lteNetworkIdEnodebsGet')
-      .mockResolvedValue({data: enbInfo});
+
+    mockAPI(MagmaAPI.enodebs, 'lteNetworkIdEnodebsGet', enbInfo);
   });
 
   const enbInfo0 = {
@@ -155,7 +156,7 @@ describe('<Enodeb />', () => {
     const {getAllByRole} = render(<Wrapper />);
     await waitFor(() => {
       expect(
-        MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+        MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
       ).toHaveBeenCalledTimes(1);
 
       const rowItems = getAllByRole('row');

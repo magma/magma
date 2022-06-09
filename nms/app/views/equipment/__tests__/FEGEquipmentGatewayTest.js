@@ -26,6 +26,8 @@ import moment from 'moment';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration;
+import {mockAPI} from '../../../util/TestUtils';
 // $FlowFixMe upgrade testing-library types
 import {render, wait, waitFor} from '@testing-library/react';
 import type {
@@ -239,7 +241,9 @@ describe('<FEGEquipmentGateway />', () => {
       .mockResolvedValue({data: mockClusterStatus});
 
     // called by gateway checkin chart
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryRangeGet',
       mockCheckinMetric,
     );
     // called when getting max latency

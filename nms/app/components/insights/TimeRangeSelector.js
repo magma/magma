@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from './AsyncMetric';
 
 import FormControl from '@material-ui/core/FormControl';

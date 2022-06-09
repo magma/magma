@@ -20,6 +20,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import {makeStyles} from '@material-ui/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from '../../components/insights/AsyncMetric';
 
 const useStyles = makeStyles(_ => ({

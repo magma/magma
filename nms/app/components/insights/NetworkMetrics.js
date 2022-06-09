@@ -15,10 +15,12 @@
  */
 
 import type {MetricGraphConfig} from '../insights/Metrics';
-import type {TimeRange} from '../insights/AsyncMetric';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {TimeRange} from './AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
-import AsyncMetric from '../insights/AsyncMetric';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import AsyncMetric from './AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import GridList from '@material-ui/core/GridList';

@@ -14,10 +14,12 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from './AsyncMetric';
 
 import * as React from 'react';
 import AppBar from '@material-ui/core/AppBar';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AsyncMetric from './AsyncMetric';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Card from '@material-ui/core/Card';
