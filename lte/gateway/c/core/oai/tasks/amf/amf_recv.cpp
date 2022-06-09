@@ -370,6 +370,36 @@ int amf_handle_registration_request(
      * Extract the SUPI from SUCI directly as scheme is NULL */
     if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
         M5GSMobileIdentityMsg_SUCI_IMSI) {
+      bool is_plmn_present = false;
+      for (uint8_t i = 0; i < amf_config.guamfi.nb; i++) {
+        if ((msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2 ==
+             amf_config.guamfi.guamfi[i].plmn.mcc_digit2) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1 ==
+             amf_config.guamfi.guamfi[i].plmn.mcc_digit1) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3 ==
+             amf_config.guamfi.guamfi[i].plmn.mnc_digit3) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3 ==
+             amf_config.guamfi.guamfi[i].plmn.mcc_digit3) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2 ==
+             amf_config.guamfi.guamfi[i].plmn.mnc_digit2) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1 ==
+             amf_config.guamfi.guamfi[i].plmn.mnc_digit1)) {
+          is_plmn_present = true;
+        }
+      }
+      if (!is_plmn_present) {
+        delete params;
+        amf_cause = AMF_CAUSE_INVALID_MANDATORY_INFO;
+        OAILOG_ERROR(LOG_NAS_AMF,
+                     "UE PLMN mismatch"
+                     "AMF rejecting the initial registration with "
+                     "cause : %d for UE "
+                     "ID: " AMF_UE_NGAP_ID_FMT,
+                     amf_cause, ue_id);
+        rc = amf_proc_registration_reject(ue_id, amf_cause);
+        amf_free_ue_context(ue_context);
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+      }
       // Only considering protection scheme as NULL else return error.
       if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
           MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
