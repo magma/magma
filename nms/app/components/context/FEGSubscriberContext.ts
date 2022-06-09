@@ -9,26 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {
-  network_id,
-  subscriber_id,
-  subscriber_state,
-} from '../../../generated/MagmaAPIBindings';
-
 import React from 'react';
+import {NetworkId, SubscriberId} from '../../../shared/types/network';
+import {SubscriberState} from '../../../generated-ts';
 
 export type FEGSubscriberContextType = {
-  sessionState: {
-    [networkId: network_id]: {[subscriberId: subscriber_id]: subscriber_state},
-  },
-  setSessionState: (newSessionState: {
-    [string]: {[string]: subscriber_state},
-  }) => void,
+  sessionState: Record<NetworkId, Record<SubscriberId, SubscriberState>>;
+  setSessionState: (
+    newSessionState: Record<NetworkId, Record<SubscriberId, SubscriberState>>,
+  ) => void;
 };
 
-export default React.createContext<FEGSubscriberContextType>({});
+export default React.createContext<FEGSubscriberContextType>(
+  {} as FEGSubscriberContextType,
+);

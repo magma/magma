@@ -21,6 +21,7 @@ import type {
 } from '../../../../generated/MagmaAPIBindings';
 
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGSubscriberContext from '../../../components/context/FEGSubscriberContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

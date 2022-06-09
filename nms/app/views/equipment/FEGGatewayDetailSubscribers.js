@@ -21,6 +21,7 @@ import type {
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
 import Link from '@material-ui/core/Link';
 // $FlowFixMe migrated to typescript
