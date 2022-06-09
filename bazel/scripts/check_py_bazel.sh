@@ -46,6 +46,7 @@ DENY_LIST_NOT_RELEVANT=(
   "./show-tech"
   "./third_party"
   "./xwf/gateway/deploy"
+  "./hil_testing"
 )
 
 # Folders and files that are relevant for building with bazel.
