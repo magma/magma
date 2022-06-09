@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from abc import ABCMeta, abstractmethod
-from typing import List
+from logging import Logger
+from typing import Callable, List
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
@@ -56,6 +57,9 @@ class PolicyMixin(metaclass=ABCMeta):
     Mixin class for policy enforcement apps that includes common methods
     used for rule activation/deactivation.
     """
+    logger: Logger
+    tbl_num: int
+    _get_default_flow_msgs_for_subscriber: Callable
 
     def __init__(self, *args, **kwargs):
         super(PolicyMixin, self).__init__(*args, **kwargs)

@@ -62,7 +62,7 @@ class UplinkBridgeController(MagmaController):
         self._sgi_ip_mon = None
         self._datapath = None
 
-    def _get_config(self, config_dict) -> namedtuple:
+    def _get_config(self, config_dict) -> UplinkBridgeConfig:
 
         enable_nat = config_dict.get('enable_nat', True)
         bridge_name = config_dict.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
