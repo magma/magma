@@ -21,6 +21,7 @@ import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../views/events/EventsTable';
 import FEGClusterStatus from '../equipment/FEGClusterStatus';
 import FEGGatewayConnectionStatus from './FEGGatewayConnectionStatus';
@@ -42,6 +43,7 @@ import TopBar from '../../components/TopBar';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EVENT_STREAM} from '../../views/events/EventsTable';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';

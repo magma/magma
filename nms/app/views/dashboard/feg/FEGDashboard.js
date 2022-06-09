@@ -16,6 +16,7 @@
 
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import EventAlertChart from '../../../components/EventAlertChart';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../events/EventsTable';
 import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
 import Grid from '@material-ui/core/Grid';
@@ -25,6 +26,7 @@ import Text from '../../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EVENT_STREAM} from '../../events/EventsTable';
 
 import {DateTimePicker} from '@material-ui/pickers';

@@ -27,6 +27,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
