@@ -9,32 +9,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {network_id} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchSubscriberState} from '../lte/SubscriberState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {NetworkId} from '../../../shared/types/network';
+import {OptionsObject} from 'notistack';
+import {SubscriberState} from '../../../generated-ts';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 
 /**
  * Props passed when fetching subscriber state.
  *
- * @param {network_id} networkId Id of the federation network.
+ * @param {NetworkId} networkId Id of the federation network.
  * @param {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error.
  */
 type FetchProps = {
-  networkId: network_id,
+  networkId: NetworkId;
   enqueueSnackbar?: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => string | number | null | undefined;
 };
+
+type FegSubscriberState = Record<NetworkId, Record<string, SubscriberState>>;
 
 /**
  * Fetches and returns the subscriber session state of all the serviced
@@ -45,13 +42,15 @@ type FetchProps = {
  *   network ids mapped to the each of their subscriber state. It returns an empty object and
  *   displays any error encountered on the snackbar when it fails to fetch the session state.
  */
-export async function FetchFegSubscriberState(props: FetchProps): {} {
+export async function FetchFegSubscriberState(
+  props: FetchProps,
+): Promise<FegSubscriberState> {
   const {networkId, enqueueSnackbar} = props;
   const servicedAccessNetworks = await getServicedAccessNetworks(
     networkId,
     enqueueSnackbar,
   );
-  const sessionState = {};
+  const sessionState: FegSubscriberState = {};
   for (const servicedAccessNetwork of servicedAccessNetworks) {
     const servicedAccessNetworkId = servicedAccessNetwork.id;
     const state = await FetchSubscriberState({
@@ -59,7 +58,10 @@ export async function FetchFegSubscriberState(props: FetchProps): {} {
       enqueueSnackbar,
     });
     // group session states under their network id
-    sessionState[servicedAccessNetworkId] = state;
+    sessionState[servicedAccessNetworkId] = state as Record<
+      string,
+      SubscriberState
+    >;
   }
   return sessionState;
 }

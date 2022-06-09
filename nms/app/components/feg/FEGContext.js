@@ -38,6 +38,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {
   InitGatewayState,

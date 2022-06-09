@@ -23,6 +23,7 @@ import {
   // $FlowFixMe migrated to typescript
 } from '../../state/feg/EquipmentState';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
