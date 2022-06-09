@@ -203,18 +203,22 @@ describe('<TrafficDashboard />', () => {
       'networksNetworkIdPoliciesRulesviewfullGet',
       policies,
     );
-    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdGet', {
-      app_name: undefined,
-      app_service_type: undefined,
-      assigned_subscribers: undefined,
-      flow_list: [],
-      id: 'test_policy_0',
-      monitoring_key: '',
-      priority: 1,
-      qos_profile: undefined,
-      rating_group: 0,
-      redirect: {} as RedirectInformation,
-    });
+    networksNetworkIdPoliciesRulesRuleIdGet = mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesRulesRuleIdGet',
+      {
+        app_name: undefined,
+        app_service_type: undefined,
+        assigned_subscribers: undefined,
+        flow_list: [],
+        id: 'test_policy_0',
+        monitoring_key: '',
+        priority: 1,
+        qos_profile: undefined,
+        rating_group: 0,
+        redirect: {} as RedirectInformation,
+      },
+    );
   });
 
   const PolicyWrapper = ({networkType}: {networkType: string}) => (
