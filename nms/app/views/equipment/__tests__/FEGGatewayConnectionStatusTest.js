@@ -15,6 +15,7 @@
  */
 
 import FEGGatewayConnectionStatus from '../FEGGatewayConnectionStatus';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

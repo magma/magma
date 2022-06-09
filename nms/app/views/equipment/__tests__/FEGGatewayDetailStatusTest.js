@@ -15,6 +15,7 @@
  */
 
 import * as hooks from '../../../components/context/RefreshContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';

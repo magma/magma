@@ -25,6 +25,7 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import FEGClusterStatus from '../equipment/FEGClusterStatus';
 import FEGGatewayConnectionStatus from './FEGGatewayConnectionStatus';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
