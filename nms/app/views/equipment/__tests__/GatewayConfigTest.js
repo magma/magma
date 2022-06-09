@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Apn, LteGateway, LteNetwork} from '../../generated-ts'; // eslint-disable-line import/no-unresolved

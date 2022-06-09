@@ -15,6 +15,7 @@
  */
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import AddEditGatewayPoolButton from './GatewayPoolEdit';
 import Cbsds from '../domain-proxy/Cbsds';
