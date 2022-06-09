@@ -61,7 +61,7 @@ cd ${WORK_DIR}
 wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
 tar xf gnutls-$PKGVERSION.tar.xz
 cd gnutls-$PKGVERSION/
-patch -p1 < ${MAGMA_ROOT}/third_party/build/patches/gnutls/glibc-2.28.patch
+patch -p1 < "${MAGMA_ROOT}/third_party/build/patches/gnutls/glibc-2.28.patch"
 ./configure --prefix=/usr
 make -j`nproc`
 make install DESTDIR=${WORK_DIR}/install/
