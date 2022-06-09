@@ -9,27 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../EventsTable';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const mockEvents = [
@@ -113,10 +106,12 @@ const mockEvents = [
 
 describe('<EventsTable />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(
-      mockEvents.length,
+    mockAPI(MagmaAPI.events, 'eventsNetworkIdAboutCountGet', mockEvents.length);
+    mockAPI(
+      MagmaAPI.events,
+      'eventsNetworkIdGet',
+      (mockEvents as unknown) as Array<string>,
     );
-    MagmaAPIBindings.getEventsByNetworkId.mockResolvedValue(mockEvents);
   });
 
   const Wrapper = () => {
@@ -161,13 +156,14 @@ describe('<EventsTable />', () => {
       hwIds: undefined,
     };
     // verify that API is called with the correct tag
-    expect(
-      MagmaAPIBindings.getEventsByNetworkIdAboutCount,
-    ).toHaveBeenCalledWith(expect.objectContaining(mockQuery));
-    expect(MagmaAPIBindings.getEventsByNetworkId).toHaveBeenCalledWith(
+    expect(MagmaAPI.events.eventsNetworkIdAboutCountGet).toHaveBeenCalledWith(
       expect.objectContaining(mockQuery),
     );
-    const rowItems = await getAllByRole('row');
+    expect(MagmaAPI.events.eventsNetworkIdGet).toHaveBeenCalledWith(
+      expect.objectContaining(mockQuery),
+    );
+
+    const rowItems = getAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Timestamp');
     expect(rowItems[0]).toHaveTextContent('Stream Name');
