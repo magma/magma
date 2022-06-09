@@ -16,6 +16,7 @@
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import DashboardKPIs from '../../../components/DashboardKPIs';
 import EventAlertChart from '../../../components/EventAlertChart';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../events/EventsTable';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';

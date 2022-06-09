@@ -25,6 +25,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
 import GatewayConfigYml from './GatewayYMLConfig';
