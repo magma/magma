@@ -20,10 +20,14 @@ import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 import type {
   lte_gateway,
   promql_return_object,
@@ -109,10 +113,12 @@ const currTime = Date.now();
 
 describe('<Gateway />', () => {
   beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryRangeGet',
       mockCheckinMetric,
     );
+
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
       mockKPIMetric,
     );
@@ -165,7 +171,7 @@ describe('<Gateway />', () => {
     await wait();
 
     expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+      MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
     ).toHaveBeenCalledTimes(1);
 
     expect(

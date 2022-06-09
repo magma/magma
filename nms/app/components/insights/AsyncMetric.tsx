@@ -9,69 +9,66 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
+import MagmaAPI from '../../../api/MagmaAPI';
+import {PositionType, TimeUnit} from 'chart.js';
+import {PromqlMetric, PromqlMetricValue} from '../../../generated-ts';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type AxesOptions = {
   gridLines: {
-    drawBorder?: boolean,
-    display?: boolean,
-  },
+    drawBorder?: boolean;
+    display?: boolean;
+  };
   ticks: {
-    maxTicksLimit: number,
-  },
+    maxTicksLimit: number;
+  };
 };
 
 export type ChartStyle = {
   options: {
-    xAxes: AxesOptions,
-    yAxes: AxesOptions,
-  },
+    xAxes: AxesOptions;
+    yAxes: AxesOptions;
+  };
   data: {
-    lineTension: number,
-    pointRadius: number,
-  },
+    lineTension: number;
+    pointRadius: number;
+  };
   legend: {
-    position: string,
-    align: string,
-  },
+    position: PositionType;
+    align: 'center' | 'end' | 'start';
+  };
 };
 
 type Props = {
-  label: string,
-  unit: string,
-  queries: Array<string>,
-  legendLabels?: Array<string>,
-  timeRange: TimeRange,
-  startEnd?: [moment, moment],
-  networkId?: string,
-  style?: ChartStyle,
-  height?: number,
-  chartColors?: Array<string>,
+  label: string;
+  unit: string;
+  queries: Array<string>;
+  legendLabels?: Array<string>;
+  timeRange: TimeRange;
+  startEnd?: [moment.Moment, moment.Moment];
+  networkId?: string;
+  style?: ChartStyle;
+  height?: number;
+  chartColors?: Array<string>;
 };
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   loadingContainer: {
     paddingTop: 100,
     textAlign: 'center',
   },
-}));
+});
 
 export type TimeRange =
   | '3_hours'
@@ -83,25 +80,26 @@ export type TimeRange =
   | '30_days';
 
 type RangeValue = {
-  days?: number,
-  hours?: number,
-  step: string,
-  unit: string,
+  days?: number;
+  hours?: number;
+  step: string;
+  unit: TimeUnit;
 };
 
 type Dataset = {
-  label: string,
-  unit: string,
-  fill: boolean,
-  lineTension: number,
-  pointRadius: number,
-  borderWidth: number,
-  backgroundColor: string,
-  borderColor: string,
-  data: Array<{t: number, y: number | string}>,
+  label: string;
+  unit: string;
+  fill: boolean;
+  lineTension: number;
+  pointRadius: number;
+  pointHitRadius: number;
+  borderWidth: number;
+  backgroundColor: string;
+  borderColor: string;
+  data: Array<{t: number; y: number | string}>;
 };
 
-const RANGE_VALUES: {[TimeRange]: RangeValue} = {
+const RANGE_VALUES: Record<TimeRange, RangeValue> = {
   '3_hours': {
     hours: 3,
     step: '30s',
@@ -141,26 +139,23 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
 
 const COLORS = ['blue', 'red', 'green', 'yellow', 'purple', 'black'];
 
-interface DatabaseHelper<T> {
-  getLegendLabel(data: T, tagSets: Array<{[string]: string}>): string;
-  datapointFieldName: string;
-}
-
-class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
+class PrometheusHelper {
   getLegendLabel(
-    result: PrometheusResponse,
-    tagSets: Array<{[string]: string}>,
+    result: PromqlMetricValue,
+    tagSets: Array<PromqlMetric>,
   ): string {
-    const {metric} = result;
+    const {metric} = result as {metric: Record<string, string>};
 
     const tags = [];
     const droppedTags = ['networkID', '__name__'];
     const droppedIfSameTags = ['gatewayID', 'service'];
 
-    const uniqueTagValues = {};
+    const uniqueTagValues: Record<string, Array<string>> = {};
     droppedIfSameTags.forEach(tagName => {
       uniqueTagValues[tagName] = Array.from(
-        new Set(tagSets.map(item => item[tagName])),
+        new Set(
+          (tagSets as Array<Record<string, string>>).map(item => item[tagName]),
+        ),
       );
     });
 
@@ -178,12 +173,8 @@ class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
       : `${metric['__name__']} (${tags.join(', ')})`;
   }
 
-  datapointFieldName = 'values';
+  datapointFieldName = 'values' as const;
 }
-
-type PrometheusResponse = {
-  metric: {[key: string]: string},
-};
 
 function Progress() {
   const classes = useStyles();
@@ -213,7 +204,9 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
-function getStepUnit(startEnd: [moment, moment]): [string, string] {
+function getStepUnit(
+  startEnd: [moment.Moment, moment.Moment],
+): [string, TimeUnit] {
   const [start, end] = startEnd;
   const d = moment.duration(end.diff(start));
   const hrs = d.asHours();
@@ -266,7 +259,7 @@ function useDatasetsFetcher(props: Props) {
     }
   }, [props.timeRange, props.startEnd]);
 
-  const [allDatasets, setAllDatasets] = useState<?Array<Dataset>>(null);
+  const [allDatasets, setAllDatasets] = useState<Array<Dataset> | null>(null);
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
 
@@ -278,16 +271,15 @@ function useDatasetsFetcher(props: Props) {
       const requests = queries.map(async (query, index) => {
         try {
           // eslint-disable-next-line max-len
-          const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
-            {
-              // $FlowFixMe[sketchy-null-string] TODO(andreilee): from fbcnms-ui
-              networkId: props.networkId || params.networkId,
+          const response = (
+            await MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet({
+              networkId: props.networkId || params.networkId!,
               start: startEnd.start,
               end: startEnd.end,
               step: startEnd.step,
               query,
-            },
-          );
+            })
+          ).data;
           const label = props.legendLabels ? props.legendLabels[index] : null;
           return {response, label};
         } catch (error) {
@@ -298,19 +290,18 @@ function useDatasetsFetcher(props: Props) {
         return null;
       });
 
-      Promise.all(requests).then(allResponses => {
+      void Promise.all(requests).then(allResponses => {
         let index = 0;
-        const datasets = [];
+        const datasets: Array<Dataset> = [];
         const {style} = props;
         allResponses.filter(Boolean).forEach(r => {
-          const response = r.response;
-          const label = r.label;
+          const response = r!.response;
+          const label = r!.label;
           const result = response.data.result;
           if (result) {
             const tagSets = result.map(it => it.metric);
             result.map(it =>
               datasets.push({
-                // $FlowFixMe[sketchy-null-string] TODO(andreilee): from fbcnms-ui
                 label: label || dbHelper.getLegendLabel(it, tagSets),
                 unit: props.unit || '',
                 fill: false,
@@ -320,7 +311,7 @@ function useDatasetsFetcher(props: Props) {
                 borderWidth: 2,
                 backgroundColor: getColorForIndex(index, props.chartColors),
                 borderColor: getColorForIndex(index++, props.chartColors),
-                data: it[dbHelper.datapointFieldName].map(i => ({
+                data: it[dbHelper.datapointFieldName]!.map(i => ({
                   t: parseInt(i[0]) * 1000,
                   y: parseFloat(i[1]),
                 })),
@@ -369,7 +360,7 @@ export default function AsyncMetric(props: Props) {
   }
   const {style} = props;
   const {startEnd} = props;
-  let unit: string;
+  let unit: TimeUnit;
   if (startEnd) {
     [, unit] = getStepUnit(startEnd);
   } else {
@@ -380,6 +371,8 @@ export default function AsyncMetric(props: Props) {
       height={props.height}
       options={{
         maintainAspectRatio: false,
+        // TODO[TS-migration is this a valid chart.js option?]
+        // @ts-ignore
         scaleShowValues: true,
         scales: {
           xAxes: [
@@ -415,11 +408,8 @@ export default function AsyncMetric(props: Props) {
           mode: 'nearest',
           callbacks: {
             label: (tooltipItem, data) =>
-              data.datasets[tooltipItem.datasetIndex].label +
-              ': ' +
-              tooltipItem.yLabel +
-              ' ' +
-              data.datasets[tooltipItem.datasetIndex].unit,
+              `${data.datasets![tooltipItem.datasetIndex!]
+                .label!}: ${tooltipItem.yLabel!} ${props.unit}`,
           },
         },
       }}

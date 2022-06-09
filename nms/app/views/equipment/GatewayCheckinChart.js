@@ -13,9 +13,12 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ChartStyle} from '../../components/insights/AsyncMetric';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from '../../components/insights/AsyncMetric';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AsyncMetric from '../../components/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';

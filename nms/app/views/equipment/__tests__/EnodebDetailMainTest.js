@@ -26,9 +26,13 @@ import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -50,8 +54,9 @@ const mockThroughput: promql_return_object = {
 
 describe('<Enodeb />', () => {
   beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryRangeGet',
       mockThroughput,
     );
     MagmaAPIBindings.getNetworks.mockResolvedValue([]);
