@@ -9,67 +9,48 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import * as React from 'react';
-// $FlowFixMe migrated to typescript
 import ApnContext from '../context/ApnContext';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../context/GatewayContext';
-// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
-// $FlowFixMe migrated to typescript
 import GatewayTierContext from '../context/GatewayTierContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import InitSubscriberState from '../../state/lte/SubscriberState';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../context/LteNetworkContext';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../context/PolicyContext';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../context/SubscriberContext';
-// $FlowFixMe migrated to typescript
 import TraceContext from '../context/TraceContext';
-// $FlowFixMe migrated to typescript
-import type {EnodebInfo} from './EnodebUtils';
-// $FlowFixMe migrated to typescript
-import type {EnodebState} from '../context/EnodebContext';
 import type {
-  apn,
-  base_name,
-  base_name_record,
-  call_trace,
-  call_trace_config,
-  feg_lte_network,
-  feg_network,
-  lte_gateway,
-  lte_network,
-  mutable_call_trace,
-  mutable_subscriber,
-  mutable_subscribers,
-  network_id,
-  network_ran_configs,
-  network_type,
-  policy_qos_profile,
-  policy_rule,
-  rating_group,
-  subscriber_id,
-  tier,
-} from '../../../generated/MagmaAPIBindings';
-// $FlowFixMe migrated to typescript
+  Apn,
+  BaseNameRecord,
+  CallTrace,
+  CallTraceConfig,
+  FegLteNetwork,
+  FegNetwork,
+  LteGateway,
+  LteNetwork,
+  MutableCallTrace,
+  MutableSubscriber,
+  NetworkRanConfigs,
+  PolicyQosProfile,
+  PolicyRule,
+  RatingGroup,
+  Tier,
+} from '../../../generated-ts';
+import type {EnodebInfo} from './EnodebUtils';
+import type {EnodebState} from '../context/EnodebContext';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
-// $FlowFixMe migrated to typescript
-import {FEG_LTE, LTE} from '../../../shared/types/network';
+import MagmaAPI from '../../../api/MagmaAPI';
+import {
+  FEG_LTE,
+  LTE,
+  NetworkId,
+  SubscriberId,
+} from '../../../shared/types/network';
 import {
   InitEnodeState,
   InitGatewayPoolState,
@@ -80,52 +61,48 @@ import {
   SetTierState,
   UpdateGateway,
   UpdateGatewayPoolRecords,
-  // $FlowFixMe migrated to typescript
+  UpdateGatewayProps,
 } from '../../state/lte/EquipmentState';
-// $FlowFixMe migrated to typescript
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
-// $FlowFixMe migrated to typescript
 import {SetApnState} from '../../state/lte/ApnState';
 import {
   SetBaseNameState,
   SetPolicyState,
   SetQosProfileState,
   SetRatingGroupState,
-  // $FlowFixMe migrated to typescript
 } from '../../state/PolicyState';
-// $FlowFixMe migrated to typescript
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
-// $FlowFixMe migrated to typescript
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
-// $FlowFixMe migrated to typescript
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
 import {
   getGatewaySubscriberMap,
   setSubscriberState,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
-  networkId: network_id,
-  networkType: network_type,
-  children: React.Node,
+  networkId: NetworkId;
+  networkType: string;
+  children: React.ReactNode;
 };
 
 export function GatewayContextProvider(props: Props) {
   const {networkId} = props;
-  const [lteGateways, setLteGateways] = useState<{[string]: lte_gateway}>({});
+  const [lteGateways, setLteGateways] = useState<Record<string, LteGateway>>(
+    {},
+  );
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
 
   useEffect(() => {
     const fetchState = async () => {
       try {
-        const lteGateways = await MagmaV1API.getLteByNetworkIdGateways({
-          networkId,
-        });
+        const lteGateways = (
+          await MagmaAPI.lteGateways.lteNetworkIdGatewaysGet({
+            networkId,
+          })
+        ).data;
         setLteGateways(lteGateways);
       } catch (e) {
         enqueueSnackbar?.('failed fetching gateway information', {
@@ -134,7 +111,7 @@ export function GatewayContextProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -156,7 +133,11 @@ export function GatewayContextProvider(props: Props) {
           });
         },
         updateGateway: props =>
-          UpdateGateway({networkId, setLteGateways, ...props}),
+          UpdateGateway({
+            networkId,
+            setLteGateways,
+            ...props,
+          } as UpdateGatewayProps),
       }}>
       {props.children}
     </GatewayContext.Provider>
@@ -165,8 +146,10 @@ export function GatewayContextProvider(props: Props) {
 
 export function EnodebContextProvider(props: Props) {
   const {networkId} = props;
-  const [enbInfo, setEnbInfo] = useState<{[string]: EnodebInfo}>({});
-  const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
+  const [enbInfo, setEnbInfo] = useState<Record<string, EnodebInfo>>({});
+  const [lteRanConfigs, setLteRanConfigs] = useState<NetworkRanConfigs>(
+    {} as NetworkRanConfigs,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
   useEffect(() => {
@@ -176,11 +159,11 @@ export function EnodebContextProvider(props: Props) {
           return;
         }
         const [lteRanConfigsResp] = await Promise.allSettled([
-          MagmaV1API.getLteByNetworkIdCellularRan({networkId}),
+          MagmaAPI.lteNetworks.lteNetworkIdCellularRanGet({networkId}),
           InitEnodeState({networkId, setEnbInfo, enqueueSnackbar}),
         ]);
-        if (lteRanConfigsResp.value) {
-          setLteRanConfigs(lteRanConfigsResp.value);
+        if (lteRanConfigsResp.status === 'fulfilled') {
+          setLteRanConfigs(lteRanConfigsResp.value.data);
         }
       } catch (e) {
         enqueueSnackbar?.('failed fetching enodeb information', {
@@ -189,7 +172,7 @@ export function EnodebContextProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -210,7 +193,6 @@ export function EnodebContextProvider(props: Props) {
             newState,
           });
         },
-        setLteRanConfigs: lteRanConfigs => setLteRanConfigs(lteRanConfigs),
       }}>
       {props.children}
     </EnodebContext.Provider>
@@ -219,7 +201,7 @@ export function EnodebContextProvider(props: Props) {
 
 export function TraceContextProvider(props: Props) {
   const {networkId} = props;
-  const [traceMap, setTraceMap] = useState<{[string]: call_trace}>({});
+  const [traceMap, setTraceMap] = useState<Record<string, CallTrace>>({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -235,7 +217,7 @@ export function TraceContextProvider(props: Props) {
       }),
         setIsLoading(false);
     };
-    fetchLteState();
+    void fetchLteState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -246,10 +228,7 @@ export function TraceContextProvider(props: Props) {
     <TraceContext.Provider
       value={{
         state: traceMap,
-        setState: (
-          key: string,
-          value?: mutable_call_trace | call_trace_config,
-        ) =>
+        setState: (key: string, value?: MutableCallTrace | CallTraceConfig) =>
           SetCallTraceState({
             networkId,
             callTraces: traceMap,
@@ -266,7 +245,6 @@ export function TraceContextProvider(props: Props) {
 export function SubscriberContextProvider(props: Props) {
   const {networkId} = props;
   const [subscriberMap, setSubscriberMap] = useState({});
-  const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
   const [sessionState, setSessionState] = useState({});
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -280,7 +258,6 @@ export function SubscriberContextProvider(props: Props) {
       await InitSubscriberState({
         networkId,
         setSubscriberMap,
-        setForbiddenNetworkTypes,
         setSubscriberMetrics,
         setSessionState,
         setTotalCount,
@@ -288,7 +265,7 @@ export function SubscriberContextProvider(props: Props) {
       }),
         setIsLoading(false);
     };
-    fetchLteState();
+    void fetchLteState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -298,15 +275,15 @@ export function SubscriberContextProvider(props: Props) {
   return (
     <SubscriberContext.Provider
       value={{
-        forbiddenNetworkTypes: forbiddenNetworkTypes,
+        forbiddenNetworkTypes: {},
         state: subscriberMap,
         metrics: subscriberMetrics,
         sessionState: sessionState,
         totalCount: totalCount,
         gwSubscriberMap: getGatewaySubscriberMap(sessionState),
         setState: (
-          key: subscriber_id,
-          value?: mutable_subscriber | mutable_subscribers,
+          key: SubscriberId,
+          value?: MutableSubscriber | Array<MutableSubscriber>,
           newState?,
           newSessionState?,
         ) =>
@@ -315,7 +292,6 @@ export function SubscriberContextProvider(props: Props) {
             subscriberMap,
             setSubscriberMap,
             setSessionState,
-            setForbiddenNetworkTypes,
             key,
             value,
             newState,
@@ -330,9 +306,9 @@ export function SubscriberContextProvider(props: Props) {
 export function GatewayPoolsContextProvider(props: Props) {
   const {networkId} = props;
   const [isLoading, setIsLoading] = useState(true);
-  const [gatewayPools, setGatewayPools] = useState<{
-    [string]: gatewayPoolsStateType,
-  }>({});
+  const [gatewayPools, setGatewayPools] = useState<
+    Record<string, gatewayPoolsStateType>
+  >({});
   const enqueueSnackbar = useEnqueueSnackbar();
 
   useEffect(() => {
@@ -353,7 +329,7 @@ export function GatewayPoolsContextProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -389,7 +365,7 @@ export function GatewayPoolsContextProvider(props: Props) {
 
 export function GatewayTierContextProvider(props: Props) {
   const {networkId} = props;
-  const [tiers, setTiers] = useState<{[string]: tier}>({});
+  const [tiers, setTiers] = useState<Record<string, Tier>>({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [supportedVersions, setSupportedVersions] = useState<Array<string>>([]);
@@ -401,12 +377,12 @@ export function GatewayTierContextProvider(props: Props) {
           return;
         }
         const [stableChannelResp] = await Promise.allSettled([
-          MagmaV1API.getChannelsByChannelId({channelId: 'stable'}),
+          MagmaAPI.upgrades.channelsChannelIdGet({channelId: 'stable'}),
           InitTierState({networkId, setTiers, enqueueSnackbar}),
         ]);
-        if (stableChannelResp.value) {
+        if (stableChannelResp.status === 'fulfilled') {
           setSupportedVersions(
-            stableChannelResp.value.supported_versions.reverse(),
+            stableChannelResp.value.data.supported_versions.reverse(),
           );
         }
       } catch (e) {
@@ -416,7 +392,7 @@ export function GatewayTierContextProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -439,70 +415,90 @@ export function PolicyProvider(props: Props) {
   const {networkId} = props;
   const networkCtx = useContext(NetworkContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
-  const [policies, setPolicies] = useState<{[string]: policy_rule}>({});
-  const [baseNames, setBaseNames] = useState<{
-    [string]: base_name_record,
-  }>({});
-  const [qosProfiles, setQosProfiles] = useState<{
-    [string]: policy_qos_profile,
-  }>({});
-  const [ratingGroups, setRatingGroups] = useState<{[string]: rating_group}>(
+  const [policies, setPolicies] = useState<Record<string, PolicyRule>>({});
+  const [baseNames, setBaseNames] = useState<Record<string, BaseNameRecord>>(
     {},
   );
-  const [fegNetwork, setFegNetwork] = useState<feg_network>({});
-  const [fegPolicies, setFegPolicies] = useState<{[string]: policy_rule}>({});
+  const [qosProfiles, setQosProfiles] = useState<
+    Record<string, PolicyQosProfile>
+  >({});
+  const [ratingGroups, setRatingGroups] = useState<Record<string, RatingGroup>>(
+    {},
+  );
+  const [fegNetwork, setFegNetwork] = useState<FegNetwork>({} as FegNetwork);
+  const [fegPolicies, setFegPolicies] = useState<Record<string, PolicyRule>>(
+    {},
+  );
   const [isLoading, setIsLoading] = useState(true);
   const networkType = networkCtx.networkType;
   const enqueueSnackbar = useEnqueueSnackbar();
-  let fegNetworkId = '';
+  let fegNetworkId: string | undefined;
   if (networkType === FEG_LTE) {
-    fegNetworkId = lteNetworkCtx.state?.federation.feg_network_id;
+    fegNetworkId = lteNetworkCtx.state?.federation?.feg_network_id;
   }
 
   useEffect(() => {
     const fetchState = async () => {
       try {
         setPolicies(
-          await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
-            networkId,
-          }),
+          (
+            await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
+              networkId,
+            })
+          ).data,
         );
+
         // Base Names
-        // eslint-disable-next-line max-len
-        const baseNameIDs: Array<base_name> = await MagmaV1API.getNetworksByNetworkIdPoliciesBaseNames(
-          {
+        const baseNameIDs: Array<string> = (
+          await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesGet({
             networkId,
-          },
-        );
-        const baseNameRecords: Array<base_name_record> = await Promise.all(
+          })
+        ).data;
+        const baseNameRecords = await Promise.all(
           baseNameIDs.map(baseNameID =>
-            MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+            MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
               networkId,
               baseName: baseNameID,
             }),
           ),
         );
-        const newBaseNames: {[string]: base_name_record} = {};
-        baseNameRecords.map(record => {
+        const newBaseNames: Record<string, BaseNameRecord> = {};
+        baseNameRecords.map(({data: record}) => {
           newBaseNames[record.name] = record;
         });
         setBaseNames(newBaseNames);
 
         setRatingGroups(
-          // $FlowIgnore
-          await MagmaV1API.getNetworksByNetworkIdRatingGroups({networkId}),
+          // TODO[TS-migration] What is the actual type here?
+          ((
+            await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
+              networkId,
+            })
+          ).data as unknown) as Record<string, RatingGroup>,
         );
         setQosProfiles(
-          await MagmaV1API.getLteByNetworkIdPolicyQosProfiles({networkId}),
+          (
+            await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet({
+              networkId,
+            })
+          ).data,
         );
-        if (fegNetworkId != null && fegNetworkId !== '') {
+        if (fegNetworkId) {
           setFegNetwork(
-            await MagmaV1API.getFegByNetworkId({networkId: fegNetworkId}),
+            (
+              await MagmaAPI.federationNetworks.fegNetworkIdGet({
+                networkId: fegNetworkId,
+              })
+            ).data,
           );
           setFegPolicies(
-            await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
-              networkId: fegNetworkId,
-            }),
+            (
+              await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet(
+                {
+                  networkId: fegNetworkId,
+                },
+              )
+            ).data,
           );
         }
       } catch (e) {
@@ -512,7 +508,7 @@ export function PolicyProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, fegNetworkId, networkType, enqueueSnackbar]);
 
   if (isLoading) {
@@ -556,7 +552,8 @@ export function PolicyProvider(props: Props) {
         },
         setState: async (key, value?, isNetworkWide?) => {
           if (networkType === FEG_LTE) {
-            const fegNetworkID = lteNetworkCtx.state?.federation.feg_network_id;
+            const fegNetworkID =
+              lteNetworkCtx.state?.federation?.feg_network_id;
             await SetPolicyState({
               policies,
               setPolicies,
@@ -566,7 +563,7 @@ export function PolicyProvider(props: Props) {
             });
 
             // duplicate the policy on feg_network as well
-            if (fegNetworkID != null) {
+            if (fegNetworkID) {
               await SetPolicyState({
                 policies: fegPolicies,
                 setPolicies: setFegPolicies,
@@ -599,7 +596,7 @@ export function PolicyProvider(props: Props) {
               // update subscriber config if necessary
               if (!ruleNames.includes(key)) {
                 ruleNames.push(key);
-                lteNetworkCtx.updateNetworks({
+                void lteNetworkCtx.updateNetworks({
                   networkId,
                   subscriberConfig: {
                     network_wide_base_names:
@@ -613,7 +610,7 @@ export function PolicyProvider(props: Props) {
               if (!fegRuleNames.includes(key)) {
                 fegRuleNames.push(key);
                 if (networkType === FEG_LTE && fegNetwork) {
-                  UpdateFegNetworkState({
+                  void UpdateFegNetworkState({
                     networkId: fegNetwork.id,
                     subscriberConfig: {
                       network_wide_base_names:
@@ -644,7 +641,7 @@ export function PolicyProvider(props: Props) {
               ) {
                 return ruleId !== key;
               });
-              lteNetworkCtx.updateNetworks({
+              void lteNetworkCtx.updateNetworks({
                 networkId,
                 subscriberConfig: {
                   network_wide_base_names:
@@ -666,7 +663,7 @@ export function PolicyProvider(props: Props) {
               });
 
               if (networkType === FEG_LTE && fegNetwork) {
-                UpdateFegNetworkState({
+                void UpdateFegNetworkState({
                   networkId: fegNetwork.id,
                   subscriberConfig: {
                     network_wide_base_names:
@@ -688,7 +685,7 @@ export function PolicyProvider(props: Props) {
 
 export function ApnProvider(props: Props) {
   const {networkId} = props;
-  const [apns, setApns] = useState<{[string]: apn}>({});
+  const [apns, setApns] = useState<Record<string, Apn>>({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -696,9 +693,11 @@ export function ApnProvider(props: Props) {
     const fetchState = async () => {
       try {
         setApns(
-          await MagmaV1API.getLteByNetworkIdApns({
-            networkId,
-          }),
+          (
+            await MagmaAPI.apns.lteNetworkIdApnsGet({
+              networkId,
+            })
+          ).data,
         );
       } catch (e) {
         enqueueSnackbar?.('failed fetching APN information', {
@@ -707,7 +706,7 @@ export function ApnProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -737,7 +736,7 @@ export function LteNetworkContextProvider(props: Props) {
   const {networkId} = props;
   const networkCtx = useContext(NetworkContext);
   const [lteNetwork, setLteNetwork] = useState<
-    $Shape<lte_network & feg_lte_network>,
+    Partial<LteNetwork & FegLteNetwork>
   >({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -750,18 +749,22 @@ export function LteNetworkContextProvider(props: Props) {
             fegLteResp,
             fegLteSubscriberConfigResp,
           ] = await Promise.allSettled([
-            MagmaV1API.getFegLteByNetworkId({networkId}),
-            MagmaV1API.getFegLteByNetworkIdSubscriberConfig({networkId}),
+            MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet({networkId}),
+            MagmaAPI.federatedLTENetworks.fegLteNetworkIdSubscriberConfigGet({
+              networkId,
+            }),
           ]);
-          if (fegLteResp.value) {
+          if (fegLteResp.status === 'fulfilled') {
             let subscriber_config = {};
-            if (fegLteSubscriberConfigResp.value) {
-              subscriber_config = fegLteSubscriberConfigResp.value;
+            if (fegLteSubscriberConfigResp.status === 'fulfilled') {
+              subscriber_config = fegLteSubscriberConfigResp.value.data;
             }
-            setLteNetwork({...fegLteResp.value, subscriber_config});
+            setLteNetwork({...fegLteResp.value.data, subscriber_config});
           }
         } else {
-          setLteNetwork(await MagmaV1API.getLteByNetworkId({networkId}));
+          setLteNetwork(
+            (await MagmaAPI.lteNetworks.lteNetworkIdGet({networkId})).data,
+          );
         }
       } catch (e) {
         enqueueSnackbar?.('failed fetching network information', {
@@ -770,7 +773,7 @@ export function LteNetworkContextProvider(props: Props) {
       }
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, networkCtx, enqueueSnackbar]);
 
   if (isLoading) {

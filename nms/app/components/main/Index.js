@@ -19,6 +19,7 @@ import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript
 import {FEG, coalesceNetworkType} from '../../../shared/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {LteContextProvider} from '../lte/LteContext';
 import {VersionContextProvider} from '../context/VersionContext';
 // $FlowFixMe migrated to typescript

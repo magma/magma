@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
@@ -28,6 +27,7 @@ import {FEG_LTE, LTE} from '../../../../shared/types/network';
 import {
   LteNetworkContextProvider,
   PolicyProvider,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../components/lte/LteContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -40,7 +40,6 @@ import {fireEvent, render, waitFor} from '@testing-library/react';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const policies = {
@@ -199,46 +198,17 @@ describe('<TrafficDashboard />', () => {
       .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdSubscriberConfigPut')
       .mockImplementation();
 
-    MagmaAPIBindings.getFegByNetworkId.mockResolvedValue(feg_network);
-    MagmaAPIBindings.getFegLteByNetworkId.mockResolvedValue(feg_lte_network);
-    MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles.mockResolvedValue({});
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesBaseNamesByBaseName.mockResolvedValue(
-      {},
-    );
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesBaseNames.mockResolvedValue(
-      [],
-    );
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull.mockResolvedValue(
-      policies,
-    );
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValue(
-      {
-        app_name: undefined,
-        app_service_type: undefined,
-        assigned_subscribers: undefined,
-        flow_list: [],
-        id: 'test_policy_0',
-        monitoring_key: '',
-        priority: 1,
-        qos_profile: undefined,
-        rating_group: 0,
-        redirect: {},
-      },
-    );
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
-
     jest
       .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesPost')
       .mockImplementation();
     jest
       .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdPut')
       .mockImplementation();
-
-    jest
-      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
-      .mockResolvedValue({data: feg_lte_network});
     jest
       .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet')
+      .mockResolvedValue({data: {}});
+    jest
+      .spyOn(MagmaAPI.ratingGroups, 'networksNetworkIdRatingGroupsGet')
       .mockResolvedValue({data: {}});
     jest
       .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesBaseNameGet')
@@ -312,25 +282,24 @@ describe('<TrafficDashboard />', () => {
 
     // verify if feg_lte and feg api calls are invoked
     await waitFor(() =>
-      expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+      expect(
+        MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,
+      ).toHaveBeenCalledWith({
         networkId,
       }),
     );
     expect(
-      MagmaAPIBindings.getFegLteByNetworkIdSubscriberConfig,
+      MagmaAPI.federatedLTENetworks.fegLteNetworkIdSubscriberConfigGet,
     ).toHaveBeenCalledWith({networkId});
     expect(
-      // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+      MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
     ).toHaveBeenCalledWith({networkId});
     expect(
-      // MagmaAPI.policies.LteNetworkIdPolicyQosProfilesGet,
-      MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
+      MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
     ).toHaveBeenCalledWith({networkId});
     await waitFor(() =>
       expect(
-        // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
-        MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
       ).toHaveBeenCalledWith({networkId: fegNetworkId}),
     );
 
@@ -453,20 +422,15 @@ describe('<TrafficDashboard />', () => {
 
     // verify if lte api calls are invoked
     await waitFor(() =>
-      expect(
-        MagmaAPIBindings.getLteByNetworkId,
-        // MagmaAPI.policies.LteNetworkIdGet
-      ).toHaveBeenCalledWith({
+      expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
         networkId,
       }),
     );
     expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
-      //MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
+      MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
     ).toHaveBeenCalledWith({networkId});
     expect(
-      MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
-      // MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
+      MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
     ).toHaveBeenCalledWith({networkId});
 
     expect(queryByTestId('editDialog')).toBeNull();
@@ -557,21 +521,19 @@ describe('<TrafficDashboard />', () => {
     );
     await waitFor(() =>
       // verify if lte api calls are invoked
-      expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+      expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
         networkId,
       }),
     );
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
-        // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
       ).toHaveBeenCalledWith({networkId}),
     );
     await waitFor(
       () =>
         expect(
-          MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
-          // MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
+          MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
         ).toHaveBeenCalled(),
       {timeout: 5000},
     );
@@ -785,20 +747,18 @@ describe('<TrafficDashboard />', () => {
 
     // verify if lte api calls are invoked
     await waitFor(() =>
-      expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+      expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
         networkId,
       }),
     );
     await waitFor(() =>
       expect(
-        // MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
-        MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
+        MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet,
       ).toHaveBeenCalledWith({networkId}),
     );
     await waitFor(() =>
       expect(
-        MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles,
-        //MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
+        MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet,
       ).toHaveBeenCalledWith({networkId}),
     );
 
