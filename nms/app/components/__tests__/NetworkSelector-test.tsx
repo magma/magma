@@ -21,6 +21,7 @@ import {LTE} from '../../../shared/types/network';
 import {MemoryRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {fireEvent, render, waitFor} from '@testing-library/react';
+import {mockAPI} from '../../util/TestUtils';
 import type {EmbeddedData} from '../../../shared/types/embeddedData';
 
 const Wrapper = (props: {
@@ -54,9 +55,7 @@ const Wrapper = (props: {
 
 describe('NetworkSelector', () => {
   it('renders nothing without network for regular user', () => {
-    jest
-      .spyOn(MagmaAPI.networks, 'networksGet')
-      .mockResolvedValue({data: []} as AxiosResponse);
+    mockAPI(MagmaAPI.networks, 'networksGet', []);
     const {container} = render(
       <Wrapper isSuperUser={false}>
         <NetworkSelector />
@@ -66,12 +65,8 @@ describe('NetworkSelector', () => {
   });
 
   it('renders text with single network for regular user', () => {
-    jest
-      .spyOn(MagmaAPI.networks, 'networksGet')
-      .mockResolvedValue({data: ['test']} as AxiosResponse);
-    jest
-      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
-      .mockResolvedValueOnce({data: LTE} as AxiosResponse);
+    mockAPI(MagmaAPI.networks, 'networksGet', ['test']);
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', LTE);
 
     const {queryByRole, getByText} = render(
       <Wrapper isSuperUser={false} currentNetworkId="test">
@@ -83,12 +78,8 @@ describe('NetworkSelector', () => {
   });
 
   it('renders menu with network links for regular user', async () => {
-    jest
-      .spyOn(MagmaAPI.networks, 'networksGet')
-      .mockResolvedValue({data: ['test', 'other']} as AxiosResponse);
-    jest
-      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
-      .mockResolvedValueOnce({data: LTE} as AxiosResponse);
+    mockAPI(MagmaAPI.networks, 'networksGet', ['test', 'other']);
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', LTE);
 
     const {getByRole, queryAllByRole} = render(
       <Wrapper isSuperUser={false} currentNetworkId="test">
@@ -110,12 +101,8 @@ describe('NetworkSelector', () => {
   });
 
   it('renders menu with network links and extra entries for super user', async () => {
-    jest
-      .spyOn(MagmaAPI.networks, 'networksGet')
-      .mockResolvedValueOnce({data: ['test', 'other']} as AxiosResponse);
-    jest
-      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
-      .mockResolvedValueOnce({data: LTE} as AxiosResponse);
+    mockAPI(MagmaAPI.networks, 'networksGet', ['test', 'other']);
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', LTE);
 
     const {getByRole, queryAllByRole} = render(
       <Wrapper isSuperUser={true} currentNetworkId="test">
