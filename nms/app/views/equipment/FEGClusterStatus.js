@@ -21,6 +21,7 @@ import type {DataRows} from '../../components/DataGrid';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import MagmaV1API from '../../../generated/WebClient';

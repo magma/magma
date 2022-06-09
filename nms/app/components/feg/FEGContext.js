@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../context/FEGGatewayContext';
 // $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../context/FEGNetworkContext';

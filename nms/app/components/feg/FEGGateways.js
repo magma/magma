@@ -23,6 +23,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';

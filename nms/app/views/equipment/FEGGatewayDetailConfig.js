@@ -29,6 +29,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import EditGatewayButton from './FEGGatewayDetailConfigEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';

@@ -19,6 +19,7 @@ import type {DataRows} from '../../components/DataGrid';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import React from 'react';
 // $FlowFixMe migrated to typescript
