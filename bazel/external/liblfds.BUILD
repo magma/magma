@@ -15,6 +15,6 @@ cc_library(
     name = "lfds710",
     srcs = glob(["liblfds/liblfds7.1.0/liblfds710/src/**"]),
     hdrs = glob(["liblfds/liblfds7.1.0/liblfds710/inc/**"]),
-    includes = ["iblfds/liblfds7.1.0/liblfds710/inc"],
+    includes = ["liblfds/liblfds7.1.0/liblfds710/inc"],
     visibility = ["//visibility:public"],
 )

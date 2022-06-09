@@ -483,5 +483,5 @@ async def run_command(*args, **kwargs):
     stdout, stderr = await process.communicate()
     if check:
         if process.returncode != 0:
-            raise Exception("Command failed: %s" % args)
+            raise Exception(f"Command failed: {args}")
     return process.returncode, stdout, stderr
