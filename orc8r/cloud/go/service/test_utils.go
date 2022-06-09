@@ -27,7 +27,7 @@ func NewTestService(t *testing.T, moduleName string, serviceType string) (*platf
 	if t == nil {
 		panic("for tests only")
 	}
-	return platform_service.NewServiceWithOptions(moduleName, serviceType, unary.GetInterceptorOpt())
+	return platform_service.NewServiceWithOptions(moduleName, serviceType, true, unary.GetInterceptorOpt())
 }
 
 // NewTestOrchestratorService returns a new gRPC orchestrator service without
@@ -37,7 +37,7 @@ func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType str
 	if t == nil {
 		panic("for tests only")
 	}
-	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceType, unary.GetInterceptorOpt())
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceType, true, unary.GetInterceptorOpt())
 	if err != nil {
 		return nil, err
 	}

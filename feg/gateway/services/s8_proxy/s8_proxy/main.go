@@ -30,7 +30,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.S8_PROXY)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.S8_PROXY, false)
 	if err != nil {
 		glog.Fatalf("Error creating S8 Proxy service: %s", err)
 	}

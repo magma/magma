@@ -30,7 +30,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.FEG_HELLO)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.FEG_HELLO, false)
 	if err != nil {
 		glog.Fatalf("Error creating FEG_HELLO service: %s", err)
 	}
