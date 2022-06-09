@@ -58,12 +58,8 @@ export const DEFAULT_PAGE_SIZE = 25;
 
 // susbcriber export colums title
 export const SUBSCRIBER_EXPORT_COLUMNS = [
-  {
-    title: 'Name',
-    field: 'name',
-  },
+  {title: 'Name', field: 'name'},
   {title: 'IMSI', field: 'id'},
-
   {title: 'Auth Key', field: 'auth_key'},
   {title: 'Auth OPC', field: 'auth_opc'},
   {title: 'Service', field: 'state'},
@@ -82,7 +78,6 @@ export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
   DUPLICATE_IMSI: 'The IMSI is duplicated',
   REQUIRED_AUTH_KEY: 'Auth key is required',
 });
-
 const SUBSCRIBER_ACTION_TYPE = Object.freeze({
   ADD: 'add',
   EDIT: 'edit',
@@ -102,7 +97,8 @@ export type SubscriberInfo = {
   apns: Array<string>;
   policies?: Array<string>;
 };
-type SubscriberError = typeof SUBSCRIBER_ADD_ERRORS[keyof typeof SUBSCRIBER_ADD_ERRORS];
+type SubscriberErrorKey = keyof typeof SUBSCRIBER_ADD_ERRORS;
+type SubscriberErrorValue = typeof SUBSCRIBER_ADD_ERRORS[SubscriberErrorKey];
 
 /**
  * Checks subscriber fields format
@@ -114,12 +110,11 @@ export function validateSubscribers(
   subscribers: Array<SubscriberInfo>,
   action: SubscriberActionType,
 ) {
-  const errors: Record<SubscriberError, Array<number>> = {};
+  const errors: Record<SubscriberErrorValue, Array<number>> = {};
   const imsiList: Array<string> = [];
 
   Object.keys(SUBSCRIBER_ADD_ERRORS).map(error => {
-    const subscriberError =
-      SUBSCRIBER_ADD_ERRORS[error as keyof typeof SUBSCRIBER_ADD_ERRORS];
+    const subscriberError = SUBSCRIBER_ADD_ERRORS[error as SubscriberErrorKey];
     errors[subscriberError] = [];
   });
   subscribers.forEach((info, i) => {
@@ -155,10 +150,7 @@ export function validateSubscribers(
   });
 
   const errorList: Array<string> = Object.keys(SUBSCRIBER_ADD_ERRORS)
-    .map(
-      error =>
-        SUBSCRIBER_ADD_ERRORS[error as keyof typeof SUBSCRIBER_ADD_ERRORS],
-    )
+    .map(error => SUBSCRIBER_ADD_ERRORS[error as SubscriberErrorKey])
     .reduce((res: Array<string>, errorMessage) => {
       if (errors[errorMessage].length > 0) {
         res.push(
