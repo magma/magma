@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
@@ -30,6 +29,7 @@ import MagmaAPI from '../../../../api/MagmaAPI';
 import {
   ApnProvider,
   LteNetworkContextProvider,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../components/lte/LteContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -74,7 +74,10 @@ const apns = {
 
 describe('<TrafficDashboard />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
+    jest.spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGet').mockImplementation();
+    jest
+      .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsGet')
+      .mockResolvedValue({data: apns});
     jest.spyOn(MagmaAPI.networks, 'networksGet').mockResolvedValue({data: []});
     jest
       .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
@@ -130,10 +133,10 @@ describe('<TrafficDashboard />', () => {
     const {queryByTestId, getByTestId, getByText} = render(<ApnWrapper />);
     await wait();
 
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
       networkId,
     });
-    expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledWith({
+    expect(MagmaAPI.apns.lteNetworkIdApnsGet).toHaveBeenCalledWith({
       networkId,
     });
 
@@ -230,10 +233,10 @@ describe('<TrafficDashboard />', () => {
     await wait();
 
     // verify if lte api calls are invoked
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
       networkId,
     });
-    expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledWith({
+    expect(MagmaAPI.apns.lteNetworkIdApnsGet).toHaveBeenCalledWith({
       networkId,
     });
 
