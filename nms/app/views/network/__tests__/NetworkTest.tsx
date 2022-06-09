@@ -33,7 +33,7 @@ import React from 'react';
 import SubscriberContext, {
   SubscriberContextType,
 } from '../../../components/context/SubscriberContext';
-import axiosMock, {AxiosResponse} from 'axios';
+import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
 import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
@@ -47,6 +47,7 @@ import {fireEvent, render, wait} from '@testing-library/react';
 
 import MagmaAPI from '../../../../api/MagmaAPI';
 import axios from 'axios';
+import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated-ts';
 
@@ -273,23 +274,13 @@ describe('<NetworkDashboard />', () => {
     (axiosMock as jest.Mocked<typeof axios>).post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
-    jest.spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGet').mockImplementation();
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdPut')
-      .mockResolvedValue({data: {success: true}} as AxiosResponse);
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGet');
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdPut');
 
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdCellularEpcPut')
-      .mockResolvedValue({data: {success: true}} as AxiosResponse);
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdCellularRanPut')
-      .mockResolvedValue({data: {success: true}} as AxiosResponse);
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdDnsPut')
-      .mockResolvedValue({data: {success: true}} as AxiosResponse);
-    jest
-      .spyOn(MagmaAPI.networks, 'networksGet')
-      .mockResolvedValue({data: []} as AxiosResponse);
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdCellularEpcPut');
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdCellularRanPut');
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdDnsPut');
+    mockAPI(MagmaAPI.networks, 'networksGet', []);
   });
 
   const Wrapper = () => {

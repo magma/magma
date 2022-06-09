@@ -20,6 +20,7 @@ import defaultTheme from '../../../theme/default';
 import {AxiosResponse} from 'axios';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 import type {
   FegLteNetwork,
@@ -143,9 +144,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     status: {checkin_time: Date.now()},
   };
   beforeEach(() => {
-    jest
-      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteGet')
-      .mockResolvedValue({data: mockFegLteNetworks} as AxiosResponse);
+    mockAPI(MagmaAPI.federatedLTENetworks, 'fegLteGet', mockFegLteNetworks);
     jest
       .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
       .mockResolvedValueOnce({data: mockFegLteNetwork1} as AxiosResponse)

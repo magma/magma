@@ -9,40 +9,40 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TrafficDashboard from '../TrafficOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../../shared/types/network';
 import {
   LteNetworkContextProvider,
   PolicyProvider,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../components/lte/LteContext';
 
+import MagmaAPI from '../../../../api/MagmaAPI';
+import {AxiosResponse} from 'axios';
+import {
+  BaseNameRecord,
+  FegLteNetwork,
+  LteNetwork,
+  NetworkFederationConfigs,
+  PolicyRule,
+  RatingGroup,
+  RedirectInformation,
+} from '../../../../generated-ts';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe migrated to typescript
-import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe Upgrade react-testing-library
 import {fireEvent, render, waitFor} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
-const policies = {
+const policies: Record<string, PolicyRule> = {
   policy_0: {
     flow_list: [],
     id: 'policy_0',
@@ -85,7 +85,7 @@ const feg_network = {
     enable_caching: false,
     local_ttl: 0,
   },
-  federation: {},
+  federation: {} as NetworkFederationConfigs,
   id: 'test_feg_network',
   name: 'Test Feg Network Description',
 };
@@ -155,89 +155,69 @@ const feg_lte_network = {
 };
 
 describe('<TrafficDashboard />', () => {
+  let networksNetworkIdPoliciesRulesRuleIdGet: jest.SpyInstance;
+
   beforeEach(() => {
-    (useEnqueueSnackbar: JestMockFn<
-      Array<empty>,
-      $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
-    jest
-      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
-      .mockResolvedValue({data: undefined});
+    (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet');
 
-    jest
-      .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdGet')
-      .mockResolvedValue({data: feg_network});
+    mockAPI(MagmaAPI.federationNetworks, 'fegNetworkIdGet', feg_network);
 
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGet')
-      .mockResolvedValue({data: undefined});
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGet');
 
-    jest
-      .spyOn(
-        MagmaAPI.federatedLTENetworks,
-        'fegLteNetworkIdSubscriberConfigPut',
-      )
-      .mockImplementation();
+    mockAPI(
+      MagmaAPI.federatedLTENetworks,
+      'fegLteNetworkIdSubscriberConfigPut',
+    );
+    mockAPI(
+      MagmaAPI.federatedLTENetworks,
+      'fegLteNetworkIdSubscriberConfigGet',
+    );
 
-    jest
-      .spyOn(
-        MagmaAPI.federatedLTENetworks,
-        'fegLteNetworkIdSubscriberConfigGet',
-      )
-      .mockResolvedValue({data: undefined});
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdSubscriberConfigPut');
 
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdSubscriberConfigPut')
-      .mockImplementation();
+    mockAPI(
+      MagmaAPI.federatedLTENetworks,
+      'fegLteNetworkIdGet',
+      feg_lte_network as FegLteNetwork,
+    );
 
-    jest
-      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
-      .mockResolvedValue({data: feg_lte_network});
+    mockAPI(MagmaAPI.federationNetworks, 'fegNetworkIdSubscriberConfigPut');
 
-    jest
-      .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdSubscriberConfigPut')
-      .mockImplementation();
-
-    jest
-      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesPost')
-      .mockImplementation();
-    jest
-      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdPut')
-      .mockImplementation();
-    jest
-      .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet')
-      .mockResolvedValue({data: {}});
-    jest
-      .spyOn(MagmaAPI.ratingGroups, 'networksNetworkIdRatingGroupsGet')
-      .mockResolvedValue({data: {}});
-    jest
-      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesBaseNameGet')
-      .mockResolvedValue({data: {}});
-    jest
-      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet')
-      .mockResolvedValue({data: []});
-    jest
-      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesviewfullGet')
-      .mockResolvedValue({data: policies});
-    jest
-      .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdGet')
-      .mockResolvedValue({
-        data: {
-          app_name: undefined,
-          app_service_type: undefined,
-          assigned_subscribers: undefined,
-          flow_list: [],
-          id: 'test_policy_0',
-          monitoring_key: '',
-          priority: 1,
-          qos_profile: undefined,
-          rating_group: 0,
-          redirect: {},
-        },
-      });
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesPost');
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdPut');
+    mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', {});
+    mockAPI(
+      MagmaAPI.ratingGroups,
+      'networksNetworkIdRatingGroupsGet',
+      ({} as unknown) as Array<RatingGroup>,
+    );
+    mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesBaseNamesBaseNameGet',
+      {} as BaseNameRecord,
+    );
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet', []);
+    mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesRulesviewfullGet',
+      policies,
+    );
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdGet', {
+      app_name: undefined,
+      app_service_type: undefined,
+      assigned_subscribers: undefined,
+      flow_list: [],
+      id: 'test_policy_0',
+      monitoring_key: '',
+      priority: 1,
+      qos_profile: undefined,
+      rating_group: 0,
+      redirect: {} as RedirectInformation,
+    });
   });
 
-  const PolicyWrapper = ({networkType}) => (
+  const PolicyWrapper = ({networkType}: {networkType: string}) => (
     <MemoryRouter
       initialEntries={['/nms/test/traffic/policy']}
       initialIndex={0}>
@@ -567,7 +547,7 @@ describe('<TrafficDashboard />', () => {
 
     fireEvent.click(getByText('Save And Continue'));
 
-    const newRule = {
+    const newRule: PolicyRule = {
       app_name: undefined,
       app_service_type: undefined,
       assigned_subscribers: undefined,
@@ -577,7 +557,7 @@ describe('<TrafficDashboard />', () => {
       priority: 1,
       qos_profile: undefined,
       rating_group: 0,
-      redirect: {},
+      redirect: {} as RedirectInformation,
     };
 
     await waitFor(() =>
@@ -630,9 +610,9 @@ describe('<TrafficDashboard />', () => {
         },
       },
     ];
-    MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(
-      {data: newRule},
-    );
+    networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue({
+      data: newRule,
+    });
     await waitFor(() => fireEvent.click(getByText('Save And Continue')));
     await waitFor(() =>
       expect(
@@ -660,9 +640,7 @@ describe('<TrafficDashboard />', () => {
     }
 
     newRule['rating_group'] = 1;
-    MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(
-      newRule,
-    );
+    networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(newRule);
     fireEvent.click(getByText('Save And Continue'));
 
     await waitFor(() =>
@@ -691,10 +669,8 @@ describe('<TrafficDashboard />', () => {
     }
     newRule['redirect'] = {
       server_address: '192.168.1.1',
-    };
-    MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(
-      newRule,
-    );
+    } as RedirectInformation;
+    networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(newRule);
     fireEvent.click(getByText('Save And Continue'));
 
     await waitFor(() =>
