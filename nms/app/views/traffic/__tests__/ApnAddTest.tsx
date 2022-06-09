@@ -9,31 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TrafficDashboard from '../TrafficOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-// $FlowFixMe migrated to typescript
 import {LTE} from '../../../../shared/types/network';
-// $FlowFixMe migrated to typescript
-import MagmaAPI from '../../../../api/MagmaAPI';
 
 import {
   ApnProvider,
   LteNetworkContextProvider,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../components/lte/LteContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
@@ -74,26 +66,21 @@ const apns = {
 
 describe('<TrafficDashboard />', () => {
   beforeEach(() => {
-    jest.spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGet').mockImplementation();
-    jest
-      .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsGet')
-      .mockResolvedValue({data: apns});
-    jest.spyOn(MagmaAPI.networks, 'networksGet').mockResolvedValue({data: []});
-    jest
-      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
-      .mockResolvedValue({data: []});
-    jest.spyOn(MagmaAPI.apns, 'lteNetworkIdApnsPost').mockImplementation();
-    jest
-      .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNamePut')
-      .mockImplementation();
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGet');
+    mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsGet', apns);
+    mockAPI(MagmaAPI.networks, 'networksGet', []);
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet');
+    mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsPost');
+    mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsApnNamePut');
   });
 
   const {location} = window;
   beforeAll((): void => {
+    // @ts-ignore
     delete window.location;
     window.location = {
       pathname: '/nms/test/traffic/apn',
-    };
+    } as Location;
   });
 
   afterAll((): void => {
