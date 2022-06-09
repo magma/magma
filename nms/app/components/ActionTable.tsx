@@ -140,7 +140,7 @@ type SelectProps = {
   content: Array<string>;
   defaultValue?: string;
   value: string;
-  onChange: (arg0: string) => void;
+  onChange: (value: string) => void;
   testId?: string;
 };
 
