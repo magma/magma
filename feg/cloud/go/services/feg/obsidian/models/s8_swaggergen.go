@@ -25,12 +25,12 @@ type S8 struct {
 	ApnOperatorSuffix string `json:"apn_operator_suffix,omitempty"`
 
 	// local address
-	// Example: foo.bar.com:5555
+	// Example: 0.0.0.0:0
 	// Pattern: [^\:]+(:[0-9]{1,5})?
 	LocalAddress string `json:"local_address,omitempty"`
 
 	// pgw address
-	// Example: foo.bar.com:5555
+	// Example: 0.0.0.0:0
 	// Pattern: [^\:]+(:[0-9]{1,5})?
 	PgwAddress string `json:"pgw_address,omitempty"`
 }
