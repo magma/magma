@@ -9,52 +9,37 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../context/FEGGatewayContext';
-// $FlowFixMe migrated to typescript
 import FEGNetworkContext from '../context/FEGNetworkContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
-// $FlowFixMe migrated to typescript
-import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {
-  federation_gateway,
-  feg_network,
-  gateway_id,
-  network_id,
-  network_type,
-  subscriber_state,
-} from '../../../generated/MagmaAPIBindings';
+  FederationGateway,
+  FegNetwork,
+  SubscriberState,
+} from '../../../generated-ts';
+import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
+import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
 import {
   InitGatewayState,
   SetGatewayState,
-  // $FlowFixMe migrated to typescript
 } from '../../state/feg/EquipmentState';
-// $FlowFixMe migrated to typescript
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {useCallback, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
-  networkId: network_id,
-  networkType: network_type,
-  children: React.Node,
+  networkId: NetworkId;
+  networkType: NetworkType;
+  children: React.ReactNode;
 };
 
 /**
@@ -67,9 +52,9 @@ type Props = {
  */
 export function FEGSubscriberContextProvider(props: Props) {
   const {networkId} = props;
-  const [sessionState, setSessionState] = useState<{
-    [networkId: network_id]: {[string]: subscriber_state},
-  }>({});
+  const [sessionState, setSessionState] = useState<
+    Record<NetworkId, Record<string, SubscriberState>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();
   useEffect(() => {
@@ -84,7 +69,7 @@ export function FEGSubscriberContextProvider(props: Props) {
       setSessionState(sessionState);
       setIsLoading(false);
     };
-    fetchFegState();
+    void fetchFegState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -112,13 +97,13 @@ export function FEGSubscriberContextProvider(props: Props) {
  */
 export function FEGGatewayContextProvider(props: Props) {
   const {networkId} = props;
-  const [fegGateways, setFegGateways] = useState<{
-    [gateway_id]: federation_gateway,
-  }>({});
-  const [fegGatewaysHealthStatus, setFegGatewaysHealthStatus] = useState<{
-    [gateway_id]: FederationGatewayHealthStatus,
-  }>({});
-  const [activeFegGatewayId, setActiveFegGatewayId] = useState<gateway_id>('');
+  const [fegGateways, setFegGateways] = useState<
+    Record<GatewayId, FederationGateway>
+  >({});
+  const [fegGatewaysHealthStatus, setFegGatewaysHealthStatus] = useState<
+    Record<GatewayId, FederationGatewayHealthStatus>
+  >({});
+  const [activeFegGatewayId, setActiveFegGatewayId] = useState<GatewayId>('');
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -133,7 +118,7 @@ export function FEGGatewayContextProvider(props: Props) {
       });
       setIsLoading(false);
     };
-    fetchState();
+    void fetchState();
   }, [networkId, enqueueSnackbar]);
 
   if (isLoading) {
@@ -173,12 +158,12 @@ export function FEGGatewayContextProvider(props: Props) {
  */
 export function FEGNetworkContextProvider(props: Props) {
   const {networkId} = props;
-  const [fegNetwork, setFegNetwork] = useState<$Shape<feg_network>>({});
+  const [fegNetwork, setFegNetwork] = useState<Partial<FegNetwork>>({});
   const enqueueSnackbar = useEnqueueSnackbar();
   const {error, isLoading} = useMagmaAPI(
-    MagmaV1API.getFegByNetworkId,
+    MagmaAPI.federationNetworks.fegNetworkIdGet,
     {networkId: networkId},
-    useCallback(response => setFegNetwork(response), []),
+    useCallback((response: Partial<FegNetwork>) => setFegNetwork(response), []),
   );
 
   if (error) {
