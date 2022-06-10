@@ -42,7 +42,7 @@ export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
    */
   const useAlarmsApi = jest.fn<any, any>(
     <TParams, TResponse>(
-      func: (arg0: TParams) => Promise<{data: TResponse}>,
+      func: (params: TParams) => Promise<{data: TResponse}>,
       params: TParams,
       _cacheCounter?: string | number,
     ) => ({
