@@ -122,7 +122,7 @@ export type ActionTableProps<T extends object> = {
   editable?: MaterialTableProps<T>['editable'];
   localization?: MaterialTableProps<T>['localization'];
   title?: string;
-  handleCurrRow?: (arg0: T) => void;
+  handleCurrRow?: (currentRow: T) => void;
   columns: MaterialTableProps<T>['columns'];
   menuItems?: Array<ActionMenuItems>;
   actions?: MaterialTableProps<T>['actions'];
