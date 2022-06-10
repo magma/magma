@@ -31,7 +31,7 @@ type InitGatewayStateProps = {
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 /**
@@ -101,7 +101,7 @@ type GatewayStateProps = {
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 /**
@@ -189,7 +189,7 @@ export async function getFegGatewaysHealthStatus(
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined,
+  ) => string | number | null | undefined,
 ): Promise<Record<GatewayId, FederationGatewayHealthStatus>> {
   const fegGatewaysHealthStatus: Record<
     GatewayId,
@@ -222,7 +222,7 @@ export async function getActiveFegGatewayId(
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined,
+  ) => string | number | null | undefined,
 ): Promise<string> {
   try {
     const response = (
@@ -246,7 +246,7 @@ type FetchProps = {
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 /**
