@@ -9,27 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewaySummary from '../GatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
+import type {LteGateway} from '../../../../generated-ts';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-
-const mockGatewaySt: lte_gateway = {
+const mockGatewaySt: LteGateway = {
   cellular: {
     epc: {
       ip_block: '',
@@ -73,7 +62,7 @@ const mockGatewaySt: lte_gateway = {
 };
 
 describe('<GatewaySummary />', () => {
-  it('renders', async () => {
+  it('renders', () => {
     const {container} = render(
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
