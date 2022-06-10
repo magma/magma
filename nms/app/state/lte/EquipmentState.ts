@@ -32,7 +32,6 @@ import type {
   GatewayId,
   GatewayPoolId,
   NetworkId,
-  TierId,
 } from '../../../shared/types/network';
 import type {EnodebState} from '../../components/context/EnodebContext';
 import type {
@@ -97,7 +96,7 @@ type TierStateProps = {
   networkId: NetworkId;
   tiers: Record<string, Tier>;
   setTiers: (arg0: Record<string, Tier>) => void;
-  key: TierId;
+  key: string;
   value?: Tier;
 };
 
@@ -376,7 +375,7 @@ export async function SetGatewayState(props: GatewayStateProps) {
 
 export type UpdateGatewayProps = {
   gatewayId: GatewayId;
-  tierId?: TierId;
+  tierId?: string;
   magmadConfigs?: MagmadGatewayConfigs;
   epcConfigs?: GatewayEpcConfigs;
   ranConfigs?: GatewayRanConfigs;

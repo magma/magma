@@ -50,19 +50,3 @@ export type NetworkId = string;
 export type NetworkName = string;
 export type PolicyId = string;
 export type SubscriberId = string;
-export type Tier = {
-  gateways: TierGateways;
-  id: TierId;
-  images: TierImages;
-  name?: TierName;
-  version: TierVersion;
-};
-type TierGateways = Array<GatewayId>;
-export type TierId = string;
-type TierImage = {
-  name: string;
-  order: number;
-};
-type TierImages = Array<TierImage>;
-type TierName = string;
-type TierVersion = string;
