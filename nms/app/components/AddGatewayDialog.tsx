@@ -18,6 +18,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from './LoadingFillerBackdrop';
 import MagmaAPI from '../../api/MagmaAPI';
 import MenuItem from '@material-ui/core/MenuItem';

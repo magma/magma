@@ -37,6 +37,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import KeyValueFields from '../KeyValueFields';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';

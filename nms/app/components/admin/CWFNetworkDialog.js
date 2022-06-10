@@ -18,6 +18,7 @@ import type {GenericConfig} from './GenericNetworkDialog';
 
 import * as React from 'react';
 import GenericNetworkDialog from './GenericNetworkDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 import TextField from '@material-ui/core/TextField';

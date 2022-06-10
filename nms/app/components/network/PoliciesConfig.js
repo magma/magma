@@ -24,6 +24,7 @@ import IconButton from '@material-ui/core/IconButton';
 import type {WithAlert} from '../Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript

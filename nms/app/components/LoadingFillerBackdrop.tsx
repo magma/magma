@@ -9,18 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 import React from 'react';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   backdrop: {
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -31,9 +27,9 @@ const useStyles = makeStyles(() => ({
     position: 'fixed',
     right: 0,
     top: 0,
-    zIndex: '13000',
+    zIndex: 13000,
   },
-}));
+});
 
 export default function LoadingFillerBackdrop() {
   const classes = useStyles();
