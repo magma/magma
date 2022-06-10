@@ -33,6 +33,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EmptyState from '../../components/EmptyState';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayCheckinChart from './GatewayCheckinChart';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
