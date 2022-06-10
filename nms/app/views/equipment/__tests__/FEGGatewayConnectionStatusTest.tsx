@@ -9,27 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import FEGGatewayConnectionStatus from '../FEGGatewayConnectionStatus';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render, wait} from '@testing-library/react';
-import type {federation_gateway} from '../../../../generated/MagmaAPIBindings';
+import type {FederationGateway} from '../../../../generated-ts';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway',
   description: 'hello I am a federated gateway',
@@ -44,7 +37,6 @@ const mockGw0: federation_gateway = {
     checkin_interval: 60,
     checkin_timeout: 100,
     dynamic_services: ['monitord', 'eventd'],
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -82,7 +74,7 @@ const fegGatewaysHealth = {
       SWX_PROXY: {health_status: 'UNHEALTHY', service_state: 'AVAILABLE'},
     },
   },
-};
+} as Record<string, FederationGatewayHealthStatus>;
 
 describe('<FEGGatewayConnectionStatus />', () => {
   const Wrapper = () => (
@@ -96,7 +88,7 @@ describe('<FEGGatewayConnectionStatus />', () => {
           <FEGGatewayContext.Provider
             value={{
               state: fegGateways,
-              setState: async _ => {},
+              setState: async () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>
