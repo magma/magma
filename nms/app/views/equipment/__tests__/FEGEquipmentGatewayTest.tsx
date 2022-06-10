@@ -9,72 +9,66 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import FEGEquipmentGateway from '../FEGEquipmentGateway';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {AxiosResponse} from 'axios';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
+import {FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest} from '../../../../generated-ts';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration;
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
-// $FlowFixMe upgrade testing-library types
 import {render, wait, waitFor} from '@testing-library/react';
 import type {
-  csfb,
-  federation_gateway,
-  federation_gateway_health_status,
-  federation_network_cluster_status,
-  gx,
-  gy,
-  promql_return_object,
-  s6a,
-  swx,
-} from '../../../../generated/MagmaAPIBindings.js';
+  Csfb,
+  FederationGateway,
+  FederationGatewayHealthStatus,
+  FederationNetworkClusterStatus,
+  Gx,
+  Gy,
+  PromqlReturnObject,
+  S6a,
+  Swx,
+} from '../../../../generated-ts';
 
 jest.mock('../../../hooks/useSnackbar');
 
-const mockGx: gx = {
+const mockGx: Gx = {
   server: {
     address: '174.16.1.14:3868',
   },
 };
 
-const mockGy: gy = {
+const mockGy: Gy = {
   server: {
     address: '174.18.1.0:3868',
   },
 };
 
-const mockSwx: swx = {
+const mockSwx: Swx = {
   server: {
     address: '174.18.1.0:3869',
   },
 };
 
-const mockS6a: s6a = {
+const mockS6a: S6a = {
   server: {
     address: '174.18.1.0:2000',
   },
 };
 
-const mockCsfb: csfb = {
+const mockCsfb: Csfb = {
   client: {
     server_address: '174.18.1.0:2200',
   },
 };
 
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway',
   description: 'hello I am a federated gateway',
@@ -88,7 +82,6 @@ const mockGw0: federation_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -124,7 +117,7 @@ const mockGw0: federation_gateway = {
   },
 };
 
-const mockCheckinMetric: promql_return_object = {
+const mockCheckinMetric: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -137,7 +130,7 @@ const mockCheckinMetric: promql_return_object = {
   },
 };
 
-const mockKPIMetric: promql_return_object = {
+const mockKPIMetric: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -160,7 +153,7 @@ const lastFalloverTimeResponse2 = moment().unix();
 
 const lastFalloverTime = `${moment.unix(lastFalloverTimeResponse2).calendar()}`;
 
-const mockFalloverStatus: promql_return_object = {
+const mockFalloverStatus: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -177,7 +170,7 @@ const mockFalloverStatus: promql_return_object = {
   },
 };
 
-const mockGw1: federation_gateway = {
+const mockGw1: FederationGateway = {
   ...mockGw0,
   id: 'test_gw1',
   name: 'test_gateway1',
@@ -200,43 +193,55 @@ const fegGateways = {
   [mockGw1.id]: mockGw1,
 };
 
-const mockHealthyGatewayStatus: federation_gateway_health_status = {
+const mockHealthyGatewayStatus: FederationGatewayHealthStatus = {
   description: '',
   status: 'HEALTHY',
 };
 
-const mockUnhealthyGatewayStatus: federation_gateway_health_status = {
+const mockUnhealthyGatewayStatus: FederationGatewayHealthStatus = {
   description: '',
   status: 'UNHEALTHY',
 };
 
-const mockClusterStatus: federation_network_cluster_status = {
+const mockClusterStatus: FederationNetworkClusterStatus = {
   active_gateway: mockGw0.id,
 };
 
 describe('<FEGEquipmentGateway />', () => {
   beforeEach(() => {
     // gateway context gets list of federation gateways
-    jest
-      .spyOn(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGet')
-      .mockResolvedValue({data: fegGateways});
+    mockAPI(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysGet',
+      fegGateways,
+    );
     // gateway context gets health status of the gateways
     jest
       .spyOn(
         MagmaAPI.federationGateways,
         'fegNetworkIdGatewaysGatewayIdHealthStatusGet',
       )
-      .mockImplementation(req => {
-        if (req.gatewayId == mockGw0.id) {
-          // only gateway 0 is healthy
-          return {data: mockHealthyGatewayStatus};
-        }
-        return {data: mockUnhealthyGatewayStatus};
-      });
+      .mockImplementation(
+        (
+          req: FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest,
+        ) => {
+          if (req.gatewayId == mockGw0.id) {
+            // only gateway 0 is healthy
+            return Promise.resolve({
+              data: mockHealthyGatewayStatus,
+            } as AxiosResponse);
+          }
+          return Promise.resolve({
+            data: mockUnhealthyGatewayStatus,
+          } as AxiosResponse);
+        },
+      );
     // gateway context gets the active gateway id
-    jest
-      .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdClusterStatusGet')
-      .mockResolvedValue({data: mockClusterStatus});
+    mockAPI(
+      MagmaAPI.federationNetworks,
+      'fegNetworkIdClusterStatusGet',
+      mockClusterStatus,
+    );
 
     // called by gateway checkin chart
     mockAPI(
@@ -276,7 +281,7 @@ describe('<FEGEquipmentGateway />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <FEGGatewayContextProvider networkId="mynetwork" networkType="FEG">
+          <FEGGatewayContextProvider networkId="mynetwork" networkType="feg">
             <Routes>
               <Route
                 path="/nms/:networkId/gateway/"

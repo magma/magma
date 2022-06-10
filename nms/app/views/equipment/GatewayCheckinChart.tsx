@@ -9,34 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {ChartStyle} from '../../components/insights/AsyncMetric';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {TimeRange} from '../../components/insights/AsyncMetric';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AsyncMetric from '../../components/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import type {ChartStyle} from '../../components/insights/AsyncMetric';
+import type {TimeRange} from '../../components/insights/AsyncMetric';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dateTimeText: {
     color: colors.primary.comet,
   },

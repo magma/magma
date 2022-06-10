@@ -9,24 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGClusterStatus from './FEGClusterStatus';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGEquipmentGatewayKPIs from './FEGEquipmentGatewayKPIs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayTable from './FEGGatewayTable';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
