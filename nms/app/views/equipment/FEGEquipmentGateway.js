@@ -17,6 +17,7 @@
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGClusterStatus from './FEGClusterStatus';
 import FEGEquipmentGatewayKPIs from './FEGEquipmentGatewayKPIs';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayTable from './FEGGatewayTable';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
