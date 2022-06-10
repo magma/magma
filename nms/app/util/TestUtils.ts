@@ -41,3 +41,17 @@ export function mockAPI(service: any, apiMethod: any, data?: any) {
     data,
   } as any);
 }
+
+export function mockAPIOnce<
+  SERVICE extends typeof MagmaAPI[keyof typeof MagmaAPI],
+  API_METHOD extends jest.FunctionPropertyNames<SERVICE>
+>(
+  service: SERVICE,
+  apiMethod: API_METHOD,
+  data: Response<SERVICE, API_METHOD>,
+): jest.SpyInstance<AxiosResponse<{data: Response<SERVICE, API_METHOD>}>> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return jest.spyOn(service, apiMethod).mockResolvedValueOnce({
+    data,
+  } as any);
+}

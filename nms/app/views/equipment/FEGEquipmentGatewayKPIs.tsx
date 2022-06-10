@@ -9,27 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import {HEALTHY_STATUS, UNHEALTHY_STATUS} from '../../components/GatewayUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getLatency} from './EquipmentGatewayKPIs';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
@@ -46,7 +37,7 @@ export default function FEGEquipmentGatewayKPIs() {
   const networkId: string = nullthrows(params.networkId);
   const timeRange = '3h';
   const {response: maxResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `max_over_time(magmad_ping_rtt_ms{service="magmad",metric="rtt_ms"}[${timeRange}])`,
@@ -54,7 +45,7 @@ export default function FEGEquipmentGatewayKPIs() {
   );
 
   const {response: minResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `min_over_time(magmad_ping_rtt_ms{service="magmad",metric="rtt_ms"}[${timeRange}])`,
@@ -62,7 +53,7 @@ export default function FEGEquipmentGatewayKPIs() {
   );
 
   const {response: avgResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `avg_over_time(magmad_ping_rtt_ms{service="magmad",metric="rtt_ms"}[${timeRange}])`,
@@ -74,16 +65,16 @@ export default function FEGEquipmentGatewayKPIs() {
   const avgLatencies: Array<number> =
     avgResponse?.data?.result
       ?.map(item => {
-        return parseFloat(item?.value?.[1]);
+        const value = item?.value?.[1];
+        return value ? parseFloat(value) : 0;
       })
       .filter(Boolean) ?? [];
-  let avgLatency = 0;
+  let avgLatency = '0';
   if (avgLatencies && avgLatencies.length) {
     const sum = avgLatencies.reduce(function (a, b) {
       return a + b;
     }, 0);
-    avgLatency = sum / avgLatencies.length;
-    avgLatency = avgLatency.toFixed(2);
+    avgLatency = (sum / avgLatencies.length).toFixed(2);
   }
   const fegGatewayCount = Object.keys(ctx.state).filter(Boolean).length;
   const upCount = Object.keys(fegGatewaysHealthStatus).filter(
@@ -94,12 +85,12 @@ export default function FEGEquipmentGatewayKPIs() {
     fegGatewayId =>
       fegGatewaysHealthStatus[fegGatewayId].status === UNHEALTHY_STATUS,
   ).length;
-  let percentHealthyGw = 0;
+  let percentHealthyGw = '0';
   if (upCount > 0 && upCount + downCount > 0) {
     percentHealthyGw = ((upCount * 100) / (upCount + downCount)).toFixed(2);
   }
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Max Latency',
