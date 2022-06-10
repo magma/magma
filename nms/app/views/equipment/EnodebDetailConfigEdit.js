@@ -45,6 +45,7 @@ import {
 } from '../../components/lte/EnodebUtils';
 
 import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 
 // $FlowFixMe migrated to typescript
