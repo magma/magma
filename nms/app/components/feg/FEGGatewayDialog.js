@@ -35,6 +35,7 @@ import FEGGatewayContext from '../context/FEGGatewayContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import KeyValueFields from '../KeyValueFields';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
