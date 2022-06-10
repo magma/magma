@@ -15,6 +15,7 @@
  */
 import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewaySummary from '../GatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

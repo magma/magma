@@ -22,6 +22,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import FEGConfigure from './FEGConfigure';
 import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGEquipmentDashboard from '../../views/equipment/FEGEquipmentDashboard';
 import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
