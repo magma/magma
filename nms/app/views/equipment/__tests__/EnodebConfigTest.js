@@ -16,6 +16,7 @@
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditEnodeButton from '../EnodebDetailConfigEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebConfig from '../EnodebDetailConfig';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';

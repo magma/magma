@@ -23,6 +23,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebConfig from './EnodebDetailConfig';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
@@ -41,6 +42,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {DateTimePicker} from '@material-ui/pickers';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
