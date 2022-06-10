@@ -176,7 +176,6 @@ function AlertTroubleshootingLink({alertName}: {alertName: string}) {
   const classes = useStyles();
   const snackbars = useSnackbars();
   const {apiUtil} = useAlarmContext();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const {error, response: troubleshootingLink} = apiUtil.useAlarmsApi(
     apiUtil.getTroubleshootingLink,
     {
