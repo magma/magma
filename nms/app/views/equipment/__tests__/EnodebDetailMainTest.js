@@ -15,6 +15,7 @@
  */
 import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as hooks from '../../../components/context/RefreshContext';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';

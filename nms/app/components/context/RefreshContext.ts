@@ -9,55 +9,80 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
-// $FlowFixMe migrated to typescript
+import EnodebContext, {EnodebContextType} from './EnodebContext';
+import FEGGatewayContext, {FEGGatewayContextType} from './FEGGatewayContext';
+import FEGSubscriberContext, {
+  FEGSubscriberContextType,
+} from './FEGSubscriberContext';
+import GatewayContext, {GatewayContextType} from './GatewayContext';
+import SubscriberContext, {SubscriberContextType} from './SubscriberContext';
+import {FederationGateway} from '../../../generated-ts';
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
 import {
   FetchFegGateways,
   getActiveFegGatewayId,
   getFegGatewaysHealthStatus,
-  // $FlowFixMe migrated to typescript
 } from '../../state/feg/EquipmentState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
+import {GatewayId} from '../../../shared/types/network';
 import {useContext, useEffect, useRef, useState} from 'react';
-import type {EnqueueSnackbarOptions} from 'notistack';
+import type {OptionsObject} from 'notistack';
 
 export const REFRESH_INTERVAL = 30000;
 
-export const RefreshTypeEnum = Object.freeze({
+export const RefreshTypeEnum = {
   SUBSCRIBER: 'subscriber',
   GATEWAY: 'gateway',
   FEG_GATEWAY: 'feg_gateway',
   FEG_SUBSCRIBER: 'feg_subscriber',
   ENODEB: 'enodeb',
-});
+} as const;
 
-type Props = {
-  context: typeof React.Context,
-  networkId: string,
-  type: RefreshType,
-  interval?: number,
-  id?: string,
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
-  refresh: boolean,
-  lastRefreshTime?: string,
+type ContextMap = {
+  [RefreshTypeEnum.SUBSCRIBER]: typeof SubscriberContext;
+  [RefreshTypeEnum.GATEWAY]: typeof GatewayContext;
+  [RefreshTypeEnum.FEG_GATEWAY]: typeof FEGGatewayContext;
+  [RefreshTypeEnum.FEG_SUBSCRIBER]: typeof FEGSubscriberContext;
+  [RefreshTypeEnum.ENODEB]: typeof EnodebContext;
 };
 
-type RefreshType = $Values<typeof RefreshTypeEnum>;
+type StateMap = {
+  [RefreshTypeEnum.SUBSCRIBER]: SubscriberContextType['sessionState'];
+  [RefreshTypeEnum.GATEWAY]: GatewayContextType['state'];
+  [RefreshTypeEnum.FEG_GATEWAY]: {
+    fegGateways: FEGGatewayContextType['state'];
+    health: FEGGatewayContextType['health'];
+    activeFegGatewayId: FEGGatewayContextType['activeFegGatewayId'];
+  };
+  [RefreshTypeEnum.FEG_SUBSCRIBER]: FEGSubscriberContextType['sessionState'];
+  [RefreshTypeEnum.ENODEB]: EnodebContextType['state'];
+};
 
-export function useRefreshingContext(props: Props) {
-  const ctx = useContext(props.context);
+type RefreshType = keyof ContextMap;
+
+type Props<T extends RefreshType> = {
+  type: T;
+  context: ContextMap[T];
+  networkId: string;
+  interval?: number;
+  id?: string;
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: OptionsObject,
+  ) => string | number | undefined | null;
+  refresh: boolean;
+  lastRefreshTime?: string;
+};
+
+// TODO: This hook is not well designed and typing it correctly is nearly impossible,
+//  it should be replaced with a simpler solution.
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+export function useRefreshingContext<T extends keyof ContextMap>(
+  props: Props<T>,
+): StateMap[T] {
+  const ctx: any = useContext(props.context as any);
   const initState = () => {
     if (props.type === RefreshTypeEnum.FEG_GATEWAY) {
       return {
@@ -96,26 +121,22 @@ export function useRefreshingContext(props: Props) {
     }
   }
 
-  function updateContext(id?: string, state) {
+  function updateContext(id: string | undefined, state: any) {
     let newState = state;
     if (id !== null && id !== undefined) {
       if (props.type === 'subscriber') {
         newState = {
-          // $FlowIgnore because state may not contain sessionState for other refresh type like enodeb
           sessionState: Object.keys(state.sessionState || {}).length
             ? {
                 ...ctx.sessionState,
-                // $FlowIgnore because state may not contain sessionState for other refresh type like enodeb
                 [id]: state.sessionState?.[id],
               }
             : {},
         };
       } else if (props.type === 'enodeb') {
-        // $FlowIgnore because state may not contain enbInfo for other refresh type like feg_gateway
         newState = {...ctx.state, [id]: state.enbInfo?.[id]};
       } else if (props.type === RefreshTypeEnum.FEG_GATEWAY) {
         newState = {
-          // $FlowIgnore because state may not contain fegGateways for other refresh type like subscriber
           fegGateways: {...ctx.fegGateways, [id]: state?.fegGateways?.[id]},
         };
       } else if (props.type === RefreshTypeEnum.FEG_SUBSCRIBER) {
@@ -158,7 +179,7 @@ export function useRefreshingContext(props: Props) {
 
   useEffect(() => {
     if (props.lastRefreshTime != autoRefreshTime) {
-      fetchState({
+      void fetchState({
         type: props.type,
         networkId: props.networkId,
         id: props.id,
@@ -175,15 +196,16 @@ export function useRefreshingContext(props: Props) {
   ]);
   return state;
 }
+/* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 type FetchProps = {
-  type: RefreshType,
-  networkId: string,
-  id?: string,
+  type: RefreshType;
+  networkId: string;
+  id?: string;
   enqueueSnackbar?: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => string | number | undefined | null;
 };
 async function fetchRefreshState(props: FetchProps) {
   const {type, networkId, id, enqueueSnackbar} = props;
@@ -208,11 +230,12 @@ async function fetchRefreshState(props: FetchProps) {
 
     return gateways;
   } else if (type === RefreshTypeEnum.FEG_GATEWAY) {
-    const fegGateways = await FetchFegGateways({
+    const fegGateways = (await FetchFegGateways({
       id: id,
       networkId,
       enqueueSnackbar,
-    });
+    })) as Record<GatewayId, FederationGateway>;
+
     const [health, activeFegGatewayId] = await Promise.all([
       getFegGatewaysHealthStatus(networkId, fegGateways, enqueueSnackbar),
       getActiveFegGatewayId(networkId, fegGateways, enqueueSnackbar),

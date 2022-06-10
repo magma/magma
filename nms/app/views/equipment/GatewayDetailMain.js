@@ -32,6 +32,7 @@ import GatewayConfigYml from './GatewayYMLConfig';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
+// $FlowFixMe migrated to typescript
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayDetailSubscribers from './GatewayDetailSubscribers';
 import GatewayLogs from './GatewayLogs';

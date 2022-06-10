@@ -43,6 +43,7 @@ import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPIFlow';
 
 import {Alarm} from '@material-ui/icons';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {REFRESH_INTERVAL} from './context/RefreshContext';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../theme/default';

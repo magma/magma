@@ -27,6 +27,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
 import {useContext} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
