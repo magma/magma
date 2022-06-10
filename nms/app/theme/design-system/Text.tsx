@@ -70,7 +70,7 @@ type Props = {
     | 'caption'
     | 'overline';
   className?: string;
-  useEllipsis?: boolean | null | undefined;
+  useEllipsis?: boolean | null;
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold';
 };
 
