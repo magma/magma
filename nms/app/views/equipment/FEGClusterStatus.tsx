@@ -9,46 +9,42 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-
-// $FlowFixMe migrated to typescript
-import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
+import useMagmaAPI from '../../../api/useMagmaAPI';
+import {FederationGateway, PromqlReturnObject} from '../../../generated-ts';
+import {
+  FederationGatewayHealthStatus,
+  GatewayTypeEnum,
+  HEALTHY_STATUS,
+} from '../../components/GatewayUtils';
+import {GatewayId} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   paperRoot: {
     display: 'flex',
     padding: '10px 20px',
   },
   paperRow: {
     padding: '0px 20px',
-    fontWeight: 'light',
+    fontWeight: 'lighter',
   },
-}));
+});
 
 /**
  * Displays the last fallover time, health of primary gateway & secondary gateway,
@@ -61,13 +57,16 @@ export default function FEGClusterStatus() {
   const networkId: string = nullthrows(params.networkId);
   const timeRange = '7d';
   const {response: lastFalloverResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `max_over_time(timestamp(changes(active_gateway_changed_total[30s]) > 0)[${timeRange}:10s])`,
     },
   );
-  const getGatewayHealthStatus = (fegGatewaysHealthStatus, gatewayId) => {
+  const getGatewayHealthStatus = (
+    fegGatewaysHealthStatus: Record<GatewayId, FederationGatewayHealthStatus>,
+    gatewayId: GatewayId,
+  ) => {
     const gatewayHealthStatus = fegGatewaysHealthStatus[gatewayId]?.status;
     if (gatewayId && gatewayHealthStatus) {
       // gateway exists and health status was fetched without error
@@ -77,13 +76,16 @@ export default function FEGClusterStatus() {
     }
     return 'N/A';
   };
-  const getLastFalloverStatus = lastFalloverResponse => {
+  const getLastFalloverStatus = (
+    lastFalloverResponse: PromqlReturnObject | undefined,
+  ) => {
     let lastFalloverStatus = '-';
     let lastFalloverTime = 0;
     const lastFalloverResult = lastFalloverResponse?.data?.result || [];
 
     lastFalloverResult.map(res => {
-      const curUpdate = parseFloat(res?.value?.[1]) || 0;
+      const value = res?.value?.[1];
+      const curUpdate = value ? parseFloat(value) : 0;
       // save the latest update
       lastFalloverTime = Math.max(lastFalloverTime, curUpdate);
     });
@@ -91,7 +93,10 @@ export default function FEGClusterStatus() {
       (lastFalloverStatus = moment.unix(lastFalloverTime).calendar());
     return lastFalloverStatus;
   };
-  const getSecondaryFegGatewayId = (fegGateways, activeFegGatewayId) => {
+  const getSecondaryFegGatewayId = (
+    fegGateways: Record<string, FederationGateway>,
+    activeFegGatewayId: string,
+  ) => {
     const fegGatewaysId = Object.keys(fegGateways);
     if (fegGatewaysId.length > 1) {
       // has secondary gateway
@@ -102,8 +107,8 @@ export default function FEGClusterStatus() {
     return '';
   };
   const isGatewayHealthStatusInactive = (
-    fegGatewayId,
-    fegGatewayHealthStatus,
+    fegGatewayId: string,
+    fegGatewayHealthStatus: FederationGatewayHealthStatus,
   ) => {
     // is inactive if gateway doesn't exits or have no health status
     return !(fegGatewayId && fegGatewayHealthStatus?.status);
@@ -125,7 +130,7 @@ export default function FEGClusterStatus() {
   );
   const lastFalloverStatus = getLastFalloverStatus(lastFalloverResponse);
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Last Fallover Time',

@@ -246,6 +246,7 @@ describe('<FEGEquipmentGateway />', () => {
       'networksNetworkIdPrometheusQueryRangeGet',
       mockCheckinMetric,
     );
+
     // called when getting max latency
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
       mockKPIMetric,
@@ -258,8 +259,11 @@ describe('<FEGEquipmentGateway />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
       mockKPIMetric,
     );
+
     // called when getting the last fallover time
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
       mockFalloverStatus,
     );
   });
