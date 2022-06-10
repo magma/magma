@@ -14,11 +14,11 @@
  * @format
  */
 
-import type {prom_alert_config} from '../../generated/MagmaAPIBindings';
+import type {PromAlertConfig} from '../../generated-ts';
 
 export default function getLteAlerts(
   networkID: string,
-): {[string]: prom_alert_config} {
+): {[name: string]: PromAlertConfig} {
   return {
     'Certificate Expiring Soon': {
       alert: 'Certificate Expiring Soon',
