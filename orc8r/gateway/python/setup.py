@@ -73,7 +73,7 @@ setup(
         'protobuf==3.19.0',
         'Jinja2>=2.8',
         'netifaces>=0.10.4',
-        'pylint>=1.7.1,<=2.14.0',
+        'pylint==2.14.0',
         'PyYAML>=3.12',
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
