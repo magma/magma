@@ -35,6 +35,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
