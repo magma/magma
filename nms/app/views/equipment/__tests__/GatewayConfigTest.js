@@ -20,6 +20,7 @@ import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 import type {Apn, LteGateway, LteNetwork} from '../../generated-ts'; // eslint-disable-line import/no-unresolved
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnContext from '../../../components/context/ApnContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayConfig from '../GatewayDetailConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayContext from '../../../components/context/GatewayContext';
