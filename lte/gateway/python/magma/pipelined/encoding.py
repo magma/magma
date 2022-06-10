@@ -137,7 +137,7 @@ def get_hash(s, hash_function) -> bytes:
 
 def encode_str(s: str, encoding_type) -> str:
     if encoding_type == PipelineD.HEConfig.BASE64:
-        s = codecs.encode(codecs.decode(s, 'hex'), 'base64').decode()
+        s = codecs.encode(codecs.decode(s, 'hex'), 'base64').decode()  # type: ignore
     elif encoding_type == PipelineD.HEConfig.HEX2BIN:
         bits = len(s) * 4
         s = bin(int(s, 16))[2:].zfill(bits)
