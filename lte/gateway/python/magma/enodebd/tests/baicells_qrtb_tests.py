@@ -17,6 +17,7 @@ from copy import deepcopy
 from time import sleep
 from unittest import TestCase, mock
 
+from dp.protos.cbsd_pb2 import UpdateCbsdResponse
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from magma.enodebd.data_models.data_model import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
@@ -29,6 +30,10 @@ from magma.enodebd.devices.baicells_qrtb import (
     qrtb_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.dp_client import (
+    build_enodebd_update_cbsd_request,
+    enodebd_update_cbsd,
+)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.acs_state_utils import (
     get_firmware_upgrade_download_config,
@@ -77,8 +82,14 @@ GET_TRANSIENT_PARAMS_RESPONSE_PARAMS = [
 ]
 
 GET_PARAMS_RESPONSE_PARAMS = [
+    Param('Device.DeviceInfo.cbsdCategory', 'string', 'A'),
+    Param('Device.DeviceInfo.indoorDeployment', 'boolean', 'true'),
+    Param('Device.DeviceInfo.AntennaInfo.Gain', 'int', '10'),
+    Param('Device.DeviceInfo.AntennaInfo.Height', 'int', '8'),
+    Param('Device.DeviceInfo.AntennaInfo.HeightType', 'string', 'AGL'),
     Param('Device.DeviceInfo.SAS.FccId', 'str', '2AG32MBS3100196N'),
-    Param('Device.DeviceInfo.SAS.UserId', 'str', 'M0LK4T'),
+    Param('Device.DeviceInfo.SAS.FccId', 'str', 'SAS.FccId'),
+    Param('Device.DeviceInfo.SAS.UserId', 'str', 'SAS.UserId'),
     Param('Device.DeviceInfo.SerialNumber', 'str', '120200024019APP0105'),
     Param('Device.DeviceInfo.X_COM_GpsSyncEnable', 'boolean', 'true'),
     Param('Device.DeviceInfo.X_COM_LTE_LGW_Switch', 'int', '0'),
@@ -120,6 +131,8 @@ MOCK_CBSD_STATE = CBSDStateResult(
         max_eirp_dbm_mhz=34,
     ),
 )
+
+MOCK_ENODEBD_CBSD_UPDATE = UpdateCbsdResponse()
 
 
 class SasToRfConfigTests(TestCase):
@@ -297,8 +310,9 @@ class SasToRfConfigTests(TestCase):
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
 
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_notify_dp_sets_values_received_by_dp_in_desired_config(self, mock_get_state) -> None:
+    def test_notify_dp(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
         expected_final_param_values = {
             ParameterName.UL_BANDWIDTH: '100',
             ParameterName.DL_BANDWIDTH: '100',
@@ -306,28 +320,50 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             ParameterName.EARFCNDL: 55340,
             ParameterName.POWER_SPECTRAL_DENSITY: 34,
         }
-        test_user = 'test_user'
-        test_fcc_id = 'fcc_id'
-        test_serial_number = '123'
+
+        # This serial needs to match the one defined in GET_PARAMS_RESPONSE_PARAMS
+        test_serial_number = '120200024019APP0105'
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
 
         acs_state_machine.desired_cfg = EnodebConfiguration(BaicellsQRTBTrDataModel())
 
-        acs_state_machine.device_cfg.set_parameter(ParameterName.SAS_USER_ID, test_user)
-        acs_state_machine.device_cfg.set_parameter(ParameterName.SAS_FCC_ID, test_fcc_id)
-        acs_state_machine.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, test_serial_number)
-
         for param in expected_final_param_values:
             with self.assertRaises(KeyError):
                 acs_state_machine.desired_cfg.get_parameter(param)
 
-        # Skip previous steps not to duplicate the code
+        # Do basic provisioning
+        # Do not check, provisioning check already does that
+        # We just want parameters to load
+        req = Tr069MessageBuilder.get_qrtb_inform(
+            params=DEFAULT_INFORM_PARAMS,
+            oui='48BF74',
+            enb_serial=test_serial_number,
+            event_codes=['2 PERIODIC'],
+        )
+        acs_state_machine.handle_tr069_message(req)
+
+        req = models.DummyInput()
+        acs_state_machine.handle_tr069_message(req)
+
+        req = Tr069MessageBuilder.param_values_qrtb_response(
+            GET_TRANSIENT_PARAMS_RESPONSE_PARAMS, models.GetParameterValuesResponse,
+        )
+        acs_state_machine.handle_tr069_message(req)
+
+        req = Tr069MessageBuilder.param_values_qrtb_response(
+            GET_PARAMS_RESPONSE_PARAMS,
+            models.GetParameterValuesResponse,
+        )
+        acs_state_machine.handle_tr069_message(req)
+
+        # Transition to final get params check state
         acs_state_machine.transition('check_wait_get_params')
         req = Tr069MessageBuilder.param_values_qrtb_response(
             [], models.GetParameterValuesResponse,
         )
 
+        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
         mock_get_state.return_value = MOCK_CBSD_STATE
 
         resp = acs_state_machine.handle_tr069_message(req)
@@ -335,6 +371,18 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         mock_get_state.assert_called_with(
             CBSDRequest(serial_number=test_serial_number),
         )
+
+        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+            serial_number=acs_state_machine.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            latitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LAT),
+            longitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LONG),
+            indoor_deployment=acs_state_machine.device_cfg.get_parameter(ParameterName.INDOOR_DEPLOYMENT),
+            antenna_height=acs_state_machine.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT),
+            antenna_height_type=acs_state_machine.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT_TYPE),
+            antenna_gain=acs_state_machine.device_cfg.get_parameter(ParameterName.ANTENNA_GAIN),
+            cbsd_category=acs_state_machine.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
+        )
+        mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)
 
         self.assertTrue(isinstance(resp, models.DummyInput))
 
@@ -436,9 +484,11 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             'receiving a RebootResponse',
         )
 
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_provision(self, mock_get_state) -> None:
+    def test_provision(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
         mock_get_state.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
         data_model = BaicellsQRTBTrDataModel()
@@ -540,23 +590,36 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
 class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     """Testing Baicells QRTB specific states"""
 
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_end_session_and_notify_dp_transition(self, mock_get_state):
+    def test_end_session_and_notify_dp_transition(self, mock_get_state, mock_enodebd_update_cbsd):
         """Testing if SM steps in and out of BaicellsQRTBWaitNotifyDPState as per state map"""
 
         mock_get_state.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
 
         acs_state_machine = provision_clean_sm(
-            state='check_wait_get_params',
+            state='wait_get_transient_params',
         )
 
+        msg = Tr069MessageBuilder.param_values_qrtb_response(
+            GET_TRANSIENT_PARAMS_RESPONSE_PARAMS,
+            models.GetParameterValuesResponse,
+        )
+        acs_state_machine.handle_tr069_message(msg)
         msg = Tr069MessageBuilder.param_values_qrtb_response(
             GET_PARAMS_RESPONSE_PARAMS,
             models.GetParameterValuesResponse,
         )
+        acs_state_machine.handle_tr069_message(msg)
+        # Transition to final get params check state
+        acs_state_machine.transition('check_wait_get_params')
 
         # SM should transition from check_wait_get_params to end_session -> notify_dp automatically
         # upon receiving response from the radio
+        msg = Tr069MessageBuilder.param_values_qrtb_response(
+            [], models.GetParameterValuesResponse,
+        )
         acs_state_machine.handle_tr069_message(msg)
 
         self.assertIsInstance(

@@ -148,7 +148,6 @@ template <typename keyT, typename valueT, class Hash = std::hash<keyT>,
 struct map_s {
   std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
   std::string name;
-  bool log_enabled = false;
 
   void set_name(std::string umap_name) { name = umap_name; }
   std::string get_name() { return name; }

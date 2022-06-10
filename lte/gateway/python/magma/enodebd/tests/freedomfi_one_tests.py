@@ -16,6 +16,7 @@ from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
+from dp.protos.cbsd_pb2 import UpdateCbsdResponse
 from dp.protos.enodebd_dp_pb2 import CBSDStateResult, LteChannel
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
@@ -66,6 +67,7 @@ MOCK_CBSD_STATE = CBSDStateResult(
         max_eirp_dbm_mhz=15,
     ),
 )
+MOCK_ENODEBD_CBSD_UPDATE = UpdateCbsdResponse()
 
 TEST_SAS_URL = 'test_sas_url'
 TEST_SAS_CERT_SUBJECT = 'test_sas_cert_subject'
@@ -445,8 +447,9 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         return msg
 
+    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
     @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
-    def test_provision(self, mock_get_state) -> None:
+    def test_provision(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
         """
         Test the basic provisioning workflow
         1 - enodeb sends Inform, enodebd sends InformResponse
@@ -460,6 +463,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         """
 
         mock_get_state.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
 
         logging.root.level = logging.DEBUG
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
@@ -538,9 +542,10 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         (True, FreedomFiOneNotifyDPState),
         (False, FreedomFiOneEndSessionState),
     ])
+    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
     @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
     def test_transition_depending_on_sas_enabled_flag(
-            self, dp_mode, expected_state, mock_get_state,
+            self, dp_mode, expected_state, mock_get_state, mock_enodebd_update_cbsd,
     ):
         """Testing if SM steps in and out of FreedomFiOneWaitNotifyDPState as per state map depending on whether
         sas_enabled param is set to True or False in the service config
@@ -552,6 +557,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         """
 
         mock_get_state.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
             EnodebDeviceName.FREEDOMFI_ONE,
@@ -576,6 +582,21 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         )
         acs_state_machine.device_cfg.set_parameter(
             ParameterName.SERIAL_NUMBER, 'test_sn',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            ParameterName.GPS_LAT, '10',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            ParameterName.GPS_LONG, '-10',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            SASParameters.SAS_CATEGORY, 'A',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            SASParameters.SAS_HEIGHT_TYPE, 'AMSL',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            SASParameters.SAS_LOCATION, 'indoor',
         )
         acs_state_machine.transition('check_wait_get_params')
 

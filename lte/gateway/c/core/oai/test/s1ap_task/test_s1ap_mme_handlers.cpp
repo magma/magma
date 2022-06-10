@@ -30,6 +30,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 extern bool hss_associated;
+extern task_zmq_ctx_t task_zmq_ctx_mme;
 
 namespace magma {
 namespace lte {
@@ -88,6 +89,8 @@ class S1apMmeHandlersTest : public ::testing::Test {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     send_terminate_message_fatal(&task_zmq_ctx_main_s1ap);
+    send_terminate_message_fatal(&task_zmq_ctx_mme);
+
     destroy_task_context(&task_zmq_ctx_main_s1ap);
     itti_free_desc_threads();
 

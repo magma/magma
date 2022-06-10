@@ -4,6 +4,10 @@ The Magma Core Foundation takes the security of our software products and servic
 
 If you believe you have found a security vulnerability in any Magma Core Foundation repository please report it to us as described below.
 
+## Risks
+
+The Magma materials are provided in accordance with the licenses made available in the LICENSE file. Prior to using the materials, it is highly recommended that you test and verify that the materials meet your specific requirements, including, without limitation, any and all security and performance requirements.
+
 ## Reporting Security Issues
 
 Report vulnerabilities by sending email to [security@lists.magmacore.org](mailto:security@lists.magmacore.org). _Please **do not report security vulnerabilities using Github Issues**._  While the Magma Core Foundation is committed to operating openly and transparently, reporting security vulnerabilities publicly could place users of the Foundation's software at risk of having their systems exploited.

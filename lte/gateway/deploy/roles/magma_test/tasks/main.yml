@@ -59,26 +59,22 @@
     S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
-# pip3 is busted on Debian Jessie so run in virtualenv.
-# Don't preburn this because /tmp gets blown away
 - name: Install pyparsing
   pip:
     name: pyparsing
     extra_args: --cache-dir $PIP_CACHE_HOME
-    virtualenv_python: python3.5
-    virtualenv: /tmp/virtualenv
+    executable: pip3
   when: full_provision
 
 - name: Install flaky
   pip:
     name: flaky
     extra_args: --cache-dir $PIP_CACHE_HOME
-    virtualenv_python: python3.5
-    virtualenv: /tmp/virtualenv
+    executable: pip3
   when: full_provision
 
 - name: Generate python types from C headers
-  command: "/tmp/virtualenv/bin/python3.5 {{ test_scripts }}/c_parser.py"
+  command: "/usr/bin/python3 {{ test_scripts }}/c_parser.py"
   environment:
     S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
