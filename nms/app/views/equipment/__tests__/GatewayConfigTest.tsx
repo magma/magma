@@ -9,43 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {Apn, LteGateway, LteNetwork} from '../../generated-ts'; // eslint-disable-line import/no-unresolved
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApnContext from '../../../components/context/ApnContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayConfig from '../GatewayDetailConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayContext from '../../../components/context/GatewayContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteNetworkContext from '../../../components/context/LteNetworkContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {DynamicServices} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
   SetGatewayState,
   UpdateGateway,
-  // $FlowFixMe migrated to typescript
+  UpdateGatewayProps,
 } from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
+import type {Apn, LteGateway, LteNetwork} from '../../../../generated-ts';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -65,7 +52,6 @@ const mockGw0: LteGateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   connected_enodeb_serials: [],
   cellular: {
@@ -108,7 +94,6 @@ const mockGw1: LteGateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   connected_enodeb_serials: [],
   cellular: {
@@ -176,7 +161,7 @@ const mockNw: LteNetwork = {
   name: '1dev_agw',
 };
 
-const mockApns: {[string]: Apn} = {
+const mockApns: Record<string, Apn> = {
   'oai.ipv4': {
     apn_configuration: {
       ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
@@ -193,14 +178,13 @@ const mockApns: {[string]: Apn} = {
 
 describe('<AddEditGatewayButton />', () => {
   beforeEach(() => {
-    (useEnqueueSnackbar: JestMockFn<
-      Array<empty>,
-      $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
+    (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
   });
 
   const AddWrapper = () => {
-    const [lteGateways, setLteGateways] = useState({testGatewayId0: mockGw0});
+    const [lteGateways, setLteGateways] = useState<Record<string, LteGateway>>({
+      testGatewayId0: mockGw0,
+    });
     return (
       <MemoryRouter initialEntries={['/nms/test/gateway']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
@@ -231,7 +215,7 @@ describe('<AddEditGatewayButton />', () => {
                         networkId: 'test',
                         setLteGateways,
                         ...props,
-                      }),
+                      } as UpdateGatewayProps),
                   }}>
                   <Routes>
                     <Route
@@ -254,7 +238,9 @@ describe('<AddEditGatewayButton />', () => {
   };
 
   const DetailWrapper = () => {
-    const [lteGateways, setLteGateways] = useState({testGatewayId0: mockGw0});
+    const [lteGateways, setLteGateways] = useState<Record<string, LteGateway>>({
+      testGatewayId0: mockGw0,
+    });
     return (
       <MemoryRouter
         initialEntries={['/nms/test/gateway/testGatewayId0/config']}
@@ -270,7 +256,7 @@ describe('<AddEditGatewayButton />', () => {
                     networkId: 'test',
                     setLteGateways: setLteGateways,
                     ...props,
-                  }),
+                  } as UpdateGatewayProps),
               }}>
               <Routes>
                 <Route
@@ -288,40 +274,33 @@ describe('<AddEditGatewayButton />', () => {
   it('Verify Gateway Add', async () => {
     jest
       .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysPost')
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
     jest
       .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdMagmadPut')
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
     jest
       .spyOn(
         MagmaAPI.lteGateways,
         'lteNetworkIdGatewaysGatewayIdCellularEpcPut',
       )
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
     jest
       .spyOn(
         MagmaAPI.lteGateways,
         'lteNetworkIdGatewaysGatewayIdCellularDnsPut',
       )
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
     jest
       .spyOn(
         MagmaAPI.lteGateways,
         'lteNetworkIdGatewaysGatewayIdCellularRanPut',
       )
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
     jest
       .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdPut')
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
     jest
       .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdCellularPut')
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
 
     const {getByTestId, getByText, queryByTestId} = render(<AddWrapper />);
@@ -437,13 +416,9 @@ describe('<AddEditGatewayButton />', () => {
     });
 
     // mock adding test gatewayID1 to ensure we invoke the put method
-    jest
-      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet')
-      .mockResolvedValue({
-        data: {
-          testGatewayID1: mockGw1,
-        },
-      });
+    mockAPI(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet', {
+      testGatewayID1: mockGw1,
+    });
 
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('dynamicServicesEdit')).not.toBeNull();
@@ -778,7 +753,6 @@ describe('<AddEditGatewayButton />', () => {
         MagmaAPI.lteGateways,
         'lteNetworkIdGatewaysGatewayIdCellularDnsPut',
       )
-      // $FlowFixMe[incompatible-call] for TypeScript migration
       .mockImplementation();
 
     const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
