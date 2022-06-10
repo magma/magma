@@ -31,8 +31,6 @@ import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe migrated to typescript
-//import {AxiosResponse} from 'axios';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {DynamicServices} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -48,7 +46,6 @@ import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const mockGw0: LteGateway = {
