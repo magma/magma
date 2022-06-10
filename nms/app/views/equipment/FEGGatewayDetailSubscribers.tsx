@@ -9,45 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {
-  federation_gateway,
-  subscriber,
-} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
 import Link from '@material-ui/core/Link';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FetchSubscribers} from '../../state/lte/SubscriberState';
 import {
   REFRESH_INTERVAL,
   RefreshTypeEnum,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
+import type {FederationGateway, Subscriber} from '../../../generated-ts';
 
 /**
- * @property {federation_gateway} gwInfo The Federation gateway being looked at
+ * @property {FederationGateway} gwInfo The Federation gateway being looked at
  * @property {boolean} refresh Boolean telling to autorefresh or not
  */
 type FEGGatewayDetailType = {
-  gwInfo: federation_gateway,
-  refresh: boolean,
+  gwInfo: FederationGateway;
+  refresh: boolean;
 };
 
 /**
@@ -56,9 +42,9 @@ type FEGGatewayDetailType = {
  * @property {string} service Subscriber service status
  */
 type SubscriberRowType = {
-  name: string,
-  id: string,
-  service: string,
+  name: string;
+  id: string;
+  service: string;
 };
 
 /**
@@ -72,7 +58,7 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
   const [subscriberRows, setSubscriberRows] = useState<
-    Array<SubscriberRowType>,
+    Array<SubscriberRowType>
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   // Auto refresh every REFRESH_INTERVAL seconds
@@ -84,7 +70,7 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
     refresh: props.refresh,
   });
   const sessionState = ctx?.sessionState || {};
-  const subscriberToNetworkIdMap = {};
+  const subscriberToNetworkIdMap: Record<string, string> = {};
 
   Object.keys(sessionState).map(servicedNetworkId => {
     // $FlowIgnore[prop-missing] because refresh context returns other things too like state, enbInfo and each have their own property
@@ -98,15 +84,15 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
 
   useEffect(() => {
     const fetchSubscribersInfo = async () => {
-      const newSubscriberRows = [];
+      const newSubscriberRows: Array<SubscriberRowType> = [];
       //TODO: - @andreilee bulk fetch from a paginated api endpoint
       await Promise.all(
         Object.keys(subscriberToNetworkIdMap).map(async subscriberImsi => {
           // $FlowIgnore because it can be called with different values when getting paginated subscribers
-          const subscriberInfo: subscriber = await FetchSubscribers({
+          const subscriberInfo = (await FetchSubscribers({
             networkId: subscriberToNetworkIdMap[subscriberImsi],
             id: subscriberImsi,
-          });
+          })) as Subscriber;
           newSubscriberRows.push({
             name: subscriberInfo?.name || subscriberImsi,
             id: subscriberImsi,
@@ -117,7 +103,7 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
       setSubscriberRows(newSubscriberRows);
       setIsLoading(false);
     };
-    fetchSubscribersInfo();
+    void fetchSubscribersInfo();
     // rerun only when a new subscriber session has been added
   }, [subscribersImsi]); // eslint-disable-line react-hooks/exhaustive-deps
 

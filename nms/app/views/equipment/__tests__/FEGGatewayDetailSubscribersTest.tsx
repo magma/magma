@@ -9,35 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {
-  federation_gateway,
-  subscriber_id,
-  subscriber_state,
-} from '../../../../generated/MagmaAPIBindings';
-
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGSubscriberContext from '../../../components/context/FEGSubscriberContext';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
+import {AxiosResponse} from 'axios';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {SubscriberId} from '../../../../shared/types/network';
 import {render, wait} from '@testing-library/react';
+import type {
+  FederationGateway,
+  SubscriberState,
+} from '../../../../generated-ts';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
-const mockSubscriberIds: Array<subscriber_id> = [
+const mockSubscriberIds: Array<SubscriberId> = [
   'IMSI001011234565000',
   'IMSI001011234565001',
 ];
@@ -85,20 +75,20 @@ const mockSubscribers = [
     },
   },
 ];
-const mockSubscriberSessionState0: {[subscriber_id]: subscriber_state} = {
+const mockSubscriberSessionState0 = {
   [mockSubscriberIds[0]]: {
     directory: {},
   },
-};
-const mockSubscriberSessionState1: {[subscriber_id]: subscriber_state} = {
+} as Record<SubscriberId, SubscriberState>;
+const mockSubscriberSessionState1 = {
   [mockSubscriberIds[1]]: {
     mme: {
       accessRestrictionData: 32,
     },
   },
-};
+} as Record<SubscriberId, SubscriberState>;
 
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway',
   description: 'hello I am a federated gateway',
@@ -112,7 +102,6 @@ const mockGw0: federation_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -142,9 +131,8 @@ describe('<FEGGatewayDetailSubscribers />', () => {
   beforeEach(() => {
     jest
       .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdGet')
-      .mockResolvedValueOnce({data: mockSubscribers[0]})
-      // $FlowFixMe[incompatible-call] TypeScript migration
-      .mockResolvedValue({data: mockSubscribers[1]});
+      .mockResolvedValueOnce({data: mockSubscribers[0]} as AxiosResponse)
+      .mockResolvedValue({data: mockSubscribers[1]} as AxiosResponse);
   });
 
   const Wrapper = () => (
@@ -161,7 +149,7 @@ describe('<FEGGatewayDetailSubscribers />', () => {
                 feg_lte_network1: mockSubscriberSessionState0,
                 feg_lte_network2: mockSubscriberSessionState1,
               },
-              setSessionState: _ => {},
+              setSessionState: () => {},
             }}>
             <Routes>
               <Route
@@ -188,7 +176,7 @@ describe('<FEGGatewayDetailSubscribers />', () => {
       MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdGet,
     ).toHaveBeenCalledTimes(2);
 
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
     expect(rowItems[0]).toHaveTextContent('Subscriber ID');
