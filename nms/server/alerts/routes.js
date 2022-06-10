@@ -15,6 +15,7 @@
  */
 
 import express from 'express';
+// $FlowFixMe migrated to typescript
 import syncAlerts from './sync';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';

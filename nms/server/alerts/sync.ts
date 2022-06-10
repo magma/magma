@@ -13,37 +13,52 @@
  * @flow strict-local
  * @format
  */
-
-import MagmaV1API from '../../server/magma/index';
+import MagmaAPI from '../../api/MagmaAPI';
 import getCwfAlerts from './cwfAlerts';
 import getFegAlerts from './fegAlerts';
 import getLteAlerts from './lteAlerts';
 
 // $FlowFixMe migrated to typescript
 import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
-import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../server/auth/access';
-import type {
-  network_type,
-  prom_alert_config,
-} from '../../generated/MagmaAPIBindings';
+//import type {FBCNMSRequest} from '../../server/auth/access';
+import type {NetworkType} from '../../shared/types/network';
+import type {PromAlertConfig} from '../../generated-ts';
+import type {Response} from 'express';
+//import type {UserType} from '../../shared/sequelize_models/models/user';
+
+type OutputRequest<T> = {
+  //logIn: (T, (err?: ?Error) => void) => void,
+  logOut: () => void;
+  logout: () => void;
+  user: T;
+  isAuthenticated: () => boolean;
+  isUnauthenticated: () => boolean;
+};
+export type FBCNMSPassportRequest = OutputRequest<any>;
+type Params = {networkID: string};
+type Options = {loginUrl: string};
+export type FBCNMSRequest = FBCNMSPassportRequest & {access: Options};
 
 async function syncAlertsForNetwork(
   networkID: string,
-  autoAlerts: {[string]: prom_alert_config},
+  autoAlerts: {[name: string]: PromAlertConfig},
 ) {
   // Get currently configured alerts
-  const alerts = await MagmaV1API.getNetworksByNetworkIdPrometheusAlertConfig({
-    networkId: networkID,
-  });
+  const alerts = await MagmaAPI.alerts.networksNetworkIdPrometheusAlertConfigGet(
+    {
+      networkId: networkID,
+    },
+  );
 
-  const existingAlerts = alerts.reduce(
-    (map, obj) => ((map[obj.alert] = obj), map),
+  const existingAlerts: {[name: string]: PromAlertConfig} = alerts.data.reduce(
+    (map: {[name: string]: PromAlertConfig}, obj: PromAlertConfig) => (
+      (map[obj.alert] = obj), map
+    ),
     {},
   );
 
-  const putAlerts: prom_alert_config[] = [];
-  const postAlerts: prom_alert_config[] = [];
+  const putAlerts: Array<PromAlertConfig> = [];
+  const postAlerts: Array<PromAlertConfig> = [];
   for (const alertName in autoAlerts) {
     if (existingAlerts[alertName] !== undefined) {
       putAlerts.push(autoAlerts[alertName]);
@@ -55,7 +70,7 @@ async function syncAlertsForNetwork(
   const requests = [];
   for (const alert of postAlerts) {
     requests.push(
-      MagmaV1API.postNetworksByNetworkIdPrometheusAlertConfig({
+      MagmaAPI.alerts.networksNetworkIdPrometheusAlertConfigPost({
         networkId: networkID,
         alertConfig: alert,
       }),
@@ -63,7 +78,7 @@ async function syncAlertsForNetwork(
   }
   for (const alert of putAlerts) {
     requests.push(
-      MagmaV1API.putNetworksByNetworkIdPrometheusAlertConfigByAlertName({
+      MagmaAPI.alerts.networksNetworkIdPrometheusAlertConfigAlertNamePut({
         networkId: networkID,
         alertName: alert.alert,
         alertConfig: alert,
@@ -71,14 +86,13 @@ async function syncAlertsForNetwork(
     );
   }
 
-  await Promise.all(requests).catch(error => {
+  await Promise.all(requests).catch((error: {message: string}) => {
     throw error.message;
   });
 }
 
-async function syncAlerts(req: FBCNMSRequest, res: ExpressResponse) {
+async function syncAlerts(networkID: string, res: Response) {
   try {
-    const networkID = req.params.networkID;
     const type = await getNetworkType(networkID);
     if (type == null) {
       res.status(500).send(`Invalid network type`).end();
@@ -105,13 +119,14 @@ async function syncAlerts(req: FBCNMSRequest, res: ExpressResponse) {
     }
     res.status(200).end();
   } catch (e) {
-    res.status(500).end('Exception occurred');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
+    res.status(500).end(`Exception occurred ${e.message as string}`);
   }
 }
 
-async function getNetworkType(networkId: string): Promise<?network_type> {
-  const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
-  return networkInfo.type;
+async function getNetworkType(networkId: string): Promise<string | undefined> {
+  const networkInfo = await MagmaAPI.networks.networksNetworkIdGet({networkId});
+  return networkInfo.data.type;
 }
 
 export default syncAlerts;
