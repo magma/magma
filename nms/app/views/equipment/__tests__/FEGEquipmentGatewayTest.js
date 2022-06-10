@@ -23,6 +23,7 @@ import MagmaAPI from '../../../../api/MagmaAPI';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
