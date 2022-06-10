@@ -25,6 +25,7 @@ import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../context/FEGGatewayContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
 // $FlowFixMe migrated to typescript

@@ -9,20 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import type {
-  csfb,
-  diameter_client_configs,
-  federation_gateway,
-  gateway_federation_configs,
-  gx,
-  s8,
-  virtual_apn_rule,
-} from '../../../generated/MagmaAPIBindings';
+  Csfb,
+  DiameterClientConfigs,
+  FederationGateway,
+  GatewayFederationConfigs,
+  Gx,
+  MutableFederationGateway,
+  S8,
+  VirtualApnRule,
+} from '../../../generated-ts';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -30,36 +28,36 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../context/FEGGatewayContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import KeyValueFields from '../KeyValueFields';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
-import React, {useContext, useState} from 'react';
+import React, {
+  ChangeEvent,
+  InputHTMLAttributes,
+  useContext,
+  useState,
+} from 'react';
 import Select from '@material-ui/core/Select';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
+import MagmaAPI from '../../../api/MagmaAPI';
 import {
   AddGatewayFields,
   EMPTY_GATEWAY_FIELDS,
   MAGMAD_DEFAULT_CONFIGS,
-  // $FlowFixMe migrated to typescript
 } from '../AddGatewayDialog';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -74,25 +72,25 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {|
-  onClose: () => void,
-  onSave: federation_gateway => void,
-  editingGateway?: federation_gateway,
-  tabOption?: TabOption,
-|};
-
-type SCTPValues = {
-  server_address: string,
-  local_address: string,
+type Props = {
+  onClose: () => void;
+  onSave: (gateway: FederationGateway) => void;
+  editingGateway?: FederationGateway;
+  tabOption?: TabOption;
 };
 
-function getSCTPConfigs(cfg: SCTPValues): csfb {
+type SCTPValues = {
+  server_address: string;
+  local_address: string;
+};
+
+function getSCTPConfigs(cfg: SCTPValues): Csfb {
   return {
     client: {...cfg},
   };
 }
 
-function getInitialSCTPConfigs(cfg: ?csfb): SCTPValues {
+function getInitialSCTPConfigs(cfg: Csfb | null | undefined): SCTPValues {
   return {
     server_address: cfg?.client?.server_address || '',
     local_address: cfg?.client?.local_address || '',
@@ -100,16 +98,16 @@ function getInitialSCTPConfigs(cfg: ?csfb): SCTPValues {
 }
 
 type S8Values = {
-  local_address: string,
-  pgw_address: string,
-  apn_operator_suffix: string,
+  local_address: string;
+  pgw_address: string;
+  apn_operator_suffix: string;
 };
 
-function getS8Configs(cfg: S8Values): s8 {
+function getS8Configs(cfg: S8Values): S8 {
   return {...cfg};
 }
 
-function getInitialS8Configs(cfg: ?s8): S8Values {
+function getInitialS8Configs(cfg: S8 | null | undefined): S8Values {
   return {
     local_address: cfg?.local_address || '',
     pgw_address: cfg?.pgw_address || '',
@@ -118,15 +116,15 @@ function getInitialS8Configs(cfg: ?s8): S8Values {
 }
 
 type DiameterValues = {
-  address: string,
-  dest_host: string,
-  dest_realm: string,
-  host: string,
-  realm: string,
-  local_address: string,
-  product_name: string,
-  protocol: $PropertyType<diameter_client_configs, 'protocol'>,
-  disable_dest_host: boolean,
+  address: string;
+  dest_host: string;
+  dest_realm: string;
+  host: string;
+  realm: string;
+  local_address: string;
+  product_name: string;
+  protocol: DiameterClientConfigs['protocol'];
+  disable_dest_host: boolean;
 };
 
 export const TAB_OPTIONS = Object.freeze({
@@ -139,16 +137,16 @@ export const TAB_OPTIONS = Object.freeze({
   CSFB: 'csfb',
 });
 
-export type TabOption = $Values<typeof TAB_OPTIONS>;
+export type TabOption = typeof TAB_OPTIONS[keyof typeof TAB_OPTIONS];
 
-function getDiameterConfigs(cfg: DiameterValues): gx {
+function getDiameterConfigs(cfg: DiameterValues): Gx {
   return {
     server: {...cfg},
   };
 }
 
 function getDiameterServerConfig(
-  server: ?diameter_client_configs,
+  server: DiameterClientConfigs | null | undefined,
 ): DiameterValues {
   return {
     address: server?.address || '',
@@ -164,16 +162,16 @@ function getDiameterServerConfig(
 }
 
 function getVirtualApnRules(
-  rules: ?Array<virtual_apn_rule>,
-): ?Array<[string, string]> {
+  rules: Array<VirtualApnRule> | null | undefined,
+): Array<[string, string]> | null | undefined {
   return rules?.map(entry => {
     return [entry.apn_filter || '', entry.apn_overwrite || ''];
   });
 }
 
 function virtualApnRulesToObject(
-  props: ?Array<[string, string]>,
-): ?Array<virtual_apn_rule> {
+  props: Array<[string, string]> | null | undefined,
+): Array<VirtualApnRule> | null | undefined {
   return props
     ?.filter(p => p[0])
     .map(pair => {
@@ -212,17 +210,17 @@ export default function FEGGatewayDialog(props: Props) {
     getInitialSCTPConfigs(editingGateway?.federation?.csfb),
   );
 
-  const [gxVirtualApnRules, setGxVirtualApnRules] = useState<?Array<
-    [string, string],
-  >>(getVirtualApnRules(editingGateway?.federation?.gx?.virtual_apn_rules));
+  const [gxVirtualApnRules, setGxVirtualApnRules] = useState<
+    Array<[string, string]> | undefined | null
+  >(getVirtualApnRules(editingGateway?.federation?.gx?.virtual_apn_rules));
 
-  const [gyVirtualApnRules, setGyVirtualApnRules] = useState<?Array<
-    [string, string],
-  >>(getVirtualApnRules(editingGateway?.federation?.gy?.virtual_apn_rules));
+  const [gyVirtualApnRules, setGyVirtualApnRules] = useState<
+    Array<[string, string]> | undefined | null
+  >(getVirtualApnRules(editingGateway?.federation?.gy?.virtual_apn_rules));
 
   const networkID = nullthrows(params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdTiers,
+    MagmaAPI.upgrades.networksNetworkIdTiersGet,
     {
       networkId: networkID,
     },
@@ -232,7 +230,7 @@ export default function FEGGatewayDialog(props: Props) {
     return <LoadingFillerBackdrop />;
   }
 
-  const getFederationConfigs = (): gateway_federation_configs => ({
+  const getFederationConfigs = (): GatewayFederationConfigs => ({
     aaa_server: {},
     eap_aka: {},
     gx: {
@@ -262,7 +260,7 @@ export default function FEGGatewayDialog(props: Props) {
         };
         await ctx.setState(editingGateway.id, editedGateway);
       } else {
-        const newGateway = {
+        const newGateway: MutableFederationGateway = {
           device: {
             hardware_id: generalFields.hardwareID,
             key: {
@@ -280,13 +278,16 @@ export default function FEGGatewayDialog(props: Props) {
         await ctx.setState(newGateway.id, newGateway);
       }
 
-      const gateway = await MagmaV1API.getFegByNetworkIdGatewaysByGatewayId({
-        networkId: networkID,
-        gatewayId: editingGateway?.id || generalFields.gatewayID,
-      });
+      const gateway = (
+        await MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdGet({
+          networkId: networkID,
+          gatewayId: editingGateway?.id || generalFields.gatewayID,
+        })
+      ).data;
       props.onSave(gateway);
     } catch (e) {
-      enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
+      console.log(e);
+      enqueueSnackbar(getErrorMessage(e), {
         variant: 'error',
       });
     }
@@ -379,7 +380,7 @@ export default function FEGGatewayDialog(props: Props) {
           indicatorColor="primary"
           textColor="primary"
           value={tab}
-          onChange={(event, tab) => setTab(tab)}>
+          onChange={(event, tab) => setTab(tab as string)}>
           {!editingGateway && <Tab label="General" value="general" />}
           <Tab label="Gx" value="gx" />
           <Tab label="Gy" value="gy" />
@@ -397,7 +398,10 @@ export default function FEGGatewayDialog(props: Props) {
         <Button onClick={props.onClose} color="primary">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
+        <Button
+          onClick={() => void onSave()}
+          color="primary"
+          variant="contained">
           Save
         </Button>
       </DialogActions>
@@ -405,12 +409,15 @@ export default function FEGGatewayDialog(props: Props) {
   );
 }
 
-function S8Fields(props: {values: S8Values, onChange: S8Values => void}) {
+function S8Fields(props: {
+  values: S8Values;
+  onChange: (values: S8Values) => void;
+}) {
   const classes = useStyles();
   const {values} = props;
-  const onChange = field => event =>
-    // $FlowFixMe Set state for each field
-    props.onChange({...values, [field]: event.target.value});
+  const onChange = (field: keyof S8Values) => (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => props.onChange({...values, [field]: event.target.value});
 
   return (
     <>
@@ -442,12 +449,15 @@ function S8Fields(props: {values: S8Values, onChange: S8Values => void}) {
   );
 }
 
-function SCTPFields(props: {values: SCTPValues, onChange: SCTPValues => void}) {
+function SCTPFields(props: {
+  values: SCTPValues;
+  onChange: (sctpValues: SCTPValues) => void;
+}) {
   const classes = useStyles();
   const {values} = props;
-  const onChange = field => event =>
-    // $FlowFixMe Set state for each field
-    props.onChange({...values, [field]: event.target.value});
+  const onChange = (field: keyof SCTPValues) => (
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => props.onChange({...values, [field]: event.target.value});
 
   return (
     <>
@@ -472,17 +482,15 @@ function SCTPFields(props: {values: SCTPValues, onChange: SCTPValues => void}) {
 }
 
 function DiameterFields(props: {
-  values: DiameterValues,
-  onChange: DiameterValues => void,
-  supportedProtocols: Array<
-    $NonMaybeType<$PropertyType<diameter_client_configs, 'protocol'>>,
-  >,
+  values: DiameterValues;
+  onChange: (diameterValues: DiameterValues) => void;
+  supportedProtocols: Array<Required<DiameterClientConfigs['protocol']>>;
 }) {
   const classes = useStyles();
   const {values, supportedProtocols} = props;
-  const onChange = field => event =>
-    // $FlowFixMe Set state for each field
-    props.onChange({...values, [field]: event.target.value});
+  const onChange = (field: keyof DiameterValues) => (
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => props.onChange({...values, [field]: event.target.value});
 
   return (
     <>
@@ -560,7 +568,7 @@ function DiameterFields(props: {
           }}>
           {supportedProtocols.map(item => (
             <MenuItem value={item} key={item}>
-              {item.toUpperCase()}
+              {item!.toUpperCase()}
             </MenuItem>
           ))}
         </Select>
@@ -573,7 +581,11 @@ function DiameterFields(props: {
               props.onChange({...values, disable_dest_host: target.checked})
             }
             color="primary"
-            inputProps={{'data-testid': 'disableDestinationHost'}}
+            inputProps={
+              {'data-testid': 'disableDestinationHost'} as InputHTMLAttributes<
+                HTMLInputElement
+              >
+            }
           />
         }
         label="Disable Destination Host"

@@ -16,6 +16,7 @@
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 import type {
   diameter_client_configs,
@@ -36,6 +37,7 @@ import React from 'react';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {TAB_OPTIONS} from '../../components/feg/FEGGatewayDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
