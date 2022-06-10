@@ -9,28 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
+import type {FederationGateway} from '../../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import React from 'react';
 
 /**
  * Returns the federation gateway description, id, hardware uuid, and it's
  * version.
- * @param {federation_gateway} gwInfo The federation gateway being looked at.
+ * @param {FederationGateway} gwInfo The federation gateway being looked at.
  */
-export default function GatewaySummary({gwInfo}: {gwInfo: federation_gateway}) {
+export default function GatewaySummary({gwInfo}: {gwInfo: FederationGateway}) {
   const version = gwInfo.status?.platform_info?.packages?.[0]?.version;
 
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         category: 'Name',

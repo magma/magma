@@ -9,32 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewaySummary from '../FEGGatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render, wait} from '@testing-library/react';
-import type {federation_gateway} from '../../../../generated/MagmaAPIBindings';
-
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../app/hooks/useSnackbar');
+import type {FederationGateway} from '../../../../generated-ts';
 
 const mockHardwareId = 'c9439d30-61ef-46c7-93f2-e01fc131244d';
-
 const mockKeyType = 'SOFTWARE_ECDSA_SHA256';
 
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway',
   description: 'hello I am a federated gateway',
@@ -48,7 +39,6 @@ const mockGw0: federation_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -87,7 +77,7 @@ const mockGw0: federation_gateway = {
   },
 };
 
-const mockGw1: federation_gateway = {
+const mockGw1: FederationGateway = {
   ...mockGw0,
   id: 'test_gw1',
   name: 'test_gateway1',
@@ -99,9 +89,9 @@ const fegGateways = {
 };
 
 const fegGatewaysHealth = {
-  [mockGw0.id]: 'HEALTHY',
-  [mockGw1.id]: 'UNHEALTHY',
-};
+  [mockGw0.id]: {status: 'HEALTHY'},
+  [mockGw1.id]: {status: 'UNHEALTHY'},
+} as Record<string, FederationGatewayHealthStatus>;
 
 describe('<FEGEquipmentGateway />', () => {
   const Wrapper = () => (
@@ -115,7 +105,7 @@ describe('<FEGEquipmentGateway />', () => {
           <FEGGatewayContext.Provider
             value={{
               state: fegGateways,
-              setState: async _ => {},
+              setState: async () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>
