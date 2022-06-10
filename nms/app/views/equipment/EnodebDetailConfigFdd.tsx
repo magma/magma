@@ -9,25 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import Grid from '@material-ui/core/Grid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import type {DataRows} from '../../components/DataGrid';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
@@ -42,15 +34,15 @@ const useStyles = makeStyles(_ => ({
   itemValue: {
     color: colors.primary.brightGray,
   },
-}));
+});
 
 type Props = {
-  earfcndl: number,
-  earfcnul: number,
+  earfcndl: number;
+  earfcnul: number;
 };
 
 export function EnodeConfigFdd(props: Props) {
-  const fddData: DataRows[] = [
+  const fddData: Array<DataRows> = [
     [
       {
         category: 'EARFCNDL',
@@ -69,13 +61,13 @@ export function EnodeConfigFdd(props: Props) {
 }
 
 type EditProps = {
-  earfcndl: string,
-  earfcnul: string,
-  setEarfcndl: string => void,
+  earfcndl: string;
+  earfcnul: string;
+  setEarfcndl: (arg0: string) => void;
 };
+
 export default function EnodeConfigEditFdd(props: EditProps) {
   const classes = useStyles();
-
   return (
     <Grid container>
       <Grid item xs={6}>
