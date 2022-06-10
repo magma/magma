@@ -9,33 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../views/events/EventsTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGClusterStatus from './FEGClusterStatus';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayConnectionStatus from './FEGGatewayConnectionStatus';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailSubscribers from './FEGGatewayDetailSubscribers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewaySummary from './FEGGatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
@@ -45,18 +32,16 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {EVENT_STREAM} from '../../views/events/EventsTable';
+import {EVENT_STREAM} from '../events/EventsTable';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -128,7 +113,10 @@ function FEGGatewayOverview() {
   const [refresh, setRefresh] = useState(true);
   const [refreshSubscribers, setRefreshSubscribers] = useState(false);
 
-  const filter = (refresh: boolean, setRefresh) => {
+  const filter = (
+    refresh: boolean,
+    setRefresh: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
     return (
       <AutorefreshCheckbox
         autorefreshEnabled={refresh}
