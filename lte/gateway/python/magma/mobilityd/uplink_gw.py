@@ -132,7 +132,7 @@ class UplinkGatewayInfo:
             vlan_id: vlan of the GW, None in case of no vlan used.
         """
         try:
-            ip_addr = ipaddress.ip_address(ip)
+            ip_addr = ipaddress.ip_address(ip)  # type: ignore
         except ValueError:
             logging.debug("could not parse GW IP: %s", ip)
             return
@@ -177,7 +177,7 @@ class UplinkGatewayInfo:
             mac: mac address of the GW.
         """
         try:
-            ip_addr = ipaddress.ip_address(ip)
+            ip_addr = ipaddress.ip_address(ip)  # type: ignore
         except ValueError:
             logging.debug("could not parse GW IP: %s", ip)
             return
