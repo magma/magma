@@ -16,7 +16,6 @@
 import Gateway from '../EquipmentGateway';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../../components/context/GatewayContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -34,7 +33,6 @@ import type {
 } from '../../../../generated/MagmaAPIBindings';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
 const mockCheckinMetric: promql_return_object = {
@@ -119,7 +117,9 @@ describe('<Gateway />', () => {
       mockCheckinMetric,
     );
 
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
       mockKPIMetric,
     );
   });
@@ -175,7 +175,7 @@ describe('<Gateway />', () => {
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery,
+      MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     ).toHaveBeenCalledTimes(3);
 
     // verify KPI metrics

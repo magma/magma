@@ -9,37 +9,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-import type {
-  lte_gateway,
-  promql_return_object,
-} from '../../../generated/MagmaAPIBindings';
+import type {LteGateway, PromqlReturnObject} from '../../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
+import MagmaAPI from '../../../api/MagmaAPI';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 
 export function getLatency(
-  resp: ?promql_return_object,
+  resp: PromqlReturnObject | undefined | null,
   fn: (...args: Array<number>) => number,
 ) {
   const respArr = resp?.data?.result
     ?.map(item => {
-      return parseFloat(item?.value?.[1]);
+      const value = item?.value?.[1];
+      return value ? parseFloat(value) : 0;
     })
     .filter(Boolean);
   return respArr && respArr.length ? fn(...respArr).toFixed(2) : 0;
@@ -53,7 +44,7 @@ export default function EquipmentGatewayKPIs() {
   const networkId: string = nullthrows(params.networkId);
   const timeRange = '3h';
   const {response: maxResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `max_over_time(magmad_ping_rtt_ms{service="magmad",metric="rtt_ms"}[${timeRange}])`,
@@ -61,7 +52,7 @@ export default function EquipmentGatewayKPIs() {
   );
 
   const {response: minResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `min_over_time(magmad_ping_rtt_ms{service="magmad",metric="rtt_ms"}[${timeRange}])`,
@@ -69,7 +60,7 @@ export default function EquipmentGatewayKPIs() {
   );
 
   const {response: avgResponse} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQuery,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     {
       networkId: networkId,
       query: `avg_over_time(magmad_ping_rtt_ms{service="magmad",metric="rtt_ms"}[${timeRange}])`,
@@ -81,33 +72,33 @@ export default function EquipmentGatewayKPIs() {
 
   const avgLatencyArr = avgResponse?.data?.result
     ?.map(item => {
-      return parseFloat(item?.value?.[1]);
+      const value = item?.value?.[1];
+      return value ? parseFloat(value) : 0;
     })
     .filter(Boolean);
 
-  let avgLatency = 0;
+  let avgLatency = '0';
   if (avgLatencyArr && avgLatencyArr.length) {
     const sum = avgLatencyArr.reduce(function (a, b) {
       return a + b;
     }, 0);
-    avgLatency = sum / avgLatencyArr.length;
-    avgLatency = avgLatency.toFixed(2);
+    avgLatency = (sum / avgLatencyArr.length).toFixed(2);
   }
 
   let upCount = 0;
   let downCount = 0;
   Object.keys(lteGateways)
     .map((gwId: string) => lteGateways[gwId])
-    .filter((g: lte_gateway) => g.cellular && g.id)
-    .map((gateway: lte_gateway) => {
+    .filter((g: LteGateway) => g.cellular && g.id)
+    .map((gateway: LteGateway) => {
       gateway.checked_in_recently ? upCount++ : downCount++;
     });
-  let pctHealthyGw = 0;
+  let pctHealthyGw = '0';
   if (upCount > 0 && upCount + downCount > 0) {
     pctHealthyGw = ((upCount * 100) / (upCount + downCount)).toFixed(2);
   }
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Max Latency',
