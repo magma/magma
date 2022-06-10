@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
@@ -22,7 +19,7 @@ import TextField from '@material-ui/core/TextField';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   container: {
     display: 'block',
     margin: '10px 0 10px 0',
@@ -41,25 +38,25 @@ const useStyles = makeStyles(() => ({
     height: '40px',
     verticalAlign: 'bottom',
   },
-}));
+});
 
 type Props = {
-  key_label: string,
-  value_label: string,
-  keyValuePairs: Array<[string, string]>,
-  onChange: (Array<[string, string]>) => void,
+  key_label: string;
+  value_label: string;
+  keyValuePairs: Array<[string, string]>;
+  onChange: (keyValue: Array<[string, string]>) => void;
 };
 
 export default function KeyValueFields(props: Props) {
   const classes = useStyles();
-  const onChange = (index, subIndex, value) => {
+  const onChange = (index: number, subIndex: number, value: string) => {
     const keyValuePairs = [...props.keyValuePairs];
     keyValuePairs[index] = [keyValuePairs[index][0], keyValuePairs[index][1]];
     keyValuePairs[index][subIndex] = value;
     props.onChange(keyValuePairs);
   };
 
-  const removeField = index => {
+  const removeField = (index: number) => {
     const keyValuePairs = [...props.keyValuePairs];
     keyValuePairs.splice(index, 1);
     props.onChange(keyValuePairs);
