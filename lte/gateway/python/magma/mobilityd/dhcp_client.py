@@ -16,7 +16,7 @@ import datetime
 import logging
 import threading
 import time
-from ipaddress import IPv4Network, ip_address
+from ipaddress import IPv4Network
 from threading import Condition
 from typing import MutableMapping, Optional
 
@@ -278,7 +278,7 @@ class DHCPClient:
 
                 dhcp_router_opt = self._get_option(packet, "router")
                 if dhcp_router_opt is not None:
-                    router_ip_addr = ip_address(dhcp_router_opt)
+                    router_ip_addr = dhcp_router_opt
                 else:
                     # use DHCP as upstream router in case of missing Open 3.
                     router_ip_addr = dhcp_server_ip

@@ -57,10 +57,9 @@ class StaticIPInfo:
         gw_mac: Optional[str],
         vlan: int,
     ):
+        self.ip = None
         if ip:
             self.ip = ipaddress.ip_address(ip)
-        else:
-            self.ip = None
         self.net_info = NetworkInfo(gw_ip, gw_mac, vlan)
 
     def __str__(self):
