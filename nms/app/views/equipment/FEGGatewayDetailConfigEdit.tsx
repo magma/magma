@@ -9,33 +9,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {FederationGateway} from '../../../generated-ts';
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
-import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDialog from '../../components/feg/FEGGatewayDialog';
 import React from 'react';
 
 import {useState} from 'react';
 
 type ButtonProps = {
-  editingGateway: federation_gateway,
-  tabOption?: TabOption,
-  title: string,
+  editingGateway: FederationGateway;
+  tabOption?: TabOption;
+  title: string;
 };
 
 /**
  * Return a button which allows a user to edit the federation
  * gateway. It displays the FEGGatewayDialog component when it
  * is clicked / open.
- * @param {federation_gateway} editingGateway The federation gateway being edited.
+ * @param {FederationGateway} editingGateway The federation gateway being edited.
  * @param {TabOption} tabOption The Tab that is being looked at.
  * @param {string} title Title of the button.
  */
@@ -57,7 +52,7 @@ export default function EditGatewayButton(props: ButtonProps) {
           editingGateway={props.editingGateway}
           tabOption={props.tabOption}
           onClose={handleClose}
-          onSave={_ => handleClose()}
+          onSave={() => handleClose()}
         />
       )}
       <Button

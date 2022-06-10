@@ -9,41 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {TabOption} from '../../components/feg/FEGGatewayDialog';
-import type {
-  diameter_client_configs,
-  federation_gateway,
-  s8,
-  sctp_client_configs,
-} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import EditGatewayButton from './FEGGatewayDetailConfigEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {TAB_OPTIONS} from '../../components/feg/FEGGatewayDialog';
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
+import type {DataRows} from '../../components/DataGrid';
+import type {
+  DiameterClientConfigs,
+  FederationGateway,
+  S8,
+  SctpClientConfigs,
+} from '../../../generated-ts';
+import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -60,7 +49,7 @@ export default function FEGGatewayConfig() {
   const params = useParams();
   const gatewayId: string = nullthrows(params.gatewayId);
   const ctx = useContext(FEGGatewayContext);
-  const gwInfo: federation_gateway = ctx.state[gatewayId];
+  const gwInfo: FederationGateway = ctx.state[gatewayId];
 
   function editFilter(tabOption: TabOption) {
     return (
@@ -159,10 +148,10 @@ export default function FEGGatewayConfig() {
 /**
  * Returns useful information about the federation gateway. It returns
  * its name, id, hardware uuid, version and description.
- * @param {federation_gateway} gwInfo The federation gateway that is being looked at.
+ * @param {FederationGateway} gwInfo The federation gateway that is being looked at.
  */
-function GatewayInfoConfig({gwInfo}: {gwInfo: federation_gateway}) {
-  const data: DataRows[] = [
+function GatewayInfoConfig({gwInfo}: {gwInfo: FederationGateway}) {
+  const data: Array<DataRows> = [
     [
       {
         category: 'Name',
@@ -201,17 +190,17 @@ function GatewayInfoConfig({gwInfo}: {gwInfo: federation_gateway}) {
 /**
  * Returns useful information about the federation gateway's diameter based
  * server.
- * @param {diameter_client_configs} serverConfig Configuration object of the diameter based server.
+ * @param {DiameterClientConfigs} serverConfig Configuration object of the diameter based server.
  * @param {string} testId An id used to differentiate the various diameter servers.
  */
 function GatewayDiameterServerConfig({
   serverConfig,
   testID,
 }: {
-  serverConfig: diameter_client_configs,
-  testID: string,
+  serverConfig: DiameterClientConfigs;
+  testID: string;
 }) {
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         category: 'Address',
@@ -271,8 +260,8 @@ function GatewayDiameterServerConfig({
  * @param {s8} s8Config Configuration object of the diameter based server.
  * @param {string} testId
  */
-function GatewayS8Config({s8Config, testID}: {s8Config: s8, testID: string}) {
-  const data: DataRows[] = [
+function GatewayS8Config({s8Config, testID}: {s8Config: S8; testID: string}) {
+  const data: Array<DataRows> = [
     [
       {
         category: 'Local Address',
@@ -299,17 +288,17 @@ function GatewayS8Config({s8Config, testID}: {s8Config: s8, testID: string}) {
 /**
  * Returns useful information about the federation gateway's sctp based
  * server.
- * @param {sctp_client_configs} serverConfig Configuration object of the sctp based server.
+ * @param {SctpClientConfigs} serverConfig Configuration object of the sctp based server.
  * @param {string} testId An id used to differentiate the various servers.
  */
 function GatewaySctpServerConfig({
   serverConfig,
   testID,
 }: {
-  serverConfig: sctp_client_configs,
-  testID: string,
+  serverConfig: SctpClientConfigs;
+  testID: string;
 }) {
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         category: 'Local Address',
