@@ -9,42 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {DataRows} from '../../components/DataGrid';
 
 export function EnodebSummary() {
   const ctx = useContext(EnodebContext);
   const params = useParams();
   const enodebSerial: string = nullthrows(params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'eNodeB Serial Number',
@@ -77,12 +65,11 @@ export function EnodebStatus({refresh}: {refresh: boolean}) {
     refresh: refresh,
   });
 
-  // $FlowIgnore
   const enbInfo = state.enbInfo?.[enodebSerial];
   const isEnbHealthy = enbInfo ? isEnodebHealthy(enbInfo) : false;
   const isEnbManaged = enbInfo?.enb?.enodeb_config?.config_type === 'MANAGED';
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'eNodeB Externally Managed',

@@ -42,6 +42,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 // $FlowFixMe migrated to typescript
