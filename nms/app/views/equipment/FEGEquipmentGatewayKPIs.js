@@ -29,6 +29,7 @@ import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
 // $FlowFixMe migrated to typescript
 import {HEALTHY_STATUS, UNHEALTHY_STATUS} from '../../components/GatewayUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getLatency} from './EquipmentGatewayKPIs';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';

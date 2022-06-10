@@ -31,6 +31,7 @@ import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EmptyState from '../../components/EmptyState';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 // $FlowFixMe migrated to typescript
