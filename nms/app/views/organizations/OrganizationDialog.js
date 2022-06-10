@@ -25,6 +25,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../../components/LoadingFillerBackdrop';
 import OrganizationInfoDialog from './OrganizationInfoDialog';
 import OrganizationUserDialog from './OrganizationUserDialog';
