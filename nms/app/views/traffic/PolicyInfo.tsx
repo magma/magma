@@ -29,9 +29,9 @@ const useStyles = makeStyles(() => policyStyles);
 type Props = {
   policyRule: PolicyRule;
   qosProfiles: Record<string, PolicyQosProfile>;
-  onChange: (arg0: PolicyRule) => void;
+  onChange: (policyRule: PolicyRule) => void;
   isNetworkWide: boolean;
-  setIsNetworkWide: (arg0: boolean) => void;
+  setIsNetworkWide: (isNetworkWide: boolean) => void;
   inputClass: string;
 };
 
