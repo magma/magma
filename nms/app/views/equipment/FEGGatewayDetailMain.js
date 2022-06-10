@@ -30,6 +30,7 @@ import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailSubscribers from './FEGGatewayDetailSubscribers';
 import FEGGatewaySummary from './FEGGatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
