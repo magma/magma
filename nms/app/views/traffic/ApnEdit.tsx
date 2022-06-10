@@ -99,7 +99,7 @@ type Props = {
   apn: Apn;
   apnConfig?: ApnConfiguration;
   onClose: () => void;
-  onSave: (arg0: Apn) => void;
+  onSave: (apn: Apn) => void;
 };
 
 export function ApnEdit(props: Props) {
