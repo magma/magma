@@ -9,30 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditEnodeButton from '../EnodebDetailConfigEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebConfig from '../EnodebDetailConfig';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-
+import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe migrated to typescript
-import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe migrated to typescript
 import {SetEnodebState} from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
@@ -58,7 +47,7 @@ describe('<AddEditEnodeButton />', () => {
     },
   };
 
-  const enbInfo = {
+  const enbInfo: EnodebInfo = {
     enb: {
       attached_gateway_id: '',
       config: {
@@ -108,21 +97,22 @@ describe('<AddEditEnodeButton />', () => {
   };
 
   beforeEach(() => {
-    (useEnqueueSnackbar: JestMockFn<
-      Array<empty>,
-      $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
+    (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
   });
 
   const AddWrapper = () => {
-    const [enbInf, setEnbInfo] = useState({testEnodebSerial0: enbInfo});
+    const [enbInf, setEnbInfo] = useState<Record<string, EnodebInfo>>({
+      testEnodebSerial0: enbInfo,
+    });
     return (
       <MemoryRouter initialEntries={['/nms/test/enode']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
             <EnodebContext.Provider
               value={{
-                state: {enbInfo: enbInf},
+                state: {
+                  enbInfo: enbInf,
+                },
                 lteRanConfigs: ran,
                 setState: async (key, value?) =>
                   SetEnodebState({
@@ -149,7 +139,9 @@ describe('<AddEditEnodeButton />', () => {
   };
 
   const DetailWrapper = () => {
-    const [enbInf, setEnbInfo] = useState({testEnodebSerial0: enbInfo});
+    const [enbInf, setEnbInfo] = useState<Record<string, EnodebInfo>>({
+      testEnodebSerial0: enbInfo,
+    });
     return (
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
@@ -158,7 +150,9 @@ describe('<AddEditEnodeButton />', () => {
           <MuiStylesThemeProvider theme={defaultTheme}>
             <EnodebContext.Provider
               value={{
-                state: {enbInfo: enbInf},
+                state: {
+                  enbInfo: enbInf,
+                },
                 lteRanConfigs: ran,
                 setState: async (key, value?) =>
                   SetEnodebState({
@@ -200,7 +194,7 @@ describe('<AddEditEnodeButton />', () => {
   });
 
   it('Verify Enode unManaged eNodeBs', async () => {
-    const unmanagedEnbInfo = {
+    const unmanagedEnbInfo: EnodebInfo = {
       enb: {
         attached_gateway_id: '',
         config: {
@@ -236,8 +230,9 @@ describe('<AddEditEnodeButton />', () => {
         ip_address: '192.168.1.254',
       },
     };
+
     const UnmanagedEnodeWrapper = () => {
-      const enbInf = {
+      const enbInf: Record<string, EnodebInfo> = {
         testEnodebSerial1: unmanagedEnbInfo,
       };
       return (
@@ -248,7 +243,9 @@ describe('<AddEditEnodeButton />', () => {
             <MuiStylesThemeProvider theme={defaultTheme}>
               <EnodebContext.Provider
                 value={{
-                  state: {enbInfo: enbInf},
+                  state: {
+                    enbInfo: enbInf,
+                  },
                   setState: async () => {},
                 }}>
                 <Routes>
@@ -294,7 +291,11 @@ describe('<AddEditEnodeButton />', () => {
 
     // test adding an existing enodeb
     if (enbSerial instanceof HTMLInputElement) {
-      fireEvent.change(enbSerial, {target: {value: 'testEnodebSerial0'}});
+      fireEvent.change(enbSerial, {
+        target: {
+          value: 'testEnodebSerial0',
+        },
+      });
     } else {
       throw 'invalid type';
     }
@@ -312,10 +313,20 @@ describe('<AddEditEnodeButton />', () => {
       enbName instanceof HTMLInputElement &&
       enbDesc instanceof HTMLTextAreaElement
     ) {
-      fireEvent.change(enbSerial, {target: {value: 'TestEnodebSerial1'}});
-      fireEvent.change(enbName, {target: {value: 'Test Enodeb 1'}});
+      fireEvent.change(enbSerial, {
+        target: {
+          value: 'TestEnodebSerial1',
+        },
+      });
+      fireEvent.change(enbName, {
+        target: {
+          value: 'Test Enodeb 1',
+        },
+      });
       fireEvent.change(enbDesc, {
-        target: {value: 'Enode1 Description'},
+        target: {
+          value: 'Enode1 Description',
+        },
       });
     } else {
       throw 'invalid type';
@@ -323,6 +334,7 @@ describe('<AddEditEnodeButton />', () => {
 
     fireEvent.click(getByText('Save And Continue'));
     await wait();
+
     expect(MagmaAPI.enodebs.lteNetworkIdEnodebsPost).toHaveBeenCalledWith({
       enodeb: {
         config: {
@@ -372,7 +384,9 @@ describe('<AddEditEnodeButton />', () => {
       // enodeb serial shouldn't be editable
       expect(enbSerial.readOnly).toBe(true);
       fireEvent.change(enbDesc, {
-        target: {value: 'Enode1 New Description'},
+        target: {
+          value: 'Enode1 New Description',
+        },
       });
     } else {
       throw 'invalid type';
@@ -405,9 +419,6 @@ describe('<AddEditEnodeButton />', () => {
       networkId: 'test',
     });
 
-    // clear mock info
-    MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut.mockClear();
-
     // now tab should move to ran edit component
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
@@ -415,6 +426,7 @@ describe('<AddEditEnodeButton />', () => {
     const earfcndl = getByTestId('earfcndl').firstChild;
     const pci = getByTestId('pci').firstChild;
     const cellId = getByTestId('cellId').firstChild;
+
     if (
       earfcndl instanceof HTMLElement &&
       pci instanceof HTMLElement &&
@@ -550,6 +562,7 @@ describe('<AddEditEnodeButton />', () => {
     const earfcndl = getByTestId('earfcndl').firstChild;
     const pci = getByTestId('pci').firstChild;
     const cellId = getByTestId('cellId').firstChild;
+
     if (
       earfcndl instanceof HTMLInputElement &&
       pci instanceof HTMLInputElement &&
@@ -616,6 +629,7 @@ describe('<AddEditEnodeButton />', () => {
     expect(queryByTestId('ranEdit')).not.toBeNull();
 
     const enbConfigType = getByTestId('enodeb_config').firstChild;
+
     if (
       enbConfigType instanceof HTMLElement &&
       enbConfigType.firstChild instanceof HTMLElement
@@ -624,11 +638,13 @@ describe('<AddEditEnodeButton />', () => {
     } else {
       throw 'invalid type';
     }
+
     await wait();
 
     const ipAddress = getByTestId('ipAddress').firstChild;
     const cellId = getByTestId('cellId').firstChild;
     const tac = getByTestId('tac').firstChild;
+
     if (
       ipAddress instanceof HTMLInputElement &&
       cellId instanceof HTMLInputElement &&
