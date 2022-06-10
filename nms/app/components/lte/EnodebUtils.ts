@@ -31,7 +31,7 @@ export const EnodebDeviceClass: Record<
 
 export const EnodebBandwidthOption: Record<
   string,
-  EnodebConfiguration['bandwidth_mhz'] | null | undefined
+  EnodebConfiguration['bandwidth_mhz'] | undefined
 > = Object.freeze({
   '3': 3,
   '5': 5,

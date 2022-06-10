@@ -13,51 +13,42 @@
  * @flow strict-local
  * @format
  */
-import type {
-  enodeb,
-  enodeb_configuration,
-  network_ran_configs,
-  unmanaged_enodeb_configuration,
-} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
-// $FlowFixMe migrated to typescript
+import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
+import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 import EnodebContext from '../../components/context/EnodebContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import React from 'react';
+import React, {SetStateAction} from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import {AltFormField} from '../../components/FormField';
 import {
   EnodebBandwidthOption,
   EnodebDeviceClass,
-  // $FlowFixMe migrated to typescript
 } from '../../components/lte/EnodebUtils';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
-
-// $FlowFixMe migrated to typescript
-import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {
+  Enodeb,
+  EnodebConfiguration,
+  NetworkRanConfigs,
+  UnmanagedEnodebConfiguration,
+} from '../../../generated-ts';
 
 const CONFIG_TITLE = 'Config';
 const RAN_TITLE = 'Ran';
@@ -69,10 +60,10 @@ const DEFAULT_ENB_CONFIG = {
     cell_id: 0,
     device_class: 'Baicells Nova-233 G2 OD FDD',
     transmit_enabled: false,
-  },
+  } as EnodebConfiguration,
 };
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -81,7 +72,6 @@ const useStyles = makeStyles(_ => ({
     fontSize: typography.button.fontSize,
     lineHeight: typography.button.lineHeight,
     letterSpacing: typography.button.letterSpacing,
-
     '&:hover': {
       background: colors.primary.mirage,
     },
@@ -90,7 +80,7 @@ const useStyles = makeStyles(_ => ({
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
   },
-}));
+});
 
 const EditTableType = {
   config: 0,
@@ -98,19 +88,19 @@ const EditTableType = {
 };
 
 type EditProps = {
-  editTable: $Keys<typeof EditTableType>,
+  editTable: keyof typeof EditTableType;
 };
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  editProps?: EditProps,
+  open: boolean;
+  onClose: () => void;
+  editProps?: EditProps;
 };
 
 type ButtonProps = {
-  title: string,
-  isLink: boolean,
-  editProps?: EditProps,
+  title: string;
+  isLink: boolean;
+  editProps?: EditProps;
 };
 
 export default function AddEditEnodeButton(props: ButtonProps) {
@@ -155,13 +145,12 @@ export default function AddEditEnodeButton(props: ButtonProps) {
 function EnodeEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
-  const [enb, setEnb] = useState<enodeb>({});
+  const [enb, setEnb] = useState<Enodeb>({} as Enodeb);
   const params = useParams();
   const ctx = useContext(EnodebContext);
-  const enodebSerial: string = params.enodebSerial;
+  const enodebSerial = params.enodebSerial!;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
   const lteRanConfigs = ctx.lteRanConfigs;
-
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
@@ -173,7 +162,7 @@ function EnodeEditDialog(props: DialogProps) {
 
   useEffect(() => {
     setTabPos(editProps ? EditTableType[editProps.editTable] : 0);
-    setEnb({});
+    setEnb({} as SetStateAction<Enodeb>);
   }, [editProps, open]);
 
   return (
@@ -184,14 +173,14 @@ function EnodeEditDialog(props: DialogProps) {
       />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v) => setTabPos(v as SetStateAction<number>)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="config" data-testid="configTab" label={CONFIG_TITLE} />; ;
         <Tab
           key="ran"
           data-testid="ranTab"
-          disabled={editProps ? false : true}
+          disabled={!editProps}
           label={RAN_TITLE}
         />
       </Tabs>
@@ -201,7 +190,7 @@ function EnodeEditDialog(props: DialogProps) {
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
-          onSave={(enb: enodeb) => {
+          onSave={(enb: Enodeb) => {
             setEnb(enb);
             if (editProps) {
               onClose();
@@ -225,61 +214,61 @@ function EnodeEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  isAdd: boolean,
-  enb?: enodeb,
-  lteRanConfigs: ?network_ran_configs,
-  onClose: () => void,
-  onSave: enodeb => void,
+  isAdd: boolean;
+  enb?: Enodeb;
+  lteRanConfigs: NetworkRanConfigs | null | undefined;
+  onClose: () => void;
+  onSave: (arg0: Enodeb) => void;
 };
-
-type BandwidthMhzType = $PropertyType<enodeb_configuration, 'bandwidth_mhz'>;
-
+type BandwidthMhzType = EnodebConfiguration['bandwidth_mhz'];
 type OptConfig = {
-  earfcndl: string,
-  bandwidthMhz: BandwidthMhzType,
-  specialSubframePattern: string,
-  subframeAssignment: string,
-  pci: string,
-  tac: string,
+  earfcndl: string;
+  bandwidthMhz: BandwidthMhzType;
+  specialSubframePattern: string;
+  subframeAssignment: string;
+  pci: string;
+  tac: string;
 };
-type OptKey = $Keys<OptConfig>;
 
 export function RanEdit(props: Props) {
   const params = useParams();
   const ctx = useContext(EnodebContext);
-  const enodebSerial: string = params.enodebSerial;
+  const enodebSerial = params.enodebSerial!;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
 
-  const handleEnbChange = (key: string, val) =>
-    setConfig({...config, [key]: val});
+  const handleEnbChange = <K extends keyof EnodebConfiguration>(
+    key: K,
+    val: EnodebConfiguration[K],
+  ) => setConfig({...config, [key]: val});
 
-  const handleUnmanagedEnbChange = (key: string, val) =>
-    setUnmanagedConfig({...unmanagedConfig, [key]: val});
+  const handleUnmanagedEnbChange = <
+    K extends keyof UnmanagedEnodebConfiguration
+  >(
+    key: K,
+    val: UnmanagedEnodebConfiguration[K],
+  ) => setUnmanagedConfig({...unmanagedConfig, [key]: val});
 
-  const handleOptChange = (key: OptKey, val) =>
-    setOptConfig({...optConfig, [(key: string)]: val});
+  const handleOptChange = <K extends keyof OptConfig>(
+    key: K,
+    val: OptConfig[K],
+  ) => setOptConfig({...optConfig, [key]: val});
 
   const [error, setError] = useState('');
-
-  const [
-    unmanagedConfig,
-    setUnmanagedConfig,
-  ] = useState<unmanaged_enodeb_configuration>(
+  const [unmanagedConfig, setUnmanagedConfig] = useState<
+    UnmanagedEnodebConfiguration
+  >(
     props.enb?.enodeb_config?.unmanaged_config || {
       cell_id: 0,
       ip_address: '',
       tac: 0,
     },
   );
-
-  const [config, setConfig] = useState<enodeb_configuration>(
+  const [config, setConfig] = useState<EnodebConfiguration>(
     props.enb?.enodeb_config?.managed_config || DEFAULT_ENB_CONFIG.config,
   );
-
   const [enbConfigType, setEnbConfigType] = useState<'MANAGED' | 'UNMANAGED'>(
     props.enb?.enodeb_config?.config_type ?? 'MANAGED',
   );
-
   const [optConfig, setOptConfig] = useState<OptConfig>({
     earfcndl: String(config.earfcndl ?? ''),
     bandwidthMhz: config.bandwidth_mhz ?? EnodebBandwidthOption['20'],
@@ -288,12 +277,11 @@ export function RanEdit(props: Props) {
     pci: String(config.pci ?? ''),
     tac: String(config.tac ?? ''),
   });
-
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const onSave = async () => {
     try {
-      const enb: enodeb = {
+      const enb: Enodeb = {
         ...(props.enb || DEFAULT_ENB_CONFIG),
         config:
           enbConfigType === 'MANAGED'
@@ -309,18 +297,16 @@ export function RanEdit(props: Props) {
             enbConfigType === 'UNMANAGED' ? unmanagedConfig : undefined,
         },
       };
-
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,
       });
-
       enqueueSnackbar('eNodeb saved successfully', {
         variant: 'success',
       });
       props.onSave(enb);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -348,8 +334,7 @@ export function RanEdit(props: Props) {
                 <OutlinedInput
                   data-testid="cellId"
                   type="number"
-                  min={0}
-                  max={Math.pow(2, 28) - 1}
+                  inputProps={{min: 0, max: Math.pow(2, 28) - 1}}
                   fullWidth={true}
                   value={unmanagedConfig.cell_id}
                   onChange={({target}) =>
@@ -361,8 +346,7 @@ export function RanEdit(props: Props) {
                 <OutlinedInput
                   data-testid="tac"
                   type="number"
-                  min={0}
-                  max={65535}
+                  inputProps={{min: 0, max: 65535}}
                   fullWidth={true}
                   value={unmanagedConfig.tac}
                   onChange={({target}) =>
@@ -409,8 +393,7 @@ export function RanEdit(props: Props) {
                 <OutlinedInput
                   data-testid="cellId"
                   type="number"
-                  min={0}
-                  max={Math.pow(2, 28) - 1}
+                  inputProps={{min: 0, max: Math.pow(2, 28) - 1}}
                   fullWidth={true}
                   value={config.cell_id}
                   onChange={({target}) =>
@@ -499,7 +482,10 @@ export function RanEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Add eNodeB' : 'Save'}
         </Button>
       </DialogActions>
@@ -512,9 +498,10 @@ export function ConfigEdit(props: Props) {
   const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(EnodebContext);
-  const enodebSerial: string = params.enodebSerial;
+  const enodebSerial: string = params.enodebSerial!;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const [enb, setEnb] = useState<enodeb>(props.enb || DEFAULT_ENB_CONFIG);
+  const [enb, setEnb] = useState<Enodeb>(props.enb || DEFAULT_ENB_CONFIG);
+
   const onSave = async () => {
     try {
       if (props.isAdd) {
@@ -532,24 +519,31 @@ export function ConfigEdit(props: Props) {
       if (enb.config == null) {
         enb.config = DEFAULT_ENB_CONFIG.config;
       }
-      if (enb.enodeb_config == null || enb.enodeb_config.config_type == '') {
+
+      if (
+        enb.enodeb_config == null ||
+        enb.enodeb_config.config_type == ('' as string)
+      ) {
         enb.enodeb_config = {
           config_type: 'MANAGED',
           managed_config: DEFAULT_ENB_CONFIG.config,
         };
       }
+
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,
       });
+
       if (props.enb) {
         enqueueSnackbar('eNodeb saved successfully', {
           variant: 'success',
         });
       }
+
       props.onSave(enb);
-    } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+    } catch (error) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -600,7 +594,10 @@ export function ConfigEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
@@ -608,10 +605,11 @@ export function ConfigEdit(props: Props) {
   );
 }
 
-function coerceValue<T>(value: string, options: {[string]: T}): T {
-  const values = Object.values(options);
+function coerceValue<T>(value: any, options: Record<string, T>): T {
   const keys = Object.keys(options);
-  const optionKey = values.indexOf(value);
+  const values = Object.values(options);
+  const optionKey = values.indexOf(value as T);
+
   if (optionKey > -1) {
     return options[keys[optionKey]];
   } else {
@@ -620,23 +618,26 @@ function coerceValue<T>(value: string, options: {[string]: T}): T {
 }
 
 function isNumberInRange(value: string | number, lower: number, upper: number) {
-  const val = parseInt(value, 10);
-  if (isNaN(val)) {
-    return false;
-  }
-  return val >= lower && val <= upper;
+  const val = typeof value === 'number' ? value : parseInt(value, 10);
+
+  return !isNaN(val) && val >= lower && val <= upper;
 }
 
-function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
+function buildRanConfig(
+  config: EnodebConfiguration,
+  optConfig: OptConfig,
+): EnodebConfiguration {
   const response = {...config, bandwidth_mhz: optConfig.bandwidthMhz};
 
   if (!isNumberInRange(config.cell_id, 0, Math.pow(2, 28) - 1)) {
     throw Error('Invalid Configuration Cell ID. Valid range 0 - (2^28) - 1');
   }
+
   if (optConfig.earfcndl !== '') {
     if (!isNumberInRange(optConfig.earfcndl, 0, 65535)) {
       throw Error('Invalid EARFCNDL. Valid range 0 - 645535');
     }
+
     response['earfcndl'] = parseInt(optConfig.earfcndl);
   }
 
@@ -644,6 +645,7 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     if (!isNumberInRange(optConfig.pci, 0, 504)) {
       throw Error('Invalid PCI. Valid range 0 - 504');
     }
+
     response['pci'] = parseInt(optConfig.pci);
   }
 
@@ -651,6 +653,7 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     if (!isNumberInRange(optConfig.specialSubframePattern, 0, 9)) {
       throw Error('Invalid Special SubFrame Pattern, Valid range 0 - 9');
     }
+
     response['special_subframe_pattern'] = parseInt(
       optConfig.specialSubframePattern,
     );
@@ -660,6 +663,7 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     if (!isNumberInRange(optConfig.subframeAssignment, 0, 6)) {
       throw Error('Invalid SubFrame Assignment, Valid range 0 - 6');
     }
+
     response['subframe_assignment'] = parseInt(optConfig.subframeAssignment);
   }
 
@@ -667,6 +671,7 @@ function buildRanConfig(config: enodeb_configuration, optConfig: OptConfig) {
     if (!isNumberInRange(optConfig.tac, 0, 65535)) {
       throw Error('Invalid TAC, Valid Range 0 - 65535');
     }
+
     response['tac'] = parseInt(optConfig.tac);
   }
 
