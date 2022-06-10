@@ -9,43 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe migrated to typescript
 import {SetGatewayState} from '../../../state/feg/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 import type {
-  csfb,
-  federation_gateway,
-  gx,
-  gy,
-  s6a,
-  swx,
-} from '../../../../generated/MagmaAPIBindings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {mockAPI} from '../../../util/TestUtils';
+  Csfb,
+  FederationGateway,
+  Gx,
+  Gy,
+  S6a,
+  Swx,
+} from '../../../../generated-ts';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
-const mockGx: gx = {
+
+const mockGx: Gx = {
   server: {
     address: '174.16.1.14:3868',
     dest_host: 'magma.magma.com',
@@ -60,7 +51,7 @@ const mockGx: gx = {
   virtual_apn_rules: [],
 };
 
-const mockGy: gy = {
+const mockGy: Gy = {
   server: {
     address: '174.18.1.0:3868',
     dest_host: '',
@@ -76,7 +67,7 @@ const mockGy: gy = {
   virtual_apn_rules: [],
 };
 
-const mockSwx: swx = {
+const mockSwx: Swx = {
   server: {
     address: '174.18.1.0:3869',
     dest_host: '',
@@ -90,7 +81,7 @@ const mockSwx: swx = {
   },
 };
 
-const mockS6a: s6a = {
+const mockS6a: S6a = {
   server: {
     address: '174.18.1.0:2000',
     dest_host: '',
@@ -105,14 +96,14 @@ const mockS6a: s6a = {
   plmn_ids: [],
 };
 
-const mockCsfb: csfb = {
+const mockCsfb: Csfb = {
   client: {
     server_address: '174.18.1.0:2200',
     local_address: ':3440',
   },
 };
 
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway',
   description: 'hello I am a federated gateway',
@@ -126,7 +117,6 @@ const mockGw0: federation_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -163,7 +153,7 @@ const fegGateways = {
 
 const fegGatewaysHealth = {
   [mockGw0.id]: {status: 'HEALTHY'},
-};
+} as Record<string, FederationGatewayHealthStatus>;
 
 describe('<FEGGatewayDetailConfig />', () => {
   beforeEach(() => {
@@ -184,7 +174,7 @@ describe('<FEGGatewayDetailConfig />', () => {
           <FEGGatewayContext.Provider
             value={{
               state: fegGateways,
-              setState: async _ => {},
+              setState: async () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>

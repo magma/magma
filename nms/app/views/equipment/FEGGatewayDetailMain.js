@@ -28,6 +28,7 @@ import FEGClusterStatus from '../equipment/FEGClusterStatus';
 import FEGGatewayConnectionStatus from './FEGGatewayConnectionStatus';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
