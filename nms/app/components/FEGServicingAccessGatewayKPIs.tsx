@@ -39,7 +39,7 @@ export async function getServicedAccessNetworks(
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined,
+  ) => string | number | null | undefined,
 ): Promise<Array<FegLteNetwork>> {
   const servicedAccessNetworks: Array<FegLteNetwork> = [];
   const fegLteNetworkIdList = (await MagmaAPI.federatedLTENetworks.fegLteGet())

@@ -224,7 +224,7 @@ export async function getFederationGatewayHealthStatus(
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined,
+  ) => string | number | null | undefined,
 ): Promise<FederationGatewayHealthStatus> {
   try {
     const gwHealthStatus = (

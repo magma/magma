@@ -55,7 +55,7 @@ async function getServicedAccessGatewaysInfo(
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined,
+  ) => string | number | null | undefined,
 ): Promise<Array<ServicingAccessGatewayRowType>> {
   const newServicedAccessGatewaysInfo: Array<ServicingAccessGatewayRowType> = [];
 

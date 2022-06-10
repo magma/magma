@@ -50,7 +50,7 @@ type InitTierStateProps = {
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 export async function InitTierState(props: InitTierStateProps) {
@@ -136,7 +136,7 @@ type FetchProps = {
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 export async function FetchEnodebs(
@@ -225,7 +225,7 @@ type InitEnodeStateProps = {
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 export async function InitEnodeState(props: InitEnodeStateProps) {
@@ -646,7 +646,7 @@ type InitGatewayPoolStateType = {
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 export async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
