@@ -22,7 +22,7 @@ import type {OptionsObject} from 'notistack';
 
 type InitTraceStateProps = {
   networkId: NetworkId;
-  setTraceMap: (arg0: Record<string, CallTrace>) => void;
+  setTraceMap: (traceMap: Record<string, CallTrace>) => void;
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
@@ -54,7 +54,7 @@ export async function InitTraceState(props: InitTraceStateProps) {
 type CallTraceProps = {
   networkId: NetworkId;
   callTraces: Record<string, CallTrace>;
-  setCallTraces: (arg0: Record<string, CallTrace>) => void;
+  setCallTraces: (callTraces: Record<string, CallTrace>) => void;
   key: string;
   value?: Partial<CallTraceConfig & MutableCallTrace>;
 };
