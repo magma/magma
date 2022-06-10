@@ -35,8 +35,6 @@ type Props = {
 export default function PolicyRedirectEdit(props: Props) {
   const classes = useStyles();
   const {policyRule} = props;
-  // eslint-disable-next-line no-warning-comments
-  // $FlowFixMe PolicyRule type will be updated to include field
   const redInfo = policyRule?.redirect || {
     server_address: '',
     address_type: 'IPv4',
@@ -65,8 +63,6 @@ export default function PolicyRedirectEdit(props: Props) {
           data-testid="serverAddress"
           placeholder="Ex. 172.16.254.1 "
           fullWidth={true}
-          // eslint-disable-next-line no-warning-comments
-          // $FlowFixMe redirect_info type needed
           value={redInfo.server_address ?? ''}
           onChange={({target}) => {
             handleFieldChange('server_address', target.value);
@@ -78,8 +74,6 @@ export default function PolicyRedirectEdit(props: Props) {
           fullWidth={true}
           className={props.inputClass}
           variant={'outlined'}
-          // eslint-disable-next-line no-warning-comments
-          // $FlowFixMe redirect_info type needed
           value={redInfo.address_type || 'IPv4'}
           onChange={({target}) => {
             handleFieldChange('address_type', target.value as string);
@@ -102,8 +96,6 @@ export default function PolicyRedirectEdit(props: Props) {
       <AltFormField disableGutters label={'Support'} isOptional>
         <Switch
           color="primary"
-          // eslint-disable-next-line no-warning-comments
-          // $FlowFixMe redirect_info type needed
           checked={redInfo.support === 'ENABLED'}
           onChange={({target}) => {
             handleFieldChange(
