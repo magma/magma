@@ -9,36 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {
   DynamicServices,
   GatewayTypeEnum,
   HEALTHY_STATUS,
-  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
 import {
   REFRESH_INTERVAL,
   RefreshTypeEnum,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
 import {useParams} from 'react-router-dom';
 
@@ -70,7 +59,7 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
 
   const startTime = Math.floor(Date.now() / 1000);
   const {response: cpuPercent, isLoading: isCpuPercentLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange,
+    MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
     {
       networkId: networkId,
       query: `cpu_percent{gatewayID="${gwInfo.id}", service="magmad"}`,
@@ -100,7 +89,7 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
     return <LoadingFiller />;
   }
 
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         category: 'Health',
