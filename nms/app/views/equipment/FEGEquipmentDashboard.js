@@ -16,6 +16,7 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import FEGGateway from './FEGEquipmentGateway';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDetail from './FEGGatewayDetailMain';
 import React from 'react';
 // $FlowFixMe migrated to typescript

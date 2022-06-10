@@ -91,7 +91,7 @@ export const EVENT_STREAM = {
   NETWORK: 'NETWORK',
   GATEWAY: 'GATEWAY',
   SUBSCRIBER: 'SUBSCRIBER',
-};
+} as const;
 
 type EventDescriptionProps = {
   rowData: EventRowType;
