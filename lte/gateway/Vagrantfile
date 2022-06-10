@@ -82,6 +82,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.uri = "qemu+unix:///system"
       domain.memory = 6144
       domain.cpus = 4
+      domain.disk_driver :cache => "unsafe"
       domain.driver = "kvm"
       domain.host = "localhost"
       domain.connect_via_ssh = false
@@ -92,7 +93,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.management_network_address = "172.17.2.0/24"
       domain.nested = true
       domain.cpu_mode = "host-passthrough"
-      domain.volume_cache = "unsafe"
       domain.disk_bus = "virtio"
       domain.graphics_ip = "0.0.0.0"
     end
@@ -111,7 +111,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Get our prepackaged box from the atlas cloud
     magma_test.vm.box = "magmacore/magma_test"
     magma_test.vm.hostname = "magma-test"
-    magma_test.vm.box_version = "1.1.20210326"
+    magma_test.vm.box_version = "1.1.20220608"
     magma_test.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -135,6 +135,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.uri = "qemu+unix:///system"
       domain.memory = 1024
       domain.cpus = 1
+      domain.disk_driver :cache => "unsafe"
       domain.driver = "kvm"
       domain.host = "localhost"
       domain.connect_via_ssh = false
@@ -145,7 +146,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.management_network_address = "172.17.2.0/24"
       domain.nested = true
       domain.cpu_mode = "host-passthrough"
-      domain.volume_cache = "unsafe"
       domain.disk_bus = "virtio"
       domain.graphics_ip = "0.0.0.0"
     end

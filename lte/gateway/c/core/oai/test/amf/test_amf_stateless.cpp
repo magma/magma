@@ -595,6 +595,13 @@ class AMFAppStatelessTest : public ::testing::Test {
     amf_config.use_stateless = true;
     amf_nas_state_init(&amf_config);
     create_state_matrix();
+    amf_config.guamfi.nb = 1;
+    amf_config.guamfi.guamfi[0].plmn = {.mcc_digit2 = 2,
+                                        .mcc_digit1 = 2,
+                                        .mnc_digit3 = 6,
+                                        .mcc_digit3 = 2,
+                                        .mnc_digit2 = 5,
+                                        .mnc_digit1 = 4};
 
     init_task_context(TASK_MAIN, nullptr, 0, NULL, &amf_app_task_zmq_ctx);
 
