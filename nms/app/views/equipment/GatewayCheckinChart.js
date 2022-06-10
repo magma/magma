@@ -29,6 +29,7 @@ import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

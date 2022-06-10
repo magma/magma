@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import FormControl from '@material-ui/core/FormControl';
@@ -19,22 +16,22 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from '../../components/insights/AsyncMetric';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   outlined: {
     color: 'red',
   },
-}));
+});
 
 type Props = {
-  variant: string,
-  value: TimeRange,
-  label?: string,
-  onChange: TimeRange => void,
-  className: string,
+  variant: 'filled' | 'outlined' | 'standard';
+  value: TimeRange;
+  label?: string;
+  onChange: (range: TimeRange) => void;
+  className: string;
 };
 
 export default function TimeRangeSelector(props: Props) {
@@ -42,9 +39,10 @@ export default function TimeRangeSelector(props: Props) {
   return (
     <FormControl
       variant={props.variant}
-      className={
-        (props.className, props.variant === 'outlined' ? classes.outlined : '')
-      }>
+      className={classNames(
+        props.className,
+        props.variant === 'outlined' ? classes.outlined : '',
+      )}>
       {props.variant !== 'outlined' ? (
         <InputLabel htmlFor="time_range">
           {props.label ? props.label : 'Period'}
@@ -53,7 +51,7 @@ export default function TimeRangeSelector(props: Props) {
       <Select
         inputProps={{id: 'time_range'}}
         value={props.value}
-        onChange={event => props.onChange((event.target.value: any))}>
+        onChange={event => props.onChange(event.target.value as TimeRange)}>
         <MenuItem value="3_hours">Last 3 hours</MenuItem>
         <MenuItem value="6_hours">Last 6 hours</MenuItem>
         <MenuItem value="12_hours">Last 12 hours</MenuItem>
