@@ -9,59 +9,43 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {FederationGateway} from '../../../generated-ts';
 import type {WithAlert} from '../../components/Alert/withAlert';
-import type {
-  federation_gateway,
-  gateway_id,
-} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import CheckIcon from '@material-ui/icons/Check';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React, {useContext, useEffect, useState} from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-// $FlowFixMe migrated to typescript
+import {GatewayId} from '../../../shared/types/network';
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {
   REFRESH_INTERVAL,
   RefreshTypeEnum,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 type EquipmentFegGatewayRowType = {
-  name: string,
-  id: gateway_id,
-  is_primary: boolean,
-  health: string,
-  gx: string,
-  gy: string,
-  swx: string,
-  s6a: string,
-  csfb: string,
+  name: string;
+  id: GatewayId;
+  is_primary: boolean;
+  health: string;
+  gx: string;
+  gy: string;
+  swx: string;
+  s6a: string;
+  csfb: string;
 };
 
 /**
@@ -130,12 +114,14 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
     setLastRefreshTime(new Date().toLocaleString());
   }, [ctxValues.length]);
 
-  const [currRow, setCurrRow] = useState<EquipmentFegGatewayRowType>({});
+  const [currRow, setCurrRow] = useState<EquipmentFegGatewayRowType>(
+    {} as EquipmentFegGatewayRowType,
+  );
   const fegGatewayRows: Array<EquipmentFegGatewayRowType> = [];
   Object?.keys(fegGateways)
     .map((gwId: string) => fegGateways[gwId])
-    .filter((g: federation_gateway) => g.federation && g.id)
-    .map((gateway: federation_gateway) => {
+    .filter((g: FederationGateway) => g.federation && g.id)
+    .map((gateway: FederationGateway) => {
       fegGatewayRows.push({
         name: gateway.name,
         id: gateway.id,
@@ -218,7 +204,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
