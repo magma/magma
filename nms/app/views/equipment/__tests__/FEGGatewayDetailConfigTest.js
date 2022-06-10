@@ -17,7 +17,6 @@
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -40,6 +39,8 @@ import type {
   s6a,
   swx,
 } from '../../../../generated/MagmaAPIBindings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
@@ -167,11 +168,9 @@ const fegGatewaysHealth = {
 describe('<FEGGatewayDetailConfig />', () => {
   beforeEach(() => {
     // Mocking value because it is called by FEGGatewayDialogue / Edit Gateway Page
-    MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValue([]);
-
-    jest
-      .spyOn(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdPut')
-      .mockImplementation();
+    mockAPI(MagmaAPI.upgrades, 'networksNetworkIdTiersGet', []);
+    mockAPI(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdGet');
+    mockAPI(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdPut');
   });
 
   const Wrapper = () => (

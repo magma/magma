@@ -14,10 +14,12 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDialog from '../../components/feg/FEGGatewayDialog';
 import React from 'react';
 
