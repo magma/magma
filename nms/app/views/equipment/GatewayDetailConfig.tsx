@@ -9,50 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {EditProps} from './GatewayDetailConfigEdit';
-// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
+import type {LteGateway} from '../../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe migrated to typescript
 import {DynamicServices} from '../../components/GatewayUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -80,7 +64,7 @@ export function GatewayJsonConfig() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-  const {['status']: _status, ...gwInfoJson} = gwInfo;
+  const {status: _status, ...gwInfoJson} = gwInfo;
   return (
     <JsonEditor
       content={{
@@ -97,7 +81,7 @@ export function GatewayJsonConfig() {
           setError('');
           navigate(-1);
         } catch (e) {
-          setError(e.response?.data?.message ?? e.message);
+          setError(getErrorMessage(e));
         }
       }}
     />
@@ -198,8 +182,8 @@ export default function GatewayConfig() {
   );
 }
 
-function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
-  const data: DataRows[] = [
+function GatewayInfoConfig({gwInfo}: {gwInfo: LteGateway}) {
+  const data: Array<DataRows> = [
     [
       {
         category: 'Name',
@@ -235,8 +219,8 @@ function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={data} />;
 }
 
-function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
-  const collapse: DataRows[] = [
+function GatewayEPC({gwInfo}: {gwInfo: LteGateway}) {
+  const collapse: Array<DataRows> = [
     [
       {
         category: 'IP Block',
@@ -249,7 +233,7 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
     ],
   ];
 
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         category: 'IP Allocation',
@@ -274,7 +258,7 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={data} />;
 }
 
-function GatewayDynamicServices({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayDynamicServices({gwInfo}: {gwInfo: LteGateway}) {
   const logAggregation = !!gwInfo.magmad.dynamic_services?.includes(
     DynamicServices.TD_AGENT_BIT,
   );
@@ -284,7 +268,7 @@ function GatewayDynamicServices({gwInfo}: {gwInfo: lte_gateway}) {
   const cpeMonitoring = !!gwInfo.magmad?.dynamic_services?.includes(
     DynamicServices.MONITORD,
   );
-  const dynamicServices: DataRows[] = [
+  const dynamicServices: Array<DataRows> = [
     [
       {
         category: 'Log Aggregation',
@@ -310,10 +294,10 @@ function GatewayDynamicServices({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={dynamicServices} />;
 }
 
-function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
+function EnodebsTable({enbInfo}: {enbInfo: Record<string, EnodebInfo>}) {
   type EnodebRowType = {
-    name: string,
-    id: string,
+    name: string;
+    id: string;
   };
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
@@ -348,11 +332,11 @@ function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
   );
 }
 
-function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayRAN({gwInfo}: {gwInfo: LteGateway}) {
   const enbCtx = useContext(EnodebContext);
   const enbInfo =
     gwInfo.connected_enodeb_serials?.reduce(
-      (enbs: {[string]: EnodebInfo}, serial: string) => {
+      (enbs: Record<string, EnodebInfo>, serial: string) => {
         if (enbCtx?.state?.enbInfo?.[serial] != null) {
           enbs[serial] = enbCtx.state.enbInfo[serial];
         }
@@ -361,7 +345,7 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
       {},
     ) || {};
   const dhcpServiceStatus = gwInfo.cellular.dns?.dhcp_server_enabled ?? true;
-  const ran: DataRows[] = [
+  const ran: Array<DataRows> = [
     [
       {
         category: 'eNodeB DHCP Service',
@@ -386,7 +370,7 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
       {
         category: 'Registered eNodeBs',
         value: gwInfo.connected_enodeb_serials?.length || 0,
-        collapse: <EnodebsTable gwInfo={gwInfo} enbInfo={enbInfo} />,
+        collapse: <EnodebsTable enbInfo={enbInfo} />,
       },
     ],
   ];
@@ -394,12 +378,12 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   return <DataGrid data={ran} />;
 }
 
-function ApnResourcesTable({gwInfo}: {gwInfo: lte_gateway}) {
+function ApnResourcesTable({gwInfo}: {gwInfo: LteGateway}) {
   const apnResources = gwInfo.apn_resources || {};
   type ApnResourcesRowType = {
-    name: string,
-    id: string,
-    vlanId: number | string,
+    name: string;
+    id: string;
+    vlanId: number | string;
   };
   const apnResourcesRows: Array<ApnResourcesRowType> = Object.keys(
     apnResources,
@@ -430,13 +414,13 @@ function ApnResourcesTable({gwInfo}: {gwInfo: lte_gateway}) {
   );
 }
 
-function GatewayHE({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayHE({gwInfo}: {gwInfo: LteGateway}) {
   const heEnabled =
     gwInfo.cellular.he_config?.enable_header_enrichment ?? false;
   const encryptionEnabled =
     gwInfo.cellular.he_config?.enable_encryption ?? false;
   const EncryptionDetail = () => {
-    const encryptionConfig: DataRows[] = [
+    const encryptionConfig: Array<DataRows> = [
       [
         {
           category: 'Encryption Key',
@@ -462,7 +446,7 @@ function GatewayHE({gwInfo}: {gwInfo: lte_gateway}) {
     return <DataGrid data={encryptionConfig} />;
   };
 
-  const heConfig: DataRows[] = [
+  const heConfig: Array<DataRows> = [
     [
       {
         statusCircle: true,
