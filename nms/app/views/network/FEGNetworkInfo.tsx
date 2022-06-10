@@ -16,7 +16,7 @@ import type {DataRows} from '../../components/DataGrid';
 import type {FegNetwork} from '../../../generated-ts';
 
 type Props = {
-  // TODO: Is a partial really needed here? Also fix the implications for NetworkInfo.
+  // TODO[ts-migration]: Is a partial really needed here? Also fix the implications for NetworkInfo.
   fegNetwork: Partial<FegNetwork>;
 };
 
