@@ -38,6 +38,7 @@ import {
   REFRESH_INTERVAL,
   RefreshTypeEnum,
   useRefreshingContext,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
 import {useParams} from 'react-router-dom';
 

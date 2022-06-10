@@ -24,6 +24,7 @@ import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as hooks from '../../../components/context/RefreshContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';

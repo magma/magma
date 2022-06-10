@@ -29,6 +29,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
 // $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
