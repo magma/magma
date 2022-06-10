@@ -9,36 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as hooks from '../../../components/context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
+import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 import type {
-  federation_gateway,
-  promql_return_object,
-} from '../../../../generated/MagmaAPIBindings';
+  FederationGateway,
+  PromqlReturnObject,
+} from '../../../../generated-ts';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
 
 const mockCheckinTime = new Date();
 
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway',
   description: 'hello I am a federated gateway',
@@ -53,7 +47,6 @@ const mockGw0: federation_gateway = {
     checkin_interval: 60,
     checkin_timeout: 100,
     dynamic_services: ['monitord', 'eventd'],
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -92,7 +85,7 @@ const mockGw0: federation_gateway = {
   },
 };
 
-const mockGw1: federation_gateway = {
+const mockGw1: FederationGateway = {
   ...mockGw0,
   id: 'test_gw1',
   name: 'test_gateway1',
@@ -106,9 +99,9 @@ const fegGateways = {
 const fegGatewaysHealth = {
   [mockGw0.id]: {status: 'HEALTHY'},
   [mockGw1.id]: {status: 'UNHEALTHY'},
-};
+} as Record<string, FederationGatewayHealthStatus>;
 
-const mockCPUUsage: promql_return_object = {
+const mockCPUUsage: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -125,15 +118,18 @@ const mockCPUUsage: promql_return_object = {
 };
 
 describe('<FEGGatewayDetailStatus />', () => {
-  jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => ({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  jest.spyOn(hooks, 'useRefreshingContext').mockImplementation((() => ({
     fegGateways: fegGateways,
     health: fegGatewaysHealth,
     activeFegGatewayId: mockGw0.id,
-  }));
+  })) as any);
 
   beforeEach(() => {
     // called when getting the CPU Usage
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryRangeGet',
       mockCPUUsage,
     );
   });
@@ -149,7 +145,7 @@ describe('<FEGGatewayDetailStatus />', () => {
           <FEGGatewayContext.Provider
             value={{
               state: fegGateways,
-              setState: async _ => {},
+              setState: async () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>
