@@ -42,4 +42,4 @@ if [ $? != 0 ]; then
 fi
 
 echo "Regenerating s1ap_types.py"
-/usr/bin/python3.5 $SCRIPT_DIR/c_parser.py
+/usr/bin/python3 $SCRIPT_DIR/c_parser.py

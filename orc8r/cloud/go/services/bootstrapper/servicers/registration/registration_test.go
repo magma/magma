@@ -31,7 +31,7 @@ import (
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
-	tenantsTestInit "magma/orc8r/cloud/go/services/tenants/test_init"
+	tenant_TestInit "magma/orc8r/cloud/go/services/tenants/test_init"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -106,7 +106,7 @@ func TestGetControlProxy_NoNetworkID(t *testing.T) {
 	setupAddNetworksToTenantsService(t)
 
 	res, err := registration.GetControlProxy(networkID)
-	assert.Equal(t, status.Errorf(codes.NotFound, "tenantID for current NetworkID %v not found", networkID), err)
+	assert.Equal(t, fmt.Errorf("could not get control-proxy from tenant with network ID %s: Not found", networkID).Error(), err.Error())
 	assert.Equal(t, "", res)
 }
 
@@ -120,7 +120,7 @@ func TestGetControlProxy_NoControlProxy(t *testing.T) {
 	addTenant(t, networkIDTenant)
 
 	res, err := registration.GetControlProxy(networkID)
-	assert.Equal(t, "Not found", err.Error())
+	assert.Equal(t, fmt.Errorf("could not get control-proxy from tenant with network ID %s: Not found", networkID).Error(), err.Error())
 	assert.Equal(t, "", res)
 }
 
@@ -201,7 +201,7 @@ func setupAddNetworksToTenantsService(t *testing.T) {
 			Networks: []string{"network3", "network4"},
 		}
 	)
-	tenantsTestInit.StartTestService(t)
+	tenant_TestInit.StartTestService(t)
 
 	addTenant(t, tenant1)
 	addTenant(t, tenant2)
