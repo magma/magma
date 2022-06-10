@@ -15,7 +15,6 @@
  */
 
 import FEGEquipmentGateway from '../FEGEquipmentGateway';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings.js';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -28,7 +27,7 @@ import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration;
-import {mockAPI} from '../../../util/TestUtils';
+import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 // $FlowFixMe upgrade testing-library types
 import {render, wait, waitFor} from '@testing-library/react';
 import type {
@@ -43,8 +42,6 @@ import type {
   swx,
 } from '../../../../generated/MagmaAPIBindings.js';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings');
 jest.mock('../../../hooks/useSnackbar');
 
 const mockGx: gx = {
@@ -249,15 +246,21 @@ describe('<FEGEquipmentGateway />', () => {
     );
 
     // called when getting max latency
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
       mockKPIMetric,
     );
     // called when getting min latency
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
       mockKPIMetric,
     );
     // called when getting avg latency
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery.mockResolvedValueOnce(
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
       mockKPIMetric,
     );
 

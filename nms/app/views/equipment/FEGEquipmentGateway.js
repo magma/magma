@@ -16,6 +16,7 @@
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGClusterStatus from './FEGClusterStatus';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGEquipmentGatewayKPIs from './FEGEquipmentGatewayKPIs';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayTable from './FEGGatewayTable';
