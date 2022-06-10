@@ -9,28 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   AVAILABLE_STATUS,
   HEALTHY_STATUS,
   ServiceTypeEnum,
-  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
+import {ServiceStatusHealth} from '../../../generated-ts';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 
@@ -43,7 +36,9 @@ export default function FEGGatewayConnectionStatus() {
   const ctx = useContext(FEGGatewayContext);
   const gatewayId: string = nullthrows(params.gatewayId);
   const gwHealthStatus = ctx.health[gatewayId] || {};
-  const getServiceHealthStatus = serviceStatus => {
+  const getServiceHealthStatus = (
+    serviceStatus: ServiceStatusHealth | undefined,
+  ) => {
     if (serviceStatus) {
       if (!(serviceStatus.service_state === AVAILABLE_STATUS)) {
         return ServiceTypeEnum.UNAVAILABLE_SERVICE;
@@ -54,10 +49,10 @@ export default function FEGGatewayConnectionStatus() {
     }
     return ServiceTypeEnum.UNENABLED_SERVICE;
   };
-  const isServiceStatusInactive = serviceStatus =>
+  const isServiceStatusInactive = (serviceStatus: string) =>
     serviceStatus === ServiceTypeEnum.UNAVAILABLE_SERVICE ||
     serviceStatus === ServiceTypeEnum.UNENABLED_SERVICE;
-  const isServiceStatusActive = serviceStatus =>
+  const isServiceStatusActive = (serviceStatus: string) =>
     serviceStatus === ServiceTypeEnum.HEALTHY_SERVICE;
   const gxGyConnectionStatus = getServiceHealthStatus(
     gwHealthStatus?.service_status?.SESSION_PROXY,
@@ -69,7 +64,7 @@ export default function FEGGatewayConnectionStatus() {
     gwHealthStatus?.service_status?.S6A_PROXY,
   );
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Gx/Gy Watchdog',
