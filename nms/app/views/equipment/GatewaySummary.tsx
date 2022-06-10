@@ -9,22 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
-import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
+import type {LteGateway} from '../../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import React from 'react';
 
-export default function GatewaySummary({gwInfo}: {gwInfo: lte_gateway}) {
+export default function GatewaySummary({gwInfo}: {gwInfo: LteGateway}) {
   const version = gwInfo.status?.platform_info?.packages?.[0]?.version;
 
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         value: gwInfo.description,

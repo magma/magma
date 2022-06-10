@@ -37,6 +37,7 @@ import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayDetailSubscribers from './GatewayDetailSubscribers';
 import GatewayLogs from './GatewayLogs';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
