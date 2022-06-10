@@ -143,7 +143,6 @@ export async function FetchEnodebs(
   props: FetchProps,
 ): Promise<Record<string, EnodebInfo> | undefined> {
   const {networkId, id} = props;
-  let enbs: Record<string, Enodeb> = {};
   if (id !== undefined && id !== null) {
     let enb: Enodeb;
     try {
@@ -182,7 +181,7 @@ export async function FetchEnodebs(
         networkId,
       })
     ).data;
-    enbs = resp.enodebs;
+    const enbs = resp.enodebs;
     if (!enbs) {
       return;
     }
