@@ -16,7 +16,7 @@ import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {typography} from '../default';
 
-export const typographyStyles = makeStyles(() => ({
+export const typographyStyles = makeStyles({
   h1: typography.h1,
   h2: typography.h2,
   h3: typography.h3,
@@ -50,7 +50,7 @@ export const typographyStyles = makeStyles(() => ({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
-}));
+});
 
 type Props = {
   children: React.ReactNode | null | undefined;
