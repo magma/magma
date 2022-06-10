@@ -32,7 +32,7 @@ import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {Apn, ApnConfiguration, QosProfile} from '../../../generated-ts';
+import type {Apn, ApnConfiguration} from '../../../generated-ts';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
@@ -60,7 +60,7 @@ type DialogProps = {
 export default function ApnEditDialog(props: DialogProps) {
   const [_, setError] = useState('');
   const [apn, setApn] = useState<Apn>(props.apn || DEFAULT_APN_CONFIG);
-  const isAdd = props.apn ? false : true;
+  const isAdd = !props.apn;
 
   useEffect(() => {
     setApn(props.apn || DEFAULT_APN_CONFIG);
@@ -177,6 +177,7 @@ export function ApnEdit(props: Props) {
                 data-testid="classID"
                 placeholder="9"
                 type="number"
+                inputProps={{min: 0}}
                 fullWidth={true}
                 value={qosProfile.class_id}
                 onChange={({target}) =>
@@ -294,8 +295,10 @@ export function ApnEdit(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </DialogActions>
