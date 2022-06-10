@@ -19,6 +19,7 @@ import type {DataRows} from '../../components/DataGrid';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {network_ran_configs} from '../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
