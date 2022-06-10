@@ -420,7 +420,7 @@ void clean_stale_enb_state(s1ap_state_t* state,
     ue_description_t* ue_ref = NULL;
     for (auto itr_map = stale_enb_association->ue_id_coll.map->begin();
          itr_map != stale_enb_association->ue_id_coll.map->end(); ++itr_map) {
-      ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t)itr_map->second);
+      ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t)itr_map->first);
       /* The function s1ap_remove_ue will take care of removing the enb also,
        * when the last UE is removed
        */
