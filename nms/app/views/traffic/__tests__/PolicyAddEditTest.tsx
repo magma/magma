@@ -23,11 +23,9 @@ import {
 } from '../../../components/lte/LteContext';
 
 import MagmaAPI from '../../../../api/MagmaAPI';
-import {AxiosResponse} from 'axios';
 import {
   BaseNameRecord,
   FegLteNetwork,
-  LteNetwork,
   NetworkFederationConfigs,
   PolicyRule,
   RatingGroup,

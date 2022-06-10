@@ -61,9 +61,7 @@ export default function FiringAlerts(props: Props) {
   const resolvedPath = useResolvedPath('');
   const {apiUtil, filterLabels} = useAlarmContext();
   const [selectedRow, setSelectedRow] = useState<PromFiringAlert | null>(null);
-  const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
-    new Date().toLocaleString(),
-  );
+  const [lastRefreshTime] = useState<string>(new Date().toLocaleString());
   const [alertData, setAlertData] = useState<Array<PromFiringAlert> | null>(
     null,
   );

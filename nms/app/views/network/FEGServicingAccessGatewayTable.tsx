@@ -27,7 +27,7 @@ import {GatewayTypeEnum} from '../../components/GatewayUtils';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import type {FegLteNetwork, LteGateway} from '../../../generated-ts';
+import type {FegLteNetwork} from '../../../generated-ts';
 import type {OptionsObject} from 'notistack';
 
 type ServicingAccessGatewayRowType = {

@@ -143,7 +143,6 @@ export function NetworkDashboardInternal() {
   /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
   const epcConfigs = ctx.state.cellular?.epc!;
   const lteRanConfigs = ctx.state.cellular?.ran!;
-  const lteDnsConfig = ctx.state.dns!;
   /* eslint-enable @typescript-eslint/no-non-null-asserted-optional-chain */
 
   function editNetwork() {

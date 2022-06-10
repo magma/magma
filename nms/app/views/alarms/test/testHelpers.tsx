@@ -44,7 +44,6 @@ export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
     <TParams, TResponse>(
       func: (params: TParams) => Promise<{data: TResponse}>,
       params: TParams,
-      _cacheCounter?: string | number,
     ) => ({
       isLoading: false,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access

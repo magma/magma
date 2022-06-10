@@ -58,7 +58,7 @@ type DialogProps = {
 };
 
 export default function ApnEditDialog(props: DialogProps) {
-  const [_, setError] = useState('');
+  const [, setError] = useState('');
   const [apn, setApn] = useState<Apn>(props.apn || DEFAULT_APN_CONFIG);
   const isAdd = !props.apn;
 
