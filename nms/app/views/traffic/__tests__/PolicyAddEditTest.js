@@ -33,7 +33,6 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe migrated to typescript
 import MagmaAPI from '../../../../api/MagmaAPI';
-import MagmaV1API from '../../../../generated/WebClient';
 // $FlowFixMe Upgrade react-testing-library
 import {fireEvent, render, waitFor} from '@testing-library/react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -199,7 +198,7 @@ describe('<TrafficDashboard />', () => {
       .spyOn(MagmaAPI.federationNetworks, 'fegNetworkIdSubscriberConfigPut')
       .mockImplementation();
 
-    MagmaV1API.getFegByNetworkId.mockResolvedValue(feg_network);
+    MagmaAPIBindings.getFegByNetworkId.mockResolvedValue(feg_network);
     MagmaAPIBindings.getFegLteByNetworkId.mockResolvedValue(feg_lte_network);
     MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles.mockResolvedValue({});
     MagmaAPIBindings.getNetworksByNetworkIdPoliciesBaseNamesByBaseName.mockResolvedValue(
