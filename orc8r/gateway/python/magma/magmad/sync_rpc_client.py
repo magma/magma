@@ -65,8 +65,8 @@ class SyncRPCClient(threading.Thread):
         will be attempted after RETRY_DELAY_SECS seconds.
         """
         while True:
+            start_time = time.time()
             try:
-                start_time = time.time()
                 chan = ServiceRegistry.get_rpc_channel(
                     'dispatcher',
                     ServiceRegistry.CLOUD,

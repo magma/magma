@@ -68,7 +68,7 @@ $(BIN)/coverage: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "coverage>=6.1.2"
 
 $(BIN)/pylint: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) pylint==2.12.2
+	$(VIRT_ENV_PIP_INSTALL) pylint==2.14.0
 
 $(BIN)/pep8: install_virtualenv
 	# pylint doesn't cover all the pep8 style guidelines. Specifically,

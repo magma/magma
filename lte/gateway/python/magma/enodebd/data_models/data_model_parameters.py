@@ -32,6 +32,13 @@ class ParameterName():
     SERIAL_NUMBER = 'Serial number'
     CELL_ID = 'Cell ID'
 
+    ANTENNA_HEIGHT = 'Antenna height'
+    ANTENNA_HEIGHT_TYPE = 'Antenna height type'
+    ANTENNA_GAIN = 'Antenna gain'
+
+    CBSD_CATEGORY = 'CBSD category'
+    INDOOR_DEPLOYMENT = 'Indoor deployment'
+
     # Capabilities
     DUPLEX_MODE_CAPABILITY = 'Duplex mode capability'
     BAND_CAPABILITY = 'Band capability'

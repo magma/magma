@@ -143,15 +143,15 @@ admin_operator.pem      certifier.key           controller.csr          rootCA.p
 admin_operator.pfx      certifier.pem           controller.key          rootCA.srl
 ```
 
-The owner and group of `admin_cert.key.pem` and `admin_cert.pfx` in `/magma/.cache/test_certs/` are `root`.
+The owner and group of `admin_operator.key.pem` and `admin_operator.pfx` in `/magma/.cache/test_certs/` are `root`.
 You need to change ownership of these files to your user with `chown`, e.g.
 
 ```bash
-HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.key.pem
-HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.pfx
+HOST [magma/orc8r/cloud/docker] sudo chown ${USER}:${USER} ../../../.cache/test_certs/admin_operator.key.pem
+HOST [magma/orc8r/cloud/docker] sudo chown ${USER}:${USER} ../../../.cache/test_certs/admin_operator.pfx
 ```
 
-Replace `username` with your username, then:
+then:
 
 ```bash
 HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs
