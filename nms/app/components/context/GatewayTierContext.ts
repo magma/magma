@@ -12,7 +12,7 @@
  */
 
 import React from 'react';
-import type {Tier, TierId} from '../../../shared/types/network';
+import type {Tier} from '../../../generated-ts';
 
 type GatewayTierState = {
   tiers: Record<string, Tier>;
@@ -21,7 +21,7 @@ type GatewayTierState = {
 
 export type GatewayTierContextType = {
   state: GatewayTierState;
-  setState: (key: TierId, val?: Tier) => Promise<void>;
+  setState: (key: string, val?: Tier) => Promise<void>;
 };
 export default React.createContext<GatewayTierContextType>(
   {} as GatewayTierContextType,
