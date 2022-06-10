@@ -179,6 +179,7 @@ describe('<Enodeb />', () => {
         new Date(currTime).toLocaleDateString(),
       );
     });
-    await wait(undefined, {timeout: 200});
+    // TODO: The wait was needed as this test seems to be blinking.
+    await wait(undefined, {timeout: 42});
   });
 });
