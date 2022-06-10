@@ -23,7 +23,7 @@ import type {NetworkId, PolicyId} from '../../shared/types/network';
 type Props = {
   networkId: NetworkId;
   policies: Record<string, PolicyRule>;
-  setPolicies: (arg0: Record<string, PolicyRule>) => void;
+  setPolicies: (policies: Record<string, PolicyRule>) => void;
   key: PolicyId;
   value?: PolicyRule;
 };
@@ -70,7 +70,7 @@ export async function SetPolicyState(props: Props) {
 type BaseNameProps = {
   networkId: NetworkId;
   baseNames: Record<string, BaseNameRecord>;
-  setBaseNames: (arg0: Record<string, BaseNameRecord>) => void;
+  setBaseNames: (baseNames: Record<string, BaseNameRecord>) => void;
   key: string;
   // base name id
   value?: BaseNameRecord;
@@ -118,7 +118,7 @@ export async function SetBaseNameState(props: BaseNameProps) {
 type QosProfileProps = {
   networkId: NetworkId;
   qosProfiles: Record<string, PolicyQosProfile>;
-  setQosProfiles: (arg0: Record<string, PolicyQosProfile>) => void;
+  setQosProfiles: (qosProfiles: Record<string, PolicyQosProfile>) => void;
   key: string;
   value?: PolicyQosProfile;
 };
@@ -172,7 +172,7 @@ export async function SetQosProfileState(props: QosProfileProps) {
 type RatingGroupProps = {
   networkId: NetworkId;
   ratingGroups: Record<string, RatingGroup>;
-  setRatingGroups: (arg0: Record<string, RatingGroup>) => void;
+  setRatingGroups: (ratingGroups: Record<string, RatingGroup>) => void;
   key: string;
   value?: RatingGroup;
 };
