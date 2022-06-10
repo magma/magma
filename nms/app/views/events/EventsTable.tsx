@@ -63,22 +63,16 @@ function getEventDescription(event: {event_type: string}) {
   switch (event.event_type) {
     case 'processed_updates':
       return 'Updates streamed from orchestrator were processed by the gateway';
-
     case 'updated_stored_mconfig':
       return "The gateway's stored mconfig was updated from the orchestrator";
-
     case 'session_created':
       return 'Subscriber session was created';
-
     case 'session_terminated':
       return 'Subscriber session was terminated';
-
     case 'attach_success':
       return 'UE attaches successfully';
-
     case 'detach_success':
       return 'UE detaches successfully';
-
     default:
       return event.event_type;
   }
