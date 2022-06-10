@@ -11,10 +11,6 @@
  * limitations under the License.
  */
 
-type GettableReceiver = {
-  name: string;
-};
-
 export type FiringAlarmStatus = {
   inhibitedBy: Array<string>;
   silencedBy: Array<string>;

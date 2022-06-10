@@ -74,7 +74,7 @@ import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type EnodebSerials = Array<string>;
@@ -86,7 +86,7 @@ const EPC_TITLE = 'Epc';
 const APN_RESOURCES_TITLE = 'APN Resources';
 const HEADER_ENRICHMENT_TITLE = 'Header Enrichment';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -119,7 +119,7 @@ const useStyles = makeStyles(_ => ({
   accordionList: {
     width: '100%',
   },
-}));
+});
 
 const EditTableType = {
   info: 0,

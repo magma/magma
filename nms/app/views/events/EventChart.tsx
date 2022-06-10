@@ -81,7 +81,7 @@ export default function EventChart(props: Props) {
     Promise.all(requests)
       .then(allResponses => {
         const data: Array<DatasetType> = allResponses.map((r, index) => {
-          const [_, e] = queries[index];
+          const [, e] = queries[index];
           if (r === null || r === undefined) {
             return {
               t: e.unix() * 1000,

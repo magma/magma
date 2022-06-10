@@ -767,11 +767,7 @@ export function PolicyProvider(props: Props) {
               fegNetwork.subscriber_config?.network_wide_rule_names ?? [];
 
             if (oldRuleNames.includes(key)) {
-              ruleNames = oldRuleNames.filter(function (
-                ruleId,
-                _unused0,
-                _unused1,
-              ) {
+              ruleNames = oldRuleNames.filter(function (ruleId) {
                 return ruleId !== key;
               });
               void lteNetworkCtx.updateNetworks({
@@ -787,11 +783,7 @@ export function PolicyProvider(props: Props) {
 
             // if we have old feg rul
             if (oldFegRuleNames.includes(key)) {
-              fegRuleNames = oldFegRuleNames.filter(function (
-                ruleId,
-                _unused0,
-                _unused1,
-              ) {
+              fegRuleNames = oldFegRuleNames.filter(function (ruleId) {
                 return ruleId !== key;
               });
 

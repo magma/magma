@@ -81,10 +81,6 @@ export function thresholdToPromQL(
   return exp.toPromQL();
 }
 
-type ExpressionChangeFunc = (
-  formUpdate: (val: string) => {expression: string},
-) => (event: React.ChangeEvent<HTMLElement>) => void;
-
 export default function ToggleableExpressionEditor(props: {
   onChange: InputChangeFunc;
   onThresholdExpressionChange: (expresion: ThresholdExpression) => void;

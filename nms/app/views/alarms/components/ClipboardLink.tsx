@@ -12,8 +12,6 @@
  */
 
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
 import Tooltip, {TooltipProps} from '@material-ui/core/Tooltip';
 
 import copy from 'copy-to-clipboard';

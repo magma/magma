@@ -853,7 +853,7 @@ const testCases = [
 ] as const;
 
 describe('Tokenize', () => {
-  it.each(testCases)('%s', (name, input, expectedTokens, _) => {
+  it.each(testCases)('%s', (name, input, expectedTokens) => {
     if (expectedTokens instanceof ErrorMatcher) {
       expect(() => Tokenize(input)).toThrowError(expectedTokens.messageRegex);
     } else {
