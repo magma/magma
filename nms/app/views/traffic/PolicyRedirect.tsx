@@ -28,7 +28,7 @@ const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
   policyRule: PolicyRule;
-  onChange: (arg0: PolicyRule) => void;
+  onChange: (policyRule: PolicyRule) => void;
   inputClass: string;
 };
 

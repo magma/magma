@@ -50,7 +50,7 @@ const useStyles = makeStyles(() => policyStyles);
 type FieldProps = {
   index: number;
   flow: FlowDescription;
-  handleDelete: (arg0: number) => void;
+  handleDelete: (handleDelete: number) => void;
   onChange: (arg0: number, arg1: FlowDescription) => void;
 };
 
@@ -313,7 +313,7 @@ function PolicyFlowFields2(props: FieldProps) {
 
 type Props = {
   policyRule: PolicyRule;
-  onChange: (arg0: PolicyRule) => void;
+  onChange: (policyRule: PolicyRule) => void;
   inputClass: string;
 };
 
