@@ -1,4 +1,4 @@
-# Copyright 2020 The Magma Authors.
+# Copyright 2022 The Magma Authors.
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 # Unless required by applicable law or agreed to in writing, software
@@ -13,22 +13,22 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(mme_app_task)
-add_subdirectory(ngap)
-add_subdirectory(itti)
-add_subdirectory(amf)
-add_subdirectory(n11)
-add_subdirectory(s1ap_task)
-add_subdirectory(mock_tasks)
-add_subdirectory(nas)
-add_subdirectory(lib)
-add_subdirectory(lib/mme_app)
-if (EMBEDDED_SGW)
-  add_subdirectory(openflow)
-  add_subdirectory(spgw_task)
-  add_subdirectory(pipelined_client)
-  add_subdirectory(sgw_s8_task)
-  add_subdirectory(s6a_task)
-else (EMBEDDED_SGW)
-  add_subdirectory(gtpv2-c)
-endif (EMBEDDED_SGW)
+include_directories("/usr/src/googletest/googlemock/include/")
+
+link_directories(/usr/src/googletest/googlemock/lib/)
+
+set(MME_APP_MAP_TEST_SRC
+    test_mme_app_map.cpp
+    )
+add_executable(mme_app_map_test ${MME_APP_MAP_TEST_SRC})
+target_link_libraries(mme_app_map_test
+    TASK_MME_APP ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+    gtest gtest_main
+    )
+
+target_include_directories(mme_app_map_test PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CHECK_INCLUDE_DIRS}
+    )
+
+add_test(NAME test_mme_app_map COMMAND mme_app_map_test)

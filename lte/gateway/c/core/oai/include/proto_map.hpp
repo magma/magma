@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -13,145 +13,99 @@
 
 #pragma once
 #include <pthread.h>
-
-#include <iostream>
-#include <unordered_map>
 #include <string>
-
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
-namespace std {
-typedef size_t hash_size_t;
-/*Default hash function*/
-static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
-  hash_size_t hash = 0;
-  int key_size = key_sizeP;
+#include <iostream>
+#include <google/protobuf/map.h>
 
-  // may use MD4 ?
-  while (key_size > 0) {
-    uint32_t val = 0;
-    int size = sizeof(val);
-    while ((size > 0) && (key_size > 0)) {
-      val = val << 8;
-      val |= (reinterpret_cast<const uint8_t*>(keyP))[key_size - 1];
-      size--;
-      key_size--;
-    }
-    hash ^= val;
-  }
-
-  return hash;
-}
-// specialise std::equal_to function for type guti_m5_t
-template <>
-struct equal_to<guti_m5_t> {
-  bool operator()(const guti_m5_t& guti1, const guti_m5_t& guti2) const {
-    return (guti1.m_tmsi == guti2.m_tmsi);
-  }
-};
-
-/*specialise std::hash function for type guti_m5_t
-  HashFunction for Guti as key and unit64 data
-  Note: This HashFunc in turn calls the def_hashfunc which supports hashing
-  only for unit64*/
-template <>
-struct hash<guti_m5_t> {
-  size_t operator()(const guti_m5_t& k) const {
-    return def_hashfunc(&k, sizeof(k));
-  }
-};
-}  // namespace std
 namespace magma {
 
 /*Enum for Map Return code
   Note: If new named constant is added to the enumeration list, add the new case
   in map_rc_code2string()*/
-typedef enum map_return_code_e {
-  MAP_OK = 0,
-  MAP_KEY_NOT_EXISTS,
-  MAP_SEARCH_NO_RESULT,
-  MAP_KEY_ALREADY_EXISTS,
-  MAP_BAD_PARAMETER_KEY,
-  MAP_BAD_PARAMETER_VALUE,
-  MAP_EMPTY,
-  MAP_DUMP_FAIL
-} map_rc_t;
+typedef enum proto_map_return_code_e {
+  PROTO_MAP_OK = 0,
+  PROTO_MAP_KEY_NOT_EXISTS,
+  PROTO_MAP_SEARCH_NO_RESULT,
+  PROTO_MAP_KEY_ALREADY_EXISTS,
+  PROTO_MAP_BAD_PARAMETER_KEY,
+  PROTO_MAP_BAD_PARAMETER_VALUE,
+  PROTO_MAP_EMPTY,
+  PROTO_MAP_DUMP_FAIL
+} proto_map_rc_t;
 
 /***************************************************************************
 **                                                                        **
 ** Name:    map_rc_code2string()                                          **
 **                                                                        **
-** Description: This converts the map_rc_t, return code to string         **
+** Description: This converts the proto_map_rc_t, return code to string   **
 **                                                                        **
 ***************************************************************************/
 
-static std::string map_rc_code2string(map_rc_t rc) {
+static std::string map_rc_code2string(proto_map_rc_t rc) {
   switch (rc) {
-    case MAP_OK:
+    case PROTO_MAP_OK:
       return "MAP_OK";
       break;
 
-    case MAP_KEY_NOT_EXISTS:
+    case PROTO_MAP_KEY_NOT_EXISTS:
       return "MAP_KEY_NOT_EXISTS";
       break;
 
-    case MAP_SEARCH_NO_RESULT:
+    case PROTO_MAP_SEARCH_NO_RESULT:
       return "MAP_SEARCH_NO_RESULT";
       break;
 
-    case MAP_KEY_ALREADY_EXISTS:
+    case PROTO_MAP_KEY_ALREADY_EXISTS:
       return "MAP_KEY_ALREADY_EXISTS";
       break;
 
-    case MAP_BAD_PARAMETER_KEY:
+    case PROTO_MAP_BAD_PARAMETER_KEY:
       return "MAP_BAD_PARAMETER_KEY";
       break;
 
-    case MAP_BAD_PARAMETER_VALUE:
+    case PROTO_MAP_BAD_PARAMETER_VALUE:
       return "MAP_BAD_PARAMETER_VALUE";
       break;
 
-    case MAP_EMPTY:
+    case PROTO_MAP_EMPTY:
       return "MAP_EMPTY";
       break;
 
-    case MAP_DUMP_FAIL:
+    case PROTO_MAP_DUMP_FAIL:
       return "MAP_DUMP_FAIL";
       break;
 
     default:
-      return "UNKNOWN map_rc_t";
+      return "UNKNOWN proto_map_rc_t";
   }
 }
 
 /***************************************************************************
 **                                                                        **
-** Name:    map_s                                                         **
+** Name:    proto_map_s                                                   **
 **                                                                        **
 ** Description: This is a generic structure for maps.It is implemented    **
 **              using template struct definitions.                        **
 **                                                                        **
 ** Parameters:  keyT     - data type of key                               **
 **              valueT   - data type of value                             **
-**              Hash     - used to pass a custom hash function.           **
-**                         Default: std::hash<keyT>                       **
-**              KeyEqual - it is used to overload the EqualTo operator.   **
-**                         When using a userdefined struct as key,        **
-**                         pass a suitable EqualTo method.                **
-**                            Default: std::equal_to<keyT>                **
-**                                                                        **
 ** APIs:       set_name() , get_name(), get(), insert(), delete()         **
 **                                                                        **
 ***************************************************************************/
-template <typename keyT, typename valueT, class Hash = std::hash<keyT>,
-          class KeyEqual = std::equal_to<keyT>>
-struct map_s {
-  std::unordered_map<keyT, valueT, Hash, KeyEqual> umap;
-  std::string name;
 
-  void set_name(std::string umap_name) { name = umap_name; }
-  std::string get_name() { return name; }
+template <typename keyT, typename valueT>
+struct proto_map_s {
+  google::protobuf::Map<keyT, valueT>* map;
+  /* TODO (rsarwad): on final conversion to cpp,
+   replace char array with std::string */
+  char name[1024];
 
+  void set_name(char* umap_name) {
+    strncpy(name, umap_name, strlen(umap_name));
+  }
+  char* get_name() { return name; }
   /***************************************************************************
   **                                                                        **
   ** Name:    get()                                                         **
@@ -161,19 +115,20 @@ struct map_s {
   **              else returns error.                                       **
   **                                                                        **
   ***************************************************************************/
-  map_rc_t get(const keyT key, valueT* valueP) {
-    if (umap.empty()) {
-      return MAP_EMPTY;
+
+  proto_map_rc_t get(const keyT key, valueT* valueP) {
+    if (map->empty()) {
+      return PROTO_MAP_EMPTY;
     }
     if (valueP == nullptr) {
-      return MAP_BAD_PARAMETER_VALUE;
+      return PROTO_MAP_BAD_PARAMETER_VALUE;
     }
-    auto search_result = umap.find(key);
-    if (search_result != umap.end()) {
+    auto search_result = map->find(key);
+    if (search_result != map->end()) {
       *valueP = search_result->second;
-      return MAP_OK;
+      return PROTO_MAP_OK;
     } else {
-      return MAP_KEY_NOT_EXISTS;
+      return PROTO_MAP_KEY_NOT_EXISTS;
     }
   }
 
@@ -186,14 +141,14 @@ struct map_s {
   **              returns error.                                            **
   **                                                                        **
   ***************************************************************************/
-  map_rc_t insert(const keyT key, const valueT value) {
-    typedef typename std::unordered_map<keyT, valueT>::iterator itr;
+  proto_map_rc_t insert(const keyT key, const valueT value) {
+    typedef typename google::protobuf::Map<keyT, valueT>::iterator itr;
     std::pair<itr, bool> insert_response =
-        umap.insert(std::make_pair(key, value));
+        map->insert(google::protobuf::MapPair<keyT, valueT>(key, value));
     if (insert_response.second) {
-      return MAP_OK;
+      return PROTO_MAP_OK;
     } else {
-      return MAP_KEY_ALREADY_EXISTS;
+      return PROTO_MAP_KEY_ALREADY_EXISTS;
     }
   }
 
@@ -205,15 +160,15 @@ struct map_s {
   **              the map. If key does not exists returns error             **
   **                                                                        **
   ***************************************************************************/
-  map_rc_t remove(const keyT key) {
-    if (umap.empty()) {
-      return MAP_EMPTY;
+  proto_map_rc_t remove(const keyT key) {
+    if (map->empty()) {
+      return PROTO_MAP_EMPTY;
     }
 
-    if (umap.erase(key)) {
-      return MAP_OK;
+    if (map->erase(key)) {
+      return PROTO_MAP_OK;
     } else {
-      return MAP_KEY_NOT_EXISTS;
+      return PROTO_MAP_KEY_NOT_EXISTS;
     }
   }
 
@@ -224,7 +179,7 @@ struct map_s {
   ** Description: Returns true if map is empty, else returns false          **
   **                                                                        **
   ***************************************************************************/
-  bool isEmpty() { return umap.empty(); }
+  bool isEmpty() { return map->empty(); }
 
   /***************************************************************************
   **                                                                        **
@@ -234,8 +189,9 @@ struct map_s {
   **                                                                        **
   ***************************************************************************/
   void clear() {
-    umap.clear();
-    name.clear();
+    if (!(map->empty())) {
+      map->clear();
+    }
   }
   /***************************************************************************
   **                                                                        **
@@ -244,13 +200,49 @@ struct map_s {
   ** Description: size the contents of the map                              **
   **                                                                        **
   ***************************************************************************/
-  size_t size() { return umap.size(); }
+  size_t size() { return map->size(); }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    destroy_map()                                                 **
+  **                                                                        **
+  ** Description: Clears the contents of the map and also delete map        **
+  **                                                                        **
+  ***************************************************************************/
+  void destroy_map() {
+    map->clear();
+    delete map;
+  }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    map_apply_callback_on_all_elements()                          **
+  **                                                                        **
+  ** Description: Traverses through map and call callback function to be    **
+  **              executed on each node                                     **
+  **                                                                        **
+  ***************************************************************************/
+  proto_map_rc_t map_apply_callback_on_all_elements(
+      bool funct_cb(const keyT key, const valueT value, void* parameterP,
+                    void** resultP),
+      void* parameterP, void** resultP) {
+    if (map->empty()) {
+      return PROTO_MAP_EMPTY;
+    }
+    for (auto itr = map->begin(); itr != map->end(); itr++) {
+      if (funct_cb(itr->first, itr->second, parameterP, resultP)) {
+        return PROTO_MAP_OK;
+      }
+    }
+    return PROTO_MAP_DUMP_FAIL;
+  }
 };
 
-// Amf-Map Declarations:
-// Map- Key: uint64_t , Data: uint64_t
-typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
-// Map- Key: string , Data: string
-typedef magma::map_s<std::string, std::string> map_string_string_t;
+// Map- Key: uint64_t, Data: uint64_t
+typedef magma::proto_map_s<uint64_t, uint64_t> proto_map_uint64_uint64_t;
+// Map- Key: string, Data: uint64_t
+typedef magma::proto_map_s<std::string, uint64_t> proto_map_string_uint64_t;
+// Map- Key: uint32_t, Data: uint64_t
+typedef magma::proto_map_s<uint32_t, uint64_t> proto_map_uint32_uint64_t;
 
 }  // namespace magma

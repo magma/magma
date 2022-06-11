@@ -993,6 +993,7 @@ def validate_routing_table(dst: str, dev_name: str) -> Optional[str]:
         ["ip", "r", "get", dst],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for line in dump1.stdout.readlines():
         if "dev" not in str(line):
             continue
@@ -1006,6 +1007,7 @@ def validate_routing_table(dst: str, dev_name: str) -> Optional[str]:
         ["ovs-ofctl", "dump-flows", dev_name],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for line in dump1.stdout.readlines():
         print("pbs: %s", line)
     assert 0
