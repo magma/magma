@@ -9,43 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {ActionQuery} from '../../components/ActionTable';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
-import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+import AutorefreshCheckbox, {
+  useRefreshingDateRange,
+} from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import LogChart from './GatewayLogChart';
-import MagmaV1API from '../../../generated/WebClient';
-import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
+import React, {useMemo, useRef, useState} from 'react';
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {MaterialTableProps} from '@material-table/core';
+import {OptionsObject} from 'notistack';
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
-import {useMemo, useRef, useState} from 'react';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
-import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
+import type {ActionQuery} from '../../components/ActionTable';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
 // we have to use a different mechanism in case we want to go higher, we should
@@ -54,20 +45,15 @@ import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 const MAX_PAGE_ROW_COUNT = 10000;
 const EXPORT_DELIMITER = ',';
 const LOG_COLUMNS = [
-  {
-    title: 'Date',
-    field: 'date',
-    type: 'datetime',
-    width: 200,
-    filtering: false,
-  },
-  {title: 'Service', field: 'service', width: 200},
-  {title: 'Tag', field: 'tag', width: 200},
-  {title: 'Type', field: 'logType', width: 200, filtering: false},
-  {title: 'Output', field: 'output', filtering: false},
+  // eslint-disable-next-line prettier/prettier
+  {title: 'Date', field: 'date', type: 'datetime', width: 200, filtering: false,} as const,
+  {title: 'Service', field: 'service', width: 200} as const,
+  {title: 'Tag', field: 'tag', width: 200} as const,
+  {title: 'Type', field: 'logType', width: 200, filtering: false} as const,
+  {title: 'Output', field: 'output', filtering: false} as const,
 ];
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -91,45 +77,59 @@ const getLogType = (msg: string): string => {
       return typ;
     }
   }
+
   return 'debug';
 };
 
-function buildQueryFilters(q: ActionQuery, gatewayId: string) {
-  const logQuery = {
-    simpleQuery: q.search ?? '',
-    fields: undefined,
-    filters: undefined,
-  };
+function buildQueryFilters(query: ActionQuery, gatewayId: string) {
+  let simpleQuery = query.search ?? '';
+  let fields: string | undefined;
   const filters = [`gateway_id:${gatewayId}`];
-  if (q.search === '' && q.filters.length === 1) {
+
+  if (query.search === '' && query.filters.length === 1) {
     // for this case we can do a regex search
-    logQuery.simpleQuery = q.filters[0].value;
-    logQuery.fields = q.filters[0].column.field === 'service' ? 'ident' : 'tag';
-  } else if (q.filters.length > 0) {
-    q.filters.forEach((filter, _) => {
+    simpleQuery = query.filters[0].value as string;
+    fields = query.filters[0].column.field === 'service' ? 'ident' : 'tag';
+  } else if (query.filters.length > 0) {
+    query.filters.forEach(filter => {
       switch (filter.column.field) {
         case 'service':
-          filters.push(`ident:${filter.value}`);
+          filters.push(`ident:${filter.value as string}`);
           break;
+
         case 'tag':
-          filters.push(`tag:${filter.value}`);
+          filters.push(`tag:${filter.value as string}`);
           break;
       }
     });
   }
-  logQuery.filters = filters.join(',');
-  return logQuery;
+
+  return {
+    simpleQuery,
+    fields,
+    filters: filters.join(','),
+  };
 }
 
-async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
-  const logs = await MagmaV1API.getNetworksByNetworkIdLogsSearch({
-    networkId: networkId,
-    from: from.toString(),
-    size: size.toString(),
-    start: start.toISOString(),
-    end: end.toISOString(),
-    ...buildQueryFilters(q, gatewayId),
-  });
+async function searchLogs(
+  networkId: string,
+  gatewayId: string,
+  from: number,
+  size: number,
+  start: moment.Moment,
+  end: moment.Moment,
+  query: ActionQuery,
+) {
+  const logs = (
+    await MagmaAPI.logs.networksNetworkIdLogsSearchGet({
+      networkId: networkId,
+      from: from.toString(),
+      size: size.toString(),
+      start: start.toISOString(),
+      end: end.toISOString(),
+      ...buildQueryFilters(query, gatewayId),
+    })
+  ).data;
 
   return logs.filter(Boolean).map(elastic_hit => {
     const src = elastic_hit._source;
@@ -146,14 +146,14 @@ async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
 }
 
 async function exportLogs(
-  networkId,
-  gatewayId,
-  from,
-  size,
-  start,
-  end,
-  q,
-  enqueueSnackbar,
+  networkId: string,
+  gatewayId: string,
+  from: number,
+  size: number,
+  start: moment.Moment,
+  end: moment.Moment,
+  query: ActionQuery,
+  enqueueSnackbar: (message: string, config: OptionsObject) => string | number,
 ) {
   try {
     const logRows = await searchLogs(
@@ -163,10 +163,11 @@ async function exportLogs(
       MAX_PAGE_ROW_COUNT,
       start,
       end,
-      q,
+      query,
     );
     const data = logRows.map(rowData =>
-      LOG_COLUMNS.map(columnDef => rowData[columnDef.field]),
+      // TODO[ts-migration]: the addRows in line 187 requires a string array
+      LOG_COLUMNS.map(columnDef => rowData[columnDef.field] as string),
     );
     const currTs = Date.now();
     new CsvBuilder(`logs_${currTs}.csv`)
@@ -174,49 +175,62 @@ async function exportLogs(
       .setColumns(LOG_COLUMNS.map(columnDef => columnDef.title))
       .addRows(data)
       .exportFile();
-  } catch (e) {
-    enqueueSnackbar(e?.message ?? 'error retrieving logs', {variant: 'error'});
+  } catch (error) {
+    enqueueSnackbar(getErrorMessage(error) ?? 'error retrieving logs', {
+      variant: 'error',
+    });
   }
 }
 
-function handleLogQuery(networkId, gatewayId, from, size, start, end, q) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const countReq = MagmaV1API.getNetworksByNetworkIdLogsCount({
+async function handleLogQuery(
+  networkId: string,
+  gatewayId: string,
+  from: number,
+  size: number,
+  start: moment.Moment,
+  end: moment.Moment,
+  query: ActionQuery,
+) {
+  try {
+    const countReq = (
+      await MagmaAPI.logs.networksNetworkIdLogsCountGet({
         networkId: networkId,
         start: start.toISOString(),
         end: end.toISOString(),
-        ...buildQueryFilters(q, gatewayId),
-      });
+        ...buildQueryFilters(query, gatewayId),
+      })
+    ).data;
 
-      const searchReq = searchLogs(
-        networkId,
-        gatewayId,
-        (q.page * q.pageSize).toString(),
-        q.pageSize.toString(),
-        start,
-        end,
-        q,
-      );
+    const searchReq = searchLogs(
+      networkId,
+      gatewayId,
+      query.page * query.pageSize,
+      query.pageSize,
+      start,
+      end,
+      query,
+    );
 
-      const [countResp, searchResp] = await Promise.all([countReq, searchReq]);
-      let gatewayLogCount = countResp;
-      if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
-        gatewayLogCount = MAX_PAGE_ROW_COUNT;
-      }
-      const page =
-        gatewayLogCount < q.page * q.pageSize
-          ? gatewayLogCount / q.pageSize
-          : q.page;
-      resolve({
-        data: searchResp,
-        page: page,
-        totalCount: gatewayLogCount,
-      });
-    } catch (e) {
-      reject(e?.message ?? 'error retrieving logs');
+    const [countResp, searchResp] = await Promise.all([countReq, searchReq]);
+    let gatewayLogCount = countResp;
+
+    if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
+      gatewayLogCount = MAX_PAGE_ROW_COUNT;
     }
-  });
+
+    const page =
+      gatewayLogCount < query.page * query.pageSize
+        ? gatewayLogCount / query.pageSize
+        : query.page;
+
+    return {
+      data: searchResp,
+      page: page,
+      totalCount: gatewayLogCount,
+    };
+  } catch (error) {
+    throw getErrorMessage(error, 'error retrieving logs');
+  }
 }
 
 export default function GatewayLogs() {
@@ -225,14 +239,17 @@ export default function GatewayLogs() {
   const networkId: string = nullthrows(params.networkId);
   const gatewayId: string = nullthrows(params.gatewayId);
   const [logCount, setLogCount] = useState(0);
-  const [actionQuery, setActionQuery] = useState<ActionQuery>({});
+  const [actionQuery, setActionQuery] = useState<ActionQuery>(
+    {} as ActionQuery,
+  );
   const enqueueSnackbar = useEnqueueSnackbar();
-  const tableRef = useRef(null);
+  const tableRef: MaterialTableProps<any>['tableRef'] = useRef(null);
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
     isAutoRefreshing,
     30000,
     () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
       tableRef.current && tableRef.current.onQueryChange();
     },
   );
@@ -270,7 +287,7 @@ export default function GatewayLogs() {
               disableFuture
               value={startDate}
               onChange={val => {
-                setStartDate(val);
+                setStartDate(val!);
                 setIsAutoRefreshing(false);
               }}
             />
@@ -288,7 +305,7 @@ export default function GatewayLogs() {
               disableFuture
               value={endDate}
               onChange={val => {
-                setEndDate(val);
+                setEndDate(val!);
                 setIsAutoRefreshing(false);
               }}
             />
@@ -298,8 +315,8 @@ export default function GatewayLogs() {
               variant="contained"
               color="primary"
               startIcon={<LaunchIcon />}
-              onClick={() =>
-                exportLogs(
+              onClick={() => {
+                void exportLogs(
                   networkId,
                   gatewayId,
                   0,
@@ -308,8 +325,8 @@ export default function GatewayLogs() {
                   endDate,
                   actionQuery,
                   enqueueSnackbar,
-                )
-              }>
+                );
+              }}>
               Export
             </Button>
           </Grid>
