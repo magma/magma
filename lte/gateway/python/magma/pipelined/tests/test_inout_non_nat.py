@@ -22,9 +22,15 @@ from typing import Dict, List, Optional
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
 from magma.pipelined.app import egress
+from magma.pipelined.app.egress import EgressController
+from magma.pipelined.app.ingress import IngressController
+from magma.pipelined.app.middle import MiddleController
+from magma.pipelined.app.testing import TestingController
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
+    StartThread,
     TestSetup,
 )
 from magma.pipelined.tests.pipelined_test_util import (
@@ -94,6 +100,13 @@ class InOutNonNatTest(unittest.TestCase):
     UPLINK_BR = "up_inout_br0"
     DHCP_PORT = "tino_dhcp"
     UPLINK_VLAN_SW = "vlan_inout"
+
+    service_manager: ServiceManager
+    thread: StartThread
+    ingress_controller: IngressController
+    middle_controller: MiddleController
+    egress_controller: EgressController
+    testing_controller: TestingController
 
     @classmethod
     def setup_uplink_br(cls):

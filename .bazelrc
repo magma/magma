@@ -68,10 +68,7 @@ build --per_file_copt=^lte/gateway/c/core/oai/tasks/sgw/.*$@-DPACKAGE_NAME=\"S/P
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
 build --javacopt="-target 8"
-build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
-build --javabase=@bazel_tools//tools/jdk:remote_jdk11
-build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
-build --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
+build --java_runtime_version=remotejdk_11
 
 coverage --config=coverage
 build:coverage --combined_report=lcov

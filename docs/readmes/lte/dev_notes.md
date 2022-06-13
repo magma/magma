@@ -215,7 +215,7 @@ as follows:
 From within the gdb shell, `bt` command will display the backtrace for the
 segmentation fault.
 
-TODO: add steps to read coredumps from python services
+<!-- TODO: add steps to read coredumps from python services -->
 
 ### Running MME with gdb
 

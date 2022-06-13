@@ -39,6 +39,9 @@ class TrafficClass:
 
     @staticmethod
     def delete_class(intf: str, qid: int, skip_filter=False) -> int:
+        if not TrafficClass.tc_ops:
+            raise ValueError("tc_ops not initialized yet")
+
         qid_hex = hex(qid)
 
         if not skip_filter:
@@ -51,6 +54,9 @@ class TrafficClass:
         intf: str, qid: int, max_bw: int, rate=None,
         parent_qid=None, skip_filter=False,
     ) -> int:
+        if not TrafficClass.tc_ops:
+            raise ValueError("tc_ops not initialized yet")
+
         if not rate:
             rate = DEFAULT_RATE
 
