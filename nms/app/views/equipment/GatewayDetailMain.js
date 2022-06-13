@@ -64,6 +64,7 @@ import {
   GenericCommandControls,
   PingCommandControls,
   TroubleshootingControl,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/GatewayCommandFields';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 // $FlowFixMe migrated to typescript
@@ -72,7 +73,7 @@ import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {WithAlert} from '../../components/Alert/withAlert';
