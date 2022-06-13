@@ -9,62 +9,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {LteGateway} from '../../../generated-ts';
 import type {WithAlert} from '../../components/Alert/withAlert';
-import type {
-  gateway_id,
-  lte_gateway,
-} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayCheckinChart from './GatewayCheckinChart';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
-// $FlowFixMe migrated to typescript
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useEffect, useState} from 'react';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
+import {GatewayId} from '../../../shared/types/network';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SelectEditComponent} from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -134,20 +113,20 @@ export default function Gateway() {
 }
 
 type EquipmentGatewayRowType = {
-  name: string,
-  id: gateway_id,
-  num_enodeb: number,
-  num_subscribers: number,
-  health: string,
-  checkInTime: Date | string,
+  name: string;
+  id: GatewayId;
+  num_enodeb: number;
+  num_subscribers: number;
+  health: string;
+  checkInTime: Date | string;
 };
 
 type EquipmentGatewayUpgradeType = {
-  name: string,
-  id: gateway_id,
-  hardwareId: string,
-  tier: string,
-  currentVersion: string,
+  name: string;
+  id: GatewayId;
+  hardwareId: string;
+  tier: string;
+  currentVersion: string;
 };
 
 const ViewTypes = {
@@ -157,7 +136,7 @@ const ViewTypes = {
 
 function GatewayTable() {
   const classes = useStyles();
-  const [currentView, setCurrentView] = useState<$Keys<typeof ViewTypes>>(
+  const [currentView, setCurrentView] = useState<keyof typeof ViewTypes>(
     'STATUS',
   );
   const ctx = useContext(GatewayContext);
@@ -221,8 +200,8 @@ function UpgradeTable() {
   const lteGatewayRows: Array<EquipmentGatewayUpgradeType> = [];
   Object.keys(lteGateways)
     .map((gwId: string) => lteGateways[gwId])
-    .filter((g: lte_gateway) => g.cellular && g.id)
-    .map((gateway: lte_gateway) => {
+    .filter((g: LteGateway) => g.cellular && g.id)
+    .map((gateway: LteGateway) => {
       const packages = gateway.status?.platform_info?.packages || [];
       lteGatewayRows.push({
         name: gateway.name,
@@ -272,8 +251,8 @@ function UpgradeTable() {
           editComponent: props => (
             <SelectEditComponent
               {...props}
-              defaultValue={props.value}
-              value={props.value}
+              defaultValue={props.value as string}
+              value={props.value as string}
               content={Object.keys(ctx.state.tiers)}
               onChange={value => props.onChange(value)}
             />
@@ -285,25 +264,24 @@ function UpgradeTable() {
         pageSizeOptions: [5, 10],
       }}
       editable={{
-        onRowUpdate: async (newData, oldData) =>
-          new Promise(async (resolve, reject) => {
-            try {
-              await gwCtx.updateGateway({
-                gatewayId: newData.id,
-                tierId: newData.tier,
-              });
-              const dataUpdate = [...lteGatewayUpgradeRows];
-              const index = oldData.tableData.id;
-              dataUpdate[index] = newData;
-              setLteGatewayUpgradeRows([...dataUpdate]);
-              resolve();
-            } catch (e) {
-              enqueueSnackbar('failed saving gateway tier information', {
-                variant: 'error',
-              });
-              reject();
-            }
-          }),
+        onRowUpdate: async (newData, oldData) => {
+          try {
+            await gwCtx.updateGateway({
+              gatewayId: newData.id,
+              tierId: newData.tier,
+            });
+            const dataUpdate = [...lteGatewayUpgradeRows];
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const index = (oldData as any).tableData.id as number;
+            dataUpdate[index] = newData;
+            setLteGatewayUpgradeRows([...dataUpdate]);
+          } catch (e) {
+            enqueueSnackbar('failed saving gateway tier information', {
+              variant: 'error',
+            });
+            throw e;
+          }
+        },
       }}
     />
   );
@@ -337,19 +315,21 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
 
   const lteGateways = state;
-  const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
+  const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>(
+    {} as EquipmentGatewayRowType,
+  );
   const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
 
   Object.keys(lteGateways)
     .map((gwId: string) => lteGateways[gwId])
-    .filter((g: lte_gateway) => g.cellular && g.id)
-    .map((gateway: lte_gateway) => {
+    .filter((g: LteGateway) => g.cellular && g.id)
+    .map((gateway: LteGateway) => {
       let numEnodeBs = 0;
       if (gateway.connected_enodeb_serials) {
         numEnodeBs = gateway.connected_enodeb_serials.length;
       }
 
-      let checkInTime = '-';
+      let checkInTime: string | Date = '-';
       if (
         gateway.status &&
         gateway.status.checkin_time != null &&
@@ -363,8 +343,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         id: gateway.id,
         num_enodeb: numEnodeBs,
         num_subscribers:
-          // $FlowIgnore: gateway.device should be present
-          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
+          gwSubscriberMap?.[gateway.device!.hardware_id]?.length ?? 0,
         health: gateway.checked_in_recently ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });
@@ -413,7 +392,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
