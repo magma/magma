@@ -9,14 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 export {default as useAxios} from './useAxios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 export {default as useSnackbar} from './useSnackbar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 export {default as useInterval} from './useInterval';

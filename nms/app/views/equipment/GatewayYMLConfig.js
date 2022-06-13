@@ -44,7 +44,8 @@ import {useCallback, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import {useSnackbar} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useSnackbar} from '../../hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

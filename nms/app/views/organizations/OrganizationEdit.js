@@ -42,7 +42,8 @@ import withAlert from '../../components/Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useAxios} from '../../hooks';
 import {useCallback, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

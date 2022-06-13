@@ -37,7 +37,8 @@ import {UserRoles} from '../../../shared/roles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useAxios} from '../../hooks';
 import {useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(_ => ({

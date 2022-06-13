@@ -42,7 +42,8 @@ import renderList from '../../../util/renderList';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../Alert/withAlert';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useAxios} from '../../../hooks';
 import {useCallback, useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../../app/hooks/useSnackbar';

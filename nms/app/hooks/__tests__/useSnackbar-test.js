@@ -18,7 +18,8 @@ import * as notistack from 'notistack';
 import React from 'react';
 
 import {renderHook} from '@testing-library/react-hooks';
-import {useSnackbar} from '../../hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useSnackbar} from '../index';
 
 jest.mock('@material-ui/core/Slide', () => () => <div />);
 jest.mock('notistack');

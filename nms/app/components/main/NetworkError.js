@@ -18,7 +18,8 @@ import type {$AxiosError} from 'axios';
 
 import React from 'react';
 
-import {useSnackbar} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useSnackbar} from '../../hooks';
 
 export default function NetworkError({error}: {error: $AxiosError<string>}) {
   let errorMessage = error.message;
