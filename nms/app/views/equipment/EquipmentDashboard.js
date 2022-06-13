@@ -24,6 +24,7 @@ import Cbsds from '../domain-proxy/Cbsds';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Enodeb from './EquipmentEnodeb';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebDetail from './EnodebDetailMain';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Gateway from './EquipmentGateway';

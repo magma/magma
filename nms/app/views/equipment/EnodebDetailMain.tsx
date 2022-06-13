@@ -9,55 +9,39 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebConfig from './EnodebDetailConfig';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {DateTimePicker} from '@material-ui/pickers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodebJsonConfig} from './EnodebDetailConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -133,7 +117,7 @@ function EnodebRebootButtonInternal(props: WithAlert) {
       return;
     }
 
-    props
+    void props
       .confirm(`Are you sure you want to reboot ${enodebSerial}?`)
       .then(async confirmed => {
         if (!confirmed) {
@@ -155,7 +139,7 @@ function EnodebRebootButtonInternal(props: WithAlert) {
             variant: 'success',
           });
         } catch (e) {
-          enqueueSnackbar(e.response?.data?.message ?? e.message, {
+          enqueueSnackbar(getErrorMessage(e), {
             variant: 'error',
           });
         }
@@ -190,12 +174,11 @@ function Overview() {
         <Grid item>
           <DateTimePicker
             autoOk
-            variant="outlined"
             inputVariant="outlined"
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={setStartDate}
+            onChange={date => setStartDate(date!)}
           />
         </Grid>
         <Grid item>
@@ -206,11 +189,10 @@ function Overview() {
         <Grid item>
           <DateTimePicker
             autoOk
-            variant="outlined"
             inputVariant="outlined"
             disableFuture
             value={endDate}
-            onChange={setEndDate}
+            onChange={date => setEndDate(date!)}
           />
         </Grid>
       </Grid>
@@ -258,8 +240,8 @@ function Overview() {
 }
 
 type Props = {
-  startDate: moment$Moment,
-  endDate: moment$Moment,
+  startDate: moment.Moment;
+  endDate: moment.Moment;
 };
 
 function EnodebMetricChart(props: Props) {
