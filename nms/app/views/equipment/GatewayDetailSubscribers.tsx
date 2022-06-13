@@ -9,32 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {GatewayDetailType} from './GatewayDetailMain';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+import type {GatewayDetailType} from './GatewayDetailMain';
 
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
+import {Subscriber} from '../../../generated-ts';
 import {useContext} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 type SubscriberRowType = {
-  id: string,
-  service: string,
+  id: string;
+  service: string;
 };
 
 export default function GatewayDetailSubscribers(props: GatewayDetailType) {
@@ -51,15 +44,19 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
     refresh: props.refresh,
   });
   const subscriberCtx = useContext(SubscriberContext);
-  const gwSubscriberMap =
-    // $FlowIgnore
-    subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id] || [];
+  const hardware_id = props.gwInfo?.device?.hardware_id;
+  const gwSubscriberMap = hardware_id
+    ? subscriberCtx.gwSubscriberMap[hardware_id]
+    : [];
 
   console.log('gwSubscriberMap: ', gwSubscriberMap);
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {
-      // $FlowIgnore
-      const subscriberInfo = subscriberState.state?.[serialNum];
+      //TODO[TS-migration] Something is seriously wrong here?
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+      const subscriberInfo = (subscriberState as any).state?.[
+        serialNum
+      ] as Subscriber;
       return {
         name: subscriberInfo?.name || serialNum,
         id: serialNum,
