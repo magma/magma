@@ -27,6 +27,7 @@ import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Gateway from './EquipmentGateway';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayDetail from './GatewayDetailMain';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayPools from './EquipmentGatewayPools';

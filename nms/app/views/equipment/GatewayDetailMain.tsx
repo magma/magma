@@ -14,37 +14,26 @@
  * @format
  */
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DashboardAlertTable from '../../components/DashboardAlertTable';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../views/events/EventsTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayConfigYml from './GatewayYMLConfig';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
-// $FlowFixMe migrated to typescript
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayDetailSubscribers from './GatewayDetailSubscribers';
 import GatewayLogs from './GatewayLogs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
-// $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
@@ -54,34 +43,27 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {
   GenericCommandControls,
   PingCommandControls,
   TroubleshootingControl,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/GatewayCommandFields';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-// $FlowFixMe migrated to typescript
 import {RunGatewayCommands} from '../../state/lte/EquipmentState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../../util/ErrorUtils';
+import type {LteGateway} from '../../../generated-ts';
 import type {WithAlert} from '../../components/Alert/withAlert';
-import type {lte_gateway} from '../../../generated/MagmaAPIBindings';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -91,9 +73,9 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 type CommandProps = {
-  gatewayID: string,
-  open: boolean,
-  onClose: () => void,
+  gatewayID: string;
+  open: boolean;
+  onClose: () => void;
 };
 
 function GatewayCommandDialog(props: CommandProps) {
@@ -124,7 +106,7 @@ function TroubleshootingDialog(props: CommandProps) {
       <DialogTitle onClose={props.onClose} label={'Troubleshoot Gateway'} />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v) => setTabPos(v as boolean)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key={AGGREGATION_TITLE} label={AGGREGATION_TITLE} />
@@ -150,7 +132,7 @@ function GatewayMenuInternal(props: WithAlert) {
     command: 'reboot' | 'ping' | 'restartServices' | 'generic',
     warnMsg: string,
   ) => {
-    props.confirm(warnMsg).then(async confirmed => {
+    void props.confirm(warnMsg).then(async confirmed => {
       if (!confirmed) {
         return;
       }
@@ -164,7 +146,7 @@ function GatewayMenuInternal(props: WithAlert) {
           variant: 'success',
         });
       } catch (e) {
-        enqueueSnackbar(e.response?.data?.message ?? e.message, {
+        enqueueSnackbar(getErrorMessage(e), {
           variant: 'error',
         });
       }
@@ -218,8 +200,8 @@ function GatewayMenuInternal(props: WithAlert) {
 const GatewayMenu = withAlert(GatewayMenuInternal);
 
 export type GatewayDetailType = {
-  gwInfo: lte_gateway,
-  refresh: boolean,
+  gwInfo: LteGateway;
+  refresh: boolean;
 };
 export function GatewayDetail() {
   const params = useParams();
@@ -309,7 +291,10 @@ function GatewayOverview() {
   const [refreshEnodebs, setRefreshEnodebs] = useState(false);
   const [refreshSubscribers, setRefreshSubscribers] = useState(false);
 
-  const filter = (refresh: boolean, setRefresh) => {
+  const filter = (
+    refresh: boolean,
+    setRefresh: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
     return (
       <AutorefreshCheckbox
         autorefreshEnabled={refresh}

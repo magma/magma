@@ -9,38 +9,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {GatewayDetailType} from './GatewayDetailMain';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 import {useState} from 'react';
 
 type EnodebRowType = {
-  name: string,
-  id: string,
-  health: string,
-  mmeConnected: string,
+  name: string;
+  id: string;
+  health: string;
+  mmeConnected: string;
 };
 
 export default function GatewayDetailEnodebs(props: GatewayDetailType) {
@@ -58,7 +49,7 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
   });
   const enbInfo =
     props.gwInfo.connected_enodeb_serials?.reduce(
-      (enbs: {[string]: EnodebInfo}, serial: string) => {
+      (enbs: Record<string, EnodebInfo>, serial: string) => {
         // $FlowIgnore
         if (enbState?.enbInfo?.[serial] != null) {
           // $FlowIgnore
@@ -68,7 +59,7 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
       },
       {},
     ) || {};
-  const [currRow, setCurrRow] = useState<EnodebRowType>({});
+  const [currRow, setCurrRow] = useState<EnodebRowType>({} as EnodebRowType);
 
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
