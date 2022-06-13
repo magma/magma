@@ -1,7 +1,7 @@
 ---
 name: reviewdog-workflow
 on:  # yamllint disable-line rule:truthy
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - reopened
@@ -151,6 +151,7 @@ jobs:
           github_token: ${{ secrets.github_token }}
           filter_mode: added
           reporter: github-pr-review
+          fail_on_error: true
 
   shellcheck:
     name: shellcheck
