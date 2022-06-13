@@ -9,38 +9,38 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import type {$AxiosXHR, AxiosXHRConfig} from 'axios';
+import type {AxiosRequestConfig, AxiosResponse} from 'axios';
 
 import axios from 'axios';
 import {merge} from 'lodash';
 import {useEffect, useState} from 'react';
 
-type AxiosResponse<T, R> = {
-  error: any,
-  isLoading: boolean,
-  response: ?$AxiosXHR<T, R>,
-  loadedUrl: ?string,
+type Result<T> = {
+  error: any;
+  isLoading: boolean;
+  response: AxiosResponse<T> | null;
+  loadedUrl: string | null | undefined;
 };
 
-export default function useAxios<T, R>(
-  config: {onResponse?: ($AxiosXHR<T, R>) => void} & AxiosXHRConfig<T, R>,
-): AxiosResponse<T, R> {
-  const [error, setError] = useState(null);
-  const [response, setResponse] = useState(null);
+type ExtendedConfig<T> = {
+  onResponse?: (response: AxiosResponse<T>) => any;
+} & AxiosRequestConfig;
+
+export default function useAxios<T>(config: ExtendedConfig<T>): Result<T> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const [error, setError] = useState<any>(null);
+  const [response, setResponse] = useState<AxiosResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadedUrl, setLoadedUrl] = useState(null);
+  const [loadedUrl, setLoadedUrl] = useState<string | null | undefined>(null);
 
   // implicitly filters out functions, e.g. onResponse
   const stringConfigs = JSON.stringify(config);
-  const onResponse = config.onResponse;
+  const onResponse = config?.onResponse;
 
   useEffect(() => {
-    const requestConfigs = JSON.parse(stringConfigs);
+    const requestConfigs = JSON.parse(stringConfigs) as ExtendedConfig<T>;
     const source = axios.CancelToken.source();
     const configWithCancelToken = merge({}, requestConfigs, {
       cancelToken: source.token,
@@ -48,7 +48,7 @@ export default function useAxios<T, R>(
     setIsLoading(true);
     setError(null);
     axios
-      .request<T, R>(configWithCancelToken)
+      .request<T>(configWithCancelToken)
       .then(res => {
         setIsLoading(false);
         setResponse(res);
@@ -69,6 +69,7 @@ export default function useAxios<T, R>(
     };
   }, [onResponse, stringConfigs]);
   return {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     error,
     isLoading,
     response,

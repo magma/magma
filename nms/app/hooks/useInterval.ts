@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import {useEffect, useRef} from 'react';
@@ -20,7 +17,7 @@ type TFunction = () => void | Promise<void>;
 
 // from https://overreacted.io/making-setinterval-declarative-with-react-hooks/
 export default function useInterval(callback: TFunction, delay: number) {
-  const savedCallback = useRef<?TFunction>();
+  const savedCallback = useRef<TFunction | undefined>();
 
   // Remember the latest callback.
   useEffect(() => {
