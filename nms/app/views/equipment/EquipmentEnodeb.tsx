@@ -9,48 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
-// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 const CHART_TITLE = 'Total Throughput';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -116,13 +102,13 @@ export default function Enodeb() {
 }
 
 type EnodebRowType = {
-  name: string,
-  id: string,
-  sessionName: string,
-  mmeConnected: string,
-  health: string,
-  reportedTime: Date,
-  numSubscribers: number,
+  name: string;
+  id: string;
+  sessionName: string;
+  mmeConnected: string;
+  health: string;
+  reportedTime: Date;
+  numSubscribers: number;
 };
 
 function EnodebTableRaw(props: WithAlert) {
@@ -150,7 +136,7 @@ function EnodebTableRaw(props: WithAlert) {
     setLastRefreshTime(new Date().toLocaleString());
   }, [ctxValues.length]);
 
-  const [currRow, setCurrRow] = useState<EnodebRowType>({});
+  const [currRow, setCurrRow] = useState<EnodebRowType>({} as EnodebRowType);
   // $FlowIgnore
   const enbInfo = state?.enbInfo;
   const enbRows: Array<EnodebRowType> = enbInfo
@@ -239,7 +225,7 @@ function EnodebTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {

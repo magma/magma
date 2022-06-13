@@ -21,6 +21,7 @@ import AddEditGatewayButton from './GatewayDetailConfigEdit';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayPoolButton from './GatewayPoolEdit';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

@@ -9,38 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
+import type {PromqlReturnObject} from '../../../../generated-ts';
 
 import Enodeb from '../EquipmentEnodeb';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as hooks from '../../../components/context/RefreshContext';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
 
-// $FlowFixMe Upgrade react-testing-library
-import {render, wait, waitFor} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {EnodebInfo} from '../../../components/lte/EnodebUtils';
+import {PaginatedEnodebs} from '../../../../generated-ts';
 import {mockAPI} from '../../../util/TestUtils';
+import {render, wait, waitFor} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
-const mockThroughput: promql_return_object = {
+const mockThroughput: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -63,10 +56,15 @@ describe('<Enodeb />', () => {
       mockThroughput,
     );
 
-    mockAPI(MagmaAPI.enodebs, 'lteNetworkIdEnodebsGet', enbInfo);
+    // TODO[TS-migration] Why is there a type mismatch here
+    mockAPI(
+      MagmaAPI.enodebs,
+      'lteNetworkIdEnodebsGet',
+      (enbInfo as unknown) as PaginatedEnodebs,
+    );
   });
 
-  const enbInfo0 = {
+  const enbInfo0: EnodebInfo = {
     enb: {
       attached_gateway_id: 'us_baltic_gw1',
       config: {
@@ -123,14 +121,14 @@ describe('<Enodeb />', () => {
     time_reported: currTime,
     rf_tx_on: true,
   };
-  const enbInfo = {
+  const enbInfo: Record<string, EnodebInfo> = {
     testEnodebSerial0: enbInfo0,
     testEnodebSerial1: enbInfo1,
   };
 
   const enbCtx = {
     state: {enbInfo: enbInfo},
-    setState: async _ => {},
+    setState: async () => {},
   };
 
   jest
