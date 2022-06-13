@@ -9,37 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayPoolButton from './GatewayPoolEdit';
 import Cbsds from '../domain-proxy/Cbsds';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Enodeb from './EquipmentEnodeb';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebDetail from './EnodebDetailMain';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Gateway from './EquipmentGateway';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayDetail from './GatewayDetailMain';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayPools from './EquipmentGatewayPools';
 import Grid from '@material-ui/core/Grid';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import RadioIcon from '@material-ui/icons/Radio';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeButton from './UpgradeTiersDialog';
 import {AddEditCbsdButton} from '../domain-proxy/CbsdEdit';
 
