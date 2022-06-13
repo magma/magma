@@ -9,28 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import DashboardAlertTable from '../DashboardAlertTable';
-import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
-import type {
-  gettable_alert,
-  prom_firing_alert,
-} from '../../../generated/MagmaAPIBindings';
+import {mockAPI} from '../../util/TestUtils';
+import type {GettableAlert, PromFiringAlert} from '../../../generated-ts';
 
-const tbl_alert: gettable_alert = {
+const tbl_alert: GettableAlert = {
   name: 'null_receiver',
 };
-const mockAlertSt: Array<prom_firing_alert> = [
+const mockAlertSt: Array<PromFiringAlert> = [
   {
     annotations: {
       description: 'TestMetric1 Description',
@@ -121,15 +115,11 @@ const mockAlertSt: Array<prom_firing_alert> = [
   },
 ];
 
-jest.mock('axios');
-jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('../../../app/hooks/useSnackbar');
 
 describe('<DashboardAlertTable />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getNetworksByNetworkIdAlerts.mockResolvedValue(
-      mockAlertSt,
-    );
+    mockAPI(MagmaAPI.alerts, 'networksNetworkIdAlertsGet', mockAlertSt);
   });
 
   const Wrapper = () => (
@@ -147,27 +137,25 @@ describe('<DashboardAlertTable />', () => {
   it('renders', async () => {
     const {getByText, getAllByRole} = render(<Wrapper />);
     await wait();
-    expect(MagmaAPIBindings.getNetworksByNetworkIdAlerts).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(MagmaAPI.alerts.networksNetworkIdAlertsGet).toHaveBeenCalledTimes(1);
 
     // get all rows
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
     // check if the default is critical alert sections
     expect(rowItems[1]).toHaveTextContent('TestAlert1');
     fireEvent.click(getByText('Critical(1)'));
     expect(rowItems[1]).toHaveTextContent('TestAlert1');
 
     fireEvent.click(getByText('Major(1)'));
-    const rowItems2 = await getAllByRole('row');
+    const rowItems2 = getAllByRole('row');
     expect(rowItems2[1]).toHaveTextContent('TestAlert2');
 
     fireEvent.click(getByText('Minor(1)'));
-    const rowItems3 = await getAllByRole('row');
+    const rowItems3 = getAllByRole('row');
     expect(rowItems3[1]).toHaveTextContent('TestAlert3');
 
     fireEvent.click(getByText('Other(1)'));
-    const rowItems4 = await getAllByRole('row');
+    const rowItems4 = getAllByRole('row');
     expect(rowItems4[1]).toHaveTextContent('TestAlert4');
 
     expect(getByText('Alerts (4)')).toBeInTheDocument();

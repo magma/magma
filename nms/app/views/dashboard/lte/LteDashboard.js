@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import DashboardKPIs from '../../../components/DashboardKPIs';
 import EventAlertChart from '../../../components/EventAlertChart';
