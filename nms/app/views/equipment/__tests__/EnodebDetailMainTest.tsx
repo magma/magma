@@ -9,39 +9,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {promql_return_object} from '../../../../generated/MagmaAPIBindings';
+import type {PromqlReturnObject} from '../../../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as hooks from '../../../components/context/RefreshContext';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../../components/context/EnodebContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebDetail from '../EnodebDetailMain';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import MagmaAPI from '../../../../api/MagmaAPI';
+import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
-const mockThroughput: promql_return_object = {
+const mockThroughput: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -61,10 +50,9 @@ describe('<Enodeb />', () => {
       'networksNetworkIdPrometheusQueryRangeGet',
       mockThroughput,
     );
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
   });
 
-  const enbInfo = {
+  const enbInfo: Record<string, EnodebInfo> = {
     testEnodebSerial0: {
       enb: {
         attached_gateway_id: 'testGw1',
@@ -165,12 +153,12 @@ describe('<Enodeb />', () => {
               <EnodebContext.Provider
                 value={{
                   state: {enbInfo: enbInfo},
-                  setState: async _ => {},
+                  setState: async () => {},
                 }}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
-                    element={<EnodebDetail enbInfo={enbInfo} />}
+                    element={<EnodebDetail />}
                   />
                 </Routes>
               </EnodebContext.Provider>
@@ -210,12 +198,12 @@ describe('<Enodeb />', () => {
               <EnodebContext.Provider
                 value={{
                   state: {enbInfo: enbInfo},
-                  setState: async _ => {},
+                  setState: async () => {},
                 }}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
-                    element={<EnodebDetail enbInfo={enbInfo} />}
+                    element={<EnodebDetail />}
                   />
                 </Routes>
               </EnodebContext.Provider>
