@@ -132,7 +132,7 @@ class IPAllocatorDHCP(IPAllocator):
         if not dhcp_desc or not dhcp_allocated_ip(dhcp_desc):
             dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan_id)
 
-        if dhcp_desc and dhcp_allocated_ip(dhcp_desc):
+        if dhcp_desc and dhcp_desc.subnet and dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
             ip_desc = IPDesc(
                 ip=ip_address(dhcp_desc.ip),
@@ -146,9 +146,7 @@ class IPAllocatorDHCP(IPAllocator):
 
             return ip_desc
         else:
-            msg = "No available IP addresses From DHCP for SID: {} MAC {}".format(
-                sid, mac,
-            )
+            msg = f"No available IP addresses From DHCP for SID: {sid} MAC {mac}"
             raise NoAvailableIPError(msg)
 
     def release_ip(self, ip_desc: IPDesc):

@@ -255,8 +255,8 @@ class DhcpClient(unittest.TestCase):
         # vlan is configured with subnet : 10.200.x.1
         # router IP is 10.200.x.211
         # x is vlan id
-        exptected_subnet = ipaddress.ip_network("10.200.%s.0/24" % vlan)
-        exptected_router_ip = ipaddress.ip_address("10.200.%s.211" % vlan)
+        exptected_subnet = ipaddress.ip_network(f"10.200.{vlan}.0/24")
+        exptected_router_ip = ipaddress.ip_address(f"10.200.{vlan}.211")
         with self.dhcp_wait:
             dhcp1 = self.dhcp_store.get(mac.as_redis_key(vlan))
             self.assertEqual(dhcp1.subnet, str(exptected_subnet))
