@@ -34,6 +34,7 @@ import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 // $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeButton from './UpgradeTiersDialog';
 import {AddEditCbsdButton} from '../domain-proxy/CbsdEdit';
 
