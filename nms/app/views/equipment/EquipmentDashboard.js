@@ -27,6 +27,7 @@ import EnodebDetail from './EnodebDetailMain';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayPools from './EquipmentGatewayPools';
 import Grid from '@material-ui/core/Grid';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';

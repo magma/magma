@@ -9,19 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
-import type {GatewayPoolRecordsType} from '../../components/context/GatewayPoolsContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
@@ -29,19 +19,19 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {GatewayPoolEditDialog} from './GatewayPoolEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
+import type {GatewayPoolRecordsType} from '../../components/context/GatewayPoolsContext';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -84,18 +74,20 @@ export default function GatewayPools() {
 }
 
 type GatewayPoolRowType = {
-  name: string,
-  id: string,
-  mmeGroupId: number,
-  gatewayPrimary: Array<GatewayPoolRecordsType>,
-  gatewaySecondary: Array<GatewayPoolRecordsType>,
+  name: string;
+  id: string;
+  mmeGroupId: number;
+  gatewayPrimary: Array<GatewayPoolRecordsType>;
+  gatewaySecondary: Array<GatewayPoolRecordsType>;
 };
 
 function GatewayPoolsTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayPoolsContext);
   const [open, setOpen] = useState(false);
-  const [currRow, setCurrRow] = useState<GatewayPoolRowType>({});
+  const [currRow, setCurrRow] = useState<GatewayPoolRowType>(
+    {} as GatewayPoolRowType,
+  );
   const [gwPool, setGwPool] = useState(ctx.state[currRow.id] || {});
   const resolvedPath = useResolvedPath('');
   const navigate = useNavigate();
@@ -209,7 +201,7 @@ function GatewayPoolsTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
@@ -219,7 +211,7 @@ function GatewayPoolsTableRaw(props: WithAlert) {
                   try {
                     await ctx.setState(currRow.id);
                   } catch (e) {
-                    enqueueSnackbar(e.response?.data?.message ?? e.message, {
+                    enqueueSnackbar(getErrorMessage(e), {
                       variant: 'error',
                     });
                   }

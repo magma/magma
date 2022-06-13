@@ -9,37 +9,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
-// $FlowFixMe migrated to typescript
-import GatewayPoolsContext from '../../../components/context/GatewayPoolsContext';
+import GatewayPoolsContext, {
+  GatewayPoolRecordsType,
+} from '../../../components/context/GatewayPoolsContext';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
-
+import {GatewayPoolId} from '../../../../shared/types/network';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {MutableCellularGatewayPool} from '../../../../generated-ts';
 import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
-  // $FlowFixMe migrated to typescript
 } from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
+import type {LteGateway} from '../../../../generated-ts';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -106,7 +99,7 @@ const gwPoolStateMock = {
   },
 };
 const networkId = 'test';
-const mockGw0: lte_gateway = {
+const mockGw0: LteGateway = {
   apn_resources: {},
   id: ' testGatewayId0',
   name: ' testGateway0',
@@ -121,7 +114,6 @@ const mockGw0: lte_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   connected_enodeb_serials: [],
   cellular: {
@@ -173,7 +165,7 @@ describe('<GatewayPools />', () => {
                   key,
                   value,
                 }),
-              updateGatewayPoolRecords: async _ => {},
+              updateGatewayPoolRecords: async () => {},
             }}>
             <Routes>
               <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
@@ -197,7 +189,7 @@ describe('<GatewayPools />', () => {
     );
     await wait();
 
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
@@ -248,34 +240,27 @@ describe('<GatewayPools />', () => {
 });
 
 describe('<AddEditGatewayPoolButton />', () => {
-  let lteNetworkIdGatewayPoolsGatewayPoolIdGet;
+  let lteNetworkIdGatewayPoolsGatewayPoolIdGet: jest.SpyInstance;
 
   beforeEach(() => {
-    (useEnqueueSnackbar: JestMockFn<
-      Array<empty>,
-      $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
-    jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsPost')
-      .mockImplementation();
+    (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsPost');
 
-    jest
-      .spyOn(
-        MagmaAPI.lteGateways,
-        'lteNetworkIdGatewaysGatewayIdCellularPoolingPut',
-      )
-      .mockResolvedValue({data: undefined}); // TODO[TS-migration] What is the real response?
+    mockAPI(
+      MagmaAPI.lteGateways,
+      'lteNetworkIdGatewaysGatewayIdCellularPoolingPut',
+    );
 
-    lteNetworkIdGatewayPoolsGatewayPoolIdGet = jest
-      .spyOn(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsGatewayPoolIdGet')
-      .mockResolvedValue({
-        data: {
-          config: {mme_group_id: 4},
-          gateway_ids: [],
-          gateway_pool_id: 'pool4',
-          gateway_pool_name: 'pool4',
-        },
-      });
+    lteNetworkIdGatewayPoolsGatewayPoolIdGet = mockAPI(
+      MagmaAPI.lteNetworks,
+      'lteNetworkIdGatewayPoolsGatewayPoolIdGet',
+      {
+        config: {mme_group_id: 4},
+        gateway_ids: [],
+        gateway_pool_id: 'pool4',
+        gateway_pool_name: 'pool4',
+      },
+    );
   });
   const AddWrapper = () => {
     const [gwPoolsState, setGatewayPoolsState] = useState({});
@@ -292,7 +277,11 @@ describe('<AddEditGatewayPoolButton />', () => {
               <GatewayPoolsContext.Provider
                 value={{
                   state: {},
-                  setState: async (key, value?, resources?) =>
+                  setState: async (
+                    key: GatewayPoolId,
+                    value: MutableCellularGatewayPool | undefined,
+                    resources?: Array<GatewayPoolRecordsType>,
+                  ) =>
                     SetGatewayPoolsState({
                       networkId,
                       gatewayPools: gwPoolsState,
@@ -301,7 +290,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                       value,
                       resources,
                     }),
-                  updateGatewayPoolRecords: (key, value?, resources) =>
+                  updateGatewayPoolRecords: (key, value, resources) =>
                     UpdateGatewayPoolRecords({
                       networkId,
                       gatewayPools: gwPoolsState,
@@ -378,7 +367,6 @@ describe('<AddEditGatewayPoolButton />', () => {
 
     await wait();
 
-    // $FlowFixMe
     lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
       data: {
         config: {mme_group_id: 4},
@@ -426,7 +414,6 @@ describe('<AddEditGatewayPoolButton />', () => {
     });
 
     await wait();
-    // $FlowFixMe
     lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
       data: {
         config: {mme_group_id: 4},
