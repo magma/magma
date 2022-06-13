@@ -69,7 +69,7 @@ status_code_e mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr) {
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_edns_init(const mme_config_t* mme_config_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   g_e_dns_entries = obj_hashtable_create(OAI_MIN(32, MME_CONFIG_MAX_SGW), NULL,
                                          free_wrapper, free_wrapper, NULL);
   if (g_e_dns_entries) {

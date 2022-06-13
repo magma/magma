@@ -275,7 +275,7 @@ static status_code_e handle_cs_domain_loc_updt_acc(
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
     struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   struct emm_context_s* emm_ctx_p = &ue_context_p->emm_context;
 
   if (!emm_ctx_p) {
@@ -423,7 +423,7 @@ status_code_e send_itti_sgsap_location_update_req(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   uint8_t tau_updt_type = -1;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP,
@@ -550,7 +550,7 @@ status_code_e mme_app_handle_sgsap_location_update_acc(
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc) {
   imsi64_t imsi64 = INVALID_IMSI64;
   struct ue_mm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   sgs_fsm_t sgs_fsm;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -599,7 +599,7 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
   sgs_fsm_t sgs_fsm;
 
@@ -649,7 +649,7 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
  **                                                                          **
  *******************************************************************************/
 status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
   MobileIdentity_t* mobileid = NULL;
 
@@ -714,7 +714,7 @@ status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** **
  ***********************************************************************************/
 status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -753,7 +753,7 @@ status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  **                                                                          **
  *******************************************************************************/
 status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
   struct ue_mm_context_s* ue_context_p = NULL;
   MobileIdentity_t* mobileid = NULL;
@@ -838,7 +838,7 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** **
  ***********************************************************************************/
 status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(LOG_MME_APP,
                "Dropping message as it is received in NULL state for UE %d",
@@ -858,7 +858,7 @@ status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** **
  *****************************************************************************************/
 status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
   itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -957,7 +957,7 @@ status_code_e mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
  ** **
  ***********************************************************************************/
 status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
   itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
