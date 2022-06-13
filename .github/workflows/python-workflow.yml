@@ -1,5 +1,5 @@
 ---
-name: Python Format Check
+name: Python Format & Typing Check
 on:  # yamllint disable-line rule:truthy
   push:
     branches:
@@ -24,6 +24,8 @@ jobs:
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
       files_changed: ${{ steps.changes.outputs.filesChanged_files }}
+      should_not_skip_agw: ${{ steps.changes.outputs.python_agw }}
+      files_changed_agw: ${{ steps.changes.outputs.python_agw_files }}
     steps:
       # Need to get git on push event
       - uses: actions/checkout@v2
@@ -34,6 +36,8 @@ jobs:
           filters: |
             filesChanged:
               - added|modified: ["**/*.py"]
+            python_agw:
+              - added|modified: ["lte/gateway/python/magma/**/*.py"]
           list-files: 'shell'
       # Need to save PR number as Github action does not propagate it with workflow_run event
       - name: Save PR number
@@ -94,3 +98,26 @@ jobs:
         with:
           name: pr
           path: pr/
+
+  # Run mypy on new or modified AGW python files to check typing
+  check-typing:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_not_skip_agw == 'true' }}
+    runs-on: ubuntu-latest
+    name: AGW Python Typing Check
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.10'
+      - name: Install mypy
+        run: |
+          pip3 install --upgrade pip
+          pip3 install mypy==0.960
+      - name: Run mypy in AGW
+        run: |
+          for file in ${{ needs.pre_job.outputs.files_changed_agw }};
+          do
+            set -e
+            echo "Running mypy on $file...";
+            mypy --ignore-missing-imports $MAGMA_ROOT/$file;
+          done;
