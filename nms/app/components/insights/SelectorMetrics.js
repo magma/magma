@@ -27,7 +27,8 @@ import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 import {useCallback, useState} from 'react';
-import {useSnackbar} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useSnackbar} from '../../hooks';
 
 export default function (props: {
   configs: MetricGraphConfig[],

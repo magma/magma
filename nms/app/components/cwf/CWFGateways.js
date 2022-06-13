@@ -61,7 +61,8 @@ import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useCallback, useState} from 'react';
-import {useInterval} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useInterval} from '../../hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {

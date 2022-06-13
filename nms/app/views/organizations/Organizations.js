@@ -48,7 +48,8 @@ import withAlert from '../../components/Alert/withAlert';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../../app/theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useAxios} from '../../hooks';
 import {useCallback, useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';

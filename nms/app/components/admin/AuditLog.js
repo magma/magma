@@ -30,7 +30,8 @@ import React from 'react';
 import ReactJson from 'react-json-view';
 
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '../../../app/hooks';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useAxios} from '../../hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
