@@ -13,7 +13,7 @@ limitations under the License.
 from abc import ABC, abstractmethod
 from asyncio import BaseEventLoop
 from time import time
-from typing import Any, Type, Optional
+from typing import Any, Optional, Type
 
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import DataModel

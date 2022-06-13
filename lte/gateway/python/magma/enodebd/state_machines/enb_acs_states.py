@@ -413,6 +413,7 @@ class BaicellsRemWaitState(EnodebAcsState):
                    'resuming with configuration.' % remaining
         return 'rem_timer is None'
 
+
 class WaitEmptyMessageState(EnodebAcsState):
     def __init__(
         self,

@@ -374,6 +374,7 @@ class BaicellsQRTBQueuedEventsWaitState(EnodebAcsState):
         return 'Waiting for eNB REM to run for %d more seconds before ' \
                'resuming with configuration.' % remaining
 
+
 class BaicellsQRTBWaitInformRebootState(WaitInformMRebootState):
     """
     BaicellsQRTB WaitInformRebootState implementation

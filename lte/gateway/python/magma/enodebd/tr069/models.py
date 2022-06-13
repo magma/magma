@@ -194,11 +194,11 @@ class ParameterAttributeList(Tr069ComplexModel):
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
-class CommandKeyType(String.customize(max_length=32)): #type: ignore[misc]
+class CommandKeyType(String.customize(max_length=32)):  # type: ignore[misc]
     pass
 
 
-class ObjectNameType(String.customize(max_length=256)): #type: ignore[misc]
+class ObjectNameType(String.customize(max_length=256)):  # type: ignore[misc]
     pass
 
 

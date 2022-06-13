@@ -226,9 +226,9 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         """
         if isinstance(message, models.Inform):
             logger.debug(
-                    'ACS in (%s) state. Received an Inform message',
-                    self.state.state_description(),
-                )
+                'ACS in (%s) state. Received an Inform message',
+                self.state.state_description(),
+            )
             self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
             logger.debug(

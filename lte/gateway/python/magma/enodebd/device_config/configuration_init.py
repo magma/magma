@@ -13,7 +13,7 @@ limitations under the License.
 
 import json
 from collections import namedtuple
-from typing import Any, Optional, Union, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import get_ip_from_if
@@ -85,7 +85,7 @@ def build_desired_config(
 
     # Attempt to load device configuration from YANG before service mconfig
     enb_config = _get_enb_yang_config(device_config) or \
-                 _get_enb_config(mconfig, device_config)
+        _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,
