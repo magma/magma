@@ -30,6 +30,7 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayConfigYml from './GatewayYMLConfig';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
