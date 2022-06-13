@@ -261,6 +261,7 @@ class Classifier(MagmaController):
                 self.logger.error("Couldn't send flow records to sessiond: %s", err)
             return
 
+
     def _install_uplink_tunnel_flows(
         self, priority: int, i_teid: int,
         gtp_portno: int, sid: Optional[int], o_teid: int,
