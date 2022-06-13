@@ -21,6 +21,7 @@ import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
