@@ -9,33 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import Gateway from '../EquipmentGateway';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../../components/context/GatewayContext';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockAPI} from '../../../util/TestUtils';
-import type {
-  lte_gateway,
-  promql_return_object,
-} from '../../../../generated/MagmaAPIBindings';
+import type {LteGateway, PromqlReturnObject} from '../../../../generated-ts';
 
-jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
-const mockCheckinMetric: promql_return_object = {
+const mockCheckinMetric: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -48,7 +37,7 @@ const mockCheckinMetric: promql_return_object = {
   },
 };
 
-const mockGw0: lte_gateway = {
+const mockGw0: LteGateway = {
   id: 'test_gw0',
   name: 'test_gateway0',
   description: 'test_gateway0',
@@ -62,7 +51,6 @@ const mockGw0: lte_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   connected_enodeb_serials: [],
   cellular: {
@@ -90,7 +78,7 @@ const mockGw0: lte_gateway = {
   checked_in_recently: false,
 };
 
-const mockKPIMetric: promql_return_object = {
+const mockKPIMetric: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'matrix',
@@ -124,13 +112,13 @@ describe('<Gateway />', () => {
     );
   });
 
-  const mockGw1 = {
+  const mockGw1: LteGateway = {
     ...mockGw0,
     id: 'test_gw1',
     name: 'test_gateway1',
     connected_enodeb_serials: ['xxx', 'yyy'],
   };
-  const mockGw2 = {
+  const mockGw2: LteGateway = {
     ...mockGw0,
     id: 'test_gw2',
     name: 'test_gateway2',
@@ -151,14 +139,11 @@ describe('<Gateway />', () => {
           <GatewayContext.Provider
             value={{
               state: lteGateways,
-              setState: async _ => {},
-              updateGateway: async _ => {},
+              setState: async () => {},
+              updateGateway: async () => {},
             }}>
             <Routes>
-              <Route
-                path="/nms/:networkId/gateway/"
-                element={<Gateway lteGateways={lteGateways} />}
-              />
+              <Route path="/nms/:networkId/gateway/" element={<Gateway />} />
             </Routes>
           </GatewayContext.Provider>
         </MuiStylesThemeProvider>
@@ -184,7 +169,7 @@ describe('<Gateway />', () => {
     expect(getByTestId('Avg Latency')).toHaveTextContent('7');
     expect(getByTestId('% Healthy Gateways')).toHaveTextContent('33.33');
 
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
