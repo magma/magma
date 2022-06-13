@@ -9,21 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
-  // $FlowFixMe migrated to typescript
 } from '../../components/context/GatewayPoolsContext';
-import type {mutable_cellular_gateway_pool} from '../../../generated/MagmaAPIBindings';
+import type {MutableCellularGatewayPool} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
 import ConfigEdit from './GatewayPoolConfigEdit';
 import Dialog from '@material-ui/core/Dialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import GatewayEdit from './GatewayPoolGatewaysEdit';
 import React from 'react';
@@ -34,9 +29,7 @@ import {
   DEFAULT_GW_POOL_CONFIG,
   DEFAULT_GW_PRIMARY_CONFIG,
   DEFAULT_GW_SECONDARY_CONFIG,
-  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
@@ -45,7 +38,7 @@ const CONFIG_TITLE = 'Config';
 const GATEWAY_PRIMARY_TITLE = 'Gateway Primary';
 const GATEWAY_SECONDARY_TITLE = 'Gateway Secondary';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -63,27 +56,27 @@ const useStyles = makeStyles(_ => ({
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
   },
-}));
+});
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  pool?: gatewayPoolsStateType,
-  isAdd: boolean,
+  open: boolean;
+  onClose: () => void;
+  pool?: gatewayPoolsStateType;
+  isAdd: boolean;
 };
 
 type ButtonProps = {
-  title: string,
-  isLink: boolean,
+  title: string;
+  isLink: boolean;
 };
 
 export type GatewayPoolEditProps = {
-  gwPool: mutable_cellular_gateway_pool,
-  isPrimary?: boolean,
-  gatewayPrimary: Array<GatewayPoolRecordsType>,
-  gatewaySecondary: Array<GatewayPoolRecordsType>,
-  onRecordChange?: (gateways: Array<GatewayPoolRecordsType>) => void,
-  onClose: () => void,
-  onSave: mutable_cellular_gateway_pool => void,
+  gwPool: MutableCellularGatewayPool;
+  isPrimary?: boolean;
+  gatewayPrimary: Array<GatewayPoolRecordsType>;
+  gatewaySecondary: Array<GatewayPoolRecordsType>;
+  onRecordChange?: (gateways: Array<GatewayPoolRecordsType>) => void;
+  onClose: () => void;
+  onSave: (pool: MutableCellularGatewayPool) => void;
 };
 
 export default function AddEditGatewayPoolButton(props: ButtonProps) {
@@ -124,8 +117,10 @@ export default function AddEditGatewayPoolButton(props: ButtonProps) {
 export function GatewayPoolEditDialog(props: DialogProps) {
   const {open} = props;
   const classes = useStyles();
-  const [gwPool, setGwPool] = useState<mutable_cellular_gateway_pool>(
-    props.pool ? {...props.pool?.gatewayPool, gateway_ids: undefined} : {},
+  const [gwPool, setGwPool] = useState<MutableCellularGatewayPool>(
+    (props.pool
+      ? {...props.pool?.gatewayPool, gateway_ids: undefined}
+      : {}) as MutableCellularGatewayPool,
   );
   const [gwPrimary, setGwPrimary] = useState<Array<GatewayPoolRecordsType>>(
     (props.pool?.gatewayPoolRecords || []).filter(
@@ -156,7 +151,10 @@ export function GatewayPoolEditDialog(props: DialogProps) {
     setTabPos(0);
     setGwPool(
       props.pool
-        ? {...props.pool?.gatewayPool, gateway_ids: undefined}
+        ? ({
+            ...props.pool?.gatewayPool,
+            gateway_ids: undefined,
+          } as MutableCellularGatewayPool)
         : DEFAULT_GW_POOL_CONFIG,
     );
     const primary =
@@ -187,7 +185,7 @@ export function GatewayPoolEditDialog(props: DialogProps) {
       />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v) => setTabPos(v as number)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="config" data-testid="configTab" label={CONFIG_TITLE} />; ;
@@ -208,7 +206,7 @@ export function GatewayPoolEditDialog(props: DialogProps) {
           gatewayPrimary={gwPrimary}
           gatewaySecondary={gwSecondary}
           onClose={onClose}
-          onSave={(pool: mutable_cellular_gateway_pool) => {
+          onSave={(pool: MutableCellularGatewayPool) => {
             setGwPool({...pool});
             setTabPos(tabPos + 1);
           }}

@@ -15,6 +15,7 @@
  */
 import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../../../components/context/GatewayContext';

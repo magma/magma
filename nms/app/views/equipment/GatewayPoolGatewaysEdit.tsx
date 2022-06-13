@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
 
@@ -21,10 +18,10 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../../components/context/GatewayContext';
-// $FlowFixMe migrated to typescript
-import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
+import GatewayPoolsContext, {
+  GatewayPoolRecordsType,
+} from '../../components/context/GatewayPoolsContext';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -35,28 +32,25 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
 import {
   DEFAULT_GW_POOL_CONFIG,
   DEFAULT_GW_PRIMARY_CONFIG,
   DEFAULT_GW_SECONDARY_CONFIG,
-  // $FlowFixMe migrated to typescript
 } from '../../components/GatewayUtils';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   placeholder: {
     opacity: 0.5,
   },
   gatewayPrimary: {
     margin: '32px 0',
   },
-}));
+});
 export default function GatewayEdit(props: GatewayPoolEditProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const classes = useStyles();
@@ -96,7 +90,11 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
     setPooledGwIds([...newPooledGwIds, id]);
   };
 
-  const handleGwChange = (index: number, value: number, key) => {
+  const handleGwChange = <K extends keyof GatewayPoolRecordsType>(
+    index: number,
+    value: GatewayPoolRecordsType[K],
+    key: K,
+  ) => {
     const newGwList = gateways;
     newGwList[index][key] = value;
     props.onRecordChange?.([...newGwList]);
@@ -146,7 +144,7 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
       });
       props.onSave(gwPool);
     } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+      setError(getErrorMessage(e));
     }
   };
   return (
@@ -170,17 +168,21 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
                     displayEmpty={true}
                     value={gw.gateway_id}
                     renderValue={selected => {
-                      if (!selected.length) {
+                      if (!(selected as string).length) {
                         return (
                           <em>{`Select ${
                             isPrimary ? 'Primary' : 'Secondary'
                           } Gateway ID`}</em>
                         );
                       }
-                      return selected;
+                      return selected as string;
                     }}
                     onChange={({target}) => {
-                      handleGwIdChange(target.value, index, gw.gateway_id);
+                      handleGwIdChange(
+                        target.value as string,
+                        index,
+                        gw.gateway_id,
+                      );
                     }}
                     input={
                       <OutlinedInput
@@ -254,7 +256,10 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {props.isPrimary ?? false ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
