@@ -9,18 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  prom_alert_labels,
-  prom_firing_alert,
-} from '../../generated/MagmaAPIBindings';
+import type {PromFiringAlert} from '../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from './ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';
 import Chip from '@material-ui/core/Chip';
 import ErrorIcon from '@material-ui/icons/Error';
@@ -28,32 +20,26 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import Link from '@material-ui/core/Link';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaAPI from '../../api/MagmaAPI';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
-import useMagmaAPI from '../../api/useMagmaAPIFlow';
-
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {Alarm} from '@material-ui/icons';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {REFRESH_INTERVAL} from './context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme, withStyles} from '@material-ui/core/styles';
 import {colors, typography} from '../theme/default';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -117,7 +103,7 @@ const MagmaTab = withStyles({
 
 type Severity = 'Critical' | 'Major' | 'Minor' | 'Other';
 
-const severityMap: {[string]: Severity} = {
+const severityMap: Record<string, Severity> = {
   critical: 'Critical',
   page: 'Critical',
   warning: 'Major',
@@ -128,23 +114,23 @@ const severityMap: {[string]: Severity} = {
 };
 
 type AlertRowType = {
-  alertName: string,
-  labels: prom_alert_labels,
-  status: string,
-  service: string,
-  gatewayId: string,
-  date: Date,
+  alertName: string;
+  labels: Record<string, string>;
+  status: string;
+  service: string;
+  gatewayId: string;
+  date: Date;
 };
 
-type AlertTable = {[Severity]: Array<AlertRowType>};
+type AlertTable = Record<Severity, Array<AlertRowType>>;
 
 type DashboardAlertTableProps = {
-  labelFilters?: {[string]: string},
+  labelFilters?: Record<string, string>;
 };
 
 function checkFilter(
-  alert: prom_firing_alert,
-  labelFilters?: {[string]: string},
+  alert: PromFiringAlert,
+  labelFilters?: Record<string, string>,
 ) {
   if (labelFilters) {
     const labels = intersection(
@@ -175,7 +161,7 @@ export default function DashboardAlertTable(props: DashboardAlertTableProps) {
   );
 
   const {isLoading, response} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdAlerts,
+    MagmaAPI.alerts.networksNetworkIdAlertsGet,
     {
       networkId,
     },
@@ -197,7 +183,7 @@ export default function DashboardAlertTable(props: DashboardAlertTableProps) {
     return <LoadingFiller />;
   }
 
-  let alerts: Array<prom_firing_alert> = response ?? [];
+  let alerts: Array<PromFiringAlert> = response ?? [];
   const data: AlertTable = {Critical: [], Major: [], Minor: [], Other: []};
 
   alerts = alerts.filter(alert => checkFilter(alert, props.labelFilters));
@@ -223,8 +209,8 @@ export default function DashboardAlertTable(props: DashboardAlertTableProps) {
 }
 
 type TabPanelProps = {
-  alerts: Array<AlertRowType>,
-  label: string,
+  alerts: Array<AlertRowType>;
+  label: string;
 };
 
 function TabPanel(props: TabPanelProps) {
@@ -316,7 +302,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 type Props = {
-  alerts: AlertTable,
+  alerts: AlertTable;
 };
 
 function AlertsTabbedTable(props: Props) {

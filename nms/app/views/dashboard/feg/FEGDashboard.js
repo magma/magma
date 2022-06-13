@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import EventAlertChart from '../../../components/EventAlertChart';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
