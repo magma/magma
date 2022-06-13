@@ -1,63 +1,10 @@
-# Containerization Deploy
+ Containerization Deploy
 
-* Use the Base Cloudstrapper image with an expanded disk size (64G at least) to create Build Container
-    * If you want to use a stand-alone Ubuntu image, [Setup](https://docs.docker.com/engine/install/ubuntu/) Docker to run [locally](https://forums.docker.com/t/couldnt-connect-to-docker-daemon-at-http-docker-localhost-is-it-running/87257). Remember to re-login after local user got added to docker so that the new shell has all the right user provisions
-    * fb-magma-aws has ami-03bc7ef7f3b70f77b which is a base Cloudstrapper image with extended storage
-    * Run Cloudstrapper AGW deploy with input file as below (SDTI network already exists)
-    * devsrv-tokyo:~/magma-master #cat sdti-build1.yaml
+* Run step 1, 1.1 and step 5.1 from other readme to create base amis.
 
-        ```
-        #Setting AGW AMI and Cloudstrapper AMI to expanded Cloudstrapper image Ubuntu to allow deploy
-        dirLocalInventory: ~/magma-master
-        awsAgwAmi: ami-03bc7ef7f3b70f77b
-        awsCloudstrapperAmi: ami-03bc7ef7f3b70f77b
-        awsAgwRegion: ap-northeast-1
-        keyHost: keyMagmaHostCharlie
-        idSite: SDTI
-        idGw: sdti-build1
-        awsInstanceType: t3.large
-        
-        devsrv-tokyo:~/magma-master/magma/experimental/cloudstrapper/playbooks #ansible-playbook —tags createGw agw-provision.yaml -e '@~/magma-master/sdti-build1.yaml'
-        ```
+* Create a local setup
 
-* Configure ssh config file to allow SSH access to CTR1
-* System information : Runs 5.4 kernel, has IP addresses configured on first and second interfaces
-
-```
-sdti-build1:~/magma/lte/gateway/docker #uname -r
-5.4.0-1045-aws
-sdti-build1:~/magma/lte/gateway/docker #ip addr show
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: ens5: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
-    link/ether 06:92:f5:05:4a:07 brd ff:ff:ff:ff:ff:ff
-    inet 10.23.4.220/24 brd 10.23.4.255 scope global dynamic ens5
-       valid_lft 3358sec preferred_lft 3358sec
-    inet6 fe80::492:f5ff:fe05:4a07/64 scope link
-       valid_lft forever preferred_lft forever
-3: ens6: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
-    link/ether 06:a4:58:04:db:d3 brd ff:ff:ff:ff:ff:ff
-    inet 10.23.2.65/24 brd 10.23.2.255 scope global dynamic ens6
-       valid_lft 3356sec preferred_lft 3356sec
-    inet6 fe80::4a4:58ff:fe04:dbd3/64 scope link
-       valid_lft forever preferred_lft forever
-4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
-    link/ether 02:42:5c:43:5a:64 brd ff:ff:ff:ff:ff:ff
-    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
-       valid_lft forever preferred_lft forever
-    inet6 fe80::42:5cff:fe43:5a64/64 scope link
-       valid_lft forever preferred_lft forever
-```
-
-
-* Temporary steps
-    * sudo apt-get update
-    * Install ifupdown
-* Run docker-compose build (~45 minutes)
+* Run docker-compose build on local dev setup (~45 minutes)
 
 ```
 Step 56/56 : RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py &&   dpkg -i /var/tmp/python3-aioeventlet* &&   pip install jsonpointer>$JSONPOINTER_VERSION &&   mkdir -p /var/opt/magma/
@@ -100,8 +47,6 @@ ctr-build:~/magma-ctr/magma/lte/gateway/docker #docker image push arunuke/agw_py
 
 * Use the Base Cloudstrapper image with an expanded disk size (64G at least) to create Test Container
 
-```
-ansible-playbook agw-provision.yaml --tags createGw -e '@~/magma-master/sdti-ctr1.yaml'
 
 evsrv-tokyo:~/magma-master/magma/experimental/cloudstrapper/playbooks #cat ~/magma-master/sdti-ctr1.yaml
 ---
@@ -114,13 +59,16 @@ keyHost: keyMagmaHostCharlie
 idSite: SDTI
 idGw: sdti-ctr1
 awsInstanceType: t3.large
+
+```
+ansible-playbook  --tags createGw agw-provision.yaml -e '@~/magma-master/sdti-ctr1.yaml' -e "dirLocalInventory=~/magma-master" -e "idSite=DevOps"  -e "agwDevops=1"
 ```
 
 * Prepare the host
     * Install ifupdown
     * Unlink `/etc/resolv.conf` and create a new one with 8.8.8.8 entry
     * Create `/var/opt/magma/certs `and add rootCA.pem to that folder with permissions 400
-    * Copy `agw_install_docker.bash` and run script to prepare the host
+    * Copy `agw_install_docker.sh` and run script to prepare the host
     * Make changes to `/var/opt/magma/docker/.env` to include the right docker information
     * DOCKER_REGISTRY=[registry.hub.docker.com/arunuke/](http://registry.hub.docker.com/arunuke/)
 
@@ -133,6 +81,8 @@ awsInstanceType: t3.large
         * pipelined, dnsd, enodebd, spgw, mme all will have their eth0/eth1 changed to newer values based on local interface names (eth0 and eth2 references to use the first interface for SGi and eth1 references to use the second interface for S1)
         * pipelined will also set dp_router_enabled to false
     * Make changes to config files and restart services by running `/var/opt/magma/docker/agw_upgrade.sh` or by running the `agw_install_docker.bash` script
+
+
 * Issues
     * Needs ifup on the host. Install package ifupdown (PR in progress)
     * Need to resolve external IP addresses after bringing up interfaces. unlink /etc/resolv.conf, add a new entry for 8.8.8.8. Add this by creating a new role. (PR needed)
