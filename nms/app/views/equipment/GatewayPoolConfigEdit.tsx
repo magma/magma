@@ -9,46 +9,38 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-/*[object Object]*/
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
-import type {mutable_cellular_gateway_pool} from '../../../generated/MagmaAPIBindings';
+import type {MutableCellularGatewayPool} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
-// $FlowFixMe migrated to typescript
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import List from '@material-ui/core/List';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe migrated to typescript
 import {DEFAULT_GW_POOL_CONFIG} from '../../components/GatewayUtils';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '50%',
     fullWidth: true,
   },
-}));
+});
 export default function ConfigEdit(props: GatewayPoolEditProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayPoolsContext);
-  const [gwPool, setGwPool] = useState<mutable_cellular_gateway_pool>(
+  const [gwPool, setGwPool] = useState<MutableCellularGatewayPool>(
     Object.keys(props.gwPool || {}).length > 0
       ? props.gwPool
       : DEFAULT_GW_POOL_CONFIG,
@@ -68,7 +60,7 @@ export default function ConfigEdit(props: GatewayPoolEditProps) {
       });
       props.onSave(gwPool);
     } catch (e) {
-      setError(e.response?.data?.message ?? e.message);
+      setError(getErrorMessage(e));
     }
   };
   const classes = useStyles();
@@ -126,7 +118,10 @@ export default function ConfigEdit(props: GatewayPoolEditProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           {'Save And Continue'}
         </Button>
       </DialogActions>
