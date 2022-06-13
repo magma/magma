@@ -1,1 +1,1 @@
-common --config=docker
+build --config=docker
