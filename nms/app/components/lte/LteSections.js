@@ -20,6 +20,7 @@ import AlarmIcon from '@material-ui/icons/Alarm';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
