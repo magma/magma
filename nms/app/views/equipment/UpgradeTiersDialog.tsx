@@ -9,24 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import FormLabel from '@material-ui/core/FormLabel';
-// $FlowFixMe migrated to typescript
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -35,17 +29,16 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AutoCompleteEditComponent} from '../../components/ActionTable';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -116,8 +109,8 @@ export default function UpgradeButton() {
 }
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
+  open: boolean;
+  onClose: () => void;
 };
 
 function UpgradeDialog(props: DialogProps) {
@@ -133,14 +126,14 @@ function UpgradeDialog(props: DialogProps) {
       <DialogTitle label={'Upgrade Tiers'} onClose={props.onClose} />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v) => setTabPos(v as number)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="upgradeTiers" label={'Tiers'} />; ;
         <Tab key="supportedVersions" label={'Supported Versions'} />
       </Tabs>
       {tabPos === 0 && <UpgradeDetails {...props} />}
-      {tabPos === 1 && <SupportedVersions {...props} />}
+      {tabPos === 1 && <SupportedVersions />}
     </Dialog>
   );
 }
@@ -148,8 +141,12 @@ function UpgradeDialog(props: DialogProps) {
 function UpgradeDetails(props: DialogProps) {
   const ctx = useContext(GatewayTierContext);
   const [error, setError] = useState('');
-  const [updatedTierEntries, setUpdatedTierEntries] = useState(new Set());
-  const [removedTierEntries, setRemovedTierEntries] = useState(new Set());
+  const [updatedTierEntries, setUpdatedTierEntries] = useState<Set<string>>(
+    new Set(),
+  );
+  const [removedTierEntries, setRemovedTierEntries] = useState<Set<string>>(
+    new Set(),
+  );
   const [tierEntries, setTierEntries] = useState(
     Object.keys(ctx.state.tiers).map(tierId => ({
       id: tierId,
@@ -168,7 +165,7 @@ function UpgradeDetails(props: DialogProps) {
           ...tier,
         });
       } catch (e) {
-        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        const errMsg = getErrorMessage(e);
         setError('error saving ' + tier.id + ' : ' + errMsg);
         return;
       }
@@ -178,7 +175,7 @@ function UpgradeDetails(props: DialogProps) {
       try {
         await ctx.setState(tierId);
       } catch (e) {
-        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        const errMsg = getErrorMessage(e);
         setError('error removing ' + tierId + ' : ' + errMsg);
         return;
       }
@@ -200,9 +197,8 @@ function UpgradeDetails(props: DialogProps) {
               editable: 'onAdd',
               editComponent: props => (
                 <OutlinedInput
-                  variant="outlined"
                   type="text"
-                  value={props.value}
+                  value={props.value as string}
                   onChange={e => props.onChange(e.target.value)}
                 />
               ),
@@ -212,9 +208,8 @@ function UpgradeDetails(props: DialogProps) {
               field: 'name',
               editComponent: props => (
                 <OutlinedInput
-                  variant="outlined"
                   type="text"
-                  value={props.value}
+                  value={props.value as string}
                   onChange={e => props.onChange(e.target.value)}
                 />
               ),
@@ -225,7 +220,7 @@ function UpgradeDetails(props: DialogProps) {
               editComponent: props => (
                 <AutoCompleteEditComponent
                   {...props}
-                  value={props.value}
+                  value={props.value as string}
                   content={ctx.state.supportedVersions}
                   onChange={value => props.onChange(value)}
                 />
@@ -238,7 +233,7 @@ function UpgradeDetails(props: DialogProps) {
           }}
           editable={{
             onRowAdd: newData =>
-              new Promise((resolve, _) => {
+              new Promise<void>(resolve => {
                 setTierEntries([...tierEntries, newData]);
                 setUpdatedTierEntries(
                   new Set([...updatedTierEntries, newData.id]),
@@ -246,9 +241,10 @@ function UpgradeDetails(props: DialogProps) {
                 resolve();
               }),
             onRowUpdate: (newData, oldData) =>
-              new Promise((resolve, _) => {
+              new Promise<void>(resolve => {
                 const dataUpdate = [...tierEntries];
-                const index = oldData.tableData.id;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                const index = (oldData as any).tableData.id as number;
                 dataUpdate[index] = newData;
                 setTierEntries([...dataUpdate]);
                 setUpdatedTierEntries(
@@ -257,9 +253,10 @@ function UpgradeDetails(props: DialogProps) {
                 resolve();
               }),
             onRowDelete: oldData =>
-              new Promise(resolve => {
+              new Promise<void>(resolve => {
                 const dataDelete = [...tierEntries];
-                const index = oldData.tableData.id;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                const index = (oldData as any).tableData.id as number;
                 dataDelete.splice(index, 1);
                 setTierEntries([...dataDelete]);
                 setRemovedTierEntries(
@@ -272,7 +269,7 @@ function UpgradeDetails(props: DialogProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}> Cancel </Button>
-        <Button onClick={saveTier}> Save </Button>
+        <Button onClick={() => void saveTier()}> Save </Button>
       </DialogActions>
     </>
   );
