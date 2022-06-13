@@ -22,6 +22,7 @@ import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebConfig from './EnodebDetailConfig';
