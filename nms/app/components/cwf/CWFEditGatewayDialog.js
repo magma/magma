@@ -25,6 +25,7 @@ import CWFGatewayConfigFields from './CWFGatewayConfigFields';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayCommandFields from '../GatewayCommandFields';
 import MagmaDeviceFields from '../MagmaDeviceFields';
 import MagmaV1API from '../../../generated/WebClient';

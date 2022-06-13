@@ -18,12 +18,15 @@ function isAxiosError(error: any): error is AxiosError<{message?: string}> {
   return 'isAxiosError' in error && error.isAxiosError;
 }
 
-export function getErrorMessage(error: any): string {
+export function getErrorMessage(
+  error: any,
+  fallbackMessage = 'Unknown Error',
+): string {
   if (isAxiosError(error)) {
     return error.response?.data?.message ?? error.message;
   }
   if (error instanceof Error) {
     return error.message;
   }
-  return 'Unknown Error';
+  return fallbackMessage;
 }

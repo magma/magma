@@ -55,3 +55,18 @@ export function mockAPIOnce<
     data,
   } as any);
 }
+
+export function mockAPIError<
+  SERVICE extends typeof MagmaAPI[keyof typeof MagmaAPI],
+  API_METHOD extends jest.FunctionPropertyNames<SERVICE>
+>(
+  service: SERVICE,
+  apiMethod: API_METHOD,
+): jest.SpyInstance<AxiosResponse<{data: Response<SERVICE, API_METHOD>}>> {
+  return (
+    jest
+      .spyOn(service, apiMethod)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      .mockRejectedValue(new Error('error') as any)
+  );
+}

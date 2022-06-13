@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -21,7 +20,12 @@ import defaultTheme from '../../theme/default';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {TroubleshootingControl} from '../GatewayCommandFields';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {mockAPI, mockAPIError} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
 jest.mock('../../../generated/MagmaAPIBindings');
@@ -51,11 +55,13 @@ const validControlProxyContent = {
 };
 describe('<verify successful aggregation validation/>', () => {
   beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.commands,
+      'networksNetworkIdGatewaysGatewayIdCommandGenericPost',
       validControlProxyContent,
     );
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(0);
+
+    mockAPI(MagmaAPI.events, 'eventsNetworkIdAboutCountGet', 0);
   });
 
   it('', async () => {
@@ -76,8 +82,9 @@ describe('<verify successful aggregation validation/>', () => {
 
 describe('<verify control proxy validation failure/>', () => {
   beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.commands,
+      'networksNetworkIdGatewaysGatewayIdCommandGenericPost',
       {
         response: {
           returncode: 0,
@@ -86,7 +93,8 @@ describe('<verify control proxy validation failure/>', () => {
         },
       },
     );
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(0);
+
+    mockAPI(MagmaAPI.events, 'eventsNetworkIdAboutCountGet', 0);
   });
 
   it('', async () => {
@@ -105,13 +113,13 @@ describe('<verify control proxy validation failure/>', () => {
 
 describe('<verify api validation failure/>', () => {
   beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockResolvedValue(
+    mockAPI(
+      MagmaAPI.commands,
+      'networksNetworkIdGatewaysGatewayIdCommandGenericPost',
       validControlProxyContent,
     );
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockRejectedValueOnce(
-      new Error('error'),
-    );
+
+    mockAPIError(MagmaAPI.events, 'eventsNetworkIdAboutCountGet');
   });
 
   it('', async () => {

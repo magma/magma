@@ -9,23 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from './DataGrid';
-import type {generic_command_response} from '../../generated/MagmaAPIBindings';
-
 import Button from '@material-ui/core/Button';
 import Check from '@material-ui/icons/Check';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
-// $FlowFixMe migrated to typescript
 import FormField from './FormField';
 import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
@@ -33,26 +24,25 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
-import useMagmaAPI from '../../api/useMagmaAPIFlow';
-
-// $FlowFixMe migrated to typescript
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {AltFormField} from './FormField';
+import {GenericCommandParams} from '../../generated-ts';
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {DataRows} from './DataGrid';
+import type {GenericCommandResponse} from '../../generated-ts';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   input: {
     margin: '10px 0',
     width: '100%',
@@ -70,15 +60,18 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  onClose?: () => void,
-  gatewayID: string,
-  showRestartCommand: boolean,
-  showRebootEnodebCommand: boolean,
-  showPingCommand: boolean,
-  showGenericCommand: boolean,
+  onClose?: () => void;
+  gatewayID: string;
+  showRestartCommand: boolean;
+  showRebootEnodebCommand: boolean;
+  showPingCommand: boolean;
+  showGenericCommand: boolean;
 };
 
-function CommandResponse(props) {
+function CommandResponse(props: {
+  response?: string;
+  showProgressBar?: boolean;
+}) {
   return (
     <pre
       style={{
@@ -130,17 +123,18 @@ function RebootButton(props: ChildProps) {
 
   const onClick = () => {
     const {gatewayID} = props;
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot({
-      networkId: nullthrows(params.networkId),
-      gatewayId: gatewayID,
-    })
-      .then(_resp => {
+    MagmaAPI.commands
+      .networksNetworkIdGatewaysGatewayIdCommandRebootPost({
+        networkId: nullthrows(params.networkId),
+        gatewayId: gatewayID,
+      })
+      .then(() => {
         enqueueSnackbar('Successfully initiated reboot', {variant: 'success'});
         setShowCheck(true);
         setTimeout(() => setShowCheck(false), 5000);
       })
       .catch(error =>
-        enqueueSnackbar('Reboot failed: ' + error.response.data.message, {
+        enqueueSnackbar('Reboot failed: ' + getErrorMessage(error), {
           variant: 'error',
         }),
       );
@@ -170,14 +164,13 @@ function RestartServicesButton(props: ChildProps) {
 
   const onClick = () => {
     const {gatewayID} = props;
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
-      {
+    MagmaAPI.commands
+      .networksNetworkIdGatewaysGatewayIdCommandRestartServicesPost({
         networkId: nullthrows(params.networkId),
         gatewayId: gatewayID,
         services: [],
-      },
-    )
-      .then(_resp => {
+      })
+      .then(() => {
         enqueueSnackbar('Successfully initiated service restart', {
           variant: 'success',
         });
@@ -185,10 +178,9 @@ function RestartServicesButton(props: ChildProps) {
         setTimeout(() => setShowCheck(false), 5000);
       })
       .catch(error =>
-        enqueueSnackbar(
-          'Restart services failed: ' + error.response.data.message,
-          {variant: 'error'},
-        ),
+        enqueueSnackbar('Restart services failed: ' + getErrorMessage(error), {
+          variant: 'error',
+        }),
       );
   };
 
@@ -213,16 +205,16 @@ function RebootEnodebControls(props: ChildProps) {
   const {networkId} = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [showProgress, setShowProgress] = useState(false);
-  const [rebootResponse, setRebootResponse] = useState();
+  const [rebootResponse, setRebootResponse] = useState<string>();
   const [enodebSerial, setEnodebSerial] = useState('');
 
   const onClick = () => {
     const {gatewayID} = props;
-    const params =
+    const params: GenericCommandParams =
       enodebSerial.length > 0
         ? {
             command: 'reboot_enodeb',
-            params: {shell_params: ([enodebSerial]: any)},
+            params: {shell_params: [enodebSerial]},
           }
         : {
             command: 'reboot_all_enodeb',
@@ -230,17 +222,17 @@ function RebootEnodebControls(props: ChildProps) {
           };
 
     setShowProgress(true);
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric({
-      networkId: nullthrows(networkId),
-      gatewayId: gatewayID,
-      parameters: params,
-    })
-      .then(resp => setRebootResponse(JSON.stringify(resp, null, 2)))
+    MagmaAPI.commands
+      .networksNetworkIdGatewaysGatewayIdCommandGenericPost({
+        networkId: nullthrows(networkId),
+        gatewayId: gatewayID,
+        parameters: params,
+      })
+      .then(({data}) => setRebootResponse(JSON.stringify(data, null, 2)))
       .catch(error =>
-        enqueueSnackbar(
-          'Reboot eNodeB failed: ' + error.response.data.message,
-          {variant: 'error'},
-        ),
+        enqueueSnackbar('Reboot eNodeB failed: ' + getErrorMessage(error), {
+          variant: 'error',
+        }),
       )
       .finally(() => setShowProgress(false));
   };
@@ -278,8 +270,8 @@ export function PingCommandControls(props: ChildProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [pingHosts, setPingHosts] = useState('');
   const [pingPackets, setPingPackets] = useState('');
-  const [pingResponse, setPingResponse] = useState();
-  const [showProgress, setShowProgress] = useState();
+  const [pingResponse, setPingResponse] = useState<string>();
+  const [showProgress, setShowProgress] = useState<boolean>();
 
   const onClick = () => {
     const {gatewayID} = props;
@@ -287,17 +279,18 @@ export function PingCommandControls(props: ChildProps) {
     const packets = parseInt(pingPackets);
 
     setShowProgress(true);
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandPing({
-      networkId: nullthrows(params.networkId),
-      gatewayId: gatewayID,
-      pingRequest: {
-        hosts,
-        packets,
-      },
-    })
+    MagmaAPI.commands
+      .networksNetworkIdGatewaysGatewayIdCommandPingPost({
+        networkId: nullthrows(params.networkId),
+        gatewayId: gatewayID,
+        pingRequest: {
+          hosts,
+          packets,
+        },
+      })
       .then(resp => setPingResponse(JSON.stringify(resp, null, 2)))
       .catch(error =>
-        enqueueSnackbar('Ping failed: ' + error.response.data.message, {
+        enqueueSnackbar('Ping failed: ' + getErrorMessage(error), {
           variant: 'error',
         }),
       )
@@ -347,16 +340,18 @@ export function GenericCommandControls(props: ChildProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [commandName, setCommandName] = useState('');
   const [commandParams, setCommandParams] = useState('{\n}');
-  const [genericResponse, setGenericResponse] = useState();
-  const [showProgress, setShowProgress] = useState();
+  const [genericResponse, setGenericResponse] = useState<string>();
+  const [showProgress, setShowProgress] = useState<boolean>();
 
   const onClick = () => {
     const {gatewayID} = props;
-    let params = {};
+    let params: Record<string, object> = {};
     try {
-      params = JSON.parse(commandParams);
+      params = JSON.parse(commandParams) as Record<string, object>;
     } catch (e) {
-      enqueueSnackbar('Error parsing params: ' + e, {variant: 'error'});
+      enqueueSnackbar('Error parsing params: ' + getErrorMessage(e), {
+        variant: 'error',
+      });
       return;
     }
     const parameters = {
@@ -365,17 +360,17 @@ export function GenericCommandControls(props: ChildProps) {
     };
 
     setShowProgress(true);
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric({
-      networkId: nullthrows(networkId),
-      gatewayId: gatewayID,
-      parameters,
-    })
+    MagmaAPI.commands
+      .networksNetworkIdGatewaysGatewayIdCommandGenericPost({
+        networkId: nullthrows(networkId),
+        gatewayId: gatewayID,
+        parameters,
+      })
       .then(resp => setGenericResponse(JSON.stringify(resp, null, 2)))
       .catch(error =>
-        enqueueSnackbar(
-          'Generic command failed: ' + error.response.data.message,
-          {variant: 'error'},
-        ),
+        enqueueSnackbar('Generic command failed: ' + getErrorMessage(error), {
+          variant: 'error',
+        }),
       )
       .finally(() => setShowProgress(false));
   };
@@ -417,9 +412,9 @@ export function GenericCommandControls(props: ChildProps) {
 }
 
 type FileComponentProps = {
-  title?: string,
-  content: string,
-  error?: string,
+  title?: string;
+  content: string;
+  error?: string;
 };
 function FileComponent(props: FileComponentProps) {
   const classes = useStyles();
@@ -441,7 +436,7 @@ function FileComponent(props: FileComponentProps) {
       <ListItem>
         <textarea
           data-testid="fileContent"
-          rows="8"
+          rows={8}
           className={classes.jsonTextarea}
           autoCapitalize="none"
           autoComplete="none"
@@ -473,14 +468,12 @@ const CONTROL_PROXY_CONTENT = 'cat /var/opt/magma/configs/control_proxy.yml';
 const FLUENT_BIT_LOGS = 'journalctl -u magma@td-agent-bit  -n 10';
 export function TroubleshootingControl(props: ChildProps) {
   const params = useParams();
-  const [
-    controlProxyContent,
-    setControlProxyContent,
-  ] = useState<generic_command_response>({});
-  const [
-    tdAgentLogsContent,
-    setTdAgentLogsContent,
-  ] = useState<generic_command_response>({});
+  const [controlProxyContent, setControlProxyContent] = useState<
+    GenericCommandResponse
+  >({});
+  const [tdAgentLogsContent, setTdAgentLogsContent] = useState<
+    GenericCommandResponse
+  >({});
   const networkId = nullthrows(params.networkId);
   const controlProxyParams = {
     command: 'bash',
@@ -489,10 +482,12 @@ export function TroubleshootingControl(props: ChildProps) {
     },
   };
   const {isLoading: isProxyFileLoading} = useMagmaAPI(
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
-    // $FlowIssue[incompatible-call]
+    MagmaAPI.commands.networksNetworkIdGatewaysGatewayIdCommandGenericPost,
     {networkId, gatewayId: props.gatewayID, parameters: controlProxyParams},
-    useCallback(response => setControlProxyContent(response), []),
+    useCallback(
+      (response: GenericCommandResponse) => setControlProxyContent(response),
+      [],
+    ),
   );
   const tdAgentBitLogs = {
     command: 'bash',
@@ -501,15 +496,17 @@ export function TroubleshootingControl(props: ChildProps) {
     },
   };
   const {isLoading: isTdAgentBitLogsLoading} = useMagmaAPI(
-    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric,
-    // $FlowIssue[incompatible-call]
+    MagmaAPI.commands.networksNetworkIdGatewaysGatewayIdCommandGenericPost,
     {networkId, gatewayId: props.gatewayID, parameters: tdAgentBitLogs},
-    useCallback(response => setTdAgentLogsContent(response), []),
+    useCallback(
+      (response: GenericCommandResponse) => setTdAgentLogsContent(response),
+      [],
+    ),
   );
-  const {
-    isLoading: isEventAPILoading,
-    error,
-  } = useMagmaAPI(MagmaV1API.getEventsByNetworkIdAboutCount, {networkId});
+  const {isLoading: isEventAPILoading, error} = useMagmaAPI(
+    MagmaAPI.events.eventsNetworkIdAboutCountGet,
+    {networkId},
+  );
 
   if (isProxyFileLoading || isEventAPILoading || isTdAgentBitLogsLoading) {
     return <LoadingFiller />;
@@ -536,7 +533,7 @@ export function TroubleshootingControl(props: ChildProps) {
     fileContent.includes('fluentd_address') &&
     fileContent.includes('fluentd_port');
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Control Proxy Config Validation',
@@ -558,9 +555,10 @@ export function TroubleshootingControl(props: ChildProps) {
         tooltip:
           error == null
             ? TROUBLESHOOTING_HINTS.AGG_API_SUCCESS
-            : `event and log aggregation api is failing,  ${
-                error ?? 'internal server error'
-              }`,
+            : `event and log aggregation api is failing,  ${getErrorMessage(
+                error,
+                'internal server error',
+              )}`,
       },
     ],
     [
