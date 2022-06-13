@@ -70,7 +70,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
             use_param_key: bool,
     ) -> None:
         super().__init__(use_param_key=use_param_key)
-        self.state = None
+        self.state: EnodebAcsState
         self.timeout_handler = None
         self.mme_timeout_handler = None
         self.mme_timer = None
@@ -226,9 +226,9 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         """
         if isinstance(message, models.Inform):
             logger.debug(
-                'ACS in (%s) state. Received an Inform message',
-                self.state.state_description(),
-            )
+                    'ACS in (%s) state. Received an Inform message',
+                    self.state.state_description(),
+                )
             self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
             logger.debug(
