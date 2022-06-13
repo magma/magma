@@ -63,7 +63,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={setStartDate}
+            onChange={date => setStartDate(date!)}
           />
         </Grid>
         <Grid item>
@@ -77,7 +77,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
             inputVariant="outlined"
             disableFuture
             value={endDate}
-            onChange={setEndDate}
+            onChange={date => setEndDate(date!)}
           />
         </Grid>
       </Grid>

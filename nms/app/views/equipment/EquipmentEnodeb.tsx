@@ -9,48 +9,35 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EmptyState from '../../components/EmptyState';
-// $FlowFixMe migrated to typescript
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
 import {FetchEnodebs} from '../../state/lte/EquipmentState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
-// $FlowFixMe migrated to typescript
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useInterval} from '../../hooks';
 import {useNavigate, useParams} from 'react-router-dom';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 const CHART_TITLE = 'Total Throughput';
 const EMPTY_STATE_INSTRUCTIONS =
@@ -60,7 +47,7 @@ const EMPTY_STATE_OVERVIEW =
   'The eNodeB is the Radio Access Network that connects the user devices to the Packet Core. ' +
   'eNodeBs (eNBs) can be either managed (via TR-069) or unmanaged.';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   cardContent: {
     padding: '0 16px',
   },
@@ -242,13 +229,13 @@ export default function Enodeb() {
 }
 
 type EnodebRowType = {
-  name: string,
-  id: string,
-  sessionName: string,
-  mmeConnected: string,
-  health: string,
-  reportedTime: Date,
-  numSubscribers: number,
+  name: string;
+  id: string;
+  sessionName: string;
+  mmeConnected: string;
+  health: string;
+  reportedTime: Date;
+  numSubscribers: number;
 };
 
 function EnodebTableRaw(props: WithAlert) {
@@ -256,7 +243,7 @@ function EnodebTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(EnodebContext);
   const [refresh, setRefresh] = useState(true);
-  const [currRow, setCurrRow] = useState<EnodebRowType>({});
+  const [currRow, setCurrRow] = useState<EnodebRowType>({} as EnodebRowType);
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
   const REFRESH_INTERVAL = 30000;
@@ -356,7 +343,7 @@ function EnodebTableRaw(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {

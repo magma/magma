@@ -394,8 +394,8 @@ export default function EventsTable(props: EventTableProps) {
                       maxDate={endDate}
                       disableFuture
                       value={startDate}
-                      onChange={(val: moment.Moment) => {
-                        setStartDate(val);
+                      onChange={date => {
+                        setStartDate(date!);
                         setIsAutoRefreshing(false);
                       }}
                     />
@@ -412,8 +412,8 @@ export default function EventsTable(props: EventTableProps) {
                       inputVariant="outlined"
                       disableFuture
                       value={endDate}
-                      onChange={(val: moment.Moment) => {
-                        setEndDate(val);
+                      onChange={date => {
+                        setEndDate(date!);
                         setIsAutoRefreshing(false);
                       }}
                     />
