@@ -263,7 +263,7 @@ class Classifier(MagmaController):
 
     def _install_uplink_tunnel_flows(
         self, priority: int, i_teid: int,
-        gtp_portno: int, sid: int, o_teid: int,
+        gtp_portno: int, sid: Optional[int], o_teid: int,
     ):
 
         parser = self._datapath.ofproto_parser
