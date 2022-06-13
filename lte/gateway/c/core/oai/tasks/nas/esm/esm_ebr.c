@@ -112,7 +112,7 @@ void esm_ebr_initialize(void) {
  **      Others:    _esm_ebr_data                                          **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_ebr_assign(emm_context_t* emm_context) {
+int esm_ebr_assign(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t* ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);

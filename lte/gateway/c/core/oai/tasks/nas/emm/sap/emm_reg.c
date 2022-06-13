@@ -73,7 +73,7 @@ void emm_reg_initialize(void) {
  ***************************************************************************/
 status_code_e emm_reg_send(emm_reg_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   /*
    * Check the EMM-SAP primitive

@@ -99,7 +99,7 @@
  ***************************************************************************/
 status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
                                             bstring nas_msg_pP) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_context_t* emm_ctxt_p = NULL;
   imeisv_t* p_imeisv = NULL;
   MobileStationClassmark2* p_mob_st_clsMark2 = NULL;

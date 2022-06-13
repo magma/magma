@@ -70,7 +70,7 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /****************************************************************************/
 status_code_e emm_proc_service_reject(const mme_ue_s1ap_id_t ue_id,
                                       const uint8_t emm_cause) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_service_reject(ue_id, emm_cause);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -141,7 +141,7 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
 status_code_e emm_proc_extended_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
 
   /*
@@ -211,7 +211,7 @@ status_code_e emm_recv_initial_ext_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
     int* emm_cause, const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
   emm_sap_t emm_sap = {0};
 
@@ -325,7 +325,7 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
 
 status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
                                                 const uint8_t emm_cause) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
   OAILOG_FUNC_IN(LOG_NAS_EMM);

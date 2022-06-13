@@ -196,7 +196,7 @@ status_code_e emm_proc_common_initialize(
  ***************************************************************************/
 status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
   emm_common_success_callback_t emm_callback = {0};
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (emm_common_data_ctx) {
@@ -231,7 +231,7 @@ status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -250,7 +250,7 @@ status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
 }
 
 status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -289,7 +289,7 @@ status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
 status_code_e emm_proc_common_ll_failure(
     emm_common_data_t* emm_common_data_ctx) {
   emm_common_ll_failure_callback_t emm_callback;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
@@ -329,7 +329,7 @@ status_code_e emm_proc_common_ll_failure(
 status_code_e emm_proc_common_non_delivered(
     emm_common_data_t* emm_common_data_ctx) {
   emm_common_non_delivered_callback_t emm_callback;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
@@ -367,7 +367,7 @@ status_code_e emm_proc_common_non_delivered(
  ***************************************************************************/
 status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
   emm_common_abort_callback_t emm_callback;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
