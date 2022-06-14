@@ -28,9 +28,9 @@ controller:
     database:
       driver: postgres  # mysql/postgres
       sql_dialect: psql  # maria/psql
-      db: dp_test
+      db: dp
       host: db
-      port: 5433
+      port: 5432
       user: postgres
       pass: postgres
     service_registry:
@@ -135,11 +135,11 @@ nms:
       service: true
     env:
       api_host: orc8r-nginx-proxy:443
-      mysql_db: dp_test
+      mysql_db: dp
       mysql_dialect: postgres
       mysql_host: db
       mysql_pass: postgres
-      mysql_port: 5433
+      mysql_port: 5432
       mysql_user: postgres
     image:
       repository: magmalte

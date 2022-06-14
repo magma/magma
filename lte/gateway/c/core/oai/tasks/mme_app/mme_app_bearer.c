@@ -1110,7 +1110,7 @@ status_code_e mme_app_handle_create_sess_resp(
   struct ue_mm_context_s* ue_context_p = NULL;
   bearer_context_t* current_bearer_p = NULL;
   ebi_t bearer_id = 0;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   if (create_sess_resp_pP == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -2596,7 +2596,7 @@ status_code_e mme_app_send_s11_suspend_notification(
     struct ue_mm_context_s* const ue_context_pP, const pdn_cid_t pdn_index) {
   MessageDef* message_p = NULL;
   itti_s11_suspend_notification_t* suspend_notification_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_pP == NULL) {
@@ -2682,7 +2682,7 @@ status_code_e mme_app_handle_nas_extended_service_req(
     const mme_ue_s1ap_id_t ue_id, const uint8_t service_type,
     uint8_t csfb_response) {
   struct ue_mm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
