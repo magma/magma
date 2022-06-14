@@ -45,7 +45,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 const MAX_PAGE_ROW_COUNT = 10000;
 const EXPORT_DELIMITER = ',';
 const LOG_COLUMNS = [
-  // eslint-disable-next-line prettier/prettier
+  // prettier-ignore
   {title: 'Date', field: 'date', type: 'datetime', width: 200, filtering: false,} as const,
   {title: 'Service', field: 'service', width: 200} as const,
   {title: 'Tag', field: 'tag', width: 200} as const,
@@ -122,7 +122,7 @@ async function searchLogs(
 ) {
   const logs = (
     await MagmaAPI.logs.networksNetworkIdLogsSearchGet({
-      networkId: networkId,
+      networkId,
       from: from.toString(),
       size: size.toString(),
       start: start.toISOString(),
@@ -194,7 +194,7 @@ async function handleLogQuery(
   try {
     const countReq = (
       await MagmaAPI.logs.networksNetworkIdLogsCountGet({
-        networkId: networkId,
+        networkId,
         start: start.toISOString(),
         end: end.toISOString(),
         ...buildQueryFilters(query, gatewayId),
