@@ -9,14 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 export default function renderList(list: Array<string>): string {
   if (!Array.isArray(list)) {
     console.error(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `renderList(): expected array, received ${list} (${typeof list})`,
     );
     return '';
