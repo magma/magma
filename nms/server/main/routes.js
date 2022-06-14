@@ -31,6 +31,7 @@ import path from 'path';
 import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';

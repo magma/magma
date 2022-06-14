@@ -15,6 +15,7 @@
  */
 
 import DynamicStrategy from './DynamicStrategy';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../../shared/roles';
 import {Strategy as OidcStrategy} from 'openid-client';
 import {User} from '../../../shared/sequelize_models';

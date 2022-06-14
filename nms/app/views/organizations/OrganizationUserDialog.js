@@ -26,6 +26,7 @@ import Select from '@material-ui/core/Select';
 
 // $FlowFixMe migrated to typescript
 import {AltFormField, PasswordInput} from '../../../app/components/FormField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {UserRoles} from '../../../shared/roles';
 import {makeStyles} from '@material-ui/styles';
 

@@ -33,6 +33,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {UserRoles} from '../../../shared/roles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
