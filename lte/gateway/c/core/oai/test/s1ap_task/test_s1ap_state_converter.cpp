@@ -21,7 +21,6 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 

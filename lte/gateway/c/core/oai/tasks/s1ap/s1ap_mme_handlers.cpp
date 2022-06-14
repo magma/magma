@@ -584,7 +584,8 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     arg.associated_enb_id = enb_association->enb_id;
     arg.deregister_ue_count = enb_association->ue_id_coll.size();
     enb_association->ue_id_coll.map_apply_callback_on_all_elements(
-        s1ap_send_enb_deregistered_ind, (void*)&arg, (void**)&message_p);
+        s1ap_send_enb_deregistered_ind, reinterpret_cast<void*>(&arg),
+        reinterpret_cast<void**>(&message_p));
 
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
@@ -3717,7 +3718,8 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
   arg.associated_enb_id = enb_association->enb_id;
   arg.deregister_ue_count = enb_association->ue_id_coll.size();
   enb_association->ue_id_coll.map_apply_callback_on_all_elements(
-      s1ap_send_enb_deregistered_ind, (void*)&arg, (void**)&message_p);
+      s1ap_send_enb_deregistered_ind, reinterpret_cast<void*>(&arg),
+      reinterpret_cast<void**>(&message_p));
 
   /*
    * Mark the eNB's s1 state as appropriate, the eNB will be deleted or

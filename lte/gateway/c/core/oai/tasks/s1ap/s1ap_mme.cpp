@@ -385,8 +385,7 @@ enb_description_t* s1ap_new_enb(void) {
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
   DevAssert(enb_ref != NULL);
-  enb_ref->ue_id_coll.map =
-      new google::protobuf::Map<unsigned int, long unsigned int>();
+  enb_ref->ue_id_coll.map = new google::protobuf::Map<uint32_t, uint64_t>();
   enb_ref->ue_id_coll.set_name("s1ap_ue_coll");
   enb_ref->nb_ue_associated = 0;
   return enb_ref;

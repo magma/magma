@@ -210,7 +210,7 @@ void StateConverter::proto_to_apn_config_profile(
   }
 }
 
-// TODO (rsarwad) remove these functions while removing hash library completely
+// TODO(rsarwad): remove these functions while removing hash library completely
 void StateConverter::hashtable_uint64_ts_to_proto(
     hash_table_uint64_ts_t* htbl,
     google::protobuf::Map<unsigned long, unsigned long>* proto_map) {

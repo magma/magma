@@ -147,8 +147,7 @@ void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
 
   // load ues
   proto_map_rc_t rc = {PROTO_MAP_OK};
-  enb->ue_id_coll.map =
-      new google::protobuf::Map<unsigned int, long unsigned int>();
+  enb->ue_id_coll.map = new google::protobuf::Map<uint32_t, uint64_t>();
   enb->ue_id_coll.set_name("s1ap_ue_coll");
 
   auto ue_ids = proto.ue_ids();
