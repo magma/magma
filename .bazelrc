@@ -16,34 +16,34 @@ build --compilation_mode=dbg
 test --test_output=errors
 test --flaky_test_attempts=5
 
+# Use dynamically linked folly library
+build --define=folly_so=1
+
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
-build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
-common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
-build:vm --define=folly_so=1
 build:vm --config=specify_vm_cc
 
-# MAGMA-BUILDER DOCKER CONTAINER CONFIGS
-build:docker --define=folly_so=1
-
-# DEVCONTAINER CONFIGS
-build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
-common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
-build:devcontainer --define=folly_so=1
+# DISK CACHE CONFIGS
+# The locations of the disk_cache/repository_cache are symlinks in the
+# docker containers/magma-vm. They point to the correct cache locations
+# $MAGMA/.bazel-cache and $MAGMA/.bazel-cache-repo inside the magma repository.
+build:disk_cache --disk_cache=/var/cache/bazel-cache
+common:disk_cache --repository_cache=/var/cache/bazel-cache-repo
 
 # REMOTE CACHING READ AND WRITE CONFIGS
 # The file bazel/bazelrcs/remote_caching_rw.bazelrc is templated in CI
-# The full config is then written to remote-cache.bazelrc
+# The full config is then written to bazel/bazelrcs/cache.bazelrc
 build:remote_caching_rw --remote_download_toplevel
 
 # REMOTE CACHING READ-ONLY CONFIGS
 # The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
-# The full config is then written to remote-cache.bazelrc
+# The full config is then written to bazel/bazelrcs/cache.bazelrc
 build:remote_caching_ro --remote_download_toplevel
 build:remote_caching_ro --remote_upload_local_results=false 
 
-# Try importing the bazel remote caching config (relevant in CI)
-try-import remote-cache.bazelrc
+# Import the bazel caching config, with default disk cache,
+# which in CI gets overwritten by the remote caching config. 
+import bazel/bazelrcs/cache.bazelrc
 
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin

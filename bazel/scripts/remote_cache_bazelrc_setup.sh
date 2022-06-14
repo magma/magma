@@ -66,4 +66,4 @@ create_config_for_ro_remote_cache () {
 # SCRIPT SECTION
 ###############################################################################
 
-create_config "$CACHE_KEY" "$BAZEL_REMOTE_PASSWORD" > remote-cache.bazelrc
+create_config "$CACHE_KEY" "$BAZEL_REMOTE_PASSWORD" > bazel/bazelrcs/cache.bazelrc
