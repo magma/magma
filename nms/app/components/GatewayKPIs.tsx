@@ -9,31 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from './DataGrid';
-import type {lte_gateway} from '../../generated/MagmaAPIBindings';
-
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
-// $FlowFixMe migrated to typescript
 import GatewayContext from './context/GatewayContext';
 import React from 'react';
-
+import {LteGateway} from '../../generated-ts';
 import {useContext} from 'react';
+import type {DataRows} from './DataGrid';
 
-function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
+function gatewayStatus(
+  gatewaySt: Record<string, LteGateway>,
+): [number, number] {
   let upCount = 0;
   let downCount = 0;
   Object.keys(gatewaySt)
-    .map((k: string) => gatewaySt[k])
-    .filter((g: lte_gateway) => g.cellular && g.id)
-    .map(function (gateway: lte_gateway) {
+    .map((key: string) => gatewaySt[key])
+    .filter((g: LteGateway) => g.cellular && g.id)
+    .map(function (gateway: LteGateway) {
       gateway.checked_in_recently ? upCount++ : downCount++;
     });
   return [upCount, downCount];
@@ -43,7 +37,7 @@ export default function GatewayKPIs() {
   const gwCtx = useContext(GatewayContext);
   const [upCount, downCount] = gatewayStatus(gwCtx.state);
 
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         icon: CellWifiIcon,
