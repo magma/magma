@@ -93,11 +93,13 @@ export default function Features() {
       <TableCell>{row.enabledByDefault ? 'Yes' : 'No'}</TableCell>
       <TableCell>
         {renderList(
+          // $FlowIgnore
           Object.keys(row.config).filter(org => row.config[org].enabled),
         )}
       </TableCell>
       <TableCell>
         {renderList(
+          // $FlowIgnore
           Object.keys(row.config).filter(org => !row.config[org].enabled),
         )}
       </TableCell>
