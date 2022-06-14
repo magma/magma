@@ -16,7 +16,6 @@ import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';
 import {AppContextProvider} from '../context/AppContext';
-import {AxiosResponse} from 'axios';
 import {LTE} from '../../../shared/types/network';
 import {MemoryRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';

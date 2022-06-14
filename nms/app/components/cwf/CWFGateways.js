@@ -51,7 +51,8 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import withAlert from '../Alert/withAlert'; // $FlowFixMe migrated to typescript
+import withAlert from '../Alert/withAlert';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
