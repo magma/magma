@@ -52,7 +52,9 @@ export default function LogChart(props: Props) {
     hoverBorderColor: 'black',
     data: [],
   });
+
   useEffect(() => {
+    let requestError = false;
     const queries = getQueryRanges(start, end, delta, unit);
     const requests = queries.map(async query => {
       try {
@@ -66,8 +68,8 @@ export default function LogChart(props: Props) {
           })
         ).data;
         return response;
-      } catch {
-        enqueueSnackbar('Error getting log counts', {variant: 'error'});
+      } catch (error) {
+        requestError = !!error;
       }
 
       return null;
@@ -105,10 +107,16 @@ export default function LogChart(props: Props) {
         setLogCount(data.reduce((a, b) => a + b.y, 0));
         setIsLoading(false);
       })
-      .catch(() => {
-        enqueueSnackbar('Error getting log counts', {variant: 'error'});
+      .catch(error => {
+        requestError = !!error;
         setIsLoading(false);
       });
+
+    if (requestError) {
+      enqueueSnackbar('Error getting log counts', {
+        variant: 'error',
+      });
+    }
   }, [
     setLogCount,
     start,
