@@ -18,7 +18,7 @@ import {NetworkId} from '../../../shared/types/network';
 type Props = {
   networkId: NetworkId;
   apns: Record<string, Apn>;
-  setApns: (arg0: Record<string, Apn>) => void;
+  setApns: (apns: Record<string, Apn>) => void;
   key: string;
   value?: Apn;
 };

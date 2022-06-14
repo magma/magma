@@ -63,7 +63,7 @@ export function EnodeConfigFdd(props: Props) {
 type EditProps = {
   earfcndl: string;
   earfcnul: string;
-  setEarfcndl: (arg0: string) => void;
+  setEarfcndl: (earfcndl: string) => void;
 };
 
 export default function EnodeConfigEditFdd(props: EditProps) {

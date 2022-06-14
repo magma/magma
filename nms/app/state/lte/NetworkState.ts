@@ -28,7 +28,7 @@ export type UpdateNetworkProps = {
   lteRanConfigs?: NetworkRanConfigs;
   lteDnsConfig?: NetworkDnsConfig;
   subscriberConfig?: NetworkSubscriberConfig;
-  setLteNetwork: (arg0: LteNetwork) => void;
+  setLteNetwork: (lteNetwork: LteNetwork) => void;
   refreshState: boolean;
 };
 

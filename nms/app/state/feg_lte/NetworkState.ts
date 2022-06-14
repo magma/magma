@@ -32,7 +32,7 @@ export type UpdateNetworkProps = {
   lteRanConfigs?: NetworkRanConfigs;
   subscriberConfig?: NetworkSubscriberConfig;
   setLteNetwork: (
-    arg0: FegLteNetwork & {
+    lteNetwork: FegLteNetwork & {
       subscriber_config: NetworkSubscriberConfig;
     },
   ) => void;

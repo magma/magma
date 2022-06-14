@@ -70,7 +70,7 @@ type Props<T> = {
   content: T;
   error: string;
   customFilter?: React.ReactNode;
-  onSave: (arg0: T) => Promise<void>;
+  onSave: (onSave: T) => Promise<void>;
 };
 
 export default function JsonEditor<T>(props: Props<T>) {

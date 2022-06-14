@@ -218,7 +218,7 @@ type Props = {
   enb?: Enodeb;
   lteRanConfigs: NetworkRanConfigs | null | undefined;
   onClose: () => void;
-  onSave: (arg0: Enodeb) => void;
+  onSave: (enodeb: Enodeb) => void;
 };
 type BandwidthMhzType = EnodebConfiguration['bandwidth_mhz'];
 type OptConfig = {

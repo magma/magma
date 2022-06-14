@@ -71,9 +71,9 @@ type EditProps = {
   earfcndl: string;
   specialSubframePattern: string;
   subframeAssignment: string;
-  setEarfcndl: (arg0: string) => void;
-  setSpecialSubframePattern: (arg0: string) => void;
-  setSubframeAssignment: (arg0: string) => void;
+  setEarfcndl: (earfcndl: string) => void;
+  setSpecialSubframePattern: (pattern: string) => void;
+  setSubframeAssignment: (assignment: string) => void;
 };
 
 export default function EnodeConfigEditTdd(props: EditProps) {

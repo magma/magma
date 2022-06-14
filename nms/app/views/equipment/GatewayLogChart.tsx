@@ -33,7 +33,7 @@ type Props = {
   delta: number;
   unit: TimeUnit;
   format: string;
-  setLogCount: (arg0: number) => void;
+  setLogCount: (logCount: number) => void;
 };
 
 export default function LogChart(props: Props) {
