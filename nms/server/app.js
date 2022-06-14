@@ -35,6 +35,7 @@ import mainRoutes from './main/routes';
 import passport from 'passport';
 import path from 'path';
 import session from 'express-session';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../shared/roles';
 import {DEV_MODE, LOG_FORMAT, LOG_LEVEL} from '../config/config';
 import {access, configureAccess} from './auth/access';

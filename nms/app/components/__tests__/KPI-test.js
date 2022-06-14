@@ -15,9 +15,11 @@
  */
 // $FlowFixMe migrated to typescript
 import EnodebContext from '../context/EnodebContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EnodebKPIs from '../EnodebKPIs';
 // $FlowFixMe migrated to typescript
 import GatewayContext from '../context/GatewayContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayKPIs from '../GatewayKPIs';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

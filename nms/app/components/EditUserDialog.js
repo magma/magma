@@ -29,7 +29,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import renderList from '../util/renderList';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {UserRoles} from '../../shared/roles';
 import {makeStyles} from '@material-ui/styles';
 

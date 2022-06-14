@@ -26,6 +26,7 @@ import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
 import MagmaV1API from '../magma';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';
 // $FlowFixMe migrated to typescript
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';

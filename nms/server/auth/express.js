@@ -20,6 +20,7 @@ import expressOnboarding from './expressOnboarding';
 import logging from '../../shared/logging';
 import passport from 'passport';
 import staticDist from '../../config/staticDist';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../shared/sequelize_models';
 import {access} from './access';

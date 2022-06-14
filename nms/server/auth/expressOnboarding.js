@@ -19,6 +19,7 @@ import type {FBCNMSRequest} from './access';
 
 import express from 'express';
 import staticDist from '../../config/staticDist';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';
 import {Organization, User} from '../../shared/sequelize_models';
 import {getPropsToUpdate} from './util';

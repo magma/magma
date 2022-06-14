@@ -15,10 +15,12 @@
  */
 'use strict';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {AccessRoleLevel} from '../../shared/roles';
 
 const path = require('path');
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 const {AccessRoles} = require('../../shared/roles');
 const {ErrorCodes} = require('../../shared/errorCodes');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;

@@ -36,8 +36,10 @@ import TableRow from '@material-ui/core/TableRow';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {UserRoles} from '../../../../shared/roles';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import renderList from '../../../util/renderList';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../Alert/withAlert';

@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../../shared/roles';
 import {MultiSamlStrategy} from 'passport-saml'; // compatibility with breaking change in 3.1.0
 import {User} from '../../../shared/sequelize_models';
