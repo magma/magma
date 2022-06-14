@@ -81,9 +81,13 @@ export type Dataset = {
   hoverBorderColor: string;
   hoverBackgroundColor: string;
   data: Array<DatasetType>;
+  fill?: boolean;
 };
 
 type Props = {
+  start?: moment.Moment;
+  end?: moment.Moment;
+  delta?: number;
   dataset: Array<Dataset>;
   unit?: TimeUnit;
   yLabel?: string;
