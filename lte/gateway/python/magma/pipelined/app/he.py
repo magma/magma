@@ -130,7 +130,7 @@ class HeaderEnrichmentController(MagmaController):
         self._ue_rule_counter = UeProxyRuleCounter()
         self.logger.info("Header Enrichment app config: %s", self.config)
 
-    def _get_config(self, config_dict, mconfig) -> namedtuple:
+    def _get_config(self, config_dict, mconfig) -> UplinkHEConfig:
         he_enabled = config_dict.get('he_enabled', True)
         uplink_port = config_dict.get('uplink_port', None)
         proxy_port_name = config_dict.get('proxy_port_name')

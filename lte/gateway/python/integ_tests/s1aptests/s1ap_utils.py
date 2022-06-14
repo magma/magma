@@ -222,7 +222,7 @@ class S1ApUtil(object):
                     "Timeout ("
                     + str(timeout)
                     + " sec) occurred while waiting for response message",
-                )
+                ) from None
 
     def populate_pco(
         self,

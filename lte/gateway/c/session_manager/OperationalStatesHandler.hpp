@@ -15,10 +15,7 @@
 #include <folly/dynamic.h>
 #include <list>
 #include <map>
-#include <memory>
 #include <string>
-
-#include "lte/gateway/c/session_manager/SessionStore.hpp"
 
 namespace magma {
 class SessionState;
@@ -40,15 +37,20 @@ const std::string ACTIVE_POLICY_RULES = "active_policy_rules";
 const std::string SESSION_START_TIME = "session_start_time";
 const std::string ACTIVE_DURATION_SECOND = "active_duration_sec";
 const std::string LIFECYCLE_STATE = "lifecycle_state";
+const std::string GATEWAY_SUBSCRIBER_STATE_TYPE = "gateway_subscriber_state";
+const std::string SUBSCRIBERS = "subscribers";
+const std::string SNOWFLAKE_PATH = "/etc/snowflake";
 
 using OpState = std::list<std::map<std::string, std::string>>;
 
-OpState get_operational_states(magma::SessionStore* session_store);
+OpState get_operational_states(magma::lte::SessionStore* session_store);
 
 folly::dynamic get_dynamic_session_state(
     const std::unique_ptr<SessionState>& session);
 
 folly::dynamic get_dynamic_active_policies(
     const std::unique_ptr<SessionState>& session);
+
+std::string get_gateway_hw_id();
 
 }  // namespace magma

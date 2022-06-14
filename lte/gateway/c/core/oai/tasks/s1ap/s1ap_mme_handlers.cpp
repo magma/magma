@@ -1414,6 +1414,11 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   if (cause == S1AP_SUCCESSFUL_HANDOVER) {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
+  // If cause is S1AP_INVALID_MME_UE_S1AP_ID, then it indicates that s1ap doen't
+  // have valid UE context
+  if (cause == S1AP_INVALID_MME_UE_S1AP_ID && ue_ref_p == NULL) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
   if (rc == RETURNok) {
     // Start timer to track UE context release complete from eNB
     ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
@@ -1567,9 +1572,9 @@ status_code_e s1ap_handle_ue_context_release_command(
            ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG_UE(LOG_S1AP, imsi64,
                     "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                    " %u(10)\n",
+                    " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
                     ue_context_release_command_pP->mme_ue_s1ap_id,
-                    ue_context_release_command_pP->mme_ue_s1ap_id);
+                    ue_context_release_command_pP->enb_ue_s1ap_id);
     rc = RETURNok;
   } else {
     /*

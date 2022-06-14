@@ -163,6 +163,8 @@ void SctpConnection::Listen() {
             MLOG_perror("epoll_ctl");
             std::terminate();
           }
+          shutdown(client_sd, SHUT_RDWR);
+          close(client_sd);
         }
 
         if (status == SctpStatus::NEW_ASSOC_NOTIF_FAILED) {

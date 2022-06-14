@@ -63,7 +63,7 @@
  ***************************************************************************/
 status_code_e mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(LOG_MME_APP, " Received SGSAP-Reset Indication from VLR :%s \n",
               reset_indication_pP->vlr_name);
@@ -96,7 +96,7 @@ bool mme_app_handle_reset_indication(const hash_key_t keyP,
                                      void* const ue_context_pP,
                                      void* unused_param_pP,
                                      void** unused_result_pP) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   sgs_fsm_t sgs_fsm;
   OAILOG_FUNC_IN(LOG_MME_APP);
 

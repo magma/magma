@@ -66,7 +66,7 @@
  ***************************************************************************/
 status_code_e sgs_la_update_requested_handler(const sgs_fsm_t* evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_LA_UPDATE_REQUESTED) {
     OAILOG_ERROR(LOG_MME_APP,
