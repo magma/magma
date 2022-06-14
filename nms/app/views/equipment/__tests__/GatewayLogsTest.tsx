@@ -9,30 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as customHistogram from '../../../components/CustomMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayLogs from '../GatewayLogs';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
-jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
 jest.spyOn(customHistogram, 'default').mockImplementation(() => <></>);
+
 const LogTableWrapper = () => (
   <MemoryRouter
     initialEntries={['/nms/mynetwork/gateway/mygateway/logs']}
@@ -129,14 +123,9 @@ describe('<GatewayLogs />', () => {
     },
   ];
   beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getNetworksByNetworkIdLogsCount.mockResolvedValue(
-      mockLogCount,
-    );
+    mockAPI(MagmaAPI.logs, 'networksNetworkIdLogsCountGet', mockLogCount);
 
-    MagmaAPIBindings.getNetworksByNetworkIdLogsSearch.mockResolvedValue(
-      mockLogs,
-    );
+    mockAPI(MagmaAPI.logs, 'networksNetworkIdLogsSearchGet', mockLogs);
   });
 
   it('verify gateway logs rendering', async () => {
@@ -146,11 +135,11 @@ describe('<GatewayLogs />', () => {
 
     // can get called multiple times from the histogram component
     // as well
-    expect(MagmaAPIBindings.getNetworksByNetworkIdLogsCount).toHaveBeenCalled();
+    expect(MagmaAPI.logs.networksNetworkIdLogsCountGet).toHaveBeenCalled();
 
-    expect(
-      MagmaAPIBindings.getNetworksByNetworkIdLogsSearch,
-    ).toHaveBeenCalledTimes(1);
+    expect(MagmaAPI.logs.networksNetworkIdLogsSearchGet).toHaveBeenCalledTimes(
+      1,
+    );
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Date');
