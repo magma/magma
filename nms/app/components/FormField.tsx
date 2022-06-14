@@ -169,7 +169,7 @@ export function AltFormFieldSubheading(props: Props) {
 
 type PasswordProps = {
   value: string;
-  onChange: (arg0: string) => void;
+  onChange: (onChange: string) => void;
   placeholder?: string;
 };
 

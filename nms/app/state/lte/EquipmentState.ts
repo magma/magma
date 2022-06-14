@@ -45,7 +45,7 @@ import MagmaAPI from '../../../api/MagmaAPI';
 /************************** Gateway Tier State *******************************/
 type InitTierStateProps = {
   networkId: NetworkId;
-  setTiers: (arg0: Record<string, Tier>) => void;
+  setTiers: (tiers: Record<string, Tier>) => void;
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
@@ -95,7 +95,7 @@ export async function InitTierState(props: InitTierStateProps) {
 type TierStateProps = {
   networkId: NetworkId;
   tiers: Record<string, Tier>;
-  setTiers: (arg0: Record<string, Tier>) => void;
+  setTiers: (tiers: Record<string, Tier>) => void;
   key: string;
   value?: Tier;
 };
@@ -220,7 +220,7 @@ export async function FetchEnodebs(
 
 type InitEnodeStateProps = {
   networkId: NetworkId;
-  setEnbInfo: (arg0: Record<string, EnodebInfo>) => void;
+  setEnbInfo: (enodebInfo: Record<string, EnodebInfo>) => void;
   enqueueSnackbar?: (
     msg: string,
     cfg: OptionsObject,
@@ -241,7 +241,7 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
 type EnodebStateProps = {
   networkId: NetworkId;
   enbInfo: Record<string, EnodebInfo>;
-  setEnbInfo: (arg0: Record<string, EnodebInfo>) => void;
+  setEnbInfo: (enodebInfo: Record<string, EnodebInfo>) => void;
   key: string;
   value?: EnodebInfo;
   newState?: EnodebState;
@@ -334,7 +334,7 @@ export async function FetchGateways(props: FetchProps) {
 type GatewayStateProps = {
   networkId: NetworkId;
   lteGateways: Record<string, LteGateway>;
-  setLteGateways: (arg0: Record<string, LteGateway>) => void;
+  setLteGateways: (lteGateways: Record<string, LteGateway>) => void;
   key: GatewayId;
   value?: MutableLteGateway;
   newState?: Record<string, LteGateway>;
@@ -383,7 +383,7 @@ export type UpdateGatewayProps = {
   cellularConfigs?: GatewayCellularConfigs;
   enbs?: Array<EnodebSerial>;
   networkId: NetworkId;
-  setLteGateways: (arg0: Record<string, LteGateway>) => void;
+  setLteGateways: (lteGateways: Record<string, LteGateway>) => void;
 };
 
 export async function UpdateGateway(props: UpdateGatewayProps) {
@@ -536,7 +536,7 @@ export async function FetchGatewayPools(props: FetchProps) {
 type GatewayPoolsStateProps = {
   networkId: NetworkId;
   gatewayPools: Record<string, gatewayPoolsStateType>;
-  setGatewayPools: (arg0: Record<string, gatewayPoolsStateType>) => void;
+  setGatewayPools: (gatewayPools: Record<string, gatewayPoolsStateType>) => void;
   key: GatewayPoolId;
   value?: MutableCellularGatewayPool;
   resources?: Array<GatewayPoolRecordsType>;
@@ -640,7 +640,7 @@ export async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
   }
 }
 type InitGatewayPoolStateType = {
-  setGatewayPools: (arg0: Record<string, gatewayPoolsStateType>) => void;
+  setGatewayPools: (gatewayPools: Record<string, gatewayPoolsStateType>) => void;
   networkId: NetworkId;
   enqueueSnackbar?: (
     msg: string,

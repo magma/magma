@@ -87,7 +87,7 @@ type EditProps = {
   saveButtonTitle: string;
   lteNetwork: Partial<LteNetwork & FegLteNetwork>;
   onClose: () => void;
-  onSave: (arg0: Partial<LteNetwork & FegLteNetwork>) => void;
+  onSave: (network: Partial<LteNetwork & FegLteNetwork>) => void;
 };
 
 export function NetworkInfoEdit(props: EditProps) {

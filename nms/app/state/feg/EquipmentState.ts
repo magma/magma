@@ -23,9 +23,9 @@ import {GatewayId, NetworkId} from '../../../shared/types/network';
 import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
 type InitGatewayStateProps = {
   networkId: NetworkId;
-  setFegGateways: (arg0: Record<string, FederationGateway>) => void;
+  setFegGateways: (fegGateways: Record<string, FederationGateway>) => void;
   setFegGatewaysHealthStatus: (
-    arg0: Record<string, FederationGatewayHealthStatus>,
+    gatewayHealthStatuses: Record<string, FederationGatewayHealthStatus>,
   ) => void;
   setActiveFegGatewayId: (gatewayId: GatewayId) => void;
   enqueueSnackbar: (
@@ -90,11 +90,11 @@ type GatewayStateProps = {
   networkId: NetworkId;
   fegGateways: Record<GatewayId, FederationGateway>;
   fegGatewaysHealthStatus: Record<GatewayId, FederationGatewayHealthStatus>;
-  setFegGateways: (arg0: Record<GatewayId, FederationGateway>) => void;
+  setFegGateways: (fegGateways: Record<GatewayId, FederationGateway>) => void;
   setFegGatewaysHealthStatus: (
-    arg0: Record<GatewayId, FederationGatewayHealthStatus>,
+    gatewayHealthStatus: Record<GatewayId, FederationGatewayHealthStatus>,
   ) => void;
-  setActiveFegGatewayId: (arg0: GatewayId) => void;
+  setActiveFegGatewayId: (activeGwId: GatewayId) => void;
   key: GatewayId;
   value?: MutableFederationGateway;
   newState?: Record<GatewayId, FederationGateway>;
