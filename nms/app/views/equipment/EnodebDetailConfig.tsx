@@ -81,8 +81,8 @@ export function EnodebJsonConfig() {
             variant: 'success',
           });
           setError('');
-        } catch (error) {
-          setError(getErrorMessage(error));
+        } catch (e) {
+          setError(getErrorMessage(e));
         }
       }}
     />
