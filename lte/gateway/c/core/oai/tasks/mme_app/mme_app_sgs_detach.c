@@ -606,7 +606,7 @@ status_code_e mme_app_handle_sgs_imsi_detach_ack(
     const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
   struct ue_mm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (imsi_detach_ack_p == NULL) {

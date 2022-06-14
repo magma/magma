@@ -20,6 +20,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
+#include <fstream>
 #include <list>
 #include <map>
 #include <memory>
@@ -37,13 +38,16 @@
 
 namespace magma {
 
-OpState get_operational_states(magma::SessionStore* session_store) {
+OpState get_operational_states(magma::lte::SessionStore* session_store) {
   std::list<std::map<std::string, std::string>> states;
   auto session_map = session_store->read_all_sessions();
+  folly::dynamic subscribers = folly::dynamic::object;
+
   for (auto& it : session_map) {
     std::map<std::string, std::string> state;
     state[TYPE] = SUBSCRIBER_STATE_TYPE;
     state[DEVICE_ID] = it.first;
+    subscribers[state[DEVICE_ID]] = folly::dynamic::array;
     folly::dynamic sessions_by_apn = folly::dynamic::object;
 
     for (auto& session : it.second) {
@@ -55,7 +59,15 @@ OpState get_operational_states(magma::SessionStore* session_store) {
     }
     state[VALUE] = folly::toJson(sessions_by_apn);
     states.push_back(state);
+    subscribers[state[DEVICE_ID]].push_back(sessions_by_apn);
   }
+  std::map<std::string, std::string> gateway_subscriber_state;
+  gateway_subscriber_state[TYPE] = GATEWAY_SUBSCRIBER_STATE_TYPE;
+  gateway_subscriber_state[DEVICE_ID] = get_gateway_hw_id();
+  folly::dynamic subscribers_container = folly::dynamic::object;
+  subscribers_container[SUBSCRIBERS] = subscribers;
+  gateway_subscriber_state[VALUE] = folly::toJson(subscribers_container);
+  states.push_back(gateway_subscriber_state);
   return states;
 }
 
@@ -93,6 +105,13 @@ folly::dynamic get_dynamic_active_policies(
     policies.push_back(json_policy);
   }
   return policies;
+}
+
+std::string get_gateway_hw_id() {
+  std::ifstream input_file(SNOWFLAKE_PATH, std::ifstream::in);
+  std::stringstream buffer;
+  buffer << input_file.rdbuf();
+  return buffer.str();
 }
 
 }  // namespace magma

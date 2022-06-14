@@ -203,8 +203,8 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
     // ue_context, if not delete it
     num_ues_checked = 0;
-    mme_ue_id_no_imsi_list = reinterpret_cast<uint32_t*>(
-        new uint32_t[enb_association_p->ue_id_coll.size()]());
+    mme_ue_id_no_imsi_list = (uint32_t*)calloc(
+        enb_association_p->ue_id_coll.size(), sizeof(uint32_t));
     enb_association_p->ue_id_coll.map_apply_callback_on_all_elements(
         get_mme_ue_ids_no_imsi, &num_ues_checked,
         (void**)&mme_ue_id_no_imsi_list);
@@ -223,7 +223,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     }
 
     // free the list
-    delete mme_ue_id_no_imsi_list;
+    free(mme_ue_id_no_imsi_list);
   }
 
   FREE_HASHTABLE_KEY_ARRAY(ht_keys);

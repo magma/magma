@@ -577,6 +577,7 @@ cc_library(
         "oai/include/mme_app_ue_context.h",
         "oai/include/mme_config.h",
         "oai/include/mme_events.hpp",
+        "oai/include/mme_init.hpp",
         "oai/include/n11_messages_def.h",
         "oai/include/n11_messages_types.h",
         "oai/include/nas/as_message.h",
