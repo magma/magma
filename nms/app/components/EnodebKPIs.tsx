@@ -9,30 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from './DataGrid';
-// $FlowFixMe migrated to typescript
-import type {EnodebInfo} from './lte/EnodebUtils';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from './DataGrid';
-// $FlowFixMe migrated to typescript
 import EnodebContext from './context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-
 import {useContext} from 'react';
+import type {DataRows} from './DataGrid';
+import type {EnodebInfo} from './lte/EnodebUtils';
 
 export default function EnodebKPIs() {
   const ctx = useContext(EnodebContext);
   const [total, transmitting] = enodebStatus(ctx.state.enbInfo);
 
-  const data: DataRows[] = [
+  const data: Array<DataRows> = [
     [
       {
         icon: SettingsInputAntennaIcon,
@@ -59,7 +50,7 @@ export default function EnodebKPIs() {
   return <DataGrid data={data} />;
 }
 
-function enodebStatus(enbInfo: {[string]: EnodebInfo}): [number, number] {
+function enodebStatus(enbInfo: Record<string, EnodebInfo>): [number, number] {
   let transmitCnt = 0;
   Object.keys(enbInfo)
     .map((k: string) => enbInfo[k])
