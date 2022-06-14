@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import Button from '@material-ui/core/Button';
@@ -173,7 +170,7 @@ function EnodeEditDialog(props: DialogProps) {
       />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v as SetStateAction<number>)}
+        onChange={(_, v) => setTabPos(v as number)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab key="config" data-testid="configTab" label={CONFIG_TITLE} />; ;
@@ -305,8 +302,8 @@ export function RanEdit(props: Props) {
         variant: 'success',
       });
       props.onSave(enb);
-    } catch (error) {
-      setError(getErrorMessage(error));
+    } catch (e) {
+      setError(getErrorMessage(e));
     }
   };
 
@@ -542,8 +539,8 @@ export function ConfigEdit(props: Props) {
       }
 
       props.onSave(enb);
-    } catch (error) {
-      setError(getErrorMessage(error));
+    } catch (e) {
+      setError(getErrorMessage(e));
     }
   };
 
