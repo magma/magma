@@ -101,19 +101,19 @@ const useStyles = makeStyles(_ => ({
 
 type Props = {...WithAlert};
 
-function OnboardingDialog() {
+function OnboardingDialog(props: {setClosed: () => void}) {
   const classes = useStyles();
-  const [open, setOpen] = useState(true);
   return (
     <Dialog
       classes={{paper: classes.onBoardingDialog}}
       maxWidth={'sm'}
       fullWidth={true}
-      open={open}
-      keepMounted
-      onClose={() => setOpen(false)}
+      open={true}
+      onClose={() => props.setClosed()}
       aria-describedby="alert-dialog-slide-description">
-      <DialogTitle classes={{root: classes.onBoardingDialogTitle}}>
+      <DialogTitle
+        data-testid="onboardingDialog"
+        classes={{root: classes.onBoardingDialogTitle}}>
         {'Welcome to Magma Host Portal'}
       </DialogTitle>
       <DialogContent classes={{root: classes.onBoardingDialogContent}}>
@@ -152,7 +152,7 @@ function OnboardingDialog() {
           className={classes.onBoardingDialogButton}
           variant="contained"
           color="primary"
-          onClick={() => setOpen(false)}>
+          onClick={() => props.setClosed()}>
           Get Started
         </Button>
       </DialogActions>
@@ -291,7 +291,9 @@ function Organizations(props: Props) {
     <div className={classes.paper}>
       <Grid container>
         <Grid container justifyContent="space-between">
-          <Text variant="h3">Organizations</Text>
+          <Text data-testid="organizationTitle" variant="h3">
+            Organizations
+          </Text>
           <Button
             className={classes.addButton}
             color="primary"
@@ -303,7 +305,13 @@ function Organizations(props: Props) {
         <Grid item xs={12} className={classes.description}>
           <Text variant="body2">{ORGANIZATION_DESCRIPTION}</Text>
         </Grid>
-        <>{showOnboardingDialog && <OnboardingDialog />}</>
+        <>
+          {showOnboardingDialog && (
+            <OnboardingDialog
+              setClosed={() => setShowOnboardingDialog(false)}
+            />
+          )}
+        </>
         <Grid item xs={12}>
           <ActionTable
             data={organizationRows}
