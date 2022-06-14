@@ -9,75 +9,67 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {Dataset} from './CustomMetrics';
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {network_id} from '../../generated/MagmaAPIBindings';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
-import MagmaV1API from '../../generated/WebClient';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
-
 import {
   CustomLineChart,
   getQueryRanges,
   getStep,
   getStepString,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './CustomMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {TimeUnit} from 'chart.js';
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {Dataset} from './CustomMetrics';
+import type {NetworkId} from '../../shared/types/network';
+import type {OptionsObject} from 'notistack';
 
 type Props = {
-  startEnd: [moment, moment],
+  startEnd: [moment.Moment, moment.Moment];
 };
 
 type DatasetFetchProps = {
-  networkId: network_id,
-  start: moment,
-  end: moment,
-  delta: number,
-  unit: string,
+  networkId: NetworkId;
+  start: moment.Moment;
+  end: moment.Moment;
+  delta: number;
+  unit: TimeUnit;
   enqueueSnackbar: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => (string | number) | null | undefined;
 };
 
 async function getEventAlertDataset(props: DatasetFetchProps) {
   const {networkId, start, end, delta, unit} = props;
-  let requestError = '';
-
+  let requestError = false;
   const queries = getQueryRanges(start, end, delta, unit);
-  const requests = queries.map(async (query, _) => {
+  const requests = queries.map(async query => {
     try {
       const [s, e] = query;
-      const response = await MagmaV1API.getEventsByNetworkIdAboutCount({
-        networkId: networkId,
-        start: s.toISOString(),
-        end: e.toISOString(),
-      });
+      const response = (
+        await MagmaAPI.events.eventsNetworkIdAboutCountGet({
+          networkId: networkId,
+          start: s.toISOString(),
+          end: e.toISOString(),
+        })
+      ).data;
       return response;
     } catch (error) {
-      requestError = error;
+      requestError = !!error;
     }
+
     return null;
   });
 
@@ -85,6 +77,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
   const eventData = await Promise.all(requests)
     .then(allResponses => {
       return allResponses.map((r, index) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [_, e] = queries[index];
 
         if (r === null || r === undefined) {
@@ -93,6 +86,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
             y: 0,
           };
         }
+
         return {
           t: e.unix() * 1000,
           y: r,
@@ -100,21 +94,22 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       });
     })
     .catch(error => {
-      requestError = error;
+      requestError = !!error;
       return [];
     });
 
-  const alertsData = [];
+  const alertsData: Array<{t: number; y: number}> = [];
+
   try {
-    const alertPromResp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
-      {
+    const alertPromResp = (
+      await MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet({
         networkId: networkId,
         start: start.toISOString(),
         end: end.toISOString(),
         step: getStepString(delta, unit),
         query: 'sum(ALERTS)',
-      },
-    );
+      })
+    ).data;
     alertPromResp.data?.result.forEach(it =>
       it['values']?.map(i => {
         alertsData.push({
@@ -124,7 +119,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       }),
     );
   } catch (error) {
-    requestError = error;
+    requestError = !!error;
   }
 
   if (requestError) {
@@ -132,6 +127,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       variant: 'error',
     });
   }
+
   return [
     {
       label: 'Alerts',
@@ -205,7 +201,7 @@ export default function EventAlertChart(props: Props) {
       setIsLoading(false);
     };
 
-    fetchAllData();
+    void fetchAllData();
   }, [start, end, delta, unit, enqueueSnackbar, networkId]);
 
   if (isLoading) {
