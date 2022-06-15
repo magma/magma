@@ -284,7 +284,7 @@ openssl verify \
     gateway.crt  <span class="hljs-comment"># copied from target gateway</span>
 
 <span class="hljs-comment"># Consolidate Magma and its imported protos, copying to /tmp/magma_protos/</span>
-<span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/scripts/consolidate_protos.sh
+<span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/scripts/consolidate_protos.bash
 
 <span class="hljs-comment"># Generate compiled proto definitions</span>
 <span class="hljs-built_in">cd</span> /tmp/magma_protos/ &amp;&amp; \
