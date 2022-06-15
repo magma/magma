@@ -9,40 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {call_trace_config} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import TraceContext from '../../components/context/TraceContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';
+import type {CallTraceConfig} from '../../../generated-ts';
 
-const DEFAULT_TRACE_CONFIG: call_trace_config = {
+const DEFAULT_TRACE_CONFIG: CallTraceConfig = {
   gateway_id: '',
   timeout: 300,
   trace_id: '',
@@ -51,7 +42,7 @@ const DEFAULT_TRACE_CONFIG: call_trace_config = {
   display_filters: '',
 };
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   topBar: {
     backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
@@ -65,13 +56,12 @@ const useStyles = makeStyles(_ => ({
     fontSize: typography.button.fontSize,
     lineHeight: typography.button.lineHeight,
     letterSpacing: typography.button.letterSpacing,
-
     '&:hover': {
       background: colors.primary.mirage,
     },
   },
   addSubscriberDialog: {},
-}));
+});
 
 export default function CreateTraceButton() {
   const classes = useStyles();
@@ -88,8 +78,8 @@ export default function CreateTraceButton() {
 }
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
+  open: boolean;
+  onClose: () => void;
 };
 
 function CreateTraceDialog(props: DialogProps) {
@@ -112,29 +102,30 @@ function CreateTraceDialog(props: DialogProps) {
 }
 
 type Props = {
-  traceCfg?: call_trace_config,
-  onClose: () => void,
+  traceCfg?: CallTraceConfig;
+  onClose: () => void;
 };
 
 function CreateTraceDetails(props: Props) {
   const classes = useStyles();
   const ctx = useContext(TraceContext);
   const [error, setError] = useState('');
-  const [traceCfg, setTraceCfg] = useState<call_trace_config>({
+  const [traceCfg, setTraceCfg] = useState<CallTraceConfig>({
     ...(props.traceCfg || DEFAULT_TRACE_CONFIG),
   });
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const startTrace = async (cfg: call_trace_config) => {
+  const startTrace = async (cfg: CallTraceConfig) => {
     try {
-      // $FlowFixMe[prop-missing]: Suppress type error, cannot refine type
+      // TODO[TS-migration] There is something seriously wrong with types here
+      // @ts-ignore
       await ctx.setState?.(cfg.trace_id, cfg);
       props.onClose();
       enqueueSnackbar('Call trace started successfully', {
         variant: 'success',
       });
     } catch (e) {
-      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      const errMsg = getErrorMessage(e);
       setError('error starting call trace: ' + errMsg);
     }
   };
@@ -211,10 +202,7 @@ function CreateTraceDetails(props: Props) {
               fullWidth={true}
               value={traceCfg.capture_filters}
               onChange={({target}) => {
-                setTraceCfg({
-                  ...traceCfg,
-                  capture_filters: target.value,
-                });
+                setTraceCfg({...traceCfg, capture_filters: target.value});
               }}
             />
           </AltFormField>
@@ -225,10 +213,7 @@ function CreateTraceDetails(props: Props) {
               fullWidth={true}
               value={traceCfg.display_filters}
               onChange={({target}) => {
-                setTraceCfg({
-                  ...traceCfg,
-                  display_filters: target.value,
-                });
+                setTraceCfg({...traceCfg, display_filters: target.value});
               }}
             />
           </AltFormField>
@@ -287,9 +272,7 @@ function CreateTraceDetails(props: Props) {
         <Button onClick={props.onClose}> Cancel </Button>
         <Button
           data-testid="startTrace"
-          onClick={async () => {
-            await startTrace(traceCfg);
-          }}>
+          onClick={() => void startTrace(traceCfg)}>
           {'Start'}
         </Button>
       </DialogActions>
