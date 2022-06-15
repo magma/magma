@@ -29,7 +29,7 @@ const useStyles = makeStyles(() => ({
 type Props = {
   label: string;
   onClose: () => void;
-  className: string;
+  className?: string;
 };
 
 export default function CustomDialogTitle(props: Props) {
