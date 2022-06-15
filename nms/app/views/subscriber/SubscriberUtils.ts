@@ -49,7 +49,7 @@ export function getPromValue(resp: PromqlReturnObject) {
       const value = item?.value?.[1];
       return value ? parseFloat(value) : undefined;
     })
-    .filter(Boolean);
+    .filter(Boolean) as Array<number>;
   return respArr?.length ? respArr[0] : 0;
 }
 

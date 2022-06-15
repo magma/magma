@@ -38,6 +38,7 @@ import MyLocationIcon from '@material-ui/icons/MyLocation';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberChart from './SubscriberChart';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
