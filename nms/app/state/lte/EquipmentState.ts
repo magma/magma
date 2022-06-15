@@ -533,10 +533,13 @@ export async function FetchGatewayPools(props: FetchProps) {
     }
   }
 }
+
 type GatewayPoolsStateProps = {
   networkId: NetworkId;
   gatewayPools: Record<string, gatewayPoolsStateType>;
-  setGatewayPools: (gatewayPools: Record<string, gatewayPoolsStateType>) => void;
+  setGatewayPools: (
+    gatewayPools: Record<string, gatewayPoolsStateType>,
+  ) => void;
   key: GatewayPoolId;
   value?: MutableCellularGatewayPool;
   resources?: Array<GatewayPoolRecordsType>;
@@ -640,7 +643,9 @@ export async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
   }
 }
 type InitGatewayPoolStateType = {
-  setGatewayPools: (gatewayPools: Record<string, gatewayPoolsStateType>) => void;
+  setGatewayPools: (
+    gatewayPools: Record<string, gatewayPoolsStateType>,
+  ) => void;
   networkId: NetworkId;
   enqueueSnackbar?: (
     msg: string,
