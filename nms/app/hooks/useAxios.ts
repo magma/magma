@@ -18,7 +18,7 @@ import {merge} from 'lodash';
 import {useEffect, useState} from 'react';
 
 type Result<T> = {
-  error: any;
+  error: unknown;
   isLoading: boolean;
   response: AxiosResponse<T> | null;
   loadedUrl: string | null | undefined;
@@ -30,8 +30,8 @@ type ExtendedConfig<T> = {
 
 export default function useAxios<T>(config: ExtendedConfig<T>): Result<T> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const [error, setError] = useState<any>(null);
-  const [response, setResponse] = useState<AxiosResponse | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [response, setResponse] = useState<AxiosResponse<T> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadedUrl, setLoadedUrl] = useState<string | null | undefined>(null);
 
