@@ -23,6 +23,7 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
 import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
