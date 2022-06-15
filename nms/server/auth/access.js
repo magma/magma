@@ -21,7 +21,7 @@ import type {AccessRoleLevel} from '../../shared/roles';
 const path = require('path');
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-const {AccessRoles} = require('../../shared/roles');
+const {AccessRoles} = require('../../shared/roles'); // eslint-disable-line node/no-missing-require
 const {ErrorCodes} = require('../../shared/errorCodes');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 const logger = require('../../shared/logging').getLogger(module);

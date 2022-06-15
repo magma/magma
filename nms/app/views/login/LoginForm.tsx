@@ -9,12 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-
-import type {ElementRef} from 'react';
 
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
@@ -22,7 +17,6 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import {withStyles} from '@material-ui/core/styles';
@@ -47,22 +41,20 @@ const styles = {
     textAlign: 'center',
     display: 'block',
   },
-};
+} as const;
 
 type Props = {
-  title: string,
-  csrfToken: string,
-  error?: string,
-  classes: {[string]: string},
-  action: string,
-  ssoEnabled?: boolean,
-  ssoAction?: string,
+  title: string;
+  csrfToken: string;
+  error?: string;
+  classes: Record<string, string>;
+  action: string;
+  ssoEnabled?: boolean;
+  ssoAction?: string;
 };
 
-type State = {};
-
-class LoginForm extends React.Component<Props, State> {
-  form: ElementRef<any>;
+class LoginForm extends React.Component<Props> {
+  form: HTMLFormElement | null = null;
 
   render() {
     const {classes, csrfToken, ssoEnabled, ssoAction} = this.props;
@@ -87,7 +79,8 @@ class LoginForm extends React.Component<Props, State> {
               variant="contained"
               color="primary"
               onClick={() => {
-                window.location = (ssoAction || '') + window.location.search;
+                window.location.href =
+                  (ssoAction || '') + window.location.search;
               }}>
               Sign In
             </Button>
@@ -103,7 +96,7 @@ class LoginForm extends React.Component<Props, State> {
           method="post"
           action={this.props.action}>
           <input type="hidden" name="_csrf" value={csrfToken} />
-          <input type="hidden" name="to" value={to} />
+          <input type="hidden" name="to" value={to!} />
           <CardContent>
             <Text className={classes.title} variant="h5">
               {this.props.title}
@@ -113,19 +106,19 @@ class LoginForm extends React.Component<Props, State> {
               name="email"
               label="Email"
               className={classes.input}
-              onKeyUp={key => key.keyCode === ENTER_KEY && this.form.submit()}
+              onKeyUp={key => key.keyCode === ENTER_KEY && this.form?.submit()}
             />
             <TextField
               name="password"
               label="Password"
               type="password"
               className={classes.input}
-              onKeyUp={key => key.keyCode === ENTER_KEY && this.form.submit()}
+              onKeyUp={key => key.keyCode === ENTER_KEY && this.form?.submit()}
             />
           </CardContent>
           <CardActions className={classes.footer}>
             <Button
-              onClick={() => this.form.submit()}
+              onClick={() => this.form?.submit()}
               variant="contained"
               color="primary">
               Login
