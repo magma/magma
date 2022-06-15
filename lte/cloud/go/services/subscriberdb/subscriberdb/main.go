@@ -69,6 +69,11 @@ func main() {
 		glog.Fatalf("Error initializing subscriber syncstore: %+v", err)
 	}
 
+	subscriberStateStore := subscriberdb_storage.NewSubscriberStorage(db, sqorc.GetSqlBuilder())
+	if err := subscriberStateStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing subscriber state storage : %+v", err)
+	}
+
 	var serviceConfig subscriberdb.Config
 	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
