@@ -21,6 +21,7 @@ import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import FEGConfigure from './FEGConfigure';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGEquipmentDashboard from '../../views/equipment/FEGEquipmentDashboard';
