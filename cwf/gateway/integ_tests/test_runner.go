@@ -23,7 +23,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/magma/milenage"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"fbc/lib/go/radius"
@@ -162,7 +161,7 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 	for _, imsi := range IMSIs {
 		// If IMSIs were generated properly they should never give an error here
 		if _, present := tr.imsis[imsi]; present {
-			return nil, errors.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
+			return nil, fmt.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
 		}
 		key, opc, err := getRandKeyOpcFromOp([]byte(Op))
 		if err != nil {
@@ -175,19 +174,19 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 
 		err = uesim.AddUE(ue)
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding UE to UESimServer")
+			return nil, fmt.Errorf("Error adding UE to UESimServer: %w", err)
 		}
 		err = addSubscriberToHSS(sub)
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
+			return nil, fmt.Errorf("Error adding Subscriber to HSS: %w", err)
 		}
 		err = addSubscriberToPCRFPerInstance(pcrfInstance, sub.GetSid())
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding Subscriber to PCRF")
+			return nil, fmt.Errorf("Error adding Subscriber to PCRF: %w", err)
 		}
 		err = addSubscriberToOCSPerInstance(ocsInstance, sub.GetSid())
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
+			return nil, fmt.Errorf("Error adding Subscriber to OCS: %w", err)
 		}
 
 		ues = append(ues, ue)
@@ -211,7 +210,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 	encoded := res.GetRadiusPacket()
 	radiusP, err := radius.Parse(encoded, []byte(Secret))
 	if err != nil {
-		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		err = fmt.Errorf("Error while parsing encoded Radius packet: %w", err)
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
@@ -230,7 +229,7 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 	encoded := res.GetRadiusPacket()
 	radiusP, err := radius.Parse(encoded, []byte(Secret))
 	if err != nil {
-		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		err = fmt.Errorf("Error while parsing encoded Radius packet: %w", err)
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
