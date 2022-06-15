@@ -20,6 +20,7 @@ import type {MetricGraphConfig} from '../insights/Metrics';
 import AppContext from '../../../app/components/context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';

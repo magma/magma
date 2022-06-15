@@ -9,39 +9,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-import type {prometheus_labelset} from '../../../generated/MagmaAPIBindings';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const TITLE = 'Metrics Explorer';
 
-const useStyles = makeStyles(theme => ({
+export type PrometheusLabelset = Record<string, string>;
+
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -64,17 +58,19 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export type MetricsDetail = {
-  MetricName: string,
-  PromQL: string,
-  Description: string,
-  Category: string,
-  Service: string,
+  MetricName: string;
+  PromQL: string;
+  Description: string;
+  Category: string;
+  Service: string;
 };
 
 export default function MetricsExplorer() {
   const classes = useStyles();
   const [isLoading, setIsLoading] = useState(true);
-  const [LteMetricsTable, setLteMetricsTable] = useState([]);
+  const [lteMetricsTable, setLteMetricsTable] = useState<Array<MetricsDetail>>(
+    [],
+  );
   const enqueueSnackbar = useEnqueueSnackbar();
   const params = useParams();
 
@@ -89,7 +85,7 @@ export default function MetricsExplorer() {
   const {
     response: metricSeries,
     isLoading: isMetricSeriesLoading,
-  } = useMagmaAPI(MagmaV1API.getNetworksByNetworkIdPrometheusSeries, {
+  } = useMagmaAPI(MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet, {
     networkId,
     start: startEnd.start.toISOString(),
     end: startEnd.end.toISOString(),
@@ -98,19 +94,21 @@ export default function MetricsExplorer() {
   const {
     response: tenantMetricSeriesDescription,
     isLoading: isTenantMetricSeriesDescriptionLoading,
-  } = useMagmaAPI(MagmaV1API.getTenantsTargetsMetadata, {});
+  } = useMagmaAPI(MagmaAPI.metrics.tenantsTargetsMetadataGet, {});
 
   useEffect(() => {
     fetch('/data/LteMetrics')
       .then(res => res.json())
       .then(
-        result => {
+        (result: Array<MetricsDetail>) => {
           setLteMetricsTable(result);
           setIsLoading(false);
         },
         error => {
           enqueueSnackbar(
-            `failed loading metrics data due to following error: ${error}`,
+            `failed loading metrics data due to following error: ${getErrorMessage(
+              error,
+            )}`,
             {
               variant: 'error',
             },
@@ -129,14 +127,14 @@ export default function MetricsExplorer() {
   }
 
   // filter only those metrics which are relevant to this network
-  const metricsMap = {};
+  const metricsMap: Record<string, PrometheusLabelset> = {};
   if (metricSeries != null) {
-    metricSeries.forEach((labelSet: prometheus_labelset) => {
+    metricSeries.forEach((labelSet: PrometheusLabelset) => {
       metricsMap[labelSet['__name__']] = labelSet;
     });
   }
 
-  const metricsTable = LteMetricsTable.filter((metricEnt: MetricsDetail) => {
+  const metricsTable = lteMetricsTable.filter((metricEnt: MetricsDetail) => {
     if (metricEnt.MetricName in metricsMap) {
       delete metricsMap[metricEnt.MetricName];
       return true;
@@ -144,7 +142,7 @@ export default function MetricsExplorer() {
     return false;
   });
 
-  const tenantMetricDescription = {};
+  const tenantMetricDescription: Record<string, string> = {};
   tenantMetricSeriesDescription?.forEach(metricDesc => {
     tenantMetricDescription[metricDesc.metric] = metricDesc.help;
   });
@@ -186,7 +184,7 @@ export default function MetricsExplorer() {
               {
                 icon: ExpandMore,
                 openIcon: ExpandLess,
-                render: rowData => (
+                render: ({rowData}) => (
                   <iframe
                     width="100%"
                     height="400"
