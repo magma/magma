@@ -9,11 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AddNetworkDialog from './AddNetworkDialog';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -25,12 +21,8 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NoNetworksMessage from '../NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
 import React, {useCallback, useContext, useState} from 'react';
@@ -42,14 +34,13 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import NetworkContext from '../context/NetworkContext';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {Route, Routes, useNavigate} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -66,12 +57,12 @@ const useStyles = makeStyles(() => ({
 }));
 
 type DialogConfirmationProps = {
-  title: string,
-  message: string,
-  confirmationPhrase: string,
-  label: string,
-  onClose: () => void,
-  onConfirm: () => void | Promise<void>,
+  title: string;
+  message: string;
+  confirmationPhrase: string;
+  label: string;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
 };
 
 function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
@@ -100,7 +91,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
         <Button
           variant="contained"
           color="primary"
-          onClick={onConfirm}
+          onClick={() => void onConfirm()}
           disabled={confirmationPhrase !== props.confirmationPhrase}>
           Confirm
         </Button>
@@ -113,14 +104,17 @@ function Networks() {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const navigate = useNavigate();
-  const [networks, setNetworks] = useState(null);
-  const [networkToDelete, setNetworkToDelete] = useState(null);
+  const [networks, setNetworks] = useState<Array<string> | null>(null);
+  const [networkToDelete, setNetworkToDelete] = useState<string | null>(null);
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
 
   const {error, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworks,
+    MagmaAPI.networks.networksGet,
     {},
-    useCallback(res => setNetworks(sortBy(res, [n => n.toLowerCase()])), []),
+    useCallback(
+      (res: Array<string>) => setNetworks(sortBy(res, [n => n.toLowerCase()])),
+      [],
+    ),
   );
 
   if (error || isLoading || !networks) {
@@ -181,12 +175,12 @@ function Networks() {
           label="Network ID"
           confirmationPhrase={networkToDelete}
           onClose={() => setNetworkToDelete(null)}
-          onConfirm={async () => {
+          onConfirm={() => {
             const payload = {
               networkID: networkToDelete,
             };
             axios
-              .post('/nms/network/delete', payload)
+              .post<{success: boolean}>('/nms/network/delete', payload)
               .then(response => {
                 if (!response.data.success) {
                   enqueueSnackbar('Network delete failed', {
@@ -232,7 +226,7 @@ function Networks() {
           element={
             <EditNetworkDialog
               onClose={closeDialog}
-              onSave={_ => {
+              onSave={() => {
                 enqueueSnackbar('Network updated successfully', {
                   variant: 'success',
                 });
