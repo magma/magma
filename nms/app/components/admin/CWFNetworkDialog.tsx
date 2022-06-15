@@ -9,27 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericConfig} from './GenericNetworkDialog';
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GenericNetworkDialog from './GenericNetworkDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
 import TextField from '@material-ui/core/TextField';
 
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import MagmaAPI from '../../../api/MagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
+import {CwfNetwork} from '../../../generated-ts';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -40,9 +35,9 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  onClose: () => void,
-  onSave: () => void,
-  networkConfig: GenericConfig,
+  onClose: () => void;
+  onSave: () => void;
+  networkConfig: GenericConfig;
 };
 
 export default function CWFNetworkDialog(props: Props) {
@@ -51,10 +46,11 @@ export default function CWFNetworkDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {isLoading, response: cwfNetworkConfig} = useMagmaAPI(
-    MagmaV1API.getCwfByNetworkId,
+    MagmaAPI.carrierWifiNetworks.cwfNetworkIdGet,
     {networkId: props.networkConfig.id},
     useCallback(
-      response => setFegNetworkID(response?.federation?.feg_network_id),
+      (response: CwfNetwork) =>
+        setFegNetworkID(response?.federation?.feg_network_id),
       [],
     ),
   );
@@ -63,23 +59,24 @@ export default function CWFNetworkDialog(props: Props) {
     return <LoadingFillerBackdrop />;
   }
 
-  const onSave = genericFields => {
-    MagmaV1API.putCwfByNetworkId({
-      networkId: cwfNetworkConfig.id,
-      cwfNetwork: {
-        ...cwfNetworkConfig,
-        name: genericFields.name,
-        description: genericFields.description,
-        federation: {
-          ...cwfNetworkConfig.federation,
-          feg_network_id: fegNetworkID,
+  const onSave = (genericFields: GenericConfig) => {
+    MagmaAPI.carrierWifiNetworks
+      .cwfNetworkIdPut({
+        networkId: cwfNetworkConfig.id,
+        cwfNetwork: {
+          ...cwfNetworkConfig,
+          name: genericFields.name,
+          description: genericFields.description,
+          federation: {
+            ...cwfNetworkConfig.federation,
+            feg_network_id: fegNetworkID,
+          },
         },
-      },
-    })
+      })
       .then(props.onSave)
       .catch(error => {
         enqueueSnackbar(
-          error.response?.data?.message || "error: couldn't edit network",
+          getErrorMessage(error, "error: couldn't edit network"),
           {
             variant: 'error',
           },
