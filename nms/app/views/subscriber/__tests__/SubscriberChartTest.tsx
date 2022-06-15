@@ -9,94 +9,101 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberChart from '../SubscriberChart';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {PromqlReturnObject} from '../../../../generated-ts';
+import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
-const mockAvgCurDataUsage = {
+const mockAvgCurDataUsage: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'vector',
     result: [
       {
         metric: {},
-        value: [1627325883.103, '12108000.691521779536'],
+        value: ['1627325883.103', '12108000.691521779536'],
       },
     ],
   },
 };
 
-const mockAvgDailyDataUsage = {
+const mockAvgDailyDataUsage: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'vector',
     result: [
       {
         metric: {},
-        value: [1627325883.103, '2210400.691521779536'],
+        value: ['1627325883.103', '2210400.691521779536'],
       },
     ],
   },
 };
 
-const mockAvgMonthlyDataUsage = {
+const mockAvgMonthlyDataUsage: PromqlReturnObject = {
   status: 'success',
   data: {
     resultType: 'vector',
     result: [
       {
         metric: {},
-        value: [1627325883.103, '52108.691521779536'],
+        value: ['1627325883.103', '52108.691521779536'],
       },
     ],
   },
 };
 
-const mockEmptyDataset = {
+const mockEmptyDataset: PromqlReturnObject = {
   status: 'success',
   data: {
-    metric: {},
     resultType: 'vector',
-    result: [],
+    result: [{metric: {}}],
   },
 };
 
 describe('<SubscriberChart />', () => {
   beforeEach(() => {
-    // Called by the chart component
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mockResolvedValue(
+    // Order of the mocks is important here
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
+      mockAvgCurDataUsage,
+    );
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
+      mockAvgDailyDataUsage,
+    );
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
+      mockAvgMonthlyDataUsage,
+    );
+    mockAPIOnce(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryGet',
       mockEmptyDataset,
     );
-    // avg data usage in the past 1 hour
-    MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery
-      .mockReturnValueOnce(mockAvgCurDataUsage)
-      // avg data usage in the past 1 day
-      .mockReturnValueOnce(mockAvgDailyDataUsage)
-      // avg data usage in the past 1 month
-      .mockReturnValueOnce(mockAvgMonthlyDataUsage)
-      // avg data usage in the past 1 year
-      .mockReturnValueOnce(mockEmptyDataset);
+    // Called by the chart component
+    mockAPI(
+      MagmaAPI.metrics,
+      'networksNetworkIdPrometheusQueryRangeGet',
+      mockEmptyDataset,
+    );
   });
 
   const Wrapper = () => {
