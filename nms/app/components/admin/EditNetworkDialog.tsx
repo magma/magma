@@ -9,32 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFNetworkDialog from './CWFNetworkDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkDialog from './FEGNetworkDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GenericNetworkDialog from './GenericNetworkDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
 
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {CWF, FEG} from '../../../shared/types/network';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {getErrorMessage} from '../../util/ErrorUtils';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 type Props = {
-  onClose: () => void,
-  onSave: () => void,
+  onClose: () => void;
+  onSave: () => void;
 };
 
 export default function NetworkDialog(props: Props) {
@@ -42,9 +34,9 @@ export default function NetworkDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {response: networkConfig, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkId,
+    MagmaAPI.networks.networksNetworkIdGet,
     {
-      networkId: editingNetworkID,
+      networkId: editingNetworkID!,
     },
   );
 
@@ -66,14 +58,15 @@ export default function NetworkDialog(props: Props) {
   }
 
   const onSave = () => {
-    MagmaV1API.putNetworksByNetworkId({
-      networkId: networkConfig.id,
-      network: networkConfig,
-    })
+    MagmaAPI.networks
+      .networksNetworkIdPut({
+        networkId: networkConfig.id,
+        network: networkConfig,
+      })
       .then(props.onSave)
       .catch(error =>
         enqueueSnackbar(
-          error?.response?.data?.message || "error: couldn't edit network",
+          getErrorMessage(error, "error: couldn't edit network"),
           {
             variant: 'error',
           },
