@@ -15,6 +15,7 @@
  */
 
 import AccountSettings from '../AccountSettings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Admin from '../admin/Admin';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';

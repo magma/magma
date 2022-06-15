@@ -9,22 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AuditLog from './AuditLog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Networks from './Networks';
 import PeopleIcon from '@material-ui/icons/People';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TopBar from '../TopBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UsersSettings from '../UsersSettings';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
