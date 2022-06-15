@@ -31,6 +31,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from './TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
