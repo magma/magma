@@ -30,6 +30,7 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationSummary from './OrganizationSummary';
 import OrganizationUsersTable from './OrganizationUsersTable';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
