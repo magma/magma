@@ -9,35 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from '../../components/insights/Metrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from '../../components/insights/AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AsyncMetric from '../../components/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from '../../components/insights/TimeRangeSelector';
 
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {resolveQuery} from '../../components/insights/Metrics';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   formControl: {
     minWidth: '200px',
     padding: theme.spacing(),
@@ -51,13 +43,13 @@ export default function CloudMetrics() {
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
-  const chartConfigs: MetricGraphConfig[] = [
+  const chartConfigs: Array<MetricGraphConfig> = [
     {
       label: 'REST API (2xx status code)',
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => "sum(response_status{code=~'2..'})",
+          resolveQuery: () => "sum(response_status{code=~'2..'})",
         },
       ],
       unit: '',
@@ -67,7 +59,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => "sum(response_status{code=~'3..'})",
+          resolveQuery: () => "sum(response_status{code=~'3..'})",
         },
       ],
       unit: '',
@@ -77,7 +69,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => "sum(response_status{code=~'4..'})",
+          resolveQuery: () => "sum(response_status{code=~'4..'})",
         },
       ],
       unit: '',
@@ -87,7 +79,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => "sum(response_status{code=~'5..'})",
+          resolveQuery: () => "sum(response_status{code=~'5..'})",
         },
       ],
       unit: '',
@@ -108,9 +100,7 @@ export default function CloudMetrics() {
           <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
-                <Text component="h6" variant="h6">
-                  {config.label}
-                </Text>
+                <Text variant="h6">{config.label}</Text>
                 <div style={{height: 250}}>
                   <AsyncMetric
                     label={config.label}
