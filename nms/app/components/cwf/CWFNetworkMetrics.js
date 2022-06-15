@@ -14,10 +14,10 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
-
 import NetworkMetrics from '../insights/NetworkMetrics';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {MetricGraphConfig} from '../insights/Metrics';
 
 const chartConfigs: MetricGraphConfig[] = [
   {
