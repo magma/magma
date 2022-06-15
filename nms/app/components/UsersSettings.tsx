@@ -9,24 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {EditUser} from './EditUserDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from './Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EditUserDialog from './EditUserDialog';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -35,24 +25,22 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
-import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import axios, {AxiosResponse} from 'axios';
 import {UserRoles} from '../../shared/roles';
+import type {EditUser} from './EditUserDialog';
+import type {WithAlert} from './Alert/withAlert';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import renderList from '../util/renderList';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from './Alert/withAlert';
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAxios} from '../hooks';
 import {useCallback, useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -63,30 +51,32 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {...WithAlert};
-
-function UsersSettings(props: Props) {
+function UsersSettings(props: WithAlert) {
   const classes = useStyles();
-  const [editingUser, setEditingUser] = useState<?EditUser>(null);
+  const [editingUser, setEditingUser] = useState<EditUser | null>(null);
   const [users, setUsers] = useState<Array<EditUser>>([]);
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const {networkIds, ssoEnabled} = useContext(AppContext);
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const {isLoading, error} = useAxios({
+  const {isLoading, error} = useAxios<{users: Array<EditUser>}>({
     url: '/user/async/',
-    onResponse: useCallback(res => setUsers(res.data.users), []),
+    onResponse: useCallback(
+      (res: AxiosResponse<{users: Array<EditUser>}>) =>
+        setUsers(res.data.users),
+      [],
+    ),
   });
 
   if (isLoading || error) {
     return <LoadingFiller />;
   }
 
-  const handleError = error =>
-    enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
+  const handleError = (error: unknown) =>
+    enqueueSnackbar(getErrorMessage(error), {variant: 'error'});
 
-  const deleteUser = user => {
-    props
+  const deleteUser = (user: EditUser) => {
+    void props
       .confirm({
         message: (
           <span>
@@ -100,13 +90,13 @@ function UsersSettings(props: Props) {
         if (confirmed) {
           axios
             .delete('/user/async/' + user.id)
-            .then(_resp => setUsers(users.filter(u => u.id != user.id)))
+            .then(() => setUsers(users.filter(u => u.id != user.id)))
             .catch(handleError);
         }
       });
   };
 
-  const updateUserState = user => {
+  const updateUserState = (user: EditUser) => {
     const newUsers = users.slice(0);
     if (editingUser) {
       const index = users.indexOf(editingUser);
@@ -182,13 +172,13 @@ function UsersSettings(props: Props) {
           allNetworkIDs={networkIds}
           onEditUser={(userId, payload) => {
             axios
-              .put('/user/async/' + userId, payload)
+              .put<{user: EditUser}>('/user/async/' + userId, payload)
               .then(response => updateUserState(response.data.user))
               .catch(handleError);
           }}
           onCreateUser={payload => {
             axios
-              .post('/user/async/', payload)
+              .post<{user: EditUser}>('/user/async/', payload)
               .then(response => updateUserState(response.data.user))
               .catch(handleError);
           }}

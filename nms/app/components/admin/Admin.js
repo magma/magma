@@ -24,6 +24,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TopBar from '../TopBar';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UsersSettings from '../UsersSettings';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
