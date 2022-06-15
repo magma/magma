@@ -28,7 +28,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import UsersSettings from '../admin/userManagement/UsersSettings';
+import UsersSettings from '../UsersSettings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../context/AppContext';
 import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
