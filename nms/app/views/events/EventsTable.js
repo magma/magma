@@ -261,6 +261,8 @@ export default function EventsTable(props: EventTableProps) {
   }, [startDate, endDate]);
 
   useEffect(() => {
+    setStartDate(props.inStartDate); 
+    setEndDate(props.inEndDate); 
     if (props.inStartDate && props.inEndDate) {
       if (tableRef.current) {
         tableRef.current.onQueryChange();
