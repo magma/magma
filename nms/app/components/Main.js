@@ -19,6 +19,7 @@ import Index, {ROOT_PATHS} from './main/Index';
 import IndexWithoutNetwork from './IndexWithoutNetwork';
 import MagmaV1API from '../../generated/WebClient';
 import NetworkError from './main/NetworkError';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
