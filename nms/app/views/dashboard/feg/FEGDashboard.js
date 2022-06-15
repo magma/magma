@@ -20,6 +20,7 @@ import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import EventAlertChart from '../../../components/EventAlertChart';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../events/EventsTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';

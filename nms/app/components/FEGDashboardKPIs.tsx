@@ -9,18 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from './layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ServicingAccessGatewayKPIs from './FEGServicingAccessGatewayKPIs';
-
 import {GpsFixed} from '@material-ui/icons';
 
 /**
