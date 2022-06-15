@@ -9,86 +9,64 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {Dataset} from '../../components/CustomMetrics';
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {
-  network_id,
-  subscriber_id,
-} from '../../../generated/MagmaAPIBindings';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import Divider from '@material-ui/core/Divider';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
+import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CustomLineChart} from '../../components/CustomMetrics';
+import {CustomLineChart, DatasetType} from '../../components/CustomMetrics';
 import {DateTimePicker} from '@material-ui/pickers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {convertBitToMbit, getPromValue} from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getStep, getStepString} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {DataRows} from '../../components/DataGrid';
+import type {Dataset} from '../../components/CustomMetrics';
+import type {NetworkId, SubscriberId} from '../../../shared/types/network';
+import type {OptionsObject} from 'notistack';
 
-export type DateTimeMetricChartProps = {
-  title: string,
-  queries: Array<string>,
-  legendLabels: Array<string>,
-  unit?: string,
-};
-
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   dateTimeText: {
     color: colors.primary.comet,
   },
-}));
+});
 
 type DatasetFetchProps = {
-  networkId: network_id,
-  subscriberId: subscriber_id,
-  start: moment,
-  end: moment,
+  networkId: NetworkId;
+  subscriberId: SubscriberId;
+  start: moment.Moment;
+  end: moment.Moment;
   enqueueSnackbar: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => (string | number) | null | undefined;
+};
+
+type DatasetProps = Dataset & {
+  datasetKeyProvider: string;
+  unit: string;
 };
 
 async function getDatasets(props: DatasetFetchProps) {
   const {start, end, networkId, subscriberId} = props;
   const [delta, unit] = getStep(start, end);
-  let requestError = '';
+  let requestError = false;
   const step = getStepString(delta, unit);
-  const toolTipHint = delta + ' ' + unit;
-
+  const toolTipHint = `${delta} ${unit}`;
   const queries = [
     {
       q: `avg(rate(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
@@ -101,60 +79,65 @@ async function getDatasets(props: DatasetFetchProps) {
       label: 'upload',
     },
   ];
-  const allDatasets = [];
+  const allDatasets: Array<DatasetProps> = [];
   const requests = queries.map(async (query, index) => {
     try {
-      const resp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange({
-        networkId,
-        start: start.toISOString(),
-        end: end.toISOString(),
-        step: getStepString(delta, unit),
-        query: query.q,
-      });
-
-      const data = [];
+      const resp = (
+        await MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet({
+          networkId,
+          start: start.toISOString(),
+          end: end.toISOString(),
+          step: getStepString(delta, unit),
+          query: query.q,
+        })
+      ).data;
+      const selectedData: Array<DatasetType> = [];
       resp.data.result.forEach(it =>
         it['values']?.map(i => {
-          data.push({
+          selectedData.push({
             t: parseInt(i[0]) * 1000,
             y: parseFloat(convertBitToMbit(parseFloat(i[1]))),
           });
         }),
       );
-
       allDatasets.push({
         datasetKeyProvider: index.toString(),
         label: query.label,
         fill: true,
-
         borderWidth: 1,
         backgroundColor: query.color,
         borderColor: query.color,
         hoverBackgroundColor: query.color,
         hoverBorderColor: 'black',
-        data: data,
+        data: selectedData,
         unit: 'MB/s',
       });
     } catch (error) {
-      requestError = error;
+      requestError = !!error;
       return [];
     }
   });
 
   await Promise.all(requests);
+
   if (requestError) {
     props.enqueueSnackbar('Error getting event counts', {
       variant: 'error',
     });
   }
-  return {allDatasets, unit, toolTipHint};
+
+  return {
+    allDatasets,
+    unit,
+    toolTipHint,
+  };
 }
 
 function SubscriberDataKPI() {
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
   const subscriberId: string = nullthrows(params.subscriberId);
-  const [kpiRows, setKpiRows] = useState<DataRows[]>([]);
+  const [kpiRows, setKpiRows] = useState<Array<DataRows>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -180,35 +163,50 @@ function SubscriberDataKPI() {
         },
       };
 
-      const queries = Object.keys(stepCategoryMap).map(async step => {
+      const queries = (Object.keys(stepCategoryMap) as Array<
+        keyof typeof stepCategoryMap
+      >).map(step => {
         const category = stepCategoryMap[step].category;
         const tooltip = stepCategoryMap[step].tooltip;
-        try {
-          const result = await MagmaV1API.getNetworksByNetworkIdPrometheusQuery(
-            {
-              networkId,
-              query: `avg(rate(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
-            },
-          );
-          const value = convertBitToMbit(getPromValue(result));
-          return {value, category, tooltip};
-        } catch (e) {
-          enqueueSnackbar('Error getting subscriber KPIs', {variant: 'error'});
-          return {value: '-', category, tooltip};
-        }
+
+        return MagmaAPI.metrics
+          .networksNetworkIdPrometheusQueryGet({
+            networkId,
+            query: `avg(rate(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
+          })
+          .then(({data}) => {
+            const value = convertBitToMbit(getPromValue(data));
+            return {
+              value,
+              category,
+              tooltip,
+            };
+          })
+          .catch(() => {
+            enqueueSnackbar('Error getting subscriber KPIs', {
+              variant: 'error',
+            });
+            return {
+              value: '-',
+              category,
+              tooltip,
+            };
+          });
       });
 
-      Promise.all(queries).then(allResponses => setKpiRows([allResponses]));
-      // setKpiRows(kpiRows);
+      await Promise.all(queries).then(allResponses =>
+        setKpiRows([allResponses]),
+      );
       setIsLoading(false);
     };
 
-    fetchAllData();
+    void fetchAllData();
   }, [enqueueSnackbar, networkId, subscriberId]);
 
   if (isLoading) {
     return <LoadingFiller />;
   }
+
   return <DataGrid data={kpiRows} />;
 }
 
@@ -220,7 +218,7 @@ export default function SubscriberChart() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [datasets, setDatasets] = useState<Array<Dataset>>([]);
   const [toolTipHint, setToolTipHint] = useState('');
-  const [unit, setUnit] = useState('');
+  const [unit, setUnit] = useState('' as TimeUnit);
   const [start, setStart] = useState(moment().subtract(3, 'hours'));
   const [end, setEnd] = useState(moment());
   const [isLoading, setIsLoading] = useState(true);
@@ -237,12 +235,16 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             autoOk
+            // TODO: There is a serious mismatch here.
+            //  type WrapperVariant is a alias for:
+            // "dialog" | "inline" | "static"
+            // @ts-ignore
             variant="outlined"
             inputVariant="outlined"
             maxDate={end}
             disableFuture
             value={start}
-            onChange={setStart}
+            onChange={date => setStart(date!)}
           />
         </Grid>
         <Grid item>
@@ -253,16 +255,21 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             autoOk
+            // TODO: There is a serious mismatch here.
+            //  type WrapperVariant is a alias for:
+            // "dialog" | "inline" | "static"
+            // @ts-ignore
             variant="outlined"
             inputVariant="outlined"
             disableFuture
             value={end}
-            onChange={setEnd}
+            onChange={date => setEnd(date!)}
           />
         </Grid>
       </Grid>
     );
   }
+
   useEffect(() => {
     // fetch queries
     const fetchAllData = async () => {
@@ -279,7 +286,7 @@ export default function SubscriberChart() {
       setIsLoading(false);
     };
 
-    fetchAllData();
+    void fetchAllData();
   }, [start, end, enqueueSnackbar, networkId, subscriberId]);
 
   if (isLoading) {
@@ -299,10 +306,12 @@ export default function SubscriberChart() {
               yLabel={yLabelUnit}
               tooltipHandler={(tooltipItem, data) => {
                 const val = tooltipItem.yLabel;
-                return (
-                  data.datasets[tooltipItem.datasetIndex].label +
-                  ` ${val} ${yLabelUnit} in last ${toolTipHint}s`
-                );
+                return `${
+                  // TODO[ts-migration] The tooltip handler is also broken in CustomMetrics
+                  // such that this is a follow up of the broken type there.
+                  // @ts-ignore
+                  data.datasets[tooltipItem.datasetIndex].label // eslint-disable-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
+                } ${val!} ${yLabelUnit} in last ${toolTipHint}s`;
               }}
             />
           }
