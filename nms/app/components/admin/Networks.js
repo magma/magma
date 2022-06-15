@@ -30,6 +30,7 @@ import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NoNetworksMessage from '../NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
 import React, {useCallback, useContext, useState} from 'react';
