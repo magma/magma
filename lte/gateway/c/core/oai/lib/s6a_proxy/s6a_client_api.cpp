@@ -42,7 +42,7 @@ bool s6a_purge_ue(const char* imsi) {
   if (imsi == nullptr) {
     return false;
   }
-  if (!get_s6a_relay_enabled()) {
+  if (!magma::S6aClient::get_s6a_relay_enabled()) {
     return true;
   }
   magma::S6aClient::purge_ue(imsi, [imsiStr = std::string(imsi)](

@@ -214,7 +214,8 @@ export default function (props: Props) {
       open={props.open}
       onClose={props.onClose}
       maxWidth={'sm'}
-      fullWidth={true}>
+      fullWidth={true}
+      data-testid="OrganizationDialog">
       <DialogTitle classes={{root: classes.dialogTitle}}>
         {currentTab === 0
           ? organization?.id
