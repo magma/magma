@@ -28,6 +28,7 @@ import GridListTile from '@material-ui/core/GridListTile';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from '../insights/TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
