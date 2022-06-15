@@ -780,6 +780,7 @@ class MagmadUtil(object):
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
+    config_ipv6_iface_cmds = Enum("config_ipv6_iface_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -1215,24 +1216,46 @@ class MagmadUtil(object):
             mme_ueip_imsi_map_entries,
         )
 
-    def enable_nat(self):
+    def enable_nat(self, ip_version=4):
         """Enable Nat"""
         self._set_agw_nat(True)
-        self._validate_nated_datapath()
-        self.exec_command("sudo ip route del default via 192.168.129.42")
-        self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        self._validate_nated_datapath(ip_version)
+        if ip_version == 4:
+            self.exec_command("sudo ip route del default via 192.168.129.42")
+            self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        else:
+            self.exec_command("sudo ip route del default via 3001::2")
+            self.exec_command("sudo ip route add default via 2020::10 dev eth0")
 
-    def disable_nat(self):
-        """Disable Nat"""
-        self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
-        self.exec_command(
-            "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
-        )
-        self.exec_command(
-            "sudo ip route add default via 192.168.129.42 dev uplink_br0",
-        )
+    def disable_nat(self, ip_version=4):
+        """
+        Disable Nat
+
+        ip config details:
+               vm     ip                intf
+               =============================
+               dev    192.168.129.1     eth2
+               dev    3001::10          eth3
+               test   192.168.128.11    eth2
+               test   3001::3           eth3
+               trf    192.168.129.42    eth2
+               trf    3001::2           eth3
+        """
+        if ip_version == 4:
+            self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
+            self.exec_command(
+                "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
+            )
+            self.exec_command(
+                "sudo ip route add default via 192.168.129.42 dev uplink_br0",
+            )
+        else:
+            self.exec_command("sudo ip route del default via  2020::10 dev eth0")
+            self.exec_command("sudo ip addr replace 3001::10 dev uplink_br0")
+            self.exec_command("sudo ip route -A inet6 add default via 3001::2 dev uplink_br0")
+
         self._set_agw_nat(False)
-        self._validate_non_nat_datapath()
+        self._validate_non_nat_datapath(ip_version)
 
     def _set_agw_nat(self, enable: bool):
         mconfig_conf = (
@@ -1250,17 +1273,50 @@ class MagmadUtil(object):
         self.restart_sctpd()
         self.restart_all_services()
 
-    def _validate_non_nat_datapath(self):
+    def _validate_non_nat_datapath(self, ip_version=4):
         # validate SGi interface is part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
-        assert "eth2" in str(out1)
+        iface = "eth2" if ip_version == 4 else "eth3"
+        assert iface in str(out1)
         print("NAT is disabled")
 
-    def _validate_nated_datapath(self):
+    def _validate_nated_datapath(self, ip_version=4):
         # validate SGi interface is not part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
-        assert "eth2" not in str(out1)
+        iface = "eth2" if ip_version == 4 else "eth3"
+        assert iface not in str(out1)
         print("NAT is enabled")
+
+    def config_ipv6_iface(self, cmd):
+        """
+        Configure eth3 interface for ipv6 data on the access gateway
+
+        Args:
+            cmd: Enable or disable eth3 iface on AGW,
+            should be one of
+              enable: Enable eth3 as nat_iface, do nothing if already configured
+              disable: Disable eth3 as nat_iface, do nothing if already configured
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
+        config_ipv6_iface_script = "/usr/local/bin/config_iface_for_ipv6.py"
+
+        ret_code = self.exec_command(
+            magtivate_cmd
+            + " && "
+            + venvsudo_cmd
+            + " python3 "
+            + config_ipv6_iface_script
+            + " "
+            + cmd.name.lower(),
+        )
+
+        if ret_code == 0:
+            print("Configuration successful")
+        elif ret_code == 1:
+            print("Configuration not changed")
+        else:
+            print("Failed to configure")
 
 
 class MobilityUtil(object):

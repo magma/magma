@@ -62,6 +62,7 @@ class TestWrapper(object):
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
         health_service=MagmadUtil.health_service_cmds.DISABLE,
         federated_mode=False,
+        ip_version=4,
     ):
         """
         Initialize the various classes required by the tests and setup.
@@ -78,7 +79,7 @@ class TestWrapper(object):
         current_time = time.strftime("%H:%M:%S", t)
         print("Start time", current_time)
         self._s1_util = S1ApUtil()
-        self._enBConfig()
+        self._enBConfig(ip_version)
 
         if self._test_oai_upstream:
             subscriber_client = SubscriberDbCassandra()
@@ -132,13 +133,14 @@ class TestWrapper(object):
     def _test_oai_upstream(self):
         return os.getenv("TEST_OAI_UPSTREAM") is not None
 
-    def _enBConfig(self):
+    def _enBConfig(self, ip_version=4):
         """Configure the eNB in S1APTester"""
         # Using exaggerated prints makes the stdout easier to read.
         print("************************* Enb tester config")
         req = s1ap_types.FwNbConfigReq_t()
         req.cellId_pr.pres = True
         req.cellId_pr.cell_id = 10
+        req.ip_version = ip_version
         assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.ENB_CONFIG, req) == 0
         response = self._s1_util.get_response()
         assert response.msg_type == s1ap_types.tfwCmd.ENB_CONFIG_CONFIRM.value
@@ -405,6 +407,10 @@ class TestWrapper(object):
             **kwargs,
         )
 
+    def configMtuSize(self, set_mtu=False):
+        """ Config MTU size for DL ipv6 data """
+        assert self._trf_util.update_mtu_size(set_mtu)
+
     def configUplinkTest(self, *ues, **kwargs):
         """ Set up an uplink test, returning a TrafficTest object
 
@@ -626,3 +632,7 @@ class TestWrapper(object):
             "sudo ip neigh flush all",
         )
         print("magma-dev: ARP flushed")
+
+    def enable_disable_ipv6_iface(self, cmd):
+        """Enable or disable eth3 (ipv6) interface as nat_iface"""
+        self._magmad_util.config_ipv6_iface(cmd)
