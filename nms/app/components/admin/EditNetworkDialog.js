@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFNetworkDialog from './CWFNetworkDialog';
 import FEGNetworkDialog from './FEGNetworkDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

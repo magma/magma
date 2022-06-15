@@ -19,14 +19,15 @@ function isAxiosError(error: any): error is AxiosError<{message?: string}> {
 }
 
 export function getErrorMessage(
-  error: any,
+  error: unknown,
   fallbackMessage = 'Unknown Error',
 ): string {
+  let errorMessage;
   if (isAxiosError(error)) {
-    return error.response?.data?.message ?? error.message;
+    errorMessage = error.response?.data?.message ?? error.message;
   }
   if (error instanceof Error) {
-    return error.message;
+    errorMessage = error.message;
   }
-  return fallbackMessage;
+  return errorMessage || fallbackMessage;
 }
