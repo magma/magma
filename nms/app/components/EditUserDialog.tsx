@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import Button from '@material-ui/core/Button';
@@ -29,35 +26,34 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React, {useCallback, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import renderList from '../util/renderList';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {NetworkId} from '../../shared/types/network';
 import {UserRoles} from '../../shared/roles';
 import {makeStyles} from '@material-ui/styles';
 
 export type EditUser = {
-  id: string,
-  email: string,
-  role: number,
-  networkIDs?: string[],
-  organization?: string,
+  id: string;
+  email: string;
+  role: number;
+  networkIDs?: Array<string>;
+  organization?: string;
 };
 
 export type SaveUserData = {
-  email: string,
-  password?: string,
-  role: number,
-  networkIds?: string[],
+  email: string;
+  password?: string;
+  role: number;
+  networkIDs?: Array<string>;
 };
 
 type Props = {
-  editingUser: ?EditUser,
-  open: boolean,
-  onClose: () => void,
-  ssoEnabled: boolean,
-  allNetworkIDs?: Array<string>,
-  onEditUser: (userId: string, payload: SaveUserData) => void,
-  onCreateUser: (payload: SaveUserData) => void,
+  editingUser: EditUser | null | undefined;
+  open: boolean;
+  onClose: () => void;
+  ssoEnabled: boolean;
+  allNetworkIDs: Array<string>;
+  onEditUser: (userId: string, payload: SaveUserData) => void;
+  onCreateUser: (payload: SaveUserData) => void;
 };
 
 const useStyles = makeStyles(() => ({
@@ -71,7 +67,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function getInitialNetworkIDs(userNetworkIds, allNetworkIDs): Set<string> {
+function getInitialNetworkIDs(
+  userNetworkIds: Array<NetworkId> | undefined,
+  allNetworkIDs: Array<NetworkId>,
+): Set<string> {
   return new Set(allNetworkIDs && userNetworkIds ? userNetworkIds : []);
 }
 
@@ -83,7 +82,7 @@ export default function EditUserDialog(props: Props) {
   const [email, setEmail] = useState<string>(props.editingUser?.email || '');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [role, setRole] = useState<$Values<typeof UserRoles>>(
+  const [role, setRole] = useState<typeof UserRoles[keyof typeof UserRoles]>(
     props.editingUser?.role ?? UserRoles.USER,
   );
   const [networkIds, setNetworkIds] = useState<Set<string>>(
@@ -168,7 +167,7 @@ export default function EditUserDialog(props: Props) {
             labelId="role-select-label"
             id="role-select"
             value={role}
-            onChange={({target}) => setRole(parseInt(target.value))}>
+            onChange={({target}) => setRole(parseInt(target.value as string))}>
             <MenuItem value={UserRoles.USER}>User</MenuItem>
             <MenuItem value={UserRoles.READ_ONLY_USER}>Read Only User</MenuItem>
             <MenuItem value={UserRoles.SUPERUSER}>Super User</MenuItem>
@@ -181,8 +180,12 @@ export default function EditUserDialog(props: Props) {
               multiple
               disabled={isSuperUser}
               value={Array.from(networkIds)}
-              onChange={({target}) => setNetworkIds(new Set(target.value))}
-              renderValue={renderList}
+              onChange={({target}) =>
+                setNetworkIds(new Set(target.value as Array<string>))
+              }
+              renderValue={networkIds =>
+                renderList(networkIds as Array<string>)
+              }
               input={<Input id="network_ids" />}>
               {allNetworkIDs.map(network => (
                 <MenuItem key={network} value={network}>
