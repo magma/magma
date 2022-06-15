@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
@@ -40,17 +37,17 @@ const useStyles = makeStyles(() => ({
 }));
 
 export type GenericConfig = {
-  id: string,
-  name: string,
-  description: string,
-  type?: string,
+  id: string;
+  name: string;
+  description: string;
+  type?: string;
 };
 
 type Props = {
-  onClose: () => void,
-  onSave: GenericConfig => void,
-  networkConfig: GenericConfig,
-  children?: React.Node,
+  onClose: () => void;
+  onSave: (config: GenericConfig) => void;
+  networkConfig: GenericConfig;
+  children?: React.ReactNode;
 };
 
 export default function GenericNetworkDialog(props: Props) {
@@ -63,7 +60,7 @@ export default function GenericNetworkDialog(props: Props) {
   ) =>
     setNetworkConfig({
       ...networkConfig,
-      [(field: string)]: value,
+      [field]: value,
     });
 
   return (
@@ -88,7 +85,9 @@ export default function GenericNetworkDialog(props: Props) {
           <InputLabel htmlFor="types">Network Type</InputLabel>
           <Select
             value={networkConfig.type}
-            onChange={({target}) => updateNetwork('type', target.value)}
+            onChange={({target}) =>
+              updateNetwork('type', target.value as string)
+            }
             input={<Input id="types" />}
             disabled={true}>
             <MenuItem key={networkConfig.type} value={networkConfig.type}>

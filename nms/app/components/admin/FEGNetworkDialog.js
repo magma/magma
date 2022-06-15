@@ -14,9 +14,11 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericConfig} from './GenericNetworkDialog';
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GenericNetworkDialog from './GenericNetworkDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
