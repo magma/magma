@@ -9,27 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {GenericConfig} from './GenericNetworkDialog';
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GenericNetworkDialog from './GenericNetworkDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
 import TextField from '@material-ui/core/TextField';
 
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import MagmaAPI from '../../../api/MagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
+import {FegNetwork} from '../../../generated-ts';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -40,9 +35,9 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  onClose: () => void,
-  onSave: () => void,
-  networkConfig: GenericConfig,
+  onClose: () => void;
+  onSave: () => void;
+  networkConfig: GenericConfig;
 };
 
 export default function FEGNetworkDialog(props: Props) {
@@ -51,10 +46,10 @@ export default function FEGNetworkDialog(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {response: fegNetworkConfig, isLoading} = useMagmaAPI(
-    MagmaV1API.getFegByNetworkId,
+    MagmaAPI.federationNetworks.fegNetworkIdGet,
     {networkId: props.networkConfig.id},
     useCallback(
-      response =>
+      (response: FegNetwork) =>
         setServedNetworkIDs(
           (response?.federation?.served_network_ids || []).join(','),
         ),
@@ -66,23 +61,24 @@ export default function FEGNetworkDialog(props: Props) {
     return <LoadingFillerBackdrop />;
   }
 
-  const onSave = genericFields => {
-    MagmaV1API.putFegByNetworkId({
-      networkId: fegNetworkConfig.id,
-      fegNetwork: {
-        ...fegNetworkConfig,
-        name: genericFields.name,
-        description: genericFields.description,
-        federation: {
-          ...fegNetworkConfig.federation,
-          served_network_ids: servedNetworkIDs.split(','),
+  const onSave = (genericFields: GenericConfig) => {
+    MagmaAPI.federationNetworks
+      .fegNetworkIdPut({
+        networkId: fegNetworkConfig.id,
+        fegNetwork: {
+          ...fegNetworkConfig,
+          name: genericFields.name,
+          description: genericFields.description,
+          federation: {
+            ...fegNetworkConfig.federation,
+            served_network_ids: servedNetworkIDs.split(','),
+          },
         },
-      },
-    })
+      })
       .then(props.onSave)
       .catch(error =>
         enqueueSnackbar(
-          error.response?.data?.message || "error: couldn't edit network",
+          getErrorMessage(error, "error: couldn't edit network"),
           {
             variant: 'error',
           },
