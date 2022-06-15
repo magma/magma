@@ -22,8 +22,10 @@ import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import type {ChartStyle} from '../../components/insights/AsyncMetric';
-import type {TimeRange} from '../../components/insights/AsyncMetric';
+import type {
+  ChartStyle,
+  TimeRange,
+} from '../../components/insights/AsyncMetric';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dateTimeText: {
