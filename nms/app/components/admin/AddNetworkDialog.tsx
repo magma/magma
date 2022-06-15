@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import Button from '@material-ui/core/Button';
@@ -30,21 +27,19 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 import {
   AllNetworkTypes,
   CWF,
   FEG,
   FEG_LTE,
+  NetworkId,
   XWFM,
-  // $FlowFixMe migrated to typescript
 } from '../../../shared/types/network';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {triggerAlertSync} from '../../state/SyncAlerts';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -56,9 +51,20 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  onClose: () => void,
-  onSave: string => void,
+  onClose: () => void;
+  onSave: (value: NetworkId) => void;
 };
+
+type CreateResponse =
+  | {
+      success: true;
+      apiResponse: 'Success';
+    }
+  | {
+      success: false;
+      apiResponse: object;
+      message: string;
+    };
 
 export default function NetworkDialog(props: Props) {
   const classes = useStyles();
@@ -69,7 +75,7 @@ export default function NetworkDialog(props: Props) {
   const [networkType, setNetworkType] = useState('');
   const [fegNetworkID, setFegNetworkID] = useState('');
   const [servedNetworkIDs, setServedNetworkIDs] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const onSave = () => {
     const payload = {
@@ -83,18 +89,18 @@ export default function NetworkDialog(props: Props) {
       },
     };
     axios
-      .post('/nms/network/create', payload)
+      .post<CreateResponse>('/nms/network/create', payload)
       .then(response => {
         if (response.data.success) {
           props.onSave(nullthrows(networkID));
           if (payload.data.networkType === XWFM) {
-            triggerAlertSync(networkID, enqueueSnackbar);
+            void triggerAlertSync(networkID, enqueueSnackbar);
           }
         } else {
           setError(response.data.message);
         }
       })
-      .catch(error => setError(error.response?.data?.error || error));
+      .catch(error => setError(getErrorMessage(error)));
   };
 
   return (
@@ -127,7 +133,7 @@ export default function NetworkDialog(props: Props) {
           <InputLabel htmlFor="types">Network Type</InputLabel>
           <Select
             value={networkType}
-            onChange={({target}) => setNetworkType(target.value)}
+            onChange={({target}) => setNetworkType(target.value as string)}
             input={<Input id="types" />}>
             {AllNetworkTypes.map(type => (
               <MenuItem key={type} value={type}>
