@@ -9,37 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventAlertChart from '../../../components/EventAlertChart';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../events/EventsTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {EVENT_STREAM} from '../../events/EventsTable';
-
 import {DateTimePicker} from '@material-ui/pickers';
+import {EVENT_STREAM} from '../../events/EventsTable';
 import {Navigate, Route, Routes} from 'react-router-dom';
 import {NetworkCheck} from '@material-ui/icons';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -99,7 +88,11 @@ function FEGDashboard() {
  * @param {Array<moment>} startEnd: An array of two elements holding the
  * start and end date.
  */
-function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
+function FEGNetworkDashboard({
+  startEnd,
+}: {
+  startEnd: [moment.Moment, moment.Moment];
+}) {
   const classes = useStyles();
 
   return (
@@ -135,7 +128,15 @@ function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
  * by the user. It also consists of functions(setStartDate and setEndDate)
  * needed to change those values.
  */
-function FEGNetworkTab(props) {
+
+type Props = {
+  startDate: moment.Moment;
+  endDate: moment.Moment;
+  setStartDate: (startDate: moment.Moment) => void;
+  setEndDate: (endDate: moment.Moment) => void;
+};
+
+function FEGNetworkTab(props: Props) {
   const {startDate, endDate, setStartDate, setEndDate} = props;
   const classes = useStyles();
   return (
@@ -152,7 +153,7 @@ function FEGNetworkTab(props) {
         maxDate={endDate}
         disableFuture
         value={startDate}
-        onChange={setStartDate}
+        onChange={date => setStartDate(date!)}
       />
       <Grid item>
         <Text variant="body3" className={classes.dateTimeText}>
@@ -165,9 +166,10 @@ function FEGNetworkTab(props) {
         inputVariant="outlined"
         disableFuture
         value={endDate}
-        onChange={setEndDate}
+        onChange={date => setEndDate(date!)}
       />
     </Grid>
   );
 }
+
 export default FEGDashboard;
