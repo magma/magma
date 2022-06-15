@@ -9,21 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../../components/DataGrid';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import React from 'react';
 
 type OverviewProps = {
-  name?: string,
-  networkIds?: Array<string>,
+  name?: string;
+  networkIds?: Array<string>;
 };
 
 /**
@@ -33,7 +28,7 @@ export default function OrganizationSummary(props: OverviewProps) {
   const {name, networkIds} = props;
   const orgName = window.CONFIG.appData.user.tenant;
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Organization Name',
@@ -50,7 +45,9 @@ export default function OrganizationSummary(props: OverviewProps) {
       {
         category: 'Link to Organization Portal',
         isLink: true,
-        value: `${window.location.origin.replace(orgName, name)}/nms`,
+        value: name
+          ? `${window.location.origin.replace(orgName, name)}/nms`
+          : '',
       },
     ],
   ];
