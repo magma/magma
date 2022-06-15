@@ -16,11 +16,12 @@
 
 import * as React from 'react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AuditLog from './AuditLog';
 import Networks from './Networks';
 import PeopleIcon from '@material-ui/icons/People';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TopBar from '../TopBar';
 import UsersSettings from '../UsersSettings';
 import {Navigate, Route, Routes} from 'react-router-dom';

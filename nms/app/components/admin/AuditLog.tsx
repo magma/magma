@@ -9,47 +9,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import React from 'react';
 import ReactJson from 'react-json-view';
 
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAxios} from '../../hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
 }));
 
 export type AuditLogRowType = {
-  id: string,
-  updatedAt: Date,
-  ipAddress: string,
-  url: string,
-  actingUserEmail: string,
-  mutationType: string,
-  objectType: string,
-  objectId: string,
-  mutationData: {},
+  id: string;
+  updatedAt: Date;
+  ipAddress: string;
+  url: string;
+  actingUserEmail: string;
+  mutationType: string;
+  objectType: string;
+  objectId: string;
+  status: 'SUCCESS' | 'FAILURE';
+  mutationData: object;
 };
 
 const DEFAULT_PAGE_SIZE = 25;
@@ -59,11 +53,13 @@ const DEFAULT_PAGE_SIZE = 25;
  */
 function AuditLog() {
   const classes = useStyles();
-  const {response, error, isLoading} = useAxios({
+  const {response, error, isLoading} = useAxios<Array<AuditLogRowType>>({
     url: '/admin/auditlog/async',
     method: 'get',
   });
-  const [currRow, setCurrRow] = useState<AuditLogRowType>({});
+  const [currRow, setCurrRow] = useState<AuditLogRowType>(
+    {} as AuditLogRowType,
+  );
   const onClose = () => setJsonDialog(false);
   const [jsonDialog, setJsonDialog] = useState(false);
 
@@ -126,9 +122,9 @@ function AuditLog() {
 }
 
 type DialogProps = {
-  row: AuditLogRowType,
-  open: boolean,
-  onClose: () => void,
+  row: AuditLogRowType;
+  open: boolean;
+  onClose: () => void;
 };
 
 /**
