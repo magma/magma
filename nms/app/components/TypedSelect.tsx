@@ -21,6 +21,8 @@ type Props<T extends string | number> = {
   items: Record<T, string>;
   className?: string;
   input?: React.ReactElement<any, any>;
+  disabled?: boolean;
+  fullWidth?: boolean;
 };
 
 export default function TypedSelect<T extends string | number>(
