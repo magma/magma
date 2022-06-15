@@ -9,37 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-import type {call_trace} from '../../../generated/MagmaAPIBindings';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CreateTraceButton from './TraceStartDialog';
 import HistoryIcon from '@material-ui/icons/History';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
 import TraceContext from '../../components/context/TraceContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import type {CallTrace} from '../../../generated-ts';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
@@ -65,14 +54,14 @@ function TracingDashboard() {
 }
 
 type TracingRowType = {
-  traceID: string,
-  state: 'COMPLETED' | 'ACTIVE',
-  gatewayID: string,
-  traceType: string,
+  traceID: string;
+  state: 'COMPLETED' | 'ACTIVE';
+  gatewayID: string;
+  traceType: string;
 };
 
-function TracingTableRaw(_: WithAlert) {
-  const [currRow, setCurrRow] = useState<TracingRowType>({});
+function TracingTableRaw() {
+  const [currRow, setCurrRow] = useState<TracingRowType>({} as TracingRowType);
   const classes = useStyles();
   const ctx = useContext(TraceContext);
   const {networkId} = useContext(NetworkContext);
@@ -99,7 +88,6 @@ function TracingTableRaw(_: WithAlert) {
     }
 
     try {
-      // $FlowFixMe[prop-missing]: Suppress type error, cannot refine type
       await ctx.setState?.(currRow.traceID, {
         requested_end: true,
       });
@@ -107,14 +95,14 @@ function TracingTableRaw(_: WithAlert) {
         variant: 'success',
       });
     } catch (e) {
-      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      const errMsg = getErrorMessage(e);
       enqueueSnackbar('Failed stopping call trace: ' + errMsg, {
         variant: 'error',
       });
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (currRow.state != 'COMPLETED') {
       enqueueSnackbar('Call trace ' + currRow.traceID + ' is still active', {
         variant: 'error',
@@ -147,12 +135,10 @@ function TracingTableRaw(_: WithAlert) {
         menuItems={[
           {
             name: 'Download',
-            // $FlowFixMe[incompatible-type]
             handleFunc: handleDownload,
           },
           {
             name: 'Stop',
-            // $FlowFixMe[incompatible-type]
             handleFunc: handleStop,
           },
         ]}
@@ -166,11 +152,12 @@ function TracingTableRaw(_: WithAlert) {
   );
 }
 
-function tracesToRows(traceMap: {[string]: call_trace}): Array<TracingRowType> {
-  const rows = [];
-  Object.keys(traceMap).map((traceID: string, _) => {
-    const isTraceEnding: boolean = !!traceMap[traceID]?.state
-      ?.call_trace_ending;
+function tracesToRows(
+  traceMap: Record<string, CallTrace>,
+): Array<TracingRowType> {
+  const rows: Array<TracingRowType> = [];
+  Object.keys(traceMap).map((traceID: string) => {
+    const isTraceEnding = !!traceMap[traceID]?.state?.call_trace_ending;
 
     rows.push({
       traceID: traceID,
