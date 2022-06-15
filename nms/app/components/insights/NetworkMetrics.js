@@ -14,7 +14,8 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {MetricGraphConfig} from './Metrics';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from './AsyncMetric';
 
@@ -32,7 +33,8 @@ import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../insights/TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
-import {resolveQuery} from '../insights/Metrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {resolveQuery} from './Metrics';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

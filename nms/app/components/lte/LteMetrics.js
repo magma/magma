@@ -14,8 +14,8 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from '../insights/Metrics';
-
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';

@@ -9,17 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from './AsyncMetric';
 
 import * as React from 'react';
 import AppBar from '@material-ui/core/AppBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AsyncMetric from './AsyncMetric';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Card from '@material-ui/core/Card';
@@ -28,17 +23,16 @@ import FormControl from '@material-ui/core/FormControl';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from './TimeRangeSelector';
 
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   appBar: {
     display: 'inline-block',
   },
@@ -55,32 +49,32 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export type MetricGraphConfig = {
-  basicQueryConfigs: BasicQueryConfig[],
-  customQueryConfigs?: CustomQuery[],
-  label: string,
-  unit?: string,
-  legendLabels?: string[],
+  basicQueryConfigs: Array<BasicQueryConfig>;
+  customQueryConfigs?: Array<CustomQuery>;
+  label: string;
+  unit?: string;
+  legendLabels?: Array<string>;
 };
 
 export type CustomQuery = {
-  resolveQuery: string => string,
+  resolveQuery: (query: string) => string;
 };
 
 export type BasicQueryConfig = {
-  filters: MetricLabel[],
-  metric: string,
+  filters: Array<MetricLabel>;
+  metric: string;
 };
 
 export type MetricLabel = {
-  name: string,
-  value: string,
+  name: string;
+  value: string;
 };
 
 export function resolveQuery(
   config: MetricGraphConfig,
   filterName: string,
   filterValue: string,
-): string[] {
+): Array<string> {
   if (config.customQueryConfigs) {
     return resolveCustomQuery(config.customQueryConfigs, filterValue);
   }
@@ -88,10 +82,10 @@ export function resolveQuery(
 }
 
 function resolveBasicQuery(
-  configs: BasicQueryConfig[],
+  configs: Array<BasicQueryConfig>,
   filterName: string,
   filterValue: string,
-): string[] {
+): Array<string> {
   return configs.map(config => {
     const filterString = resolveFilters(
       config.filters,
@@ -103,11 +97,11 @@ function resolveBasicQuery(
 }
 
 function resolveFilters(
-  filters: MetricLabel[],
+  filters: Array<MetricLabel>,
   filterName: string,
   filterValue: string,
 ): string {
-  const dbFilters: string[] = filters.map(
+  const dbFilters: Array<string> = filters.map(
     filter => filter.name + '="' + filter.value + '"',
   );
   dbFilters.push(`${filterName}="${filterValue}"`);
@@ -115,22 +109,19 @@ function resolveFilters(
 }
 
 function resolveCustomQuery(
-  configs: CustomQuery[],
+  configs: Array<CustomQuery>,
   filterValue: string,
-): string[] {
+): Array<string> {
   return configs.map(config => config.resolveQuery(filterValue));
 }
 
 export default function (props: {
-  selectors: Array<string>,
-  defaultSelector: string,
-  onSelectorChange: (
-    event: SyntheticInputEvent<EventTarget>,
-    value: string,
-  ) => void,
-  configs: MetricGraphConfig[],
-  selectorName: string,
-  renderOptionOverride?: string => React.Node,
+  selectors: Array<string>;
+  defaultSelector: string;
+  onSelectorChange: (event: React.ChangeEvent<object>, value: string) => void;
+  configs: Array<MetricGraphConfig>;
+  selectorName: string;
+  renderOptionOverride?: (option: string) => React.ReactNode;
 }) {
   const {selectedID} = useParams();
   const classes = useStyles();
@@ -156,7 +147,6 @@ export default function (props: {
             }
             renderInput={params => (
               <TextField
-                ref={params.ref}
                 InputLabelProps={params.InputLabelProps}
                 InputProps={params.InputProps}
                 inputProps={params.inputProps}

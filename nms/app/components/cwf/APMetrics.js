@@ -14,10 +14,10 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
-
 import React from 'react';
 import SelectorMetrics from '../insights/SelectorMetrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {MetricGraphConfig} from '../insights/Metrics';
 
 const APN_CONFIGS: Array<MetricGraphConfig> = [
   {
