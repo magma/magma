@@ -18,7 +18,8 @@
 import './common/polyfill';
 
 import {} from './common/axiosConfig';
-import LoginForm from './views/login/LoginForm.js';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import LoginForm from './views/login/LoginForm.tsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
