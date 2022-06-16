@@ -17,8 +17,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"google.golang.org/protobuf/types/known/wrapperspb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func Float(x float64) *float64 {
@@ -71,19 +70,19 @@ func FloatToDoubleValue(v *float64) *wrappers.DoubleValue {
 	if v == nil {
 		return nil
 	}
-	return wrapperspb.Double(*v)
+	return wrappers.Double(*v)
 }
 
-func BoolToBoolValue(v *bool) *wrapperspb.BoolValue {
+func BoolToBoolValue(v *bool) *wrappers.BoolValue {
 	if v == nil {
 		return nil
 	}
-	return wrapperspb.Bool(*v)
+	return wrappers.Bool(*v)
 }
 
-func StringToStringValue(v *string) *wrapperspb.StringValue {
+func StringToStringValue(v *string) *wrappers.StringValue {
 	if v == nil {
 		return nil
 	}
-	return wrapperspb.String(*v)
+	return wrappers.String(*v)
 }

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/message"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"

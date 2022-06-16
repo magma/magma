@@ -3,7 +3,7 @@ package servicers
 import (
 	"database/sql"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/services/dp/storage/db"
 )
