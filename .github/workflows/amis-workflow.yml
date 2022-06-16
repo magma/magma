@@ -97,8 +97,8 @@ jobs:
             echo "CLUSTER"
             cat ${{ env.VARS_DIR }}/cluster.yaml
             ansible-playbook ${{ env.WORK_DIR }}/devops-provision.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}"
-            echo "Waiting one minute for the instance to boot up."
-            sleep 60
+            echo "Waiting 3 minutes for the instance to boot up."
+            sleep 180
             ansible-playbook ${{ env.WORK_DIR }}/devops-configure.yaml -e "devops=tag_Name_publishAmisToMarketplaceDevopsCloudstrapper" -e "dirLocalInventory=${{ env.VARS_DIR }}" -i ${{ env.VARS_DIR }}/common_instance_aws_ec2.yaml -u ubuntu --skip-tags usingGitSshKey,buildMagma,pubMagma,helm,pubHelm
             ansible-playbook ${{ env.WORK_DIR }}/devops-init.yaml -e "dirLocalInventory=${{ env.VARS_DIR }}"
       - name: Notify success to Slack
