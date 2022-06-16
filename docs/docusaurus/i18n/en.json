@@ -291,6 +291,9 @@
       "lte/upgrade_debian_to_ubuntu": {
         "title": "Migrate AGWs to Ubuntu"
       },
+      "lte/GTPU_Ext_Header": {
+        "title": "GTP Extensions"
+      },
       "nms/admin": {
         "title": "Admin"
       },
