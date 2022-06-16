@@ -18,22 +18,22 @@ package integration
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
+	"strings"
+	"testing"
+	"time"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"strings"
-
-	"math"
-	"math/rand"
-	"testing"
-	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -58,7 +58,7 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 }
 
-//TestGxUplinkTrafficQosEnforcement
+// TestGxUplinkTrafficQosEnforcement
 // This test verifies the QOS configuration(uplink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-ULQos) with QOS config setting with
@@ -141,7 +141,7 @@ func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
 	return strings.Contains(cmdOutputList[0].output, ruleName)
 }
 
-//TestGxDownlinkTrafficQosEnforcement
+// TestGxDownlinkTrafficQosEnforcement
 // This test verifies the QOS configuration(downlink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-DLQos) with QOS config setting with
@@ -207,7 +207,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-//TestGxQosDowngradeWithCCAUpdate
+// TestGxQosDowngradeWithCCAUpdate
 // This test verifies QOS downgrade which can be caused due to CCA-update
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-qos-CCAI) with QOS config setting with
@@ -329,7 +329,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 }
 
-//TestGxQosDowngradeWithReAuth
+// TestGxQosDowngradeWithReAuth
 // This test verifies QOS downgrade which can be caused due to ReAuth Request
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-qos-CCAI) with QOS config setting with

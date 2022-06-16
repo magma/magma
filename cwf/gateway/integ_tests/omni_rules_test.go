@@ -28,8 +28,8 @@ import (
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // - Insert two static rules into the DB. (static-block-all and omni-pass-all)

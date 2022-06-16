@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"

@@ -27,9 +27,9 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestGyReAuth(t *testing.T) {

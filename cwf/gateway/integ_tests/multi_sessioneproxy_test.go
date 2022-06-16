@@ -28,8 +28,8 @@ import (
 	"magma/feg/gateway/multiplex"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -105,8 +105,8 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, tr *TestRunner, num
 			),
 			)
 			// TODO: Verify OCSs reports proper credit
-			//infos, err := getCreditOnOCSPerInstance(ocsName, imsi)
-			//fmt.Printf("\t ---> credit left: %s --- %+v\n", err, infos)
+			// infos, err := getCreditOnOCSPerInstance(ocsName, imsi)
+			// fmt.Printf("\t ---> credit left: %s --- %+v\n", err, infos)
 		}
 		scenario = append(scenario,
 			&multipleScenarioElement{
@@ -233,9 +233,9 @@ func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 				assert.NoError(t, err)
 				assert.True(t, record.BytesTx <= uint64(math.Round(2.5*MegaBytes)+Buffer), fmt.Sprintf("policy usage: %v", record))
 				// TODO: make sure OCS records its proper usage and it matches with what we monitored
-				//infos, err := getCreditOnOCSPerInstance(element.ocsName, imsi)
-				//fmt.Printf("\t ---> policy usage: %v\n", record)
-				//fmt.Printf("\t ---> credit left: %+v\n", infos)
+				// infos, err := getCreditOnOCSPerInstance(element.ocsName, imsi)
+				// fmt.Printf("\t ---> policy usage: %v\n", record)
+				// fmt.Printf("\t ---> credit left: %+v\n", infos)
 			}
 			// Detach this UE
 			tr.DisconnectAndAssertSuccess(imsi)

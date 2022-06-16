@@ -19,19 +19,20 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/cloud/go/protos"
-	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
 
+	cwfprotos "magma/cwf/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
+	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
+
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func configFileManager(fn string) (chan string, error) {
@@ -63,7 +64,7 @@ const (
 	nonCleanRestartYaml = "clean_restart: false"
 )
 
-//testQosEnforcementRestart
+// testQosEnforcementRestart
 // This test verifies the QOS configuration(uplink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-ULQos) with QOS config setting with

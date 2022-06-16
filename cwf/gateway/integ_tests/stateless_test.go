@@ -28,8 +28,8 @@ import (
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF/OCS, to which it will

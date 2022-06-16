@@ -18,21 +18,21 @@ package integration
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
+	"testing"
+	"time"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
-	"math"
-	"math/rand"
-	"testing"
-	"time"
-
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -281,12 +281,12 @@ func TestGxRuleInstallTime(t *testing.T) {
 	now := time.Now().Round(1 * time.Second)
 	timeUntilActivation := 8 * time.Second
 	activation := now.Add(timeUntilActivation)
-	pActivation, err := ptypes.TimestampProto(activation)
-	assert.NoError(t, err)
+	pActivation := timestamp.New(activation)
+	assert.NoError(t, pActivation.CheckValid())
 	timeUntilDeactivation := 8 * time.Second
 	deactivation := activation.Add(timeUntilDeactivation)
-	pDeactivation, err := ptypes.TimestampProto(deactivation)
-	assert.NoError(t, err)
+	pDeactivation := timestamp.New(deactivation)
+	assert.NoError(t, pDeactivation.CheckValid())
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE)
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).
@@ -332,7 +332,7 @@ func TestGxRuleInstallTime(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-//TestGxAbortSessionRequest
+// TestGxAbortSessionRequest
 // This test verifies the abort session request
 // Here we initially setup a session and install a pass all rule
 // We then invoke abort session request from pcrf and expect the
@@ -423,8 +423,8 @@ func TestGxRevalidationTime(t *testing.T) {
 
 	timeUntilRevalidation := 8 * time.Second
 	now := time.Now().Round(1 * time.Second)
-	revalidationTime, err := ptypes.TimestampProto(now.Add(timeUntilRevalidation))
-	assert.NoError(t, err)
+	revalidationTime := timestamp.New(now.Add(timeUntilRevalidation))
+	assert.NoError(t, revalidationTime.CheckValid())
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).

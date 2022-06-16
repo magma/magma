@@ -31,9 +31,9 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func ocsTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
@@ -451,11 +451,11 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: "10M"},
-		//Bitrate: &wrappers.StringValue{Value: "100M"},
+		// Bitrate: &wrappers.StringValue{Value: "100M"},
 		Timeout: 60,
 	}
 
-	//time.Sleep(500 * time.Microsecond)
+	// time.Sleep(500 * time.Microsecond)
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -898,8 +898,8 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 
 	// TODO: uncomment once we fix passing the ip to pipelined for cwf
 	// Check that enforcement stats flow was not removed and data passed
-	//tr.AssertPolicyUsage(imsi, "static-pass-all-ocs1", uint64(math.Round(1.5*MegaBytes)), 3*MegaBytes+Buffer)
-	//assert.Nil(t, policyUsage["IMSI"+imsi]["restrict-pass-user"], fmt.Sprintf("Policy usage restrict-pass-user for imsi: %v was NOT removed", imsi))
+	// tr.AssertPolicyUsage(imsi, "static-pass-all-ocs1", uint64(math.Round(1.5*MegaBytes)), 3*MegaBytes+Buffer)
+	// assert.Nil(t, policyUsage["IMSI"+imsi]["restrict-pass-user"], fmt.Sprintf("Policy usage restrict-pass-user for imsi: %v was NOT removed", imsi))
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)

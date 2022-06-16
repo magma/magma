@@ -19,17 +19,18 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"strings"
 	"testing"
 	"time"
 
+	cwfprotos "magma/cwf/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
+
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -113,7 +114,7 @@ func TestIpfixEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// Collector saves files in 'YearMonthDate' format
-	//year, month, day := time.Now().Date()
+	// year, month, day := time.Now().Date()
 	ipfixDir := fmt.Sprintf("/home/vagrant/magma/records/%s/1/", IPDRControllerIP)
 
 	// Check if ipdr export file was created
