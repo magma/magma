@@ -15,13 +15,13 @@ package servicers
 
 import (
 	"encoding/hex"
+	"fmt"
 	"net"
 
 	"magma/cwf/gateway/registry"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -41,7 +41,7 @@ var (
 func GetUESimConfig() (*UESimConfig, error) {
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
-		glog.Error(errors.Wrap(err, "No service config found, using default config"))
+		glog.Error(fmt.Errorf("No service config found, using default config: %w", err))
 		return getDefaultUESimConfig(), nil
 	}
 	authAddr, err := uecfg.GetString("radius_auth_address")
