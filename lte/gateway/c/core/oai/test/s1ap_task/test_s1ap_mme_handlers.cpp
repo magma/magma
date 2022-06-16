@@ -135,8 +135,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
 
   enb_description_t* enb_associated = NULL;
-  hashtable_ts_get(&state->enbs, (const hash_key_t)assoc_id,
-                   reinterpret_cast<void**>(&enb_associated));
+  state->enbs.get(assoc_id, &enb_associated);
   enb_associated->s1_state = S1AP_RESETING;
 
   S1ap_S1AP_PDU_t pdu_s1;
