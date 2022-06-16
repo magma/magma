@@ -14,8 +14,8 @@
 package protos
 
 import (
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/golang/protobuf/ptypes/wrappers"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func NewGxCreditControlExpectation() *GxCreditControlExpectation {

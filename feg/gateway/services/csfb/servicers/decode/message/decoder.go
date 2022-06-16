@@ -18,8 +18,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/decode"
@@ -115,7 +114,7 @@ func DecodeSGsAPLocationUpdateAccept(chunk []byte) (*any.Any, error) {
 		msg.NewIMSITMSI = &protos.LocationUpdateAccept_NewTmsi{NewTmsi: mobileIdentity.TMSI}
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&msg)
+	marshalledMsg, err := any.New(&msg)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}
@@ -147,7 +146,7 @@ func DecodeSGsAPLocationUpdateReject(chunk []byte) (*any.Any, error) {
 
 	rejectCause := chunk[readIdx : readIdx+decode.LengthRejectCause]
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.LocationUpdateReject{
+	marshalledMsg, err := any.New(&protos.LocationUpdateReject{
 		Imsi:                   imsi,
 		RejectCause:            rejectCause,
 		LocationAreaIdentifier: lai,
@@ -174,7 +173,7 @@ func DecodeSGsAPIMSIDetachAck(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.IMSIDetachAck{
+	marshalledMsg, err := any.New(&protos.IMSIDetachAck{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -204,7 +203,7 @@ func DecodeSGsAPMMInformationRequest(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.MMInformationRequest{
+	marshalledMsg, err := any.New(&protos.MMInformationRequest{
 		Imsi:          imsi,
 		MmInformation: mmInfo,
 	})
@@ -339,7 +338,7 @@ func DecodeSGsAPPagingRequest(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(decodedMsg)
+	marshalledMsg, err := any.New(decodedMsg)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}
@@ -361,7 +360,7 @@ func DecodeSGsAPEPSDetachAck(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.EPSDetachAck{
+	marshalledMsg, err := any.New(&protos.EPSDetachAck{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -385,7 +384,7 @@ func DecodeSGsAPAlertRequest(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.AlertRequest{
+	marshalledMsg, err := any.New(&protos.AlertRequest{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -420,7 +419,7 @@ func DecodeSGsAPDownlinkUnitdata(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.DownlinkUnitdata{
+	marshalledMsg, err := any.New(&protos.DownlinkUnitdata{
 		Imsi:                imsi,
 		NasMessageContainer: nasMessageContainer,
 	})
@@ -458,7 +457,7 @@ func DecodeSGsAPReleaseRequest(chunk []byte) (*any.Any, error) {
 		decodedMsg.SgsCause = sgsCause
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(decodedMsg)
+	marshalledMsg, err := any.New(decodedMsg)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}
@@ -480,7 +479,7 @@ func DecodeSGsAPServiceAbortRequest(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ServiceAbortRequest{
+	marshalledMsg, err := any.New(&protos.ServiceAbortRequest{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -526,7 +525,7 @@ func DecodeSGsAPStatus(chunk []byte) (*any.Any, error) {
 	}
 	decodedMsg.ErroneousMessage = erroneousMsg
 
-	marshalledMsg, err := ptypes.MarshalAny(decodedMsg)
+	marshalledMsg, err := any.New(decodedMsg)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}
@@ -547,7 +546,7 @@ func DecodeSGsAPResetAck(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ResetAck{
+	marshalledMsg, err := any.New(&protos.ResetAck{
 		MmeName: string(mmeName),
 	})
 	if err != nil {
@@ -569,7 +568,7 @@ func DecodeSGsAPResetIndication(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ResetIndication{
+	marshalledMsg, err := any.New(&protos.ResetIndication{
 		VlrName: string(vlrName),
 	})
 	if err != nil {
@@ -594,7 +593,7 @@ func DecodeSGsAPAlertAck(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.AlertAck{
+	marshalledMsg, err := any.New(&protos.AlertAck{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -626,7 +625,7 @@ func DecodeSGsAPAlertReject(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.AlertReject{
+	marshalledMsg, err := any.New(&protos.AlertReject{
 		Imsi:     imsi,
 		SgsCause: sgsCause,
 	})
@@ -664,7 +663,7 @@ func DecodeSGsAPEPSDetachIndication(chunk []byte) (*any.Any, error) {
 	if err != nil {
 		return &any.Any{}, err
 	}
-	marshalledMsg, err := ptypes.MarshalAny(&protos.EPSDetachIndication{
+	marshalledMsg, err := any.New(&protos.EPSDetachIndication{
 		Imsi:                         imsi,
 		MmeName:                      string(mmeName),
 		ImsiDetachFromEpsServiceType: imsDetachFromEPSServiceType,
@@ -703,7 +702,7 @@ func DecodeSGsAPIMSIDetachIndication(chunk []byte) (*any.Any, error) {
 	if err != nil {
 		return &any.Any{}, err
 	}
-	marshalledMsg, err := ptypes.MarshalAny(&protos.IMSIDetachIndication{
+	marshalledMsg, err := any.New(&protos.IMSIDetachIndication{
 		Imsi:                            imsi,
 		MmeName:                         string(mmeName),
 		ImsiDetachFromNonEpsServiceType: imsDetachFromNonEPSServiceType,
@@ -827,7 +826,7 @@ func DecodeSGsAPLocationUpdateRequest(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(locationUpdateRequest)
+	marshalledMsg, err := any.New(locationUpdateRequest)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}
@@ -856,7 +855,7 @@ func DecodeSGsAPPagingReject(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.PagingReject{
+	marshalledMsg, err := any.New(&protos.PagingReject{
 		Imsi:     imsi,
 		SgsCause: sgsCause,
 	})
@@ -973,7 +972,7 @@ func DecodeSGsAPServiceRequest(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(serviceRequest)
+	marshalledMsg, err := any.New(serviceRequest)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}
@@ -996,7 +995,7 @@ func DecodeSGsAPTMSIReallocationComplete(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.TMSIReallocationComplete{
+	marshalledMsg, err := any.New(&protos.TMSIReallocationComplete{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -1021,7 +1020,7 @@ func DecodeSGsAPUEActivityIndication(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.UEActivityIndication{
+	marshalledMsg, err := any.New(&protos.UEActivityIndication{
 		Imsi: imsi,
 	})
 	if err != nil {
@@ -1052,7 +1051,7 @@ func DecodeSGsAPUEUnreachable(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, err
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(&protos.UEUnreachable{
+	marshalledMsg, err := any.New(&protos.UEUnreachable{
 		Imsi:     imsi,
 		SgsCause: sgsCause,
 	})
@@ -1158,7 +1157,7 @@ func DecodeSGsAPUplinkUnitdata(chunk []byte) (*any.Any, error) {
 		return &any.Any{}, errors.New("tried all possible IE but still some bytes undecoded")
 	}
 
-	marshalledMsg, err := ptypes.MarshalAny(sgUplinkUnitData)
+	marshalledMsg, err := any.New(sgUplinkUnitData)
 	if err != nil {
 		return &any.Any{}, fmt.Errorf("Error marshaling SGs message to Any: %s", err)
 	}

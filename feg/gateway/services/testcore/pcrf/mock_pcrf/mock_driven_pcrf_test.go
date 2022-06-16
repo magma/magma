@@ -21,9 +21,9 @@ import (
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -67,10 +67,12 @@ func TestPCRFExpectations(t *testing.T) {
 		},
 	}
 	activationTime := time.Now().Round(1 * time.Second)
-	pActivationTime, err := ptypes.TimestampProto(activationTime)
+	pActivationTime := timestamp.New(activationTime)
+	err := pActivationTime.CheckValid()
 	assert.NoError(t, err)
 	deactivationTime := time.Now().Round(1 * time.Second).Add(5 * time.Second)
-	pDeactivationTime, err := ptypes.TimestampProto(deactivationTime)
+	pDeactivationTime := timestamp.New(deactivationTime)
+	err = pDeactivationTime.CheckValid()
 	assert.NoError(t, err)
 	expectedInitAns := fegprotos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"rule1", "rule2"}, []string{"base1", "base2"}).
@@ -234,8 +236,9 @@ func getRuleInstallsFromCCA(cca *gx.CreditControlAnswer) ([]string, []string, []
 }
 
 func assertRuleInstallTimeStampsMatch(t *testing.T, expected *fegprotos.RuleInstalls, actual []*gx.RuleInstallAVP) {
-	expectedActivationTime, _ := ptypes.Timestamp(expected.GetActivationTime())
-	expectedDeactivationTime, _ := ptypes.Timestamp(expected.GetDeactivationTime())
+
+	expectedActivationTime := expected.GetActivationTime().AsTime()
+	expectedDeactivationTime := expected.GetDeactivationTime().AsTime()
 
 	for _, ruleInstall := range actual {
 		if expected.GetActivationTime() != nil {

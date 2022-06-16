@@ -16,8 +16,8 @@ package policydb_test
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/gateway/object_store"
 	"magma/feg/gateway/policydb"

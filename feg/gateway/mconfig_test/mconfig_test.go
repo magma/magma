@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	fegmcfg "magma/feg/cloud/go/protos/mconfig"
 	"magma/gateway/mconfig"
@@ -253,14 +253,15 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 	mc := mconfig.GetGatewayConfigs()
 	expectedIpBlock = "192.123.155.0/24"
 	pdcfg.UeIpBlock = expectedIpBlock
-	mc.ConfigsByKey["pipelined"], err = ptypes.MarshalAny(pdcfg)
+
+	mc.ConfigsByKey["pipelined"], err = any.New(pdcfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	s6aBindAddr := ":12345"
 	// Test marshaling of new configs
-	mc.ConfigsByKey["s6a_proxy"], err = ptypes.MarshalAny(
+	mc.ConfigsByKey["s6a_proxy"], err = any.New(
 		&fegmcfg.S6AConfig{
 			LogLevel: 1,
 			Server: &fegmcfg.DiamClientConfig{
@@ -280,7 +281,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 	}
 
 	expectedPwgAddress := "10.0.0.2:1"
-	mc.ConfigsByKey["s8_proxy"], err = ptypes.MarshalAny(
+	mc.ConfigsByKey["s8_proxy"], err = any.New(
 		&fegmcfg.S8Config{
 			LogLevel:     1,
 			LocalAddress: "10.0.0.1:1",
@@ -290,7 +291,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mc.ConfigsByKey["session_proxy"], err = ptypes.MarshalAny(
+	mc.ConfigsByKey["session_proxy"], err = any.New(
 		&fegmcfg.SessionProxyConfig{
 			LogLevel: 1,
 			Gx: &fegmcfg.GxConfig{

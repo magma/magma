@@ -17,9 +17,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/decode"
@@ -40,7 +39,7 @@ func TestDecodeSGsAPIMSIDetachAck(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPIMSIDetachAck)}, imsi...)
 	msg, err := message.DecodeSGsAPIMSIDetachAck(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+	expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -55,7 +54,7 @@ func TestDecodeSGsAPLocationUpdateAccept(t *testing.T) {
 
 	msg, err := message.DecodeSGsAPLocationUpdateAccept(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.LocationUpdateAccept{
+	expectedMsg, _ := any.New(&protos.LocationUpdateAccept{
 		Imsi:                   "111111",
 		LocationAreaIdentifier: LAI[2:],
 	})
@@ -72,7 +71,7 @@ func TestDecodeSGsAPLocationUpdateAccept(t *testing.T) {
 
 	msg, err = message.DecodeSGsAPLocationUpdateAccept(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.LocationUpdateAccept{
+	expectedMsg, _ = any.New(&protos.LocationUpdateAccept{
 		Imsi:                   "111111",
 		LocationAreaIdentifier: LAI[2:],
 		NewIMSITMSI:            &protos.LocationUpdateAccept_NewImsi{NewImsi: "222222"},
@@ -90,7 +89,7 @@ func TestDecodeSGsAPLocationUpdateAccept(t *testing.T) {
 
 	msg, err = message.DecodeSGsAPLocationUpdateAccept(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.LocationUpdateAccept{
+	expectedMsg, _ = any.New(&protos.LocationUpdateAccept{
 		Imsi:                   "111111",
 		LocationAreaIdentifier: LAI[2:],
 		NewIMSITMSI: &protos.LocationUpdateAccept_NewTmsi{
@@ -130,7 +129,7 @@ func TestDecodeSGsAPLocationUpdateReject(t *testing.T) {
 	chunk = append(chunk, LAI...)
 	msg, err := message.DecodeSGsAPLocationUpdateReject(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.LocationUpdateReject{
+	expectedMsg, _ := any.New(&protos.LocationUpdateReject{
 		Imsi:                   "111111",
 		LocationAreaIdentifier: LAI[2:],
 		RejectCause:            rejectCause,
@@ -142,7 +141,7 @@ func TestDecodeSGsAPLocationUpdateReject(t *testing.T) {
 	chunk = append(chunk, rejectCause...)
 	msg, err = message.DecodeSGsAPLocationUpdateReject(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.LocationUpdateReject{
+	expectedMsg, _ = any.New(&protos.LocationUpdateReject{
 		Imsi:                   "111111",
 		LocationAreaIdentifier: nil,
 		RejectCause:            rejectCause,
@@ -158,7 +157,7 @@ func TestDecodeSGsAPMMInformationRequest(t *testing.T) {
 	chunk = append(chunk, mmInfo...)
 	msg, err := message.DecodeSGsAPMMInformationRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.MMInformationRequest{
+	expectedMsg, _ := any.New(&protos.MMInformationRequest{
 		Imsi:          "111111",
 		MmInformation: mmInfo[2:],
 	})
@@ -236,7 +235,7 @@ func TestDecodeSGsAPPagingRequest(t *testing.T) {
 	chunk = append(chunk, eMLPPPriprity...)
 	msg, err := message.DecodeSGsAPPagingRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.PagingRequest{
+	expectedMsg, _ := any.New(&protos.PagingRequest{
 		Imsi:                   "111111",
 		VlrName:                "www.facebook.com",
 		ServiceIndicator:       serviceIndicator[mandatoryFieldLength:],
@@ -267,7 +266,7 @@ func TestDecodeSGsAPPagingRequest(t *testing.T) {
 	chunk = append(chunk, eMLPPPriprity...)
 	msg, err = message.DecodeSGsAPPagingRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.PagingRequest{
+	expectedMsg, _ = any.New(&protos.PagingRequest{
 		Imsi:             "111111",
 		VlrName:          "www.facebook.com",
 		ServiceIndicator: serviceIndicator[mandatoryFieldLength:],
@@ -295,7 +294,7 @@ func TestDecodeSGsAPPagingRequest(t *testing.T) {
 	chunk = append(chunk, lcsClientIdentity...)
 	msg, err = message.DecodeSGsAPPagingRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.PagingRequest{
+	expectedMsg, _ = any.New(&protos.PagingRequest{
 		Imsi:                   "111111",
 		VlrName:                "www.facebook.com",
 		ServiceIndicator:       serviceIndicator[mandatoryFieldLength:],
@@ -314,7 +313,7 @@ func TestDecodeSGsAPPagingRequest(t *testing.T) {
 	chunk = append(chunk, serviceIndicator...)
 	msg, err = message.DecodeSGsAPPagingRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.PagingRequest{
+	expectedMsg, _ = any.New(&protos.PagingRequest{
 		Imsi:             "111111",
 		VlrName:          "www.facebook.com",
 		ServiceIndicator: serviceIndicator[mandatoryFieldLength:],
@@ -369,7 +368,7 @@ func TestDecodeSGsAPEPSDetachAck(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPEPSDetachAck)}, imsi...)
 	msg, err := message.DecodeSGsAPEPSDetachAck(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.EPSDetachAck{
+	expectedMsg, _ := any.New(&protos.EPSDetachAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -392,7 +391,7 @@ func TestDecodeSGsAPAlertRequest(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPAlertRequest)}, imsi...)
 	msg, err := message.DecodeSGsAPAlertRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.AlertRequest{
+	expectedMsg, _ := any.New(&protos.AlertRequest{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -417,7 +416,7 @@ func TestDecodeSGsAPDownlinkUnitdata(t *testing.T) {
 	chunk = append(chunk, nasMessageContainer...)
 	msg, err := message.DecodeSGsAPDownlinkUnitdata(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.DownlinkUnitdata{
+	expectedMsg, _ := any.New(&protos.DownlinkUnitdata{
 		Imsi:                "111111",
 		NasMessageContainer: nasMessageContainer[2:],
 	})
@@ -457,7 +456,7 @@ func TestDecodeSGsAPReleaseRequest(t *testing.T) {
 	chunk = append(chunk, sgsCause...)
 	msg, err := message.DecodeSGsAPReleaseRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.ReleaseRequest{
+	expectedMsg, _ := any.New(&protos.ReleaseRequest{
 		Imsi:     "111111",
 		SgsCause: sgsCause[2:],
 	})
@@ -467,7 +466,7 @@ func TestDecodeSGsAPReleaseRequest(t *testing.T) {
 	chunk = append([]byte{byte(decode.SGsAPServiceRequest)}, imsi...)
 	msg, err = message.DecodeSGsAPReleaseRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.ReleaseRequest{
+	expectedMsg, _ = any.New(&protos.ReleaseRequest{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -504,7 +503,7 @@ func TestDecodeSGsAPServiceAbortRequest(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPServiceAbortRequest)}, imsi...)
 	msg, err := message.DecodeSGsAPServiceAbortRequest(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.ServiceAbortRequest{
+	expectedMsg, _ := any.New(&protos.ServiceAbortRequest{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -544,7 +543,7 @@ func TestDecodeSGsAPStatus(t *testing.T) {
 	chunk = append(chunk, erroneousMsg...)
 	msg, err := message.DecodeSGsAPStatus(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.Status{
+	expectedMsg, _ := any.New(&protos.Status{
 		Imsi:             "111111",
 		SgsCause:         sgsCause[2:],
 		ErroneousMessage: erroneousMsg[2:],
@@ -556,7 +555,7 @@ func TestDecodeSGsAPStatus(t *testing.T) {
 	chunk = append(chunk, erroneousMsg...)
 	msg, err = message.DecodeSGsAPStatus(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.Status{
+	expectedMsg, _ = any.New(&protos.Status{
 		SgsCause:         sgsCause[2:],
 		ErroneousMessage: erroneousMsg[2:],
 	})
@@ -579,7 +578,7 @@ func TestDecodeSGsAPResetAck(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPResetAck)}, mmeName...)
 	msg, err := message.DecodeSGsAPResetAck(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.ResetAck{
+	expectedMsg, _ := any.New(&protos.ResetAck{
 		MmeName: "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -603,7 +602,7 @@ func TestDecodeSGsAPResetIndication(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPResetIndication)}, vlrName...)
 	msg, err := message.DecodeSGsAPResetIndication(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.ResetIndication{
+	expectedMsg, _ := any.New(&protos.ResetIndication{
 		VlrName: "www.facebook.com",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -626,7 +625,7 @@ func TestDecodeSGsAPAlertAck(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPAlertAck)}, imsi...)
 	msg, err := message.DecodeSGsAPAlertAck(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.AlertAck{
+	expectedMsg, _ := any.New(&protos.AlertAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -664,7 +663,7 @@ func TestDecodeSGsAPAlertReject(t *testing.T) {
 	chunk = append(chunk, sgsCause...)
 	msg, err := message.DecodeSGsAPAlertReject(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.AlertReject{
+	expectedMsg, _ := any.New(&protos.AlertReject{
 		Imsi:     "111111",
 		SgsCause: sgsCause[2:],
 	})
@@ -750,7 +749,7 @@ func TestDecodeSGsAPEPSDetachIndication(t *testing.T) {
 	chunk = append(chunk, imsiDetachFromEpsServiceType...)
 	msg, err := message.DecodeSGsAPEPSDetachIndication(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.EPSDetachIndication{
+	expectedMsg, _ := any.New(&protos.EPSDetachIndication{
 		Imsi:                         "111111",
 		MmeName:                      "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
 		ImsiDetachFromEpsServiceType: []byte{0x11},
@@ -800,7 +799,7 @@ func TestDecodeSGsAPIMSIDetachIndication(t *testing.T) {
 	chunk = append(chunk, imsiDetachFromNonEpsServiceType...)
 	msg, err := message.DecodeSGsAPIMSIDetachIndication(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachIndication{
+	expectedMsg, _ := any.New(&protos.IMSIDetachIndication{
 		Imsi:                            "111111",
 		MmeName:                         "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
 		ImsiDetachFromNonEpsServiceType: []byte{0x11},
@@ -852,7 +851,7 @@ func TestDecodeSGsAPLocationUpdateRequest(t *testing.T) {
 	chunk = append(chunk, epsLocationUpdateType...)
 	chunk = append(chunk, newLocationAreaIdentifier...)
 	msg, err := message.DecodeSGsAPLocationUpdateRequest(chunk)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.LocationUpdateRequest{
+	expectedMsg, _ := any.New(&protos.LocationUpdateRequest{
 		Imsi:                      "111111",
 		MmeName:                   "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
 		EpsLocationUpdateType:     test_utils.DefaultVal(1),
@@ -876,7 +875,7 @@ func TestDecodeSGsAPLocationUpdateRequest(t *testing.T) {
 	chunk = append(chunk, tai...)
 	chunk = append(chunk, eCgi...)
 	msg, err = message.DecodeSGsAPLocationUpdateRequest(chunk)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.LocationUpdateRequest{
+	expectedMsg, _ = any.New(&protos.LocationUpdateRequest{
 		Imsi:                      "111111",
 		MmeName:                   "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcde",
 		EpsLocationUpdateType:     test_utils.DefaultVal(1),
@@ -939,7 +938,7 @@ func TestDecodeSGsAPPagingReject(t *testing.T) {
 	chunk = append(chunk, sgsCause...)
 	msg, err := message.DecodeSGsAPPagingReject(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.PagingReject{
+	expectedMsg, _ := any.New(&protos.PagingReject{
 		Imsi:     "111111",
 		SgsCause: sgsCause[2:],
 	})
@@ -975,7 +974,7 @@ func TestDecodeSGsAPServiceRequest(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
 	chunk = append(chunk, serviceIndicator...)
 	msg, err := message.DecodeSGsAPServiceRequest(chunk)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.ServiceRequest{
+	expectedMsg, _ := any.New(&protos.ServiceRequest{
 		Imsi:             "111111",
 		ServiceIndicator: test_utils.DefaultVal(1),
 	})
@@ -999,7 +998,7 @@ func TestDecodeSGsAPServiceRequest(t *testing.T) {
 	chunk = append(chunk, eCgi...)
 	chunk = append(chunk, ueEmmMode...)
 	msg, err = message.DecodeSGsAPServiceRequest(chunk)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.ServiceRequest{
+	expectedMsg, _ = any.New(&protos.ServiceRequest{
 		Imsi:                    "111111",
 		ServiceIndicator:        test_utils.DefaultVal(1),
 		Imeisv:                  test_utils.DefaultVal(8),
@@ -1043,7 +1042,7 @@ func TestDecodeSGsAPTMSIReallocationComplete(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPTMSIReallocationComplete)}, imsi...)
 	msg, err := message.DecodeSGsAPTMSIReallocationComplete(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.TMSIReallocationComplete{
+	expectedMsg, _ := any.New(&protos.TMSIReallocationComplete{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -1068,7 +1067,7 @@ func TestDecodeSGsAPUEActivityIndication(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPUEActivityIndication)}, imsi...)
 	msg, err := message.DecodeSGsAPUEActivityIndication(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.UEActivityIndication{
+	expectedMsg, _ := any.New(&protos.UEActivityIndication{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, msg)
@@ -1095,7 +1094,7 @@ func TestDecodeSGsAPUEUnreachable(t *testing.T) {
 	chunk = append(chunk, sgsCause...)
 	msg, err := message.DecodeSGsAPUEUnreachable(chunk)
 	assert.NoError(t, err)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.UEUnreachable{
+	expectedMsg, _ := any.New(&protos.UEUnreachable{
 		Imsi:     "111111",
 		SgsCause: sgsCause[2:],
 	})
@@ -1131,7 +1130,7 @@ func TestDecodeSGsAPUplinkUnitdata(t *testing.T) {
 	chunk := append([]byte{byte(decode.SGsAPUplinkUnitdata)}, imsi...)
 	chunk = append(chunk, nasMessageContainer...)
 	msg, err := message.DecodeSGsAPUplinkUnitdata(chunk)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.UplinkUnitdata{
+	expectedMsg, _ := any.New(&protos.UplinkUnitdata{
 		Imsi:                "111111",
 		NasMessageContainer: test_utils.DefaultVal(2),
 	})
@@ -1151,7 +1150,7 @@ func TestDecodeSGsAPUplinkUnitdata(t *testing.T) {
 	chunk = append(chunk, tai...)
 	chunk = append(chunk, eCgi...)
 	msg, err = message.DecodeSGsAPUplinkUnitdata(chunk)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.UplinkUnitdata{
+	expectedMsg, _ = any.New(&protos.UplinkUnitdata{
 		Imsi:                    "111111",
 		NasMessageContainer:     test_utils.DefaultVal(2),
 		Imeisv:                  test_utils.DefaultVal(8),

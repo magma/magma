@@ -22,8 +22,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/feg/gateway/policydb"
 	common5g "magma/feg/gateway/sbi/specs/TS29122CommonData"
@@ -833,7 +832,7 @@ func ConvertToProtoTimeStamp(srcTime *time.Time) *timestamp.Timestamp {
 	if srcTime == nil {
 		return nil
 	}
-	return timestamppb.New(*srcTime)
+	return timestamp.New(*srcTime)
 }
 
 func GenNotifyUrl(apiRoot string, sessionId string) sbi.Uri {

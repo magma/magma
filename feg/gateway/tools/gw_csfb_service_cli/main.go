@@ -20,8 +20,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	_ "magma/feg/gateway/registry"
@@ -114,7 +113,7 @@ func sendMessage(messageType decode.SGsMessageType, msg *any.Any) error {
 }
 
 func marshalAlertRequest() (decode.SGsMessageType, *any.Any, error) {
-	marshalledMsg, err := ptypes.MarshalAny(&protos.AlertRequest{
+	marshalledMsg, err := any.New(&protos.AlertRequest{
 		Imsi: flag.Arg(0),
 	})
 	return decode.SGsAPAlertRequest, marshalledMsg, err
@@ -125,7 +124,7 @@ func marshalDownlinkUnitData() (decode.SGsMessageType, *any.Any, error) {
 		decode.IEINASMessageContainer,
 		5,
 	)
-	marshalledMsg, err := ptypes.MarshalAny(&protos.DownlinkUnitdata{
+	marshalledMsg, err := any.New(&protos.DownlinkUnitdata{
 		Imsi:                flag.Arg(0),
 		NasMessageContainer: nasMessageContainer[2:],
 	})
@@ -133,14 +132,14 @@ func marshalDownlinkUnitData() (decode.SGsMessageType, *any.Any, error) {
 }
 
 func marshalEPSDetachAck() (decode.SGsMessageType, *any.Any, error) {
-	marshalledMsg, err := ptypes.MarshalAny(&protos.EPSDetachAck{
+	marshalledMsg, err := any.New(&protos.EPSDetachAck{
 		Imsi: flag.Arg(0),
 	})
 	return decode.SGsAPEPSDetachAck, marshalledMsg, err
 }
 
 func marshalIMSIDetachAck() (decode.SGsMessageType, *any.Any, error) {
-	marshalledMsg, err := ptypes.MarshalAny(&protos.IMSIDetachAck{
+	marshalledMsg, err := any.New(&protos.IMSIDetachAck{
 		Imsi: flag.Arg(0),
 	})
 	return decode.SGsAPIMSIDetachAck, marshalledMsg, err
@@ -148,7 +147,7 @@ func marshalIMSIDetachAck() (decode.SGsMessageType, *any.Any, error) {
 
 func marshalLocationUpdateAccept() (decode.SGsMessageType, *any.Any, error) {
 	LAI := test_utils.ConstructDefaultLocationAreaIdentifier()
-	marshalledMsg, err := ptypes.MarshalAny(&protos.LocationUpdateAccept{
+	marshalledMsg, err := any.New(&protos.LocationUpdateAccept{
 		Imsi:                   flag.Arg(0),
 		LocationAreaIdentifier: LAI[2:],
 	})
@@ -169,7 +168,7 @@ func marshalLocationUpdateReject() (decode.SGsMessageType, *any.Any, error) {
 	} else {
 		rejectCause = []byte{byte(0x11)}
 	}
-	marshalledMsg, err := ptypes.MarshalAny(&protos.LocationUpdateReject{
+	marshalledMsg, err := any.New(&protos.LocationUpdateReject{
 		Imsi:        flag.Arg(0),
 		RejectCause: rejectCause,
 	})
@@ -178,7 +177,7 @@ func marshalLocationUpdateReject() (decode.SGsMessageType, *any.Any, error) {
 
 func marshalMMInformationRequest() (decode.SGsMessageType, *any.Any, error) {
 	mmInfo := test_utils.ConstructDefaultMMInformation()
-	marshalledMsg, err := ptypes.MarshalAny(&protos.MMInformationRequest{
+	marshalledMsg, err := any.New(&protos.MMInformationRequest{
 		Imsi:          flag.Arg(0),
 		MmInformation: mmInfo[2:],
 	})
@@ -190,7 +189,7 @@ func marshalReleaseRequest() (decode.SGsMessageType, *any.Any, error) {
 		decode.IEISGsCause,
 		1,
 	)
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ReleaseRequest{
+	marshalledMsg, err := any.New(&protos.ReleaseRequest{
 		Imsi:     flag.Arg(0),
 		SgsCause: sgsCause[2:],
 	})
@@ -198,21 +197,21 @@ func marshalReleaseRequest() (decode.SGsMessageType, *any.Any, error) {
 }
 
 func marshalServiceAbortRequest() (decode.SGsMessageType, *any.Any, error) {
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ServiceAbortRequest{
+	marshalledMsg, err := any.New(&protos.ServiceAbortRequest{
 		Imsi: flag.Arg(0),
 	})
 	return decode.SGsAPServiceAbortRequest, marshalledMsg, err
 }
 
 func marshalVLRResetAck() (decode.SGsMessageType, *any.Any, error) {
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ResetAck{
+	marshalledMsg, err := any.New(&protos.ResetAck{
 		VlrName: "www.facebook.com",
 	})
 	return decode.SGsAPResetAck, marshalledMsg, err
 }
 
 func marshalVLRResetIndication() (decode.SGsMessageType, *any.Any, error) {
-	marshalledMsg, err := ptypes.MarshalAny(&protos.ResetIndication{
+	marshalledMsg, err := any.New(&protos.ResetIndication{
 		VlrName: "www.facebook.com",
 	})
 	return decode.SGsAPResetIndication, marshalledMsg, err
@@ -227,7 +226,7 @@ func marshalVLRStatus() (decode.SGsMessageType, *any.Any, error) {
 		decode.IEIErroneousMessage,
 		10,
 	)
-	marshalledMsg, err := ptypes.MarshalAny(&protos.Status{
+	marshalledMsg, err := any.New(&protos.Status{
 		Imsi:             flag.Arg(0),
 		SgsCause:         sgsCause[2:],
 		ErroneousMessage: erroneousMsg[2:],

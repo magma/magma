@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/any"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/message"

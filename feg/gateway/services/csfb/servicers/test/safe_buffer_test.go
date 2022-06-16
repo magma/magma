@@ -17,9 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers"
@@ -39,7 +38,7 @@ func TestSuccessfulReadAndWrite(t *testing.T) {
 	messageType, message, err := safeBuffer.GetNextMessage(1)
 	assert.NoError(t, err)
 	assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+	expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, message)
@@ -53,7 +52,7 @@ func TestReadSuccessWithWait(t *testing.T) {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
 		assert.NoError(t, err)
 		assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+		expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
 		assert.Equal(t, expectedMsg, message)
@@ -94,7 +93,7 @@ func TestSuccessfulConsecutiveReadWrite(t *testing.T) {
 	messageType, message, err := safeBuffer.GetNextMessage(1)
 	assert.NoError(t, err)
 	assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-	expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+	expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, message)
@@ -102,14 +101,14 @@ func TestSuccessfulConsecutiveReadWrite(t *testing.T) {
 	messageType, message, err = safeBuffer.GetNextMessage(1)
 	assert.NoError(t, err)
 	assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.IMSIDetachAck{
+	expectedMsg, _ = any.New(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, message)
 	messageType, message, err = safeBuffer.GetNextMessage(1)
 	assert.NoError(t, err)
 	assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-	expectedMsg, _ = ptypes.MarshalAny(&protos.IMSIDetachAck{
+	expectedMsg, _ = any.New(&protos.IMSIDetachAck{
 		Imsi: "111111",
 	})
 	assert.Equal(t, expectedMsg, message)
@@ -123,7 +122,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
 		assert.NoError(t, err)
 		assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+		expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
 		assert.Equal(t, expectedMsg, message)
@@ -132,7 +131,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
 		assert.NoError(t, err)
 		assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+		expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
 		assert.Equal(t, expectedMsg, message)
@@ -141,7 +140,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
 		assert.NoError(t, err)
 		assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+		expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 			Imsi: "111111",
 		})
 		assert.Equal(t, expectedMsg, message)
@@ -170,7 +169,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 // 		messageType, message, err := safeBuffer.GetNextMessage(1)
 // 		assert.NoError(t, err)
 // 		assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-// 		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+// 		expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 // 			Imsi: "111111",
 // 		})
 // 		assert.Equal(t, expectedMsg, message)
@@ -180,7 +179,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 // 		messageType, message, err := safeBuffer.GetNextMessage(1)
 // 		assert.NoError(t, err)
 // 		assert.Equal(t, decode.SGsAPIMSIDetachAck, messageType)
-// 		expectedMsg, _ := ptypes.MarshalAny(&protos.IMSIDetachAck{
+// 		expectedMsg, _ := any.New(&protos.IMSIDetachAck{
 // 			Imsi: "111111",
 // 		})
 // 		assert.Equal(t, expectedMsg, message)

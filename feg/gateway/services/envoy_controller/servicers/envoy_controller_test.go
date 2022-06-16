@@ -24,9 +24,10 @@ import (
 	orig_src "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/listener/original_src/v3"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
+	any "google.golang.org/protobuf/types/known/anypb"
+	duration "google.golang.org/protobuf/types/known/durationpb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/envoy_controller/control_plane"
@@ -193,13 +194,13 @@ var (
 			Routes:              routes,
 		},
 	}
-	pbst, _ = ptypes.MarshalAny(
+	pbst, _ = any.New(
 		&hcm.HttpConnectionManager{
 			CodecType:        hcm.HttpConnectionManager_AUTO,
 			StatPrefix:       "ingress_http",
 			UseRemoteAddress: &wrappers.BoolValue{Value: true},
 			CommonHttpProtocolOptions: &core.HttpProtocolOptions{
-				IdleTimeout: ptypes.DurationProto(3600 * time.Second),
+				IdleTimeout: duration.New(3600 * time.Second),
 				// TODO figure out why this doesn't work properly
 				//HeadersWithUnderscoresAction: core.HttpProtocolOptions_REJECT_REQUEST,
 			},
@@ -220,7 +221,7 @@ var (
 		},
 	)
 
-	mo_src, _    = ptypes.MarshalAny(&orig_src.OriginalSrc{})
+	mo_src, _    = any.New(&orig_src.OriginalSrc{})
 	retListener1 = &listener.Listener{
 		Name: "default_http",
 		Address: &core.Address{

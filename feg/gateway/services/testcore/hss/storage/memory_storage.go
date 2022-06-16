@@ -17,8 +17,8 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	fieldmask_utils "github.com/mennanov/fieldmask-utils"
+	"google.golang.org/protobuf/proto"
 
 	"magma/lte/cloud/go/protos"
 )

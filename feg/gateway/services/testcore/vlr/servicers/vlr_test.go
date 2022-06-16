@@ -19,9 +19,9 @@ import (
 	"net"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers"
@@ -168,7 +168,7 @@ func TestVLRServer_ConfigServer(t *testing.T) {
 		&epsDetachIndication,
 	)
 	assert.NoError(t, err)
-	marshalledEPSDetachIndication, err := ptypes.MarshalAny(
+	marshalledEPSDetachIndication, err := any.New(
 		&epsDetachIndication,
 	)
 	assert.NoError(t, err)

@@ -17,8 +17,8 @@ import (
 	"testing"
 
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/cloud/go/feg"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"

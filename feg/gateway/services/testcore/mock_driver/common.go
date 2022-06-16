@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/protobuf/ptypes/wrappers"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/feg/cloud/go/protos"
 )

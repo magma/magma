@@ -27,9 +27,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/jsonpb"
-	protobuf_proto "github.com/golang/protobuf/proto"
 	"github.com/wmnsk/go-gtp/gtpv2"
+	jsonpb "google.golang.org/protobuf/encoding/protojson"
+	protobuf_proto "google.golang.org/protobuf/proto"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
@@ -479,7 +479,10 @@ func printGRPCMessage(prefix string, v interface{}) {
 	var payload string
 	if pm, ok := v.(protobuf_proto.Message); ok {
 		var buf bytes.Buffer
-		err := (&jsonpb.Marshaler{EmitDefaults: true, Indent: "\t", OrigName: true}).Marshal(&buf, pm)
+		bs, err := (jsonpb.MarshalOptions{EmitUnpopulated: true, Indent: "\t", UseProtoNames: true}).Marshal(pm)
+		if err == nil {
+			_, err = buf.Write(bs)
+		}
 		if err == nil {
 			payload = buf.String()
 		} else {

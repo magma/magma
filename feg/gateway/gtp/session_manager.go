@@ -21,9 +21,9 @@ import (
 	"net"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/gateway/gtp/enriched_message"
 )

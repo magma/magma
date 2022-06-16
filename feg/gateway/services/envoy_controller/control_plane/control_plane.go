@@ -61,8 +61,10 @@ import (
 	xds "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/wrappers"
+	any "google.golang.org/protobuf/types/known/anypb"
+	duration "google.golang.org/protobuf/types/known/durationpb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
+
 	"google.golang.org/grpc"
 
 	"magma/feg/cloud/go/protos"
@@ -303,7 +305,7 @@ func GetControllerClient() *ControllerClient {
 func getHttpConnectionManager(routeConfigName string, virtualHosts []*route.VirtualHost) *hcm.HttpConnectionManager {
 	useRemoteAddress := &wrappers.BoolValue{Value: true}
 	commonHttpProtocolOptions := &core.HttpProtocolOptions{
-		IdleTimeout: ptypes.DurationProto(idleTimeout),
+		IdleTimeout: duration.New(idleTimeout),
 		// TODO figure out why this doesn't work properly
 		//HeadersWithUnderscoresAction: core.HttpProtocolOptions_REJECT_REQUEST,
 	}
@@ -381,7 +383,7 @@ func getUEFilterChains(ues UEInfoMap) ([]*listener.FilterChain, error) {
 			virtualHosts = append(virtualHosts, getVirtualHost(virtualHostName, ueInfo.Websites, requestHeadersToAdd))
 		}
 
-		pbst, err := ptypes.MarshalAny(getHttpConnectionManager(routeConfigName, virtualHosts))
+		pbst, err := any.New(getHttpConnectionManager(routeConfigName, virtualHosts))
 		if err != nil {
 			glog.Errorf("Couldn't marshal UE HTTP connection manager")
 			continue
@@ -416,7 +418,7 @@ func GetListener(ues UEInfoMap) (*listener.Listener, error) {
 	}
 
 	o_src := &orig_src.OriginalSrc{}
-	mo_src, err := ptypes.MarshalAny(o_src)
+	mo_src, err := any.New(o_src)
 	if err != nil {
 		return nil, errors.New("Couldn't marshal OriginalSrc")
 	}
@@ -469,7 +471,7 @@ func (cli *ControllerClient) UpdateSnapshot(ues UEInfoMap) {
 		&cluster.Cluster{
 			Name:                 clusterName,
 			ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_ORIGINAL_DST},
-			ConnectTimeout:       ptypes.DurationProto(connectTimeout),
+			ConnectTimeout:       duration.New(connectTimeout),
 			LbPolicy:             cluster.Cluster_CLUSTER_PROVIDED,
 		},
 	}

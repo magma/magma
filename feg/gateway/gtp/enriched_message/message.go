@@ -16,8 +16,8 @@ package enriched_message
 import (
 	"fmt"
 
-	proto "github.com/golang/protobuf/proto"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
+	"google.golang.org/protobuf/proto"
 )
 
 // MessageWithGrpc wraps Message interface so we can use it as a Message.

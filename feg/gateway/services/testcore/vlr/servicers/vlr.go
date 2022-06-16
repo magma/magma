@@ -21,9 +21,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/proto"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers"
@@ -265,7 +264,7 @@ func constructRequest(protoRequest *protos.ExpectedRequest) (*Request, error) {
 		glog.Errorf("Fail to encoded request message: %s", err)
 		return nil, err
 	}
-	marshalledMsg, err := ptypes.MarshalAny(protoMsg)
+	marshalledMsg, err := any.New(protoMsg)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling SGs message to Any: %s", err)
 	}

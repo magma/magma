@@ -19,8 +19,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
@@ -66,78 +65,78 @@ func SendSGsMessageToGateway(messageType decode.SGsMessageType, msg *any.Any) (*
 
 func alertRequestClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.AlertRequest{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.AlertReq(context.Background(), unmarshalledMsg)
 }
 
 func downlinkUnitdataClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.DownlinkUnitdata{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.Downlink(context.Background(), unmarshalledMsg)
 }
 
 func epsDetachAckClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.EPSDetachAck{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.EPSDetachAc(context.Background(), unmarshalledMsg)
 }
 
 func imsiDetachAckClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.IMSIDetachAck{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.IMSIDetachAc(context.Background(), unmarshalledMsg)
 }
 
 func locationUpdateAcceptClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.LocationUpdateAccept{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.LocationUpdateAcc(context.Background(), unmarshalledMsg)
 }
 
 func locationUpdateRejectClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.LocationUpdateReject{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.LocationUpdateRej(context.Background(), unmarshalledMsg)
 }
 
 func mmInformationRequestClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.MMInformationRequest{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.MMInformationReq(context.Background(), unmarshalledMsg)
 }
 
 func pagingRequestClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.PagingRequest{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.PagingReq(context.Background(), unmarshalledMsg)
 }
 
 func releaseRequestClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.ReleaseRequest{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.ReleaseReq(context.Background(), unmarshalledMsg)
 }
 
 func serviceAbortClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.ServiceAbortRequest{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.ServiceAbort(context.Background(), unmarshalledMsg)
 }
 
 func resetAckClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.ResetAck{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.VLRResetAck(context.Background(), unmarshalledMsg)
 }
 
 func resetIndicationClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.ResetIndication{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.VLRResetIndication(context.Background(), unmarshalledMsg)
 }
 
 func statusClient(msg *any.Any, client protos.CSFBGatewayServiceClient) (*orcprotos.Void, error) {
 	unmarshalledMsg := &protos.Status{}
-	ptypes.UnmarshalAny(msg, unmarshalledMsg)
+	msg.UnmarshalTo(unmarshalledMsg)
 	return client.VLRStatus(context.Background(), unmarshalledMsg)
 }

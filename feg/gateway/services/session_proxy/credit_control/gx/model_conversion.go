@@ -19,8 +19,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control"
@@ -210,7 +209,8 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 	if unixTime == nil {
 		return nil
 	}
-	protoTimestamp, err := ptypes.TimestampProto(*unixTime)
+	protoTimestamp := timestamp.New(*unixTime)
+	err := protoTimestamp.CheckValid()
 	if err != nil {
 		glog.Errorf("Unable to convert time.Time to google.protobuf.Timestamp: %s", err)
 		return nil

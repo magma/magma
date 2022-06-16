@@ -17,8 +17,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -60,14 +59,14 @@ func toStaticBaseNameInstallAVP(baseName string, activationTime, deactivationTim
 }
 
 func appendRuleInstallTimestamps(ruleInstallAVPs []*diam.AVP, activationTime, deactivationTime *timestamp.Timestamp) []*diam.AVP {
-	if aTime, err := ptypes.Timestamp(activationTime); activationTime != nil && err == nil {
+	if activationTime != nil && activationTime.CheckValid() == nil {
 		ruleInstallAVPs = append(ruleInstallAVPs,
-			diam.NewAVP(avp.RuleActivationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(aTime)),
+			diam.NewAVP(avp.RuleActivationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(activationTime.AsTime())),
 		)
 	}
-	if dTime, err := ptypes.Timestamp(deactivationTime); deactivationTime != nil && err == nil {
+	if deactivationTime != nil && deactivationTime.CheckValid() == nil {
 		ruleInstallAVPs = append(ruleInstallAVPs,
-			diam.NewAVP(avp.RuleDeactivationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(dTime)),
+			diam.NewAVP(avp.RuleDeactivationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(deactivationTime.AsTime())),
 		)
 	}
 	return ruleInstallAVPs
@@ -212,8 +211,8 @@ func toUsageMonitorByMkey(monitors []*usageMonitorRequestAVP) map[string]*usageM
 }
 
 func toRevalidationTimeAVPs(revalidationTime *timestamp.Timestamp) *diam.AVP {
-	if rTime, err := ptypes.Timestamp(revalidationTime); revalidationTime != nil && err == nil {
-		return diam.NewAVP(avp.RevalidationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(rTime))
+	if revalidationTime != nil && revalidationTime.CheckValid() == nil {
+		return diam.NewAVP(avp.RevalidationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(revalidationTime.AsTime()))
 	}
 	return nil
 }

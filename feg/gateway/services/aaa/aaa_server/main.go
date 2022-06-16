@@ -18,7 +18,7 @@ import (
 	"flag"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"

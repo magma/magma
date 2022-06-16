@@ -15,8 +15,8 @@ package policydb
 
 import (
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/proto"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/gateway/object_store"
 	"magma/lte/cloud/go/protos"

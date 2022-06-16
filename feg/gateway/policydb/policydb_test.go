@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
+	any "google.golang.org/protobuf/types/known/anypb"
 
 	"magma/feg/gateway/policydb"
 	fegstreamer "magma/gateway/streamer"

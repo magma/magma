@@ -14,7 +14,7 @@ limitations under the License.
 package protos
 
 import (
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 var defaultConfig = Config{

@@ -14,9 +14,9 @@ limitations under the License.
 package storage
 
 import (
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/genproto/protobuf/field_mask"
+	"google.golang.org/protobuf/proto"
 
 	"magma/lte/cloud/go/protos"
 	orc8rprotos "magma/orc8r/lib/go/protos"

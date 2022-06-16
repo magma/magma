@@ -16,7 +16,7 @@ package policydb
 import (
 	"fmt"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/gateway/object_store"
 	lteProtos "magma/lte/cloud/go/protos"

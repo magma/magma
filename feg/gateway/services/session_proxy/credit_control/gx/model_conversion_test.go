@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/feg/gateway/policydb/mocks"
 	"magma/feg/gateway/services/session_proxy/credit_control"
@@ -42,7 +42,8 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	var qci uint32 = 1
 	var monitoringLevel = gx.SessionLevel
 	currentTime := time.Now()
-	protoTimestamp, err := ptypes.TimestampProto(currentTime)
+	protoTimestamp := timestamp.New(currentTime)
+	err := protoTimestamp.CheckValid()
 	assert.NoError(t, err)
 	in := &gx.PolicyReAuthRequest{
 		SessionID: "IMSI001010000000001-1234",

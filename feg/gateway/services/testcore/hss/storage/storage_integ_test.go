@@ -16,8 +16,8 @@ package storage_test
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/protos"
