@@ -243,7 +243,7 @@ openssl verify \
     gateway.crt  # copied from target gateway
 
 # Consolidate Magma and its imported protos, copying to /tmp/magma_protos/
-${MAGMA_ROOT}/orc8r/tools/scripts/consolidate_protos.sh
+${MAGMA_ROOT}/orc8r/tools/scripts/consolidate_protos.bash
 
 # Generate compiled proto definitions
 cd /tmp/magma_protos/ && \

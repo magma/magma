@@ -49,12 +49,13 @@ export default function (props: DialogProps) {
     hideAdvancedFields,
   } = props;
   const [open, setOpen] = useState(false);
-
   return (
     <List>
       {props.error && (
         <AltFormField label={''}>
-          <FormLabel error>{props.error}</FormLabel>
+          <FormLabel data-testid="organizationError" error>
+            {props.error}
+          </FormLabel>
         </AltFormField>
       )}
       <AltFormField label={'Organization Name'}>
@@ -70,7 +71,12 @@ export default function (props: DialogProps) {
         />
       </AltFormField>
       <ListItem disablegutters="true">
-        <Button variant="text" color="primary" onClick={() => setOpen(!open)}>
+        <Button
+          variant="text"
+          color="primary"
+          onClick={() => {
+            setOpen(!open);
+          }}>
           Advanced Settings
         </Button>
         <ArrowDropDown />
@@ -92,7 +98,7 @@ export default function (props: DialogProps) {
                   networkIDs: [...target.value],
                 });
               }}
-              input={<OutlinedInput id="direction" />}>
+              input={<OutlinedInput data-testid="organizationNetworks" />}>
               {allNetworks.map(network => (
                 <MenuItem key={network} value={network}>
                   <ListItemText primary={network} />

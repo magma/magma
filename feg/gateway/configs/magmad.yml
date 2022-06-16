@@ -66,7 +66,6 @@ mconfig_modules:
   - feg.protos.mconfig.mconfigs_pb2
 
 metricsd:
-  log_level: INFO
   collect_interval: 60 # How frequently to collect metrics samples in seconds
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 10 # Timeout in seconds
@@ -76,6 +75,7 @@ metricsd:
     - magmad
     - session_proxy
     - s6a_proxy
+    - s8_proxy
     - swx_proxy
     - eap_aka
     - eap_sim

@@ -223,7 +223,7 @@ class DhcpClient(unittest.TestCase):
     def _validate_state_as_current(self, mac: MacAddress, vlan: int):
         with self.dhcp_wait:
             dhcp1 = self.dhcp_store.get(mac.as_redis_key(vlan))
-            self.assert_(
+            self.assertTrue(
                 dhcp1.state == DHCPState.OFFER or dhcp1.state == DHCPState.ACK,
             )
 
@@ -261,7 +261,7 @@ class DhcpClient(unittest.TestCase):
             dhcp1 = self.dhcp_store.get(mac.as_redis_key(vlan))
             self.assertEqual(dhcp1.subnet, str(exptected_subnet))
             self.assertEqual(dhcp1.router_ip, exptected_router_ip)
-            self.assert_(ipaddress.ip_address(dhcp1.ip) in exptected_subnet)
+            self.assertTrue(ipaddress.ip_address(dhcp1.ip) in exptected_subnet)
 
     def _release_ip(self, mac: MacAddress, vlan: int):
         self._dhcp_client.release_ip_address(mac, vlan)
