@@ -7,8 +7,8 @@ hide_title: true
 # How-To: Deploy Orchestrator using Juju (Beta)
 
 The goal of this document is to detail how to deploy Magma's Orchestrator on any Kubernetes
-cluster. To do so, we will set up a K8s cluster, bootstrap a Juju controller, deploy Magma
-Orchestrator and configure A records.
+cluster. To do so, we will set up a Kubernetes cluster, bootstrap a Juju controller, deploy Magma
+Orchestrator and configure A records for Orchestrator services to be accessible from anywhere.
 
 ### Pre-requisites
 
