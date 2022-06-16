@@ -102,6 +102,17 @@ jobs:
         run: |
           echo "Available storage:"
           df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_TITLE: "Bazel Build Job `bazel build //...`"
+          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
 
   bazel_test:
     needs: path_filter
@@ -178,6 +189,17 @@ jobs:
         run: |
           echo "Available storage:"
           df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_TITLE: "Bazel Test Job `bazel test //...`"
+          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
 
   bazel_package:
     needs: path_filter
@@ -234,6 +256,17 @@ jobs:
         run: |
           echo "Available storage:"
           df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_TITLE: "Bazel Package Job"
+          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
 
   python_file_check:
     name: Check if there are not bazelified python files
@@ -245,6 +278,17 @@ jobs:
         shell: bash
         run: |
           ./bazel/scripts/check_py_bazel.sh
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
+          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
 
   c_cpp_file_check:
     name: Check if there are non-bazelified c or c++ files
@@ -256,3 +300,14 @@ jobs:
         shell: bash
         run: |
           ./bazel/scripts/check_c_cpp_bazel.sh
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"
+          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
