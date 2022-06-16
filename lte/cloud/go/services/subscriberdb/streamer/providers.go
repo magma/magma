@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -35,7 +35,7 @@ import (
 // SubscribersProvider provides the implementation for subscriber streaming.
 type SubscribersProvider struct{}
 
-func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *anypb.Any) ([]*protos.DataUpdate, error) {
 	magmadGateway, err := configurator.LoadEntityForPhysicalID(ctx, gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	if err != nil {
 		return nil, fmt.Errorf("load magmad gateway for physical ID %s: %w", gatewayId, err)

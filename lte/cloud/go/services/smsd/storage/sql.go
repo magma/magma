@@ -21,8 +21,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/thoas/go-funk"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/sqorc"
@@ -217,7 +217,8 @@ func (s *sqlSMSStorage) GetSMSsToDeliver(networkID string, imsis []string, timeo
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		timeCreated := clock.Now().Unix()
 		timeoutSecs := clock.Now().Add(-timeoutThreshold).Unix()
-		updatedTimeCreatedTS, err := ptypes.TimestampProto(time.Unix(timeCreated, 0))
+		updatedTimeCreatedTS := timestamp.New(time.Unix(timeCreated, 0))
+		err := updatedTimeCreatedTS.CheckValid()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create timestamp: %w", err)
 		}

@@ -19,9 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/lte/cloud/go/protos"
 	smsd_servicer "magma/lte/cloud/go/services/smsd/servicers/southbound"
@@ -46,8 +45,8 @@ func TestSMSDServicer_GetMessages(t *testing.T) {
 
 	// Return some messages
 	tsClock := tsProto(t, time.Unix(1000, 0))
-	expClock, err := ptypes.Timestamp(tsClock)
-	assert.NoError(t, err)
+	expClock := tsClock.AsTime()
+	assert.NoError(t, tsClock.CheckValid())
 
 	serde.On("EncodeMessage", "foobar", "123", expClock, []uint8{0x1, 0x2}).
 		Return([][]byte{{0x1, 0x2}, {0x3, 0x4}}, nil).
@@ -189,8 +188,8 @@ func TestSMSDServicer_ReportDelivery(t *testing.T) {
 }
 
 func tsProto(t *testing.T, ti time.Time) *timestamp.Timestamp {
-	ret, err := ptypes.TimestampProto(ti)
-	assert.NoError(t, err)
+	ret := timestamp.New(ti)
+	assert.NoError(t, ret.CheckValid())
 	return ret
 }
 

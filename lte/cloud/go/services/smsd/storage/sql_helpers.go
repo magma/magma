@@ -20,9 +20,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/thoas/go-funk"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/orc8r/cloud/go/sqorc"
 )
@@ -383,15 +382,15 @@ func scanMessages(rows *sql.Rows) (map[string]tSmsByPk, error) {
 			return nil, fmt.Errorf("failed to scan sms row: %w", err)
 		}
 
-		createdTs, err := ptypes.TimestampProto(time.Unix(timeCreated, 0))
-		if err != nil {
+		createdTs := timestamp.New(time.Unix(timeCreated, 0))
+		if createdTs.CheckValid() != nil {
 			return nil, fmt.Errorf("could not validate created time for sms %s: %w", pk, err)
 		}
 
 		var attemptedTs *timestamp.Timestamp
 		if refCreated.Valid {
-			attemptedTs, err = ptypes.TimestampProto(time.Unix(refCreated.Int64, 0))
-			if err != nil {
+			attemptedTs = timestamp.New(time.Unix(refCreated.Int64, 0))
+			if attemptedTs.CheckValid() != nil {
 				return nil, fmt.Errorf("could not validate attempted time for sms %s: %w", pk, err)
 			}
 		}

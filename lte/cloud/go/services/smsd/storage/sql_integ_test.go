@@ -18,9 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/orc8r/cloud/go/clock"
@@ -465,7 +464,7 @@ func (m *mockIDGenerator) New() string {
 }
 
 func timestampProto(t *testing.T, unix int64) *timestamp.Timestamp {
-	ret, err := ptypes.TimestampProto(time.Unix(unix, 0))
-	assert.NoError(t, err)
+	ret := timestamp.New(time.Unix(unix, 0))
+	assert.NoError(t, ret.CheckValid())
 	return ret
 }

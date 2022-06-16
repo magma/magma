@@ -22,8 +22,8 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	"github.com/thoas/go-funk"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"

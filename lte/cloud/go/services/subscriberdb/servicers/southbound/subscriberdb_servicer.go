@@ -19,11 +19,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -124,9 +123,9 @@ func (s *subscriberdbServicer) Sync(
 	if err != nil {
 		return nil, err
 	}
-	var renewedMarshaled []*any.Any
+	var renewedMarshaled []*anypb.Any
 	for _, subProto := range renewed {
-		anyVal, err := ptypes.MarshalAny(subProto)
+		anyVal, err := anypb.New(subProto)
 		if err != nil {
 			return nil, fmt.Errorf("marshal subscriber protos for network %+v: %w", networkID, err)
 		}

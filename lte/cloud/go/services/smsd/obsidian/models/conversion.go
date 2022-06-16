@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/smsd/storage"
@@ -55,8 +54,8 @@ func tsToDT(ts *timestamp.Timestamp) *strfmt.DateTime {
 		return nil
 	}
 
-	ret, err := ptypes.Timestamp(ts)
-	if err != nil {
+	ret := ts.AsTime()
+	if ts.CheckValid() != nil {
 		return nil
 	}
 	dt := strfmt.DateTime(ret)

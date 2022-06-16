@@ -20,10 +20,9 @@ import (
 	"time"
 
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -719,9 +718,9 @@ func TestSyncSubscribers(t *testing.T) {
 			SubNetwork: &lte_protos.CoreNetworkType{ForbiddenNetworkTypes: []lte_protos.CoreNetworkType_CoreNetworkTypes{lte_protos.CoreNetworkType_NT_EPC}},
 		},
 	}
-	expectedToRenewDataMarshaled := []*any.Any{}
+	expectedToRenewDataMarshaled := []*anypb.Any{}
 	for _, data := range expectedToRenewData {
-		val, err := ptypes.MarshalAny(data)
+		val, err := anypb.New(data)
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
@@ -774,9 +773,9 @@ func TestSyncSubscribers(t *testing.T) {
 			SubNetwork: &lte_protos.CoreNetworkType{ForbiddenNetworkTypes: []lte_protos.CoreNetworkType_CoreNetworkTypes{lte_protos.CoreNetworkType_NT_5GC}},
 		},
 	}
-	expectedToRenewDataMarshaled = []*any.Any{}
+	expectedToRenewDataMarshaled = []*anypb.Any{}
 	for _, data := range expectedToRenewData {
-		val, err := ptypes.MarshalAny(data)
+		val, err := anypb.New(data)
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
@@ -852,9 +851,9 @@ func TestSyncSubscribersResync(t *testing.T) {
 			SubNetwork: &lte_protos.CoreNetworkType{ForbiddenNetworkTypes: []lte_protos.CoreNetworkType_CoreNetworkTypes{lte_protos.CoreNetworkType_NT_EPC}},
 		},
 	}
-	expectedToRenewDataMarshaled := []*any.Any{}
+	expectedToRenewDataMarshaled := []*anypb.Any{}
 	for _, data := range expectedToRenewData {
-		val, err := ptypes.MarshalAny(data)
+		val, err := anypb.New(data)
 		assert.NoError(t, err)
 		expectedToRenewDataMarshaled = append(expectedToRenewDataMarshaled, val)
 	}
@@ -921,7 +920,7 @@ func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.Subscr
 	}
 }
 
-func assertEqualAnyData(t *testing.T, expected []*any.Any, got []*any.Any) {
+func assertEqualAnyData(t *testing.T, expected []*anypb.Any, got []*anypb.Any) {
 	assert.Equal(t, len(expected), len(got))
 	for i := 0; i < len(expected); i++ {
 		// HACK: using the following workaround because in our current version of protobuf,

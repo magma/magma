@@ -18,9 +18,9 @@ import (
 	"testing"
 
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
+	"google.golang.org/protobuf/proto"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"

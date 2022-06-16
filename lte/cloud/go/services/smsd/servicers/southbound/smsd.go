@@ -18,14 +18,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
 	"magma/orc8r/cloud/go/identity"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const defaultTimeout = 6 * time.Minute
@@ -56,11 +55,12 @@ func (s *smsdServicer) GetMessages(ctx context.Context, request *lteProtos.GetMe
 		// messages that successfully encoded instead.
 		// For now it seems a reasonable ask to delete any malformed SMS's
 		// using the API.
-		createdTime, err := ptypes.Timestamp(storedSMS.CreatedTime)
+		createdTime := storedSMS.CreatedTime
+		err := createdTime.CheckValid()
 		if err != nil {
 			return &lteProtos.GetMessagesResponse{}, status.Errorf(codes.Internal, "could not encode message timestamp %s: %s", storedSMS.Pk, err)
 		}
-		encodedMessages, err := s.serde.EncodeMessage(storedSMS.Message, storedSMS.SourceMsisdn, createdTime, storedSMS.RefNums)
+		encodedMessages, err := s.serde.EncodeMessage(storedSMS.Message, storedSMS.SourceMsisdn, createdTime.AsTime(), storedSMS.RefNums)
 		if err != nil {
 			return &lteProtos.GetMessagesResponse{}, status.Errorf(codes.Internal, "could not encode message %s: %s", storedSMS.Pk, err)
 		}

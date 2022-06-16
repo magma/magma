@@ -18,8 +18,8 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/feg/cloud/go/feg"
 	feg_serdes "magma/feg/cloud/go/serdes"
@@ -964,7 +964,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 
 	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	test_utils.AssertMessagesEqual(t, proto.MessageV2(expected["subscriberdb"]), proto.MessageV2(actual["subscriberdb"]))
+	test_utils.AssertMessagesEqual(t, expected["subscriberdb"], actual["subscriberdb"])
 
 	gatewayConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(90)
 	// override. gw-specific 90 expected
@@ -972,7 +972,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	test_utils.AssertMessagesEqual(t, proto.MessageV2(expected["subscriberdb"]), proto.MessageV2(actual["subscriberdb"]))
+	test_utils.AssertMessagesEqual(t, expected["subscriberdb"], actual["subscriberdb"])
 
 	nwConfig.Epc.SubscriberdbSyncInterval = 0
 	gatewayConfig.Epc.SubscriberdbSyncInterval = 0
@@ -982,7 +982,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	test_utils.AssertMessagesEqual(t, proto.MessageV2(expected["subscriberdb"]), proto.MessageV2(actual["subscriberdb"]))
+	test_utils.AssertMessagesEqual(t, expected["subscriberdb"], actual["subscriberdb"])
 
 	lte_test_init.StartTestServiceWithConfig(t, lte_service.Config{DefaultSubscriberdbSyncInterval: 30})
 
@@ -991,7 +991,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
-	test_utils.AssertMessagesEqual(t, proto.MessageV2(expected["subscriberdb"]), proto.MessageV2(actual["subscriberdb"]))
+	test_utils.AssertMessagesEqual(t, expected["subscriberdb"], actual["subscriberdb"])
 }
 
 func TestBuilder_Build_FederatedBaseCase(t *testing.T) {

@@ -17,9 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
 	"magma/lte/cloud/go/services/smsd/storage"
@@ -89,7 +88,7 @@ func runCase(t *testing.T, test *testCase) {
 }
 
 func tsProto(t *testing.T, ts int64) *timestamp.Timestamp {
-	ret, err := ptypes.TimestampProto(time.Unix(ts, 0))
-	assert.NoError(t, err)
+	ret := timestamp.New(time.Unix(ts, 0))
+	assert.NoError(t, ret.CheckValid())
 	return ret
 }
