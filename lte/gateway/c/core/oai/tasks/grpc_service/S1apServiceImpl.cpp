@@ -45,24 +45,19 @@ Status S1apServiceImpl::GetENBState(ServerContext* context, const Void* request,
   // it will not affect ownership
   s1ap_state_t* s1ap_state = get_s1ap_state(false);
   if (s1ap_state != nullptr) {
-    hashtable_rc_t ht_rc;
-    hashtable_key_array_t* ht_keys = hashtable_ts_get_keys(&s1ap_state->enbs);
-    if (ht_keys == nullptr) {
+    if (!(s1ap_state->enbs.size())) {
       return Status::OK;
     }
 
-    for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
-      enb_description_t* enb_ref;
-      ht_rc = hashtable_ts_get(&s1ap_state->enbs, (hash_key_t)ht_keys->keys[i],
-                               (void**)&enb_ref);
-      if (ht_rc == HASH_TABLE_OK) {
+    for (auto itr = s1ap_state->enbs.map->begin();
+         itr != s1ap_state->enbs.map->end(); itr++) {
+      enb_description_t* enb_ref = itr->second;
+      if (enb_ref) {
         (*response->mutable_enb_state_map())[enb_ref->enb_id] =
             enb_ref->nb_ue_associated;
       }
     }
-    FREE_HASHTABLE_KEY_ARRAY(ht_keys);
   }
-
   return Status::OK;
 }
 

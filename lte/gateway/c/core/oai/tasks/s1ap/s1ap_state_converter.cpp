@@ -31,8 +31,9 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   proto->Clear();
 
   // copy over enbs
-  hashtable_ts_to_proto<enb_description_t, EnbDescription>(
-      &state->enbs, proto->mutable_enbs(), enb_to_proto, LOG_S1AP);
+  state_map_to_proto<map_uint32_enb_description_t, enb_description_t,
+                     EnbDescription>(state->enbs, proto->mutable_enbs(),
+                                     enb_to_proto, LOG_S1AP);
 
   // copy over mmeid2associd
   hashtable_rc_t ht_rc;
@@ -59,12 +60,7 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
 
-  keys = hashtable_ts_get_keys(&state->enbs);
-  uint32_t expected_enb_count = 0;
-  if (keys) {
-    expected_enb_count = keys->num_keys;
-    FREE_HASHTABLE_KEY_ARRAY(keys);
-  }
+  uint32_t expected_enb_count = state->enbs.size();
   if (expected_enb_count != state->num_enbs) {
     OAILOG_ERROR(LOG_S1AP,
                  "Updating num_eNBs from maintained to actual count %u->%u",
@@ -76,8 +72,9 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
 
 void S1apStateConverter::proto_to_state(const S1apState& proto,
                                         s1ap_state_t* state) {
-  proto_to_hashtable_ts<EnbDescription, enb_description_t>(
-      proto.enbs(), &state->enbs, proto_to_enb, LOG_S1AP);
+  proto_to_state_map<map_uint32_enb_description_t, EnbDescription,
+                     enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
+                                        LOG_S1AP);
 
   hashtable_rc_t ht_rc;
   auto mmeid2associd = proto.mmeid2associd();
@@ -91,12 +88,9 @@ void S1apStateConverter::proto_to_state(const S1apState& proto,
   }
 
   state->num_enbs = proto.num_enbs();
-  hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->enbs);
-  uint32_t expected_enb_count = 0;
-  if (keys) {
-    expected_enb_count = keys->num_keys;
-    FREE_HASHTABLE_KEY_ARRAY(keys);
-  }
+  uint32_t expected_enb_count = state->enbs.size();
+  OAILOG_WARNING(LOG_S1AP, "expected_enb_count:%d state->num_enbs :%d \n",
+                 expected_enb_count, state->num_enbs);
   if (expected_enb_count != state->num_enbs) {
     OAILOG_WARNING(LOG_S1AP,
                    "Updating num_eNBs from maintained to actual count %u->%u",
