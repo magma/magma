@@ -14,7 +14,7 @@ limitations under the License.
 package factory
 
 import (
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type MconfigBuilder interface {

@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/jsonpb"
-	structpb "github.com/golang/protobuf/ptypes/struct"
-	"github.com/spf13/cobra"
-
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/glog"
+	"github.com/spf13/cobra"
+	jsonpb "google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func init() {
@@ -40,7 +40,7 @@ func init() {
 
 func genericCommandCmd(cmd *cobra.Command, args []string) {
 	paramsStruct := structpb.Struct{}
-	err := jsonpb.UnmarshalString(args[1], &paramsStruct)
+	err := jsonpb.Unmarshal([]byte(args[1]), &paramsStruct)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)

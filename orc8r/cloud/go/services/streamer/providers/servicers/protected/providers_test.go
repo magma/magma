@@ -17,11 +17,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
@@ -72,9 +71,9 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 		expectedProtos := map[string]proto.Message{
 			"some_service": &test_protos.Message1{Field: "hello"},
 		}
-		expected := make(map[string]*any.Any, len(expectedProtos))
+		expected := make(map[string]*anypb.Any, len(expectedProtos))
 		for k, v := range expectedProtos {
-			anyV, err := ptypes.MarshalAny(v)
+			anyV, err := anypb.New(v)
 			assert.NoError(t, err)
 			expected[k] = anyV
 		}

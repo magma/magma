@@ -19,15 +19,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
-	"google.golang.org/grpc/status"
-
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/serdes"
@@ -37,6 +28,14 @@ import (
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
+
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 )
 
 // SetIdentityFromContext is an identity decorator implements Identity injector
@@ -209,7 +208,7 @@ func findGatewayIdentity(ctx context.Context, serialNumber string, md metadata.M
 	networkID := entity.NetworkID
 	logicalID := entity.Key
 
-	expiration, _ := ptypes.Timestamp(certInfo.GetNotAfter())
+	expiration := certInfo.GetNotAfter().AsTime()
 	expSeconds := expiration.Unix()
 
 	if expiration.Sub(clock.Now()) < CERT_EXPIRATION_DURATION_THRESHOLD {

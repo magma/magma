@@ -14,17 +14,16 @@ limitations under the License.
 package service
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/encoding"
 	grpc_proto "google.golang.org/grpc/encoding/proto"
+	jsonpb "google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 // logModes
@@ -83,12 +82,11 @@ func printMessage(prefix string, v interface{}, verboseLevel grpcLogVerbosityLev
 			// do not print verbose proto
 			return
 		}
-		var buf bytes.Buffer
-		err := (&jsonpb.Marshaler{EmitDefaults: true, Indent: "\t", OrigName: true}).Marshal(&buf, pm)
+		buff, err := (&jsonpb.MarshalOptions{EmitUnpopulated: true, Indent: "\t", UseProtoNames: true}).Marshal(pm)
 		if err == nil {
-			payload = buf.String()
+			payload = string(buff)
 		} else {
-			payload = fmt.Sprintf("\n\t JSON encoding error: %v; %s", err, buf.String())
+			payload = fmt.Sprintf("\n\t JSON encoding error: %v; %s", err, string(buff))
 		}
 	} else {
 		payload = fmt.Sprintf("\n\t %T is not proto.Message; %+v", v, v)

@@ -14,9 +14,9 @@ limitations under the License.
 package storage
 
 import (
-	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/blobstore"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"

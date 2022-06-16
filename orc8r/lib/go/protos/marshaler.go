@@ -16,42 +16,36 @@ package protos
 
 import (
 	"bytes"
-	"reflect"
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
+	jsonpb "google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 func Marshal(msg proto.Message) ([]byte, error) {
-	var buff bytes.Buffer
-	err := (&jsonpb.Marshaler{
-		EnumsAsInts:  true,
-		EmitDefaults: true,
-		OrigName:     true}).Marshal(&buff, msg)
+	buff, err := (&jsonpb.MarshalOptions{
+		UseEnumNumbers:  true,
+		EmitUnpopulated: true,
+		UseProtoNames:   true}).Marshal(msg)
 
-	return buff.Bytes(), err
+	return buff, err
 }
 
 func MarshalIntern(msg proto.Message) ([]byte, error) {
-	var buff bytes.Buffer
-	err := (&jsonpb.Marshaler{EmitDefaults: true, Indent: " "}).Marshal(
-		&buff, msg)
-
-	return buff.Bytes(), err
+	buff, err := (&jsonpb.MarshalOptions{EmitUnpopulated: true, Indent: " "}).Marshal(msg)
+	return buff, err
 }
 
 func MarshalJSON(msg proto.Message) ([]byte, error) {
-	var buff bytes.Buffer
-	err := (&jsonpb.Marshaler{Indent: " "}).Marshal(&buff, msg)
-	return buff.Bytes(), err
+	buff, err := (&jsonpb.MarshalOptions{Indent: " "}).Marshal(msg)
+	return buff, err
 }
 
 func Unmarshal(bt []byte, msg proto.Message) error {
-	return (&jsonpb.Unmarshaler{AllowUnknownFields: true}).Unmarshal(
-		bytes.NewBuffer(bt),
-		msg)
+	return (&jsonpb.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(bt, msg)
 }
 
 func TestMarshal(msg proto.Message) string {
@@ -69,12 +63,12 @@ func (mconfigAnyResolver) Resolve(typeUrl string) (proto.Message, error) {
 	if slash := strings.LastIndex(mname, "/"); slash >= 0 {
 		mname = mname[slash+1:]
 	}
-	mt := proto.MessageType(mname)
+	mt, _ := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(mname))
 	if mt == nil {
 		glog.V(4).Infof("mconfigAnyResolver: unknown message type %q", mname)
 		return new(Bytes), nil
 	} else {
-		return reflect.New(mt.Elem()).Interface().(proto.Message), nil
+		return mt.New().Interface().(proto.Message), nil
 	}
 }
 
@@ -92,18 +86,18 @@ func MarshalMconfigToString(msg proto.Message) (string, error) {
 
 func marshalMconfigs(msg proto.Message) (*bytes.Buffer, error) {
 	var buff bytes.Buffer
-	err := (&jsonpb.Marshaler{AnyResolver: mconfigAnyResolver{}, EmitDefaults: true, Indent: " "}).Marshal(&buff, msg)
+	b, err := (&jsonpb.MarshalOptions{EmitUnpopulated: true, Indent: " "}).Marshal(msg)
+	buff.Write(b)
 	return &buff, err
 }
 
 // UnmarshalMconfig is a special mconfig Unmarshaler tolerant to unregistered Any types
 func UnmarshalMconfig(bt []byte, msg proto.Message) error {
-	return (&jsonpb.Unmarshaler{AllowUnknownFields: true, AnyResolver: mconfigAnyResolver{}}).Unmarshal(
-		bytes.NewReader(bt), msg)
+	return (&jsonpb.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(bt, msg)
 }
 
 // MarshalJSONPB implements JSONPBMarshaler interface for Bytes type
-func (bm *Bytes) MarshalJSONPB(_ *jsonpb.Marshaler) ([]byte, error) {
+func (bm *Bytes) MarshalJSONPB(_ *jsonpb.MarshalOptions) ([]byte, error) {
 	if bm != nil {
 		var b = make([]byte, len(bm.Val))
 		copy(b, bm.Val)
@@ -113,7 +107,7 @@ func (bm *Bytes) MarshalJSONPB(_ *jsonpb.Marshaler) ([]byte, error) {
 }
 
 // UnmarshalJSONPB implements JSONPBUnmarshaler interface for Bytes type
-func (bm *Bytes) UnmarshalJSONPB(_ *jsonpb.Unmarshaler, b []byte) error {
+func (bm *Bytes) UnmarshalJSONPB(_ *jsonpb.UnmarshalOptions, b []byte) error {
 	if bm != nil {
 		bm.Reset()
 		bm.Val = make([]byte, len(b))

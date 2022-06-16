@@ -18,7 +18,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 // GetMconfigDigest generates a representative hash of the configs (sans metadata).
@@ -41,9 +41,9 @@ func (cfg *GatewayConfigs) GetMconfigDigest() (string, error) {
 // 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
 //	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
 func encodePbDeterministic(pb proto.Message) ([]byte, error) {
-	buf := &proto.Buffer{}
-	buf.SetDeterministic(true)
-
-	err := buf.Marshal(pb)
-	return buf.Bytes(), err
+	buff, err := proto.MarshalOptions{
+		Deterministic: true,
+		AllowPartial:  true,
+	}.Marshal(pb)
+	return buff, err
 }

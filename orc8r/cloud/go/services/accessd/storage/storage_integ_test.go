@@ -16,9 +16,9 @@ package storage_test
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/identity"

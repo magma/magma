@@ -26,8 +26,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
@@ -35,6 +33,8 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/key"
+
+	duration "google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Common to several add... handlers definitions & functions
@@ -155,9 +155,10 @@ func createAndSignCert(
 	if err != nil {
 		return der, sn, fmt.Errorf("CSR Create Error: %s", err)
 	}
+	validTime := duration.New(time.Hour * 24 * time.Duration(validFor))
 	csr := &protos.CSR{
 		Id:        operator,
-		ValidTime: ptypes.DurationProto(time.Hour * 24 * time.Duration(validFor)),
+		ValidTime: validTime,
 		CsrDer:    csrDER,
 	}
 	certMsg, err := certifier.SignCSR(ctx, csr)

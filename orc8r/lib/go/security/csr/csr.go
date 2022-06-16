@@ -22,10 +22,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/key"
+
+	duration "google.golang.org/protobuf/types/known/durationpb"
 )
 
 func CreateCSR(validTime time.Duration, cn, idCn string) (*protos.CSR, error) {
@@ -64,7 +64,7 @@ func createCSR(validTime time.Duration, cn string, id *protos.Identity) (*protos
 	}
 	csr := &protos.CSR{
 		Id:        id,
-		ValidTime: ptypes.DurationProto(validTime),
+		ValidTime: duration.New(validTime),
 		CsrDer:    csrDER,
 	}
 

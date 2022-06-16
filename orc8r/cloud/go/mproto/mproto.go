@@ -17,9 +17,9 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 
-	"github.com/golang/protobuf/proto"
-
 	"magma/orc8r/cloud/go/mproto/protos"
+
+	"google.golang.org/protobuf/proto"
 )
 
 // HashManyDeterministic takes a collection of proto messages and returns a deterministic
@@ -71,11 +71,10 @@ func HashDeterministic(proto proto.Message) (string, error) {
 // 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
 //	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
 func MarshalDeterministic(pb proto.Message) ([]byte, error) {
-	buf := &proto.Buffer{}
-	buf.SetDeterministic(true)
-
-	err := buf.Marshal(pb)
-	return buf.Bytes(), err
+	return proto.MarshalOptions{
+		Deterministic: true,
+		AllowPartial:  true,
+	}.Marshal(pb)
 }
 
 // getMd5Base64Digest generates a base64-encoded MD5 digest of the input data.

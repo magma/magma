@@ -18,10 +18,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
 	"magma/orc8r/cloud/go/test_utils"
@@ -71,9 +70,9 @@ func TestCreateMconfig(t *testing.T) {
 		"builder1_2": &test_protos.Message2{Field1: "hello", Field2: "world"},
 		"builder2_1": &test_protos.Message1{Field: "foo"},
 	}
-	expectedAny := make(map[string]*any.Any, len(expectedMap))
+	expectedAny := make(map[string]*anypb.Any, len(expectedMap))
 	for k, v := range expectedMap {
-		anyV, err := ptypes.MarshalAny(v)
+		anyV, err := anypb.New(v)
 		assert.NoError(t, err)
 		expectedAny[k] = anyV
 	}

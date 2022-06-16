@@ -17,9 +17,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/golang/protobuf/ptypes/wrappers"
+	"google.golang.org/protobuf/types/known/anypb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/lib/go/protos"
@@ -35,7 +34,7 @@ func CreateMconfigJSON(network *storage.Network, graph *storage.EntityGraph, gat
 		return nil, err
 	}
 
-	configs := map[string]*any.Any{}
+	configs := map[string]*anypb.Any{}
 	for _, b := range builders {
 		partialConfig, err := b.Build(network, graph, gatewayID)
 		if err != nil {
@@ -47,7 +46,7 @@ func CreateMconfigJSON(network *storage.Network, graph *storage.EntityGraph, gat
 				return nil, fmt.Errorf("received partial config for key %v from multiple mconfig builders", key)
 			}
 			configBytes := &wrappers.BytesValue{Value: config}
-			configAny, err := ptypes.MarshalAny(configBytes)
+			configAny, err := anypb.New(configBytes)
 			if err != nil {
 				return nil, err
 			}

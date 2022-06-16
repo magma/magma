@@ -22,14 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bmatcuk/doublestar"
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/hashicorp/go-multierror"
-	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -40,6 +32,14 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/security/cert"
+
+	"github.com/bmatcuk/doublestar"
+	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -107,7 +107,7 @@ func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *prot
 		return nil, err
 	}
 
-	validTime, err := ptypes.Duration(csrMsg.ValidTime)
+	validTime := csrMsg.ValidTime.AsDuration()
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Invalid requested certificate duration: %s", err)
 	}
@@ -117,8 +117,8 @@ func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *prot
 		return nil, status.Errorf(codes.Aborted, "Error signing CSR: %s", err)
 	}
 
-	notBeforeProto, _ := ptypes.TimestampProto(notBefore)
-	notAfterProto, _ := ptypes.TimestampProto(notAfter)
+	notBeforeProto := timestamp.New(notBefore)
+	notAfterProto := timestamp.New(notAfter)
 
 	// create CertificateInfo
 	certInfo := &certprotos.CertificateInfo{
@@ -162,8 +162,8 @@ func (srv *CertifierServer) GetIdentity(
 	}
 
 	// check timestamp
-	notBefore, _ := ptypes.Timestamp(certInfo.NotBefore)
-	notAfter, _ := ptypes.Timestamp(certInfo.NotAfter)
+	notBefore := certInfo.NotBefore.AsTime()
+	notAfter := certInfo.NotAfter.AsTime()
 	now := clock.Now().UTC()
 	if now.After(notAfter) {
 		return &certprotos.CertificateInfo{}, status.Errorf(codes.OutOfRange,
@@ -222,8 +222,8 @@ func (srv *CertifierServer) AddCertificate(ctx context.Context, req *certprotos.
 			codes.AlreadyExists, "Certificate SN %s already exists", snStr)
 	}
 	// create CertificateInfo
-	notBeforeProto, _ := ptypes.TimestampProto(x509Cert.NotBefore)
-	notAfterProto, _ := ptypes.TimestampProto(x509Cert.NotAfter)
+	notBeforeProto := timestamp.New(x509Cert.NotBefore)
+	notAfterProto := timestamp.New(x509Cert.NotAfter)
 	certInfo := &certprotos.CertificateInfo{
 		Id:        req.Id,
 		CertType:  req.CertType,
@@ -304,7 +304,7 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 		if err != nil {
 			errs = multierror.Append(errs, fmt.Errorf("'%s' get info error: %v", sn, err))
 		}
-		notAfter, _ := ptypes.Timestamp(certInfo.NotAfter)
+		notAfter := certInfo.NotAfter.AsTime()
 		notAfter = notAfter.Add(CollectGarbageAfter)
 		if time.Now().UTC().After(notAfter) {
 			err = srv.store.DeleteCertInfo(sn)

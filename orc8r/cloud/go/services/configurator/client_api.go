@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/thoas/go-funk"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/protos"

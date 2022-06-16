@@ -22,8 +22,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
 )
@@ -54,8 +52,8 @@ func listCerts(cmd *commands.Command, args []string) int {
 			log.Printf("\nError %s gettting certificate %s info\n", err, csn)
 			continue
 		}
-		before, _ := ptypes.Timestamp(info.NotBefore)
-		after, _ := ptypes.Timestamp(info.NotAfter)
+		before := info.NotBefore.AsTime()
+		after := info.NotAfter.AsTime()
 		fmt.Printf(
 			"; Identity: %s; Not Before: %s; Not After: %s\n",
 			info.Id.HashString(),

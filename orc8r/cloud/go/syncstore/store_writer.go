@@ -21,9 +21,9 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"

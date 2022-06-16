@@ -18,9 +18,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/orc8r/cloud/go/services/streamer"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
@@ -33,7 +33,7 @@ type mockStreamProvider struct {
 	retErr error
 }
 
-func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *anypb.Any) ([]*protos.DataUpdate, error) {
 	return m.retVal, m.retErr
 }
 

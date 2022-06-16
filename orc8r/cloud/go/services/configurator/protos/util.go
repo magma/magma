@@ -13,7 +13,7 @@
 
 package protos
 
-import "github.com/golang/protobuf/ptypes/wrappers"
+import wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 func GetStringWrapper(v *string) *wrappers.StringValue {
 	if v == nil {

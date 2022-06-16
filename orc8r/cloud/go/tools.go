@@ -21,10 +21,10 @@ package main
 // dependencies listed here should also be listed in TOOL_DEPS in ./Makefile
 import (
 	_ "github.com/go-swagger/go-swagger/cmd/swagger"
-	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/ory/go-acc"
 	_ "github.com/vektra/mockery/v2"
 	_ "github.com/wadey/gocovmerge"
 	_ "golang.org/x/tools/cmd/goimports"
+	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 	_ "gotest.tools/gotestsum"
 )

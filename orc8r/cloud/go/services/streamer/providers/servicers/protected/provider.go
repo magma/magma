@@ -16,7 +16,7 @@ package providers
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/orc8r/lib/go/protos"
 )
@@ -29,5 +29,5 @@ type StreamProvider interface {
 	// If GetUpdates returns error == nil, updates will be sent & the stream will be closed after that
 	// If GetUpdates returns error == io.EAGAIN - the returned updates will be sent & GetUpdates will be called again
 	// on the same stream
-	GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error)
+	GetUpdates(ctx context.Context, gatewayId string, extraArgs *anypb.Any) ([]*protos.DataUpdate, error)
 }

@@ -19,10 +19,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/blobstore"
 	protected_servicers "magma/orc8r/cloud/go/services/certifier/servicers/protected"
@@ -114,7 +113,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 	certInfoMsg, err = srv.GetIdentity(ctx, certMsg.Sn)
 	assert.NoError(t, err)
-	notAfter, _ := ptypes.Timestamp(certInfoMsg.NotAfter)
+	notAfter := certInfoMsg.NotAfter.AsTime()
 	assert.True(t, notAfter.Equal(caCert.NotAfter))
 
 	// test CN mismatch

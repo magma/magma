@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/lib/go/merrors"
@@ -44,7 +44,7 @@ func (r *remoteProvider) GetStreamName() string {
 	return r.stream
 }
 
-func (r *remoteProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (r *remoteProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *anypb.Any) ([]*protos.DataUpdate, error) {
 	c, err := r.getProviderClient()
 	if err != nil {
 		return nil, err

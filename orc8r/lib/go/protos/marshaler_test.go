@@ -17,7 +17,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/lib/go/protos"
@@ -99,7 +98,7 @@ func TestMconfigMarshal(t *testing.T) {
 	assert.NotNil(t, mdval)
 
 	mdcfg := new(mconfig.MagmaD)
-	err = ptypes.UnmarshalAny(mdval, mdcfg)
+	err = mdval.UnmarshalTo(mdcfg)
 	assert.NoError(t, err)
 
 	assert.Equal(t, int32(3000), mdcfg.AutoupgradePollInterval)

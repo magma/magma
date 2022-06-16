@@ -19,8 +19,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 
 	"magma/orc8r/cloud/go/clock"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
@@ -215,8 +214,8 @@ type CertDateRange interface {
 // Check if certificate time is not expired/not active yet
 func VerifyDateRange(certInfo CertDateRange) error {
 	tm := clock.Now()
-	notBefore, _ := ptypes.Timestamp(certInfo.GetNotBefore())
-	notAfter, _ := ptypes.Timestamp(certInfo.GetNotAfter())
+	notBefore := certInfo.GetNotBefore().AsTime()
+	notAfter := certInfo.GetNotAfter().AsTime()
 	if tm.After(notAfter) {
 		return errors.New("Expired")
 	}

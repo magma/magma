@@ -23,10 +23,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
 	"google.golang.org/protobuf/proto"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"

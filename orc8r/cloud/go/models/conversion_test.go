@@ -17,9 +17,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/golang/protobuf/jsonpb"
-	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/stretchr/testify/assert"
+	jsonpb "google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/test_utils"
@@ -38,7 +38,7 @@ func TestJSONMapToProtobufStruct(t *testing.T) {
 	marshaled, err := json.Marshal(jsonMap)
 	assert.NoError(t, err)
 	expectedProtobufStruct := &structpb.Struct{}
-	err = jsonpb.UnmarshalString(string(marshaled), expectedProtobufStruct)
+	err = jsonpb.Unmarshal(marshaled, expectedProtobufStruct)
 	assert.NoError(t, err)
 
 	actualProtobufStruct, err := models.JSONMapToProtobufStruct(jsonMap)
@@ -60,7 +60,7 @@ func TestProtobufStructToJSONMap(t *testing.T) {
 	marshaled, err := json.Marshal(expectedJsonMap)
 	assert.NoError(t, err)
 	protobufStruct := &structpb.Struct{}
-	err = jsonpb.UnmarshalString(string(marshaled), protobufStruct)
+	err = jsonpb.Unmarshal(marshaled, protobufStruct)
 	assert.NoError(t, err)
 
 	actualJsonMap, err := models.ProtobufStructToJSONMap(protobufStruct)

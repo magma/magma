@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/go-openapi/swag"
-	structpb "github.com/golang/protobuf/ptypes/struct"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"

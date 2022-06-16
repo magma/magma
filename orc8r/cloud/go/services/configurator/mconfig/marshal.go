@@ -16,17 +16,17 @@ package mconfig
 import (
 	"fmt"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-
 	"magma/orc8r/lib/go/protos"
+
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func MarshalConfigs(configs map[string]proto.Message) (ConfigsByKey, error) {
 	ret := ConfigsByKey{}
 	for k, v := range configs {
-		anyVal, err := ptypes.MarshalAny(v)
+		anyVal, err := anypb.New(v)
 		if err != nil {
 			return nil, err
 		}
@@ -42,16 +42,17 @@ func MarshalConfigs(configs map[string]proto.Message) (ConfigsByKey, error) {
 func UnmarshalConfigs(configs ConfigsByKey) (map[string]proto.Message, error) {
 	ret := map[string]proto.Message{}
 	for k, v := range configs {
-		anyVal := &any.Any{}
+		anyVal := &anypb.Any{}
 		err := protos.Unmarshal(v, anyVal)
 		if err != nil {
 			return nil, fmt.Errorf("unmarshal mconfig from bytes to proto for key %s and bytes %v: %w", k, v, err)
 		}
-		msgVal, err := ptypes.Empty(anyVal)
+		msgType, err := protoregistry.GlobalTypes.FindMessageByName(anyVal.MessageName())
+		msgVal := msgType.New().Interface()
 		if err != nil {
 			return nil, fmt.Errorf("create concrete proto.Message, for proto.Any %+v: %w", anyVal, err)
 		}
-		err = ptypes.UnmarshalAny(anyVal, msgVal)
+		err = anyVal.UnmarshalTo(msgVal)
 		if err != nil {
 			return nil, fmt.Errorf("unmarshal proto.Any into proto.Message, for proto.Any %+v: %w", anyVal, err)
 		}

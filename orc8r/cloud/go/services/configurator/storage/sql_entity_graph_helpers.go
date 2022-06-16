@@ -18,8 +18,8 @@ import (
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/thoas/go-funk"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 type internalEntityGraph struct {

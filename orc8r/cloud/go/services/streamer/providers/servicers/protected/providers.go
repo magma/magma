@@ -19,9 +19,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/golang/protobuf/ptypes/wrappers"
+	"google.golang.org/protobuf/types/known/anypb"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
@@ -30,7 +29,7 @@ import (
 // MconfigProvider provides streamer mconfigs (magma configs).
 type MconfigProvider struct{}
 
-func (p *MconfigProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *MconfigProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *anypb.Any) ([]*protos.DataUpdate, error) {
 	res, err := configurator.GetMconfigFor(ctx, gatewayId)
 	if err != nil {
 		return nil, fmt.Errorf("get mconfig from configurator: %w", err)
@@ -64,7 +63,7 @@ func marshalJSONConfigs(configs *protos.GatewayConfigs) ([]byte, error) {
 
 	for k, v := range configs.ConfigsByKey {
 		bytesVal := &wrappers.BytesValue{}
-		err := ptypes.UnmarshalAny(v, bytesVal)
+		err := v.UnmarshalTo(bytesVal)
 		if err != nil {
 			return nil, err
 		}

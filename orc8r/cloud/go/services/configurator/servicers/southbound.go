@@ -17,10 +17,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	wrappers "google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"

@@ -3,7 +3,7 @@ package registration
 import (
 	"time"
 
-	"github.com/golang/protobuf/ptypes/timestamp"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetTime turns Timestamp into Time

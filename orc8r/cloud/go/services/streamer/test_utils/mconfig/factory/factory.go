@@ -19,10 +19,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-
 	"magma/orc8r/lib/go/protos"
+
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 type mconfigFactory struct {
@@ -71,7 +70,7 @@ func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, 
 	factory.RLock()
 	defer factory.RUnlock()
 
-	ret := map[string]*any.Any{}
+	ret := map[string]*anypb.Any{}
 	for _, builder := range factory.builders {
 		subConfig, err := builder.Build(networkId, gatewayId)
 		if err != nil {
@@ -84,7 +83,7 @@ func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, 
 				return nil, fmt.Errorf("mconfig builder returned result for duplicate key %s", k)
 			}
 
-			vAny, err := ptypes.MarshalAny(v)
+			vAny, err := anypb.New(v)
 			if err != nil {
 				return nil, fmt.Errorf("error marshaling builder value to Any: %s", err)
 			}

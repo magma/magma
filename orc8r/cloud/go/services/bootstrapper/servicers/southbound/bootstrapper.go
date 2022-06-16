@@ -27,13 +27,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
@@ -42,6 +35,13 @@ import (
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	duration "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const ChallengeExpireTime = time.Minute * 5
@@ -149,9 +149,10 @@ func (srv *BootstrapperServer) RequestSign(ctx context.Context, resp *protos.Res
 	// Ignore requested cert duration & overwrite it with our own if it's
 	// longer than our default duration (allow shorter-lived certs)
 	if resp.Csr != nil {
-		reqValidDuration, err := ptypes.Duration(resp.Csr.ValidTime)
+		reqValidDuration := resp.Csr.ValidTime.AsDuration()
+		err := resp.Csr.ValidTime.CheckValid()
 		if err != nil || reqValidDuration.Nanoseconds() > GatewayCertificateDuration.Nanoseconds() {
-			resp.Csr.ValidTime = ptypes.DurationProto(GatewayCertificateDuration)
+			resp.Csr.ValidTime = duration.New(GatewayCertificateDuration)
 		}
 	}
 	cert, err := certifier.SignCSR(strippedIncomingCtx(ctx), resp.Csr)

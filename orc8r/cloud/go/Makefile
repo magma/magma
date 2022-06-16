@@ -2,12 +2,13 @@ MODULE_NAME=orc8r
 TOOL_DEPS:= \
 	magma/orc8r/cloud/go/tools/swaggergen \
 	github.com/go-swagger/go-swagger/cmd/swagger \
-	github.com/golang/protobuf/protoc-gen-go \
 	github.com/ory/go-acc \
 	github.com/vektra/mockery/v2 \
 	github.com/wadey/gocovmerge \
-	gotest.tools/gotestsum \
-	golang.org/x/tools/cmd/goimports
+	golang.org/x/tools/cmd/goimports \
+	google.golang.org/cmd/protoc-gen-go \
+	google.golang.org/cmd/protoc-gen-go-grpc \
+	gotest.tools/gotestsum
 	# dependencies external orc8r/cloud/go module need to be in sync with ./tools.go
 
 include $(MAGMA_ROOT)/orc8r/cloud/go/module.mk

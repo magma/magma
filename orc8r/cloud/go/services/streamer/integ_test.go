@@ -19,10 +19,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	streamer_client "magma/gateway/streamer"
 	"magma/orc8r/cloud/go/services/streamer"
@@ -40,11 +39,11 @@ const (
 // Mock Cloud Streamer
 type mockStreamProvider struct {
 	retVal []*protos.DataUpdate
-	extra  *any.Any
+	extra  *anypb.Any
 	retErr error
 }
 
-func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *anypb.Any) ([]*protos.DataUpdate, error) {
 	m.extra = extraArgs
 	return m.retVal, m.retErr
 }
@@ -64,8 +63,8 @@ func (l testListener) GetName() string {
 	return testStreamName
 }
 
-func (l testListener) GetExtraArgs() *any.Any {
-	extra, _ := ptypes.MarshalAny(expected[0])
+func (l testListener) GetExtraArgs() *anypb.Any {
+	extra, _ := anypb.New(expected[0])
 	return extra
 }
 
@@ -127,7 +126,7 @@ func TestStreamerClient(t *testing.T) {
 	case e := <-l.updateErr:
 		assert.NoError(t, e)
 		var extra protos.DataUpdate
-		err := ptypes.UnmarshalAny(mockProvider.extra, &extra)
+		err := mockProvider.extra.UnmarshalTo(&extra)
 		assert.NoError(t, err)
 		assert.Equal(t, protos.TestMarshal(expected[0]), protos.TestMarshal(&extra))
 	case <-time.After(10 * time.Second):
