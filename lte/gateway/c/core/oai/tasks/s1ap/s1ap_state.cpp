@@ -179,7 +179,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
   hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
-  if (!s1ap_state_p || (!(s1ap_state_p->enbs.size()))) {
+  if (!s1ap_state_p || (s1ap_state_p->enbs.isEmpty())) {
     return;
   }
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
@@ -193,7 +193,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
       continue;
     }
 
-    if (enb_association_p->ue_id_coll.size() == 0) {
+    if (enb_association_p->ue_id_coll.isEmpty()) {
       continue;
     }
 

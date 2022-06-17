@@ -22,7 +22,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
-constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
+char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
 constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 }  // namespace
@@ -67,8 +67,8 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
   state_cache_p->enbs.map =
-      new (google::protobuf::Map<unsigned int, struct enb_description_s*>);
-  state_cache_p->enbs.set_name("S1AP_ENB_COLL");
+      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
+  state_cache_p->enbs.set_name(S1AP_ENB_COLL);
   state_cache_p->enbs.bind_callback(free_enb_description);
 
   ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
@@ -100,7 +100,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   sctp_assoc_id_t assoc_id;
   enb_description_t* enb;
 
-  if (!(state_cache_p->enbs.size())) {
+  if (state_cache_p->enbs.isEmpty()) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
   } else {
     for (auto itr = state_cache_p->enbs.map->begin();
@@ -113,7 +113,9 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       }
     }
   }
-  state_cache_p->enbs.destroy_map();
+  if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
+  }
   if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
     OAILOG_ERROR(LOG_S1AP,
                  "An error occurred while destroying assoc_id hash table");

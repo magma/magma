@@ -203,7 +203,7 @@ struct proto_map_s {
   ***************************************************************************/
   bool isEmpty() {
     if (!map) {
-      return PROTO_MAP_NOT_CREATED;
+      return true;
     }
     return map->empty();
   }
@@ -215,13 +215,14 @@ struct proto_map_s {
   ** Description: Clears the contents of the map                            **
   **                                                                        **
   ***************************************************************************/
-  void clear() {
+  proto_map_rc_t clear() {
     if (!map) {
-      return ;
+      return PROTO_MAP_NOT_CREATED;
     }
     if (!(map->empty())) {
       map->clear();
     }
+    return PROTO_MAP_OK;
   }
   /***************************************************************************
   **                                                                        **
@@ -232,7 +233,7 @@ struct proto_map_s {
   ***************************************************************************/
   size_t size() {
     if (!map) {
-      return PROTO_MAP_NOT_CREATED;
+      return 0;
     }
     return map->size();
   }
@@ -244,9 +245,9 @@ struct proto_map_s {
   ** Description: Clears the contents of the map and also delete map        **
   **                                                                        **
   ***************************************************************************/
-  void destroy_map() {
+  proto_map_rc_t destroy_map() {
     if (!map) {
-      return ;
+      return PROTO_MAP_NOT_CREATED;
     }
     if (!(map->empty())) {
       for (auto itr = map->begin(); itr != map->end(); itr++) {
@@ -258,6 +259,7 @@ struct proto_map_s {
     }
     map->clear();
     delete map;
+    return PROTO_MAP_OK;
   }
 
   /***************************************************************************
