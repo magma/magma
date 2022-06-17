@@ -473,6 +473,7 @@ def fail(
         stdout=subprocess.PIPE,
         shell=True,
     )
+    assert p.stdout is not None
     ofctl_dump = p.stdout.read().decode("utf-8", 'ignore').strip()
     logging.error("cmd ofctl_dump: %s", ofctl_dump)
 
@@ -698,6 +699,7 @@ def get_ovsdb_port_tag(port_name: str) -> Optional[str]:
         ["ovsdb-client", "dump", "Port", "name", "tag"],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for port in dump1.stdout.readlines():
         if port_name not in str(port):
             continue

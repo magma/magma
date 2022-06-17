@@ -1686,7 +1686,7 @@ void mme_app_remove_stale_ue_context(
           &mme_ue_s1ap_id) == HASH_TABLE_OK) {
     ue_mm_context_t* ue_context_p =
         mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
-    if (!ue_context_p) {
+    if (ue_context_p) {
       hashtable_uint64_ts_remove(
           mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
           (const hash_key_t)enb_s1ap_id_key);
@@ -1697,6 +1697,7 @@ void mme_app_remove_stale_ue_context(
           (mme_ue_s1ap_id_t)mme_ue_s1ap_id,
           s1ap_remove_stale_ue_context->enb_ue_s1ap_id,
           s1ap_remove_stale_ue_context->enb_id);
+      ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

@@ -20,7 +20,6 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
@@ -90,7 +89,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	}
 	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs), haPairConfigs)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
 	if err != nil {

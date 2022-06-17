@@ -39,6 +39,10 @@ build:
       context: ..
       docker:
         dockerfile: orc8r/cloud/docker/fluentd_forward/Dockerfile
+    - image: dp-postgres
+      context: ../dp/cloud/docker/postgresql
+      docker:
+        dockerfile: ../dp/cloud/docker/postgresql/Dockerfile
 
 deploy:
   kubeContext: minikube
@@ -133,6 +137,20 @@ profiles:
         value:
           manifests:
             - "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
+      - op: add
+        path: /deploy/helm/releases/1/overrides
+        value:
+          nms:
+            magmalte:
+              env:
+                mysql_db: dp_test
+      - op: add
+        path: /deploy/helm/releases/2/overrides
+        value:
+          controller:
+            spec:
+              database:
+                db: dp_test
   - name: integration-tests-dev
     patches:
       - op: add
@@ -267,3 +285,5 @@ profiles:
     patches:
       - op: remove
         path: /build/artifacts/4  # remove fake sas image
+      - op: remove
+        path: /build/artifacts/7  # remove postgresql image

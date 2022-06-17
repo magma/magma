@@ -38,7 +38,7 @@ orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-dev --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -186,6 +186,7 @@ _postgres_db_delete: _switch_k8s_context
 .PHONY: _ci_chart_smoke_tests
 _ci_chart_smoke_tests: _install_skaffold_ci
 	skaffold run
+	sleep 5
 	helm test --timeout 10m domain-proxy
 
 .PHONY: migration
@@ -216,13 +217,11 @@ build_db:
 
 .PHONY: cleanup_test_db
 cleanup_test_db: _switch_k8s_context
-	kubectl exec -it postgres-database-0 \
-		--container postgres-test -- \
-		psql -p 5433 -U postgres -c \
+	kubectl exec -it postgres-database-0 -- \
+		psql -U postgres -c \
 		"drop database dp_test with (force);" || true ;\
-	kubectl exec -it postgres-database-0 \
-		--container postgres-test -- \
-		psql -p 5433 -U postgres -c \
+	kubectl exec -it postgres-database-0 -- \
+		psql -U postgres -c \
 		"create database dp_test;" || true;
 
 LOGS_COUNT ?= 1000

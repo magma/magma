@@ -1041,7 +1041,7 @@ def main(args):
 
         required_distributions = {}
         to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]
-                       if k not in repo_installable]
+                       if k not in [inst.key for inst in repo_installable]]
         while to_traverse:
             dist = to_traverse.pop()
             required_distributions[dist.key] = dist
@@ -1058,8 +1058,9 @@ def main(args):
 
     dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
 
-    root_versions = {req.key: {'version': pip_distributions[req.key].version}
-                     for req in input_root_requirements}
+    root_versions = {req.key: {'version': pip_distributions[k].version}
+                     for k in [req.key for req in input_root_requirements]
+                     if k not in [inst.key for inst in repo_installable]}
 
     log.debug(root_versions)
 

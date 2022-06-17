@@ -15,6 +15,7 @@ package integration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"magma/cwf/gateway/registry"
@@ -29,7 +30,6 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
 

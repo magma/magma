@@ -283,3 +283,16 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "operational_states_handler",
+    size = "small",
+    srcs = ["test_operational_states_handler.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:operational_states_handler",
+        "@com_google_googletest//:gtest_main",
+        "@github_nlohmann_json//:json",
+    ],
+)
