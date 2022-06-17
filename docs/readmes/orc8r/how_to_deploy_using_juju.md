@@ -10,7 +10,7 @@ The goal of this document is to detail how to deploy Magma's Orchestrator on any
 cluster. To do so, we will set up a Kubernetes cluster, bootstrap a Juju controller, deploy Magma
 Orchestrator and configure A records for Orchestrator services to be accessible from anywhere.
 
-### Pre-requisites
+## Pre-requisites
 
 - Ubuntu 20.04 machine with internet access
 - A public domain
@@ -90,7 +90,6 @@ Create these A records in your managed domain:
 | `api.<your domain>`                     | `<orc8r-nginx-proxy External IP>`      |
 | `controller.<your domain>`              | `<orc8r-clientcert-nginx External IP>` |
 | `*.nms.<your domain>`                   | `<nginx-proxy External IP>`            |
-
 
 ## 7. Verify the deployment
 
