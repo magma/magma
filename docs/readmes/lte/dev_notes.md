@@ -68,14 +68,15 @@ testing to physical UE and eNodeB.
 To connect a physical eNodeB to the gateway VM:
 
 1. Connect the eNodeB to a port on the host machine, say it is interface `en9`.
-1. From the VirtualBox GUI, switch the Adapter 1 (for `eth1` interface) from
+1. From the VirtualBox GUI, switch the Adapter 2 (for `eth2` interface) from
 `Host-only` to `Bridged` mode and bridge it to interface `en9` from above.
 1. In gateway VM, modify the `nat_iface` in `/etc/magma/pipelined.yml` from
 `eth2` to `eth0`. Restart all services.
 1. In the gateway VM, follow the steps in [EnodeB
 Configuration](enodebd#basic-troubleshooting). Make sure the `earfcn` set in the
 enodebd section of `gateway.mconfig` is the one that is supported by the eNodeB
-under consideration.
+under consideration. Use this [calculator](https://www.sqimway.com/lte_band.php) to
+get the `earfcn` corresponding to the frequency range specified by the eNodeB.
 
 To connect a physical UE to the gateway VM,
 
@@ -285,7 +286,7 @@ num_enbs: 1
 
 ## Combining XML Unit test reports
 
-At the moment of writing, running the unit test targets does not generate the aggregated XML report file by default. To get the report of all unit tests, you have two options.  
+At the moment of writing, running the unit test targets does not generate the aggregated XML report file by default. To get the report of all unit tests, you have two options.
 
 ### Option 1: Running unit test target
 
@@ -332,7 +333,7 @@ For example, when you generated all the `.xml` report files at `${MAGMA_ROOT}/lo
 
 ```bash
 python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${MAGMA_ROOT}/logs/
-```  
+```
 
 By default, the XML output file will be generated at `${MAGMA_ROOT}/report/merged_report/report_all_tests.xml`.
 You can overwrite this by using the `-o` option of `runtime_report.py`. Let's reuse the example above:
