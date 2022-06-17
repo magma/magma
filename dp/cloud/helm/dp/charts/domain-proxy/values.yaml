@@ -386,3 +386,53 @@ dp:
       create: false  # Specifies whether a service account should be created.
       annotations: {}  # Annotations to add to the service account.
       name: ""  # The name of the service account to use,If not set and create is true, a name is generated using the fullname template.
+
+  grafana:
+    enabled: false
+    nameOverride: ""
+    fullnameOverride: ""
+    name: grafana
+
+    adminUser: admin
+    adminPassword: admin
+
+    image:
+      repository: grafana/grafana
+      pullPolicy: IfNotPresent
+      tag: 8.5.5
+
+    imagePullSecrets: []
+
+    service:
+      port: 3000
+
+    serviceAccount:
+      create: false
+      annotations: {}
+      name: ""
+
+    podSecurityContext: {}
+
+    persistdata:
+      enabled: false
+
+    env: {}
+
+    datasources:
+      apiVersion: 1
+      datasources:
+        - id: 1
+          orgId: 1
+          name: Prometheus
+          type: prometheus
+          typeName: Prometheus
+          access: proxy
+          url: http://orc8r-prometheus:9090
+          password: ''
+          user: ''
+          database: ''
+          basicAuth: false
+          isDefault: true
+          jsonData:
+            httpMethod: POST
+          readOnly: false
