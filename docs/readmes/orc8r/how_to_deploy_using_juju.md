@@ -33,13 +33,16 @@ Follow this [guide](https://juju.is/docs/olm/microk8s) to deploy a Kubernetes cl
 microk8s and bootstrap a Juju controller.
 
 ### b) Google Cloud - GKE
+
 Follow this [guide](https://juju.is/docs/olm/google-kubernetes-engine-(gke)) to deploy a
 Kubernetes cluster using GKE and bootstrap a Juju controller.
 
 ### c) Amazon Web Services - EKS
+
 Follow this [guide](https://juju.is/docs/olm/amazon-elastic-kubernetes-service-(amazon-eks)#heading--install-the-juju-client) to deploy a Kubernetes cluster using EKS and bootstrap a Juju controller.
 
 ### d) Microsoft Azure - AKS
+
 Follow this [guide](<https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)>) to deploy a
 Kubernetes cluster using AKS and bootstrap a Juju controller.
 
@@ -84,6 +87,7 @@ juju run-action orc8r-orchestrator/0 create-orchestrator-admin-user
 ```
 
 ## 6. Setup DNS
+
 Using `kubectl`, retrieve the addresses associated to the following Kubernetes LoadBalancer
 services:
 
