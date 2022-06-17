@@ -42,14 +42,9 @@ using grpc::Status;
 namespace magma {
 using namespace feg;
 
-static bool read_hss_relay_enabled(void);
-
-static bool read_mme_cloud_subscriberdb_enabled(void);
-
-static const bool hss_relay_enabled = read_hss_relay_enabled();
-
-static const bool cloud_subscriberdb_enabled =
-    read_mme_cloud_subscriberdb_enabled();
+// initialize with -1: not yet calculated/cached
+static int hss_relay_enabled = -1;
+static int mme_cloud_subscriberdb_enabled = -1;
 
 // Relay enabled must be controlled by mconfigs in ONE place
 // and mme app should be restarted on the config changes.
@@ -58,11 +53,24 @@ static const bool cloud_subscriberdb_enabled =
 // and CONSTANT during the application's lifetime and can only be queried
 // (not changed)
 
-bool get_s6a_relay_enabled(void) { return hss_relay_enabled; }
+bool S6aClient::get_s6a_relay_enabled() {
+  if (hss_relay_enabled == -1) {
+    // cache result
+    hss_relay_enabled = (S6aClient::read_hss_relay_enabled() ? 1 : 0);
+  }
+  return hss_relay_enabled == 1;
+}
 
-bool get_cloud_subscriberdb_enabled(void) { return cloud_subscriberdb_enabled; }
+bool S6aClient::get_cloud_subscriberdb_enabled() {
+  if (mme_cloud_subscriberdb_enabled == -1) {
+    // cache result
+    mme_cloud_subscriberdb_enabled =
+        (S6aClient::read_mme_cloud_subscriberdb_enabled() ? 1 : 0);
+  }
+  return mme_cloud_subscriberdb_enabled == 1;
+}
 
-static bool read_hss_relay_enabled(void) {
+bool S6aClient::read_hss_relay_enabled() {
   magma::mconfig::MME mconfig;
 
   if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {
@@ -76,7 +84,7 @@ static bool read_hss_relay_enabled(void) {
   return mconfig.hss_relay_enabled();
 }
 
-static bool read_mme_cloud_subscriberdb_enabled(void) {
+bool S6aClient::read_mme_cloud_subscriberdb_enabled() {
   magma::mconfig::MME mconfig;
 
   if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {

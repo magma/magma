@@ -30,14 +30,14 @@ using magma::lte::M5GSUCIRegistrationAnswer;
 using magma::lte::M5GSUCIRegistrationRequest;
 
 namespace magma5g {
-M5GSUCIRegistrationRequest create_decrypt_imsi_request(
+M5GSUCIRegistrationRequest create_decrypt_msin_request(
     const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
     const std::string& ciphertext, const std::string& mac_tag);
 
 class M5GSUCIRegistrationServiceClient {
  public:
   virtual ~M5GSUCIRegistrationServiceClient() {}
-  virtual bool get_decrypt_imsi_info(const uint8_t ue_pubkey_identifier,
+  virtual bool get_decrypt_msin_info(const uint8_t ue_pubkey_identifier,
                                      const std::string& ue_pubkey,
                                      const std::string& ciphertext,
                                      const std::string& mac_tag,
@@ -48,7 +48,7 @@ class AsyncM5GSUCIRegistrationServiceClient
     : public GRPCReceiver,
       public M5GSUCIRegistrationServiceClient {
  public:
-  bool get_decrypt_imsi_info(const uint8_t ue_pubkey_identifier,
+  bool get_decrypt_msin_info(const uint8_t ue_pubkey_identifier,
                              const std::string& ue_pubkey,
                              const std::string& ciphertext,
                              const std::string& mac_tag,

@@ -19,6 +19,10 @@ else
 .DEFAULT_GOAL=local
 endif
 
+ifdef DP_METRICS
+APPEND_METRICS_PROFILE = ,metrics
+endif
+
 .PHONY: local
 local: init dev
 
@@ -32,13 +36,13 @@ integration_tests: init _ci_init cleanup_test_db
 orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: dev_integration_tests
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -81,7 +85,7 @@ clean:
 
 .PHONY: dev_orc8r
 dev_orc8r:
-	skaffold dev -p orc8r-deployment --trigger=manual
+	skaffold dev -p orc8r-deployment$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: dev
 dev:
@@ -161,7 +165,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
-	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
+	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,$(APPEND_METRICS_PROFILE)
 	kubectl logs test-runner-orc8r --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\

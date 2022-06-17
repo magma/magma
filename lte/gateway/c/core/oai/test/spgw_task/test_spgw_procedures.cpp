@@ -23,7 +23,6 @@ namespace magma {
 namespace lte {
 
 TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // create sample modify default bearer request
@@ -138,7 +137,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+  sgw_cm_get_eps_bearer_entry(
       &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
            .pdn_connection,
       DEFAULT_EPS_BEARER_ID);
