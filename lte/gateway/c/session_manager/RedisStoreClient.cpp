@@ -16,9 +16,7 @@
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/core/reply.hpp>
 #include <cpp_redis/misc/error.hpp>
-#include <folly/Range.h>
-#include <folly/dynamic.h>
-#include <folly/json.h>
+#include <nlohmann/json.hpp>
 #include <glog/logging.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -191,30 +189,29 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
 
 std::string RedisStoreClient::serialize_session_vec(
     SessionVector& session_vec) {
-  folly::dynamic marshaled = folly::dynamic::array;
+  nlohmann::json marshaled = nlohmann::json::array();
   for (auto& session_ptr : session_vec) {
     auto stored_session = session_ptr->marshal();
     marshaled.push_back(serialize_stored_session(stored_session));
   }
-  std::string serialized = folly::toJson(marshaled);
+  std::string serialized = marshaled.dump();
   return serialized;
 }
 
 SessionVector RedisStoreClient::deserialize_session_vec(
     std::string serialized) {
   SessionVector session_vec;
-  auto folly_serialized = folly::StringPiece(serialized);
   try {
-    folly::dynamic marshaled = folly::parseJson(folly_serialized);
+    nlohmann::json marshaled = nlohmann::json::parse(serialized);
     for (auto& it : marshaled) {
-      auto stored_session = deserialize_stored_session(it.getString());
+      auto stored_session = deserialize_stored_session(it.get<std::string>());
       session_vec.push_back(
           SessionState::unmarshal(stored_session, *rule_store_));
     }
   } catch (std::exception const& e) {
     // Very rare but we've seen a crash here
     MLOG(MERROR) << "Exception " << e.what()
-                 << " parsing serialized states as JSON " << folly_serialized;
+                 << " parsing serialized states as JSON " << serialized;
   }
   return session_vec;
 }

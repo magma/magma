@@ -13,7 +13,7 @@
 
 #include "lte/gateway/c/session_manager/SessionEvents.hpp"
 
-#include <folly/json.h>
+#include <nlohmann/json.hpp>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <stdint.h>
@@ -107,7 +107,7 @@ void EventsReporterImpl::session_created(
   event.set_event_type(SESSION_CREATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value = nlohmann::json::object();
   event_value[IMSI] = imsi;
   event_value[IP_ADDR] = session_context.common_context.ue_ipv4();
   event_value[IPV6_ADDR] = session_context.common_context.ue_ipv6();
@@ -124,7 +124,7 @@ void EventsReporterImpl::session_created(
   // CWF specific
   event_value[MAC_ADDR] = get_mac_addr(session_context);
 
-  std::string event_value_string = folly::toJson(event_value);
+  std::string event_value_string = event_value.dump();
   event.set_value(event_value_string);
 
   eventd_client_.log_event(event, [=](Status status, Void v) {
@@ -144,13 +144,13 @@ void EventsReporterImpl::session_create_failure(
   event.set_event_type(SESSION_CREATE_FAILURE_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value = nlohmann::json::object();
   event_value[IMSI] = imsi;
   event_value[APN] = session_context.common_context.apn();
   event_value[FAILURE_REASON] = failure_reason;
   event_value[MAC_ADDR] = get_mac_addr(session_context);
 
-  std::string event_value_string = folly::toJson(event_value);
+  std::string event_value_string = event_value.dump();
   event.set_value(event_value_string);
 
   eventd_client_.log_event(event, [=](Status status, Void v) {
@@ -172,7 +172,7 @@ void EventsReporterImpl::session_updated(const std::string& session_id,
   event.set_event_type(SESSION_UPDATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value = nlohmann::json::object();
   event_value[IMSI] = imsi;
   event_value[SESSION_ID] = session_id;
   event_value[IP_ADDR] = session_context.common_context.ue_ipv4();
@@ -181,7 +181,7 @@ void EventsReporterImpl::session_updated(const std::string& session_id,
   event_value[MAC_ADDR] = get_mac_addr(session_context);
   event_value[SERVICE_UPDATES] = get_update_summary(update_request);
 
-  std::string event_value_string = folly::toJson(event_value);
+  std::string event_value_string = event_value.dump();
   event.set_value(event_value_string);
 
   eventd_client_.log_event(event, [=](Status status, Void v) {
@@ -202,7 +202,7 @@ void EventsReporterImpl::session_update_failure(
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATE_FAILURE_EV);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value = nlohmann::json::object();
   event_value[IMSI] = imsi;
   event_value[SESSION_ID] = session_id;
   event_value[IP_ADDR] = session_context.common_context.ue_ipv4();
@@ -212,7 +212,7 @@ void EventsReporterImpl::session_update_failure(
   event_value[FAILURE_REASON] = failure_reason;
   event_value[SERVICE_UPDATES] = get_update_summary(failed_request);
 
-  std::string event_value_string = folly::toJson(event_value);
+  std::string event_value_string = event_value.dump();
   event.set_value(event_value_string);
 
   eventd_client_.log_event(event, [=](Status status, Void v) {
@@ -233,7 +233,7 @@ void EventsReporterImpl::session_terminated(
   event.set_event_type(SESSION_TERMINATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
+  nlohmann::json event_value = nlohmann::json::object();
   event_value[IMSI] = imsi;
   event_value[IP_ADDR] = session_cfg.common_context.ue_ipv4();
   event_value[IPV6_ADDR] = session_cfg.common_context.ue_ipv6();
@@ -267,9 +267,9 @@ void EventsReporterImpl::session_terminated(
 
   // Add Gy tracked credits
   auto credit_summaries = session->get_charging_credit_summaries();
-  folly::dynamic service_data_list = folly::dynamic::array;
+  nlohmann::json service_data_list = nlohmann::json::array();
   for (auto summary_pair : credit_summaries) {
-    folly::dynamic service_data = folly::dynamic::object;
+    nlohmann::json service_data = nlohmann::json::object();
     auto summary = summary_pair.second;
     service_data[RATING_GROUP] = summary_pair.first.rating_group;
     if (summary_pair.first.service_identifier) {
@@ -284,7 +284,7 @@ void EventsReporterImpl::session_terminated(
   }
   event_value[SERVICE_DATA] = service_data_list;
 
-  std::string event_value_string = folly::toJson(event_value);
+  std::string event_value_string = event_value.dump();
   event.set_value(event_value_string);
 
   eventd_client_.log_event(event, [=](Status status, Void v) {
@@ -296,11 +296,11 @@ void EventsReporterImpl::session_terminated(
   });
 }
 
-folly::dynamic EventsReporterImpl::get_update_summary(
+nlohmann::json EventsReporterImpl::get_update_summary(
     const UpdateRequests& updates) {
-  folly::dynamic update_array = folly::dynamic::array;
+  nlohmann::json update_array = nlohmann::json::array();
   for (const auto& charging : updates.charging_requests) {
-    folly::dynamic data = folly::dynamic::object;
+    nlohmann::json data = nlohmann::json::object();
     data[RATING_GROUP] = charging.usage().charging_key();
     if (charging.usage().has_service_identifier()) {
       data[SERVICE_IDENTIFIER] = charging.usage().service_identifier().value();
@@ -309,7 +309,7 @@ folly::dynamic EventsReporterImpl::get_update_summary(
     update_array.push_back(data);
   }
   for (const auto& monitor : updates.monitor_requests) {
-    folly::dynamic data = folly::dynamic::object;
+    nlohmann::json data = nlohmann::json::object();
     data[UPDATE_REASON] = event_trigger_to_str(monitor.event_trigger());
     if (monitor.has_update()) {
       data[MONITORING_KEY] = monitor.update().monitoring_key();

@@ -92,6 +92,7 @@ cc_library(
         "@cpp_redis",
         "@system_libraries//:libglog",
         "@yaml-cpp//:yaml-cpp",
+        "@github_nlohmann_json//:json",
     ],
 )
 
@@ -119,7 +120,7 @@ cc_library(
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/logging",
-        "@system_libraries//:folly",
+        "@github_nlohmann_json//:json",
         "@system_libraries//:libglog",
     ],
 )
@@ -299,6 +300,7 @@ cc_library(
         ":session_credit",
         ":session_state",
         "//orc8r/gateway/c/common/eventd:eventd_client",
+        "@github_nlohmann_json//:json",
     ],
 )
 
@@ -346,7 +348,10 @@ cc_library(
     name = "operational_states_handler",
     srcs = ["OperationalStatesHandler.cpp"],
     hdrs = ["OperationalStatesHandler.hpp"],
-    deps = [":session_store"],
+    deps = [
+        ":session_store",
+        "@github_nlohmann_json//:json",
+    ],
 )
 
 cc_library(
