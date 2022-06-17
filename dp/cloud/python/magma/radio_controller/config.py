@@ -23,6 +23,10 @@ class Config(object):
     """
     # General
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    SERVICE_HOSTNAME = os.environ.get('SERVICE_HOSTNAME', '')
+    METRICS_PROCESSING_INTERVAL_SEC = int(
+        os.environ.get('METRICS_PROCESSING_INTERVAL_SEC', 5),
+    )
 
     # gRPC
     GRPC_PORT = int(os.environ.get('GRPC_PORT', 50053))

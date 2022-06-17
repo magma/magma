@@ -43,6 +43,11 @@ from magma.db_service.models import (
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
 from magma.mappings.types import GrantStates
+from magma.radio_controller.metrics import (
+    ACKNOWLEDGE_UPDATE_PROCESSING_TIME,
+    DELETE_CBSD_PROCESSING_TIME,
+    GET_DB_STATE_PROCESSING_TIME,
+)
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import contains_eager, joinedload
 
@@ -57,6 +62,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
     def __init__(self, session_manager: SessionManager):
         self.session_manager = session_manager
 
+    @GET_DB_STATE_PROCESSING_TIME.time()
     def GetState(self, request: GetStateRequest, context) -> State:
         """
         Get Active Mode Database state from the Database
@@ -76,6 +82,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             logger.debug(f"Sending state: {state}")
             return state
 
+    @DELETE_CBSD_PROCESSING_TIME.time()
     def DeleteCbsd(self, request: DeleteCbsdRequest, context) -> Empty:
         """
         Delete CBSD from the Database
@@ -98,6 +105,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
                 context.set_code(grpc.StatusCode.NOT_FOUND)
         return Empty()
 
+    @ACKNOWLEDGE_UPDATE_PROCESSING_TIME.time()
     def AcknowledgeCbsdUpdate(self, request: AcknowledgeCbsdUpdateRequest, context) -> Empty:
         """
         Mark CBSD in the Database as not updated

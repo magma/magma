@@ -53,6 +53,7 @@ MAGMA_CLIENT_CERT_SERIAL_VALUE = '7ZZXAF7CAETF241KL22B8YRR7B5UF401'
 class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationTestCase):
     def setUp(self) -> None:
         self.serial_number = self._testMethodName + '_' + str(uuid4())
+        self.prometheus_url = f'http://{config.PROMETHEUS_SERVICE_HOST}:{config.PROMETHEUS_SERVICE_PORT}'
 
     def test_cbsd_sas_flow(self):
         builder = CbsdAPIDataBuilder() \
@@ -67,337 +68,339 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         with self.while_cbsd_is_active():
             self.then_provision_logs_are_sent()
 
+        self.then_metrics_are_in_prometheus()
+
         self.delete_cbsd(cbsd_id)
 
-    def test_cbsd_sas_single_step_flow(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
-            .with_single_step_enabled(True) \
-            .with_serial_number(self.serial_number)
-
-        self.given_single_step_cbsd_provisioned(builder)
-
-        with self.while_cbsd_is_active():
-            self.then_provision_logs_are_sent()
-
-    def test_cbsd_unregistered_when_requested_by_desired_state(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
-            .with_serial_number(self.serial_number)
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
-
-        with self.while_cbsd_is_active():
-            filters = get_filters_for_request_type('deregistration', self.serial_number)
-
-            builder = builder.with_desired_state(UNREGISTERED)
-            self.when_cbsd_is_updated_by_user(cbsd_id, builder.payload)
-
-            # TODO maybe asking for state (cbsd api instead of log api) would be better
-            self.then_message_is_eventually_sent(filters)
-
-    def test_cbsd_unregistered_when_enodebd_changes_coordinates(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_serial_number(self.serial_number) \
-            .with_full_installation_param() \
-            .with_cbsd_category("a")
-
-        self.given_single_step_cbsd_provisioned(builder)
-        with self.while_cbsd_is_active():
-            filters = get_filters_for_request_type('deregistration', self.serial_number)
-
-            update_request = EnodebdUpdateCbsdRequest(
-                serial_number=self.serial_number,
-                installation_param=InstallationParam(
-                    antenna_gain=DoubleValue(value=15),
-                    latitude_deg=DoubleValue(value=10.6),
-                    longitude_deg=DoubleValue(value=11.6),
-                    indoor_deployment=BoolValue(value=True),
-                    height_type=StringValue(value="agl"),
-                    height_m=DoubleValue(value=12.5),
-                ),
-                cbsd_category="a",
-            )
-
-            self.when_cbsd_is_updated_by_enodebd(update_request)
-            cbsd = self.when_cbsd_is_fetched(self.serial_number)
-            self.then_cbsd_is(cbsd, builder.with_latitude_deg(10.6).with_longitude_deg(11.6).payload)
-            self.then_message_is_eventually_sent(filters)
-
-    def test_cbsd_not_unregistered_when_coordinates_change_less_than_10_m(self):
-        builder = CbsdAPIDataBuilder()\
-            .with_single_step_enabled(True) \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_serial_number(self.serial_number) \
-            .with_full_installation_param() \
-            .with_cbsd_category("a")
-
-        self.given_single_step_cbsd_provisioned(builder)
-        with self.while_cbsd_is_active():
-            filters = get_filters_for_request_type('deregistration', self.serial_number)
-
-            update_request = EnodebdUpdateCbsdRequest(
-                serial_number=self.serial_number,
-                installation_param=InstallationParam(
-                    antenna_gain=DoubleValue(value=15),
-                    latitude_deg=DoubleValue(value=10.500001),
-                    longitude_deg=DoubleValue(value=11.5000001),
-                    indoor_deployment=BoolValue(value=True),
-                    height_type=StringValue(value="agl"),
-                    height_m=DoubleValue(value=12.5),
-                ),
-                cbsd_category="a",
-            )
-
-            self.when_cbsd_is_updated_by_enodebd(update_request)
-            cbsd = self.when_cbsd_is_fetched(self.serial_number)
-            self.then_cbsd_is(cbsd, builder.payload)
-            self.then_message_is_never_sent(filters)
-
-    def test_enodebd_update_cbsd(self) -> None:
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_serial_number(self.serial_number) \
-            .with_cbsd_category("b")
-        self.when_cbsd_is_created(builder.payload)
-        cbsd = self.when_cbsd_is_fetched(self.serial_number)
-        self.then_cbsd_is(
-            cbsd, builder.with_indoor_deployment(False).with_is_active(False).with_state(UNREGISTERED).payload,
-        )
-
-        req = EnodebdUpdateCbsdRequest(
-            serial_number=self.serial_number,
-            cbsd_category="a",
-            installation_param=InstallationParam(
-                latitude_deg=DoubleValue(value=10.5),
-                longitude_deg=DoubleValue(value=11.5),
-                height_m=DoubleValue(value=12.5),
-                height_type=StringValue(value="agl"),
-                indoor_deployment=BoolValue(value=True),
-                antenna_gain=DoubleValue(value=15),
-            ),
-        )
-        self.when_cbsd_is_updated_by_enodebd(req)
-        cbsd = self.when_cbsd_is_fetched(self.serial_number)
-        self.then_cbsd_is(cbsd, builder.with_cbsd_category("a").with_full_installation_param().payload)
-
-    def test_sas_flow_restarted_when_user_requested_deregistration(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_serial_number(self.serial_number)
-
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
-
-        with self.while_cbsd_is_active():
-            filters = get_filters_for_request_type('deregistration', self.serial_number)
-
-            self.when_cbsd_is_deregistered(cbsd_id)
-
-            self.then_message_is_eventually_sent(filters)
-
-            self.then_state_is_eventually(builder.build_grant_state_data())
-
-    def test_sas_flow_restarted_for_updated_cbsd(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_serial_number(self.serial_number)
-
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
-
-        with self.while_cbsd_is_active():
-            builder = builder.with_fcc_id(OTHER_FCC_ID)
-            self.when_cbsd_is_updated_by_user(cbsd_id, builder.payload)
-
-            filters = get_filters_for_request_type('deregistration', self.serial_number)
-            self.then_message_is_eventually_sent(filters)
-
-            self.then_state_is_eventually(builder.build_grant_state_data())
-
-            cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
-            self.then_cbsd_is(
-                cbsd,
-                builder
-                .with_expected_grant()
-                .with_cbsd_id(f"{OTHER_FCC_ID}/{self.serial_number}")
-                .with_is_active(True)
-                .payload,
-            )
-
-    def test_activity_status(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_serial_number(self.serial_number)
-        self.given_multi_step_cbsd_provisioned(builder)
-
-        cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
-        self.then_cbsd_is(cbsd, builder.with_grant().with_is_active(True).payload)
-
-        self.when_cbsd_is_inactive()
-        cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
-        del builder.payload["grant"]
-        self.then_cbsd_is(cbsd, builder.with_is_active(False).payload)
-
-    def test_frequency_preferences(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_serial_number(self.serial_number) \
-            .with_frequency_preferences(5, [3625]) \
-            .with_expected_grant(5, 3625, 31)
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
-
-    def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
-            .with_serial_number(self.serial_number)
-
-        self.when_cbsd_is_created(builder.payload)
-        self.when_cbsd_is_created(builder.payload, expected_status=HTTPStatus.CONFLICT)
-
-    def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_frequency_preferences()
-
-        cbsd1_serial = self.serial_number + "_foo"
-        cbsd2_serial = self.serial_number + "_bar"
-        self.when_cbsd_is_created(builder.with_serial_number(cbsd1_serial).payload)
-        self.when_cbsd_is_created(builder.with_serial_number(cbsd2_serial).payload)
-        cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
-        self.when_cbsd_is_updated_by_user(
-            cbsd_id=cbsd2.get("id"),
-            data=builder.with_serial_number(cbsd1_serial).payload,
-            expected_status=HTTPStatus.CONFLICT,
-        )
-
-    def test_fetch_cbsds_filtered_by_serial_number(self):
-        cbsd1_serial = self.serial_number + "_foo"
-        cbsd2_serial = self.serial_number + "_bar"
-
-        builder1 = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_frequency_preferences(). \
-            with_serial_number(cbsd1_serial)
-        builder2 = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_frequency_preferences(). \
-            with_serial_number(cbsd2_serial)
-
-        self.when_cbsd_is_created(builder1.payload)
-        self.when_cbsd_is_created(builder2.payload)
-
-        cbsd1 = self.when_cbsd_is_fetched(serial_number=cbsd1_serial)
-        cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
-
-        self.then_cbsd_is(
-            cbsd1,
-            builder1
-            .with_state(UNREGISTERED)
-            .with_indoor_deployment(False)
-            .with_is_active(False)
-            .payload,
-        )
-        self.then_cbsd_is(
-            cbsd2,
-            builder2
-            .with_state(UNREGISTERED)
-            .with_indoor_deployment(False)
-            .with_is_active(False)
-            .payload,
-        )
-
-    def test_fetching_logs_with_custom_filters(self):
-        builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain() \
-            .with_frequency_preferences() \
-            .with_serial_number(self.serial_number)
-
-        sas_to_dp_end_date_only = {
-            'serial_number': self.serial_number,
-            'from': SAS,
-            'to': DP,
-            'end': now(),
-        }
-        sas_to_dp_begin_date_only = {
-            'serial_number': self.serial_number,
-            'from': SAS,
-            'to': DP,
-            'begin': DATETIME_WAY_BACK,
-        }
-        sas_to_dp_end_date_too_early = {
-            'serial_number': self.serial_number,
-            'from': SAS,
-            'to': DP,
-            'end': DATETIME_WAY_BACK,
-        }
-        dp_to_sas = {
-            'serial_number': self.serial_number,
-            'from': DP,
-            'to': SAS,
-        }
-        dp_to_sas_incorrect_serial_number = {
-            'serial_number': 'incorrect_serial_number',
-            'from': DP,
-            'to': SAS,
-        }
-        sas_to_dp_with_limit = {
-            'limit': '100',
-            'from': SAS,
-            'to': DP,
-        }
-        sas_to_dp_with_limit_and_too_large_offset = {
-            'limit': '100',
-            'offset': '100',
-            'from': SAS,
-            'to': DP,
-        }
-        scenarios = [
-            (sas_to_dp_end_date_only, operator.eq, 0),
-            (sas_to_dp_begin_date_only, operator.gt, 3),
-            (sas_to_dp_end_date_too_early, operator.eq, 0),
-            (dp_to_sas, operator.gt, 0),
-            (dp_to_sas_incorrect_serial_number, operator.eq, 0),
-            (sas_to_dp_with_limit, operator.gt, 3),
-            (sas_to_dp_with_limit_and_too_large_offset, operator.eq, 0),
-        ]
-
-        self.given_multi_step_cbsd_provisioned(builder)
-        with self.while_cbsd_is_active():
-            self._verify_logs_count(scenarios)
+    # def test_cbsd_sas_single_step_flow(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain() \
+    #         .with_single_step_enabled(True) \
+    #         .with_serial_number(self.serial_number)
+    #
+    #     self.given_single_step_cbsd_provisioned(builder)
+    #
+    #     with self.while_cbsd_is_active():
+    #         self.then_provision_logs_are_sent()
+    #
+    # def test_cbsd_unregistered_when_requested_by_desired_state(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain() \
+    #         .with_serial_number(self.serial_number)
+    #     cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
+    #
+    #     with self.while_cbsd_is_active():
+    #         filters = get_filters_for_request_type('deregistration', self.serial_number)
+    #
+    #         builder = builder.with_desired_state(UNREGISTERED)
+    #         self.when_cbsd_is_updated_by_user(cbsd_id, builder.payload)
+    #
+    #         # TODO maybe asking for state (cbsd api instead of log api) would be better
+    #         self.then_message_is_eventually_sent(filters)
+    #
+    # def test_cbsd_unregistered_when_enodebd_changes_coordinates(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_serial_number(self.serial_number) \
+    #         .with_full_installation_param() \
+    #         .with_cbsd_category("a")
+    #
+    #     self.given_single_step_cbsd_provisioned(builder)
+    #     with self.while_cbsd_is_active():
+    #         filters = get_filters_for_request_type('deregistration', self.serial_number)
+    #
+    #         update_request = EnodebdUpdateCbsdRequest(
+    #             serial_number=self.serial_number,
+    #             installation_param=InstallationParam(
+    #                 antenna_gain=DoubleValue(value=15),
+    #                 latitude_deg=DoubleValue(value=10.6),
+    #                 longitude_deg=DoubleValue(value=11.6),
+    #                 indoor_deployment=BoolValue(value=True),
+    #                 height_type=StringValue(value="agl"),
+    #                 height_m=DoubleValue(value=12.5),
+    #             ),
+    #             cbsd_category="a",
+    #         )
+    #
+    #         self.when_cbsd_is_updated_by_enodebd(update_request)
+    #         cbsd = self.when_cbsd_is_fetched(self.serial_number)
+    #         self.then_cbsd_is(cbsd, builder.with_latitude_deg(10.6).with_longitude_deg(11.6).payload)
+    #         self.then_message_is_eventually_sent(filters)
+    #
+    # def test_cbsd_not_unregistered_when_coordinates_change_less_than_10_m(self):
+    #     builder = CbsdAPIDataBuilder()\
+    #         .with_single_step_enabled(True) \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_serial_number(self.serial_number) \
+    #         .with_full_installation_param() \
+    #         .with_cbsd_category("a")
+    #
+    #     self.given_single_step_cbsd_provisioned(builder)
+    #     with self.while_cbsd_is_active():
+    #         filters = get_filters_for_request_type('deregistration', self.serial_number)
+    #
+    #         update_request = EnodebdUpdateCbsdRequest(
+    #             serial_number=self.serial_number,
+    #             installation_param=InstallationParam(
+    #                 antenna_gain=DoubleValue(value=15),
+    #                 latitude_deg=DoubleValue(value=10.500001),
+    #                 longitude_deg=DoubleValue(value=11.5000001),
+    #                 indoor_deployment=BoolValue(value=True),
+    #                 height_type=StringValue(value="agl"),
+    #                 height_m=DoubleValue(value=12.5),
+    #             ),
+    #             cbsd_category="a",
+    #         )
+    #
+    #         self.when_cbsd_is_updated_by_enodebd(update_request)
+    #         cbsd = self.when_cbsd_is_fetched(self.serial_number)
+    #         self.then_cbsd_is(cbsd, builder.payload)
+    #         self.then_message_is_never_sent(filters)
+    #
+    # def test_enodebd_update_cbsd(self) -> None:
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_serial_number(self.serial_number) \
+    #         .with_cbsd_category("b")
+    #     self.when_cbsd_is_created(builder.payload)
+    #     cbsd = self.when_cbsd_is_fetched(self.serial_number)
+    #     self.then_cbsd_is(
+    #         cbsd, builder.with_indoor_deployment(False).with_is_active(False).with_state(UNREGISTERED).payload,
+    #     )
+    #
+    #     req = EnodebdUpdateCbsdRequest(
+    #         serial_number=self.serial_number,
+    #         cbsd_category="a",
+    #         installation_param=InstallationParam(
+    #             latitude_deg=DoubleValue(value=10.5),
+    #             longitude_deg=DoubleValue(value=11.5),
+    #             height_m=DoubleValue(value=12.5),
+    #             height_type=StringValue(value="agl"),
+    #             indoor_deployment=BoolValue(value=True),
+    #             antenna_gain=DoubleValue(value=15),
+    #         ),
+    #     )
+    #     self.when_cbsd_is_updated_by_enodebd(req)
+    #     cbsd = self.when_cbsd_is_fetched(self.serial_number)
+    #     self.then_cbsd_is(cbsd, builder.with_cbsd_category("a").with_full_installation_param().payload)
+    #
+    # def test_sas_flow_restarted_when_user_requested_deregistration(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_serial_number(self.serial_number)
+    #
+    #     cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
+    #
+    #     with self.while_cbsd_is_active():
+    #         filters = get_filters_for_request_type('deregistration', self.serial_number)
+    #
+    #         self.when_cbsd_is_deregistered(cbsd_id)
+    #
+    #         self.then_message_is_eventually_sent(filters)
+    #
+    #         self.then_state_is_eventually(builder.build_grant_state_data())
+    #
+    # def test_sas_flow_restarted_for_updated_cbsd(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_serial_number(self.serial_number)
+    #
+    #     cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
+    #
+    #     with self.while_cbsd_is_active():
+    #         builder = builder.with_fcc_id(OTHER_FCC_ID)
+    #         self.when_cbsd_is_updated_by_user(cbsd_id, builder.payload)
+    #
+    #         filters = get_filters_for_request_type('deregistration', self.serial_number)
+    #         self.then_message_is_eventually_sent(filters)
+    #
+    #         self.then_state_is_eventually(builder.build_grant_state_data())
+    #
+    #         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
+    #         self.then_cbsd_is(
+    #             cbsd,
+    #             builder
+    #             .with_expected_grant()
+    #             .with_cbsd_id(f"{OTHER_FCC_ID}/{self.serial_number}")
+    #             .with_is_active(True)
+    #             .payload,
+    #         )
+    #
+    # def test_activity_status(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_serial_number(self.serial_number)
+    #     self.given_multi_step_cbsd_provisioned(builder)
+    #
+    #     cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
+    #     self.then_cbsd_is(cbsd, builder.with_grant().with_is_active(True).payload)
+    #
+    #     self.when_cbsd_is_inactive()
+    #     cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
+    #     del builder.payload["grant"]
+    #     self.then_cbsd_is(cbsd, builder.with_is_active(False).payload)
+    #
+    # def test_frequency_preferences(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_serial_number(self.serial_number) \
+    #         .with_frequency_preferences(5, [3625]) \
+    #         .with_expected_grant(5, 3625, 31)
+    #     cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
+    #
+    # def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_frequency_preferences() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain() \
+    #         .with_serial_number(self.serial_number)
+    #
+    #     self.when_cbsd_is_created(builder.payload)
+    #     self.when_cbsd_is_created(builder.payload, expected_status=HTTPStatus.CONFLICT)
+    #
+    # def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_frequency_preferences()
+    #
+    #     cbsd1_serial = self.serial_number + "_foo"
+    #     cbsd2_serial = self.serial_number + "_bar"
+    #     self.when_cbsd_is_created(builder.with_serial_number(cbsd1_serial).payload)
+    #     self.when_cbsd_is_created(builder.with_serial_number(cbsd2_serial).payload)
+    #     cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
+    #     self.when_cbsd_is_updated_by_user(
+    #         cbsd_id=cbsd2.get("id"),
+    #         data=builder.with_serial_number(cbsd1_serial).payload,
+    #         expected_status=HTTPStatus.CONFLICT,
+    #     )
+    #
+    # def test_fetch_cbsds_filtered_by_serial_number(self):
+    #     cbsd1_serial = self.serial_number + "_foo"
+    #     cbsd2_serial = self.serial_number + "_bar"
+    #
+    #     builder1 = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_frequency_preferences(). \
+    #         with_serial_number(cbsd1_serial)
+    #     builder2 = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain(15) \
+    #         .with_frequency_preferences(). \
+    #         with_serial_number(cbsd2_serial)
+    #
+    #     self.when_cbsd_is_created(builder1.payload)
+    #     self.when_cbsd_is_created(builder2.payload)
+    #
+    #     cbsd1 = self.when_cbsd_is_fetched(serial_number=cbsd1_serial)
+    #     cbsd2 = self.when_cbsd_is_fetched(serial_number=cbsd2_serial)
+    #
+    #     self.then_cbsd_is(
+    #         cbsd1,
+    #         builder1
+    #         .with_state(UNREGISTERED)
+    #         .with_indoor_deployment(False)
+    #         .with_is_active(False)
+    #         .payload,
+    #     )
+    #     self.then_cbsd_is(
+    #         cbsd2,
+    #         builder2
+    #         .with_state(UNREGISTERED)
+    #         .with_indoor_deployment(False)
+    #         .with_is_active(False)
+    #         .payload,
+    #     )
+    #
+    # def test_fetching_logs_with_custom_filters(self):
+    #     builder = CbsdAPIDataBuilder() \
+    #         .with_capabilities() \
+    #         .with_desired_state() \
+    #         .with_antenna_gain() \
+    #         .with_frequency_preferences() \
+    #         .with_serial_number(self.serial_number)
+    #
+    #     sas_to_dp_end_date_only = {
+    #         'serial_number': self.serial_number,
+    #         'from': SAS,
+    #         'to': DP,
+    #         'end': now(),
+    #     }
+    #     sas_to_dp_begin_date_only = {
+    #         'serial_number': self.serial_number,
+    #         'from': SAS,
+    #         'to': DP,
+    #         'begin': DATETIME_WAY_BACK,
+    #     }
+    #     sas_to_dp_end_date_too_early = {
+    #         'serial_number': self.serial_number,
+    #         'from': SAS,
+    #         'to': DP,
+    #         'end': DATETIME_WAY_BACK,
+    #     }
+    #     dp_to_sas = {
+    #         'serial_number': self.serial_number,
+    #         'from': DP,
+    #         'to': SAS,
+    #     }
+    #     dp_to_sas_incorrect_serial_number = {
+    #         'serial_number': 'incorrect_serial_number',
+    #         'from': DP,
+    #         'to': SAS,
+    #     }
+    #     sas_to_dp_with_limit = {
+    #         'limit': '100',
+    #         'from': SAS,
+    #         'to': DP,
+    #     }
+    #     sas_to_dp_with_limit_and_too_large_offset = {
+    #         'limit': '100',
+    #         'offset': '100',
+    #         'from': SAS,
+    #         'to': DP,
+    #     }
+    #     scenarios = [
+    #         (sas_to_dp_end_date_only, operator.eq, 0),
+    #         (sas_to_dp_begin_date_only, operator.gt, 3),
+    #         (sas_to_dp_end_date_too_early, operator.eq, 0),
+    #         (dp_to_sas, operator.gt, 0),
+    #         (dp_to_sas_incorrect_serial_number, operator.eq, 0),
+    #         (sas_to_dp_with_limit, operator.gt, 3),
+    #         (sas_to_dp_with_limit_and_too_large_offset, operator.eq, 0),
+    #     ]
+    #
+    #     self.given_multi_step_cbsd_provisioned(builder)
+    #     with self.while_cbsd_is_active():
+    #         self._verify_logs_count(scenarios)
 
     def given_single_step_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
         self.when_cbsd_is_created(builder.payload)
@@ -431,6 +434,31 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         cbsd = self._check_cbsd_successfully_provisioned(builder)
 
         return cbsd['id']
+
+    def then_metrics_are_in_prometheus(self):
+        metrics = [
+            'dp_rc_grpc_request_processing_seconds_bucket',
+            'dp_rc_grpc_request_processing_seconds_count',
+            'dp_rc_grpc_request_processing_seconds_sum',
+            'dp_cc_pending_requests_fetching_seconds_bucket',
+            'dp_cc_pending_requests_fetching_seconds_count',
+            'dp_cc_pending_requests_fetching_seconds_sum',
+            'dp_cc_request_processing_seconds_bucket',
+            'dp_cc_request_processing_seconds_count',
+            'dp_cc_request_processing_seconds_sum',
+            'dp_cc_response_processing_seconds_bucket',
+            'dp_cc_response_processing_seconds_count',
+            'dp_cc_response_processing_seconds_sum',
+        ]
+        import pdb
+        pdb.set_trace()
+        for m in metrics:
+            resp = requests.get(self.prometheus_url + '/api/v1/query', params={'query': m})
+            data = resp.json().get('data')
+            self.assertIsNotNone(data)
+            result = data.get('result')
+            self.assertIsNotNone(result)
+            self.assertGreater(len(result), 0)
 
     def given_multi_step_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
         self.when_cbsd_is_created(builder.payload)
