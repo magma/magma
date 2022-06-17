@@ -16,12 +16,12 @@ package uesim_test
 import (
 	"testing"
 
+	"github.com/magma/milenage"
+	"github.com/stretchr/testify/assert"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/services/uesim"
 	"magma/cwf/gateway/services/uesim/test_init"
-	"magma/lte/cloud/go/crypto"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // todo use a config
@@ -33,7 +33,7 @@ func TestUESimClient(t *testing.T) {
 	test_init.StartTestService(t)
 	imsi := "001010000000001"
 	key := make([]byte, 16)
-	opc, err := crypto.GenerateOpc(key, []byte(Op))
+	opc, err := milenage.GenerateOpc(key, []byte(Op))
 	assert.NoError(t, err)
 	seq := uint64(0)
 

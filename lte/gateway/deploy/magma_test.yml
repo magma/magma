@@ -11,7 +11,7 @@
   roles:
     - role: apt_cache
       vars:
-        distribution: "stretch"
+        distribution: "focal"
         oai_build: "{{ c_build }}/core/oai"
         repo: "dev"
     - role: pkgrepo

@@ -20,7 +20,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	"magma/orc8r/cloud/go/sqorc"
 )
@@ -67,18 +66,18 @@ func MigrateNetworkAgnosticServiceToBlobstore(nid, typ, oldTable, newTable strin
 	dbSource := GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")
 	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "could not open db connection"))
+		glog.Fatal(fmt.Errorf("could not open db connection: %w", err))
 	}
 
 	// Set up transaction
 	tx, err := db.BeginTx(context.Background(), &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
-		glog.Fatal(errors.Wrap(err, "error opening tx"))
+		glog.Fatal(fmt.Errorf("error opening tx: %w", err))
 	}
 	defer func() {
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				glog.Errorf("tx failed to rollback: %s", err)
+				glog.Errorf("tx failed to rollback: %s", rollbackErr)
 			}
 			glog.Fatal(err)
 		}
@@ -100,7 +99,7 @@ func MigrateNetworkAgnosticServiceToBlobstore(nid, typ, oldTable, newTable strin
 		Column(deletedCol).Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn()
 	_, err = ob.RunWith(tx).Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create old table")
+		err = fmt.Errorf("failed to create old table: %w", err)
 		return
 	}
 
@@ -108,7 +107,7 @@ func MigrateNetworkAgnosticServiceToBlobstore(nid, typ, oldTable, newTable strin
 	query := fmt.Sprintf("DROP TABLE IF EXISTS %s", newTable)
 	_, err = tx.Exec(query)
 	if err != nil {
-		err = errors.Wrap(err, "failed to drop new table")
+		err = fmt.Errorf("failed to drop new table: %w", err)
 		return
 	}
 
@@ -122,7 +121,7 @@ func MigrateNetworkAgnosticServiceToBlobstore(nid, typ, oldTable, newTable strin
 		PrimaryKey(nidCol, typeCol, keyCol)
 	_, err = nb.RunWith(tx).Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to create new table")
+		err = fmt.Errorf("failed to create new table: %w", err)
 		return
 	}
 
@@ -141,7 +140,7 @@ func MigrateNetworkAgnosticServiceToBlobstore(nid, typ, oldTable, newTable strin
 	glog.Info("[RUN] ", sqlStr)
 	_, err = ib.RunWith(tx).Exec()
 	if err != nil {
-		err = errors.Wrap(err, "failed to insert")
+		err = fmt.Errorf("failed to insert: %w", err)
 		return
 	}
 }

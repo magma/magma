@@ -14,8 +14,9 @@
 package parallel
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -46,7 +47,7 @@ func MapInToString(inputs []In, nWorkers int, f Func) ([]string, error) {
 	for _, s := range outsI {
 		ss, ok := s.(string)
 		if !ok {
-			return nil, errors.Errorf("could not convert returned item of type '%T' to string: '%+v'", s, s)
+			return nil, fmt.Errorf("could not convert returned item of type '%T' to string: '%+v'", s, s)
 		}
 		outs = append(outs, ss)
 	}

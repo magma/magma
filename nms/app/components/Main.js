@@ -14,7 +14,6 @@
  * @format
  */
 
-import ApplicationMain from './ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
 import IndexWithoutNetwork from './IndexWithoutNetwork';
@@ -23,33 +22,29 @@ import NetworkError from './main/NetworkError';
 import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';
 import {AppContextProvider} from './context/AppContext';
-import {Navigate, Route, Routes, useParams} from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
 
+import LoadingFiller from './LoadingFiller';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {sortBy} from 'lodash';
 
-function Main() {
+export const NO_NETWORK_MESSAGE =
+  'You currently do not have access to any networks. Please contact your system administrator to be added';
+
+function Nms({networkIds}: {networkIds: Array<string>}) {
   const {networkId} = useParams();
-  const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
-
-  const networkIds = sortBy(response, [n => n.toLowerCase()]) || ['mpk_test'];
-
-  if (error) {
-    return (
-      <AppContextProvider>
-        <ErrorLayout>
-          <NetworkError error={error} />
-        </ErrorLayout>
-      </AppContextProvider>
-    );
-  }
 
   if (networkIds.length > 0 && !networkId) {
     return <Navigate to={`/nms/${networkIds[0]}`} replace />;
   }
 
-  const hasNoNetworks =
-    response && networkIds.length === 0 && !ROOT_PATHS.has(networkId);
+  const hasNoNetworks = networkIds.length === 0 && !ROOT_PATHS.has(networkId);
 
   // If it's a superuser and there are no networks, prompt them to create a
   // network
@@ -63,10 +58,7 @@ function Main() {
     return (
       <AppContextProvider>
         <ErrorLayout>
-          <NoNetworksMessage>
-            You currently do not have access to any networks. Please contact
-            your system administrator to be added
-          </NoNetworksMessage>
+          <NoNetworksMessage>{NO_NETWORK_MESSAGE}</NoNetworksMessage>
         </ErrorLayout>
       </AppContextProvider>
     );
@@ -79,7 +71,14 @@ function Main() {
   );
 }
 
-function NoNetworkFallback() {
+function NoNetworkFallback({networkIds}: {networkIds: Array<string>}) {
+  const location = useLocation();
+  if (networkIds.length > 0) {
+    return (
+      <Navigate to={`/nms/${networkIds[0]}${location.pathname}`} replace />
+    );
+  }
+
   return (
     <AppContextProvider>
       <IndexWithoutNetwork />
@@ -87,12 +86,33 @@ function NoNetworkFallback() {
   );
 }
 
-export default () => (
-  <ApplicationMain>
+export default () => {
+  const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
+  const networkIds = sortBy(response, [n => n.toLowerCase()]);
+
+  if (error) {
+    return (
+      <AppContextProvider>
+        <ErrorLayout>
+          <NetworkError error={error} />
+        </ErrorLayout>
+      </AppContextProvider>
+    );
+  }
+
+  return !response ? (
+    <LoadingFiller />
+  ) : (
     <Routes>
-      <Route path="/nms/:networkId/*" element={<Main />} />
-      <Route path="/nms" element={<Main />} />
-      <Route path="/*" element={<NoNetworkFallback />} />
+      <Route
+        path="/nms/:networkId/*"
+        element={<Nms networkIds={networkIds} />}
+      />
+      <Route path="/nms" element={<Nms networkIds={networkIds} />} />
+      <Route
+        path="/*"
+        element={<NoNetworkFallback networkIds={networkIds} />}
+      />
     </Routes>
-  </ApplicationMain>
-);
+  );
+};

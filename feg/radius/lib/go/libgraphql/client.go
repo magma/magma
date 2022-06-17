@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -85,7 +84,7 @@ func (c *Client) Do(op Op) error {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return errors.Errorf("libgraphql: invalid status code: %s", res.Status)
+		return fmt.Errorf("libgraphql: invalid status code: %s", res.Status)
 	}
 	if err := json.NewDecoder(res.Body).Decode(op); err != nil {
 		return err

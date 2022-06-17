@@ -55,6 +55,10 @@ type Cbsd struct {
 	// Required: true
 	ID int64 `json:"id"`
 
+	// installation param
+	// Required: true
+	InstallationParam InstallationParam `json:"installation_param"`
+
 	// false if cbsd have not contacted DP for certain amount of time
 	// Required: true
 	IsActive bool `json:"is_active"`
@@ -110,6 +114,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateInstallationParam(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -294,6 +302,20 @@ func (m *Cbsd) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Cbsd) validateInstallationParam(formats strfmt.Registry) error {
+
+	if err := m.InstallationParam.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (m *Cbsd) validateIsActive(formats strfmt.Registry) error {
 
 	if err := validate.Required("is_active", "body", bool(m.IsActive)); err != nil {
@@ -397,6 +419,10 @@ func (m *Cbsd) ContextValidate(ctx context.Context, formats strfmt.Registry) err
 		res = append(res, err)
 	}
 
+	if err := m.contextValidateInstallationParam(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
@@ -442,6 +468,20 @@ func (m *Cbsd) contextValidateGrant(ctx context.Context, formats strfmt.Registry
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateInstallationParam(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.InstallationParam.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
+		}
+		return err
 	}
 
 	return nil

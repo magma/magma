@@ -114,5 +114,6 @@ func buildQuery(builder sq.StatementBuilderType, q *Query, filter sq.Sqlizer, co
 		Select(columns...).
 		From(buildFrom(q.arg)).
 		JoinClause(&joinClause{query: q}).
-		Where(filter)
+		Where(filter).
+		Suffix(q.arg.lock)
 }

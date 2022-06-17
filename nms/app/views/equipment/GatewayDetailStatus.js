@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+
 import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
@@ -20,9 +21,9 @@ import GatewayContext from '../../components/context/GatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
-import isGatewayHealthy, {DynamicServices} from '../../components/GatewayUtils';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
+import {DynamicServices} from '../../components/GatewayUtils';
 
 import {
   REFRESH_INTERVAL,
@@ -79,17 +80,16 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
     !!gwInfo.magmad.dynamic_services &&
     gwInfo.magmad.dynamic_services.includes(DynamicServices.MONITORD);
 
-  const isHealthy = isGatewayHealthy(gwInfo);
   const data: DataRows[] = [
     [
       {
         category: 'Health',
-        value: isHealthy ? 'Good' : 'Bad',
+        value: gwInfo.checked_in_recently ? 'Good' : 'Bad',
         statusCircle: true,
-        status: isGatewayHealthy(gwInfo),
-        tooltip: isHealthy
+        status: gwInfo.checked_in_recently,
+        tooltip: gwInfo.checked_in_recently
           ? 'Gateway checked in recently'
-          : "Gateway hasn't checked in within last 5 minutes",
+          : 'Gateway has not checked in recently',
       },
       {
         category: 'Last Check in',

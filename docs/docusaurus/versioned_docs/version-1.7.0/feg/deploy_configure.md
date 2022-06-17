@@ -194,3 +194,11 @@ APN will only be applied for the Gx interactions, as the config for Gy is empty.
 environment:
     MAGMA_PRINT_GRPC_PAYLOAD: 1
 ```
+
+Use 2 if you want to remove verbose messages like metrics
+(this also works on Orc8r).
+
+```yaml
+environment:
+    MAGMA_PRINT_GRPC_PAYLOAD: 2
+```

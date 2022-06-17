@@ -29,7 +29,6 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
@@ -177,7 +176,7 @@ func MakeProtoStates(states SerializedStatesByID) ([]*protos.State, error) {
 func MakeProtoState(id ID, st SerializedState) (*protos.State, error) {
 	bytes, err := json.Marshal(st)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal to json-encoded state proto value")
+		return nil, fmt.Errorf("failed to marshal to json-encoded state proto value: %w", err)
 	}
 	p := &protos.State{Type: id.Type, DeviceID: id.DeviceID, Value: bytes, Version: st.Version}
 	return p, nil
@@ -203,7 +202,7 @@ func MakeSerializedState(p *protos.State) (SerializedState, error) {
 	serialized := SerializedState{}
 	err := json.Unmarshal(p.Value, &serialized)
 	if err != nil {
-		return SerializedState{}, errors.Wrap(err, "error unmarshaling json-encoded state proto value")
+		return SerializedState{}, fmt.Errorf("error unmarshaling json-encoded state proto value: %w", err)
 	}
 	return serialized, nil
 }
@@ -254,13 +253,13 @@ func MakeState(p *protos.State, serdes serde.Registry) (State, *protos.IDAndErro
 	}
 
 	if st.ReportedState == nil {
-		err = errors.Errorf("state {type: %s, key: %s} should not have nil SerializedReportedState value", p.Type, p.DeviceID)
+		err = fmt.Errorf("state {type: %s, key: %s} should not have nil SerializedReportedState value", p.Type, p.DeviceID)
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}
 	model, ok := st.ReportedState.(serde.ValidateableBinaryConvertible)
 	if !ok {
-		err = errors.Errorf("could not convert state {type: %s, key: %s} to validateable model", p.Type, p.DeviceID)
+		err = fmt.Errorf("could not convert state {type: %s, key: %s} to validateable model", p.Type, p.DeviceID)
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}

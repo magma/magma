@@ -177,6 +177,7 @@ void UpfMsgManageHandler::SendPagingRequest(
         if (!status.ok()) {
           MLOG(MERROR) << "Subscriber could not be found for ip ";
         }
+        PrintGrpcMessage(static_cast<const google::protobuf::Message&>(sid));
         std::string imsi = prepend_imsi_with_prefix(sid.id());
         get_session_from_imsi(imsi, fte_id, response_callback);
         return;

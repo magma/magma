@@ -37,7 +37,11 @@ from magma.enodebd.device_config.enodeb_config_postprocessor import (
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.dp_client import get_cbsd_state
+from magma.enodebd.dp_client import (
+    build_enodebd_update_cbsd_request,
+    enodebd_update_cbsd,
+    get_cbsd_state,
+)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
 from magma.enodebd.state_machines.acs_state_utils import (
@@ -1425,6 +1429,17 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         ff_one_update_desired_config_from_cbsd_state(
             state, self.acs.desired_cfg,
         )
+        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+            serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
+            longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
+            indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
+            antenna_height=None,
+            antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
+            antenna_gain=str(ANTENNA_GAIN_DBI),
+            cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
+        )
+        enodebd_update_cbsd(enodebd_update_cbsd_request)
 
 
 def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config: EnodebConfiguration) -> None:

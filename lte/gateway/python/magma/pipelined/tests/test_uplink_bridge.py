@@ -15,6 +15,7 @@ import subprocess
 import unittest
 import warnings
 from concurrent.futures import Future
+from typing import Optional
 
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
@@ -987,17 +988,18 @@ def check_connectivity_v6(dst: str):
         logging.warning("Error while ping: %s", e)
 
 
-def validate_routing_table(dst: str, dev_name: str) -> str:
+def validate_routing_table(dst: str, dev_name: str) -> Optional[str]:
     dump1 = subprocess.Popen(
         ["ip", "r", "get", dst],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for line in dump1.stdout.readlines():
         if "dev" not in str(line):
             continue
         try:
             if dev_name in str(line):
-                return
+                return None
         except ValueError:
             pass
     logging.error("could not find route to %s via %s", dst, dev_name)
@@ -1005,6 +1007,7 @@ def validate_routing_table(dst: str, dev_name: str) -> str:
         ["ovs-ofctl", "dump-flows", dev_name],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for line in dump1.stdout.readlines():
         print("pbs: %s", line)
     assert 0

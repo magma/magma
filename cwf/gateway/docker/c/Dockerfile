@@ -15,8 +15,7 @@
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
 
-# ubuntu bionic image
-ARG OS_DIST=ubuntu OS_RELEASE=bionic EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
+ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
@@ -33,7 +32,7 @@ RUN apt-get update && \
 # Add the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
+    apt-add-repository "deb ${EXTRA_REPO} focal-ci main"
 
 # Install dependencies required for building
 RUN apt-get -y update && apt-get -y install \
@@ -57,7 +56,8 @@ RUN apt-get -y update && apt-get -y install \
   libboost-context-dev \
   libboost-program-options-dev \
   libboost-filesystem-dev \
-  libboost-regex-dev
+  libboost-regex-dev \
+  python3-distutils
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
@@ -104,7 +104,6 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libicui18n.* /usr/lib/x86_64-linux
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libicuuc.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libicudata.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libssl* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/openssl* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcrypto* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libunwind* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/local/lib/libfolly.so /usr/local/lib/

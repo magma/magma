@@ -14,12 +14,13 @@
 package state
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func InternalErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
+	e := fmt.Errorf(wrap+": %w", err)
 	return status.Error(codes.Internal, e.Error())
 }

@@ -28,3 +28,19 @@ python_grpc_library(
     name = "enodebd_dp_python_grpc",
     protos = [":enodebd_dp_proto"],
 )
+
+proto_library(
+    name = "cbsd_proto",
+    srcs = ["cbsd.proto"],
+    deps = ["@com_google_protobuf//:wrappers_proto"],
+)
+
+python_proto_library(
+    name = "cbsd_python_proto",
+    protos = [":cbsd_proto"],
+)
+
+python_grpc_library(
+    name = "cbsd_python_grpc",
+    protos = [":cbsd_proto"],
+)

@@ -45,9 +45,7 @@ func main() {
 
 	// Register services
 	protos.RegisterS8ProxyServer(srv.GrpcServer, servicer)
-
-	// TODO: Add health servicer
-	//protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
+	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 
 	// Run the service
 	err = srv.Run()

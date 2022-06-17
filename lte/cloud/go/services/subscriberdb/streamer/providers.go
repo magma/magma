@@ -15,11 +15,11 @@ package streamer
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -38,7 +38,7 @@ type SubscribersProvider struct{}
 func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	magmadGateway, err := configurator.LoadEntityForPhysicalID(ctx, gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	if err != nil {
-		return nil, errors.Wrapf(err, "load magmad gateway for physical ID %s", gatewayId)
+		return nil, fmt.Errorf("load magmad gateway for physical ID %s: %w", gatewayId, err)
 	}
 	gateway, err := configurator.LoadEntity(
 		ctx,
@@ -47,7 +47,7 @@ func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, 
 		serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "load cellular gateway from magmad gateway %s", magmadGateway.Key)
+		return nil, fmt.Errorf("load cellular gateway from magmad gateway %s: %w", magmadGateway.Key, err)
 	}
 	subEnts, _, err := configurator.LoadAllEntitiesOfType(
 		ctx,
@@ -56,7 +56,7 @@ func (p *SubscribersProvider) GetUpdates(ctx context.Context, gatewayId string, 
 		serdes.Entity,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "load all subscribers in network of gateway %s", gateway.Key)
+		return nil, fmt.Errorf("load all subscribers in network of gateway %s: %w", gateway.Key, err)
 	}
 	apnsByName, apnResourcesByAPN, err := loadAPNs(ctx, gateway)
 	if err != nil {

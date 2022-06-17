@@ -52,6 +52,10 @@ spec:
             - name: {{ $key }}
               value: {{ $value }}
             {{- end }}
+            - name: SERVICE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           {{- if .Values.dp.radio_controller.livenessProbe }}
           livenessProbe:
             {{- toYaml .Values.dp.radio_controller.livenessProbe | nindent 12 }}

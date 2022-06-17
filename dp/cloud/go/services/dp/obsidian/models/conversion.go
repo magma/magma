@@ -28,7 +28,6 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 		SingleStepEnabled: *m.SingleStepEnabled,
 		CbsdCategory:      m.CbsdCategory,
 		Capabilities: &protos.Capabilities{
-			AntennaGain:      *m.Capabilities.AntennaGain,
 			MaxPower:         *m.Capabilities.MaxPower,
 			MinPower:         *m.Capabilities.MinPower,
 			NumberOfAntennas: m.Capabilities.NumberOfAntennas,
@@ -38,13 +37,15 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 			FrequenciesMhz: m.FrequencyPreferences.FrequenciesMhz,
 		},
 		DesiredState: m.DesiredState,
+		InstallationParam: &protos.InstallationParam{
+			AntennaGain: to_pointer.FloatToDoubleValue(m.InstallationParam.AntennaGain),
+		},
 	}
 }
 
 func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 	return &Cbsd{
 		Capabilities: Capabilities{
-			AntennaGain:      &details.Data.Capabilities.AntennaGain,
 			MaxPower:         &details.Data.Capabilities.MaxPower,
 			MinPower:         &details.Data.Capabilities.MinPower,
 			NumberOfAntennas: details.Data.Capabilities.NumberOfAntennas,
@@ -64,6 +65,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		UserID:            details.Data.UserId,
 		SingleStepEnabled: details.Data.SingleStepEnabled,
 		CbsdCategory:      details.Data.CbsdCategory,
+		InstallationParam: getModelInstallationParam(details.Data.InstallationParam),
 	}
 }
 
@@ -85,6 +87,17 @@ func getGrant(grant *protos.GrantDetails) *Grant {
 		MaxEirp:            grant.MaxEirp,
 		State:              grant.State,
 		TransmitExpireTime: to_pointer.TimeToDateTime(grant.TransmitExpireTimestamp),
+	}
+}
+
+func getModelInstallationParam(params *protos.InstallationParam) InstallationParam {
+	return InstallationParam{
+		AntennaGain:      to_pointer.DoubleValueToFloat(params.AntennaGain),
+		Heightm:          to_pointer.DoubleValueToFloat(params.HeightM),
+		HeightType:       to_pointer.StringValueToString(params.HeightType),
+		IndoorDeployment: to_pointer.BoolValueToBool(params.IndoorDeployment),
+		LatitudeDeg:      to_pointer.DoubleValueToFloat(params.LatitudeDeg),
+		LongitudeDeg:     to_pointer.DoubleValueToFloat(params.LongitudeDeg),
 	}
 }
 

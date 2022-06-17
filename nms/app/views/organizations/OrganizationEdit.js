@@ -15,7 +15,7 @@
  */
 
 import type {Organization} from './Organizations';
-import type {Tab} from '../../../shared/types/tabs';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
@@ -36,12 +36,12 @@ import Text from '../../../app/theme/design-system/Text';
 import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 
-import {AltFormField} from '../../../app/components/FormField';
+import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../app/hooks';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
-import {useParams} from 'react-router-dom';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(_ => ({
   arrowBack: {
@@ -68,7 +68,6 @@ export type EditUser = {
   role: string,
   networkIDs?: string[],
   organization?: string,
-  tabs?: Array<string>,
   password?: string,
   passwordConfirmation?: string,
 };
@@ -96,10 +95,16 @@ function TitleRow(props: TitleRowProps) {
   );
 }
 type Props = {
-  // TODO: remove tabs concept, it should always be NMS
-  getProjectTabs?: () => Array<{id: Tab, name: string}>,
   // flag to display advanced config fields in organization add/edit dialog
   hideAdvancedFields?: boolean,
+};
+
+type DialogConfirmationProps = {
+  title: string,
+  message: string,
+  confirmationPhrase: string,
+  onClose: () => void,
+  onConfirm: () => void | Promise<void>,
 };
 
 function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
@@ -145,6 +150,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
  */
 function OrganizationEdit(props: WithAlert & Props) {
   const params = useParams();
+  const navigate = useNavigate();
   const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -167,11 +173,7 @@ function OrganizationEdit(props: WithAlert & Props) {
     url: '/host/networks/async',
   });
 
-  if (
-    orgRequest.isLoading ||
-    networksRequest.isLoading ||
-    !orgRequest.response
-  ) {
+  if (orgRequest.isLoading || networksRequest.isLoading) {
     return <LoadingFiller />;
   }
 
@@ -252,7 +254,7 @@ function OrganizationEdit(props: WithAlert & Props) {
             }
           }}
         />
-        {(organizationToDelete ?? false) && (
+        {organizationToDelete !== null && (
           <DialogWithConfirmationPhrase
             title="Warning"
             message={`Please type the Organization name below to remove it.`}
@@ -264,7 +266,7 @@ function OrganizationEdit(props: WithAlert & Props) {
               await axios.delete(
                 `/host/organization/async/${organization?.id || ''}`,
               );
-              history.push('/host/organizations');
+              navigate('/host/organizations');
               setOrganizationToDelete(null);
             }}
           />
@@ -275,14 +277,17 @@ function OrganizationEdit(props: WithAlert & Props) {
               <Grid container alignItems="center">
                 <Grid>
                   <IconButton
-                    onClick={() => history.goBack()}
+                    onClick={() => navigate(-1)}
                     className={classes.arrowBack}
                     color="primary">
                     <ArrowBackIcon />
                   </IconButton>
                 </Grid>
                 <Grid>
-                  <Text className={classes.header} variant="h4">
+                  <Text
+                    className={classes.header}
+                    data-testid="organizationEditTitle"
+                    variant="h4">
                     {organization?.name}
                   </Text>
                 </Grid>
@@ -294,7 +299,9 @@ function OrganizationEdit(props: WithAlert & Props) {
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  setOrganizationToDelete(organization?.name);
+                  if (organization) {
+                    setOrganizationToDelete(organization.name);
+                  }
                 }}>
                 Remove Organization
               </Button>

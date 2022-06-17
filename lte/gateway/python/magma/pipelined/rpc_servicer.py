@@ -10,13 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+# pylint: disable=unsubscriptable-object
+
+from __future__ import annotations
+
 import concurrent.futures
 import logging
 import os
 import queue
-from collections import OrderedDict
 from concurrent.futures import Future
-from typing import List, Tuple
+from typing import List, OrderedDict
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
@@ -74,7 +77,7 @@ from magma.pipelined.policy_converters import (
     convert_ipv6_bytes_to_ip_proto,
 )
 
-grpc_msg_queue = queue.Queue()
+grpc_msg_queue: queue.Queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 5
 
 
@@ -147,7 +150,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def _get_setup_result(self, controller, context):
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(self._setup_default_controller, controller, fut)
         try:
             return fut.result(timeout=self._call_timeout)
@@ -157,7 +160,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('SetupDefaultController processing timed out')
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
-    def _setup_default_controller(self, controller, fut: 'Future(SetupFlowsResult)'):
+    def _setup_default_controller(self, controller, fut: Future[SetupFlowsResult]):
         res = controller.handle_restart(None)
         fut.set_result(res)
 
@@ -185,7 +188,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             if ret is not None:
                 return SetupFlowsResult(result=ret)
 
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
@@ -197,7 +200,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _setup_flows(
         self, request: SetupPolicyRequest,
-        fut: 'Future[List[SetupFlowsResult]]',
+        fut: Future[List[SetupFlowsResult]],
     ) -> SetupFlowsResult:
         gx_reqs = [
             req for req in request.requests
@@ -291,7 +294,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _activate_flows(
         self, request: ActivateFlowsRequest,
-        fut: 'Future[ActivateFlowsResult]',
+        fut: Future[ActivateFlowsResult],
     ) -> None:
         """
         Activate flows for ipv4 / ipv6 or both
@@ -583,7 +586,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 cause_info=CauseIE(cause_ie=CauseIE.REQUEST_REJECTED_NO_REASON),
             )
 
-    def _setup_pg_tunnel_update(self, request: UESessionSet, fut: 'Future(UESessionContextResponse)'):
+    def _setup_pg_tunnel_update(self, request: UESessionSet, fut: Future[UESessionContextResponse]):
         res = self._classifier_app.process_mme_tunnel_request(request)
         fut.set_result(res)
 
@@ -682,7 +685,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if ret is not None:
             return SetupFlowsResult(result=ret)
 
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(
             self._setup_ue_mac,
             request, fut,
@@ -697,7 +700,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _setup_ue_mac(
         self, request: SetupUEMacRequest,
-        fut: 'Future(SetupFlowsResult)',
+        fut: Future[SetupFlowsResult],
     ) -> SetupFlowsResult:
         res = self._ue_mac_app.handle_restart(request.requests)
 
@@ -741,7 +744,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('AddUEMacFlow processing timed out')
             return FlowResponse()
 
-    def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
+    def _add_ue_mac_flow(self, request, fut: Future[FlowResponse]):
         res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
 
         fut.set_result(res)
@@ -818,7 +821,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if ret is not None:
             return SetupFlowsResult(result=ret)
 
-        fut = Future()
+        fut: Future = Future()
         self._loop.call_soon_threadsafe(
             self._setup_quota,
             request, fut,
@@ -833,7 +836,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _setup_quota(
         self, request: SetupQuotaRequest,
-        fut: 'Future(SetupFlowsResult)',
+        fut: Future[SetupFlowsResult],
     ) -> SetupFlowsResult:
         res = self._check_quota_app.handle_restart(request.requests)
         fut.set_result(res)
@@ -934,7 +937,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def ng_update_session_flows(
         self, request: SessionSet,
-        fut: 'Future(UPFSessionContextState)',
+        fut: Future[UPFSessionContextState],
     ) -> UPFSessionContextState:
         """
         Install PDR, FAR and QER flows for the 5G Session send by SMF
@@ -944,7 +947,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             request.subscriber_id, request.session_version,
         )
         # Convert message containing PDR to Named Tuple Rules.
-        process_pdr_rules = OrderedDict()
+        process_pdr_rules: OrderedDict = OrderedDict()
         response = self._ng_servicer_app.ng_session_message_handler(
             request,
             process_pdr_rules,
@@ -1024,9 +1027,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _ng_qer_update(
         self, request: SessionSet, pdr_entry: PDRRuleEntry,
-    ) -> Tuple[List[RuleModResult], List[RuleModResult]]:
+    ) -> List[RuleModResult]:
         enforcement_res = []
-        failed_policy_rules_results = []
+        failed_policy_rules_results: List = []
 
         local_f_teid_ng = request.local_f_teid
 
@@ -1168,10 +1171,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
-) -> Tuple[
-    List[RuleModResult],
-    List[RuleModResult],
-]:
+) -> List[RuleModResult]:
     failed_policies_results = \
         [
             result for result in

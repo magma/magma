@@ -15,6 +15,7 @@ package models_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -52,4 +53,41 @@ func Test_Conversions(t *testing.T) {
 
 	assert.Equal(t, sNetwork, *generatedSNetwork)
 	assert.Equal(t, cNetwork, generatedCNetwork)
+}
+
+func TestLastGatewayCheckInWasRecent(t *testing.T) {
+	magmadConfig := models.MagmadGatewayConfigs{
+		CheckinInterval: 20,
+	}
+
+	gatewayStatus := models.GatewayStatus{
+		CheckinTime: uint64(time.Now().UnixMilli()),
+	}
+	assert.True(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig))
+
+	gatewayStatus.CheckinTime = uint64(time.Now().Add(-60 * time.Second).UnixMilli())
+	assert.True(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig))
+
+	gatewayStatus.CheckinTime = uint64(time.Now().Add(-101 * time.Second).UnixMilli())
+	assert.False(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig))
+
+	gatewayStatus.CheckinTime = uint64(time.Now().Add(-10 * time.Hour).UnixMilli())
+	assert.False(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig))
+}
+
+func TestLastGatewayCheckInWasRecentHandlingNil(t *testing.T) {
+	assert.False(t, models.LastGatewayCheckInWasRecent(nil, nil))
+
+	magmadConfig := models.MagmadGatewayConfigs{
+		CheckinInterval: 20,
+	}
+	assert.False(t, models.LastGatewayCheckInWasRecent(nil, &magmadConfig))
+
+	gatewayStatus := models.GatewayStatus{
+		CheckinTime: uint64(time.Now().UnixMilli()),
+	}
+	assert.True(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, nil))
+
+	gatewayStatus.CheckinTime = uint64(time.Now().Add(-301 * time.Second).UnixMilli())
+	assert.False(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, nil))
 }

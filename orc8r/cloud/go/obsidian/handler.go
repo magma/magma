@@ -15,13 +15,13 @@ package obsidian
 
 import (
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/util"
@@ -202,7 +202,7 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 
 	cert := getCert(c)
 	if cert == nil {
-		err := errors.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
+		err := fmt.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
 		return echo.NewHTTPError(http.StatusForbidden, err)
 	}
 
@@ -328,7 +328,7 @@ func GetPaginationParams(c echo.Context) (uint64, string, error) {
 	}
 	pageSize, err := strconv.ParseUint(pageSizeStr, 10, 32)
 	if err != nil {
-		err := errors.Wrap(err, "invalid page size parameter")
+		err := fmt.Errorf("invalid page size parameter: %w", err)
 		return 0, pageToken, echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	return pageSize, pageToken, nil

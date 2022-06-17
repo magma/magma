@@ -31,7 +31,7 @@ type PlatformInfo struct {
 	KernelVersionsInstalled []string `json:"kernel_versions_installed,omitempty"`
 
 	// packages
-	Packages []*Package `json:"packages,omitempty"`
+	Packages []*DistributionPackage `json:"packages,omitempty"`
 
 	// vpn ip
 	// Example: 10.0.0.1

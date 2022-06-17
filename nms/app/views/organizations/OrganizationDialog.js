@@ -13,9 +13,12 @@
  * @flow strict-local
  * @format
  */
-import AppContext from '../../../app/components/context/AppContext';
+
+import type {EditUser} from './OrganizationEdit';
+import type {Organization} from './Organizations';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
+import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -29,7 +32,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import {UserRoles} from '../../../shared/roles';
-import {colors} from '../../../app/theme/default';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../../app/hooks';
 import {useContext, useEffect, useState} from 'react';
@@ -61,13 +64,6 @@ const useStyles = makeStyles(_ => ({
     width: '100%',
   },
 }));
-type TabType =
-  | 'automation'
-  | 'admin'
-  | 'inventory'
-  | 'nms'
-  | 'workorders'
-  | 'hub';
 
 export type DialogProps = {
   error: string,
@@ -80,7 +76,6 @@ export type DialogProps = {
   // If true, enable all networks for an organization
   shouldEnableAllNetworks: boolean,
   setShouldEnableAllNetworks: boolean => void,
-  getProjectTabs?: () => Array<{id: TabType, name: string}>,
   // flag to display advanced config fields in organization add/edit dialog
   hideAdvancedFields: boolean,
 };
@@ -95,7 +90,6 @@ type Props = {
   organization: ?OrganizationPlainAttributes,
   // flag to display advanced fields
   hideAdvancedFields: boolean,
-  error: string,
 };
 
 type CreateUserType = {
@@ -104,7 +98,6 @@ type CreateUserType = {
   networkIDs: Array<string>,
   organization?: string,
   role: ?string,
-  tabs?: Array<string>,
   password: ?string,
   passwordConfirmation?: string,
 };
@@ -173,8 +166,6 @@ export default function (props: Props) {
           ? allNetworks
           : Array.from(organization.networkIDs || []).sort(),
         customDomains: [], // TODO
-        // default tab is nms - TODO: remove tabs concept, it should always be NMS
-        tabs: Array.from(organization.tabs || ['nms']),
         csvCharset: organization.csvCharset,
         ssoSelectedType: organization.ssoSelectedType,
         ssoCert: organization.ssoCert,
@@ -223,7 +214,8 @@ export default function (props: Props) {
       open={props.open}
       onClose={props.onClose}
       maxWidth={'sm'}
-      fullWidth={true}>
+      fullWidth={true}
+      data-testid="OrganizationDialog">
       <DialogTitle classes={{root: classes.dialogTitle}}>
         {currentTab === 0
           ? organization?.id

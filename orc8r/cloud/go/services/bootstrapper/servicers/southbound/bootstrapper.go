@@ -29,7 +29,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -74,7 +73,7 @@ type BootstrapperServer struct {
 func NewBootstrapperServer(privKey *rsa.PrivateKey) (*BootstrapperServer, error) {
 	srv := &BootstrapperServer{}
 	if privKey.N.BitLen() < MinKeyLength {
-		return nil, errorLogger(errors.Errorf("private key is too short: actual len (%d) is less than minimum len (%d)", privKey.N.BitLen(), MinKeyLength))
+		return nil, errorLogger(fmt.Errorf("private key is too short: actual len (%d) is less than minimum len (%d)", privKey.N.BitLen(), MinKeyLength))
 	}
 	srv.privKey = privKey
 	return srv, nil
@@ -231,7 +230,7 @@ func generateRandomText(length int) ([]byte, error) {
 
 // verify response with echo "encryption" method
 func verifyEcho(resp *protos.Response) error {
-	response := resp.GetEchoResponse() //.Response
+	response := resp.GetEchoResponse() // .Response
 	if response == nil {
 		return fmt.Errorf("Wrong type of response, expected Echo")
 	}
@@ -256,7 +255,7 @@ func verifySoftwareRSASHA256(resp *protos.Response, key []byte) error {
 	hashed := sha256.Sum256(resp.Challenge)
 	err = rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], response.Signature)
 	if err != nil {
-		return errors.Wrap(err, signedChallengeMismatch)
+		return fmt.Errorf(signedChallengeMismatch+": %w", err)
 	}
 
 	return nil

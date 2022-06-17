@@ -21,7 +21,6 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
 import GatewayContext from './context/GatewayContext';
 import React from 'react';
-import isGatewayHealthy from './GatewayUtils';
 
 import {useContext} from 'react';
 
@@ -32,7 +31,7 @@ function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
     .map((k: string) => gatewaySt[k])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map(function (gateway: lte_gateway) {
-      isGatewayHealthy(gateway) ? upCount++ : downCount++;
+      gateway.checked_in_recently ? upCount++ : downCount++;
     });
   return [upCount, downCount];
 }
@@ -55,12 +54,12 @@ export default function GatewayKPIs() {
       {
         category: 'Connected',
         value: upCount || 0,
-        tooltip: 'Number of gateways checked in within last 5 minutes',
+        tooltip: 'Number of gateways checked in recently',
       },
       {
         category: 'Disconnected',
         value: downCount || 0,
-        tooltip: 'Number of gateways not checked in within last 5 minutes',
+        tooltip: 'Number of gateways not checked in recently',
       },
     ],
   ];

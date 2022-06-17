@@ -14,10 +14,10 @@ limitations under the License.
 package ocstats
 
 import (
+	"fmt"
 	"net/http"
 
 	ocprom "contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
@@ -50,7 +50,7 @@ func WithProcessCollector() Option {
 		if err := opts.Registry.Register(prometheus.NewProcessCollector(
 			prometheus.ProcessCollectorOpts{Namespace: opts.Namespace},
 		)); err != nil {
-			return errors.Wrap(err, "registering process collector")
+			return fmt.Errorf("registering process collector: %w", err)
 		}
 		return nil
 	}
@@ -60,7 +60,7 @@ func WithProcessCollector() Option {
 func WithGoCollector() Option {
 	return func(opts *ocprom.Options) error {
 		if err := opts.Registry.Register(prometheus.NewGoCollector()); err != nil {
-			return errors.Wrap(err, "registering go collector")
+			return fmt.Errorf("registering go collector: %w", err)
 		}
 		return nil
 	}
@@ -71,12 +71,12 @@ func NewHandler(opt ...Option) (http.Handler, func(), error) {
 	opts := ocprom.Options{Registry: prometheus.NewRegistry()}
 	for i := range opt {
 		if err := opt[i](&opts); err != nil {
-			return nil, nil, errors.WithMessage(err, "applying option")
+			return nil, nil, fmt.Errorf("applying option: %w", err)
 		}
 	}
 	exporter, err := ocprom.NewExporter(opts)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "creating prometheus exporter")
+		return nil, nil, fmt.Errorf("creating prometheus exporter: %w", err)
 	}
 	view.RegisterExporter(exporter)
 	closer := func() { view.UnregisterExporter(exporter) }

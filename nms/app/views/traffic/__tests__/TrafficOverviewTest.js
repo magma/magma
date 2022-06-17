@@ -19,7 +19,6 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -311,7 +310,6 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       ruleId: 'policy_0',
     });
-    axiosMock.delete.mockClear();
   });
   it('shows prompt when remove profile is clicked', async () => {
     MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId.mockResolvedValueOnce(
@@ -341,7 +339,6 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       profileId: 'profile_1',
     });
-    axiosMock.delete.mockClear();
   });
   it('shows prompt when remove rating group is clicked', async () => {
     MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId.mockResolvedValueOnce(
@@ -371,12 +368,15 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       ratingGroupId: 0,
     });
-    axiosMock.delete.mockClear();
   });
 });
 
 describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
+  beforeEach(() => {
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+  });
+
   beforeAll((): void => {
     delete window.location;
     window.location = {
@@ -508,6 +508,5 @@ describe('<TrafficDashboard APNs/>', () => {
       networkId: 'test',
       apnName: 'apn_0',
     });
-    axiosMock.delete.mockClear();
   });
 });

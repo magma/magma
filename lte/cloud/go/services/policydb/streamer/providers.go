@@ -20,7 +20,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -219,7 +218,7 @@ func (p *ApnRuleMappingsProvider) GetUpdates(ctx context.Context, gatewayId stri
 	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
 	subEnts, _, err := configurator.LoadAllEntitiesOfType(ctx, gwEnt.NetworkID, lte.SubscriberEntityType, loadCrit, serdes.Entity)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load subscribers")
+		return nil, fmt.Errorf("failed to load subscribers: %w", err)
 	}
 
 	ret := make([]*protos.DataUpdate, 0, len(subEnts))
@@ -227,11 +226,11 @@ func (p *ApnRuleMappingsProvider) GetUpdates(ctx context.Context, gatewayId stri
 	for _, subEnt := range subEnts {
 		subscriberPolicySet, err := getSubscriberPolicySet(ctx, gwEnt.NetworkID, subEnt)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to build subscriber policy sets")
+			return nil, fmt.Errorf("failed to build subscriber policy sets: %w", err)
 		}
 		marshaled, err := proto.Marshal(subscriberPolicySet)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to marshal subscriber policy sets")
+			return nil, fmt.Errorf("failed to marshal subscriber policy sets: %w", err)
 		}
 		ret = append(ret, &protos.DataUpdate{Key: subEnt.Key, Value: marshaled})
 	}
@@ -268,7 +267,7 @@ func getSubscriberPolicySet(ctx context.Context, networkID string, subscriberEnt
 	for _, ent := range apnPolicyProfileEnts {
 		apnPolicySet, err := buildApnPolicySet(ent)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get SubscriberPolicySet")
+			return nil, fmt.Errorf("failed to get SubscriberPolicySet: %w", err)
 		}
 		rulesPerApn = append(rulesPerApn, apnPolicySet)
 	}
@@ -298,7 +297,7 @@ func buildApnPolicySet(apnPolicyProfileEnt configurator.NetworkEntity) (*lte_pro
 	var apn string
 	apn, err := models.GetAPN(apnPolicyProfileEnt.Key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build ApnPolicySet")
+		return nil, fmt.Errorf("failed to build ApnPolicySet: %w", err)
 	}
 
 	for _, tk := range apnPolicyProfileEnt.Associations {
@@ -345,7 +344,7 @@ func (p *NetworkWideRulesProvider) GetUpdates(ctx context.Context, gatewayId str
 
 	marshaledPolicies, err := proto.Marshal(assignedPolicies)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal active policies")
+		return nil, fmt.Errorf("failed to marshal active policies: %w", err)
 	}
 	return []*protos.DataUpdate{{Key: "", Value: marshaledPolicies}}, nil
 }

@@ -460,7 +460,7 @@ class EnforcementTableHeTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
-    he_controller_reference = Future()
+    he_controller_reference: Future = Future()
     VETH = 'tveth1'
     VETH_NS = 'tveth1_ns'
     PROXY_PORT = '15'

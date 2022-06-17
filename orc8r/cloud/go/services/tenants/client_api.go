@@ -135,6 +135,20 @@ func GetControlProxy(ctx context.Context, tenantID int64) (*tenant_protos.GetCon
 	return controlProxy, nil
 }
 
+func GetControlProxyFromNetworkID(ctx context.Context, networkID string) (*tenant_protos.GetControlProxyResponse, error) {
+	oc, err := getTenantsClient()
+	if err != nil {
+		return nil, err
+	}
+
+	controlProxy, err := oc.GetControlProxyFromNetworkID(ctx, &tenant_protos.GetControlProxyFromNetworkIDRequest{NetworkID: networkID})
+	if err != nil {
+		return nil, mapErr(err)
+	}
+
+	return controlProxy, nil
+}
+
 func CreateOrUpdateControlProxy(ctx context.Context, controlProxy *tenant_protos.CreateOrUpdateControlProxyRequest) error {
 	oc, err := getTenantsClient()
 	if err != nil {

@@ -10,10 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-  golang_tar: go1.18.1.linux-amd64.tar.gz
-  golang_tar_checksum: 'sha256:b3fcf280ff86558e0559e185b601c9eade0fd24c900b4c63cd14d1d38613e499'
-  go_install_path: /usr/local
-  gopath: '/home/{{ user }}/go'
-  gobin: '/home/{{ user }}/go/bin'
-  go_bin_path: '{{ go_install_path }}/go/bin:{{ gobin }}'
-  makebin: '/home/{{ user }}/magma/orc8r/cloud/go/bin'
+golang_tar: go1.18.linux-amd64.tar.gz
+golang_tar_checksum: 'sha256:e85278e98f57cdb150fe8409e6e5df5343ecb13cebf03a5d5ff12bd55a80264f'
+go_install_path: /usr/local
+gopath: '/home/{{ user }}/go'
+gobin: '/home/{{ user }}/go/bin'
+go_bin_path: '{{ go_install_path }}/go/bin:{{ gobin }}'
+makebin: '/home/{{ user }}/magma/orc8r/cloud/go/bin'
+goproxy: "https://proxy.golang.org"

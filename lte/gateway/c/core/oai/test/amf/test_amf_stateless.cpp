@@ -27,6 +27,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 using ::testing::Test;
 
@@ -594,6 +595,13 @@ class AMFAppStatelessTest : public ::testing::Test {
     amf_config.use_stateless = true;
     amf_nas_state_init(&amf_config);
     create_state_matrix();
+    amf_config.guamfi.nb = 1;
+    amf_config.guamfi.guamfi[0].plmn = {.mcc_digit2 = 2,
+                                        .mcc_digit1 = 2,
+                                        .mnc_digit3 = 6,
+                                        .mcc_digit3 = 2,
+                                        .mnc_digit2 = 5,
+                                        .mnc_digit1 = 4};
 
     init_task_context(TASK_MAIN, nullptr, 0, NULL, &amf_app_task_zmq_ctx);
 
@@ -698,6 +706,10 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
                                                ue_smc_response_hexbuf,
                                                sizeof(ue_smc_response_hexbuf));
+  EXPECT_EQ(rc, RETURNok);
+
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -834,6 +846,10 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
                                                sizeof(ue_smc_response_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
+  EXPECT_EQ(rc, RETURNok);
+
   send_initial_context_response(amf_app_desc_p, ue_id);
 
   /* Send uplink nas message for registration complete response from UE */
@@ -966,6 +982,10 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
                                                ue_smc_response_hexbuf,
                                                sizeof(ue_smc_response_hexbuf));
+  EXPECT_EQ(rc, RETURNok);
+
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);

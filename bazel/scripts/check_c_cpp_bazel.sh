@@ -33,17 +33,21 @@ DENY_LIST_NOT_RELEVANT=(
 # Folders and files that are relevant for building with bazel.
 # This list needs to be updated if respected structures are bazelified.
 DENY_LIST_NOT_YET_BAZELIFIED=(
+  # TODO: GH12755 access via absolut path on the VM,
+  # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/ebpf/ebpf_ul_handler.c"
   "./lte/gateway/python/magma/pipelined/ebpf/ebpf_dl_handler.c"
+  # TODO: GH12771 add MME_BENCHMARK support and bazelify files
   "./lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
   "./lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.cpp"
+  # TODO: GH12775 tests that need to be bazelified
   "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
   "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.cpp"
   "./lte/gateway/c/core/oai/test/s1ap_task/test_s1ap_mme_handlers_with_injected_state.cpp"
   "./lte/gateway/c/session_manager/test/test_async_service.cpp"
   "./lte/gateway/c/session_manager/test/test_session_state_5g.cpp"
   "./lte/gateway/c/session_manager/test/SessionStateTester5g.hpp"
-  # dead code?
+  # TODO: GH12776 dead code
   "./lte/gateway/c/session_manager/upf-demo-struct.h"
 )
 

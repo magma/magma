@@ -39,6 +39,10 @@ build:
       context: ..
       docker:
         dockerfile: orc8r/cloud/docker/fluentd_forward/Dockerfile
+    - image: dp-postgres
+      context: ../dp/cloud/docker/postgresql
+      docker:
+        dockerfile: Dockerfile
 
 deploy:
   kubeContext: minikube
@@ -53,6 +57,8 @@ deploy:
             command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/elasticsearch.yml"]
         - host:
             command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "deployment/elasticsearch-deployment"]
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/fake_sas.yml"]
         - host:
             command: ["dp/tools/skaffold_hooks/hooks.sh", "create_secrets"]
             dir: ..
@@ -82,8 +88,6 @@ deploy:
           helm: {}
   kubectl:
     defaultNamespace: default
-    manifests:
-      - "./tools/deployment/vendor/fake_sas.yml"
 profiles:
   - name: integration-tests-no-orc8
     patches:
@@ -120,20 +124,40 @@ profiles:
           apply:
             - "--force=true"
       - op: add
-        path: /deploy/kubectl/manifests/1
-        value: "./tools/deployment/tests/test_runner_deployment.yml"
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment.yml"
     activation:
       - env: CI=true
   - name: integration-tests-orc8r-only
     patches:
-      - op: replace
-        path: /deploy/kubectl/manifests/1
-        value: "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
-  - name: integration-tests-all
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
+      - op: add
+        path: /deploy/helm/releases/1/overrides
+        value:
+          nms:
+            magmalte:
+              env:
+                mysql_db: dp_test
+      - op: add
+        path: /deploy/helm/releases/2/overrides
+        value:
+          controller:
+            spec:
+              database:
+                db: dp_test
+  - name: integration-tests-dev
     patches:
-      - op: replace
-        path: /deploy/kubectl/manifests/1
-        value: "./tools/deployment/tests/test_runner_*.yml"
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment_dev.yml"
 
   - name: remote
     deploy:
@@ -256,8 +280,18 @@ profiles:
                 - "-c"
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
       - op: remove
-        path: /deploy/helm/hooks/before/5
+        path: /deploy/helm/hooks/before/6
+  - name: metrics
+    patches:
+      - op: add
+        path: /deploy/helm/releases/0/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
   - name: remote-push
     patches:
       - op: remove
         path: /build/artifacts/4  # remove fake sas image
+      - op: remove
+        path: /build/artifacts/7  # remove postgresql image

@@ -16,7 +16,6 @@ package ods
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fbc/cwf/radius/config"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
+	"fbc/cwf/radius/config"
 
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
@@ -88,12 +87,12 @@ func PostToODS(metricsData map[string]string, cfg config.Ods) error {
 		strings.NewReader(urlValues.Encode()),
 	)
 	if err != nil {
-		return errors.WithMessage(err, "failed to create http post request")
+		return fmt.Errorf("failed to create http post request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := DefaultClient.Do(req)
 	if err != nil {
-		return errors.WithMessage(err, "failed to post form")
+		return fmt.Errorf("failed to post form: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -116,7 +115,7 @@ func getURLValues(datapoints []Datapoint, cfg config.Ods) (url.Values, error) {
 	urlValues := url.Values{}
 	datapointsJSON, err := json.Marshal(datapoints)
 	if err != nil {
-		return urlValues, errors.WithMessage(err, "error marshaling datapoints")
+		return urlValues, fmt.Errorf("error marshaling datapoints: %w", err)
 	}
 
 	urlValues.Add("access_token", cfg.Token)

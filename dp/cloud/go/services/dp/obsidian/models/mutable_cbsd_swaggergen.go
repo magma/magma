@@ -44,6 +44,9 @@ type MutableCbsd struct {
 	// Required: true
 	FrequencyPreferences FrequencyPreferences `json:"frequency_preferences"`
 
+	// installation param
+	InstallationParam MutableInstallationParam `json:"installation_param,omitempty"`
+
 	// serial number
 	// Example: some_serial_number
 	// Required: true
@@ -82,6 +85,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFrequencyPreferences(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateInstallationParam(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -230,6 +237,23 @@ func (m *MutableCbsd) validateFrequencyPreferences(formats strfmt.Registry) erro
 	return nil
 }
 
+func (m *MutableCbsd) validateInstallationParam(formats strfmt.Registry) error {
+	if swag.IsZero(m.InstallationParam) { // not required
+		return nil
+	}
+
+	if err := m.InstallationParam.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (m *MutableCbsd) validateSerialNumber(formats strfmt.Registry) error {
 
 	if err := validate.RequiredString("serial_number", "body", m.SerialNumber); err != nil {
@@ -277,6 +301,10 @@ func (m *MutableCbsd) ContextValidate(ctx context.Context, formats strfmt.Regist
 		res = append(res, err)
 	}
 
+	if err := m.contextValidateInstallationParam(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
@@ -304,6 +332,20 @@ func (m *MutableCbsd) contextValidateFrequencyPreferences(ctx context.Context, f
 			return ve.ValidateName("frequency_preferences")
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("frequency_preferences")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCbsd) contextValidateInstallationParam(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.InstallationParam.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
 		}
 		return err
 	}
