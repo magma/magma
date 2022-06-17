@@ -46,7 +46,7 @@ Follow this [guide](https://juju.is/docs/olm/amazon-elastic-kubernetes-service-(
 Follow this [guide](<https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)>) to deploy a
 Kubernetes cluster using AKS and bootstrap a Juju controller.
 
-## 3. Deploy charmed magma orchestrator
+## 3. Deploy charmed Magma Orchestrator
 
 From your Ubuntu machine, create an `overlay.yaml` file that contains the following:
 
