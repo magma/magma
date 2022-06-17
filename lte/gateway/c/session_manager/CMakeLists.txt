@@ -54,11 +54,19 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 add_definitions(-DLOG_WITH_GLOG)
 
+set(MAGMA_SESSION_MANAGER $ENV{C_BUILD}/session_manager)
+add_definitions(-DLOG_WITH_GLOG)
+
 message("Build type is ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
 endif ()
 
+add_subdirectory(bstr) # LIB_BSTR
+add_subdirectory(controller) # LIB_BSTR
+add_subdirectory(gtp) # LIB_BSTR
+
+include_directories("/usr/include/openvswitch")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
 include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/service303)
 include_directories(${MAGMA_ROOT}/orc8r/gateway/c/common/service_registry)
@@ -115,7 +123,10 @@ link_directories(
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
   ${MAGMA_LIB_DIR}/eventd
-  ${MAGMA_LIB_DIR}/service_registry)
+  ${MAGMA_LIB_DIR}/service_registry
+  ${MAGMA_SESSION_MANAGER}/bstr
+  ${MAGMA_SESSION_MANAGER}/gtp
+  ${MAGMA_SESSION_MANAGER}/controller)
 
 add_library(SESSION_MANAGER
     AAAClient.cpp
@@ -203,7 +214,7 @@ find_package(MAGMA_LOGGING REQUIRED)
 find_package(MAGMA_SENTRY REQUIRED)
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG MAGMA_LOGGING EVENTD MAGMA_SENTRY
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG MAGMA_LOGGING EVENTD MAGMA_SENTRY LIB_BSTR TASK_GTPV1U
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie
   )

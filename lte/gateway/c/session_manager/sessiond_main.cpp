@@ -33,6 +33,15 @@
 #include <utility>
 #include <vector>
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/session_manager/gtp/gtpv1u_task.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/session_manager/AAAClient.hpp"
 #include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
 #include "lte/gateway/c/session_manager/DirectorydClient.hpp"
@@ -67,6 +76,7 @@
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 #include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
+#include "lte/gateway/c/session_manager/controller/ControllerMain.hpp"
 
 namespace grpc {
 class Channel;
@@ -332,6 +342,18 @@ int main(int argc, char* argv[]) {
       spgw_client->rpc_response_loop();
     });
     aaa_client = nullptr;
+  }
+
+  int rc = test_func_1();
+
+  if(rc != RETURNok){
+    MLOG(MINFO) << "Function called";
+  }
+
+  int rv = gtpv1u_init_1(); 
+  
+  if(rv != RETURNok){
+    MLOG(MINFO) << "gtpv1u_init called";
   }
 
   // Setup SessionReporter which talks to the policy component
