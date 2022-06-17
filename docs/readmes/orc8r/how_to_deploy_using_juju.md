@@ -22,33 +22,19 @@ From a Ubuntu 20.04 machine, install the following tools:
 - [Juju](https://juju.is/docs/olm/installing-juju)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 
-## 2. Create a Kubernetes cluster
+## 2. Create a Kubernetes cluster and bootstrap a Juju controller
 
 Select a Kubernetes environment and follow the guide to create the cluster and bootstrap
 a Juju controller on it.
 
-### a) Microk8s
-
-Follow this [guide](https://juju.is/docs/olm/microk8s) to deploy a Kubernetes cluster using
-microk8s and bootstrap a Juju controller.
-
-### b) Google Cloud - GKE
-
-Follow this [guide](https://juju.is/docs/olm/google-kubernetes-engine-(gke)) to deploy a
-Kubernetes cluster using GKE and bootstrap a Juju controller.
-
-### c) Amazon Web Services - EKS
-
-Follow this [guide](https://juju.is/docs/olm/amazon-elastic-kubernetes-service-(amazon-eks)#heading--install-the-juju-client) to deploy a Kubernetes cluster using EKS and bootstrap a Juju controller.
-
-### d) Microsoft Azure - AKS
-
-Follow this [guide](<https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)>) to deploy a
-Kubernetes cluster using AKS and bootstrap a Juju controller.
+1. [Microk8s](https://juju.is/docs/olm/microk8s)
+2. [Google Cloud (GKE)](https://juju.is/docs/olm/google-kubernetes-engine-(gke))
+3. [Amazon Web Services (EKS)](https://juju.is/docs/olm/amazon-elastic-kubernetes-service-(amazon-eks)#heading--install-the-juju-client)
+4. [Microsoft Azure (AKS)](<https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)>)
 
 ## 3. Deploy charmed Magma Orchestrator
 
-From your Ubuntu machine, create an `overlay.yaml` file that contains the following:
+From your Ubuntu machine, create an `overlay.yaml` file that contains the following content:
 
 ```yaml
 applications:
@@ -59,7 +45,7 @@ applications:
 
 Replace `<your domain name>` with your domain name.
 
-Deploy orchestrator:
+Deploy Orchestrator:
 
 ```bash
 juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
