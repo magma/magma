@@ -45,7 +45,7 @@ extern "C" {
 #define AMF_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.amf_app_dl_data_rej
 #define AMF_APP_AUTH_RESPONSE_DATA(mSGpTR) \
   (mSGpTR)->ittiMsg.amf_app_subs_auth_info_resp
-#define AMF_APP_DECRYPT_IMSI_RESPONSE_DATA(mSGpTR) \
+#define AMF_APP_DECRYPT_MSIN_RESPONSE_DATA(mSGpTR) \
   (mSGpTR)->ittiMsg.amf_app_decrypt_info_resp
 
 typedef struct itti_amf_app_connection_establishment_cnf_s {
@@ -112,20 +112,20 @@ typedef struct itti_amf_subs_auth_info_ans_s {
   m5g_authentication_info_t auth_info;
 
 } itti_amf_subs_auth_info_ans_t;
+#define MSIN_BCD_DIGITS_MAX 10
+typedef struct itti_amf_decrypted_msin_info_ans_s {
+  /* MSIN of the subscriber */
+  char msin[MSIN_BCD_DIGITS_MAX + 1];
 
-typedef struct itti_amf_decrypted_imsi_info_ans_s {
-  /* IMSI of the subscriber */
-  char imsi[IMSI_BCD_DIGITS_MAX + 1];
-
-  /* Length of the Imsi. Mostly 15 */
-  uint8_t imsi_length;
+  /* Length of the msin. Mostly 10 */
+  uint8_t msin_length;
 
   /* Authentication is success or failure with code */
   int result;
 
   /* UE identifier */
   amf_ue_ngap_id_t ue_id;
-} itti_amf_decrypted_imsi_info_ans_t;
+} itti_amf_decrypted_msin_info_ans_t;
 
 typedef struct itti_amf_ip_allocation_response_s {
   /* IMSI of the subscriber */

@@ -253,49 +253,45 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         return subscribers_info
 
     async def _list_suciprofiles(self) -> Optional[CloudSuciProfilesInfo]:
+        req_page_token = ""
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
-        suci_profiles = SuciProfile()
-        while not suci_profiles:
-            try:
-                res = await grpc_async_wrapper(
-                    subscriberdb_cloud_client.ListSuciProfiles.future(
-                        self.SUBSCRIBERDB_REQUEST_TIMEOUT,
-                    ),
-                    self._loop,
-                )
-                if res.home_net_public_key_id not in self.suciprofile_db_dict.keys():
-                    self.suciprofile_db_dict[res.home_net_public_key_id] = suci_profile_data(
-                        res.protection_scheme, res.home_net_public_key,
-                        res.home_net_private_key,
-                    )
-                suciprofiles = []
-                for k, v in self.suciprofile_db_dict.items():
-                    suciprofiles.append(
-                        SuciProfile(
-                            home_network_public_key_identifier=int(k),
-                            protection_scheme=v.protection_scheme,
-                            home_network_public_key=v.home_network_public_key,
-                            home_network_private_key=v.home_network_private_key,
-                        ),
-                    )
-                logging.info("List of suciprofiles: %s", suciprofiles)
-                res = SuciProfileList(suci_profiles=suciprofiles)
-                return res
-
-            except grpc.RpcError as err:
-                logging.error(
-                    "Fetch suci profiles error! [%s] %s", err.code(),
-                    err.details(),
-                )
-                return None
-            logging.info(
-                "Successfully fetched all suciprofiles "
-                "pages from the cloud!",
+        suciprofiles = []
+        try:
+            req = ListSubscribersRequest(
+                page_size=self._subscriber_page_size,
+                page_token=req_page_token,
             )
-        suciprofiles_info = CloudSuciProfilesInfo(
-            suci_profiles=suci_profiles,
-        )
-        return suciprofiles_info
+            res = await grpc_async_wrapper(
+                subscriberdb_cloud_client.ListSuciProfiles.future(
+                    req,
+                    self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                ),
+                self._loop,
+            )
+            for suciProfile in res.suci_profiles:
+                if suciProfile.home_net_public_key_id not in self.suciprofile_db_dict.keys():
+                    self.suciprofile_db_dict[suciProfile.home_net_public_key_id] = suci_profile_data(
+                        suciProfile.protection_scheme, suciProfile.home_net_public_key,
+                        suciProfile.home_net_private_key,
+                    )
+            for k, v in self.suciprofile_db_dict.items():
+                suciprofiles.append(
+                    SuciProfile(
+                        home_net_public_key_id=int(k),
+                        protection_scheme=v.protection_scheme,
+                        home_net_public_key=v.home_network_public_key,
+                        home_net_private_key=v.home_network_private_key,
+                    ),
+                )
+            res = SuciProfileList(suci_profiles=suciprofiles)
+            return res
+
+        except grpc.RpcError as err:
+            logging.error(
+                "Fetch suci profiles error! [%s] %s", err.code(),
+                err.details(),
+            )
+            return None
 
     def _process_changeset(self, changeset: Optional[Changeset]) -> ProcessedChangeset:
         if changeset is None:
