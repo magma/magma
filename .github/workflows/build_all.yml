@@ -108,11 +108,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Cache Vagrant Boxes
+      - name: Cache magma dev
         uses: actions/cache@v3
         with:
-          path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-lte
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
+          key: vagrant-box-magma-dev
       - name: setup pyenv
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
