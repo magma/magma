@@ -59,7 +59,7 @@ applications:
 
 Replace `<your domain name>` with your domain name.
 
-Deploy orchestrator:
+Deploy Orchestrator:
 
 ```bash
 juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
