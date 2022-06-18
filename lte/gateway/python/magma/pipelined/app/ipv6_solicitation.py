@@ -10,8 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from collections import namedtuple
 import logging
+from collections import namedtuple
+
 from magma.common.misc_utils import get_link_local_ipv6_from_if
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
@@ -66,7 +67,7 @@ class IPV6SolicitationController(MagmaController):
 
     IPv6RouterConfig = namedtuple(
         'IPv6RouterConfig',
-        ['ipv6_src', 'll_addr', 'prefix_len', 'ng_service_enabled', 'classifier_controller_id' ],
+        ['ipv6_src', 'll_addr', 'prefix_len', 'ng_service_enabled', 'classifier_controller_id'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -141,11 +142,11 @@ class IPV6SolicitationController(MagmaController):
                 ),
             ]
         flows.add_output_flow(
-                datapath, self.tbl_num,
-                match=match_rs, actions=[],
-                priority=flows.DEFAULT_PRIORITY,
-                output_port=ofproto.OFPP_CONTROLLER,
-                max_len=ofproto.OFPCML_NO_BUFFER,
+            datapath, self.tbl_num,
+            match=match_rs, actions=[],
+            priority=flows.DEFAULT_PRIORITY,
+            output_port=ofproto.OFPP_CONTROLLER,
+            max_len=ofproto.OFPCML_NO_BUFFER,
         )
 
         if self.config.ng_service_enabled == True:
@@ -204,7 +205,6 @@ class IPV6SolicitationController(MagmaController):
                 output_port=ofproto.OFPP_CONTROLLER,
                 max_len=ofproto.OFPCML_NO_BUFFER,
             )
-
 
     def _send_router_advertisement(
         self, ipv6_src: str, tun_id: int,

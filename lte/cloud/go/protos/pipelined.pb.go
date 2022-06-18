@@ -2856,14 +2856,15 @@ type SetGroupPDR struct {
 	PdrId             uint32                  `protobuf:"varint,1,opt,name=pdr_id,json=pdrId,proto3" json:"pdr_id,omitempty"`
 	PdrVersion        int32                   `protobuf:"varint,2,opt,name=pdr_version,json=pdrVersion,proto3" json:"pdr_version,omitempty"`
 	Precedence        uint32                  `protobuf:"varint,3,opt,name=precedence,proto3" json:"precedence,omitempty"`
-	PdrState          PdrState                `protobuf:"varint,4,opt,name=pdr_state,json=pdrState,proto3,enum=magma.lte.PdrState" json:"pdr_state,omitempty"`
-	Pdi               *PDI                    `protobuf:"bytes,5,opt,name=pdi,proto3" json:"pdi,omitempty"`
-	OHRemoDesc        uint32                  `protobuf:"varint,6,opt,name=o_h_remo_desc,json=oHRemoDesc,proto3" json:"o_h_remo_desc,omitempty"`
-	ActivePredRule    string                  `protobuf:"bytes,7,opt,name=active_pred_rule,json=activePredRule,proto3" json:"active_pred_rule,omitempty"`
-	SetGrFar          *SetGroupFAR            `protobuf:"bytes,8,opt,name=set_gr_far,json=setGrFar,proto3" json:"set_gr_far,omitempty"`
-	DeactivateFlowReq *DeactivateFlowsRequest `protobuf:"bytes,9,opt,name=deactivate_flow_req,json=deactivateFlowReq,proto3" json:"deactivate_flow_req,omitempty"`
-	ActivateFlowReq   *ActivateFlowsRequest   `protobuf:"bytes,10,opt,name=activate_flow_req,json=activateFlowReq,proto3" json:"activate_flow_req,omitempty"`
-	SessionQfi        QCI                     `protobuf:"varint,11,opt,name=session_qfi,json=sessionQfi,proto3,enum=magma.lte.QCI" json:"session_qfi,omitempty"`
+	GnbTeid           uint32                  `protobuf:"varint,4,opt,name=gnb_teid,json=gnbTeid,proto3" json:"gnb_teid,omitempty"`
+	PdrState          PdrState                `protobuf:"varint,5,opt,name=pdr_state,json=pdrState,proto3,enum=magma.lte.PdrState" json:"pdr_state,omitempty"`
+	Pdi               *PDI                    `protobuf:"bytes,6,opt,name=pdi,proto3" json:"pdi,omitempty"`
+	OHRemoDesc        uint32                  `protobuf:"varint,7,opt,name=o_h_remo_desc,json=oHRemoDesc,proto3" json:"o_h_remo_desc,omitempty"`
+	ActivePredRule    string                  `protobuf:"bytes,8,opt,name=active_pred_rule,json=activePredRule,proto3" json:"active_pred_rule,omitempty"`
+	SetGrFar          *SetGroupFAR            `protobuf:"bytes,9,opt,name=set_gr_far,json=setGrFar,proto3" json:"set_gr_far,omitempty"`
+	DeactivateFlowReq *DeactivateFlowsRequest `protobuf:"bytes,10,opt,name=deactivate_flow_req,json=deactivateFlowReq,proto3" json:"deactivate_flow_req,omitempty"`
+	ActivateFlowReq   *ActivateFlowsRequest   `protobuf:"bytes,11,opt,name=activate_flow_req,json=activateFlowReq,proto3" json:"activate_flow_req,omitempty"`
+	SessionQfi        QCI                     `protobuf:"varint,12,opt,name=session_qfi,json=sessionQfi,proto3,enum=magma.lte.QCI" json:"session_qfi,omitempty"`
 }
 
 func (x *SetGroupPDR) Reset() {
@@ -2915,6 +2916,13 @@ func (x *SetGroupPDR) GetPdrVersion() int32 {
 func (x *SetGroupPDR) GetPrecedence() uint32 {
 	if x != nil {
 		return x.Precedence
+	}
+	return 0
+}
+
+func (x *SetGroupPDR) GetGnbTeid() uint32 {
+	if x != nil {
+		return x.GnbTeid
 	}
 	return 0
 }

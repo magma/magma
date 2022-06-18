@@ -337,8 +337,8 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   info->ver_no = get_current_version();
   info->local_f_teid = get_upf_local_teid();
   info->teids.set_enb_teid(config_.rat_specific_context.m5gsm_session_context()
-                         .gnode_endpoint()
-                         .teid());
+                               .gnode_endpoint()
+                               .teid());
   info->pdr_rules = get_all_pdr_rules();
   if (!info->pdr_rules.empty()) {
     // Get the UE ip address from first rule
