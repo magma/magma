@@ -20,7 +20,7 @@ else
 endif
 
 ifdef DP_METRICS
-APPEND_METRICS_PROFILE = ,metrics
+APPEND_METRICS_PROFILE=,metrics
 endif
 
 .PHONY: local
@@ -165,7 +165,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
-	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,$(APPEND_METRICS_PROFILE)
+	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_METRICS_PROFILE)
 	kubectl logs test-runner-orc8r --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
