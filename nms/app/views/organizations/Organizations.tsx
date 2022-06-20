@@ -46,13 +46,15 @@ import type {UserType} from '../../../shared/sequelize_models/models/user.js';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 export type Organization = OrganizationPlainAttributes;
+export type OrganizationId = Organization['id'];
+export type OrganizationName = Organization['name'];
 
 type OrganizationRowType = {
   name: string;
   networks: Array<string>;
   portalLink: string;
   userNumber: number;
-  id: number;
+  id: OrganizationId;
 };
 
 type OrganizationsResponse = {organizations: Array<Organization>};

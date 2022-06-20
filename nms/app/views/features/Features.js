@@ -14,9 +14,11 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FeatureFlag} from './FeatureFlagsDialog';
 
 import EditIcon from '@material-ui/icons/Edit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FeatureFlagsDialog from './FeatureFlagsDialog';
 import IconButton from '@material-ui/core/IconButton';
 // $FlowFixMe migrated to typescript

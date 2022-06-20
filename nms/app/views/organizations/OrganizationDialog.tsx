@@ -24,7 +24,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {Organization} from './Organizations';
+import {Organization, OrganizationId} from './Organizations';
 import {UserRoles} from '../../../shared/roles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -78,7 +78,7 @@ type Props = {
   onClose: () => void;
   onCreateOrg: (org: Partial<Organization>) => void;
   onCreateUser: (user: CreateUserType) => void;
-  addingUserFor: {id: number} | null | undefined;
+  addingUserFor: {id: OrganizationId} | null | undefined;
   user: CreateUserType | null | undefined;
   open: boolean;
   organization: Organization | null | undefined;
