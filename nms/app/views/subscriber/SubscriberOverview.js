@@ -58,12 +58,6 @@ export default function SubscriberDashboard() {
   );
 }
 
-type Props = {
-  open: boolean,
-  onClose?: () => void,
-  imsi: string,
-};
-
 export function SubscribersOverview() {
   return (
     <>
@@ -88,48 +82,5 @@ export function SubscribersOverview() {
         <Route index element={<Navigate to="config" replace />} />
       </Routes>
     </>
-  );
-}
-
-export function JsonDialog(props: Props) {
-  const ctx = useContext(SubscriberContext);
-  const sessionState = ctx.sessionState[props.imsi] || {};
-  const configuredSubscriberState = ctx.state[props.imsi];
-  const subscriber: mutable_subscriber = {
-    ...configuredSubscriberState,
-    state: sessionState,
-  };
-  return (
-    <Dialog open={props.open} onClose={props.onClose} fullWidth={true}>
-      <DialogTitle>{props.imsi}</DialogTitle>
-      <DialogContent>
-        <ReactJson
-          src={subscriber}
-          enableClipboard={false}
-          displayDataTypes={false}
-        />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-type RenderLinkType = {
-  subscriberConfig: subscriber,
-  currRow: SubscriberRowType,
-};
-
-export function RenderLink(props: RenderLinkType) {
-  const navigate = useNavigate();
-  const {subscriberConfig, currRow} = props;
-  const imsi = currRow.imsi;
-  return (
-    <div>
-      <Link
-        variant="body2"
-        component="button"
-        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}>
-        {imsi}
-      </Link>
-    </div>
   );
 }

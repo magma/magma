@@ -15,16 +15,34 @@
  */
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import ReactJson from 'react-json-view';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import SubscriberContext from '../../components/context/SubscriberContext';
+import {useContext} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
-import type {subscriber} from '../../../generated/MagmaAPIBindings';
+import type {
+  mutable_subscriber,
+  subscriber,
+} from '../../../generated/MagmaAPIBindings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import Link from '@material-ui/core/Link';
+import {useNavigate} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {SubscriberRowType} from '../../state/lte/SubscriberState';
 
 export type subscriberStaticIpsRowType = {
   apnName: string,
   staticIp: string,
 };
+
 export type subscriberForbiddenNetworkTypes = {
   nwTypes: string,
 };
+
 export type EditSubscriberProps = {
   subscriberState: subscriber,
   onSubscriberChange: (key: string, val: string | number | {}) => void,
@@ -44,6 +62,7 @@ export type EditSubscriberProps = {
   setAuthKey: (key: string) => void,
   setAuthOpc: (key: string) => void,
 };
+
 export type SubscribersDialogDetailProps = {
   // Subscribers to add, edit or delete
   setSubscribers: (Array<SubscriberInfo>) => void,
@@ -64,3 +83,52 @@ export type SubscribersDialogDetailProps = {
   // Delete, Edit or Add subscriber
   subscriberAction: SubscriberActionType,
 };
+
+type JsonProps = {
+  open: boolean,
+  onClose?: () => void,
+  imsi: string,
+};
+
+export function JsonDialog(props: JsonProps) {
+  const ctx = useContext(SubscriberContext);
+  const sessionState = ctx.sessionState[props.imsi] || {};
+  const configuredSubscriberState = ctx.state[props.imsi];
+  const subscriber: mutable_subscriber = {
+    ...configuredSubscriberState,
+    state: sessionState,
+  };
+  return (
+    <Dialog open={props.open} onClose={props.onClose} fullWidth={true}>
+      <DialogTitle>{props.imsi}</DialogTitle>
+      <DialogContent>
+        <ReactJson
+          src={subscriber}
+          enableClipboard={false}
+          displayDataTypes={false}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type RenderLinkType = {
+  subscriberConfig: subscriber,
+  currRow: SubscriberRowType,
+};
+
+export function RenderLink(props: RenderLinkType) {
+  const navigate = useNavigate();
+  const {subscriberConfig, currRow} = props;
+  const imsi = currRow.imsi;
+  return (
+    <div>
+      <Link
+        variant="body2"
+        component="button"
+        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}>
+        {imsi}
+      </Link>
+    </div>
+  );
+}
