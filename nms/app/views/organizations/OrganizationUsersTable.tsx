@@ -9,31 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
-import type {EditUser} from './OrganizationEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {OrganizationUser} from './types';
+import {QueryResult} from '@material-table/core';
 import {UserRoles} from '../../../shared/roles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 type OrganizationUsersTableProps = WithAlert & {
-  editUser: (user: ?EditUser) => void,
-  tableRef: {current: null | {onQueryChange(): void}},
+  editUser: (user: OrganizationUser | null | undefined) => void;
+  tableRef: {current: null | {onQueryChange(): void}};
 };
 
 /**
@@ -41,12 +33,14 @@ type OrganizationUsersTableProps = WithAlert & {
  */
 function OrganizationUsersTable(props: OrganizationUsersTableProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [users, setUsers] = React.useState<Array<EditUser>>([]);
-  const [currRow, setCurrRow] = useState<EditUser>({});
+  const [users, setUsers] = React.useState<Array<OrganizationUser>>([]);
+  const [currRow, setCurrRow] = useState<OrganizationUser>(
+    {} as OrganizationUser,
+  );
   const params = useParams();
 
-  const onDeleteUser = user => {
-    props
+  const onDeleteUser = (user: OrganizationUser) => {
+    void props
       .confirm({
         message: (
           <span>
@@ -59,7 +53,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
       .then(confirmed => {
         if (confirmed) {
           axios
-            .delete('/user/async/' + user.id)
+            .delete(`/user/async/${user.id}`)
             .then(() => {
               props.tableRef.current?.onQueryChange();
             })
@@ -76,7 +70,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
     {
       name: 'Edit',
       handleFunc: () => {
-        const user: ?EditUser = users.find(user => user.id === currRow.id);
+        const user = users.find(user => user.id === currRow.id);
         props.editUser?.(user);
         props.tableRef.current?.onQueryChange();
       },
@@ -93,8 +87,11 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
       title: '',
       field: '',
       width: '40px',
-      render: rowData => (
-        <Text variant="subtitle3">{rowData.tableData?.id + 1}</Text>
+      render: (rowData: OrganizationUser) => (
+        <Text variant="subtitle3">
+          {((rowData as unknown) as {tableData: {id: number}}).tableData?.id +
+            1}
+        </Text>
       ),
     },
     {
@@ -104,10 +101,10 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
     {
       title: 'Role',
       field: 'role',
-      render: rowData => {
-        const userRole = Object.keys(UserRoles).find(
-          role => UserRoles[role] === rowData.role,
-        );
+      render: (rowData: OrganizationUser) => {
+        const userRole = (Object.keys(UserRoles) as Array<
+          keyof typeof UserRoles
+        >).find(role => UserRoles[role] === rowData.role);
         return <>{userRole}</>;
       },
     },
@@ -118,28 +115,28 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
       <ActionTable
         tableRef={props.tableRef}
         data={() =>
-          new Promise((resolve, _reject) => {
-            axios
-              .get(`/host/organization/async/${params.name}/users`)
-              .then(result => {
-                const users: Array<EditUser> = result.data.map(user => {
-                  return {
-                    email: user.email,
-                    role: user.role,
-                    id: user.id,
-                    networkIDs: user.networkIDs,
-                    organization: user.organization,
-                  };
-                });
-                setUsers(users);
-                resolve({
-                  data: users,
-                });
+          axios
+            .get<Array<OrganizationUser>>(
+              `/host/organization/async/${params.name!}/users`,
+            )
+            .then(result => {
+              const users = result.data.map(user => {
+                return {
+                  email: user.email,
+                  role: user.role,
+                  id: user.id,
+                  networkIDs: user.networkIDs,
+                  organization: user.organization,
+                };
               });
-          })
+              setUsers(users);
+              return {
+                data: users,
+              } as QueryResult<OrganizationUser>;
+            })
         }
         columns={columnStruct}
-        handleCurrRow={(row: EditUser) => {
+        handleCurrRow={(row: OrganizationUser) => {
           setCurrRow(row);
         }}
         menuItems={menuItems}

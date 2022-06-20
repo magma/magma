@@ -14,7 +14,9 @@
  * @format
  */
 
-import type {EditUser} from './OrganizationEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {OrganizationUser} from './types';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Organization} from './Organizations';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
@@ -72,9 +74,9 @@ const useStyles = makeStyles(_ => ({
 
 export type DialogProps = {
   error: string,
-  user: EditUser,
+  user: OrganizationUser,
   organization: OrganizationPlainAttributes,
-  onUserChange: EditUser => void,
+  onUserChange: OrganizationUser => void,
   onOrganizationChange: OrganizationPlainAttributes => void,
   // Array of networks ids
   allNetworks: Array<string>,
@@ -90,7 +92,7 @@ type Props = {
   onCreateOrg: (org: $Shape<OrganizationPlainAttributes>) => void,
   onCreateUser: (user: CreateUserType) => void,
   addingUserFor: ?Organization,
-  user: ?EditUser,
+  user: ?OrganizationUser,
   open: boolean,
   organization: ?OrganizationPlainAttributes,
   // flag to display advanced fields
@@ -126,7 +128,7 @@ export default function (props: Props) {
   );
   const [currentTab, setCurrentTab] = useState(0);
   const [shouldEnableAllNetworks, setShouldEnableAllNetworks] = useState(false);
-  const [user, setUser] = useState<EditUser>(props.user || {});
+  const [user, setUser] = useState<OrganizationUser>(props.user || {});
   const [createError, setCreateError] = useState('');
   const allNetworks = error || !response ? [] : response.data.sort();
 
@@ -147,7 +149,7 @@ export default function (props: Props) {
     user,
     organization,
     error: createError,
-    onUserChange: (user: EditUser) => {
+    onUserChange: (user: OrganizationUser) => {
       setUser(user);
     },
     onOrganizationChange: (organization: OrganizationPlainAttributes) => {
