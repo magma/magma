@@ -9,15 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {Organization} from './Organizations';
-import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -26,36 +19,28 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationDialog from './OrganizationDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationSummary from './OrganizationSummary';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationUsersTable from './OrganizationUsersTable';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import axios, {AxiosResponse} from 'axios';
 import withAlert from '../../components/Alert/withAlert';
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
+import {OrganizationUser} from './types';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAxios} from '../../hooks';
 import {useCallback, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {OrganizationUser} from './types';
+import type {Organization} from './Organizations';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   arrowBack: {
     paddingRight: '0px',
     color: 'black',
@@ -72,12 +57,12 @@ const useStyles = makeStyles(_ => ({
   titleRow: {
     margin: '16px 0',
   },
-}));
+});
 
 type TitleRowProps = {
-  title: string,
-  buttonTitle: string,
-  onClick: () => void,
+  title: string;
+  buttonTitle: string;
+  onClick: () => void;
 };
 
 /**
@@ -89,7 +74,7 @@ function TitleRow(props: TitleRowProps) {
     <Grid container justifyContent="space-between" className={classes.titleRow}>
       <Text variant="h6">{props.title}</Text>
       <Button variant="text" onClick={() => props.onClick()}>
-        <Text variant="body2" color="gray" weight="bold">
+        <Text variant="body2" weight="bold">
           {props.buttonTitle}
         </Text>
       </Button>
@@ -98,15 +83,15 @@ function TitleRow(props: TitleRowProps) {
 }
 type Props = {
   // flag to display advanced config fields in organization add/edit dialog
-  hideAdvancedFields?: boolean,
+  hideAdvancedFields?: boolean;
 };
 
 type DialogConfirmationProps = {
-  title: string,
-  message: string,
-  confirmationPhrase: string,
-  onClose: () => void,
-  onConfirm: () => void | Promise<void>,
+  title: string;
+  message: string;
+  confirmationPhrase: string;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
 };
 
 function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
@@ -137,7 +122,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
         <Button
           variant="contained"
           color="primary"
-          onClick={onConfirm}
+          onClick={() => void onConfirm()}
           disabled={confirmationPhrase !== props.confirmationPhrase}>
           Confirm
         </Button>
@@ -153,21 +138,25 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
 function OrganizationEdit(props: WithAlert & Props) {
   const params = useParams();
   const navigate = useNavigate();
-  const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
+  const [addingUserFor, setAddingUserFor] = useState<Organization | null>(null);
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [dialog, setDialog] = useState(false);
-  const [createError, setCreateError] = useState('');
-  const [user, setUser] = useState<?OrganizationUser>(null);
-  const [organization, setOrganization] = useState<?Organization>(null);
-  const tableRef = React.createRef();
-  const [organizationToDelete, setOrganizationToDelete] = useState(null);
-  const orgRequest = useAxios<null, {organization: Organization}>({
+  const [user, setUser] = useState<OrganizationUser | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const tableRef = React.createRef<{onQueryChange(): void} | null>();
+  const [organizationToDelete, setOrganizationToDelete] = useState<
+    string | null
+  >(null);
+  const orgRequest = useAxios<{organization: Organization}>({
     method: 'get',
-    url: '/host/organization/async/' + params.name,
-    onResponse: useCallback(res => {
-      setOrganization(res.data.organization);
-    }, []),
+    url: '/host/organization/async/' + params.name!,
+    onResponse: useCallback(
+      (res: AxiosResponse<{organization: Organization}>) => {
+        setOrganization(res.data.organization);
+      },
+      [],
+    ),
   });
 
   const networksRequest = useAxios({
@@ -179,17 +168,17 @@ function OrganizationEdit(props: WithAlert & Props) {
     return <LoadingFiller />;
   }
 
-  const onSave = (org: $Shape<OrganizationPlainAttributes>) => {
+  const onSave = (org: Partial<OrganizationPlainAttributes>) => {
     axios
-      .put('/host/organization/async/' + params.name, org)
-      .then(_res => {
-        setOrganization(org);
+      .put('/host/organization/async/' + params.name!, org)
+      .then(() => {
+        setOrganization(org as Organization);
         enqueueSnackbar('Updated organization successfully', {
           variant: 'success',
         });
       })
       .catch(error => {
-        const message = error.response?.data?.error || error;
+        const message = getErrorMessage(error);
         enqueueSnackbar(`Unable to save organization: ${message}`, {
           variant: 'error',
         });
@@ -202,11 +191,9 @@ function OrganizationEdit(props: WithAlert & Props) {
         <OrganizationDialog
           user={user}
           hideAdvancedFields={props.hideAdvancedFields ?? false}
-          edit={true}
           organization={organization}
           open={dialog}
           addingUserFor={addingUserFor}
-          createError={createError}
           onClose={() => {
             setAddingUserFor(null);
             setDialog(false);
@@ -231,8 +218,7 @@ function OrganizationEdit(props: WithAlert & Props) {
                   setDialog(false);
                 })
                 .catch(error => {
-                  setCreateError(error);
-                  enqueueSnackbar(error.message, {
+                  enqueueSnackbar(getErrorMessage(error), {
                     variant: 'error',
                   });
                 });
@@ -248,8 +234,7 @@ function OrganizationEdit(props: WithAlert & Props) {
                   setDialog(false);
                 })
                 .catch(error => {
-                  setCreateError(error);
-                  enqueueSnackbar(error?.response?.data?.error || newUser, {
+                  enqueueSnackbar(getErrorMessage(error), {
                     variant: 'error',
                   });
                 });
@@ -260,7 +245,6 @@ function OrganizationEdit(props: WithAlert & Props) {
           <DialogWithConfirmationPhrase
             title="Warning"
             message={`Please type the Organization name below to remove it.`}
-            label="Organization name"
             confirmationPhrase={organizationToDelete}
             onClose={() => setOrganizationToDelete(null)}
             onConfirm={async () => {
@@ -337,7 +321,7 @@ function OrganizationEdit(props: WithAlert & Props) {
                   }}
                 />
                 <OrganizationUsersTable
-                  editUser={(newUser: ?OrganizationUser) => {
+                  editUser={(newUser: OrganizationUser | null) => {
                     setUser(newUser);
                     setAddingUserFor(organization);
                     setDialog(true);

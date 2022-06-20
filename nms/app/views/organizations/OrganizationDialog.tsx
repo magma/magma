@@ -25,6 +25,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import {Organization, OrganizationId} from './Organizations';
+import {OrganizationUser} from './types';
 import {UserRoles} from '../../../shared/roles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -79,7 +80,7 @@ type Props = {
   onCreateOrg: (org: Partial<Organization>) => void;
   onCreateUser: (user: CreateUserType) => void;
   addingUserFor: {id: OrganizationId} | null | undefined;
-  user: CreateUserType | null | undefined;
+  user: OrganizationUser | null | undefined;
   open: boolean;
   organization: Organization | null | undefined;
   // flag to display advanced fields
