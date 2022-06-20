@@ -13,8 +13,8 @@
  * @flow
  * @format
  */
-
-const logger = require('../shared/logging').getLogger(module);
+// $FlowFixMe migrated to typescript
+const logger = require('../shared/logging.ts').getLogger(module);
 const {sequelize} = require('../shared/sequelize_models');
 const sequelizerc = require('../shared/sequelize_models/sequelizerc');
 

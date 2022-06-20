@@ -18,7 +18,8 @@ import {LOG_FORMAT, LOG_LEVEL} from '../config/config';
 
 // This must be done before any module imports to configure
 // logging correctly
-const logging = require('../shared/logging');
+// $FlowFixMe migrated to typescript
+const logging = require('../shared/logging.ts');
 logging.configure({
   LOG_FORMAT,
   LOG_LEVEL,

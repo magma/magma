@@ -13,8 +13,7 @@
  * @flow strict-local
  * @format
  */
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
@@ -31,7 +30,7 @@ import path from 'path';
 import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';

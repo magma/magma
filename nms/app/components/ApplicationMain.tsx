@@ -17,6 +17,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import axios, {AxiosError} from 'axios';
 import defaultTheme from '../theme/default';
+// $FlowFixMe migrated to typescript
 import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
 import {useEffect, useState} from 'react';

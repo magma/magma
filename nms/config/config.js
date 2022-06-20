@@ -15,6 +15,7 @@
  */
 
 import fs from 'fs';
+// $FlowFixMe migrated to typescript
 import {getValidLogLevel} from '../shared/logging';
 
 export const DEV_MODE = process.env.NODE_ENV !== 'production';

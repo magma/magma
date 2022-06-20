@@ -16,7 +16,7 @@
 'use strict';
 
 import Sequelize from 'sequelize';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../../shared/roles';
 import {omit} from 'lodash';
 

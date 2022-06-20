@@ -19,6 +19,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import helmet from 'helmet';
+// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 
 /**

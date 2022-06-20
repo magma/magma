@@ -15,17 +15,15 @@
  */
 'use strict';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {AccessRoleLevel} from '../../shared/roles';
+// $FlowFixMe migrated to typescript
+import {AccessRoleLevel, AccessRoles} from '../../shared/roles';
+// $FlowFixMe migrated to typescript
+import {ErrorCodes} from '../../shared/errorCodes';
 
 const path = require('path');
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-const {AccessRoles} = require('../../shared/roles'); // eslint-disable-line node/no-missing-require
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-const {ErrorCodes} = require('../../shared/errorCodes'); // eslint-disable-line node/no-missing-require
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
-const logger = require('../../shared/logging').getLogger(module);
+// $FlowFixMe migrated to typescript
+const logger = require('../../shared/logging.ts').getLogger(module);
 const openRoutes = require('./openRoutes').default;
 
 import type {ExpressResponse, NextFunction} from 'express';

@@ -24,6 +24,7 @@ import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import express from 'express';
 import featureConfigs from '../features';
+// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 import {FeatureFlag, Organization} from '../../shared/sequelize_models';
 import {User} from '../../shared/sequelize_models';

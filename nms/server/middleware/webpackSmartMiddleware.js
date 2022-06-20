@@ -15,6 +15,7 @@
  */
 
 import express from 'express';
+// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 
 import type {Middleware} from 'express';

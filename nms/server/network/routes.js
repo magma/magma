@@ -26,14 +26,14 @@ import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
 import MagmaV1API from '../magma';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 // $FlowFixMe migrated to typescript
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
 import {access} from '../auth/access';
 import {difference} from 'lodash';
-
-const logger = require('../../shared/logging').getLogger(module);
+// $FlowFixMe migrated to typescript
+const logger = require('../../shared/logging.ts').getLogger(module);
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 

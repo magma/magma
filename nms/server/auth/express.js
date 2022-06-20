@@ -17,10 +17,11 @@
 import bcrypt from 'bcryptjs';
 import express from 'express';
 import expressOnboarding from './expressOnboarding';
+// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 import passport from 'passport';
 import staticDist from '../../config/staticDist';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../shared/sequelize_models';
 import {access} from './access';
@@ -31,8 +32,7 @@ import {
 } from './util';
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressRequest, ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';

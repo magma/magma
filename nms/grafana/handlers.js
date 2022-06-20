@@ -50,8 +50,8 @@ import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '../shared/sequelize_models/models/organization';
 import type {UserType} from '../shared/sequelize_models/models/user';
 import type {network_type, tenant} from '../generated/MagmaAPIBindings';
-
-const logger = require('../shared/logging').getLogger(module);
+// $FlowFixMe migrated to typescript
+const logger = require('../shared/logging.ts').getLogger(module);
 
 export type Task = {name: string, status: number, message: string};
 

@@ -16,6 +16,7 @@
 
 // This must be done before any module imports to configure
 // logging correctly
+// $FlowFixMe migrated to typescript
 import logging from '../shared/logging';
 logging.configure({
   LOG_FORMAT,
@@ -35,7 +36,7 @@ import mainRoutes from './main/routes';
 import passport from 'passport';
 import path from 'path';
 import session from 'express-session';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../shared/roles';
 import {DEV_MODE, LOG_FORMAT, LOG_LEVEL} from '../config/config';
 import {access, configureAccess} from './auth/access';

@@ -23,7 +23,7 @@ const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
 const MYSQL_DIALECT = process.env.MYSQL_DIALECT || 'mysql';
-
+// $FlowFixMe migrated to typescript
 const logger = require('../../shared/logging').getLogger(module);
 
 let ssl_required = false;
