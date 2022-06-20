@@ -560,6 +560,25 @@ int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
 
   amf_ctx = &ue_mm_context->amf_context;
 
+  nas_amf_ident_proc_t* ident_proc =
+      get_5g_nas_common_procedure_identification(amf_ctx);
+  if (ident_proc == NULL) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Failed to start identity procedure for "
+                 "ue_id " AMF_UE_NGAP_ID_FMT "\n",
+                 ue_id);
+  } else {
+    if (ident_proc->T3570.id != NAS5G_TIMER_INACTIVE_ID) {
+      OAILOG_WARNING(
+          LOG_NAS_AMF,
+          "AMF-PROC - Failed because identity request in progress \n");
+      amf_cause = AMF_UE_ILLEGAL;
+      rc = amf_proc_registration_reject(ue_id, amf_cause);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    }
+    OAILOG_WARNING(LOG_NAS_AMF, "AMF-PROC - no identity procedure ongoing \n");
+  }
+
   registration_proc = get_nas_specific_procedure_registration(amf_ctx);
   auth_proc = get_nas5g_common_procedure_authentication(amf_ctx);
 
