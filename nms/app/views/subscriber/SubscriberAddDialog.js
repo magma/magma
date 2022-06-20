@@ -61,6 +61,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import nullthrows from '../../../shared/util/nullthrows';
 // $FlowFixMe migrated to typescript
 import {PasswordInput} from '../../components/FormField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SubscriberDetailsUpload} from './SubscriberUpload';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';

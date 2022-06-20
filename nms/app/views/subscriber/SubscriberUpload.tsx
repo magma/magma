@@ -9,36 +9,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import Alert from '@material-ui/lab/Alert';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes} from './SubscriberUtils';
+import {
+  CoreNetworkTypes,
+  SUBSCRIBER_ACTION_TYPE,
+  SubscriberInfo,
+} from './SubscriberUtils';
 import {DropzoneArea} from 'material-ui-dropzone';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated-ts';
 import {
   SubscribersDialogDetailProps,
   validateSubscribers,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {colors} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
+import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -50,9 +46,7 @@ const useStyles = makeStyles(() => ({
     color: colors.primary.comet,
   },
 }));
-const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
-  key => CoreNetworkTypes[key],
-);
+const forbiddenNetworkTypes = Object.values(CoreNetworkTypes);
 const SUB_NAME_OFFSET = 0;
 const SUB_IMSI_OFFSET = 1;
 const SUB_AUTH_KEY_OFFSET = 2;
@@ -73,25 +67,27 @@ const DELETE_INSTRUCTIONS =
 const EDIT_INSTRUCTIONS =
   'You can export all subscribers to edit and upload the file. Find more instruction in ';
 
-function parseSubscriber(line: string) {
+function parseSubscriber(line: string): SubscriberInfo {
   const items = line.split(',').map(item => item.trim());
+
   if (items.length > SUB_MAX_FIELDS) {
     throw new Error(
       `Too many fields to parse, expected ${SUB_MAX_FIELDS} fields, received ${items.length} fields`,
     );
   }
+
   return {
     name: items[SUB_NAME_OFFSET],
     imsi: items[SUB_IMSI_OFFSET],
     authKey: items[SUB_AUTH_KEY_OFFSET],
     authOpc: items[SUB_AUTH_OPC_OFFSET],
     state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-    forbiddenNetworkTypes: forbiddenNetworkTypes.filter(value =>
+    forbiddenNetworkTypes: forbiddenNetworkTypes.filter((value: string) =>
       items[SUB_FORBIDDEN_NETWORK_TYPE_OFFSET]?.split('|')
         .map(item => item.trim())
         .filter(Boolean)
         .includes(value),
-    ),
+    ) as Array<SubscriberForbiddenNetworkTypesEnum>,
     dataPlan: items[SUB_DATAPLAN_OFFSET],
     apns: items[SUB_APN_OFFSET]?.split('|')
       .map(item => item.trim())
@@ -102,9 +98,9 @@ function parseSubscriber(line: string) {
   };
 }
 
-function parseSubscriberFile(fileObj: File) {
+function parseSubscriberFile(fileObj: File): Promise<Array<SubscriberInfo>> {
   const reader = new FileReader();
-  const subscribers = [];
+  const subscribers: Array<SubscriberInfo> = [];
   return new Promise((resolve, reject) => {
     if (fileObj.size > MAX_UPLOAD_FILE_SZ_BYTES) {
       reject(
@@ -113,7 +109,7 @@ function parseSubscriberFile(fileObj: File) {
       return;
     }
 
-    reader.onload = async e => {
+    reader.onload = e => {
       try {
         if (!(e.target instanceof FileReader)) {
           reject('invalid target type');
@@ -121,6 +117,7 @@ function parseSubscriberFile(fileObj: File) {
         }
 
         const text = e.target.result;
+
         if (typeof text !== 'string') {
           reject('invalid file content');
           return;
@@ -133,11 +130,15 @@ function parseSubscriberFile(fileObj: File) {
           subscribers.push(parseSubscriber(line));
         }
       } catch (e) {
-        reject('Failed parsing the file ' + fileObj.name + '. ' + e?.message);
+        reject(
+          `Failed parsing the file ${fileObj.name}. ${getErrorMessage(e)}`,
+        );
         return;
       }
+
       resolve(subscribers);
     };
+
     reader.readAsText(fileObj);
   });
 }
@@ -154,6 +155,7 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [fileName, setFileName] = useState('');
+
   const DropzoneText = () => (
     <div>
       Drag and drop or <Link>browse files</Link>
@@ -162,11 +164,14 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
 
   return (
     <>
-      <DialogContent classes={{root: classes.uploadDialog}}>
+      <DialogContent
+        classes={{
+          root: classes.uploadDialog,
+        }}>
         <CardTitleRow label={'Upload CSV'} />
         <Grid container>
           <Grid item xs={12}>
-            {!subscriberAction === 'edit' && (
+            {subscriberAction !== SUBSCRIBER_ACTION_TYPE.EDIT && (
               <Alert severity="warning">
                 This will replace the subscribers you entered on the previous
                 page.
@@ -176,17 +181,19 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
           {!fileName ? (
             <Grid item xs={12}>
               <DropzoneArea
-                dropzoneText={<DropzoneText />}
+                dropzoneText={((<DropzoneText />) as unknown) as string}
                 useChipsForPreview
                 showPreviewsInDropzone={false}
                 filesLimit={1}
                 showAlerts={false}
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 onChange={async files => {
                   if (files.length) {
                     try {
-                      const newSubscribers = await parseSubscriberFile(
+                      const newSubscribers: Array<SubscriberInfo> = await parseSubscriberFile(
                         files[0],
                       );
+
                       if (newSubscribers) {
                         setSubscribers([...newSubscribers]);
                         const errors = validateSubscribers(
@@ -194,13 +201,14 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
                           subscriberAction,
                         );
                         setFileName(files[0].name);
+
                         if (!(subscriberAction === 'delete')) {
                           setUpload(false);
                           setAddError(errors);
                         }
                       }
                     } catch (e) {
-                      enqueueSnackbar(e, {
+                      enqueueSnackbar(e as string, {
                         variant: 'error',
                       });
                     }
@@ -223,6 +231,7 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
               <Button
                 onClick={() => {
                   setUpload(false);
+
                   if (subscriberAction === 'delete' && subscribers.length > 0) {
                     setSubscribers([]);
                   }
@@ -259,10 +268,13 @@ function UploadInstructions({action}: {action: string}) {
     switch (action) {
       case 'delete':
         return DELETE_INSTRUCTIONS;
+
       case 'edit':
         return EDIT_INSTRUCTIONS;
+
       case 'add':
         return ADD_INSTRUCTIONS;
+
       default:
         return '';
     }

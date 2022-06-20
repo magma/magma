@@ -88,7 +88,7 @@ export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
   DUPLICATE_IMSI: 'The IMSI is duplicated',
   REQUIRED_AUTH_KEY: 'Auth key is required',
 });
-const SUBSCRIBER_ACTION_TYPE = Object.freeze({
+export const SUBSCRIBER_ACTION_TYPE = Object.freeze({
   ADD: 'add',
   EDIT: 'edit',
   DELETE: 'delete',
