@@ -86,7 +86,7 @@ int amf_handle_service_request(
       amf_app_stop_timer(paging_ctx->m5_paging_response_timer.id);
       paging_ctx->m5_paging_response_timer.id = NAS5G_TIMER_INACTIVE_ID;
       paging_ctx->paging_retx_count = 0;
-      // Fill the itti msg based on context info produced in amf core
+      // Fill the itti msg based on context info produced in amf core.
       OAILOG_DEBUG(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
     }
 
@@ -108,37 +108,25 @@ int amf_handle_service_request(
                 SERVICE_TYPE_HIGH_PRIORITY_ACCESS) ||
                (msg->service_type.service_type_value ==
                 SERVICE_TYPE_MOBILE_TERMINATED_SERVICES)) {
-      if (((msg->service_type.service_type_value == SERVICE_TYPE_DATA) ||
-           (msg->service_type.service_type_value ==
-            SERVICE_TYPE_MOBILE_TERMINATED_SERVICES)) &&
-          !(msg->uplink_data_status.uplinkDataStatus)) {
-        // prepare and send reject message.
-        OAILOG_INFO(
-            LOG_NAS_AMF,
-            "Sending service reject with cuase condtional IE missing\n");
-        amf_sap.primitive = AMFAS_ESTABLISH_REJ;
+      if (msg->service_type.service_type_value == SERVICE_TYPE_DATA) {
+        OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is Data \n");
+      } else if (msg->service_type.service_type_value ==
+                 SERVICE_TYPE_MOBILE_TERMINATED_SERVICES) {
+        OAILOG_DEBUG(LOG_NAS_AMF,
+                     "Service request type is Mobile Terminated Services \n");
+      } else {
+        OAILOG_DEBUG(LOG_NAS_AMF,
+                     "Service request type is High Priority Access \n");
+      }
+
+      if (ue_context->cm_state == M5GCM_CONNECTED) {
+        amf_sap.primitive = AMFAS_ESTABLISH_CNF;
         amf_sap.u.amf_as.u.establish.ue_id = ue_id;
         amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
-        if (msg->pdu_session_status.iei) {
-          amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
-              AMF_AS_PDU_SESSION_STATUS;
-          amf_sap.u.amf_as.u.establish.pdu_session_status =
-              msg->pdu_session_status.pduSessionStatus;
-        }
-        amf_sap.u.amf_as.u.establish.amf_cause =
-            AMF_CAUSE_CONDITIONAL_IE_MISSING;
-        rc = amf_sap_send(&amf_sap);
-      } else {
-        OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is %s \n",
-                     (msg->service_type.service_type_value == SERVICE_TYPE_DATA)
-                         ? "Data"
-                         : "Mobile Terminated Services");
 
-        if (ue_context->cm_state == M5GCM_CONNECTED) {
-          amf_sap.primitive = AMFAS_ESTABLISH_CNF;
-          amf_sap.u.amf_as.u.establish.ue_id = ue_id;
-          amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
-
+        if (!msg->uplink_data_status.uplinkDataStatus) {
+          rc = amf_sap_send(&amf_sap);
+        } else {
           for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
             std::shared_ptr<smf_context_t> smf_ctxt = it.second;
             if (smf_ctxt) {
@@ -157,26 +145,24 @@ int amf_handle_service_request(
           amf_sap.u.amf_as.u.establish.pdu_session_status = pdu_session_status;
           amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
           rc = amf_sap_send(&amf_sap);
-        } else {
-          ue_context->pending_service_response = true;
-
-          IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
-          for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
-            std::shared_ptr<smf_context_t> smf_ctxt = it.second;
-            if (smf_ctxt) {
-              if (msg->uplink_data_status.uplinkDataStatus &
-                  (1 << smf_ctxt->smf_proc_data.pdu_session_id)) {
-                OAILOG_DEBUG(
-                    LOG_NAS_AMF,
-                    "Sending session request to SMF on service request for"
-                    "imsi %s sessionid %u \n",
-                    imsi, smf_ctxt->smf_proc_data.pdu_session_id);
-                notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
-                // construct the proto structure and send message to SMF
-                amf_smf_notification_send(
-                    ue_id, ue_context, notify_ue_event_type,
-                    smf_ctxt->smf_proc_data.pdu_session_id);
-              }
+        }
+      } else {
+        ue_context->pending_service_response = true;
+        IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+        for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+          std::shared_ptr<smf_context_t> smf_ctxt = it.second;
+          if (smf_ctxt) {
+            if (msg->uplink_data_status.uplinkDataStatus &
+                (1 << smf_ctxt->smf_proc_data.pdu_session_id)) {
+              OAILOG_DEBUG(
+                  LOG_NAS_AMF,
+                  "Sending session request to SMF on service request for"
+                  "imsi %s sessionid %u \n",
+                  imsi, smf_ctxt->smf_proc_data.pdu_session_id);
+              notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
+              // construct the proto structure and send message to SMF
+              amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type,
+                                        smf_ctxt->smf_proc_data.pdu_session_id);
             }
           }
         }
@@ -459,8 +445,7 @@ int amf_handle_registration_request(
         std::string empheral_public_key = reinterpret_cast<char*>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.empheral_public_key);
         std::string ciphertext = reinterpret_cast<char*>(
-            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext->data);
-        bdestroy(msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
+            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
         std::string mac_tag = reinterpret_cast<char*>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.mac_tag);
 
