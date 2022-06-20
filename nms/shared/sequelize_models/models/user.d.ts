@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Model} from 'sequelize';
 
 // This is the type required for creation
 type UserRawInitType = {
@@ -28,3 +29,6 @@ export type UserRawType = {
   isReadOnlyUser: boolean;
   role: number;
 } & UserRawInitType;
+
+export type UserModel = Model<UserRawType, UserRawInitType>;
+export type UserType = UserModel & UserRawType;
