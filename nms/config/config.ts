@@ -24,13 +24,16 @@ export const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
 export const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
 export const API_HOST = process.env.API_HOST || 'magma_test.local';
 
-let _cachedApiCredentials = null;
+let _cachedApiCredentials: {
+  cert: string | Buffer | undefined;
+  key: string | Buffer | undefined;
+} | null = null;
 export function apiCredentials() {
   if (_cachedApiCredentials) {
     return _cachedApiCredentials;
   }
 
-  let cert = process.env.API_CERT;
+  let cert: string | Buffer | undefined = process.env.API_CERT;
   if (process.env.API_CERT_FILENAME) {
     try {
       cert = fs.readFileSync(process.env.API_CERT_FILENAME);
@@ -39,7 +42,7 @@ export function apiCredentials() {
     }
   }
 
-  let key = process.env.API_PRIVATE_KEY;
+  let key: string | Buffer | undefined = process.env.API_PRIVATE_KEY;
   if (process.env.API_PRIVATE_KEY_FILENAME) {
     try {
       key = fs.readFileSync(process.env.API_PRIVATE_KEY_FILENAME);
