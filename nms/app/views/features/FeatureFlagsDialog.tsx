@@ -41,7 +41,7 @@ const useStyles = makeStyles({
 });
 
 export type FeatureFlag = {
-  id: number;
+  id: string;
   title: string;
   config: Record<
     OrganizationName,

@@ -9,19 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FeatureFlag} from './FeatureFlagsDialog';
 
 import EditIcon from '@material-ui/icons/Edit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FeatureFlagsDialog from './FeatureFlagsDialog';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -32,15 +26,13 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import axios from 'axios';
 
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import renderList from '../../../app/util/renderList';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   header: {
     margin: '10px',
     display: 'flex',
@@ -49,11 +41,11 @@ const useStyles = makeStyles(_ => ({
   paper: {
     margin: '10px',
   },
-}));
+});
 
 function EditFeatureFlagsDialog(props: {
-  featureFlags: FeatureFlag[],
-  setFeatureFlags: (featureFlags: FeatureFlag[]) => void,
+  featureFlags: Array<FeatureFlag>;
+  setFeatureFlags: (featureFlags: Array<FeatureFlag>) => void;
 }) {
   const params = useParams();
   const navigate = useNavigate();
@@ -81,9 +73,13 @@ export default function Features() {
   const classes = useStyles();
   const navigate = useNavigate();
 
-  const [featureFlags, setFeatureFlags] = useState<?(FeatureFlag[])>(null);
+  const [featureFlags, setFeatureFlags] = useState<Array<FeatureFlag> | null>(
+    null,
+  );
   useEffect(() => {
-    axios.get('/host/feature/async').then(({data}) => setFeatureFlags(data));
+    void axios
+      .get<Array<FeatureFlag>>('/host/feature/async')
+      .then(({data}) => setFeatureFlags(data));
   }, []);
 
   if (!featureFlags) {
