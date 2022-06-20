@@ -488,6 +488,20 @@
     state: link
     force: yes
 
+- name: Symlink bazel disk cache configuration into the VM
+  file:
+    src: '/home/vagrant/magma/.bazel-cache'
+    path: '/var/cache/bazel-cache'
+    state: link
+    force: yes
+
+- name: Symlink bazel disk repository cache configuration into the VM
+  file:
+    src: '/home/vagrant/magma/.bazel-cache-repo'
+    path: '/var/cache/bazel-cache-repo'
+    state: link
+    force: yes
+
 # TODO: Fix magma-dev VM box and remove this step.
 - name: Install Magma dependencies
   retries: 5
