@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import Accordion from '@material-ui/core/Accordion';
@@ -27,18 +24,13 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EditSubscriberProps} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
@@ -111,10 +103,11 @@ export default function EditSubscriberApnStaticIps(props: EditSubscriberProps) {
                     const staticIpApn = props.subscriberStaticIPRows.map(
                       apn => apn.apnName,
                     );
-                    if (!staticIpApn.includes(target.value)) {
+
+                    if (!staticIpApn.includes(target.value as string)) {
                       props.onTrafficPolicyChange(
                         'apnName',
-                        target.value,
+                        target.value as string,
                         index,
                       );
                     }

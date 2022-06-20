@@ -191,7 +191,7 @@ export type EditSubscriberProps = {
     val: string | number | undefined,
     index: number,
   ) => void;
-  onDeleteApn: (apn: undefined) => void;
+  onDeleteApn: (apn: subscriberStaticIpsRowType | undefined) => void;
   onAddApnStaticIP: () => void;
   subProfiles: undefined;
   subscriberStaticIPRows: Array<subscriberStaticIpsRowType>;
