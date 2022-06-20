@@ -9,6 +9,7 @@ lib_gen_protos:
 			--proto_path $(MAGMA_ROOT)/orc8r/protos/prometheus \
 			--proto_path $(PROTO_INCLUDES) \
 			--go_out=Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
+			--go-grpc_opt=require_unimplemented_servers=false \
 			--go-grpc_out=Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
 			$${x} ; \
 	done

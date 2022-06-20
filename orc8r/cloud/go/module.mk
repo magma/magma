@@ -54,6 +54,7 @@ gen_protos::
 			--proto_path $(MAGMA_ROOT)/orc8r/protos/prometheus \
 			--proto_path $(PROTO_INCLUDES) \
 			--go_out=Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
+			--go-grpc_opt=require_unimplemented_servers=false \
 			--go-grpc_out=Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:$(MAGMA_ROOT)/.. \
 			$${x} || exit 1 ; \
 	done ; \
@@ -64,7 +65,7 @@ gen_protos::
 			--proto_path $(PROTO_INCLUDES) \
 			--go_opt=paths=source_relative \
 			--go_out=Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:. \
-			--go-grpc_opt=paths=source_relative \
+			--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false \
 			--go-grpc_out=Mgoogle/protobuf/field_mask.proto=google.golang.org/genproto/protobuf/field_mask:. \
 			$${x} || exit 1 ; \
 	done
