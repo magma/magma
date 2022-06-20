@@ -42,6 +42,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberChart from './SubscriberChart';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetailConfig from './SubscriberDetailConfig';
 // $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
@@ -55,13 +56,14 @@ import {
   useRefreshingContext,
   // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {

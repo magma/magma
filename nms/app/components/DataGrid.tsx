@@ -226,7 +226,7 @@ type Data = {
   category?: string;
   value: number | string;
   obscure?: boolean;
-  collapse?: React.ReactElement | boolean;
+  collapse?: React.ReactNode | boolean;
   unit?: string;
   statusCircle?: boolean;
   statusInactive?: boolean;

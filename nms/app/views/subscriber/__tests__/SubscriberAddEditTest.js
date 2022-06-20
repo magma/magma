@@ -28,6 +28,7 @@ import React from 'react';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
