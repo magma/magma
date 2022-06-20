@@ -34,6 +34,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EditSubscriberApnStaticIps from './SubscriberApnStaticIpsEdit';
+// $FlowFixMe for TypeScript migration
 import EditSubscriberTrafficPolicy from './SubscriberTrafficPolicyEdit';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
