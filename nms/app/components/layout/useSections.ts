@@ -11,11 +11,13 @@
  * limitations under the License.
  */
 import type {NetworkContextType} from '../context/NetworkContext';
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from './Section';
 
 import AppContext from '../../../app/components/context/AppContext';
 import NetworkContext from '../context/NetworkContext';
+// $FlowFixMe migrated to typescript
 import {
   CWF,
   FEG,

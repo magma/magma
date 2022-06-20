@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
@@ -33,6 +33,7 @@ import Typography from '@material-ui/core/Typography';
 import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
+// $FlowFixMe migrated to typescript
 import {CWF, FEG, LTE} from '../../../shared/types/network';
 import {
   FlowDescription,
@@ -42,6 +43,7 @@ import {
   PolicyRule,
 } from '../../../generated-ts';
 import {base64ToHex, decodeBase64} from '../../util/strings';
+// $FlowFixMe migrated to typescript
 import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
