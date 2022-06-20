@@ -32,6 +32,7 @@ import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationSummary from './OrganizationSummary';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationUsersTable from './OrganizationUsersTable';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -49,6 +50,8 @@ import {useCallback, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {OrganizationUser} from './types';
 
 const useStyles = makeStyles(_ => ({
   arrowBack: {
@@ -68,16 +71,6 @@ const useStyles = makeStyles(_ => ({
     margin: '16px 0',
   },
 }));
-
-export type EditUser = {
-  id: string | number,
-  email: string,
-  role: string,
-  networkIDs?: string[],
-  organization?: string,
-  password?: string,
-  passwordConfirmation?: string,
-};
 
 type TitleRowProps = {
   title: string,
@@ -163,7 +156,7 @@ function OrganizationEdit(props: WithAlert & Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [dialog, setDialog] = useState(false);
   const [createError, setCreateError] = useState('');
-  const [user, setUser] = useState<?EditUser>(null);
+  const [user, setUser] = useState<?OrganizationUser>(null);
   const [organization, setOrganization] = useState<?Organization>(null);
   const tableRef = React.createRef();
   const [organizationToDelete, setOrganizationToDelete] = useState(null);
@@ -342,7 +335,7 @@ function OrganizationEdit(props: WithAlert & Props) {
                   }}
                 />
                 <OrganizationUsersTable
-                  editUser={(newUser: ?EditUser) => {
+                  editUser={(newUser: ?OrganizationUser) => {
                     setUser(newUser);
                     setAddingUserFor(organization);
                     setDialog(true);
