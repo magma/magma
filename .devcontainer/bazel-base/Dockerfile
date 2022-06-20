@@ -128,6 +128,10 @@ RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/dow
 # Update shared library configuration
 RUN ldconfig -v
 
+RUN ln -s /workspaces/magma/.bazel-cache /var/cache/bazel-cache
+RUN ln -s /workspaces/magma/.bazel-cache-repo /var/cache/bazel-cache-repo
+
+# TODO(@LKREUTZER): Remove unused link once new docker image has been generated and PRs have been rebased or merged.
 RUN ln -s /workspaces/magma/bazel/bazelrcs/docker.bazelrc /etc/bazelrc
 
 WORKDIR /workspaces/magma

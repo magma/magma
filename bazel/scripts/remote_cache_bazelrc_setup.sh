@@ -53,6 +53,7 @@ create_config_for_rw_remote_cache () {
     -e s/~~CACHE_KEY~~/"$cache_key"/ \
     -e s/~~BAZEL_REMOTE_PASSWORD~~/"$bazel_remote_password"/ \
     bazel/bazelrcs/remote_caching_rw.bazelrc
+  echo "Configured bazel for read and write access to the remote cache with cache key: $cache_key" 1>&2
 }
 
 create_config_for_ro_remote_cache () {
@@ -60,10 +61,11 @@ create_config_for_ro_remote_cache () {
   sed \
     -e s/~~CACHE_KEY~~/"$cache_key"/ \
     bazel/bazelrcs/remote_caching_ro.bazelrc
+  echo "Configured bazel for read-only access to the remote cache with cache key: $cache_key" 1>&2
 }
 
 ###############################################################################
 # SCRIPT SECTION
 ###############################################################################
 
-create_config "$CACHE_KEY" "$BAZEL_REMOTE_PASSWORD" > remote-cache.bazelrc
+create_config "$CACHE_KEY" "$BAZEL_REMOTE_PASSWORD" > bazel/bazelrcs/cache.bazelrc

@@ -459,7 +459,8 @@ int amf_handle_registration_request(
         std::string empheral_public_key = reinterpret_cast<char*>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.empheral_public_key);
         std::string ciphertext = reinterpret_cast<char*>(
-            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
+            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext->data);
+        bdestroy(msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
         std::string mac_tag = reinterpret_cast<char*>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.mac_tag);
 
