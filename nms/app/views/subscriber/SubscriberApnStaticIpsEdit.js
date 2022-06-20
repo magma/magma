@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import type {EditSubscriberProps} from './SubscriberEditDialog.js';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -41,6 +40,7 @@ import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
+import type {EditSubscriberProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   input: {
