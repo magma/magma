@@ -15,12 +15,14 @@
  */
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ActionQuery} from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import ActionTable, {SelectEditComponent} from '../../components/ActionTable';
 import type {EditProps} from './SubscriberEditDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
-
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import ActionTable from '../../components/ActionTable';
+import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
 // $FlowFixMe migrated to typescript
@@ -42,7 +44,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 // $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
-import React from 'react';
+import React, {forwardRef, useContext, useState} from 'react';
 import Select from '@material-ui/core/Select';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
@@ -51,22 +53,16 @@ import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 // $FlowFixMe migrated to typescript
 import {PasswordInput} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {SelectEditComponent} from '../../components/ActionTable';
 import {SubscriberDetailsUpload} from './SubscriberUpload';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
-import {forwardRef} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
 import {useParams} from 'react-router-dom';
+import type {SubscribersDialogDetailProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   dialogTitle: {
@@ -184,27 +180,6 @@ function SubscriberDetailsDialogContent(props: ActionDialogProps) {
     </>
   );
 }
-
-export type SubscribersDialogDetailProps = {
-  // Subscribers to add, edit or delete
-  setSubscribers: (Array<SubscriberInfo>) => void,
-  subscribers: Array<SubscriberInfo>,
-  // Formatting error (eg: field missing, wrong IMSI format)
-  setAddError: (Array<string>) => void,
-  addError: Array<string>,
-  // Display dropzone if set to true
-  setUpload: boolean => void,
-  upload: boolean,
-  onClose: () => void,
-  // Add, edit or delete subscribers
-  onSave: (Array<SubscriberInfo>, selectedSubscribers?: Array<string>) => void,
-  error?: string,
-  // Row added with the Add New Row button
-  rowAdd: boolean,
-  setRowAdd: boolean => void,
-  // Delete, Edit or Add subscriber
-  subscriberAction: SubscriberActionType,
-};
 
 function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
   const {

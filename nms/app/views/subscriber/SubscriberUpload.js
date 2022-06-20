@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import type {SubscribersDialogDetailProps} from './SubscriberAddDialog';
 
 import Alert from '@material-ui/lab/Alert';
 import Button from '@material-ui/core/Button';
@@ -37,6 +36,7 @@ import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useMemo, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {validateSubscribers} from './SubscriberUtils';
+import type {SubscribersDialogDetailProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   uploadDialog: {
