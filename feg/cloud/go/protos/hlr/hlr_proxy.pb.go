@@ -23,10 +23,6 @@
 package hlr
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -589,84 +585,4 @@ func file_feg_protos_hlr_hlr_proxy_proto_init() {
 	file_feg_protos_hlr_hlr_proxy_proto_rawDesc = nil
 	file_feg_protos_hlr_hlr_proxy_proto_goTypes = nil
 	file_feg_protos_hlr_hlr_proxy_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// HlrProxyClient is the client API for HlrProxy service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type HlrProxyClient interface {
-	AuthInfo(ctx context.Context, in *AuthInfoReq, opts ...grpc.CallOption) (*AuthInfoAns, error)
-}
-
-type hlrProxyClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewHlrProxyClient(cc grpc.ClientConnInterface) HlrProxyClient {
-	return &hlrProxyClient{cc}
-}
-
-func (c *hlrProxyClient) AuthInfo(ctx context.Context, in *AuthInfoReq, opts ...grpc.CallOption) (*AuthInfoAns, error) {
-	out := new(AuthInfoAns)
-	err := c.cc.Invoke(ctx, "/magma.feg.hlr.HlrProxy/AuthInfo", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// HlrProxyServer is the server API for HlrProxy service.
-type HlrProxyServer interface {
-	AuthInfo(context.Context, *AuthInfoReq) (*AuthInfoAns, error)
-}
-
-// UnimplementedHlrProxyServer can be embedded to have forward compatible implementations.
-type UnimplementedHlrProxyServer struct {
-}
-
-func (*UnimplementedHlrProxyServer) AuthInfo(context.Context, *AuthInfoReq) (*AuthInfoAns, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AuthInfo not implemented")
-}
-
-func RegisterHlrProxyServer(s *grpc.Server, srv HlrProxyServer) {
-	s.RegisterService(&_HlrProxy_serviceDesc, srv)
-}
-
-func _HlrProxy_AuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthInfoReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(HlrProxyServer).AuthInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.feg.hlr.HlrProxy/AuthInfo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HlrProxyServer).AuthInfo(ctx, req.(*AuthInfoReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _HlrProxy_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.feg.hlr.HlrProxy",
-	HandlerType: (*HlrProxyServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "AuthInfo",
-			Handler:    _HlrProxy_AuthInfo_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "feg/protos/hlr/hlr_proxy.proto",
 }
