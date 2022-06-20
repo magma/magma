@@ -14,6 +14,8 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
 import type {subscriber} from '../../../generated/MagmaAPIBindings';
 
 export type subscriberStaticIpsRowType = {
@@ -41,4 +43,24 @@ export type EditSubscriberProps = {
   authOpc: string,
   setAuthKey: (key: string) => void,
   setAuthOpc: (key: string) => void,
+};
+export type SubscribersDialogDetailProps = {
+  // Subscribers to add, edit or delete
+  setSubscribers: (Array<SubscriberInfo>) => void,
+  subscribers: Array<SubscriberInfo>,
+  // Formatting error (eg: field missing, wrong IMSI format)
+  setAddError: (Array<string>) => void,
+  addError: Array<string>,
+  // Display dropzone if set to true
+  setUpload: boolean => void,
+  upload: boolean,
+  onClose: () => void,
+  // Add, edit or delete subscribers
+  onSave: (Array<SubscriberInfo>, selectedSubscribers?: Array<string>) => void,
+  error?: string,
+  // Row added with the Add New Row button
+  rowAdd: boolean,
+  setRowAdd: boolean => void,
+  // Delete, Edit or Add subscriber
+  subscriberAction: SubscriberActionType,
 };
