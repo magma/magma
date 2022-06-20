@@ -24,10 +24,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -384,86 +380,4 @@ func file_lte_protos_subscriberauth_proto_init() {
 	file_lte_protos_subscriberauth_proto_rawDesc = nil
 	file_lte_protos_subscriberauth_proto_goTypes = nil
 	file_lte_protos_subscriberauth_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// M5GSubscriberAuthenticationClient is the client API for M5GSubscriberAuthentication service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type M5GSubscriberAuthenticationClient interface {
-	// Authentication-Information (Code 318)
-	M5GAuthenticationInformation(ctx context.Context, in *M5GAuthenticationInformationRequest, opts ...grpc.CallOption) (*M5GAuthenticationInformationAnswer, error)
-}
-
-type m5GSubscriberAuthenticationClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewM5GSubscriberAuthenticationClient(cc grpc.ClientConnInterface) M5GSubscriberAuthenticationClient {
-	return &m5GSubscriberAuthenticationClient{cc}
-}
-
-func (c *m5GSubscriberAuthenticationClient) M5GAuthenticationInformation(ctx context.Context, in *M5GAuthenticationInformationRequest, opts ...grpc.CallOption) (*M5GAuthenticationInformationAnswer, error) {
-	out := new(M5GAuthenticationInformationAnswer)
-	err := c.cc.Invoke(ctx, "/magma.lte.M5GSubscriberAuthentication/M5GAuthenticationInformation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// M5GSubscriberAuthenticationServer is the server API for M5GSubscriberAuthentication service.
-type M5GSubscriberAuthenticationServer interface {
-	// Authentication-Information (Code 318)
-	M5GAuthenticationInformation(context.Context, *M5GAuthenticationInformationRequest) (*M5GAuthenticationInformationAnswer, error)
-}
-
-// UnimplementedM5GSubscriberAuthenticationServer can be embedded to have forward compatible implementations.
-type UnimplementedM5GSubscriberAuthenticationServer struct {
-}
-
-func (*UnimplementedM5GSubscriberAuthenticationServer) M5GAuthenticationInformation(context.Context, *M5GAuthenticationInformationRequest) (*M5GAuthenticationInformationAnswer, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method M5GAuthenticationInformation not implemented")
-}
-
-func RegisterM5GSubscriberAuthenticationServer(s *grpc.Server, srv M5GSubscriberAuthenticationServer) {
-	s.RegisterService(&_M5GSubscriberAuthentication_serviceDesc, srv)
-}
-
-func _M5GSubscriberAuthentication_M5GAuthenticationInformation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(M5GAuthenticationInformationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(M5GSubscriberAuthenticationServer).M5GAuthenticationInformation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.M5GSubscriberAuthentication/M5GAuthenticationInformation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(M5GSubscriberAuthenticationServer).M5GAuthenticationInformation(ctx, req.(*M5GAuthenticationInformationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _M5GSubscriberAuthentication_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.lte.M5GSubscriberAuthentication",
-	HandlerType: (*M5GSubscriberAuthenticationServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "M5GAuthenticationInformation",
-			Handler:    _M5GSubscriberAuthentication_M5GAuthenticationInformation_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "lte/protos/subscriberauth.proto",
 }

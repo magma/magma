@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
 	"magma/orc8r/cloud/go/identity"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const defaultTimeout = 6 * time.Minute

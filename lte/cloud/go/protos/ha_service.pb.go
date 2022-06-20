@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -301,84 +297,4 @@ func file_lte_protos_ha_service_proto_init() {
 	file_lte_protos_ha_service_proto_rawDesc = nil
 	file_lte_protos_ha_service_proto_goTypes = nil
 	file_lte_protos_ha_service_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// HaServiceClient is the client API for HaService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type HaServiceClient interface {
-	StartAgwOffload(ctx context.Context, in *StartAgwOffloadRequest, opts ...grpc.CallOption) (*StartAgwOffloadResponse, error)
-}
-
-type haServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewHaServiceClient(cc grpc.ClientConnInterface) HaServiceClient {
-	return &haServiceClient{cc}
-}
-
-func (c *haServiceClient) StartAgwOffload(ctx context.Context, in *StartAgwOffloadRequest, opts ...grpc.CallOption) (*StartAgwOffloadResponse, error) {
-	out := new(StartAgwOffloadResponse)
-	err := c.cc.Invoke(ctx, "/magma.lte.HaService/StartAgwOffload", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// HaServiceServer is the server API for HaService service.
-type HaServiceServer interface {
-	StartAgwOffload(context.Context, *StartAgwOffloadRequest) (*StartAgwOffloadResponse, error)
-}
-
-// UnimplementedHaServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedHaServiceServer struct {
-}
-
-func (*UnimplementedHaServiceServer) StartAgwOffload(context.Context, *StartAgwOffloadRequest) (*StartAgwOffloadResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartAgwOffload not implemented")
-}
-
-func RegisterHaServiceServer(s *grpc.Server, srv HaServiceServer) {
-	s.RegisterService(&_HaService_serviceDesc, srv)
-}
-
-func _HaService_StartAgwOffload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartAgwOffloadRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(HaServiceServer).StartAgwOffload(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.HaService/StartAgwOffload",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HaServiceServer).StartAgwOffload(ctx, req.(*StartAgwOffloadRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _HaService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.lte.HaService",
-	HandlerType: (*HaServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "StartAgwOffload",
-			Handler:    _HaService_StartAgwOffload_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "lte/protos/ha_service.proto",
 }

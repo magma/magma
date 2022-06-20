@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	protos "magma/orc8r/lib/go/protos"
@@ -178,86 +174,4 @@ func file_lte_protos_s1ap_service_proto_init() {
 	file_lte_protos_s1ap_service_proto_rawDesc = nil
 	file_lte_protos_s1ap_service_proto_goTypes = nil
 	file_lte_protos_s1ap_service_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// S1ApServiceClient is the client API for S1ApService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type S1ApServiceClient interface {
-	// Returns state of the S1 connected eNBs
-	GetENBState(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*EnbStateResult, error)
-}
-
-type s1ApServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewS1ApServiceClient(cc grpc.ClientConnInterface) S1ApServiceClient {
-	return &s1ApServiceClient{cc}
-}
-
-func (c *s1ApServiceClient) GetENBState(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*EnbStateResult, error) {
-	out := new(EnbStateResult)
-	err := c.cc.Invoke(ctx, "/magma.lte.S1apService/GetENBState", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// S1ApServiceServer is the server API for S1ApService service.
-type S1ApServiceServer interface {
-	// Returns state of the S1 connected eNBs
-	GetENBState(context.Context, *protos.Void) (*EnbStateResult, error)
-}
-
-// UnimplementedS1ApServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedS1ApServiceServer struct {
-}
-
-func (*UnimplementedS1ApServiceServer) GetENBState(context.Context, *protos.Void) (*EnbStateResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetENBState not implemented")
-}
-
-func RegisterS1ApServiceServer(s *grpc.Server, srv S1ApServiceServer) {
-	s.RegisterService(&_S1ApService_serviceDesc, srv)
-}
-
-func _S1ApService_GetENBState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(protos.Void)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(S1ApServiceServer).GetENBState(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.S1apService/GetENBState",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(S1ApServiceServer).GetENBState(ctx, req.(*protos.Void))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _S1ApService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.lte.S1apService",
-	HandlerType: (*S1ApServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetENBState",
-			Handler:    _S1ApService_GetENBState_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "lte/protos/s1ap_service.proto",
 }

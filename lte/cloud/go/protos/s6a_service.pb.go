@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -220,86 +216,4 @@ func file_lte_protos_s6a_service_proto_init() {
 	file_lte_protos_s6a_service_proto_rawDesc = nil
 	file_lte_protos_s6a_service_proto_goTypes = nil
 	file_lte_protos_s6a_service_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// S6AServiceClient is the client API for S6AService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type S6AServiceClient interface {
-	// Delete a subscriber from mme. A grpc service in mme, client req initiated from subscriberdb.
-	DeleteSubscriber(ctx context.Context, in *DeleteSubscriberRequest, opts ...grpc.CallOption) (*DeleteSubscriberResponse, error)
-}
-
-type s6AServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewS6AServiceClient(cc grpc.ClientConnInterface) S6AServiceClient {
-	return &s6AServiceClient{cc}
-}
-
-func (c *s6AServiceClient) DeleteSubscriber(ctx context.Context, in *DeleteSubscriberRequest, opts ...grpc.CallOption) (*DeleteSubscriberResponse, error) {
-	out := new(DeleteSubscriberResponse)
-	err := c.cc.Invoke(ctx, "/magma.lte.S6aService/DeleteSubscriber", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// S6AServiceServer is the server API for S6AService service.
-type S6AServiceServer interface {
-	// Delete a subscriber from mme. A grpc service in mme, client req initiated from subscriberdb.
-	DeleteSubscriber(context.Context, *DeleteSubscriberRequest) (*DeleteSubscriberResponse, error)
-}
-
-// UnimplementedS6AServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedS6AServiceServer struct {
-}
-
-func (*UnimplementedS6AServiceServer) DeleteSubscriber(context.Context, *DeleteSubscriberRequest) (*DeleteSubscriberResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteSubscriber not implemented")
-}
-
-func RegisterS6AServiceServer(s *grpc.Server, srv S6AServiceServer) {
-	s.RegisterService(&_S6AService_serviceDesc, srv)
-}
-
-func _S6AService_DeleteSubscriber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteSubscriberRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(S6AServiceServer).DeleteSubscriber(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.S6aService/DeleteSubscriber",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(S6AServiceServer).DeleteSubscriber(ctx, req.(*DeleteSubscriberRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _S6AService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.lte.S6aService",
-	HandlerType: (*S6AServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "DeleteSubscriber",
-			Handler:    _S6AService_DeleteSubscriber_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "lte/protos/s6a_service.proto",
 }

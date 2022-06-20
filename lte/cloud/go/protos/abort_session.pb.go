@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -318,84 +314,4 @@ func file_lte_protos_abort_session_proto_init() {
 	file_lte_protos_abort_session_proto_rawDesc = nil
 	file_lte_protos_abort_session_proto_goTypes = nil
 	file_lte_protos_abort_session_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// AbortSessionResponderClient is the client API for AbortSessionResponder service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type AbortSessionResponderClient interface {
-	AbortSession(ctx context.Context, in *AbortSessionRequest, opts ...grpc.CallOption) (*AbortSessionResult, error)
-}
-
-type abortSessionResponderClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewAbortSessionResponderClient(cc grpc.ClientConnInterface) AbortSessionResponderClient {
-	return &abortSessionResponderClient{cc}
-}
-
-func (c *abortSessionResponderClient) AbortSession(ctx context.Context, in *AbortSessionRequest, opts ...grpc.CallOption) (*AbortSessionResult, error) {
-	out := new(AbortSessionResult)
-	err := c.cc.Invoke(ctx, "/magma.lte.AbortSessionResponder/AbortSession", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// AbortSessionResponderServer is the server API for AbortSessionResponder service.
-type AbortSessionResponderServer interface {
-	AbortSession(context.Context, *AbortSessionRequest) (*AbortSessionResult, error)
-}
-
-// UnimplementedAbortSessionResponderServer can be embedded to have forward compatible implementations.
-type UnimplementedAbortSessionResponderServer struct {
-}
-
-func (*UnimplementedAbortSessionResponderServer) AbortSession(context.Context, *AbortSessionRequest) (*AbortSessionResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AbortSession not implemented")
-}
-
-func RegisterAbortSessionResponderServer(s *grpc.Server, srv AbortSessionResponderServer) {
-	s.RegisterService(&_AbortSessionResponder_serviceDesc, srv)
-}
-
-func _AbortSessionResponder_AbortSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AbortSessionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AbortSessionResponderServer).AbortSession(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.AbortSessionResponder/AbortSession",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AbortSessionResponderServer).AbortSession(ctx, req.(*AbortSessionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _AbortSessionResponder_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.lte.AbortSessionResponder",
-	HandlerType: (*AbortSessionResponderServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "AbortSession",
-			Handler:    _AbortSessionResponder_AbortSession_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "lte/protos/abort_session.proto",
 }
