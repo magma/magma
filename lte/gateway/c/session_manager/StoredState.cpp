@@ -338,10 +338,7 @@ StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized) {
   auto stored = StoredMonitorMap{};
   for (auto& key : marshaled["monitor_keys"]) {
     std::string monitor_key = key.get<std::string>();
-    auto monitor_map = marshaled["monitor_map"];
-    auto monitor = monitor_map[key];
-    auto stored_val = monitor.get<std::string>();
-    stored[monitor_key] = stored_val;
+    stored[monitor_key] = marshaled["monitor_map"][key].get();
   }
 
   return stored;
@@ -360,7 +357,7 @@ EventTriggerStatus deserialize_pending_event_triggers(std::string& serialized) {
       MLOG(MWARNING) << "Could not deserialize event triggers";
       continue;
     }
-    stored[eventKey] = EventTriggerState(map[key].get<int>());
+    stored[eventKey] = EventTriggerState(map[key].get());
   }
 
   return stored;
@@ -408,13 +405,13 @@ PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
   for (auto& key : marshaled["policy_stats_keys"]) {
     StatsPerPolicy stats;
     stats.current_version =
-        static_cast<uint32_t>(map[key]["current_version"].get<int>());
+        static_cast<uint32_t>(map[key]["current_version"].get());
     stats.last_reported_version =
-        static_cast<uint32_t>(map[key]["last_reported_version"].get<int>());
+        static_cast<uint32_t>(map[key]["last_reported_version"].get());
     for (auto& key2 : map[key]["stats_keys"]) {
-      int stat_key = static_cast<uint64_t>(std::stoul(key2.get<std::string>()));
+      int stat_key = static_cast<uint64_t>(std::stoul(key2.get()));
       stats.stats_map[stat_key] = deserialize_rule_stats(
-          map[key]["stats_map"][key2].get<std::string>());
+          map[key]["stats_map"][key2].get());
     }
     stored[key.get<std::string>()] = stats;
   }
@@ -446,7 +443,7 @@ std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
       stats["rx"] = std::to_string(stat.second.rx);
       stats["dropped_tx"] = std::to_string(stat.second.dropped_tx);
       stats["dropped_rx"] = std::to_string(stat.second.dropped_rx);
-      stats_map[version_str] = nlohmann::json::parse(stats);
+      stats_map[version_str] = stats.dump();
     }
     usage["stats_keys"] = stats_keys;
     usage["stats_map"] = stats_map;
@@ -575,9 +572,9 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.config =
       deserialize_stored_session_config(marshaled["config"].get<std::string>());
   stored.credit_map = deserialize_stored_charging_credit_map(
-      marshaled["charging_pool"].get<std::string>());
+      marshaled["charging_pool"].get());
   stored.monitor_map = deserialize_stored_usage_monitor_map(
-      marshaled["monitor_map"].get<std::string>());
+      marshaled["monitor_map"].get());
   stored.session_level_key = marshaled["session_level_key"].get<std::string>();
   stored.imsi = marshaled["imsi"].get<std::string>();
   stored.shard_id = marshaled["shard_id"].get<int>();
@@ -591,16 +588,16 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
       marshaled["revalidation_time"].get<std::string>());
   stored.revalidation_time = revalidation_time;
   stored.pending_event_triggers = deserialize_pending_event_triggers(
-      marshaled["pending_event_triggers"].get<std::string>());
+      marshaled["pending_event_triggers"].get());
 
   stored.bearer_id_by_policy = deserialize_bearer_id_by_policy(
-      marshaled["bearer_id_by_policy"].get<std::string>());
+      marshaled["bearer_id_by_policy"].get());
 
   stored.policy_version_and_stats = deserialize_policy_stats_map(
-      marshaled["policy_version_and_stats"].get<std::string>());
+      marshaled["policy_version_and_stats"].get());
 
   CreateSessionResponse csr;
-  csr.ParseFromString(marshaled["create_session_response"].get<std::string>());
+  csr.ParseFromString(marshaled["create_session_response"].get());
   stored.create_session_response = csr;
 
   magma::lte::TgppContext tgpp_context;
