@@ -40,19 +40,19 @@ import Text from '../../theme/design-system/Text';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
-import {JsonDialog} from './SubscriberOverview';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
   // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-import {RenderLink} from './SubscriberOverview';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {JsonDialog, RenderLink} from './SubscriberTypes';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
