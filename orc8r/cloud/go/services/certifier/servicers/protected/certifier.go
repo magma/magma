@@ -22,6 +22,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bmatcuk/doublestar"
+	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
+
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
@@ -32,14 +40,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/security/cert"
-
-	"github.com/bmatcuk/doublestar"
-	"github.com/golang/glog"
-	"github.com/hashicorp/go-multierror"
-	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (

@@ -27,6 +27,13 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	duration "google.golang.org/protobuf/types/known/durationpb"
+
 	"magma/orc8r/cloud/go/obsidian/access"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
@@ -35,13 +42,6 @@ import (
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	duration "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const ChallengeExpireTime = time.Minute * 5

@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -203,86 +199,4 @@ func file_orc8r_protos_eventd_proto_init() {
 	file_orc8r_protos_eventd_proto_rawDesc = nil
 	file_orc8r_protos_eventd_proto_goTypes = nil
 	file_orc8r_protos_eventd_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// EventServiceClient is the client API for EventService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type EventServiceClient interface {
-	// Logs an event to FluentBit.
-	LogEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Void, error)
-}
-
-type eventServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewEventServiceClient(cc grpc.ClientConnInterface) EventServiceClient {
-	return &eventServiceClient{cc}
-}
-
-func (c *eventServiceClient) LogEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.EventService/LogEvent", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// EventServiceServer is the server API for EventService service.
-type EventServiceServer interface {
-	// Logs an event to FluentBit.
-	LogEvent(context.Context, *Event) (*Void, error)
-}
-
-// UnimplementedEventServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedEventServiceServer struct {
-}
-
-func (*UnimplementedEventServiceServer) LogEvent(context.Context, *Event) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LogEvent not implemented")
-}
-
-func RegisterEventServiceServer(s *grpc.Server, srv EventServiceServer) {
-	s.RegisterService(&_EventService_serviceDesc, srv)
-}
-
-func _EventService_LogEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Event)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EventServiceServer).LogEvent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.EventService/LogEvent",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventServiceServer).LogEvent(ctx, req.(*Event))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _EventService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.EventService",
-	HandlerType: (*EventServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "LogEvent",
-			Handler:    _EventService_LogEvent_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "orc8r/protos/eventd.proto",
 }

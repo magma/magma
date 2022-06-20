@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	protos "magma/orc8r/lib/go/protos"
@@ -93,84 +89,4 @@ func file_orc8r_cloud_go_services_streamer_protos_provider_proto_init() {
 	file_orc8r_cloud_go_services_streamer_protos_provider_proto_rawDesc = nil
 	file_orc8r_cloud_go_services_streamer_protos_provider_proto_goTypes = nil
 	file_orc8r_cloud_go_services_streamer_protos_provider_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// StreamProviderClient is the client API for StreamProvider service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type StreamProviderClient interface {
-	GetUpdates(ctx context.Context, in *protos.StreamRequest, opts ...grpc.CallOption) (*protos.DataUpdateBatch, error)
-}
-
-type streamProviderClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewStreamProviderClient(cc grpc.ClientConnInterface) StreamProviderClient {
-	return &streamProviderClient{cc}
-}
-
-func (c *streamProviderClient) GetUpdates(ctx context.Context, in *protos.StreamRequest, opts ...grpc.CallOption) (*protos.DataUpdateBatch, error) {
-	out := new(protos.DataUpdateBatch)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.streamer.StreamProvider/GetUpdates", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// StreamProviderServer is the server API for StreamProvider service.
-type StreamProviderServer interface {
-	GetUpdates(context.Context, *protos.StreamRequest) (*protos.DataUpdateBatch, error)
-}
-
-// UnimplementedStreamProviderServer can be embedded to have forward compatible implementations.
-type UnimplementedStreamProviderServer struct {
-}
-
-func (*UnimplementedStreamProviderServer) GetUpdates(context.Context, *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUpdates not implemented")
-}
-
-func RegisterStreamProviderServer(s *grpc.Server, srv StreamProviderServer) {
-	s.RegisterService(&_StreamProvider_serviceDesc, srv)
-}
-
-func _StreamProvider_GetUpdates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(protos.StreamRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StreamProviderServer).GetUpdates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.streamer.StreamProvider/GetUpdates",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StreamProviderServer).GetUpdates(ctx, req.(*protos.StreamRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _StreamProvider_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.streamer.StreamProvider",
-	HandlerType: (*StreamProviderServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetUpdates",
-			Handler:    _StreamProvider_GetUpdates_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "orc8r/cloud/go/services/streamer/protos/provider.proto",
 }

@@ -26,6 +26,8 @@ import (
 	"strings"
 	"time"
 
+	duration "google.golang.org/protobuf/types/known/durationpb"
+
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
@@ -33,8 +35,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/key"
-
-	duration "google.golang.org/protobuf/types/known/durationpb"
 )
 
 // Common to several add... handlers definitions & functions

@@ -19,11 +19,7 @@
 package protos
 
 import (
-	context "context"
 	any1 "github.com/golang/protobuf/ptypes/any"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -347,115 +343,4 @@ func file_orc8r_protos_streamer_proto_init() {
 	file_orc8r_protos_streamer_proto_rawDesc = nil
 	file_orc8r_protos_streamer_proto_goTypes = nil
 	file_orc8r_protos_streamer_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// StreamerClient is the client API for Streamer service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type StreamerClient interface {
-	// GetUpdates streams config updates from the cloud.
-	// The RPC call would be kept open to push new updates as they happen.
-	GetUpdates(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (Streamer_GetUpdatesClient, error)
-}
-
-type streamerClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewStreamerClient(cc grpc.ClientConnInterface) StreamerClient {
-	return &streamerClient{cc}
-}
-
-func (c *streamerClient) GetUpdates(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (Streamer_GetUpdatesClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Streamer_serviceDesc.Streams[0], "/magma.orc8r.Streamer/GetUpdates", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &streamerGetUpdatesClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Streamer_GetUpdatesClient interface {
-	Recv() (*DataUpdateBatch, error)
-	grpc.ClientStream
-}
-
-type streamerGetUpdatesClient struct {
-	grpc.ClientStream
-}
-
-func (x *streamerGetUpdatesClient) Recv() (*DataUpdateBatch, error) {
-	m := new(DataUpdateBatch)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// StreamerServer is the server API for Streamer service.
-type StreamerServer interface {
-	// GetUpdates streams config updates from the cloud.
-	// The RPC call would be kept open to push new updates as they happen.
-	GetUpdates(*StreamRequest, Streamer_GetUpdatesServer) error
-}
-
-// UnimplementedStreamerServer can be embedded to have forward compatible implementations.
-type UnimplementedStreamerServer struct {
-}
-
-func (*UnimplementedStreamerServer) GetUpdates(*StreamRequest, Streamer_GetUpdatesServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetUpdates not implemented")
-}
-
-func RegisterStreamerServer(s *grpc.Server, srv StreamerServer) {
-	s.RegisterService(&_Streamer_serviceDesc, srv)
-}
-
-func _Streamer_GetUpdates_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StreamRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(StreamerServer).GetUpdates(m, &streamerGetUpdatesServer{stream})
-}
-
-type Streamer_GetUpdatesServer interface {
-	Send(*DataUpdateBatch) error
-	grpc.ServerStream
-}
-
-type streamerGetUpdatesServer struct {
-	grpc.ServerStream
-}
-
-func (x *streamerGetUpdatesServer) Send(m *DataUpdateBatch) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-var _Streamer_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.Streamer",
-	HandlerType: (*StreamerServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetUpdates",
-			Handler:       _Streamer_GetUpdates_Handler,
-			ServerStreams: true,
-		},
-	},
-	Metadata: "orc8r/protos/streamer.proto",
 }

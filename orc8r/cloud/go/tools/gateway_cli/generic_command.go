@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"os"
 
-	"magma/orc8r/cloud/go/services/magmad"
-	"magma/orc8r/lib/go/protos"
-
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	jsonpb "google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/structpb"
+
+	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/lib/go/protos"
 )
 
 func init() {

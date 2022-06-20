@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -319,86 +315,4 @@ func file_orc8r_cloud_go_services_analytics_protos_collector_proto_init() {
 	file_orc8r_cloud_go_services_analytics_protos_collector_proto_rawDesc = nil
 	file_orc8r_cloud_go_services_analytics_protos_collector_proto_goTypes = nil
 	file_orc8r_cloud_go_services_analytics_protos_collector_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// AnalyticsCollectorClient is the client API for AnalyticsCollector service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type AnalyticsCollectorClient interface {
-	// Collect returns a list of partial calculation metrics
-	Collect(ctx context.Context, in *CollectRequest, opts ...grpc.CallOption) (*CollectResponse, error)
-}
-
-type analyticsCollectorClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewAnalyticsCollectorClient(cc grpc.ClientConnInterface) AnalyticsCollectorClient {
-	return &analyticsCollectorClient{cc}
-}
-
-func (c *analyticsCollectorClient) Collect(ctx context.Context, in *CollectRequest, opts ...grpc.CallOption) (*CollectResponse, error) {
-	out := new(CollectResponse)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.analytics.AnalyticsCollector/Collect", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// AnalyticsCollectorServer is the server API for AnalyticsCollector service.
-type AnalyticsCollectorServer interface {
-	// Collect returns a list of partial calculation metrics
-	Collect(context.Context, *CollectRequest) (*CollectResponse, error)
-}
-
-// UnimplementedAnalyticsCollectorServer can be embedded to have forward compatible implementations.
-type UnimplementedAnalyticsCollectorServer struct {
-}
-
-func (*UnimplementedAnalyticsCollectorServer) Collect(context.Context, *CollectRequest) (*CollectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Collect not implemented")
-}
-
-func RegisterAnalyticsCollectorServer(s *grpc.Server, srv AnalyticsCollectorServer) {
-	s.RegisterService(&_AnalyticsCollector_serviceDesc, srv)
-}
-
-func _AnalyticsCollector_Collect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CollectRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AnalyticsCollectorServer).Collect(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.analytics.AnalyticsCollector/Collect",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnalyticsCollectorServer).Collect(ctx, req.(*CollectRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _AnalyticsCollector_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.analytics.AnalyticsCollector",
-	HandlerType: (*AnalyticsCollectorServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Collect",
-			Handler:    _AnalyticsCollector_Collect_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "orc8r/cloud/go/services/analytics/protos/collector.proto",
 }

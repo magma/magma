@@ -16,11 +16,11 @@ package mconfig
 import (
 	"fmt"
 
-	"magma/orc8r/lib/go/protos"
-
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
+
+	"magma/orc8r/lib/go/protos"
 )
 
 func MarshalConfigs(configs map[string]proto.Message) (ConfigsByKey, error) {

@@ -19,10 +19,6 @@
 package protos
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	storage "magma/orc8r/cloud/go/services/configurator/storage"
@@ -288,88 +284,4 @@ func file_orc8r_cloud_go_services_configurator_mconfig_protos_builder_proto_init
 	file_orc8r_cloud_go_services_configurator_mconfig_protos_builder_proto_rawDesc = nil
 	file_orc8r_cloud_go_services_configurator_mconfig_protos_builder_proto_goTypes = nil
 	file_orc8r_cloud_go_services_configurator_mconfig_protos_builder_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// MconfigBuilderClient is the client API for MconfigBuilder service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type MconfigBuilderClient interface {
-	// Build returns a partial mconfig containing the gateway configs for which
-	// this builder is responsible.
-	Build(ctx context.Context, in *BuildRequest, opts ...grpc.CallOption) (*BuildResponse, error)
-}
-
-type mconfigBuilderClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewMconfigBuilderClient(cc grpc.ClientConnInterface) MconfigBuilderClient {
-	return &mconfigBuilderClient{cc}
-}
-
-func (c *mconfigBuilderClient) Build(ctx context.Context, in *BuildRequest, opts ...grpc.CallOption) (*BuildResponse, error) {
-	out := new(BuildResponse)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.configurator.mconfig.MconfigBuilder/Build", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// MconfigBuilderServer is the server API for MconfigBuilder service.
-type MconfigBuilderServer interface {
-	// Build returns a partial mconfig containing the gateway configs for which
-	// this builder is responsible.
-	Build(context.Context, *BuildRequest) (*BuildResponse, error)
-}
-
-// UnimplementedMconfigBuilderServer can be embedded to have forward compatible implementations.
-type UnimplementedMconfigBuilderServer struct {
-}
-
-func (*UnimplementedMconfigBuilderServer) Build(context.Context, *BuildRequest) (*BuildResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Build not implemented")
-}
-
-func RegisterMconfigBuilderServer(s *grpc.Server, srv MconfigBuilderServer) {
-	s.RegisterService(&_MconfigBuilder_serviceDesc, srv)
-}
-
-func _MconfigBuilder_Build_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BuildRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MconfigBuilderServer).Build(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.configurator.mconfig.MconfigBuilder/Build",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MconfigBuilderServer).Build(ctx, req.(*BuildRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _MconfigBuilder_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.configurator.mconfig.MconfigBuilder",
-	HandlerType: (*MconfigBuilderServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Build",
-			Handler:    _MconfigBuilder_Build_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "orc8r/cloud/go/services/configurator/mconfig/protos/builder.proto",
 }

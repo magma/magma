@@ -25,6 +25,7 @@ import (
 	_ "github.com/vektra/mockery/v2"
 	_ "github.com/wadey/gocovmerge"
 	_ "golang.org/x/tools/cmd/goimports"
+	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
 	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 	_ "gotest.tools/gotestsum"
 )
