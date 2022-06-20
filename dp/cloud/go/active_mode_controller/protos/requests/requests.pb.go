@@ -19,10 +19,6 @@
 package requests
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -227,84 +223,4 @@ func file_dp_protos_requests_proto_init() {
 	file_dp_protos_requests_proto_rawDesc = nil
 	file_dp_protos_requests_proto_goTypes = nil
 	file_dp_protos_requests_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// RadioControllerClient is the client API for RadioController service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RadioControllerClient interface {
-	UploadRequests(ctx context.Context, in *RequestPayload, opts ...grpc.CallOption) (*RequestDbIds, error)
-}
-
-type radioControllerClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewRadioControllerClient(cc grpc.ClientConnInterface) RadioControllerClient {
-	return &radioControllerClient{cc}
-}
-
-func (c *radioControllerClient) UploadRequests(ctx context.Context, in *RequestPayload, opts ...grpc.CallOption) (*RequestDbIds, error) {
-	out := new(RequestDbIds)
-	err := c.cc.Invoke(ctx, "/RadioController/UploadRequests", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// RadioControllerServer is the server API for RadioController service.
-type RadioControllerServer interface {
-	UploadRequests(context.Context, *RequestPayload) (*RequestDbIds, error)
-}
-
-// UnimplementedRadioControllerServer can be embedded to have forward compatible implementations.
-type UnimplementedRadioControllerServer struct {
-}
-
-func (*UnimplementedRadioControllerServer) UploadRequests(context.Context, *RequestPayload) (*RequestDbIds, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UploadRequests not implemented")
-}
-
-func RegisterRadioControllerServer(s *grpc.Server, srv RadioControllerServer) {
-	s.RegisterService(&_RadioController_serviceDesc, srv)
-}
-
-func _RadioController_UploadRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestPayload)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RadioControllerServer).UploadRequests(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/RadioController/UploadRequests",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RadioControllerServer).UploadRequests(ctx, req.(*RequestPayload))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _RadioController_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "RadioController",
-	HandlerType: (*RadioControllerServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "UploadRequests",
-			Handler:    _RadioController_UploadRequests_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "dp/protos/requests.proto",
 }
