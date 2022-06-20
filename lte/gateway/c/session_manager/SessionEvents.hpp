@@ -12,7 +12,9 @@
  */
 #pragma once
 
-#include <nlohmann/json.hpp>
+#include <folly/Format.h>
+#include <folly/dynamic.h>
+#include <folly/json.h>
 #include <orc8r/protos/eventd.pb.h>
 #include <memory>
 #include <string>
@@ -88,7 +90,7 @@ class EventsReporterImpl : public EventsReporter {
   std::string get_spgw_ipv4(const SessionConfig& config);
   std::string get_user_location(const SessionConfig& config);
   std::string get_charging_characteristics(const SessionConfig& config);
-  nlohmann::json get_update_summary(const UpdateRequests& updates);
+  folly::dynamic get_update_summary(const UpdateRequests& updates);
 
  private:
   EventdClient& eventd_client_;

@@ -12,7 +12,9 @@
  */
 #pragma once
 
-#include <nlohmann/json.hpp>
+#include <folly/Format.h>
+#include <folly/dynamic.h>
+#include <folly/json.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
