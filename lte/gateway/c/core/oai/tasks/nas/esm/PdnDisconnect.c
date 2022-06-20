@@ -213,7 +213,7 @@ status_code_e esm_proc_pdn_disconnect_reject(const bool is_standalone,
                                              ebi_t ebi, STOLEN_REF bstring* msg,
                                              const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  status_code_e rc;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)

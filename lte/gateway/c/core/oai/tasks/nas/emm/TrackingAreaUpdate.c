@@ -550,10 +550,9 @@ status_code_e emm_proc_tracking_area_update_request(
  ***************************************************************************/
 status_code_e emm_proc_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
                                                    const int emm_cause) {
-  status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  rc = emm_tracking_area_update_reject(ue_id, emm_cause);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM,
+                     emm_tracking_area_update_reject(ue_id, emm_cause));
 }
 
 /****************************************************************************/

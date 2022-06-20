@@ -494,7 +494,7 @@ status_code_e emm_recv_attach_complete(
     mme_ue_s1ap_id_t ue_id, const attach_complete_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  status_code_e rc;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Attach Complete message for ue_id "
@@ -1294,7 +1294,7 @@ static int emm_initiate_default_bearer_re_establishment(
 status_code_e emm_recv_tau_complete(
     mme_ue_s1ap_id_t ue_id, const tracking_area_update_complete_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  status_code_e rc;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received TAU Complete message\n");
   /*

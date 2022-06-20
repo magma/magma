@@ -330,7 +330,7 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
 status_code_e esm_proc_dedicated_eps_bearer_context_reject(
     emm_context_t* emm_context, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  status_code_e rc;
+  status_code_e rc = RETURNerror;
   ue_mm_context_t* ue_context_p = NULL;
 
   ue_context_p =
@@ -430,7 +430,7 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
   }
 
   ebi_t ebi = timer_args.ebi;
-  status_code_e rc;
+  status_code_e rc = RETURNok;
   int bid = EBI_TO_INDEX(ebi);
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
@@ -615,7 +615,7 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(zloop_t* loop,
   }
 
   ebi_t ebi = timer_args.ebi;
-  status_code_e rc;
+  status_code_e rc = RETURNok;
   int bid = EBI_TO_INDEX(ebi);
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];

@@ -147,8 +147,8 @@ status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
                        ue_id);
         } else {
           // NAS trigger UE to re-attach for non-EPS services.
-          emm_proc_nw_initiated_detach_request(ue_id,
-                                               NW_DETACH_TYPE_IMSI_DETACH);
+          rc = emm_proc_nw_initiated_detach_request(ue_id,
+                                                    NW_DETACH_TYPE_IMSI_DETACH);
         }
       }
     }

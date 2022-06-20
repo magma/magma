@@ -211,7 +211,7 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
     const bool is_standalone, emm_context_t* const emm_context_p,
     const ebi_t ebi, STOLEN_REF bstring* msg, const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  status_code_e rc;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -423,7 +423,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
   }
 
   ebi_t ebi = timer_args.ebi;
-  status_code_e rc;
+  status_code_e rc = RETURNok;
   bool delete_default_bearer = false;
   int bid = EBI_TO_INDEX(ebi);
 
