@@ -55,7 +55,9 @@ import {AddSubscriberDialog} from './SubscriberAddDialog';
 import {CsvBuilder} from 'filefy';
 import {
   DEFAULT_PAGE_SIZE,
+  JsonDialog,
   REFRESH_TIMEOUT,
+  RenderLink,
   SUBSCRIBER_EXPORT_COLUMNS,
   // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './SubscriberUtils';
@@ -71,7 +73,6 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {JsonDialog, RenderLink} from "./SubscriberTypes";
 
 // number of subscriber in a chunk
 const SUBSCRIBERS_CHUNK_SIZE = 1000;

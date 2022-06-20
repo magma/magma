@@ -20,11 +20,17 @@ import type {ActionQuery} from '../../components/ActionTable';
 import ActionTable, {SelectEditComponent} from '../../components/ActionTable';
 import type {EditProps} from './SubscriberEditDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
+import type {
+  SubscriberActionType,
+  SubscriberInfo,
+  SubscribersDialogDetailProps,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+} from './SubscriberUtils';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 // $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
@@ -62,7 +68,6 @@ import {colors} from '../../theme/default';
 import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
-import type {SubscribersDialogDetailProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   dialogTitle: {

@@ -13,30 +13,15 @@
  * @flow strict-local
  * @format
  */
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Link from '@material-ui/core/Link';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
-import ReactJson from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe migrated to typescript
-import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import SubscriberStateTable from './SubscriberStateTable';
 import SubscriberTable from './SubscriberTable';
 // $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-import type {
-  mutable_subscriber,
-  subscriber,
-} from '../../../generated/MagmaAPIBindings';
-
-import {Navigate, Route, Routes, useNavigate} from 'react-router-dom';
-import {useContext} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {SubscriberRowType} from '../../state/lte/SubscriberState';
+import {Navigate, Route, Routes} from 'react-router-dom';
 
 const TITLE = 'Subscribers';
 
