@@ -24,7 +24,7 @@ const path = require('path');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 // $FlowFixMe migrated to typescript
 const logger = require('../../shared/logging.ts').getLogger(module);
-const openRoutes = require('./openRoutes').default;
+const openRoutes = require('./openRoutes.ts').default;
 
 import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSPassportRequest} from './passport';

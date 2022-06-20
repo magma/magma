@@ -10,10 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
-'use strict';
 
 // NOTE: Regex based routes for paths that don't require logged in user access
 export default [

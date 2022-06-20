@@ -14,7 +14,7 @@
  * @format
  */
 
-import {Strategy} from 'passport-strategy';
+import {Strategy} from 'passport';
 
 //use this in place of the real openid strategies until discovery finishes
 export default class StubStrategy extends Strategy {
@@ -23,6 +23,6 @@ export default class StubStrategy extends Strategy {
     this.name = 'stub';
   }
   authenticate() {
-    return this.fail({message: 'No implementation found for strategy'});
+    return this.fail('No implementation found for strategy');
   }
 }
