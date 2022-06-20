@@ -9,45 +9,35 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
-import type {
-  mutable_subscriber,
-  subscriber,
-} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
 import {EditSubscriberButton} from './SubscriberEditDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {
+  MutableSubscriber,
+  Subscriber,
+  SubscriberForbiddenNetworkTypesEnum,
+} from '../../../generated-ts';
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
+import type {DataRows} from '../../components/DataGrid';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
     flexGrow: 1,
@@ -60,7 +50,6 @@ const useStyles = makeStyles(theme => ({
     fontSize: typography.button.fontSize,
     lineHeight: typography.button.lineHeight,
     letterSpacing: typography.button.letterSpacing,
-
     '&:hover': {
       background: colors.primary.mirage,
     },
@@ -80,9 +69,7 @@ export function SubscriberJsonConfig() {
     state: _unused_state,
     ...subscriberInfoPartial
   } = subscriberInfo;
-  const mutableSubscriber: mutable_subscriber = {
-    ...subscriberInfoPartial,
-  };
+  const mutableSubscriber: MutableSubscriber = {...subscriberInfoPartial};
 
   if (config?.static_ips) {
     mutableSubscriber.static_ips = config.static_ips;
@@ -92,7 +79,7 @@ export function SubscriberJsonConfig() {
     <JsonEditor
       content={mutableSubscriber}
       error={error}
-      onSave={async (subscriber: mutable_subscriber) => {
+      onSave={async (subscriber: MutableSubscriber) => {
         try {
           await ctx.setState?.(subscriber.id, subscriber);
           enqueueSnackbar('Subscriber saved successfully', {
@@ -100,7 +87,7 @@ export function SubscriberJsonConfig() {
           });
           setError('');
         } catch (e) {
-          setError(e.response?.data?.message ?? e.message);
+          setError(getErrorMessage(e));
         }
       }}
     />
@@ -169,10 +156,10 @@ export default function SubscriberDetailConfig() {
 function SubscriberConfigTrafficPolicy({
   subscriberInfo,
 }: {
-  subscriberInfo: subscriber,
+  subscriberInfo: Subscriber;
 }) {
-  function CollapseItems(props) {
-    const data: DataRows[] = [
+  function CollapseItems(props: {key: string; data: string}) {
+    const data: Array<DataRows> = [
       [
         {
           value: props.data || '-',
@@ -183,7 +170,7 @@ function SubscriberConfigTrafficPolicy({
     return <DataGrid data={data} />;
   }
 
-  const trafficPolicyData: DataRows[] = [
+  const trafficPolicyData: Array<DataRows> = [
     [
       {
         category: 'Active APNs',
@@ -216,13 +203,16 @@ function SubscriberConfigTrafficPolicy({
   return <DataGrid data={trafficPolicyData} />;
 }
 
-function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
-  const [authKey, _setAuthKey] = useState(subscriberInfo.lte.auth_key);
-  const [authOPC, _setAuthOPC] = useState(subscriberInfo.lte.auth_opc ?? false);
-  const [dataPlan, _setDataPlan] = useState(subscriberInfo.lte.sub_profile);
+function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: Subscriber}) {
+  const [authKey] = useState(subscriberInfo.lte.auth_key);
+  const [authOPC] = useState(subscriberInfo.lte.auth_opc);
+  const [dataPlan] = useState(subscriberInfo.lte.sub_profile);
 
-  function CollapseItems(props) {
-    const data: DataRows[] = [
+  function CollapseItems(props: {
+    key: SubscriberForbiddenNetworkTypesEnum;
+    data: SubscriberForbiddenNetworkTypesEnum;
+  }) {
+    const data: Array<DataRows> = [
       [
         {
           value: props.data || '-',
@@ -233,7 +223,7 @@ function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
     return <DataGrid data={data} />;
   }
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'LTE Network Access',
@@ -279,14 +269,14 @@ function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
 function SubscriberApnStaticIpsTable({
   subscriberInfo,
 }: {
-  subscriberInfo: subscriber,
+  subscriberInfo: Subscriber;
 }) {
   const resolvedPath = useResolvedPath('');
   const navigate = useNavigate();
   const staticIps = subscriberInfo.config.static_ips || {};
   type SubscriberApnStaticIpsRowType = {
-    apnName: string,
-    apnStaticIp: string,
+    apnName: string;
+    apnStaticIp: string;
   };
   const apnRows: Array<SubscriberApnStaticIpsRowType> = Object.keys(
     staticIps,
@@ -296,7 +286,7 @@ function SubscriberApnStaticIpsTable({
       apnStaticIp: staticIps[apnName],
     };
   });
-  const [_currRow, setCurrRow] = useState<SubscriberApnStaticIpsRowType>({});
+  const [, setCurrRow] = useState({} as SubscriberApnStaticIpsRowType);
   return (
     <ActionTable
       title=""
