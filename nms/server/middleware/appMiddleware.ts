@@ -10,8 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 import bodyParser from 'body-parser';
@@ -22,16 +20,21 @@ import helmet from 'helmet';
 // $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 
+import {RequestHandler} from 'express';
+import {config} from 'process';
+
 /**
  * General middleware that every application should use, and it should be the
  * first thing used.  These shouldn't have any side effects in the application
  * it should just introduce additional functionality
  */
 // $FlowIgnore[value-as-type]
-export default function appMiddleware(): Middleware {
+export default function appMiddleware(): RequestHandler {
   const router = express.Router();
   [
-    helmet(),
+    helmet({
+      contentSecurityPolicy: false,
+    }),
     // parse json. Strict disabled because magma wants gateway name update
     // to be just a string (e.g. "name") which is not actually legit
     bodyParser.json({limit: '1mb', strict: false}),

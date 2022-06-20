@@ -14,15 +14,12 @@
  * @format
  */
 
-import type {Middleware} from 'express';
-
-import express from 'express';
+import {RequestHandler, Router} from 'express';
 
 import csrf from 'csurf';
 
-// $FlowIgnore[value-as-type]
-export default function csrfMiddleware(): Middleware {
-  const router = express.Router();
+export default function csrfMiddleware(): RequestHandler {
+  const router = Router();
   router.use(csrf());
   return router;
 }

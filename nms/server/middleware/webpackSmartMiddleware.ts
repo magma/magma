@@ -17,30 +17,32 @@
 import express from 'express';
 // $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
+import webpack from 'webpack';
+import webpackHotMiddleware, {MiddlewareOptions} from 'webpack-hot-middleware';
+import webpackMiddleware from 'webpack-dev-middleware';
 
-import type {Middleware} from 'express';
-const logger = logging.getLogger(module);
+import {RequestHandler} from 'express';
+const logger = (logging.getLogger(
+  module,
+) as unknown) as webpackMiddleware.Options['logger'];
 
-type WebpackMiddlewareOptions = {|
-  distPath: string,
-  devWebpackConfig: Object,
-|};
+type WebpackMiddlewareOptions = {
+  distPath: string;
+  devWebpackConfig: webpack.Configuration;
+};
 
-type WebpackSmartMiddlewareOptions = {|
-  ...WebpackMiddlewareOptions,
-  devMode: boolean,
-|};
+type WebpackSmartMiddlewareOptions = WebpackMiddlewareOptions & {
+  devMode: boolean;
+};
 
 // $FlowIgnore[value-as-type]
-function webpackDevMiddleware(options: WebpackMiddlewareOptions): Middleware {
+function webpackDevMiddleware(
+  options: WebpackMiddlewareOptions,
+): RequestHandler {
   const {devWebpackConfig} = options;
-  const webpack = require('webpack');
-  const webpackMiddleware = require('webpack-dev-middleware');
-  const webpackHotMiddleware = require('webpack-hot-middleware');
   const compiler = webpack(devWebpackConfig);
   const middleware = webpackMiddleware(compiler, {
-    publicPath: devWebpackConfig.output.publicPath,
-    contentBase: 'src',
+    publicPath: devWebpackConfig.output?.publicPath,
     logger,
     stats: {
       colors: true,
@@ -55,9 +57,9 @@ function webpackDevMiddleware(options: WebpackMiddlewareOptions): Middleware {
   const router = express.Router();
   router.use(middleware);
   router.use(
-    webpackHotMiddleware(compiler, {
+    webpackHotMiddleware(compiler, ({
       reload: true,
-    }),
+    } as unknown) as MiddlewareOptions),
   );
   return router;
 }
@@ -65,7 +67,7 @@ function webpackDevMiddleware(options: WebpackMiddlewareOptions): Middleware {
 export default function webpackSmartMiddleware(
   options: WebpackSmartMiddlewareOptions,
   // $FlowIgnore[value-as-type]
-): Middleware {
+): RequestHandler {
   const {devMode, devWebpackConfig, distPath} = options;
 
   const router = express.Router();
@@ -75,7 +77,10 @@ export default function webpackSmartMiddleware(
     router.use(webpackDevMiddleware({devWebpackConfig, distPath}));
   } else {
     // serve built resources from static/dist/ folder
-    router.use(devWebpackConfig.output.publicPath, express.static(distPath));
+    router.use(
+      devWebpackConfig.output?.publicPath || '',
+      express.static(distPath),
+    );
   }
   return router;
 }
