@@ -49,14 +49,18 @@ type ContextMap = {
 };
 
 type StateMap = {
-  [RefreshTypeEnum.SUBSCRIBER]: SubscriberContextType['sessionState'];
+  [RefreshTypeEnum.SUBSCRIBER]: {
+    sessionState: SubscriberContextType['sessionState'];
+  };
   [RefreshTypeEnum.GATEWAY]: GatewayContextType['state'];
   [RefreshTypeEnum.FEG_GATEWAY]: {
     fegGateways: FEGGatewayContextType['state'];
     health: FEGGatewayContextType['health'];
     activeFegGatewayId: FEGGatewayContextType['activeFegGatewayId'];
   };
-  [RefreshTypeEnum.FEG_SUBSCRIBER]: FEGSubscriberContextType['sessionState'];
+  [RefreshTypeEnum.FEG_SUBSCRIBER]: {
+    sessionState: FEGSubscriberContextType['sessionState'];
+  };
   [RefreshTypeEnum.ENODEB]: EnodebContextType['state'];
 };
 
