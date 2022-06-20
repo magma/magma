@@ -18,8 +18,10 @@ import type {Options, Transaction} from 'sequelize';
 
 import AuditLogEntryModel from './models/audit_log_entry';
 import FeatureFlagModel from './models/featureflag';
+// eslint-disable-next-line import/default -- TS-migration
 import OrganizationModel from './models/organization';
 import Sequelize from 'sequelize';
+// eslint-disable-next-line import/default -- TS-migration
 import UserModel from './models/user';
 import sequelizeConfig from './sequelizeConfig';
 

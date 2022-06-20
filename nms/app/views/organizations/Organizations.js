@@ -36,6 +36,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationDialog from './OrganizationDialog';
 import PersonAdd from '@material-ui/icons/PersonAdd';
 import PersonIcon from '@material-ui/icons/Person';
