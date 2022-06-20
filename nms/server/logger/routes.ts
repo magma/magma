@@ -13,18 +13,11 @@
  * @flow strict-local
  * @format
  */
+import express from 'express';
+import proxy from 'express-http-proxy';
+import {LOGGER_HOST} from '../../config/config';
 
-import type {ExpressRequest, ExpressResponse} from 'express';
-
-const express = require('express');
-const proxy = require('express-http-proxy');
-
-const {LOGGER_HOST} = require('../../config/config');
-
-const router: express.Router<
-  ExpressRequest,
-  ExpressResponse,
-> = express.Router();
+const router = express.Router();
 
 router.use('/', proxy(LOGGER_HOST));
 
