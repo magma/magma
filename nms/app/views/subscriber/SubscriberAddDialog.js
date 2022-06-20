@@ -18,6 +18,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable, {SelectEditComponent} from '../../components/ActionTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {EditProps} from './SubscriberEditDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {

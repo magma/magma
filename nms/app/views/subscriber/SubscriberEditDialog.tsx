@@ -9,62 +9,49 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {
-  EditSubscriberProps,
-  SubscriberInfo,
-  subscriberForbiddenNetworkTypes,
-  subscriberStaticIpsRowType,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-} from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes} from './SubscriberUtils';
-import type {subscriber} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EditSubscriberApnStaticIps from './SubscriberApnStaticIpsEdit';
-// $FlowFixMe for TypeScript migration
 import EditSubscriberTrafficPolicy from './SubscriberTrafficPolicyEdit';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React, {useContext, useEffect, useState} from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../../components/TypedSelect';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-
-// $FlowFixMe migrated to typescript
 import {AltFormField, PasswordInput} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module]
+import {CoreNetworkTypes} from './SubscriberUtils';
+import {LteSubscription} from '../../../generated-ts';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {
+  EditSubscriberProps,
+  SubscriberInfo,
+  subscriberForbiddenNetworkTypes,
+  subscriberStaticIpsRowType,
+} from './SubscriberUtils';
+import type {
+  Subscriber,
+  SubscriberForbiddenNetworkTypesEnum,
+} from '../../../generated-ts';
 
 const useStyles = makeStyles(() => ({
   tabBar: {
@@ -85,9 +72,9 @@ const useStyles = makeStyles(() => ({
 const SUBSCRIBER_TITLE = 'Subscriber';
 const TRAFFIC_TITLE = 'Traffic Policy';
 const STATIC_IPS_TITLE = 'APNs Static IPs';
-const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
-  key => CoreNetworkTypes[key],
-);
+const forbiddenNetworkTypes = Object.values(CoreNetworkTypes) as Array<
+  SubscriberForbiddenNetworkTypesEnum
+>;
 
 export const EditTableType = {
   subscriber: 0,
@@ -96,7 +83,7 @@ export const EditTableType = {
 };
 
 export type EditProps = {
-  editTable: $Keys<typeof EditTableType>,
+  editTable: keyof typeof EditTableType;
 };
 export function EditSubscriberButton(props: EditProps) {
   const [open, setOpen] = useState(false);
@@ -119,14 +106,14 @@ export function EditSubscriberButton(props: EditProps) {
 }
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  editProps?: EditProps,
+  open: boolean;
+  onClose: () => void;
+  editProps?: EditProps;
   onSave?: (
     subscribers: Array<SubscriberInfo>,
     selectedSubscribers?: Array<string>,
-  ) => void,
-  error?: string,
+  ) => void;
+  error?: string;
 };
 
 export function SubscriberEditDialog(props: DialogProps) {
@@ -140,7 +127,7 @@ export function SubscriberEditDialog(props: DialogProps) {
   const classes = useStyles();
   const params = useParams();
   const subscriberId = nullthrows(params.subscriberId);
-  const [subscriberState, setSubscriberState] = useState<subscriber>(
+  const [subscriberState, setSubscriberState] = useState<Subscriber>(
     ctx.state[subscriberId],
   );
 
@@ -155,7 +142,7 @@ export function SubscriberEditDialog(props: DialogProps) {
       : '',
   );
   const [subscriberStaticIPRows, setSubscriberStaticIPRows] = useState<
-    Array<subscriberStaticIpsRowType>,
+    Array<subscriberStaticIpsRowType>
   >(
     Object.keys(ctx.state[subscriberId].config.static_ips || {}).map(
       (apn: string) => {
@@ -167,13 +154,13 @@ export function SubscriberEditDialog(props: DialogProps) {
     ),
   );
 
-  const subscriberCoreNetwork = Array<subscriberForbiddenNetworkTypes>(
-    Object.keys(CoreNetworkTypes).map((key: string) => {
+  const subscriberCoreNetwork = Object.keys(CoreNetworkTypes).map(
+    (key: string) => {
       return {
         nwTypes: key,
       };
-    }),
-  );
+    },
+  ) as Array<subscriberForbiddenNetworkTypes>;
 
   const [error, setError] = useState('');
   useEffect(() => {
@@ -185,7 +172,7 @@ export function SubscriberEditDialog(props: DialogProps) {
   };
 
   // we are doing this to ensure we can map subprofiles from an array
-  // for e.g. ['foo', 'default'] -> {foo: 'foo', default: 'default}
+  // for e.g. ['foo', 'default'] -> {foo: 'foo', default: 'default'}
   // this is done because TypedSelect expects items in this form to verify
   // if the passed in input is of expected type
   const subProfiles = Array.from(
@@ -195,19 +182,19 @@ export function SubscriberEditDialog(props: DialogProps) {
   ).reduce(function (o, v) {
     o[v] = v;
     return o;
-  }, {});
+  }, {} as Record<string, string>);
 
   const subscriberProps: EditSubscriberProps = {
     subscriberState: subscriberState,
     onSubscriberChange: (key: string, val) => {
       setSubscriberState({...subscriberState, [key]: val});
     },
-    onTrafficPolicyChange: (key: string, val, index: number) => {
+    onTrafficPolicyChange: (key, val, index) => {
       const rows = subscriberStaticIPRows;
       rows[index][key] = val;
       setSubscriberStaticIPRows([...rows]);
     },
-    onDeleteApn: (apn: {}) => {
+    onDeleteApn: apn => {
       setSubscriberStaticIPRows([
         ...subscriberStaticIPRows.filter(
           (deletedApn: subscriberStaticIpsRowType) => apn !== deletedApn,
@@ -249,8 +236,9 @@ export function SubscriberEditDialog(props: DialogProps) {
           return;
         }
       }
+
       const {config: _, ...mutableSubscriber} = {...subscriberState};
-      const staticIps = {};
+      const staticIps: Record<string, string> = {};
       subscriberStaticIPRows.forEach(
         apn => (staticIps[apn.apnName] = apn.staticIp),
       );
@@ -262,10 +250,10 @@ export function SubscriberEditDialog(props: DialogProps) {
         variant: 'success',
       });
     } catch (e) {
-      const errMsg = e.response?.data?.message ?? e.message;
-      setError('error saving ' + subscriberState.id + ' : ' + errMsg);
+      setError(`'error saving ${subscriberState.id} : ${getErrorMessage(e)}`);
       return;
     }
+
     props.onClose();
   };
 
@@ -279,7 +267,7 @@ export function SubscriberEditDialog(props: DialogProps) {
       <DialogTitle label={'Edit Subscriber Settings'} onClose={onClose} />
       <Tabs
         value={tabPos}
-        onChange={(_, v) => setTabPos(v)}
+        onChange={(_, v: number) => setTabPos(v)}
         indicatorColor="primary"
         className={classes.tabBar}>
         <Tab
@@ -329,7 +317,7 @@ export function SubscriberEditDialog(props: DialogProps) {
           data-testid={`${props.editProps?.editTable || ''}-saveButton`}
           variant="contained"
           color="primary"
-          onClick={onSave}>
+          onClick={() => void onSave()}>
           Save
         </Button>
       </DialogActions>
@@ -367,7 +355,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
               props.onSubscriberChange('lte', {
                 ...props.subscriberState.lte,
                 state: value,
-              });
+              } as LteSubscription);
             }}
           />
         </AltFormField>
@@ -376,7 +364,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
             className={classes.input}
             input={<OutlinedInput />}
             value={props.subscriberState.lte.sub_profile}
-            items={props.subProfiles}
+            items={props.subProfiles!}
             onChange={value => {
               props.onSubscriberChange('lte', {
                 ...props.subscriberState.lte,
@@ -393,23 +381,27 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
               onChange={({target}) => {
                 props.onSubscriberChange(
                   'forbidden_network_types',
-                  target.value,
+                  target.value as string,
                 );
               }}
-              renderValue={selected => selected.join(', ')}
+              renderValue={selected =>
+                (selected as Array<SubscriberForbiddenNetworkTypesEnum>).join(
+                  ', ',
+                )
+              }
               input={<OutlinedInput />}>
-              {forbiddenNetworkTypes.map((k: string, idx: number) => (
-                <MenuItem key={idx} value={k}>
+              {forbiddenNetworkTypes.map((value, idx: number) => (
+                <MenuItem key={idx} value={value}>
                   <Checkbox
                     checked={
                       props.subscriberState.forbidden_network_types != null
                         ? props.subscriberState.forbidden_network_types.indexOf(
-                            k,
+                            value,
                           ) > -1
                         : false
                     }
                   />
-                  <ListItemText primary={k} />
+                  <ListItemText primary={value} />
                 </MenuItem>
               ))}
             </Select>
@@ -422,7 +414,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
             className={classes.input}
             placeholder="Eg. 8baf473f2f8fd09487cccbd7097c6862"
             value={props.authKey}
-            error={props.authKey && !isValidHex(props.authKey) ? true : false}
+            error={!!(props.authKey && !isValidHex(props.authKey))}
             onChange={v => props.setAuthKey(v)}
           />
         </AltFormField>
@@ -432,7 +424,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
             value={props.authOpc}
             placeholder="Eg. 8e27b6af0e692e750f32667a3b14605d"
             className={classes.input}
-            error={props.authOpc && !isValidHex(props.authOpc) ? true : false}
+            error={!!(props.authOpc && !isValidHex(props.authOpc))}
             onChange={v => props.setAuthOpc(v)}
           />
         </AltFormField>

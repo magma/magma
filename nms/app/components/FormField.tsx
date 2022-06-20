@@ -168,9 +168,12 @@ export function AltFormFieldSubheading(props: Props) {
 }
 
 type PasswordProps = {
-  value: string;
+  className?: string;
+  'data-testid'?: string;
+  error?: boolean;
   onChange: (onChange: string) => void;
   placeholder?: string;
+  value: string;
 };
 
 export function FormDivider() {
