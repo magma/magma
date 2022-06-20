@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include <string>
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
+#include <string>
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 
 extern "C" {

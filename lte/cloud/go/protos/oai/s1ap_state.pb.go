@@ -218,7 +218,7 @@ type EnbDescription struct {
 	NextSctpStream   uint32            `protobuf:"varint,7,opt,name=next_sctp_stream,json=nextSctpStream,proto3" json:"next_sctp_stream,omitempty"`                                                              // sctp_stream_id_t
 	Instreams        uint32            `protobuf:"varint,8,opt,name=instreams,proto3" json:"instreams,omitempty"`                                                                                                // sctp_stream_id_t
 	Outstreams       uint32            `protobuf:"varint,9,opt,name=outstreams,proto3" json:"outstreams,omitempty"`                                                                                              // sctp_stream_id_t
-	UeIds            map[uint64]uint64 `protobuf:"bytes,10,rep,name=ue_ids,json=ueIds,proto3" json:"ue_ids,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"` // mme_ue_s1ap_id -> comp_s1ap_id
+	UeIds            map[uint32]uint64 `protobuf:"bytes,10,rep,name=ue_ids,json=ueIds,proto3" json:"ue_ids,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"` // mme_ue_s1ap_id -> comp_s1ap_id
 	SupportedTaList  *SupportedTaList  `protobuf:"bytes,11,opt,name=supported_ta_list,json=supportedTaList,proto3" json:"supported_ta_list,omitempty"`                                                           // TAs supported by eNB
 	RanCpIpaddr      []byte            `protobuf:"bytes,12,opt,name=ran_cp_ipaddr,json=ranCpIpaddr,proto3" json:"ran_cp_ipaddr,omitempty"`                                                                       // eNB sctp end point IP addr
 	RanCpIpaddrSz    uint32            `protobuf:"varint,13,opt,name=ran_cp_ipaddr_sz,json=ranCpIpaddrSz,proto3" json:"ran_cp_ipaddr_sz,omitempty"`                                                              // eNB sctp end point IP addr size
@@ -319,7 +319,7 @@ func (x *EnbDescription) GetOutstreams() uint32 {
 	return 0
 }
 
-func (x *EnbDescription) GetUeIds() map[uint64]uint64 {
+func (x *EnbDescription) GetUeIds() map[uint32]uint64 {
 	if x != nil {
 		return x.UeIds
 	}
@@ -707,7 +707,7 @@ var file_lte_protos_oai_s1ap_state_proto_rawDesc = []byte{
 	0x5f, 0x63, 0x70, 0x5f, 0x69, 0x70, 0x61, 0x64, 0x64, 0x72, 0x5f, 0x73, 0x7a, 0x18, 0x0d, 0x20,
 	0x01, 0x28, 0x0d, 0x52, 0x0d, 0x72, 0x61, 0x6e, 0x43, 0x70, 0x49, 0x70, 0x61, 0x64, 0x64, 0x72,
 	0x53, 0x7a, 0x1a, 0x38, 0x0a, 0x0a, 0x55, 0x65, 0x49, 0x64, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x03, 0x6b,
+	0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x03, 0x6b,
 	0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
 	0x04, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x97, 0x03, 0x0a,
 	0x0d, 0x55, 0x65, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1e,

@@ -276,8 +276,8 @@ void StateConverter::proto_to_map_uint64_uint64(
 }
 // Copies in memory proto map to Redis proto map
 void StateConverter::proto_map_uint32_uint64_to_proto(
-    proto_map_uint32_uint64_t map,
-    google::protobuf::Map<uint64_t, uint64_t>* proto_map) {
+    proto_map_uint32_uint64_t& map,
+    google::protobuf::Map<uint32_t, uint64_t>* proto_map) {
   for (auto elm = map.map->begin(); elm != map.map->end(); ++elm) {
     (*proto_map)[elm->first] = elm->second;
   }
