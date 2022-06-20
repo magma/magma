@@ -9,17 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {EnqueueSnackbarOptions} from 'notistack';
-import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
-import type {UserType} from '../../../shared/sequelize_models/models/user.js';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
 import BusinessIcon from '@material-ui/icons/Business';
 import Button from '@material-ui/core/Button';
@@ -34,35 +25,43 @@ import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationDialog from './OrganizationDialog';
 import PersonAdd from '@material-ui/icons/PersonAdd';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import axios, {AxiosResponse} from 'axios';
 import withAlert from '../../components/Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {colors} from '../../../app/theme/default';
+import {colors} from '../../theme/default';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAxios} from '../../hooks';
 import {useCallback, useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate} from 'react-router-dom';
+import type {OptionsObject} from 'notistack';
+import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
+import type {UserType} from '../../../shared/sequelize_models/models/user.js';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
 export type Organization = OrganizationPlainAttributes;
+
+type OrganizationRowType = {
+  name: string;
+  networks: Array<string>;
+  portalLink: string;
+  userNumber: number;
+  id: number;
+};
+
+type OrganizationsResponse = {organizations: Array<Organization>};
 
 const ORGANIZATION_DESCRIPTION =
   'Multiple organizations can be independently managed, each with access to their own networks. ' +
   'As a host user, you can create and manage organizations here. You can also create users for these organizations.';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   addButton: {
     minWidth: '150px',
   },
@@ -104,9 +103,7 @@ const useStyles = makeStyles(_ => ({
   index: {
     color: colors.primary.gullGray,
   },
-}));
-
-type Props = {...WithAlert};
+});
 
 function OnboardingDialog(props: {setClosed: () => void}) {
   const classes = useStyles();
@@ -130,19 +127,19 @@ function OnboardingDialog(props: {setClosed: () => void}) {
             Follow these steps to get started:
           </Text>
           <List dense={true}>
-            <ListItem disablegutters="true">
+            <ListItem disableGutters={true}>
               <ListItemIcon>
                 <BusinessIcon />
               </ListItemIcon>
               <Text variant="subtitle1">Add an organization</Text>
             </ListItem>
-            <ListItem disablegutters="true">
+            <ListItem disableGutters={true}>
               <ListItemIcon>
                 <PersonIcon />
               </ListItemIcon>
               <Text variant="subtitle1">Add a user for the organization</Text>
             </ListItem>
-            <ListItem disablegutters="true">
+            <ListItem disableGutters={true}>
               <ListItemIcon>
                 <ExitToAppIcon />
               </ListItemIcon>
@@ -168,23 +165,24 @@ function OnboardingDialog(props: {setClosed: () => void}) {
 }
 
 async function getUsers(
-  organizations: Organization[],
-  setUsers: (Array<?UserType>) => void,
+  organizations: Array<Organization>,
+  setUsers: (users: Array<UserType>) => void,
   enqueueSnackbar: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => string | number | null | undefined,
 ) {
   const requests = organizations.map(async organization => {
     try {
-      const response = await axios.get(
+      const response = await axios.get<Array<UserType>>(
         `/host/organization/async/${organization.name}/users`,
       );
       return response.data;
     } catch (error) {
-      enqueueSnackbar(error.message, {
+      enqueueSnackbar(getErrorMessage(error), {
         variant: 'error',
       });
+      return [];
     }
   });
   const organizationUsers = await Promise.all(requests);
@@ -193,19 +191,25 @@ async function getUsers(
   }
 }
 
-function Organizations(props: Props) {
+function Organizations(props: WithAlert) {
   const classes = useStyles();
   const navigate = useNavigate();
-  const [organizations, setOrganizations] = useState<?(Organization[])>(null);
-  const [addingUserFor, setAddingUserFor] = useState<?Organization>(null);
-  const [currRow, setCurrRow] = useState<OrganizationRowType>({});
-  const [users, setUsers] = useState<Array<?UserType>>([]);
+  const [organizations, setOrganizations] = useState<Array<
+    Organization
+  > | null>(null);
+  const [addingUserFor, setAddingUserFor] = useState<
+    OrganizationRowType | Organization | null
+  >(null);
+  const [currRow, setCurrRow] = useState<OrganizationRowType>(
+    {} as OrganizationRowType,
+  );
+  const [users, setUsers] = useState<Array<UserType>>([]);
   const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
   const [showOrganizationDialog, setShowOrganizationDialog] = useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();
-  const {error, isLoading} = useAxios({
+  const {error, isLoading} = useAxios<OrganizationsResponse>({
     url: '/host/organization/async',
-    onResponse: useCallback(res => {
+    onResponse: useCallback((res: AxiosResponse<OrganizationsResponse>) => {
       setOrganizations(res.data.organizations);
       if (res.data.organizations.length < 3) {
         setShowOnboardingDialog(true);
@@ -214,11 +218,11 @@ function Organizations(props: Props) {
   });
   useEffect(() => {
     if (organizations?.length) {
-      getUsers(organizations, setUsers, enqueueSnackbar);
+      void getUsers(organizations, setUsers, enqueueSnackbar);
     }
   }, [organizations, addingUserFor, enqueueSnackbar]);
 
-  const renderNetworksColumn = useCallback(rowData => {
+  const renderNetworksColumn = useCallback((rowData: OrganizationRowType) => {
     // only display 3 networks if more
     if (rowData.networks.length > 3) {
       return `${rowData.networks.slice(0, 3).join(', ')} + ${
@@ -229,17 +233,18 @@ function Organizations(props: Props) {
   }, []);
 
   const renderIndexColumn = useCallback(
-    rowData => {
+    (rowData: OrganizationRowType) => {
       return (
         <Text className={classes.index} variant="caption">
-          {rowData.tableData?.index + 1 || ''}
+          {((rowData as unknown) as {tableData: {index: number}}).tableData
+            ?.index + 1 || ''}
         </Text>
       );
     },
     [classes.index],
   );
 
-  const renderLinkColumn = useCallback(rowData => {
+  const renderLinkColumn = useCallback((rowData: OrganizationRowType) => {
     return (
       <Link href={rowData.portalLink}>
         {`Visit ${rowData.name} Organization Portal`}
@@ -251,8 +256,8 @@ function Organizations(props: Props) {
     return <LoadingFiller />;
   }
 
-  const onDelete = org => {
-    props
+  const onDelete = (org: OrganizationRowType) => {
+    void props
       .confirm('Are you sure you want to delete this organization?')
       .then(async confirm => {
         if (!confirm) return;
@@ -262,14 +267,6 @@ function Organizations(props: Props) {
         );
         setOrganizations([...newOrganizations]);
       });
-  };
-
-  type OrganizationRowType = {
-    name: string,
-    networks: Array<string>,
-    portalLink: string,
-    userNumber: number,
-    id: number,
   };
 
   const orgName = window.CONFIG.appData.user.tenant;
@@ -351,7 +348,7 @@ function Organizations(props: Props) {
                 icon: () => <PersonAdd />,
                 tooltip: 'Add User',
                 onClick: (event, row) => {
-                  setAddingUserFor(row);
+                  setAddingUserFor(row as OrganizationRowType);
                   setShowOrganizationDialog(true);
                 },
               },
@@ -377,7 +374,6 @@ function Organizations(props: Props) {
           />
         </Grid>
         <OrganizationDialog
-          edit={false}
           hideAdvancedFields={false}
           organization={null}
           user={null}
@@ -389,7 +385,10 @@ function Organizations(props: Props) {
           }}
           onCreateOrg={org => {
             axios
-              .post('/host/organization/async', org)
+              .post<{organization: Organization}>(
+                '/host/organization/async',
+                org,
+              )
               .then(response => {
                 enqueueSnackbar('Organization added successfully', {
                   variant: 'success',
@@ -399,7 +398,7 @@ function Organizations(props: Props) {
                 setAddingUserFor(newOrganization);
               })
               .catch(error => {
-                enqueueSnackbar(error.message, {
+                enqueueSnackbar(getErrorMessage(error), {
                   variant: 'error',
                 });
               });
@@ -420,7 +419,7 @@ function Organizations(props: Props) {
                 setShowOrganizationDialog(false);
               })
               .catch(error => {
-                enqueueSnackbar(error.message, {
+                enqueueSnackbar(getErrorMessage(error), {
                   variant: 'error',
                 });
               });

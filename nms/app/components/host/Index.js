@@ -24,6 +24,7 @@ import CloudMetrics from '../../views/metrics/CloudMetrics';
 import Features from '../../views/features/Features';
 import FlagIcon from '@material-ui/icons/Flag';
 import OrganizationEdit from '../../views/organizations/OrganizationEdit';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Organizations from '../../views/organizations/Organizations';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';

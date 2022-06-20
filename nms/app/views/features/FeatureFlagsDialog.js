@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {Organization} from '../organizations/Organizations';
 
 import Button from '@material-ui/core/Button';

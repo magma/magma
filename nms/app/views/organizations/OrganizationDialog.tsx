@@ -11,8 +11,6 @@
  * limitations under the License.
  */
 
-import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
-
 import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -26,6 +24,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
+import {Organization} from './Organizations';
 import {UserRoles} from '../../../shared/roles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -63,9 +62,9 @@ const useStyles = makeStyles({
 export type DialogProps = {
   error: string;
   user: CreateUserType;
-  organization: OrganizationPlainAttributes;
+  organization: Organization;
   onUserChange: (user: CreateUserType) => void;
-  onOrganizationChange: (attr: OrganizationPlainAttributes) => void;
+  onOrganizationChange: (attr: Organization) => void;
   // Array of networks ids
   allNetworks: Array<string>;
   // If true, enable all networks for an organization
@@ -77,12 +76,12 @@ export type DialogProps = {
 
 type Props = {
   onClose: () => void;
-  onCreateOrg: (org: Partial<OrganizationPlainAttributes>) => void;
+  onCreateOrg: (org: Partial<Organization>) => void;
   onCreateUser: (user: CreateUserType) => void;
-  addingUserFor: OrganizationPlainAttributes | null | undefined;
+  addingUserFor: {id: number} | null | undefined;
   user: CreateUserType | null | undefined;
   open: boolean;
-  organization: OrganizationPlainAttributes | null | undefined;
+  organization: Organization | null | undefined;
   // flag to display advanced fields
   hideAdvancedFields: boolean;
 };
@@ -111,8 +110,8 @@ export default function (props: Props) {
     url: '/host/networks/async',
   });
 
-  const [organization, setOrganization] = useState<OrganizationPlainAttributes>(
-    (props.organization || {}) as OrganizationPlainAttributes,
+  const [organization, setOrganization] = useState<Organization>(
+    (props.organization || {}) as Organization,
   );
   const [currentTab, setCurrentTab] = useState(0);
   const [shouldEnableAllNetworks, setShouldEnableAllNetworks] = useState(false);
@@ -127,7 +126,7 @@ export default function (props: Props) {
   }, [props.addingUserFor]);
 
   useEffect(() => {
-    setOrganization((props.organization || {}) as OrganizationPlainAttributes);
+    setOrganization((props.organization || {}) as Organization);
     setCreateError('');
     setUser((props.user || {}) as CreateUserType);
   }, [props.open, props.organization, props.user]);
@@ -142,7 +141,7 @@ export default function (props: Props) {
     onUserChange: (user: CreateUserType) => {
       setUser(user);
     },
-    onOrganizationChange: (organization: OrganizationPlainAttributes) => {
+    onOrganizationChange: (organization: Organization) => {
       setOrganization(organization);
     },
     allNetworks,
