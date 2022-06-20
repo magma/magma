@@ -9,87 +9,73 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  subscriber,
-  subscriber_state,
-} from '../../../generated/MagmaAPIBindings';
+import type {Subscriber, SubscriberState} from '../../../generated-ts';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable from '../../components/ActionTable';
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-// $FlowFixMe migrated to typescript
-import NetworkContext from '../../components/context/NetworkContext';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
 
+import {Column} from '@material-table/core';
+import {JsonDialog, RenderLink} from './SubscriberUtils';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {JsonDialog, RenderLink} from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
 }));
 export type SubscriberRowType = {
-  name: string,
-  imsi: string,
-  activeApns?: string,
-  ipAddresses?: string,
-  activeSessions?: number,
-  service: string,
-  currentUsage: string,
-  dailyAvg: string,
-  lastReportedTime: Date | string,
+  name: string;
+  imsi: string;
+  activeApns?: string;
+  ipAddresses?: string;
+  activeSessions?: number;
+  service: string;
+  currentUsage: string;
+  dailyAvg: string;
+  lastReportedTime: Date | string;
 };
 
 type SubscriberSessionRowType = {
-  apnName: string,
-  sessionId: string,
-  ipAddr: string,
-  state: string,
-  activeDuration: string,
-  activePolicies: Array<string>,
+  apnName: string;
+  sessionId: string;
+  ipAddr: string;
+  state: string;
+  activeDuration: string;
+  activePolicies: Array<{id: string}>;
 };
 type SubscriberStateDetailPanelProps = {
-  rowData: SubscriberRowType,
+  rowData: SubscriberRowType;
 };
 function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
   const ctx = useContext(SubscriberContext);
-  const sessionState: {[string]: subscriber_state} = ctx.sessionState;
-  const subscriber = sessionState[props.rowData.imsi]?.subscriber_state || {};
+  const sessionState: Record<string, SubscriberState> = ctx.sessionState;
+  const subscriber: Record<string, any> =
+    sessionState[props.rowData.imsi]?.subscriber_state || {};
   const subscriberSessionRows: Array<SubscriberSessionRowType> = [];
   Object.keys(subscriber).map((apn: string) => {
-    subscriber[apn].map(infos => {
+    /* eslint-disable @typescript-eslint/restrict-template-expressions,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
+    subscriber[apn].map((infos: any) => {
       subscriberSessionRows.push({
         apnName: apn,
         sessionId: infos.session_id,
@@ -98,6 +84,7 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
         activeDuration: `${infos.active_duration_sec} sec`,
         activePolicies: infos.active_policy_rules,
       });
+      /* eslint-enable @typescript-eslint/restrict-template-expressions,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
     });
   });
 
@@ -149,16 +136,17 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
 
 export default function SubscriberStateTable() {
   const params = useParams();
-  const [currRow, setCurrRow] = useState<SubscriberRowType>({});
+  const [currRow, setCurrRow] = useState<SubscriberRowType>(
+    {} as SubscriberRowType,
+  );
   const classes = useStyles();
   const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(SubscriberContext);
-  const subscriberMap: {[string]: subscriber} = ctx.state;
-  const sessionState: {[string]: subscriber_state} = ctx.sessionState;
+  const subscriberMap: Record<string, Subscriber> = ctx.state;
+  const sessionState: Record<string, SubscriberState> = ctx.sessionState;
   const subscriberMetrics = ctx.metrics;
   const [jsonDialog, setJsonDialog] = useState(false);
   const subscribersIds = Object.keys(sessionState);
-  const networkCtx = useContext(NetworkContext);
   const [refresh, setRefresh] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -176,18 +164,19 @@ export default function SubscriberStateTable() {
     (imsi: string) => {
       const subscriberInfo = subscriberMap[imsi] || {};
       const metrics = subscriberMetrics?.[`${imsi}`];
-      const subscriber =
-        // $FlowIgnore
+      const subscriber: Record<string, any> =
         refreshingSessionState.sessionState?.[imsi]?.subscriber_state || {};
-      const ipAddresses = [];
-      const activeApns = [];
+      const ipAddresses: Array<string> = [];
+      const activeApns: Array<string> = [];
       let activeSessions = 0;
-      Object.keys(subscriber || {}).forEach(apn => {
-        subscriber[apn].forEach(session => {
+      Object.keys(subscriber || {}).forEach((apn: string) => {
+        /* eslint-disable @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
+        subscriber[apn].forEach((session: any) => {
           if (session.lifecycle_state === 'SESSION_ACTIVE') {
             ipAddresses.push(session?.ipv4);
             activeSessions++;
           }
+          /* eslint-enable @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
         });
         activeApns.push(apn);
       });
@@ -208,7 +197,7 @@ export default function SubscriberStateTable() {
     },
   );
 
-  const tableColumns = [
+  const tableColumns: Array<Column<SubscriberRowType>> = [
     {
       title: 'Name',
       field: 'name',
@@ -216,14 +205,10 @@ export default function SubscriberStateTable() {
     {
       title: 'IMSI',
       field: 'imsi',
-      render: currRow => {
+      render: (currRow: SubscriberRowType) => {
         const subscriberConfig = subscriberMap[currRow.imsi];
         return (
-          <RenderLink
-            subscriberConfig={subscriberConfig}
-            currRow={currRow}
-            networkCtx={networkCtx}
-          />
+          <RenderLink subscriberConfig={subscriberConfig} currRow={currRow} />
         );
       },
     },

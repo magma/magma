@@ -17,9 +17,10 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberDetail from './SubscriberDetail';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberStateTable from './SubscriberStateTable';
 import SubscriberTable from './SubscriberTable';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TopBar from '../../components/TopBar';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
