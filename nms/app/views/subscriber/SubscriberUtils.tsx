@@ -18,7 +18,11 @@ import Link from '@material-ui/core/Link';
 import React, {useContext} from 'react';
 import ReactJson from 'react-json-view';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import {MutableSubscriber, Subscriber} from '../../../generated-ts';
+import {
+  LteSubscription,
+  MutableSubscriber,
+  Subscriber,
+} from '../../../generated-ts';
 import {SubscriberRowType} from '../../state/lte/SubscriberState';
 import {isValidHex} from '../../util/strings';
 import {useNavigate} from 'react-router-dom';
@@ -184,16 +188,19 @@ export type subscriberForbiddenNetworkTypes = {
 
 export type EditSubscriberProps = {
   subscriberState: Subscriber;
-  onSubscriberChange: (key: string, val: string | number | undefined) => void;
+  onSubscriberChange: (
+    key: string,
+    val: string | number | LteSubscription | undefined,
+  ) => void;
   inputClass: string;
   onTrafficPolicyChange: (
-    key: string,
-    val: string | number | undefined,
+    key: keyof subscriberStaticIpsRowType,
+    val: string,
     index: number,
   ) => void;
   onDeleteApn: (apn: subscriberStaticIpsRowType | undefined) => void;
   onAddApnStaticIP: () => void;
-  subProfiles: undefined;
+  subProfiles: Record<string, string> | undefined;
   subscriberStaticIPRows: Array<subscriberStaticIpsRowType>;
   forbiddenNetworkTypes: Array<subscriberForbiddenNetworkTypes>;
   authKey: string;
