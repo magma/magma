@@ -390,10 +390,11 @@ jobs:
             cd $MAGMA_ROOT
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
-            # Omit OAI coverage until it is tested. We need to determine what the behavior is for doing both CMake and Bazel based coverage at the same time
-            # TODO: GH11936
+            # Coverage in bazel is flaky for remote caches - the flags below are helping. See GH13026 for details.
+            # TODO: GH11936 Omit OAI coverage until it is tested. We need to determine what the behavior is for doing both CMake and Bazel based coverage at the same time
             bazel coverage \
               --profile=Bazel_test_coverage_profile \
+              --experimental_split_coverage_postprocessing --experimental_fetch_all_coverage_outputs --remote_download_outputs=all \
               -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
             # copy out coverage information into magma so that it's accessible from the CI node
             cp bazel-out/_coverage/_coverage_report.dat $MAGMA_ROOT
