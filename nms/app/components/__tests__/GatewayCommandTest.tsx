@@ -9,22 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
 
+import MagmaAPI from '../../../api/MagmaAPI';
+import {GenericCommandResponse} from '../../../generated-ts';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {TroubleshootingControl} from '../GatewayCommandFields';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockAPI, mockAPIError} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
@@ -46,13 +40,14 @@ const Wrapper = () => (
   </MemoryRouter>
 );
 
-const validControlProxyContent = {
+const validControlProxyContent = ({
   response: {
     returncode: 0,
     stderr: '',
     stdout: 'fluentd_address: fluentd.magma.io\nfluentd_port: 24224',
   },
-};
+} as unknown) as GenericCommandResponse;
+
 describe('<verify successful aggregation validation/>', () => {
   beforeEach(() => {
     mockAPI(
@@ -85,13 +80,13 @@ describe('<verify control proxy validation failure/>', () => {
     mockAPI(
       MagmaAPI.commands,
       'networksNetworkIdGatewaysGatewayIdCommandGenericPost',
-      {
+      ({
         response: {
           returncode: 0,
           stderr: 'Error, file not found',
           stdout: '',
         },
-      },
+      } as unknown) as GenericCommandResponse,
     );
 
     mockAPI(MagmaAPI.events, 'eventsNetworkIdAboutCountGet', 0);
