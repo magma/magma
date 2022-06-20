@@ -9,33 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-
-// $FlowFixMe migrated to typescript
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {AltFormField} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {EditSubscriberProps} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
@@ -58,9 +48,8 @@ export default function EditSubscriberTrafficPolicy(
   const apnCtx = useContext(ApnContext);
   const apns = Array.from(Object.keys(apnCtx.state || {}));
   const policyCtx = useContext(PolicyContext);
-
   const {isLoading: baseNamesLoading, response: baseNames} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscriberConfigBaseNames,
+    MagmaAPI.lteNetworks.lteNetworkIdSubscriberConfigBaseNamesGet,
     {
       networkId: nullthrows(params.networkId),
     },
@@ -69,6 +58,7 @@ export default function EditSubscriberTrafficPolicy(
   if (baseNamesLoading) {
     return <LoadingFiller />;
   }
+
   return (
     <div>
       <List>
@@ -79,9 +69,11 @@ export default function EditSubscriberTrafficPolicy(
               id="activeApnTestId"
               value={props.subscriberState.active_apns ?? []}
               onChange={({target}) => {
-                props.onSubscriberChange('active_apns', target.value);
+                props.onSubscriberChange('active_apns', target.value as string);
               }}
-              renderValue={selected => selected.join(', ')}
+              renderValue={(selected: unknown) =>
+                (selected as Array<string>).join(', ')
+              }
               input={<OutlinedInput />}>
               {apns.map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
@@ -105,9 +97,14 @@ export default function EditSubscriberTrafficPolicy(
               multiple
               value={props.subscriberState.active_base_names ?? []}
               onChange={({target}) => {
-                props.onSubscriberChange('active_base_names', target.value);
+                props.onSubscriberChange(
+                  'active_base_names',
+                  target.value as string,
+                );
               }}
-              renderValue={selected => selected.join(', ')}
+              renderValue={(selected: unknown) =>
+                (selected as Array<string>).join(', ')
+              }
               input={<OutlinedInput />}>
               {(baseNames || []).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
@@ -132,9 +129,14 @@ export default function EditSubscriberTrafficPolicy(
               multiple
               value={props.subscriberState.active_policies ?? []}
               onChange={({target}) => {
-                props.onSubscriberChange('active_policies', target.value);
+                props.onSubscriberChange(
+                  'active_policies',
+                  target.value as string,
+                );
               }}
-              renderValue={selected => selected.join(', ')}
+              renderValue={(selected: unknown) =>
+                (selected as Array<string>).join(', ')
+              }
               input={<OutlinedInput />}>
               {Object.keys(policyCtx.state).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
