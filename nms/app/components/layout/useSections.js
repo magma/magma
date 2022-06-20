@@ -14,12 +14,14 @@
  * @format
  */
 import type {NetworkContextType} from '../context/NetworkContext';
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from '../layout/Section';
 
 import AppContext from '../../../app/components/context/AppContext';
 import MagmaV1API from '../../../generated/WebClient';
 import NetworkContext from '../context/NetworkContext';
+// $FlowFixMe migrated to typescript
 import {
   CWF,
   FEG,

@@ -18,17 +18,17 @@ import type {FeatureID} from './features';
 import type {SSOSelectedType} from './auth';
 
 export type User = {
-  tenant: string,
-  email: string,
-  isSuperUser: boolean,
-  isReadOnlyUser: boolean,
+  tenant: string;
+  email: string;
+  isSuperUser: boolean;
+  isReadOnlyUser: boolean;
 };
 
-export type EmbeddedData = {|
-  csrfToken: string,
-  user: User,
-  enabledFeatures: FeatureID[],
-  ssoEnabled: boolean,
-  ssoSelectedType: SSOSelectedType,
-  csvCharset: ?string,
-|};
+export type EmbeddedData = {
+  csrfToken: string;
+  user: User;
+  enabledFeatures: Array<FeatureID>;
+  ssoEnabled: boolean;
+  ssoSelectedType: SSOSelectedType;
+  csvCharset: string | null | undefined;
+};

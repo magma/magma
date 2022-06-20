@@ -52,7 +52,7 @@ import type {
   tier,
 } from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
-
+// $FlowFixMe migrated to typescript
 import {FEG_LTE, LTE} from '../../../shared/types/network';
 import {
   InitEnodeState,

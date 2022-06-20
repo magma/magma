@@ -19,6 +19,7 @@ import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';
 import {AppContextProvider} from '../../../app/components/context/AppContext';
+// $FlowFixMe migrated to typescript
 import {LTE} from '../../../shared/types/network';
 import {MemoryRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';

@@ -18,6 +18,7 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
+// $FlowFixMe migrated to typescript
 import type {SSOSelectedType} from '../../types/auth';
 
 type OrganizationInitAttributes = {

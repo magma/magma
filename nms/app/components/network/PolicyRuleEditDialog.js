@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-
+// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {
   policy_qos_profile,
@@ -40,8 +40,10 @@ import Typography from '@material-ui/core/Typography';
 
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
+// $FlowFixMe migrated to typescript
 import {CWF, FEG, LTE} from '../../../shared/types/network';
 import {base64ToHex, decodeBase64} from '../../util/strings';
+// $FlowFixMe migrated to typescript
 import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';

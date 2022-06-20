@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-
+// $FlowFixMe migrated to typescript
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';

@@ -22,6 +22,7 @@ import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 
 import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+// $FlowFixMe migrated to typescript
 import {CWF, FEG} from '../../../shared/types/network';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

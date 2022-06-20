@@ -14,9 +14,11 @@
  * @format
  */
 'use strict';
-
+// $FlowFixMe migrated to typescript
 import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
+// $FlowFixMe migrated to typescript
 import type {FeatureID} from '../../../shared/types/features';
+// $FlowFixMe migrated to typescript
 import type {SSOSelectedType} from '../../../shared/types/auth';
 
 import * as React from 'react';
