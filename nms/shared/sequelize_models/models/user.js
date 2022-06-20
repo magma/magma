@@ -19,8 +19,8 @@ import Sequelize from 'sequelize';
 // $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../../shared/roles';
 import {omit} from 'lodash';
-
-import type {AssociateProp} from './AssociateTypes.flow';
+// $FlowFixMe migrated to typescript
+import type {AssociateProp} from './AssociateTypes';
 import type {DataTypes, Model} from 'sequelize';
 
 // This is the type required for creation

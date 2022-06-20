@@ -14,22 +14,24 @@
  * @format
  */
 
-import type {Options} from 'sequelize';
-const fs = require('fs');
+import fs from 'fs';
+import {getLogger} from '../../shared/logging';
+import type {Dialect, Options} from 'sequelize';
+
 // TODO: Pull from shared config
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
 const MYSQL_PORT = parseInt(process.env.MYSQL_PORT || '3306');
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
-const MYSQL_DIALECT = process.env.MYSQL_DIALECT || 'mysql';
-// $FlowFixMe migrated to typescript
-const logger = require('../../shared/logging').getLogger(module);
+const MYSQL_DIALECT: Dialect =
+  (process.env.MYSQL_DIALECT as Dialect) || 'mysql';
 
+const logger = getLogger(module);
 let ssl_required = false;
-let CAcert = process.env.CA_FILE;
-let Ckey = process.env.KEY_FILE;
-let Ccert = process.env.CERT_FILE;
+let CAcert: string | Buffer | undefined = process.env.CA_FILE;
+let Ckey: string | Buffer | undefined = process.env.KEY_FILE;
+let Ccert: string | Buffer | undefined = process.env.CERT_FILE;
 let dialectOptions = {};
 
 if (process.env.CA_FILE) {
@@ -69,7 +71,7 @@ if (ssl_required) {
   };
 }
 
-const config: {[string]: Options} = {
+const config: {[config: string]: Options} = {
   test: {
     username: '',
     password: '',

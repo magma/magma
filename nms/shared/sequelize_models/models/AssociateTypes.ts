@@ -16,6 +16,8 @@
 
 import type {Model} from 'sequelize';
 
+type AssociateModel = {[model: string]: Model<Record<string, unknown>>};
+
 export type AssociateProp = {
-  associate: ({[string]: Class<Model<Object>>}) => void,
+  associate: (model: AssociateModel) => void;
 };
