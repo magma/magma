@@ -15,6 +15,8 @@
  */
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SubscriberInfo} from './SubscriberUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {CoreNetworkTypes} from './SubscriberUtils';
 import type {subscriber} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
@@ -34,7 +36,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import React from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Select from '@material-ui/core/Select';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
@@ -47,17 +49,19 @@ import nullthrows from '../../../shared/util/nullthrows';
 
 // $FlowFixMe migrated to typescript
 import {AltFormField, PasswordInput} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes} from './SubscriberUtils';
 // $FlowFixMe[cannot-resolve-module]
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {
+  EditSubscriberProps,
+  subscriberForbiddenNetworkTypes,
+  subscriberStaticIpsRowType,
+} from './SubscriberTypes';
 
 const useStyles = makeStyles(() => ({
   tabBar: {
@@ -329,35 +333,6 @@ export function SubscriberEditDialog(props: DialogProps) {
     </Dialog>
   );
 }
-
-export type EditSubscriberProps = {
-  subscriberState: subscriber,
-  onSubscriberChange: (key: string, val: string | number | {}) => void,
-  inputClass: string,
-  onTrafficPolicyChange: (
-    key: string,
-    val: string | number | {},
-    index: number,
-  ) => void,
-  onDeleteApn: (apn: {}) => void,
-  onAddApnStaticIP: () => void,
-  subProfiles: {},
-  subscriberStaticIPRows: Array<subscriberStaticIpsRowType>,
-  forbiddenNetworkTypes: Array<subscriberForbiddenNetworkTypes>,
-  authKey: string,
-  authOpc: string,
-  setAuthKey: (key: string) => void,
-  setAuthOpc: (key: string) => void,
-};
-
-type subscriberStaticIpsRowType = {
-  apnName: string,
-  staticIp: string,
-};
-
-type subscriberForbiddenNetworkTypes = {
-  nwTypes: string,
-};
 
 function EditSubscriberDetails(props: EditSubscriberProps) {
   const classes = useStyles();

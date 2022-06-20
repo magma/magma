@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import type {EditSubscriberProps} from './SubscriberEditDialog.js';
 
 // $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
@@ -39,6 +38,7 @@ import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
+import type {EditSubscriberProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   input: {
