@@ -15,7 +15,9 @@ import logging
 from typing import Dict, NamedTuple
 
 import netifaces
-from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.timestamp_pb2 import (
+    Timestamp,  # pylint: disable=no-name-in-module
+)
 from lte.protos.session_manager_pb2 import (
     UPFAssociationState,
     UPFFeatureSet,
