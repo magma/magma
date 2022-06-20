@@ -13,17 +13,12 @@
  * @flow strict-local
  * @format
  */
+import express from 'express';
+import type {Request, Response} from 'express';
 
-const express = require('express');
+const router = express.Router();
 
-import type {ExpressRequest, ExpressResponse} from 'express';
-
-const router: express.Router<
-  ExpressRequest,
-  ExpressResponse,
-> = express.Router();
-
-router.get('/', (req: ExpressRequest, res: ExpressResponse) => {
+router.get('/', (req: Request, res: Response) => {
   res.status(200).end('Success');
 });
 

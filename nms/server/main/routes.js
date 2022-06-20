@@ -21,19 +21,23 @@ import type {FBCNMSRequest} from '../auth/access';
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
+// $FlowFixMe migrated to typescript
 import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 import hostRoutes from '../host/routes';
+// $FlowFixMe migrated to typescript
 import loggerRoutes from '../logger/routes';
 import networkRoutes from '../network/routes';
 import path from 'path';
 import staticDist from '../../config/staticDist';
+// $FlowFixMe migrated to typescript
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
 // $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';
+// $FlowFixMe migrated to typescript
 import {hostOrgMiddleware} from '../host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
