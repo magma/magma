@@ -261,14 +261,14 @@ export default function EventsTable(props: EventTableProps) {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    setStartDate(props.inStartDate); 
-    setEndDate(props.inEndDate); 
     if (props.inStartDate && props.inEndDate) {
+      props.inStartDate !== undefined && setStartDate(props.inStartDate);
+      props.inEndDate !== undefined && setEndDate(props.inEndDate);
       if (tableRef.current) {
         tableRef.current.onQueryChange();
       }
     }
-  }, [props.inStartDate, props.inEndDate]);
+  }, [props.inStartDate, props.inEndDate, setStartDate, setEndDate]);
 
   let actionTableOptions = {
     actionsColumnIndex: -1,
