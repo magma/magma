@@ -35,10 +35,11 @@ import useMagmaAPI from '../../../api/useMagmaAPIFlow';
 
 // $FlowFixMe migrated to typescript
 import {AltFormField} from '../../components/FormField';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {EditSubscriberProps} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
-import type {EditSubscriberProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   input: {

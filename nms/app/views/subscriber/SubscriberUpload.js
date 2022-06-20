@@ -32,11 +32,14 @@ import {DropzoneArea} from 'material-ui-dropzone';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {
+  SubscribersDialogDetailProps,
+  validateSubscribers,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+} from './SubscriberUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useMemo, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {validateSubscribers} from './SubscriberUtils';
-import type {SubscribersDialogDetailProps} from "./SubscriberTypes";
 
 const useStyles = makeStyles(() => ({
   uploadDialog: {

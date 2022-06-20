@@ -14,7 +14,13 @@
  * @format
  */
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {SubscriberInfo} from './SubscriberUtils';
+import type {
+  EditSubscriberProps,
+  SubscriberInfo,
+  subscriberForbiddenNetworkTypes,
+  subscriberStaticIpsRowType,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
+} from './SubscriberUtils';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from './SubscriberUtils';
 import type {subscriber} from '../../../generated/MagmaAPIBindings';
@@ -57,11 +63,6 @@ import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import type {
-  EditSubscriberProps,
-  subscriberForbiddenNetworkTypes,
-  subscriberStaticIpsRowType,
-} from './SubscriberTypes';
 
 const useStyles = makeStyles(() => ({
   tabBar: {

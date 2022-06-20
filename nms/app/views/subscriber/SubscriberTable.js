@@ -35,7 +35,9 @@ import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 import {
   DEFAULT_PAGE_SIZE,
+  JsonDialog,
   REFRESH_TIMEOUT,
+  RenderLink,
   SUBSCRIBER_EXPORT_COLUMNS,
   // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './SubscriberUtils';
@@ -69,7 +71,6 @@ import {makeStyles} from '@material-ui/styles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
-import {JsonDialog, RenderLink} from "./SubscriberTypes";
 
 // number of subscriber in a chunk
 const SUBSCRIBERS_CHUNK_SIZE = 1000;
