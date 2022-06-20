@@ -24,7 +24,7 @@ import {useState} from 'react';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 type OrganizationUsersTableProps = WithAlert & {
-  editUser: (user: OrganizationUser | null | undefined) => void;
+  editUser: (user: OrganizationUser | null) => void;
   tableRef: {current: null | {onQueryChange(): void}};
 };
 
@@ -71,7 +71,7 @@ function OrganizationUsersTable(props: OrganizationUsersTableProps) {
       name: 'Edit',
       handleFunc: () => {
         const user = users.find(user => user.id === currRow.id);
-        props.editUser?.(user);
+        props.editUser?.(user!);
         props.tableRef.current?.onQueryChange();
       },
     },
