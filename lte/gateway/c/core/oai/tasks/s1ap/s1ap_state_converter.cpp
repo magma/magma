@@ -36,28 +36,20 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
                                      enb_to_proto, LOG_S1AP);
 
   // copy over mmeid2associd
-  hashtable_rc_t ht_rc;
   mme_ue_s1ap_id_t mmeid;
-  // Helper ptr so sctp_assoc_id can be casted from double ptr on
-  // hashtable_ts_get
-  void* sctp_id_ptr = nullptr;
+  sctp_assoc_id_t sctp_assoc_id = 0;
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
-  hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->mmeid2associd);
-  if (!keys) {
-    OAILOG_DEBUG(LOG_S1AP, "No keys in mmeid2associd hashtable");
+  if (state->mmeid2associd.isEmpty()) {
+    OAILOG_DEBUG(LOG_S1AP, "No entries in mmeid2associd hashtable");
   } else {
-    for (int i = 0; i < keys->num_keys; i++) {
-      mmeid = (mme_ue_s1ap_id_t)keys->keys[i];
-      ht_rc = hashtable_ts_get(&state->mmeid2associd, (hash_key_t)mmeid,
-                               (void**)&sctp_id_ptr);
-      AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
-      if (sctp_id_ptr) {
-        sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)sctp_id_ptr;
-        (*mmeid2associd)[mmeid] = sctp_assoc_id;
-      }
+    for (auto itr = state->mmeid2associd.map->begin();
+         itr != state->mmeid2associd.map->end(); itr++) {
+      mmeid = itr->first;
+      proto_map_rc_t rc = state->mmeid2associd.get(mmeid, &sctp_assoc_id);
+      AssertFatal(rc == PROTO_MAP_OK, "mmeid not in mmeid2associd");
+      (*mmeid2associd)[mmeid] = sctp_assoc_id;
     }
-    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
 
   uint32_t expected_enb_count = state->enbs.size();
@@ -76,15 +68,13 @@ void S1apStateConverter::proto_to_state(const S1apState& proto,
                      enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
                                         LOG_S1AP);
 
-  hashtable_rc_t ht_rc;
   auto mmeid2associd = proto.mmeid2associd();
   for (auto const& kv : mmeid2associd) {
     mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t)kv.first;
     sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
 
-    ht_rc = hashtable_ts_insert(&state->mmeid2associd, (hash_key_t)mmeid,
-                                (void*)(uintptr_t)associd);
-    AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
+    proto_map_rc_t rc = state->mmeid2associd.insert(mmeid, associd);
+    AssertFatal(rc == PROTO_MAP_OK, "failed to insert associd");
   }
 
   state->num_enbs = proto.num_enbs();
