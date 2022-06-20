@@ -9,12 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {Organization} from '../organizations/Organizations';
+import type {
+  Organization,
+  OrganizationName,
+} from '../organizations/Organizations';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -24,47 +23,52 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../../components/LoadingFillerBackdrop';
 import React from 'react';
 import axios from 'axios';
 
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAxios} from '../../hooks';
 import {useEffect, useState} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
   },
-}));
+});
 
 export type FeatureFlag = {
-  id: number,
-  title: string,
-  config: {
-    id: string,
-    enabled: boolean,
-  },
-  enabledByDefault: boolean,
+  id: number;
+  title: string;
+  config: Record<
+    OrganizationName,
+    {
+      id: string;
+      enabled: boolean;
+    }
+  >;
+  enabledByDefault: boolean;
 };
 
 type Props = {
-  onClose: () => void,
-  onSave: FeatureFlag => void,
-  featureFlag: FeatureFlag,
+  onClose: () => void;
+  onSave: (featureFlag: FeatureFlag) => void;
+  featureFlag: FeatureFlag;
 };
 
+type Status = 'enabled' | 'disabled' | 'default';
 type FeatureFlagStatus = {
-  [orgName: string]: 'enabled' | 'disabled' | 'default',
+  [orgName: string]: Status;
 };
 
 export default function (props: Props) {
   const classes = useStyles();
-  const {error, isLoading, response} = useAxios({
+  const {error, isLoading, response} = useAxios<{
+    organizations: Array<Organization>;
+  }>({
     method: 'get',
     url: '/host/organization/async',
   });
@@ -85,7 +89,7 @@ export default function (props: Props) {
   }
 
   const onSave = async () => {
-    const response = await axios.post(
+    const response = await axios.post<FeatureFlag>(
       `/host/feature/async/${props.featureFlag.id}`,
       createPayload(featureFlagStatus, props.featureFlag),
     );
@@ -96,7 +100,7 @@ export default function (props: Props) {
     <Dialog open={true} onClose={props.onClose}>
       <DialogTitle>{props.featureFlag.title}</DialogTitle>
       <DialogContent>
-        {error && <FormLabel error>{error}</FormLabel>}
+        {error && <FormLabel error>{getErrorMessage(error)}</FormLabel>}
         {response.data.organizations.map(org => (
           <FormControlLabel
             key={org.name}
@@ -107,7 +111,7 @@ export default function (props: Props) {
                 indeterminate={featureFlagStatus[org.name] === 'default'}
                 color="primary"
                 onChange={() => {
-                  let nextStatus = 'default';
+                  let nextStatus: Status = 'default';
                   if (featureFlagStatus[org.name] === 'default') {
                     nextStatus = 'enabled';
                   } else if (featureFlagStatus[org.name] === 'enabled') {
@@ -126,7 +130,10 @@ export default function (props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </DialogActions>
@@ -135,10 +142,10 @@ export default function (props: Props) {
 }
 
 function buildStatusObject(
-  organizations: Organization[],
+  organizations: Array<Organization>,
   featureFlag: FeatureFlag,
 ): FeatureFlagStatus {
-  const status = {};
+  const status: FeatureFlagStatus = {};
   organizations.forEach(org => {
     status[org.name] = 'default';
     if (featureFlag.config[org.name]?.enabled) {
@@ -150,17 +157,10 @@ function buildStatusObject(
   return status;
 }
 
-function createPayload(
-  status: FeatureFlagStatus,
-  featureFlag: FeatureFlag,
-): {
-  toCreate: {organization: string, enabled: boolean}[],
-  toDelete: {[id: number]: null},
-  toUpdate: {[id: number]: boolean},
-} {
-  const toCreate = [];
-  const toDelete = {};
-  const toUpdate = {};
+function createPayload(status: FeatureFlagStatus, featureFlag: FeatureFlag) {
+  const toCreate: Array<{organization: string; enabled: boolean}> = [];
+  const toDelete: Record<string, null> = {};
+  const toUpdate: Record<string, {enabled: boolean}> = {};
 
   Object.keys(status).forEach(orgName => {
     const originalConfig = featureFlag.config[orgName];
