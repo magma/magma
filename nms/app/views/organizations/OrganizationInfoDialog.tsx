@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import type {DialogProps} from './OrganizationDialog';
 
@@ -30,8 +27,8 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-// $FlowFixMe migrated to typescript
-import {AltFormField} from '../../../app/components/FormField';
+import {AltFormField} from '../../components/FormField';
+import {SSOSelectedType} from '../../../shared/types/auth';
 import {useState} from 'react';
 
 const ENABLE_ALL_NETWORKS_HELPER =
@@ -71,7 +68,7 @@ export default function (props: DialogProps) {
           }}
         />
       </AltFormField>
-      <ListItem disablegutters="true">
+      <ListItem disableGutters={true}>
         <Button
           variant="text"
           color="primary"
@@ -91,12 +88,12 @@ export default function (props: DialogProps) {
               fullWidth={true}
               variant={'outlined'}
               multiple={true}
-              renderValue={selected => selected.join(', ')}
+              renderValue={selected => (selected as Array<string>).join(', ')}
               value={organization.networkIDs || []}
               onChange={({target}) => {
                 props.onOrganizationChange({
                   ...organization,
-                  networkIDs: [...target.value],
+                  networkIDs: [...(target.value as Array<string>)],
                 });
               }}
               input={<OutlinedInput data-testid="organizationNetworks" />}>
@@ -109,7 +106,6 @@ export default function (props: DialogProps) {
           </AltFormField>
         )}
         <FormControlLabel
-          disablegutters="true"
           label={'Give this organization access to all networks'}
           control={
             <Checkbox
@@ -133,7 +129,7 @@ export default function (props: DialogProps) {
                   props.onOrganizationChange({
                     ...organization,
                     // $FlowIgnore: value guaranteed to match the string literals
-                    ssoSelectedType: target.value,
+                    ssoSelectedType: target.value as SSOSelectedType,
                   });
                 }}
                 input={<OutlinedInput id="direction" />}>

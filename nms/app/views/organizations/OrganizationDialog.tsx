@@ -9,25 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {OrganizationUser} from './types';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {Organization} from './Organizations';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../components/context/AppContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../../components/LoadingFillerBackdrop';
 import OrganizationInfoDialog from './OrganizationInfoDialog';
 import OrganizationUserDialog from './OrganizationUserDialog';
@@ -35,16 +26,13 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {UserRoles} from '../../../shared/roles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useAxios} from '../../hooks';
 import {useContext, useEffect, useState} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
@@ -55,7 +43,7 @@ const useStyles = makeStyles(_ => ({
   dialogActions: {
     backgroundColor: colors.primary.white,
     padding: '20px',
-    zIndex: '1',
+    zIndex: 1,
   },
   dialogContent: {
     padding: '32px',
@@ -70,43 +58,43 @@ const useStyles = makeStyles(_ => ({
     justifyContent: 'space-between',
     width: '100%',
   },
-}));
+});
 
 export type DialogProps = {
-  error: string,
-  user: OrganizationUser,
-  organization: OrganizationPlainAttributes,
-  onUserChange: OrganizationUser => void,
-  onOrganizationChange: OrganizationPlainAttributes => void,
+  error: string;
+  user: CreateUserType;
+  organization: OrganizationPlainAttributes;
+  onUserChange: (user: CreateUserType) => void;
+  onOrganizationChange: (attr: OrganizationPlainAttributes) => void;
   // Array of networks ids
-  allNetworks: Array<string>,
+  allNetworks: Array<string>;
   // If true, enable all networks for an organization
-  shouldEnableAllNetworks: boolean,
-  setShouldEnableAllNetworks: boolean => void,
+  shouldEnableAllNetworks: boolean;
+  setShouldEnableAllNetworks: (enabled: boolean) => void;
   // flag to display advanced config fields in organization add/edit dialog
-  hideAdvancedFields: boolean,
+  hideAdvancedFields: boolean;
 };
 
 type Props = {
-  onClose: () => void,
-  onCreateOrg: (org: $Shape<OrganizationPlainAttributes>) => void,
-  onCreateUser: (user: CreateUserType) => void,
-  addingUserFor: ?Organization,
-  user: ?OrganizationUser,
-  open: boolean,
-  organization: ?OrganizationPlainAttributes,
+  onClose: () => void;
+  onCreateOrg: (org: Partial<OrganizationPlainAttributes>) => void;
+  onCreateUser: (user: CreateUserType) => void;
+  addingUserFor: OrganizationPlainAttributes | null | undefined;
+  user: CreateUserType | null | undefined;
+  open: boolean;
+  organization: OrganizationPlainAttributes | null | undefined;
   // flag to display advanced fields
-  hideAdvancedFields: boolean,
+  hideAdvancedFields: boolean;
 };
 
 type CreateUserType = {
-  email: string,
-  id?: number,
-  networkIDs: Array<string>,
-  organization?: string,
-  role: ?string,
-  password: ?string,
-  passwordConfirmation?: string,
+  email: string;
+  id?: number;
+  networkIDs: Array<string>;
+  organization?: string;
+  role: number | null | undefined;
+  password: string | null | undefined;
+  passwordConfirmation?: string;
 };
 
 /**
@@ -118,17 +106,19 @@ type CreateUserType = {
 export default function (props: Props) {
   const {ssoEnabled} = useContext(AppContext);
   const classes = useStyles();
-  const {error, isLoading, response} = useAxios({
+  const {error, isLoading, response} = useAxios<Array<string>>({
     method: 'get',
     url: '/host/networks/async',
   });
 
   const [organization, setOrganization] = useState<OrganizationPlainAttributes>(
-    props.organization || {},
+    (props.organization || {}) as OrganizationPlainAttributes,
   );
   const [currentTab, setCurrentTab] = useState(0);
   const [shouldEnableAllNetworks, setShouldEnableAllNetworks] = useState(false);
-  const [user, setUser] = useState<OrganizationUser>(props.user || {});
+  const [user, setUser] = useState<CreateUserType>(
+    (props.user || {}) as CreateUserType,
+  );
   const [createError, setCreateError] = useState('');
   const allNetworks = error || !response ? [] : response.data.sort();
 
@@ -137,9 +127,9 @@ export default function (props: Props) {
   }, [props.addingUserFor]);
 
   useEffect(() => {
-    setOrganization(props.organization || {});
+    setOrganization((props.organization || {}) as OrganizationPlainAttributes);
     setCreateError('');
-    setUser(props.user || {});
+    setUser((props.user || {}) as CreateUserType);
   }, [props.open, props.organization, props.user]);
 
   if (isLoading) {
@@ -149,7 +139,7 @@ export default function (props: Props) {
     user,
     organization,
     error: createError,
-    onUserChange: (user: OrganizationUser) => {
+    onUserChange: (user: CreateUserType) => {
       setUser(user);
     },
     onOrganizationChange: (organization: OrganizationPlainAttributes) => {
@@ -160,7 +150,7 @@ export default function (props: Props) {
     setShouldEnableAllNetworks,
     hideAdvancedFields: props.hideAdvancedFields,
   };
-  const onSave = async () => {
+  const onSave = () => {
     if (currentTab === 0) {
       if (!organization.name) {
         setCreateError('Name cannot be empty');
@@ -236,7 +226,7 @@ export default function (props: Props) {
         indicatorColor="primary"
         value={currentTab}
         classes={{root: classes.tabBar}}
-        onChange={(_, v) => setCurrentTab(v)}>
+        onChange={(_, v) => setCurrentTab(v as number)}>
         <Tab disabled={currentTab === 1} label={'Organization'} />
         <Tab disabled={currentTab === 0} label={'Users'} />
       </Tabs>

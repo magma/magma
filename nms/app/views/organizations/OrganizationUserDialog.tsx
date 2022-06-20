@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import type {DialogProps} from './OrganizationDialog';
@@ -24,22 +21,20 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-// $FlowFixMe migrated to typescript
-import {AltFormField, PasswordInput} from '../../../app/components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {AltFormField, PasswordInput} from '../../components/FormField';
 import {UserRoles} from '../../../shared/roles';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   addButton: {
     minWidth: '150px',
   },
   selectItem: {
     fontSize: '12px',
     fontFamily: '"Inter", sans-serif',
-    fontWeight: '600',
+    fontWeight: 600,
   },
-}));
+});
 
 /**
  * Create User Tab
@@ -70,7 +65,6 @@ export default function OrganizationUserDialog(props: DialogProps) {
       </AltFormField>
       <AltFormField label={'Password'}>
         <PasswordInput
-          fullWidth={true}
           data-testid="password"
           placeholder="Enter Password"
           value={user.password || ''}
@@ -83,7 +77,6 @@ export default function OrganizationUserDialog(props: DialogProps) {
         <PasswordInput
           data-testid="passwordConfirmation"
           placeholder="Enter Password Confirmation"
-          fullWidth={true}
           value={user?.passwordConfirmation || ''}
           onChange={target => {
             props.onUserChange({...user, passwordConfirmation: target});
@@ -100,7 +93,7 @@ export default function OrganizationUserDialog(props: DialogProps) {
           variant={'outlined'}
           value={user.role ?? 0}
           onChange={({target}) => {
-            props.onUserChange({...user, role: target.value});
+            props.onUserChange({...user, role: target.value as number});
           }}
           input={<OutlinedInput id="direction" />}>
           <MenuItem key={UserRoles.USER} value={UserRoles.USER}>

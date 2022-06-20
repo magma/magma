@@ -29,6 +29,7 @@ import IconButton from '@material-ui/core/IconButton';
 import type {WithAlert} from '../../components/Alert/withAlert';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationDialog from './OrganizationDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationSummary from './OrganizationSummary';
