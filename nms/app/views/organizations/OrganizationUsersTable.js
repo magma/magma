@@ -20,7 +20,7 @@ import axios from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 import type {EditUser} from './OrganizationEdit';
 import type {WithAlert} from '../../components/Alert/withAlert';
-
+// $FlowFixMe migrated to typescript
 import {UserRoles} from '../../../shared/roles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

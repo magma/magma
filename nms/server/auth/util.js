@@ -20,6 +20,7 @@ import type {UserType} from '../../shared/sequelize_models/models/user.js';
 
 import bcrypt from 'bcryptjs';
 import querystring from 'querystring';
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {User} from '../../shared/sequelize_models';
 import {format, parse} from 'url';

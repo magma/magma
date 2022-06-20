@@ -33,6 +33,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../../theme/design-system/Text';
 import axios from 'axios';
+// $FlowFixMe migrated to typescript
 import {UserRoles} from '../../../../shared/roles';
 
 import renderList from '../../../util/renderList';

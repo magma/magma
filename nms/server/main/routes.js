@@ -30,6 +30,7 @@ import path from 'path';
 import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';

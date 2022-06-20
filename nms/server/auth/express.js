@@ -17,9 +17,11 @@
 import bcrypt from 'bcryptjs';
 import express from 'express';
 import expressOnboarding from './expressOnboarding';
+// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 import passport from 'passport';
 import staticDist from '../../config/staticDist';
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../shared/sequelize_models';
 import {access} from './access';

@@ -21,7 +21,8 @@ const url = require('url');
 import pathToRegexp from 'path-to-regexp';
 
 import {AuditLogEntry} from '../../shared/sequelize_models';
-const logger = require('../../shared/logging').getLogger(module);
+// $FlowFixMe migrated to typescript
+const logger = require('../../shared/logging.ts').getLogger(module);
 
 const defaultResolver = (req: FBCNMSRequest, type: string) => {
   const {search} = url.parse(req.originalUrl);

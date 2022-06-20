@@ -22,6 +22,7 @@ if (!process.env.NODE_ENV) {
 }
 
 import app from '../server/app';
+// $FlowFixMe migrated to typescript
 import logging from '../shared/logging';
 import {runMigrations} from './runMigrations';
 

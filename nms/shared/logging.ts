@@ -17,7 +17,8 @@
 import morgan from 'morgan';
 import winston from 'winston';
 
-import type {Morgan, StreamOptions} from 'morgan';
+import type {Request} from 'express';
+import type {StreamOptions} from 'morgan';
 
 const {
   colorize,
@@ -29,18 +30,19 @@ const {
   timestamp,
 } = winston.format;
 
-function getLabel(callingModule: any) {
+function getLabel(callingModule: NodeModule) {
   const parts = callingModule.filename.split('/');
-  return parts[parts.length - 2] + '/' + parts.pop();
+  return `${parts[parts.length - 2]}/${parts.pop() || ''}`;
 }
 
 const myFormat = printf(info => {
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`;
 });
 
 type Options = {
-  LOG_FORMAT: 'json' | 'shell',
-  LOG_LEVEL: $Keys<$winstonNpmLogLevels>,
+  LOG_FORMAT: 'json' | 'shell';
+  LOG_LEVEL: string;
 };
 
 const globalOptions: Options = {
@@ -48,7 +50,7 @@ const globalOptions: Options = {
   LOG_LEVEL: 'info',
 };
 
-function getLogFormat(callingModule) {
+function getLogFormat(callingModule: NodeModule) {
   switch (globalOptions.LOG_FORMAT) {
     case 'json':
       return combine(
@@ -71,31 +73,26 @@ function getLogFormat(callingModule) {
 export function configure(options: Options) {
   Object.assign(globalOptions, options);
 }
-export function getHttpLogger(callingModule: any): Morgan {
+export function getHttpLogger(callingModule: NodeModule) {
   const logger = getLogger(callingModule);
   const streamOptions: StreamOptions = {
     write: message => {
       logger.info(message);
     },
   };
-  return morgan('combined', {
-    skip: (req, _) => req.baseUrl == '/healthz',
+  return morgan<Request>('combined', {
+    skip: req => req.baseUrl == '/healthz',
     stream: streamOptions,
   });
 }
-export function getLogger(
-  callingModule: any,
-): $winstonLogger<$winstonNpmLogLevels> {
+export function getLogger(callingModule: NodeModule) {
   return winston.createLogger({
     level: globalOptions.LOG_LEVEL,
     format: getLogFormat(callingModule),
-    stderrLevels: ['error', 'warning'],
     transports: [new winston.transports.Console()],
   });
 }
-export function getValidLogLevel(
-  logLevel: ?string,
-): $Keys<$winstonNpmLogLevels> {
+export function getValidLogLevel(logLevel: string | null | undefined) {
   switch (logLevel) {
     case 'error':
     case 'warn':

@@ -19,7 +19,7 @@ import type {OrganizationType} from '../shared/sequelize_models/models/organizat
 
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
-
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../shared/roles';
 import {Organization, User} from '../shared/sequelize_models';
 

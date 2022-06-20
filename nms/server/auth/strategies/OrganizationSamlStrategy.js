@@ -13,7 +13,7 @@
  * @flow
  * @format
  */
-
+// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../../shared/roles';
 import {MultiSamlStrategy} from 'passport-saml'; // compatibility with breaking change in 3.1.0
 import {User} from '../../../shared/sequelize_models';
@@ -22,8 +22,8 @@ import {getUserFromRequest} from '../util';
 import {injectOrganizationParams} from '../organization';
 
 import crypto from 'crypto';
-
-const logger = require('../../../shared/logging').getLogger(module);
+// $FlowFixMe migrated to typescript
+const logger = require('../../../shared/logging.ts').getLogger(module);
 
 type Config = {
   urlPrefix: string,

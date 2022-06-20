@@ -30,6 +30,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import renderList from '../util/renderList';
+// $FlowFixMe migrated to typescript
 import {UserRoles} from '../../shared/roles';
 import {makeStyles} from '@material-ui/styles';
 
