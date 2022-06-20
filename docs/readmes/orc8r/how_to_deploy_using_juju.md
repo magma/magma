@@ -6,9 +6,12 @@ hide_title: true
 
 # How-To: Deploy Orchestrator using Juju (Beta)
 
-The goal of this document is to detail how to deploy Magma's Orchestrator on any Kubernetes
-cluster. To do so, we will set up a Kubernetes cluster, bootstrap a Juju controller, deploy Magma
-Orchestrator and configure A records for Orchestrator services to be accessible from anywhere.
+This how-to guide can be used to deploy Magma's Orchestrator on any cloud environment. It contains
+steps to set up a Kubernetes cluster, bootstrap a Juju controller, deploy charmed operators for
+Magma Orchestrator and configure DNS A records. For more information on Charmed Magma, please visit
+the project's [homepage](https://github.com/canonical/charmed-magma).
+
+> Charmed-Magma is in Beta and is not yet production ready.
 
 ## Pre-requisites
 
@@ -27,7 +30,7 @@ From a Ubuntu 20.04 machine, install the following tools:
 Select a Kubernetes environment and follow the guide to create the cluster and bootstrap
 a Juju controller on it.
 
-1. [Microk8s](https://juju.is/docs/olm/microk8s)
+1. [MicroK8s](https://juju.is/docs/olm/microk8s)
 2. [Google Cloud (GKE)](https://juju.is/docs/olm/google-kubernetes-engine-(gke))
 3. [Amazon Web Services (EKS)](https://juju.is/docs/olm/amazon-elastic-kubernetes-service-(amazon-eks)#heading--install-the-juju-client)
 4. [Microsoft Azure (AKS)](<https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)>)
@@ -74,8 +77,8 @@ juju run-action orc8r-orchestrator/0 create-orchestrator-admin-user
 
 ## 6. Setup DNS
 
-Using `kubectl`, retrieve the addresses associated to the following Kubernetes LoadBalancer
-services:
+Use `kubectl` or your cloud's CLI to retrieve the public addresses associated to the following Kubernetes
+LoadBalancer services:
 
 - `nginx-proxy`
 - `orc8r-bootstrap-nginx`
