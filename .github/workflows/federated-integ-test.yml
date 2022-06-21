@@ -162,19 +162,12 @@ jobs:
           done
           mkdir -p /tmp/fed_integ_test-images
 
-
-
       - name: Run the federated integ test
         run: |
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab federated_integ_test:build_all=False,orc8r_on_vagrant=True
-
-      - name: Setup upterm session 2
-        if: always()
-        uses: lhotari/action-upterm@v1
-
 
       - name: Get test results
         if: always()
