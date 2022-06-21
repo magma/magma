@@ -16,6 +16,7 @@
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetail from './SubscriberDetail';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberStateTable from './SubscriberStateTable';
