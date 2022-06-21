@@ -9,36 +9,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {
+  Subscriber,
+  SubscriberForbiddenNetworkTypesEnum,
+} from '../../../../generated-ts';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
-const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
-  key => CoreNetworkTypes[key],
-);
+const forbiddenNetworkTypes = Object.values(CoreNetworkTypes) as Array<
+  SubscriberForbiddenNetworkTypesEnum
+>;
 
-const subscribers = {
+const subscribers: Record<string, Subscriber> = {
   IMSI0000000000: {
     name: 'subscriber0',
     active_apns: ['oai.ipv4'],
@@ -89,19 +86,14 @@ const subscribers = {
 
 describe('<SubscriberDashboard />', () => {
   beforeEach(() => {
-    jest
-      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersGet')
-      .mockResolvedValue({
-        data: {
-          subscribers: subscribers,
-          next_page_token: '',
-        },
-      });
+    mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersGet', {
+      subscribers,
+      next_page_token: '',
+      total_count: 2,
+    });
 
-    jest.spyOn(MagmaAPI.networks, 'networksGet').mockResolvedValue({data: []});
-    jest
-      .spyOn(MagmaAPI.networks, 'networksNetworkIdTypeGet')
-      .mockResolvedValue({data: undefined});
+    mockAPI(MagmaAPI.networks, 'networksGet', []);
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet');
   });
 
   const Wrapper = () => {
@@ -141,7 +133,7 @@ describe('<SubscriberDashboard />', () => {
   it('Verify Subscribers Dashboard', async () => {
     const {getAllByTitle, getAllByRole, getByTestId} = render(<Wrapper />);
     await wait();
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');

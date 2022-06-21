@@ -27,6 +27,7 @@ import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 // $FlowFixMe migrated to typescript
 import SubscriberContext from '../../../components/context/SubscriberContext';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDashboard from '../SubscriberOverview';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
