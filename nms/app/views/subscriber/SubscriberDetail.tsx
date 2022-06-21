@@ -9,63 +9,42 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {DataRows} from '../../components/DataGrid';
-import type {
-  subscriber,
-  subscriber_state,
-} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe migrated to typescript
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../../components/DataGrid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberChart from './SubscriberChart';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetailConfig from './SubscriberDetailConfig';
-// $FlowFixMe migrated to typescript
 import TopBar from '../../components/TopBar';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {
   REFRESH_INTERVAL,
   useRefreshingContext,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../components/context/RefreshContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import type {DataRows} from '../../components/DataGrid';
+import type {Subscriber, SubscriberState} from '../../../generated-ts';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -102,7 +81,6 @@ const useStyles = makeStyles(theme => ({
     fontSize: typography.button.fontSize,
     lineHeight: typography.button.lineHeight,
     letterSpacing: typography.button.letterSpacing,
-
     '&:hover': {
       background: colors.primary.mirage,
     },
@@ -123,18 +101,19 @@ export default function SubscriberDetail() {
   const subscriberId: string = nullthrows(params.subscriberId);
   const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(SubscriberContext);
-  const [subscriberConfig, setSubscriberConfig] = useState<subscriber>({});
-  const {isLoading, response: _subscriberResponse} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId,
+  const [subscriberConfig, setSubscriberConfig] = useState({} as Subscriber);
+  const {isLoading} = useMagmaAPI(
+    MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdGet,
     {
       networkId: networkId,
       subscriberId: subscriberId,
     },
     useCallback(
-      response => {
+      (response: Subscriber) => {
         setSubscriberConfig(response);
+
         if (!ctx.state[subscriberId]) {
-          ctx.setState?.('', undefined, {
+          void ctx.setState?.('', undefined, {
             ...ctx.state,
             [subscriberId]: response,
           });
@@ -143,6 +122,7 @@ export default function SubscriberDetail() {
       [ctx, subscriberId],
     ),
   );
+
   if (isLoading) {
     return <LoadingFiller />;
   }
@@ -201,14 +181,14 @@ export default function SubscriberDetail() {
     </>
   );
 }
+
 function StatusInfo() {
   const params = useParams();
   const subscriberId: string = nullthrows(params.subscriberId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [refresh, setRefresh] = useState(false);
   const ctx = useContext(SubscriberContext);
-  // $FlowIgnore
-  const subscriberInfo: subscriber = ctx.state?.[subscriberId];
+  const subscriberInfo: Subscriber = ctx.state?.[subscriberId];
   const networkId: string = nullthrows(params.networkId);
   const refreshingSessionState = useRefreshingContext({
     context: SubscriberContext,
@@ -219,8 +199,8 @@ function StatusInfo() {
     refresh,
     id: subscriberId,
   });
-  // $FlowIgnore
-  const sessions: subscriber_state = refreshingSessionState.sessionState;
+  const sessions: SubscriberState = refreshingSessionState.sessionState;
+
   function refreshFilter() {
     return (
       <AutorefreshCheckbox
@@ -229,6 +209,7 @@ function StatusInfo() {
       />
     );
   }
+
   return (
     <Grid container spacing={4}>
       <Grid item xs={12} md={6}>
@@ -280,8 +261,8 @@ function Overview() {
   );
 }
 
-function Info(props: {subscriberInfo: subscriber}) {
-  const kpiData: DataRows[] = [
+function Info(props: {subscriberInfo: Subscriber}) {
+  const kpiData: Array<DataRows> = [
     [
       {
         value: props.subscriberInfo.name ?? props.subscriberInfo.id,
@@ -305,19 +286,20 @@ function Info(props: {subscriberInfo: subscriber}) {
 
   return <DataGrid data={kpiData} />;
 }
+
 type statusProps = {
-  sessionState?: subscriber_state,
-  subscriberInfo: subscriber,
+  sessionState?: SubscriberState;
+  subscriberInfo: Subscriber;
 };
+
 function Status(props: statusProps) {
   const featureUnsupported = 'Unsupported';
   const statusUnknown = 'Unknown';
 
-  const gwId =
-    // $FlowIgnore
-    props.sessionsState?.directory?.location_history?.[0] ?? statusUnknown;
+  const gwId: string =
+    props.sessionState?.directory?.location_history?.[0] ?? statusUnknown;
 
-  const kpiData: DataRows[] = [
+  const kpiData: Array<DataRows> = [
     [
       {
         category: 'Gateway ID',
