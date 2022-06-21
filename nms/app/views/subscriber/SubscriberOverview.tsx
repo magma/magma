@@ -9,20 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetail from './SubscriberDetail';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberStateTable from './SubscriberStateTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberTable from './SubscriberTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TopBar from '../../components/TopBar';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
