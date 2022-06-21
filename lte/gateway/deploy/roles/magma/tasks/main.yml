@@ -448,16 +448,6 @@
     group: vagrant
     recurse: yes
 
-- name: Patch python aio lib
-  patch:
-    src: patches/aioeventlet.py38.patch
-    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
-
-- name: Patch python aioeventlet lib crash ubuntu
-  patch:
-    src: patches/aioeventlet_fd_exception.patch
-    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
-
 - name: Install dev requirements only used for Magma VM
   retries: 5
   apt:
