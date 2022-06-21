@@ -80,7 +80,7 @@ export const SUBSCRIBER_EXPORT_COLUMNS = [
   {title: 'Forbidden Network Types', field: 'forbidden_network_types'},
   {title: 'Data Plan', field: 'sub_profile'},
   {title: 'Active APNs', field: 'active_apns'},
-];
+] as const;
 export const SUBSCRIBER_ADD_ERRORS = Object.freeze({
   INVALID_IMSI:
     'The IMSI should be a string IMSI followed by a number with 10-15 digits',

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import ActionTable from '../../components/ActionTable';
+import ActionTable, {TableRef} from '../../components/ActionTable';
 import AutorefreshCheckbox, {
   useRefreshingDateRange,
 } from '../../components/AutorefreshCheckbox';
@@ -27,7 +27,6 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
-import {MaterialTableProps} from '@material-table/core';
 import {OptionsObject} from 'notistack';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
@@ -243,14 +242,13 @@ export default function GatewayLogs() {
     {} as ActionQuery,
   );
   const enqueueSnackbar = useEnqueueSnackbar();
-  const tableRef: MaterialTableProps<any>['tableRef'] = useRef(null);
+  const tableRef: TableRef = useRef();
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
     isAutoRefreshing,
     30000,
     () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-      tableRef.current && tableRef.current.onQueryChange();
+      tableRef.current?.onQueryChange();
     },
   );
 

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import ActionTable from '../../components/ActionTable';
+import ActionTable, {TableRef} from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EventChart from './EventChart';
@@ -238,7 +238,7 @@ export default function EventsTable(props: EventTableProps) {
   const {hardwareId, eventStream, sz} = props;
   const classes = useStyles();
   const [eventCount, setEventCount] = useState(0);
-  const tableRef: MaterialTableProps<EventRowType>['tableRef'] = useRef(null);
+  const tableRef: TableRef = useRef();
   const params = useParams();
   const networkId = nullthrows(params.networkId);
   const streams = '';
@@ -263,8 +263,7 @@ export default function EventsTable(props: EventTableProps) {
     isAutoRefreshing,
     30000,
     () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-      tableRef.current && tableRef.current.onQueryChange();
+      tableRef.current?.onQueryChange();
     },
   );
 
@@ -282,7 +281,6 @@ export default function EventsTable(props: EventTableProps) {
   useEffect(() => {
     if (props.inStartDate && props.inEndDate) {
       if (tableRef.current) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
         tableRef.current.onQueryChange();
       }
     }

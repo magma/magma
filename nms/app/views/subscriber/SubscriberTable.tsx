@@ -9,29 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import ActionTable from '../../components/ActionTable';
+import ActionTable, {TableRef} from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import MenuItem from '@material-ui/core/MenuItem';
-// $FlowFixMe migrated to typescript
-import NetworkContext from '../../components/context/NetworkContext';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../../components/Alert/withAlert';
 import {
   DEFAULT_PAGE_SIZE,
@@ -39,59 +28,52 @@ import {
   REFRESH_TIMEOUT,
   RenderLink,
   SUBSCRIBER_EXPORT_COLUMNS,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {ActionQuery} from '../../components/ActionTable';
-import type {EnqueueSnackbarOptions} from 'notistack';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
-  lte_subscription,
-  mutable_subscriber,
-  mutable_subscribers,
-  paginated_subscribers,
-  subscriber,
-} from '../../../generated/MagmaAPIBindings';
+  LteSubscription,
+  MutableSubscriber,
+  PaginatedSubscribers,
+  Subscriber,
+} from '../../../generated-ts';
+import type {OptionsObject} from 'notistack';
+import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
+import type {WithAlert} from '../../components/Alert/withAlert';
 
-// $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AddSubscriberDialog} from './SubscriberAddDialog';
+import {Column} from '@material-table/core';
 import {CsvBuilder} from 'filefy';
 import {
   FetchSubscribers,
   handleSubscriberQuery,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../state/lte/SubscriberState';
-// $FlowFixMe[cannot-resolve-module]
+import {Theme} from '@material-ui/core/styles';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 // number of subscriber in a chunk
 const SUBSCRIBERS_CHUNK_SIZE = 1000;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
 }));
 
 export type SubscriberRowType = {
-  name: string,
-  imsi: string,
-  activeApns?: string,
-  ipAddresses?: string,
-  activeSessions?: number,
-  service: string,
-  currentUsage: string,
-  dailyAvg: string,
-  lastReportedTime: Date | string,
+  name: string;
+  imsi: string;
+  activeApns?: string;
+  ipAddresses?: string;
+  activeSessions?: number;
+  service: string;
+  currentUsage: string;
+  dailyAvg: string;
+  lastReportedTime: Date | string;
 };
 
 function ExportSubscribersButton() {
@@ -106,7 +88,7 @@ function ExportSubscribersButton() {
         color="primary"
         startIcon={<LaunchIcon />}
         onClick={() =>
-          exportSubscribers({
+          void exportSubscribers({
             networkId,
             enqueueSnackbar,
           })
@@ -117,11 +99,11 @@ function ExportSubscribersButton() {
   );
 }
 type ExportProps = {
-  networkId: string,
+  networkId: string;
   enqueueSnackbar: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => string | number | null | undefined;
 };
 /**
  * Export subscribers in csv format.
@@ -142,10 +124,10 @@ async function exportSubscribers(props: ExportProps) {
     // last page next_page_token is an empty string
     while (token !== '') {
       // $FlowIgnore
-      const subscriberRows: paginated_subscribers = await FetchSubscribers({
+      const subscriberRows = (await FetchSubscribers({
         networkId,
         token,
-      });
+      })) as PaginatedSubscribers;
       if (subscriberRows) {
         page = page + 1;
         token = subscriberRows.next_page_token;
@@ -153,9 +135,9 @@ async function exportSubscribers(props: ExportProps) {
       const subscriberData = Object.keys(subscriberRows.subscribers).map(
         rowData =>
           SUBSCRIBER_EXPORT_COLUMNS.map(columnDef => {
-            const subscriberConfig: lte_subscription =
+            const subscriberConfig: LteSubscription =
               subscriberRows.subscribers[rowData].config.lte;
-            const subscriberInfo: subscriber =
+            const subscriberInfo: Subscriber =
               subscriberRows.subscribers[rowData];
             switch (columnDef.field) {
               case 'auth_opc':
@@ -165,18 +147,19 @@ async function exportSubscribers(props: ExportProps) {
               case 'sub_profile':
                 return subscriberConfig[columnDef.field];
               case 'forbidden_network_types':
-              case 'name':
-                return typeof subscriberInfo[columnDef.field] === 'object'
-                  ? subscriberInfo[columnDef.field].join(', ')
-                  : subscriberInfo[columnDef.field];
+              case 'name': {
+                const field = subscriberInfo[columnDef.field]!;
+                return typeof field === 'object' ? field.join(', ') : field;
+              }
               case 'id':
-              case 'active_apns':
-              case 'name':
-                return typeof subscriberInfo[columnDef.field] === 'object'
-                  ? subscriberInfo[columnDef.field].join('|')
-                  : subscriberInfo[columnDef.field];
+              case 'active_apns': {
+                const field = subscriberInfo[columnDef.field]!;
+                return typeof field === 'object' ? field.join('|') : field;
+              }
               default:
+                // @ts-ignore
                 console.log('invalid field not found', columnDef.field);
+                return '';
             }
           }),
       );
@@ -186,7 +169,7 @@ async function exportSubscribers(props: ExportProps) {
       subscriberExport.exportFile();
     }
   } catch (e) {
-    enqueueSnackbar(e?.message ?? 'error retrieving subscribers', {
+    enqueueSnackbar(getErrorMessage(e, 'error retrieving subscribers'), {
       variant: 'error',
     });
   }
@@ -198,17 +181,16 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(SubscriberContext);
   const successCountRef = useRef(0);
-  const [
-    subscriberAction,
-    setSubscriberAction,
-  ] = useState<SubscriberActionType>('add');
+  const [subscriberAction, setSubscriberAction] = useState<
+    SubscriberActionType
+  >('add');
 
   /**
    * Delete array of subscriber IMSIs.
    *
    * @param {Array<string>} subscribers Array of subscriber IMSI to delete
    */
-  const deleteSubscribers = async (subscribers: Array<string>) => {
+  const deleteSubscribers = (subscribers: Array<string>) => {
     try {
       // Delete subscribers
       subscribers.map(imsi => ctx.setState?.(imsi));
@@ -224,13 +206,14 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
     setOpen(false);
   };
 
-  const addSubscriberChunk = async (addedSubscribers: mutable_subscribers) => {
+  const addSubscriberChunk = async (
+    addedSubscribers: Array<MutableSubscriber>,
+  ) => {
     try {
       await ctx.setState?.('', addedSubscribers);
       return true;
     } catch (e) {
-      const errMsg = e.response?.data?.message ?? e.message ?? e;
-      setError('Error saving subscribers: ' + errMsg);
+      setError('Error saving subscribers: ' + getErrorMessage(e));
       return false;
     }
   };
@@ -257,7 +240,7 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
         subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
           ? hexToBase64(subscriber.authOpc)
           : '';
-      const newSubscriber: mutable_subscriber = {
+      const newSubscriber: MutableSubscriber = {
         active_apns: subscriber.apns,
         active_policies: subscriber.policies,
         forbidden_network_types: subscriber.forbiddenNetworkTypes,
@@ -275,15 +258,15 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
 
       chunks[chunkIndex].push(newSubscriber);
       return chunks;
-    }, []);
+    }, [] as Array<Array<MutableSubscriber>>);
 
     for (let i = 0; i < subscriberChunks.length; i++) {
       const subscriberChunk = subscriberChunks[i];
       try {
         if (subscriberAction === 'edit') {
           // Update subscribers
-          subscriberChunk.map(subscriber => {
-            ctx.setState?.(subscriber.id, subscriber);
+          subscriberChunk.forEach(subscriber => {
+            void ctx.setState?.(subscriber.id, subscriber);
           });
         } else {
           // Add subscribers
@@ -300,7 +283,7 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
           }
         }
       } catch (e) {
-        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        const errMsg = getErrorMessage(e);
         enqueueSnackbar('Saving subscribers failed : ' + errMsg, {
           variant: 'error',
         });
@@ -327,7 +310,7 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
                 : subscribers.map(subscriber => subscriber.imsi),
             );
           } else {
-            handleSubscribers(subscribers);
+            void handleSubscribers(subscribers);
           }
         }}
         onClose={() => {
@@ -368,10 +351,11 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
 function SubscribersTable(props: WithAlert) {
   const navigate = useNavigate();
   const params = useParams();
-  const [currRow, setCurrRow] = useState<SubscriberRowType>({});
+  const [currRow, setCurrRow] = useState<SubscriberRowType>(
+    {} as SubscriberRowType,
+  );
   const classes = useStyles();
   const networkId: string = nullthrows(params.networkId);
-  const networkCtx = useContext(NetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(SubscriberContext);
   const subscriberMetrics = ctx.metrics;
@@ -380,22 +364,18 @@ function SubscribersTable(props: WithAlert) {
   // first token (page 1) is an empty string
   const [tokenList, setTokenList] = useState(['']);
   const onClose = () => setJsonDialog(false);
-  const tableRef = React.useRef();
+  const tableRef: TableRef = React.useRef();
   const subscriberMap = ctx.state;
   const [refresh, setRefresh] = useState(false);
 
-  const tableColumns = [
+  const tableColumns: Array<Column<SubscriberRowType>> = [
     {
       title: 'IMSI',
       field: 'imsi',
       render: currRow => {
         const subscriberConfig = subscriberMap[currRow.imsi];
         return (
-          <RenderLink
-            subscriberConfig={subscriberConfig}
-            currRow={currRow}
-            networkCtx={networkCtx}
-          />
+          <RenderLink subscriberConfig={subscriberConfig} currRow={currRow} />
         );
       },
     },
@@ -504,7 +484,7 @@ function SubscribersTable(props: WithAlert) {
             {
               name: 'Remove',
               handleFunc: () => {
-                props
+                void props
                   .confirm(`Are you sure you want to delete ${currRow.imsi}?`)
                   .then(async confirmed => {
                     if (!confirmed) {

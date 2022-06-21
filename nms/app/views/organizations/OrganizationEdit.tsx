@@ -30,6 +30,7 @@ import axios, {AxiosResponse} from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 import {AltFormField} from '../../components/FormField';
 import {OrganizationUser} from './types';
+import {TableRef} from '../../components/ActionTable';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '../../hooks';
@@ -144,7 +145,7 @@ function OrganizationEdit(props: WithAlert & Props) {
   const [dialog, setDialog] = useState(false);
   const [user, setUser] = useState<OrganizationUser | null>(null);
   const [organization, setOrganization] = useState<Organization | null>(null);
-  const tableRef = React.createRef<{onQueryChange(): void} | null>();
+  const tableRef: TableRef = React.useRef();
   const [organizationToDelete, setOrganizationToDelete] = useState<
     string | null
   >(null);

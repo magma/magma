@@ -115,10 +115,13 @@ type ActionMenuItems = {
 };
 
 export type ActionQuery = Query<any>;
+export type TableRef = React.MutableRefObject<
+  {onQueryChange: VoidFunction} | undefined
+>;
 
 export type ActionTableProps<T extends object> = {
   titleIcon?: typeof SvgIcon;
-  tableRef?: MaterialTableProps<T>['tableRef'];
+  tableRef?: TableRef;
   editable?: MaterialTableProps<T>['editable'];
   localization?: MaterialTableProps<T>['localization'];
   title?: string;
