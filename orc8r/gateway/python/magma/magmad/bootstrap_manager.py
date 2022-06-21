@@ -25,7 +25,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
-from google.protobuf.duration_pb2 import Duration
+from google.protobuf.duration_pb2 import (  # pylint: disable=no-name-in-module
+    Duration,
+)
 from magma.common.rpc_utils import (
     grpc_async_wrapper,
     indicates_connection_error,
