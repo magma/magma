@@ -58,6 +58,7 @@ import type {
 
 // $FlowFixMe migrated to typescript
 import MenuButton from '../../components/MenuButton';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AddSubscriberDialog} from './SubscriberAddDialog';
 import {CsvBuilder} from 'filefy';
 import {

@@ -338,7 +338,13 @@ export type SubscriberQueryType = {
  * @param {boolean} deleteTable Add more fields to subscriber if set to true
  * @return Promise holding subscriber rows data, the current page and the totalCount.
  */
-export async function handleSubscriberQuery(props: SubscriberQueryType) {
+export async function handleSubscriberQuery(
+  props: SubscriberQueryType,
+): Promise<{
+  data: Array<SubscriberRowType>;
+  page: number;
+  totalCount: number;
+}> {
   const {
     networkId,
     query,
@@ -353,7 +359,7 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
   } = props;
   try {
     // search subscriber by IMSI
-    let subscriberSearch = {};
+    let subscriberSearch = {} as SubscriberRowType;
     const search = query.search;
     if (search.startsWith('IMSI') && search.length > 9) {
       const searchedSubscriber = (await FetchSubscribers({
