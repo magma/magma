@@ -20,13 +20,12 @@ import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
+import {DropzoneArea} from 'material-ui-dropzone';
 import {
-  CoreNetworkTypes,
   SUBSCRIBER_ACTION_TYPE,
   SubscriberInfo,
+  forbiddenNetworkTypes,
 } from './SubscriberUtils';
-import {DropzoneArea} from 'material-ui-dropzone';
-import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated-ts';
 import {
   SubscribersDialogDetailProps,
   validateSubscribers,
@@ -46,7 +45,6 @@ const useStyles = makeStyles(() => ({
     color: colors.primary.comet,
   },
 }));
-const forbiddenNetworkTypes = Object.values(CoreNetworkTypes);
 const SUB_NAME_OFFSET = 0;
 const SUB_IMSI_OFFSET = 1;
 const SUB_AUTH_KEY_OFFSET = 2;
@@ -87,7 +85,7 @@ function parseSubscriber(line: string): SubscriberInfo {
         .map(item => item.trim())
         .filter(Boolean)
         .includes(value),
-    ) as Array<SubscriberForbiddenNetworkTypesEnum>,
+    ),
     dataPlan: items[SUB_DATAPLAN_OFFSET],
     apns: items[SUB_APN_OFFSET]?.split('|')
       .map(item => item.trim())

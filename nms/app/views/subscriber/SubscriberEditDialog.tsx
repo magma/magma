@@ -34,7 +34,7 @@ import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '../../components/TypedSelect';
 import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, PasswordInput} from '../../components/FormField';
-import {CoreNetworkTypes} from './SubscriberUtils';
+import {CoreNetworkTypes, forbiddenNetworkTypes} from './SubscriberUtils';
 import {LteSubscription} from '../../../generated-ts';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {colors} from '../../theme/default';
@@ -72,9 +72,6 @@ const useStyles = makeStyles(() => ({
 const SUBSCRIBER_TITLE = 'Subscriber';
 const TRAFFIC_TITLE = 'Traffic Policy';
 const STATIC_IPS_TITLE = 'APNs Static IPs';
-const forbiddenNetworkTypes = Object.values(CoreNetworkTypes) as Array<
-  SubscriberForbiddenNetworkTypesEnum
->;
 
 export const EditTableType = {
   subscriber: 0,

@@ -9,53 +9,44 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import * as hooks from '../../../components/context/RefreshContext';
 
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../../components/context/ApnContext';
-// $FlowFixMe migrated to typescript
-import LteNetworkContext from '../../../components/context/LteNetworkContext';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import LteNetworkContext, {
+  LteNetworkContextType,
+} from '../../../components/context/LteNetworkContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe migrated to typescript
-import PolicyContext from '../../../components/context/PolicyContext';
+import PolicyContext, {
+  PolicyContextType,
+} from '../../../components/context/PolicyContext';
 import React from 'react';
-// $FlowFixMe migrated to typescript
-import SubscriberContext from '../../../components/context/SubscriberContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import SubscriberContext, {
+  SubscriberContextType,
+} from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes} from '../SubscriberUtils';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {
+  NetworkEpcConfigs,
+  NetworkRanConfigs,
+  PolicyRule,
+  Subscriber,
+} from '../../../../generated-ts';
 import {fireEvent, render, wait} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {setSubscriberState} from '../../../state/lte/SubscriberState';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../hooks/useSnackbar');
 
-const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
-  key => CoreNetworkTypes[key],
-);
-
-const subscribersMock = {
+const subscribersMock: Record<string, Subscriber> = {
   IMSI00000000001002: {
     name: 'subscriber0',
     active_apns: ['apn_0'],
@@ -104,7 +95,7 @@ const subscribersMock = {
     },
   },
 };
-const policies = {
+const policies: Record<string, PolicyRule> = {
   policy_0: {
     flow_list: [],
     id: 'policy_0',
@@ -182,7 +173,7 @@ const testNetwork = {
     records: [],
   },
 };
-const epc = {
+const epc: NetworkEpcConfigs = {
   default_rule_id: 'default_rule_1',
   lte_auth_amf: 'gAA=',
   lte_auth_op: 'EREREREREREREREREREREQ==',
@@ -213,7 +204,7 @@ const epc = {
   tac: 1,
 };
 
-const ran = {
+const ran: NetworkRanConfigs = {
   bandwidth_mhz: 20,
   tdd_config: {
     earfcndl: 44390,
@@ -224,15 +215,7 @@ const ran = {
 
 describe('<AddSubscriberButton />', () => {
   beforeEach(() => {
-    (useEnqueueSnackbar: JestMockFn<
-      Array<empty>,
-      $Call<typeof useEnqueueSnackbar>,
-    >).mockReturnValue(jest.fn());
-    MagmaAPIBindings.getLteByNetworkIdSubscriberConfigBaseNames.mockResolvedValue(
-      [],
-    );
-    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
-
+    (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
     jest
       .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost')
       .mockImplementation();
@@ -245,9 +228,9 @@ describe('<AddSubscriberButton />', () => {
   const AddWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
     const [sessionState, setSessionState] = useState({});
-    const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
+    const [forbiddenNetworkTypes] = useState({});
 
-    const subscriberCtx = {
+    const subscriberCtx: SubscriberContextType = {
       state: subscribers,
       forbiddenNetworkTypes: forbiddenNetworkTypes,
       gwSubscriberMap: {},
@@ -261,10 +244,9 @@ describe('<AddSubscriberButton />', () => {
           key: key,
           value: value,
           setSessionState: setSessionState,
-          setForbiddenNetworkTypes: setForbiddenNetworkTypes,
         }),
     };
-    const policyCtx = {
+    const policyCtx: PolicyContextType = {
       state: policies,
       baseNames: {},
       qosProfiles: {},
@@ -280,7 +262,7 @@ describe('<AddSubscriberButton />', () => {
       setState: async () => {},
     };
 
-    const networkCtx = {
+    const networkCtx: LteNetworkContextType = {
       state: {
         ...testNetwork,
         cellular: {
@@ -322,7 +304,7 @@ describe('<AddSubscriberButton />', () => {
   const DetailWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
     const [sessionState, setSessionState] = useState({});
-    const [forbiddenNetworkTypes, setForbiddenNetworkTypes] = useState({});
+    const [forbiddenNetworkTypes] = useState({});
     const policyCtx = {
       state: policies,
       baseNames: {},
@@ -375,7 +357,6 @@ describe('<AddSubscriberButton />', () => {
                           subscriberMap: subscribers,
                           setSubscriberMap: setSubscribers,
                           setSessionState,
-                          setForbiddenNetworkTypes,
                           key: key,
                           value: value,
                         }),
@@ -415,7 +396,7 @@ describe('<AddSubscriberButton />', () => {
     expect(queryByTestId('addSubscriberDialog')).not.toBeNull();
 
     // first row is the header
-    const rowHeader = await getAllByRole('row');
+    const rowHeader = getAllByRole('row');
     expect(rowHeader[0]).toHaveTextContent('Subscriber Name');
     expect(rowHeader[0]).toHaveTextContent('IMSI');
     expect(rowHeader[0]).toHaveTextContent('Auth Key');
@@ -460,7 +441,7 @@ describe('<AddSubscriberButton />', () => {
     await wait();
 
     // Verify new subscriber row before saving
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
     expect(rowItems[1]).toHaveTextContent('IMSI00000000001004');
     expect(rowItems[1]).toHaveTextContent('8baf473f2f8fd09487cccbd7097c6862');
     expect(rowItems[1]).toHaveTextContent('8e27b6af0e692e750f32667a3b14605d');
