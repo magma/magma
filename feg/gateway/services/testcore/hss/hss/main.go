@@ -40,6 +40,11 @@ func main() {
 		log.Printf("Error getting hss config: %s", err)
 	}
 
+	err = servicers.ValidateConfig(config)
+	if err != nil {
+		log.Fatalf("Error validating config: %s", err)
+	}
+
 	store := storage.NewMemorySubscriberStore()
 	servicer := setupHssServer(config, store, srv)
 

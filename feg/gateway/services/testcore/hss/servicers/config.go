@@ -17,6 +17,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -193,4 +194,45 @@ func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool, lteAuthN
 		},
 		Non_3Gpp: non3gppProfile,
 	}
+}
+
+func ValidateConfig(config *mconfig.HSSConfig) error {
+	if err := ValidateHostWithPort(config.Server.Address); err != nil {
+		return err
+	}
+
+	if err := ValidateHostWithPort(config.Server.LocalAddress); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateHost(host string) error {
+	if net.ParseIP(host) != nil {
+		return nil
+	}
+
+	if _, err := net.LookupHost(host); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateHostWithPort(host string) error {
+	if ValidateHost(host) == nil {
+		return nil
+	}
+
+	host, _, err := net.SplitHostPort(host)
+	if err != nil {
+		return err
+	}
+
+	if err = ValidateHost(host); err != nil {
+		return err
+	}
+
+	return nil
 }

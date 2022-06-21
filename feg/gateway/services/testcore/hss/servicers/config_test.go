@@ -15,6 +15,25 @@ func TestGetHssProxyConfig(t *testing.T) {
 	assert.Equal(t, "magma-fedgw.magma.com", conf.Server.DestHost)
 }
 
+func TestValidateConfig(t *testing.T) {
+	conf := generateHssMconfig(t, test_config)
+	err := servicers.ValidateConfig(conf)
+	assert.NoError(t, err)
+}
+
+func TestValidateHostWithPortString(t *testing.T) {
+	err := servicers.ValidateHostWithPort("")
+	assert.Error(t, err)
+	err = servicers.ValidateHostWithPort("localhost:3768")
+	assert.NoError(t, err)
+	err = servicers.ValidateHostWithPort("127.0.0.1:3768")
+	assert.NoError(t, err)
+	err = servicers.ValidateHostWithPort("127.0.0.1")
+	assert.NoError(t, err)
+	err = servicers.ValidateHostWithPort("localhost")
+	assert.NoError(t, err)
+}
+
 func generateHssMconfig(t *testing.T, configString string) *mconfig.HSSConfig {
 	err := gwMconfig.CreateLoadTempConfig(configString)
 	assert.NoError(t, err)
