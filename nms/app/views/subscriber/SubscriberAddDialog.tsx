@@ -35,7 +35,6 @@ import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import nullthrows from '../../../shared/util/nullthrows';
 import {Column, MaterialTableProps} from '@material-table/core';
-import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {PasswordInput} from '../../components/FormField';
 import {SubscriberDetailsUpload} from './SubscriberUpload';
 import {
@@ -43,6 +42,7 @@ import {
   handleSubscriberQuery,
 } from '../../state/lte/SubscriberState';
 import {colors} from '../../theme/default';
+import {forbiddenNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
 import type {ActionQuery} from '../../components/ActionTable';
@@ -91,8 +91,6 @@ const useStyles = makeStyles(() => ({
     color: colors.primary.comet,
   },
 }));
-
-const forbiddenNetworkTypes = Object.values(CoreNetworkTypes);
 
 type ActionDialogProps = {
   open: boolean;

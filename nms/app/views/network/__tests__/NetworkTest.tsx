@@ -36,7 +36,6 @@ import SubscriberContext, {
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
-import {CoreNetworkTypes} from '../../subscriber/SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
@@ -44,6 +43,7 @@ import {
   UpdateNetworkState,
 } from '../../../state/lte/NetworkState';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {forbiddenNetworkTypes} from '../../subscriber/SubscriberUtils';
 
 import MagmaAPI from '../../../../api/MagmaAPI';
 import axios from 'axios';
@@ -53,10 +53,6 @@ import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated-ts';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
-
-const forbiddenNetworkTypes = (Object.keys(CoreNetworkTypes) as Array<
-  keyof typeof CoreNetworkTypes
->).map(key => CoreNetworkTypes[key]);
 
 describe('<NetworkDashboard />', () => {
   const testNetwork = {

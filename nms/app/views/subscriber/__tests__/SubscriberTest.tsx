@@ -18,22 +18,15 @@ import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default';
 
 import MagmaAPI from '../../../../api/MagmaAPI';
-import {CoreNetworkTypes} from '../SubscriberUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {
-  Subscriber,
-  SubscriberForbiddenNetworkTypesEnum,
-} from '../../../../generated-ts';
+import {Subscriber} from '../../../../generated-ts';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
-
-const forbiddenNetworkTypes = Object.values(CoreNetworkTypes) as Array<
-  SubscriberForbiddenNetworkTypesEnum
->;
 
 const subscribers: Record<string, Subscriber> = {
   IMSI0000000000: {

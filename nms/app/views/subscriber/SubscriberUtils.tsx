@@ -57,6 +57,10 @@ export const CoreNetworkTypes = Object.freeze({
   NT_5GC: '5GC',
 });
 
+export const forbiddenNetworkTypes = Object.values(CoreNetworkTypes) as Array<
+  SubscriberForbiddenNetworkTypesEnum
+>;
+
 export function getPromValue(resp: PromqlReturnObject) {
   const respArr = resp?.data?.result
     ?.map(item => {
