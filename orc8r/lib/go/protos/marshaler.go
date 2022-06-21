@@ -16,7 +16,6 @@ package protos
 
 import (
 	"bytes"
-	"strings"
 
 	"github.com/golang/glog"
 	jsonpb "google.golang.org/protobuf/encoding/protojson"
@@ -55,21 +54,29 @@ func TestMarshal(msg proto.Message) string {
 
 type mconfigAnyResolver struct{}
 
-// Resolve - AnyResolver interface implementation, it'll resolve any unregistered Any types to Void instead of
+// FindMessageByURL - AnyResolver interface implementation, it'll resolve any unregistered Any types to Void instead of
 // returning error
-func (mconfigAnyResolver) Resolve(typeUrl string) (proto.Message, error) {
-	// Only the part of typeUrl after the last slash is relevant.
-	mname := typeUrl
-	if slash := strings.LastIndex(mname, "/"); slash >= 0 {
-		mname = mname[slash+1:]
-	}
-	mt, _ := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(mname))
+func (mconfigAnyResolver) FindMessageByURL(typeUrl string) (protoreflect.MessageType, error) {
+	mt, _ := protoregistry.GlobalTypes.FindMessageByURL(typeUrl)
 	if mt == nil {
-		glog.V(4).Infof("mconfigAnyResolver: unknown message type %q", mname)
-		return new(Bytes), nil
+		glog.V(4).Infof("mconfigAnyResolver: unknown message type %q", typeUrl)
+		var msg Void
+		return msg.ProtoReflect().Type(), nil
 	} else {
-		return mt.New().Interface().(proto.Message), nil
+		return mt, nil
 	}
+}
+
+func (mconfigAnyResolver) FindMessageByName(message protoreflect.FullName) (protoreflect.MessageType, error) {
+	return protoregistry.GlobalTypes.FindMessageByName(message)
+}
+
+func (mconfigAnyResolver) FindExtensionByName(field protoreflect.FullName) (protoreflect.ExtensionType, error) {
+	return protoregistry.GlobalTypes.FindExtensionByName(field)
+}
+
+func (mconfigAnyResolver) FindExtensionByNumber(message protoreflect.FullName, field protoreflect.FieldNumber) (protoreflect.ExtensionType, error) {
+	return protoregistry.GlobalTypes.FindExtensionByNumber(message, field)
 }
 
 // MarshalMconfig is a special mconfig marshaler tolerant to unregistered Any types
@@ -86,14 +93,14 @@ func MarshalMconfigToString(msg proto.Message) (string, error) {
 
 func marshalMconfigs(msg proto.Message) (*bytes.Buffer, error) {
 	var buff bytes.Buffer
-	b, err := (&jsonpb.MarshalOptions{EmitUnpopulated: true, Indent: " "}).Marshal(msg)
+	b, err := jsonpb.MarshalOptions{Resolver: mconfigAnyResolver{}, EmitUnpopulated: true, Indent: " "}.Marshal(msg)
 	buff.Write(b)
 	return &buff, err
 }
 
 // UnmarshalMconfig is a special mconfig Unmarshaler tolerant to unregistered Any types
 func UnmarshalMconfig(bt []byte, msg proto.Message) error {
-	return (&jsonpb.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(bt, msg)
+	return jsonpb.UnmarshalOptions{DiscardUnknown: true, Resolver: mconfigAnyResolver{}}.Unmarshal(bt, msg)
 }
 
 // MarshalJSONPB implements JSONPBMarshaler interface for Bytes type

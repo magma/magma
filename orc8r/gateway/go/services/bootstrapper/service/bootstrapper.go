@@ -27,8 +27,8 @@ import (
 
 	"github.com/emakeev/snowflake"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc"
+	duration "google.golang.org/protobuf/types/known/durationpb"
 
 	"magma/gateway/config"
 	"magma/gateway/service_registry"
@@ -307,7 +307,7 @@ func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
 		},
 		Csr: &protos.CSR{
 			Id:        protos.NewGatewayIdentity(b.HardwareId, "", ""),
-			ValidTime: ptypes.DurationProto(PREEXPIRY_BOOTSTRAP_INTERVAL * 5),
+			ValidTime: duration.New(PREEXPIRY_BOOTSTRAP_INTERVAL * 5),
 			CsrDer:    csr,
 			CertType:  protos.CertType_DEFAULT,
 		},

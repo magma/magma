@@ -19,7 +19,7 @@ import (
 	"reflect"
 
 	"github.com/go-redis/redis"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/lib/go/protos"
 )

@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/gateway/mconfig"
 	"magma/gateway/mconfig/test/testcfg"
@@ -133,13 +133,13 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 	mc := mconfig.GetGatewayConfigs()
 	expectedStr2 = "192.123.155.0"
 	s1cfg.Str2 = expectedStr2
-	mc.ConfigsByKey["service1"], err = ptypes.MarshalAny(s1cfg)
+	mc.ConfigsByKey["service1"], err = anypb.New(s1cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Test marshaling of new configs
-	mc.ConfigsByKey["service2"], _ = ptypes.MarshalAny(
+	mc.ConfigsByKey["service2"], _ = anypb.New(
 		&testcfg.Service2Config{
 			Str21: "str21",
 			Str22: "str22",

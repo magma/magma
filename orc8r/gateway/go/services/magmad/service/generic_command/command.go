@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/google/shlex"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"magma/gateway/config"
 	"magma/orc8r/lib/go/protos"

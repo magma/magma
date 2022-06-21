@@ -22,8 +22,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/gateway/config"
 	"magma/gateway/streamer"
@@ -95,7 +94,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 		glog.Errorf("invalid mconfig update for GW %s - missing magmad configuration", update.GetKey())
 		return false
 	}
-	if err = ptypes.UnmarshalAny(mdCfg, new(mconfig.MagmaD)); err != nil {
+	if err = mdCfg.UnmarshalTo(new(mconfig.MagmaD)); err != nil {
 		glog.Errorf("invalid magmad mconfig GW %s: %v", update.GetKey(), err)
 		return false
 	}
@@ -165,11 +164,11 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	return false
 }
 
-func (c *Configurator) GetExtraArgs() *any.Any {
+func (c *Configurator) GetExtraArgs() *anypb.Any {
 	c.RLock()
 	defer c.RUnlock()
 	if c.latestConfigDigest != nil {
-		extra, err := ptypes.MarshalAny(c.latestConfigDigest)
+		extra, err := anypb.New(c.latestConfigDigest)
 		if err == nil {
 			return extra
 		}

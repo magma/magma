@@ -15,7 +15,7 @@ limitations under the License.
 package streamer
 
 import (
-	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"magma/orc8r/lib/go/protos"
 )
@@ -40,5 +40,5 @@ type Listener interface {
 	Update(u *protos.DataUpdateBatch) bool
 	// GetExtraArgs will be called prior to each stream request and its returned value will be used to initialize
 	// ExtraArgs field in GetUpdates request payload. Most listeners may just return nil
-	GetExtraArgs() *any.Any
+	GetExtraArgs() *anypb.Any
 }

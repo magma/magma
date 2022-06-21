@@ -19,8 +19,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/lib/go/protos"
 )
@@ -34,7 +33,7 @@ func GetServiceConfigs(service string, result proto.Message) error {
 		return fmt.Errorf("No configs found for service: '%s' in %s", service, lastFilePath)
 	}
 
-	return ptypes.UnmarshalAny(anyCfg, result)
+	return anyCfg.UnmarshalTo(result)
 }
 
 func GetGatewayConfigs() *protos.GatewayConfigs {
