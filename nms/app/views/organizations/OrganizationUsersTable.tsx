@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ActionTable from '../../components/ActionTable';
+import ActionTable, {TableRef} from '../../components/ActionTable';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import axios from 'axios';
@@ -25,7 +25,7 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 
 type OrganizationUsersTableProps = WithAlert & {
   editUser: (user: OrganizationUser | null) => void;
-  tableRef: {current: null | {onQueryChange(): void}};
+  tableRef: TableRef;
 };
 
 /**

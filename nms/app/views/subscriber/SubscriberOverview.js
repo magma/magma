@@ -20,6 +20,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberDetail from './SubscriberDetail';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberStateTable from './SubscriberStateTable';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberTable from './SubscriberTable';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TopBar from '../../components/TopBar';
