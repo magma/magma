@@ -9,30 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {ActionQuery} from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ActionTable, {SelectEditComponent} from '../../components/ActionTable';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {EditProps} from './SubscriberEditDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {
-  SubscriberActionType,
-  SubscriberInfo,
-  SubscribersDialogDetailProps,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-} from './SubscriberUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
-// $FlowFixMe migrated to typescript
 import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -40,36 +20,38 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import ListItemText from '@material-ui/core/ListItemText';
-// $FlowFixMe migrated to typescript
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-// $FlowFixMe migrated to typescript
 import PolicyContext from '../../components/context/PolicyContext';
 import React, {forwardRef, useContext, useState} from 'react';
 import Select from '@material-ui/core/Select';
-// $FlowFixMe migrated to typescript
 import SubscriberContext from '../../components/context/SubscriberContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe migrated to typescript
+import {Column, MaterialTableProps} from '@material-table/core';
+import {CoreNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {PasswordInput} from '../../components/FormField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {SubscriberDetailsUpload} from './SubscriberUpload';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {
+  SubscriberRowType,
+  handleSubscriberQuery,
+} from '../../state/lte/SubscriberState';
 import {colors} from '../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
+import type {ActionQuery} from '../../components/ActionTable';
+import type {EditProps} from './SubscriberEditDialog';
+import type {
+  SubscriberActionType,
+  SubscriberInfo,
+  SubscribersDialogDetailProps,
+} from './SubscriberUtils';
 
 const useStyles = makeStyles(() => ({
   dialogTitle: {
@@ -110,20 +92,18 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const forbiddenNetworkTypes = Object.keys(CoreNetworkTypes).map(
-  key => CoreNetworkTypes[key],
-);
+const forbiddenNetworkTypes = Object.values(CoreNetworkTypes);
 
 type ActionDialogProps = {
-  open: boolean,
-  onClose: () => void,
-  editProps?: EditProps,
+  open: boolean;
+  onClose: () => void;
+  editProps?: EditProps;
   onSave: (
     subscribers: Array<SubscriberInfo>,
     selectedSubscribers?: Array<string>,
-  ) => void,
-  error?: string,
-  subscriberAction: SubscriberActionType,
+  ) => void;
+  error?: string;
+  subscriberAction: SubscriberActionType;
 };
 
 /**
@@ -131,15 +111,10 @@ type ActionDialogProps = {
  */
 export function AddSubscriberDialog(props: ActionDialogProps) {
   const classes = useStyles();
+
   return (
     <>
-      <Dialog
-        data-testid="addSubscriberDialog"
-        open={props.open}
-        onSave={(subscribers, selectedSubscribers) => {
-          props.onSave?.(subscribers || [], selectedSubscribers);
-        }}
-        maxWidth="xl">
+      <Dialog data-testid="addSubscriberDialog" open={props.open} maxWidth="xl">
         <DialogTitle
           classes={{root: classes.dialogTitle}}
           onClose={props.onClose}
@@ -157,7 +132,7 @@ export function AddSubscriberDialog(props: ActionDialogProps) {
  * Displays upload subscriber dropzone or subscriber table
  */
 function SubscriberDetailsDialogContent(props: ActionDialogProps) {
-  const [addError, setAddError] = useState([]);
+  const [addError, setAddError] = useState<Array<string>>([]);
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
   const [upload, setUpload] = useState(false);
   const [rowAdd, setRowAdd] = useState(false);
@@ -213,25 +188,27 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
   const policies = Array.from(
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
-  const tableActions = {
+  const tableActions: MaterialTableProps<SubscriberInfo>['editable'] = {
     onRowUpdate: (newData, oldData) => {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         const err = validateSubscribers([newData], subscriberAction);
         setAddError(err);
         if (err.length > 0) {
           return reject();
         }
         const dataUpdate = [...subscribers];
-        const index = oldData.tableData.id;
+        const index = ((oldData as unknown) as {tableData: {id: number}})
+          .tableData.id;
         dataUpdate[index] = newData;
         setSubscribers([...dataUpdate]);
         resolve();
       });
     },
     onRowDelete: oldData =>
-      new Promise(resolve => {
+      new Promise<void>(resolve => {
         const dataDelete = [...subscribers];
-        const index = oldData.tableData.id;
+        const index = ((oldData as unknown) as {tableData: {id: number}})
+          .tableData.id;
         dataDelete.splice(index, 1);
         setSubscribers([...dataDelete]);
         resolve();
@@ -259,7 +236,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
       deleteTable: true,
     });
 
-  const columns = [
+  const columns: Array<Column<SubscriberInfo>> = [
     {
       title: 'IMSI',
       field: 'imsi',
@@ -268,8 +245,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
           data-testid="IMSI"
           type="text"
           placeholder="Enter IMSI"
-          variant="outlined"
-          value={props.value}
+          value={props.value as string}
           onChange={e => props.onChange(e.target.value)}
         />
       ),
@@ -280,10 +256,9 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
       editComponent: props => (
         <OutlinedInput
           data-testid="name"
-          variant="outlined"
           placeholder="Enter Name"
           type="text"
-          value={props.value}
+          value={props.value as string}
           onChange={e => {
             props.onChange(e.target.value);
           }}
@@ -297,7 +272,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
         <PasswordInput
           data-testid="authKey"
           placeholder="Key"
-          value={props.value || ''}
+          value={(props.value as string) || ''}
           onChange={v => props.onChange(v)}
         />
       ),
@@ -316,7 +291,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
         <PasswordInput
           data-testid="authOpc"
           placeholder="OPC"
-          value={props.value}
+          value={props.value as string}
           onChange={v => props.onChange(v)}
         />
       ),
@@ -351,14 +326,14 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
           <Select
             data-testid="forbiddenNetworkTypes"
             multiple
-            value={props.value ?? []}
+            value={(props.value ?? []) as Array<string>}
             onChange={({target}) => props.onChange(target.value)}
             displayEmpty={true}
             renderValue={selected => {
-              if (!selected.length) {
+              if (!(selected as Array<string>).length) {
                 return 'Select Forbidden Network Types';
               }
-              return selected.join(', ');
+              return (selected as Array<string>).join(', ');
             }}
             input={
               <OutlinedInput
@@ -368,7 +343,11 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             {forbiddenNetworkTypes.map((k, idx) => (
               <MenuItem key={idx} value={k}>
                 <Checkbox
-                  checked={props.value ? props.value.indexOf(k) > -1 : false}
+                  checked={
+                    props.value
+                      ? (props.value as Array<string>).indexOf(k) > -1
+                      : false
+                  }
                 />
                 <ListItemText primary={k} />
               </MenuItem>
@@ -398,14 +377,14 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
           <Select
             data-testid="activeApns"
             multiple
-            value={props.value ?? []}
+            value={(props.value ?? []) as Array<string>}
             onChange={({target}) => props.onChange(target.value)}
             displayEmpty={true}
             renderValue={selected => {
-              if (!selected.length) {
+              if (!(selected as Array<string>).length) {
                 return 'Select APNs';
               }
-              return selected.join(', ');
+              return (selected as Array<string>).join(', ');
             }}
             input={
               <OutlinedInput
@@ -415,7 +394,11 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             {apns.map((k: string, idx: number) => (
               <MenuItem key={idx} value={k}>
                 <Checkbox
-                  checked={props.value ? props.value.indexOf(k) > -1 : false}
+                  checked={
+                    props.value
+                      ? (props.value as Array<string>).indexOf(k) > -1
+                      : false
+                  }
                 />
                 <ListItemText primary={k} />
               </MenuItem>
@@ -432,14 +415,14 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
           <Select
             data-testid="activePolicies"
             multiple
-            value={props.value ?? []}
+            value={(props.value ?? []) as Array<string>}
             onChange={({target}) => props.onChange(target.value)}
             displayEmpty={true}
             renderValue={selected => {
-              if (!selected.length) {
+              if (!(selected as Array<string>).length) {
                 return 'Select Policies';
               }
-              return selected.join(', ');
+              return (selected as Array<string>).join(', ');
             }}
             input={
               <OutlinedInput
@@ -449,7 +432,11 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             {policies.map((k: string, idx: number) => (
               <MenuItem key={idx} value={k}>
                 <Checkbox
-                  checked={props.value ? props.value.indexOf(k) > -1 : false}
+                  checked={
+                    props.value
+                      ? (props.value as Array<string>).indexOf(k) > -1
+                      : false
+                  }
                 />
                 <ListItemText primary={k} />
               </MenuItem>
@@ -491,8 +478,10 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
 
         <ActionTable
           data={
+            // The table is rendered with two different data types and the columns and action ar changed depending on the type.
+            // To not complete break the typing we pretend that the data is always the same.
             subscriberAction === 'delete' && !subscribers.length
-              ? getSubscribers
+              ? ((getSubscribers as unknown) as Array<SubscriberInfo>)
               : subscribers
           }
           columns={
@@ -506,7 +495,8 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
                     align: 'center',
                     render: rowData => (
                       <Text variant="subtitle3">
-                        {rowData.tableData?.id + 1 || ''}
+                        {((rowData as unknown) as {tableData: {id: number}})
+                          .tableData?.id + 1 || ''}
                       </Text>
                     ),
                   },
@@ -530,11 +520,11 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             },
             showTextRowsSelected: false,
             selection: subscriberAction === 'delete' && !subscribers.length,
-            selectionProps: rowData => {
+            selectionProps: (rowData: SubscriberInfo | SubscriberRowType) => {
               return {
                 checked: selectedSubscribers.includes(rowData.imsi),
                 value: rowData.imsi,
-                onClick: event => {
+                onClick: (event: React.ChangeEvent<HTMLInputElement>) => {
                   if (selectedSubscribers.includes(event.target.value)) {
                     const newSubscribers = selectedSubscribers.filter(
                       imsi => imsi !== event.target.value,
@@ -557,7 +547,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
                   ...tableActions,
                   onRowAdd: newData => {
                     setRowAdd(true);
-                    return new Promise((resolve, reject) => {
+                    return new Promise<void>((resolve, reject) => {
                       const err = validateSubscribers(
                         [newData],
                         subscriberAction,
@@ -577,7 +567,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
               ? []
               : [
                   {
-                    icon: forwardRef((props, ref) => (
+                    icon: (forwardRef<SVGSVGElement>((props, ref) => (
                       <Button
                         startIcon={<CloudUploadIcon {...props} ref={ref} />}
                         variant="outlined"
@@ -586,7 +576,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
                           ? 'Delete from CSV'
                           : 'Upload CSV'}
                       </Button>
-                    )),
+                    )) as unknown) as () => React.ReactElement<any>,
                     tooltip: 'Upload',
                     isFreeAction: true,
                     onClick: () => {

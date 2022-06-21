@@ -30,6 +30,7 @@ type Props = {
   label: string;
   onClose: () => void;
   className?: string;
+  classes?: Record<string, any>;
 };
 
 export default function CustomDialogTitle(props: Props) {
