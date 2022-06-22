@@ -554,6 +554,12 @@ export interface CallTraceState {
  */
 export interface Capabilities {
     /**
+     * this is the maximum allowed difference in MHz between bandwidths used by a Base Station (eNB)
+     * @type {number}
+     * @memberof Capabilities
+     */
+    'max_ibw_mhz': number;
+    /**
      * max tx power available on cbsd
      * @type {number}
      * @memberof Capabilities
@@ -650,6 +656,12 @@ export interface Cbsd {
      */
     'capabilities': Capabilities;
     /**
+     * this flag controls eNB behavior, should multiple channels be used for Carrier Aggregation, or Single Carrier
+     * @type {boolean}
+     * @memberof Cbsd
+     */
+    'carrier_aggregation_enabled': boolean;
+    /**
      * is the radio type A (only) or B (also applies to A/B type radios)
      * @type {string}
      * @memberof Cbsd
@@ -685,6 +697,12 @@ export interface Cbsd {
      * @memberof Cbsd
      */
     'grant'?: Grant;
+    /**
+     * tells Domain Proxy how many channels should be requested from SAS
+     * @type {boolean}
+     * @memberof Cbsd
+     */
+    'grant_redundancy': boolean;
     /**
      * database id of cbsd
      * @type {number}
@@ -4080,6 +4098,12 @@ export interface MutableCbsd {
      */
     'capabilities': Capabilities;
     /**
+     * this flag controls eNB behavior, should multiple channels be used for Carrier Aggregation, or Single Carrier
+     * @type {boolean}
+     * @memberof MutableCbsd
+     */
+    'carrier_aggregation_enabled': boolean;
+    /**
      * is the radio type A (only) or B (also applies to A/B type radios)
      * @type {string}
      * @memberof MutableCbsd
@@ -4103,6 +4127,12 @@ export interface MutableCbsd {
      * @memberof MutableCbsd
      */
     'frequency_preferences': FrequencyPreferences;
+    /**
+     * tells Domain Proxy how many channels should be requested from SAS
+     * @type {boolean}
+     * @memberof MutableCbsd
+     */
+    'grant_redundancy': boolean;
     /**
      * 
      * @type {MutableInstallationParam}

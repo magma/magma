@@ -146,7 +146,10 @@ func createCbsd(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	data := models.CbsdToBackend(payload)
+	data, err := models.CbsdToBackend(payload)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 	req := protos.CreateCbsdRequest{NetworkId: networkId, Data: data}
 	ctx := c.Request().Context()
 	_, err = client.CreateCbsd(ctx, &req)
@@ -206,7 +209,10 @@ func updateCbsd(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err)
 	}
-	data := models.CbsdToBackend(payload)
+	data, err := models.CbsdToBackend(payload)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 	req := protos.UpdateCbsdRequest{NetworkId: networkId, Id: int64(id), Data: data}
 	ctx := c.Request().Context()
 	_, ierr := client.UserUpdateCbsd(ctx, &req)

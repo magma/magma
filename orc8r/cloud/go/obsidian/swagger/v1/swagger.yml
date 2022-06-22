@@ -6845,6 +6845,11 @@ definitions:
     type: object
   capabilities:
     properties:
+      max_ibw_mhz:
+        description: this is the maximum allowed difference in MHz between bandwidths
+          used by a Base Station (eNB)
+        type: integer
+        x-nullable: false
       max_power:
         description: max tx power available on cbsd
         example: 30
@@ -6861,6 +6866,7 @@ definitions:
     - min_power
     - max_power
     - number_of_antennas
+    - max_ibw_mhz
     type: object
     x-nullable: false
   carrier_wifi_gateway_health_status:
@@ -6903,6 +6909,11 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      carrier_aggregation_enabled:
+        description: this flag controls eNB behavior, should multiple channels be
+          used for Carrier Aggregation, or Single Carrier
+        type: boolean
+        x-nullable: false
       cbsd_category:
         description: is the radio type A (only) or B (also applies to A/B type radios)
         enum:
@@ -6931,6 +6942,11 @@ definitions:
         $ref: '#/definitions/frequency_preferences'
       grant:
         $ref: '#/definitions/grant'
+        x-nullable: false
+      grant_redundancy:
+        description: tells Domain Proxy how many channels should be requested from
+          SAS
+        type: boolean
         x-nullable: false
       id:
         description: database id of cbsd
@@ -6977,6 +6993,8 @@ definitions:
     - single_step_enabled
     - cbsd_category
     - installation_param
+    - carrier_aggregation_enabled
+    - grant_redundancy
     type: object
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network
@@ -9207,6 +9225,10 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      carrier_aggregation_enabled:
+        description: this flag controls eNB behavior, should multiple channels be
+          used for Carrier Aggregation, or Single Carrier
+        type: boolean
       cbsd_category:
         default: b
         description: is the radio type A (only) or B (also applies to A/B type radios)
@@ -9229,6 +9251,10 @@ definitions:
         x-nullable: false
       frequency_preferences:
         $ref: '#/definitions/frequency_preferences'
+      grant_redundancy:
+        description: tells Domain Proxy how many channels should be requested from
+          SAS
+        type: boolean
       installation_param:
         $ref: '#/definitions/mutable_installation_param'
       serial_number:
@@ -9253,6 +9279,8 @@ definitions:
     - user_id
     - single_step_enabled
     - cbsd_category
+    - carrier_aggregation_enabled
+    - grant_redundancy
     type: object
   mutable_cellular_gateway_pool:
     description: Mutable version of the cellular gateway pool
