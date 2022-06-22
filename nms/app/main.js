@@ -17,6 +17,7 @@
 
 import './common/polyfill';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from './components/ApplicationMain';
 import Main from './components/Main';
 import MomentUtils from '@date-io/moment';

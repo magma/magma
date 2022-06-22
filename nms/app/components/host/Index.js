@@ -19,6 +19,7 @@ import AccountSettings from '../AccountSettings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

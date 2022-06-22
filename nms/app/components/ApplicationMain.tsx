@@ -9,20 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alert from './Alert/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import axios, {AxiosError} from 'axios';
 import defaultTheme from '../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
 import {useEffect, useState} from 'react';
@@ -33,7 +27,7 @@ const DIALOG_MESSAGE =
   'reloads. You can also cancel and refresh your browser when you are ready.';
 
 type Props = {
-  children: React.Element<*>,
+  children: React.ReactElement<any>;
 };
 
 /* Do not use this function or pattern elsewhere! It is only for the logged out
@@ -42,10 +36,8 @@ type Props = {
  */
 const getLoggedOutFeatureWithoutContext = (): boolean => {
   const {appData} = window.CONFIG;
-  if (appData.enabledFeatures.indexOf('logged_out_alert') !== -1) {
-    return true;
-  }
-  return false;
+
+  return appData.enabledFeatures.indexOf('logged_out_alert') !== -1;
 };
 
 const ApplicationMain = (props: Props) => {
@@ -57,7 +49,8 @@ const ApplicationMain = (props: Props) => {
         response => response,
         error => {
           if (
-            error.response?.data?.errorCode === ErrorCodes.USER_NOT_LOGGED_IN
+            (error as AxiosError<{errorCode: string}>).response?.data
+              ?.errorCode === ErrorCodes.USER_NOT_LOGGED_IN
           ) {
             // axios request sent while user is logged out, open dialog
             setLoggedOutAlertOpen(true);

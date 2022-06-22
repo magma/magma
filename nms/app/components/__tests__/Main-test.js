@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from '../ApplicationMain';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import Main, {NO_NETWORK_MESSAGE} from '../Main';
