@@ -9,18 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import type {ComponentType} from 'react';
 
 type Section = {
-  path: string,
-  label: string,
-  icon: any,
-  component: ComponentType<any>,
+  path: string;
+  label: string;
+  icon: any;
+  component: ComponentType<any>;
 };
 
-export type SectionsConfigs = [?string, Section[]];
+export type SectionsConfigs = [string | null | undefined, Array<Section>];

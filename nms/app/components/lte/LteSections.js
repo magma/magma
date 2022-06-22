@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SectionsConfigs} from '../layout/Section';
 
 import * as React from 'react';
