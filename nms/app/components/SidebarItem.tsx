@@ -9,17 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {Link, useLocation, useResolvedPath} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
@@ -53,10 +48,10 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  path: string,
-  label: string,
-  icon: any,
-  expanded: boolean,
+  path: string;
+  label: string;
+  icon: any;
+  expanded: boolean;
 };
 
 export default function SidebarItem(props: Props) {

@@ -16,6 +16,7 @@
 
 import ProfileButton from './ProfileButton';
 import React, {useContext, useState} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SidebarItem from './SidebarItem';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
