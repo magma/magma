@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Configure from '../network/Configure';
 import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';

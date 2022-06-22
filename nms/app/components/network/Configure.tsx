@@ -9,15 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import type {ComponentType} from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
-// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -31,11 +27,12 @@ import {
   useLocation,
   useResolvedPath,
 } from 'react-router-dom';
+import {Theme} from '@material-ui/core/styles';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   paper: {
     margin: theme.spacing(3),
   },
@@ -45,13 +42,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  tabRoutes: TabRoute[],
+  tabRoutes: Array<TabRoute>;
 };
 
 type TabRoute = {
-  component: ComponentType<any>,
-  label: string,
-  path: string,
+  component: ComponentType<any>;
+  label: string;
+  path: string;
 };
 
 export default function Configure(props: Props) {
@@ -78,9 +75,10 @@ export default function Configure(props: Props) {
           value={currentTab}
           indicatorColor="primary"
           textColor="primary"
-          onChange={(_, tab) => setCurrentTab(tab)}
+          onChange={(_, tab) => setCurrentTab(tab as number)}
           className={classes.tabs}>
           {tabRoutes.map((route, i) => (
+            // @ts-ignore
             <Tab
               key={i}
               component={NestedRouteLink}
