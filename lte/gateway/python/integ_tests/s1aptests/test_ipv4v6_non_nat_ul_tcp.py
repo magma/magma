@@ -107,7 +107,7 @@ class TestIpv4v6NonNatUlTcp(unittest.TestCase):
         print("Sleeping for 5 secs")
         time.sleep(5)
         print(
-            "************************* Running UE uplink (TCP) for UE id ",
+            "************************* Running IPv6 UE uplink (TCP) for UE id ",
             req.ue_id,
         )
         with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
