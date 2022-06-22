@@ -53,7 +53,7 @@ type DatasetFetchProps = {
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
-  ) => (string | number) | null | undefined;
+  ) => string | number | null | undefined;
 };
 
 type DatasetProps = Dataset & {
@@ -235,7 +235,7 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             autoOk
-            // TODO: There is a serious mismatch here.
+            // TODO[ts-migration]: There is a serious mismatch here.
             //  type WrapperVariant is a alias for:
             // "dialog" | "inline" | "static"
             // @ts-ignore
@@ -255,7 +255,7 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             autoOk
-            // TODO: There is a serious mismatch here.
+            // TODO[ts-migration]: There is a serious mismatch here.
             //  type WrapperVariant is a alias for:
             // "dialog" | "inline" | "static"
             // @ts-ignore
