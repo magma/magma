@@ -9,24 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkMetrics from '../insights/NetworkMetrics';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from '../insights/Metrics';
 
-const chartConfigs: MetricGraphConfig[] = [
+const chartConfigs: Array<MetricGraphConfig> = [
   {
     label: 'Authorization',
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(eap_auth) by (code)`,
+        resolveQuery: () => `sum(eap_auth) by (code)`,
       },
     ],
   },
@@ -35,7 +30,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(active_sessions)`,
+        resolveQuery: () => `sum(active_sessions)`,
       },
     ],
   },
@@ -44,7 +39,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(octets_in)`,
+        resolveQuery: () => `sum(octets_in)`,
       },
     ],
   },
@@ -53,7 +48,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(octets_out)`,
+        resolveQuery: () => `sum(octets_out)`,
       },
     ],
   },
@@ -62,7 +57,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `avg(rate(octets_in[5m]))`,
+        resolveQuery: () => `avg(rate(octets_in[5m]))`,
       },
     ],
   },
@@ -71,7 +66,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `avg(rate(octets_out[5m]))`,
+        resolveQuery: () => `avg(rate(octets_out[5m]))`,
       },
     ],
   },
@@ -80,7 +75,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(accounting_stop)`,
+        resolveQuery: () => `sum(accounting_stop)`,
       },
     ],
   },
@@ -89,7 +84,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `avg(create_session_lat)`,
+        resolveQuery: () => `avg(create_session_lat)`,
       },
     ],
   },
@@ -98,7 +93,7 @@ const chartConfigs: MetricGraphConfig[] = [
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(session_stop)`,
+        resolveQuery: () => `sum(session_stop)`,
       },
     ],
   },
