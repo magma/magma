@@ -22,6 +22,7 @@ import ListItem from '@material-ui/core/ListItem';
 // $FlowFixMe migrated to typescript
 import NetworkContext from './context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Popout from './Popout';
 import React, {useContext} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
