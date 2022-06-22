@@ -292,13 +292,6 @@ def federated_integ_test(
 
         local("fab configure_orc8r")
 
-        #FEG may need to be restarted to reload some configs
-        print("Wait for configuration to be available")
-        sleep(60)
-        print("Restart hss")
-        local('fab restart_feg_hss')
-        sleep(20)
-
         local("fab test_connectivity:timeout=200")
 
     vagrant_setup(
