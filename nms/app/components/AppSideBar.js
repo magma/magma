@@ -20,6 +20,7 @@ import React, {useContext, useState} from 'react';
 import SidebarItem from './SidebarItem';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import VersionContext from './context/VersionContext';
 import classNames from 'classnames';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
