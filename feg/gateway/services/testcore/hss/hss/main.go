@@ -20,6 +20,7 @@ import (
 	"log"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
@@ -33,27 +34,46 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating hss service: %s", err)
 	}
+
 	config, err := servicers.GetHSSConfig()
 	if err != nil {
 		log.Printf("Error getting hss config: %s", err)
 	}
-	store := storage.NewMemorySubscriberStore()
-	servicer, err := servicers.NewHomeSubscriberServer(store, config)
+
+	err = servicers.ValidateConfig(config)
 	if err != nil {
-		log.Fatalf("Error creating home subscriber server: %s", err)
+		log.Fatalf("Error validating config: %s", err)
 	}
-	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, servicer)
+
+	store := storage.NewMemorySubscriberStore()
+	servicer := setupHssServer(config, store, srv)
 
 	if config.StreamSubscribers {
-		streamerClient := streamer.NewStreamerClient(registry.Get())
-		l := storage.NewSubscriberListener(store)
-		if err = streamerClient.AddListener(l); err != nil {
-			log.Printf("Failed to start subscriber streaming: %s", err.Error())
-		} else {
-			go streamerClient.Stream(l)
-		}
+		setupStreamerClient(store)
 	}
 
+	loadConfiguredSubscribers(servicer)
+	startDiameterServer(servicer)
+
+	// Run the service
+	err = srv.Run()
+	if err != nil {
+		log.Fatalf("Error running hss service: %s", err)
+	}
+}
+
+func startDiameterServer(servicer *servicers.HomeSubscriberServer) {
+	startedChan := make(chan string, 1)
+	go func() {
+		log.Printf("Starting home subscriber server with configs:\n\t%+v\n", servicer.Config)
+		err := servicer.Start(startedChan) // blocks
+		log.Fatal(err)
+	}()
+	localAddr := <-startedChan
+	log.Printf("Started home subscriber server @ %s", localAddr)
+}
+
+func loadConfiguredSubscribers(servicer *servicers.HomeSubscriberServer) {
 	subscribers, err := servicers.GetConfiguredSubscribers()
 	if err != nil {
 		log.Printf("Could not fetch preconfigured subscribers: %s", err)
@@ -66,19 +86,26 @@ func main() {
 			}
 		}
 	}
-	// Start diameter server
-	startedChan := make(chan string, 1)
-	go func() {
-		log.Printf("Starting home subscriber server with configs:\n\t%+v\n", servicer.Config)
-		err := servicer.Start(startedChan) // blocks
-		log.Fatal(err)
-	}()
-	localAddr := <-startedChan
-	log.Printf("Started home subscriber server @ %s", localAddr)
+}
 
-	// Run the service
-	err = srv.Run()
+func setupHssServer(config *mconfig.HSSConfig, store *storage.MemorySubscriberStore, srv *service.Service) *servicers.HomeSubscriberServer {
+	servicer, err := servicers.NewHomeSubscriberServer(store, config)
 	if err != nil {
-		log.Fatalf("Error running hss service: %s", err)
+		log.Fatalf("Error creating home subscriber server: %s", err)
+	}
+	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, servicer)
+
+	return servicer
+}
+
+func setupStreamerClient(store *storage.MemorySubscriberStore) {
+	streamerClient := streamer.NewStreamerClient(registry.Get())
+	l := storage.NewSubscriberListener(store)
+	err := streamerClient.AddListener(l)
+
+	if err != nil {
+		log.Printf("Failed to start subscriber streaming: %s", err.Error())
+	} else {
+		go streamerClient.Stream(l)
 	}
 }
