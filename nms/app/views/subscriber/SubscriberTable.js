@@ -13,24 +13,6 @@
  * @flow strict-local
  * @format
  */
-import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
-import CardTitleRow from '../../components/layout/CardTitleRow';
-import Grid from '@material-ui/core/Grid';
-import LaunchIcon from '@material-ui/icons/Launch';
-import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from '../../components/context/NetworkContext';
-import React, {useContext, useEffect, useRef, useState} from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
-import SubscriberContext from '../../components/context/SubscriberContext';
-import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../shared/util/nullthrows';
-import withAlert from '../../components/Alert/withAlert';
-import {
-  DEFAULT_PAGE_SIZE,
-  REFRESH_TIMEOUT,
-  SUBSCRIBER_EXPORT_COLUMNS,
-} from './SubscriberUtils';
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
@@ -43,9 +25,30 @@ import type {
   subscriber,
 } from '../../../generated/MagmaAPIBindings';
 
-import MenuButton from '../../components/MenuButton';
+import ActionTable from '../../components/ActionTable';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
+import EmptyState from '../../components/EmptyState';
+import Grid from '@material-ui/core/Grid';
+import LaunchIcon from '@material-ui/icons/Launch';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import NetworkContext from '../../components/context/NetworkContext';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import SettingsIcon from '@material-ui/icons/Settings';
+import SubscriberContext from '../../components/context/SubscriberContext';
+import Text from '../../theme/design-system/Text';
+import nullthrows from '../../../shared/util/nullthrows';
+import withAlert from '../../components/Alert/withAlert';
+
 import {AddSubscriberDialog} from './SubscriberAddDialog';
 import {CsvBuilder} from 'filefy';
+import {
+  DEFAULT_PAGE_SIZE,
+  REFRESH_TIMEOUT,
+  SUBSCRIBER_EXPORT_COLUMNS,
+} from './SubscriberUtils';
 import {
   FetchSubscribers,
   handleSubscriberQuery,
@@ -55,10 +58,13 @@ import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
+import {withStyles} from '@material-ui/core/styles';
 
 // number of subscriber in a chunk
 const SUBSCRIBERS_CHUNK_SIZE = 1000;
-
+const EMPTY_STATE_OVERVIEW =
+  'The subscriber page allows you to add, edit, and delete your subscribers. You’ll be able to view current data ' +
+  'usage, average data usage, last reported time (displayed if subscriber monitoring is enabled), and other status information from the subscriber table.';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
@@ -175,7 +181,34 @@ async function exportSubscribers(props: ExportProps) {
   }
 }
 
-function SubscriberActionsMenu(props: {onClose: () => void}) {
+const StyledMenu = withStyles({
+  paper: {
+    border: '1px solid #d3d4d5',
+  },
+})(props => (
+  <Menu
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'center',
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'center',
+    }}
+    {...props}
+  />
+));
+
+function SubscriberActionsMenu(props: {
+  onClose: () => void,
+  // used for empty state to only show add subscriber dialog
+  addDialog: boolean,
+  // hide manage button
+  hideButton: boolean,
+}) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -185,6 +218,19 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
     subscriberAction,
     setSubscriberAction,
   ] = useState<SubscriberActionType>('add');
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  useEffect(() => {
+    if (props.addDialog) {
+      setOpen(true);
+      setSubscriberAction('add');
+    }
+  }, [props.addDialog]);
 
   /**
    * Delete array of subscriber IMSIs.
@@ -318,33 +364,48 @@ function SubscriberActionsMenu(props: {onClose: () => void}) {
           props.onClose();
         }}
       />
-      <MenuButton label="Manage Subscribers">
-        <MenuItem
-          data-testid=""
-          onClick={() => {
-            setSubscriberAction('add');
-            setOpen(true);
-          }}>
-          <Text variant="body2">Add Subscribers</Text>
-        </MenuItem>
-        <MenuItem>
-          <Text
-            variant="body2"
-            onClick={() => {
-              setSubscriberAction('edit');
-              setOpen(true);
-            }}>
-            Update Subscribers
-          </Text>
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setSubscriberAction('delete');
-            setOpen(true);
-          }}>
-          <Text variant="body2">Delete Subscribers</Text>
-        </MenuItem>
-      </MenuButton>
+      {!props.hideButton && (
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleClick}
+            endIcon={<ArrowDropDownIcon />}>
+            {'Manage Subscribers'}
+          </Button>
+          <StyledMenu
+            anchorEl={anchorEl}
+            keepMounted
+            open={Boolean(anchorEl)}
+            onClose={handleClose}>
+            <MenuItem
+              data-testid=""
+              onClick={() => {
+                setSubscriberAction('add');
+                setOpen(true);
+              }}>
+              <Text variant="subtitle2">Add Subscribers</Text>
+            </MenuItem>
+            <MenuItem>
+              <Text
+                variant="subtitle2"
+                onClick={() => {
+                  setSubscriberAction('edit');
+                  setOpen(true);
+                }}>
+                Update Subscribers
+              </Text>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setSubscriberAction('delete');
+                setOpen(true);
+              }}>
+              <Text variant="subtitle2">Delete Subscribers</Text>
+            </MenuItem>
+          </StyledMenu>
+        </>
+      )}
     </div>
   );
 }
@@ -366,6 +427,7 @@ function SubscribersTable(props: WithAlert) {
   const tableRef = React.useRef();
   const subscriberMap = ctx.state;
   const [refresh, setRefresh] = useState(false);
+  const [addDialog, setAddDialog] = useState(false);
 
   const tableColumns = [
     {
@@ -412,111 +474,152 @@ function SubscribersTable(props: WithAlert) {
   useEffect(() => {
     tableRef.current?.onQueryChange();
   }, [refresh]);
+
+  const cardActions = {
+    buttonText: 'Add Subscribers',
+    onClick: () => setAddDialog(true),
+    linkText: 'Learn more about Subscribers',
+    link:
+      'https://docs.magmacore.org/docs/next/nms/subscriber#subscriber-dashboard',
+  };
   return (
     <>
       <div className={classes.dashboardRoot}>
-        <CardTitleRow
-          key="title"
-          icon={SettingsIcon}
-          label={'Subscribers'}
-          filter={() => (
-            <Grid
-              container
-              justifyContent="flex-end"
-              alignItems="center"
-              spacing={2}>
-              <Grid item>
-                <ExportSubscribersButton />
-              </Grid>
-              <Grid item>
-                <SubscriberActionsMenu
-                  onClose={() => {
-                    setTimeout(() => {
-                      setRefresh(!refresh);
-                    }, REFRESH_TIMEOUT);
-                  }}
-                />
-              </Grid>
-            </Grid>
-          )}
-        />
+        {Object.keys(subscriberMap).length > 0 ? (
+          <>
+            <CardTitleRow
+              key="title"
+              icon={SettingsIcon}
+              label={'Subscribers'}
+              filter={() => (
+                <Grid
+                  container
+                  justify="flex-end"
+                  alignItems="center"
+                  spacing={2}>
+                  <Grid item>
+                    <ExportSubscribersButton />
+                  </Grid>
+                  <Grid item>
+                    <SubscriberActionsMenu
+                      addDialog={false}
+                      hideButton={false}
+                      onClose={() => {
+                        setTimeout(() => {
+                          setRefresh(!refresh);
+                        }, REFRESH_TIMEOUT);
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              )}
+            />
+            <JsonDialog
+              open={jsonDialog}
+              onClose={onClose}
+              imsi={currRow.imsi}
+            />
+            <ActionTable
+              tableRef={tableRef}
+              localization={{
+                toolbar: {
+                  searchPlaceholder: 'Search IMSI001011234560000',
+                },
+              }}
+              data={(query: ActionQuery) => {
+                return handleSubscriberQuery({
+                  networkId,
+                  query,
+                  ctx,
+                  maxPageRowCount,
+                  setMaxPageRowCount,
+                  tokenList,
+                  setTokenList,
+                  pageSize: DEFAULT_PAGE_SIZE,
+                  subscriberMetrics,
+                  deleteTable: false,
+                });
+              }}
+              columns={tableColumns}
+              handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
+              menuItems={[
+                {
+                  name: 'View JSON',
+                  handleFunc: () => {
+                    setJsonDialog(true);
+                  },
+                },
+                {
+                  name: 'View',
+                  handleFunc: () => {
+                    navigate(currRow.imsi);
+                  },
+                },
+                {
+                  name: 'Edit',
+                  handleFunc: () => {
+                    navigate(currRow.imsi + '/config');
+                  },
+                },
+                {
+                  name: 'Remove',
+                  handleFunc: () => {
+                    props
+                      .confirm(
+                        `Are you sure you want to delete ${currRow.imsi}?`,
+                      )
+                      .then(async confirmed => {
+                        if (!confirmed) {
+                          return;
+                        }
 
-        <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
-        <ActionTable
-          tableRef={tableRef}
-          localization={{
-            toolbar: {
-              searchPlaceholder: 'Search IMSI001011234560000',
-            },
-          }}
-          data={(query: ActionQuery) => {
-            return handleSubscriberQuery({
-              networkId,
-              query,
-              ctx,
-              maxPageRowCount,
-              setMaxPageRowCount,
-              tokenList,
-              setTokenList,
-              pageSize: DEFAULT_PAGE_SIZE,
-              subscriberMetrics,
-              deleteTable: false,
-            });
-          }}
-          columns={tableColumns}
-          handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
-          menuItems={[
-            {
-              name: 'View JSON',
-              handleFunc: () => {
-                setJsonDialog(true);
-              },
-            },
-            {
-              name: 'View',
-              handleFunc: () => {
-                navigate(currRow.imsi);
-              },
-            },
-            {
-              name: 'Edit',
-              handleFunc: () => {
-                navigate(currRow.imsi + '/config');
-              },
-            },
-            {
-              name: 'Remove',
-              handleFunc: () => {
-                props
-                  .confirm(`Are you sure you want to delete ${currRow.imsi}?`)
-                  .then(async confirmed => {
-                    if (!confirmed) {
-                      return;
-                    }
-
-                    try {
-                      await ctx.setState?.(currRow.imsi);
-                      // refresh table data
-                      tableRef.current?.onQueryChange();
-                    } catch (e) {
-                      enqueueSnackbar(
-                        'failed deleting subscriber ' + currRow.imsi,
-                        {
-                          variant: 'error',
-                        },
-                      );
-                    }
-                  });
-              },
-            },
-          ]}
-          options={{
-            actionsColumnIndex: -1,
-            pageSize: DEFAULT_PAGE_SIZE,
-            pageSizeOptions: [],
-            showFirstLastPageButtons: false,
-          }}
-        />
+                        try {
+                          await ctx.setState?.(currRow.imsi);
+                          // refresh table data
+                          tableRef.current?.onQueryChange();
+                        } catch (e) {
+                          enqueueSnackbar(
+                            'failed deleting subscriber ' + currRow.imsi,
+                            {
+                              variant: 'error',
+                            },
+                          );
+                        }
+                      });
+                  },
+                },
+              ]}
+              options={{
+                actionsColumnIndex: -1,
+                pageSize: DEFAULT_PAGE_SIZE,
+                pageSizeOptions: [],
+                showFirstLastPageButtons: false,
+              }}
+            />
+          </>
+        ) : (
+          <Grid container justify="space-between" spacing={3}>
+            <SubscriberActionsMenu
+              addDialog={addDialog}
+              hideButton={true}
+              onClose={() => {
+                setTimeout(() => {
+                  setAddDialog(false);
+                  setRefresh(!refresh);
+                }, REFRESH_TIMEOUT);
+              }}
+            />
+            <EmptyState
+              title={'Set up Subscribers'}
+              instructions={
+                'Add subscriber by manually entering subscriber information, or uploading a CSV file.'
+              }
+              cardActions={cardActions}
+              overviewTitle={'Subscribers Overview'}
+              overviewDescription={EMPTY_STATE_OVERVIEW}
+            />
+          </Grid>
+        )}
       </div>
     </>
   );
