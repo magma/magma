@@ -20,7 +20,7 @@ import type {TimeRange} from './AsyncMetric';
 
 type Props = {
   value: TimeRange;
-  onChange: (arg0: TimeRange) => void;
+  onChange: (timeRange: TimeRange) => void;
   className: string;
 };
 
@@ -31,7 +31,7 @@ export default function TimeRangeSelector(props: Props) {
       <Select
         inputProps={{id: 'time_range'}}
         value={props.value}
-        // TODO: this was migrated from fbcnms-ui and types are broken
+        // TODO[ts-migration]: this was migrated from fbcnms-ui and types are broken
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         onChange={event => props.onChange(event.target.value as any)}>
         <MenuItem value="3_hours">Last 3 hours</MenuItem>
