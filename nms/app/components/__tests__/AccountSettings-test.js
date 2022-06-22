@@ -15,6 +15,7 @@
  */
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AccountSettings from '../AccountSettings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

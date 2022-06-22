@@ -9,31 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from './context/AppContext';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import TopBar from './TopBar';
 import axios from 'axios';
-// $FlowFixMe migrated to typescript
 import {AltFormField, PasswordInput} from './FormField';
 import {List} from '@material-ui/core';
+import {Theme} from '@material-ui/core/styles';
+import {getErrorMessage} from '../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 const TITLE = 'Account Settings';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   title: {
     fontSize: '18px',
   },
@@ -78,7 +72,7 @@ export default function AccountSettings() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      enqueueSnackbar(error.response.data.error, {variant: 'error'});
+      enqueueSnackbar(getErrorMessage(error), {variant: 'error'});
     }
   };
 
@@ -123,7 +117,7 @@ export default function AccountSettings() {
           </AltFormField>
         </List>
         <Button
-          onClick={onSave}
+          onClick={() => void onSave()}
           disabled={!isSaveEnabled}
           variant="contained"
           color="primary">
