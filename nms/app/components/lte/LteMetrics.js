@@ -28,6 +28,7 @@ import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
 // $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
 // $FlowFixMe migrated to typescript
