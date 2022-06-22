@@ -14,6 +14,7 @@
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import {InputBaseComponentProps} from '@material-ui/core/InputBase/InputBase';
 
 type Props<T extends string | number> = {
   value: T;
@@ -23,6 +24,7 @@ type Props<T extends string | number> = {
   input?: React.ReactElement<any, any>;
   disabled?: boolean;
   fullWidth?: boolean;
+  inputProps?: InputBaseComponentProps;
 };
 
 export default function TypedSelect<T extends string | number>(
