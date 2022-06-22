@@ -18,8 +18,10 @@ import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import Organizations from '../Organizations';
 import axios from 'axios';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../../../components/context/AppContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
