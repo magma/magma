@@ -9,14 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import React from 'react';
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
 
 import {makeStyles} from '@material-ui/styles';
@@ -35,7 +31,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  grafanaURL: string,
+  grafanaURL: string;
 };
 
 export default function GrafanaDashboards(props: Props) {

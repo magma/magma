@@ -23,6 +23,7 @@ import ExploreIcon from '@material-ui/icons/Explore';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '../insights/GatewayMetrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Grafana from '../Grafana';
 import ListIcon from '@material-ui/icons/ListAlt';
 import LogsList from '../../views/domain-proxy/LogsList';

@@ -20,6 +20,7 @@ import AppBar from '@material-ui/core/AppBar';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../context/AppContext';
 import CWFNetworkMetrics from './CWFNetworkMetrics';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Grafana from '../Grafana';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import IMSIMetrics from './IMSIMetrics';
