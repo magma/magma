@@ -39,6 +39,7 @@ import {
 } from '../../../../generated-ts';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
+import {mockAPI} from '../../../util/TestUtils';
 import {setSubscriberState} from '../../../state/lte/SubscriberState';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
@@ -216,13 +217,8 @@ const ran: NetworkRanConfigs = {
 describe('<AddSubscriberButton />', () => {
   beforeEach(() => {
     (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
-    jest
-      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost')
-      .mockImplementation();
-
-    jest
-      .spyOn(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdPut')
-      .mockImplementation();
+    mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost');
+    mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdPut');
   });
 
   const AddWrapper = () => {

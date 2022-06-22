@@ -9,51 +9,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {
-  cwf_gateway,
-  magmad_gateway_configs,
-} from '../../../generated/MagmaAPIBindings';
+import type {CwfGateway, MagmadGatewayConfigs} from '../../../generated-ts';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFGatewayConfigFields from './CWFGatewayConfigFields';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayCommandFields from '../GatewayCommandFields';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import MagmaDeviceFields from '../MagmaDeviceFields';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   appBar: {
     backgroundColor: '#f5f5f5',
     marginBottom: '20px',
   },
-}));
+});
 
 type Props = {
-  gateway: cwf_gateway,
-  onCancel: () => void,
-  onSave: cwf_gateway => void,
+  gateway: CwfGateway;
+  onCancel: () => void;
+  onSave: (gateway: CwfGateway) => void;
 };
 
 export default function (props: Props) {
@@ -74,7 +64,7 @@ export default function (props: Props) {
   const networkID = nullthrows(params.networkId);
   const onSave = async () => {
     try {
-      await MagmaV1API.putCwfByNetworkIdGatewaysByGatewayId({
+      await MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGatewayIdPut({
         networkId: networkID,
         gatewayId: gatewayID,
         gateway: {
@@ -87,13 +77,15 @@ export default function (props: Props) {
         },
       });
       props.onSave(
-        await MagmaV1API.getCwfByNetworkIdGatewaysByGatewayId({
-          networkId: networkID,
-          gatewayId: gatewayID,
-        }),
+        (
+          await MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGatewayIdGet({
+            networkId: networkID,
+            gatewayId: gatewayID,
+          })
+        ).data,
       );
     } catch (e) {
-      enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
+      enqueueSnackbar(getErrorMessage(e), {
         variant: 'error',
       });
     }
@@ -148,7 +140,7 @@ export default function (props: Props) {
           indicatorColor="primary"
           textColor="primary"
           value={tab}
-          onChange={(_, tab) => setTab(tab)}>
+          onChange={(_, tab) => setTab(tab as number)}>
           <Tab label="Carrier Wifi" />
           <Tab label="Controller" />
           <Tab label="Command" />
@@ -157,7 +149,10 @@ export default function (props: Props) {
       <DialogContent>{content}</DialogContent>
       <DialogActions>
         <Button onClick={props.onCancel}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </DialogActions>
@@ -166,12 +161,16 @@ export default function (props: Props) {
 }
 
 function getMagmaConfigs(
-  magmaConfigs: magmad_gateway_configs,
-): magmad_gateway_configs {
+  magmaConfigs: MagmadGatewayConfigs,
+): MagmadGatewayConfigs {
+  //TODO [ts-migration]: The parseInt calls should be superfluous
   return {
     ...magmaConfigs,
+    // @ts-ignore
     autoupgrade_poll_interval: parseInt(magmaConfigs.autoupgrade_poll_interval),
+    // @ts-ignore
     checkin_interval: parseInt(magmaConfigs.checkin_interval),
+    // @ts-ignore
     checkin_timeout: parseInt(magmaConfigs.checkin_timeout),
   };
 }
