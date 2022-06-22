@@ -20,6 +20,7 @@ import AlarmIcon from '@material-ui/icons/Alarm';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alarms from '../../views/alarms/legacy/Alarms';
 import CWFConfigure from './CWFConfigure';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';
 import CellWifiIcon from '@material-ui/icons/CellWifi';

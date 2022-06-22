@@ -9,30 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {CwfGateway, CwfHaPair} from '../../../generated-ts';
 import type {WithAlert} from '../Alert/withAlert';
-import type {cwf_gateway} from '../../../generated/MagmaAPIBindings';
-import type {cwf_ha_pair} from '../../../generated/MagmaAPIBindings';
 
-// $FlowFixMe migrated to typescript
 import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@material-ui/core/Button';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -44,28 +34,24 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import withAlert from '../Alert/withAlert';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {GatewayId} from '../../../shared/types/network';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useCallback, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useInterval} from '../../hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -110,7 +96,7 @@ const useStyles = makeStyles(theme => ({
 const FIVE_MINS = 5 * 60 * 1000;
 const REFRESH_INTERVAL = 2 * 60 * 1000;
 
-function gatewayStatus(gateway: cwf_gateway): string {
+function gatewayStatus(gateway: CwfGateway): string {
   const gatewayHealthy =
     Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) < FIVE_MINS;
   let status = '';
@@ -126,8 +112,8 @@ function gatewayStatus(gateway: cwf_gateway): string {
 }
 
 function EditDialog(props: {
-  setGateways: (gateways: cwf_gateway[]) => void,
-  gateways: cwf_gateway[],
+  setGateways: (gateways: Array<CwfGateway>) => void;
+  gateways: Array<CwfGateway>;
 }) {
   const navigate = useNavigate();
   const params = useParams();
@@ -149,9 +135,9 @@ function EditDialog(props: {
   );
 }
 
-export function CWFGateways(props: WithAlert & {}) {
-  const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
-  const [haPairs, setHaPairs] = useState<?(cwf_ha_pair[])>(null);
+export function CWFGateways(props: WithAlert) {
+  const [gateways, setGateways] = useState<Array<CwfGateway> | null>(null);
+  const [haPairs, setHaPairs] = useState<Array<CwfHaPair> | null>(null);
   const params = useParams();
   const navigate = useNavigate();
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
@@ -159,16 +145,24 @@ export function CWFGateways(props: WithAlert & {}) {
   const classes = useStyles();
 
   useMagmaAPI(
-    MagmaV1API.getCwfByNetworkIdGateways,
+    MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGet,
     {networkId},
-    useCallback(response => setGateways(map(response, g => g)), []),
+    useCallback(
+      (response: Record<string, CwfGateway>) =>
+        setGateways(map(response, g => g)),
+      [],
+    ),
     lastFetchTime,
   );
 
   useMagmaAPI(
-    MagmaV1API.getCwfByNetworkIdHaPairs,
+    MagmaAPI.carrierWifiNetworks.cwfNetworkIdHaPairsGet,
     {networkId},
-    useCallback(response => setHaPairs(map(response, h => h)), []),
+    useCallback(
+      (response: Record<string, CwfHaPair>) =>
+        setHaPairs(map(response, h => h)),
+      [],
+    ),
     lastFetchTime,
   );
 
@@ -178,17 +172,19 @@ export function CWFGateways(props: WithAlert & {}) {
     return <LoadingFiller />;
   }
 
-  const deleteGateway = (gateway: cwf_gateway) => {
-    props
+  const deleteGateway = (gateway: CwfGateway) => {
+    void props
       .confirm(`Are you sure you want to delete ${gateway.name}?`)
       .then(confirmed => {
         if (confirmed) {
-          MagmaV1API.deleteCwfByNetworkIdGatewaysByGatewayId({
-            networkId,
-            gatewayId: gateway.id,
-          }).then(() =>
-            setGateways(gateways.filter(gw => gw.id != gateway.id)),
-          );
+          void MagmaAPI.carrierWifiGateways
+            .cwfNetworkIdGatewaysGatewayIdDelete({
+              networkId,
+              gatewayId: gateway.id,
+            })
+            .then(() =>
+              setGateways(gateways.filter(gw => gw.id != gateway.id)),
+            );
         }
       });
   };
@@ -200,8 +196,15 @@ export function CWFGateways(props: WithAlert & {}) {
     hardwareID,
     challengeKey,
     tier,
+  }: {
+    gatewayID: GatewayId;
+    name: string;
+    description: string;
+    hardwareID: string;
+    challengeKey: string;
+    tier: string;
   }) => {
-    await MagmaV1API.postCwfByNetworkIdGateways({
+    await MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysPost({
       networkId,
       gateway: {
         carrier_wifi: {
@@ -222,10 +225,12 @@ export function CWFGateways(props: WithAlert & {}) {
       },
     });
 
-    const gateway = await MagmaV1API.getCwfByNetworkIdGatewaysByGatewayId({
-      networkId,
-      gatewayId: gatewayID,
-    });
+    const gateway = (
+      await MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGatewayIdGet({
+        networkId,
+        gatewayId: gatewayID,
+      })
+    ).data;
 
     setGateways([...gateways, gateway]);
     navigate('');
@@ -282,9 +287,9 @@ export function CWFGateways(props: WithAlert & {}) {
 }
 
 function GatewayRow(props: {
-  gateway: cwf_gateway,
-  haPairs: cwf_ha_pair[],
-  onDelete: cwf_gateway => void,
+  gateway: CwfGateway;
+  haPairs: Array<CwfHaPair>;
+  onDelete: (gateway: CwfGateway) => void;
 }) {
   const {gateway, haPairs, onDelete} = props;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -356,7 +361,7 @@ function GatewayRow(props: {
       </TableRow>
       {expanded.has(gateway.id) &&
         gateway.carrier_wifi.allowed_gre_peers.map((gre, i) => (
-          <TableRow key={i} classeName={classes.tableRow}>
+          <TableRow key={i} className={classes.tableRow}>
             <TableCell className={classes.greCell}>{gre.ip}</TableCell>
             <TableCell>{gre.key}</TableCell>
             <TableCell />

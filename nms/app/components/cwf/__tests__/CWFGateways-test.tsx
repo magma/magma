@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import CWFGateways from '../CWFGateways';
@@ -20,23 +17,21 @@ import React from 'react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import type {cwf_gateway} from '../../../../generated/MagmaAPIBindings';
-import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
+import type {CwfGateway, CwfHaPair} from '../../../../generated-ts';
 
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
+import MagmaAPI from '../../../../api/MagmaAPI';
+import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
-const CWF_HA_GATEWAY_1: cwf_gateway = {
+const CWF_HA_GATEWAY_1: CwfGateway = {
   magmad: {
     autoupgrade_enabled: true,
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'default',
   },
   id: 'mock_cwf01',
   name: 'mock_cwf',
@@ -80,13 +75,21 @@ const CWF_HA_GATEWAY_1: cwf_gateway = {
   },
 };
 
-const CWF_HA_GATEWAY_2 = JSON.parse(JSON.stringify(CWF_HA_GATEWAY_1));
-CWF_HA_GATEWAY_2.id = 'mock_cwf02';
-CWF_HA_GATEWAY_2.name = 'mock_cwf2';
-CWF_HA_GATEWAY_2.device.hardware_id = 'bb35dd3f-efaa-435a-bcb6-8168d0caf333';
-CWF_HA_GATEWAY_2.status.checkin_time = 1000;
+const CWF_HA_GATEWAY_2: CwfGateway = {
+  ...CWF_HA_GATEWAY_1,
+  id: 'mock_cwf02',
+  name: 'mock_cwf2',
+  device: {
+    ...CWF_HA_GATEWAY_1.device!,
+    hardware_id: 'bb35dd3f-efaa-435a-bcb6-8168d0caf333',
+  },
+  status: {
+    ...CWF_HA_GATEWAY_1.status,
+    checkin_time: 1000,
+  },
+};
 
-const CWF_HA_PAIR: cwf_ha_pair = {
+const CWF_HA_PAIR: CwfHaPair = {
   config: {
     transport_virtual_ip: '10.10.10.12',
   },
@@ -127,19 +130,16 @@ const Wrapper = () => (
 
 describe('<CWFGateways />', () => {
   beforeEach(() => {
-    axiosMock.get.mockResolvedValueOnce({
+    (axiosMock as jest.Mocked<typeof axiosMock>).get.mockResolvedValueOnce({
       data: [CWF_HA_GATEWAY_1, CWF_HA_GATEWAY_2],
     });
-    MagmaAPIBindings.getCwfByNetworkIdGateways.mockResolvedValue({
+    mockAPI(MagmaAPI.carrierWifiGateways, 'cwfNetworkIdGatewaysGet', {
       mock_cwf01: CWF_HA_GATEWAY_1,
       mock_cwf02: CWF_HA_GATEWAY_2,
     });
-    MagmaAPIBindings.getCwfByNetworkIdHaPairs.mockResolvedValue({
+    mockAPI(MagmaAPI.carrierWifiNetworks, 'cwfNetworkIdHaPairsGet', {
       pair1: CWF_HA_PAIR,
     });
-    MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValueOnce([
-      'default',
-    ]);
   });
 
   it('renders', async () => {
@@ -147,8 +147,12 @@ describe('<CWFGateways />', () => {
 
     await wait();
 
-    expect(MagmaAPIBindings.getCwfByNetworkIdGateways).toHaveBeenCalledTimes(1);
-    expect(MagmaAPIBindings.getCwfByNetworkIdHaPairs).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGet,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPI.carrierWifiNetworks.cwfNetworkIdHaPairsGet,
+    ).toHaveBeenCalledTimes(1);
 
     const rowItems = getAllByRole('row');
     expect(rowItems).toHaveLength(3);
