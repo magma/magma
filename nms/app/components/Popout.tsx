@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
@@ -19,13 +16,13 @@ import Popover from '@material-ui/core/Popover';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
-  className?: string,
-  content: React.Element<any> | string,
-  children: React.Node,
-  onOpen?: () => void,
-  onClose?: () => void,
-  open?: boolean,
-  contentClickTriggerClose?: boolean,
+  className?: string;
+  content: React.ReactElement<any> | string;
+  children: React.ReactNode;
+  onOpen?: () => void;
+  onClose?: () => void;
+  open?: boolean;
+  contentClickTriggerClose?: boolean;
 };
 
 const useClasses = makeStyles(() => ({
@@ -45,7 +42,6 @@ const useClasses = makeStyles(() => ({
       left: '-14px',
       bottom: '30px',
       zIndex: 5,
-
       borderTop: '11px solid transparent',
       borderRight: '14px solid #fff',
       borderBottom: '11px solid transparent',
@@ -60,7 +56,7 @@ const useClasses = makeStyles(() => ({
 
 export default function Popout(props: Props) {
   const classes = useClasses();
-  const relativeRef = React.useRef();
+  const relativeRef = React.useRef<HTMLDivElement>(null);
   const [open, togglePopout] = React.useState(false);
   const {onClose} = props;
   const handleClose = React.useCallback(
@@ -74,7 +70,6 @@ export default function Popout(props: Props) {
 
   return (
     <>
-      {/* $FlowFixMe - Flow ref type definition is not up to date */}
       <div
         className={props.className}
         ref={relativeRef}
@@ -104,7 +99,7 @@ export default function Popout(props: Props) {
         id="navigation-menu"
         open={props.open !== undefined ? props.open : open}
         onClose={handleClose}
-        onClick={props.contentClickTriggerClose && handleClose}
+        onClick={props.contentClickTriggerClose ? handleClose : undefined}
         onMouseOver={event => event.stopPropagation()}>
         {props.content}
       </Popover>
