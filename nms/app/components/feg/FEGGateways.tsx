@@ -9,26 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {FederationGateway} from '../../../generated-ts';
 import type {WithAlert} from '../Alert/withAlert';
-import type {federation_gateway} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayContext from '../context/FEGGatewayContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -38,23 +30,19 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../Alert/withAlert';
-// $FlowFixMe migrated to typescript
 import {HEALTHY_STATUS} from '../GatewayUtils';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
@@ -92,8 +80,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function EditDialog(props: {
-  setGateways: (gateways: federation_gateway[]) => void,
-  gateways: federation_gateway[],
+  setGateways: (gateways: Array<FederationGateway>) => void;
+  gateways: Array<FederationGateway>;
 }) {
   const navigate = useNavigate();
   const params = useParams();
@@ -115,19 +103,19 @@ function EditDialog(props: {
   );
 }
 
-function CWFGateways(props: WithAlert & {}) {
+function CWFGateways(props: WithAlert) {
   const ctx = useContext(FEGGatewayContext);
-  const [gateways, setGateways] = useState<federation_gateway[]>(
+  const [gateways, setGateways] = useState<Array<FederationGateway>>(
     Object.keys(ctx.state).map(gatewayId => ctx.state[gatewayId]),
   );
   const navigate = useNavigate();
   const classes = useStyles();
-  const deleteGateway = (gateway: federation_gateway) => {
-    props
+  const deleteGateway = (gateway: FederationGateway) => {
+    void props
       .confirm(`Are you sure you want to delete ${gateway.name}?`)
       .then(confirmed => {
         if (confirmed) {
-          ctx
+          void ctx
             .setState(gateway.id)
             .then(() =>
               setGateways(gateways.filter(gw => gw.id != gateway.id)),
@@ -184,16 +172,15 @@ function CWFGateways(props: WithAlert & {}) {
           path="edit/:gatewayID"
           element={<EditDialog gateways={gateways} setGateways={setGateways} />}
         />
-        )} />
       </Routes>
     </div>
   );
 }
 
 function GatewayRow(props: {
-  gateway: federation_gateway,
-  onDelete: federation_gateway => void,
-  isPrimary: boolean,
+  gateway: FederationGateway;
+  onDelete: (gateway: FederationGateway) => void;
+  isPrimary: boolean;
 }) {
   const classes = useStyles();
   const {gateway, onDelete, isPrimary} = props;
