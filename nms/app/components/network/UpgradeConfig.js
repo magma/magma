@@ -40,6 +40,7 @@ import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeStatusTierID from './UpgradeStatusTierID';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import withAlert from '../Alert/withAlert';
