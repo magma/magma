@@ -27,7 +27,6 @@ import React, {useContext} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
-import {Events, GeneralLogger} from '../util/Logging';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -135,7 +134,6 @@ const ProfileButton = (props: Props) => {
               classes={{gutters: classes.itemGutters}}
               button
               onClick={() => {
-                GeneralLogger.info(Events.SETTINGS_CLICKED);
                 props.setMenuOpen(false);
                 navigate(settingsPath);
               }}
@@ -148,7 +146,6 @@ const ProfileButton = (props: Props) => {
               classes={{gutters: classes.itemGutters}}
               button
               onClick={() => {
-                GeneralLogger.info(Events.ADMINISTRATION_CLICKED);
                 props.setMenuOpen(false);
                 navigate(networkId === null ? '/admin' : 'admin');
               }}
@@ -161,9 +158,6 @@ const ProfileButton = (props: Props) => {
               classes={{gutters: classes.itemGutters}}
               button
               href={'/docs/docs/inventory-intro.html'}
-              onClick={() =>
-                GeneralLogger.info(Events.DOCUMENTATION_LINK_CLICKED)
-              }
               component="a">
               <Text className={classes.profileItemText}>Documentation</Text>
             </ListItem>

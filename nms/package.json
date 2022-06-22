@@ -24,7 +24,6 @@
     "axios": "^0.21.2",
     "babel-plugin-lodash": "^3.3.4",
     "bcryptjs": "^2.4.3",
-    "beaver-logger": "^4.0.12",
     "body-parser": "^1.18.3",
     "chart.js": "^2.7.3",
     "classnames": "^2.2.5",
