@@ -6,7 +6,6 @@ import sqlalchemy as sa
 import testing.postgresql
 from alembic.command import downgrade, stamp, upgrade
 from alembic.script import ScriptDirectory
-
 from magma.db_service.models import Base
 from magma.db_service.tests.db_testcase import DBTestCaseBlueprint
 
