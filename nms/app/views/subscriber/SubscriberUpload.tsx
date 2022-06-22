@@ -206,7 +206,7 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
                         }
                       }
                     } catch (e) {
-                      enqueueSnackbar(e as string, {
+                      enqueueSnackbar(getErrorMessage(e), {
                         variant: 'error',
                       });
                     }
