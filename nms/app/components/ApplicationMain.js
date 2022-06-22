@@ -22,6 +22,7 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import axios from 'axios';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../theme/default';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
 import {useEffect, useState} from 'react';

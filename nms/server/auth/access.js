@@ -22,7 +22,8 @@ const path = require('path');
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 const {AccessRoles} = require('../../shared/roles'); // eslint-disable-line node/no-missing-require
-const {ErrorCodes} = require('../../shared/errorCodes');
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+const {ErrorCodes} = require('../../shared/errorCodes'); // eslint-disable-line node/no-missing-require
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 const logger = require('../../shared/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;
