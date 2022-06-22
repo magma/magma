@@ -30,6 +30,7 @@ import ListIcon from '@material-ui/icons/ListAlt';
 import LogsList from '../../views/domain-proxy/LogsList';
 // $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
 // $FlowFixMe migrated to typescript

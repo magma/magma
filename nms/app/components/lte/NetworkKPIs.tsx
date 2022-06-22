@@ -9,25 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkMetrics from '../insights/NetworkMetrics';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from '../insights/Metrics';
 
 export default function () {
-  const chartConfigs: MetricGraphConfig[] = [
+  const chartConfigs: Array<MetricGraphConfig> = [
     {
       label: 'Disk Percent',
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(disk_percent)',
+          resolveQuery: () => 'sum(disk_percent)',
         },
       ],
       legendLabels: ['Disk Percent'],
@@ -38,7 +33,7 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(enb_connected)',
+          resolveQuery: () => 'sum(enb_connected)',
         },
       ],
       legendLabels: ['Connected'],
@@ -49,7 +44,7 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(ue_connected)',
+          resolveQuery: () => 'sum(ue_connected)',
         },
       ],
       legendLabels: ['Connected'],
@@ -60,7 +55,7 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(ue_registered)',
+          resolveQuery: () => 'sum(ue_registered)',
         },
       ],
       legendLabels: ['Registered'],
@@ -71,13 +66,13 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(s1_setup)',
+          resolveQuery: () => 'sum(s1_setup)',
         },
         {
-          resolveQuery: _ => "sum(s1_setup{result='success'})",
+          resolveQuery: () => "sum(s1_setup{result='success'})",
         },
         {
-          resolveQuery: _ => "sum(s1_setup) - sum(s1_setup{result='success'})",
+          resolveQuery: () => "sum(s1_setup) - sum(s1_setup{result='success'})",
         },
       ],
       legendLabels: ['Total', 'Success', 'Failure'],
@@ -88,13 +83,13 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(ue_attach)',
+          resolveQuery: () => 'sum(ue_attach)',
         },
         {
-          resolveQuery: _ => "sum(ue_attach{result='attach_proc_successful'})",
+          resolveQuery: () => "sum(ue_attach{result='attach_proc_successful'})",
         },
         {
-          resolveQuery: _ =>
+          resolveQuery: () =>
             "sum(ue_attach) - sum(ue_attach{result='attach_proc_successful'})",
         },
       ],
@@ -106,13 +101,13 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(ue_detach)',
+          resolveQuery: () => 'sum(ue_detach)',
         },
         {
-          resolveQuery: _ => "sum(ue_detach{result='attach_proc_successful'})",
+          resolveQuery: () => "sum(ue_detach{result='attach_proc_successful'})",
         },
         {
-          resolveQuery: _ =>
+          resolveQuery: () =>
             "sum(ue_detach) - sum(ue_detach{result='attach_proc_successful'})",
         },
       ],
@@ -124,7 +119,7 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'avg(enodeb_gps_connected)',
+          resolveQuery: () => 'avg(enodeb_gps_connected)',
         },
       ],
       legendLabels: ['Uptime'],
@@ -135,7 +130,7 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'avg(enodeb_rf_tx_enabled)',
+          resolveQuery: () => 'avg(enodeb_rf_tx_enabled)',
         },
       ],
       legendLabels: ['Transmitting Status'],
@@ -146,13 +141,13 @@ export default function () {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolveQuery: _ => 'sum(service_request)',
+          resolveQuery: () => 'sum(service_request)',
         },
         {
-          resolveQuery: _ => "sum(service_request{result='success'})",
+          resolveQuery: () => "sum(service_request{result='success'})",
         },
         {
-          resolveQuery: _ =>
+          resolveQuery: () =>
             "sum(service_request) - sum(service_request{result='success'})",
         },
       ],
