@@ -9,23 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
 
 import * as React from 'react';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import axios from 'axios';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
-import type {version_info} from '../../../generated/MagmaAPIBindings';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 export type VersionContextType = {
-  nmsVersion: string,
-  orc8rVersion: string,
+  nmsVersion: string;
+  orc8rVersion: string;
 };
 
 const VersionContext = React.createContext<VersionContextType>({
@@ -34,7 +28,7 @@ const VersionContext = React.createContext<VersionContextType>({
 });
 
 type Props = {
-  children: React.Node,
+  children: React.ReactNode;
 };
 
 export function VersionContextProvider(props: Props) {
@@ -45,21 +39,21 @@ export function VersionContextProvider(props: Props) {
   useEffect(() => {
     const fetchNmsVersion = async () => {
       axios
-        .get('/version')
+        .get<string>('/version')
         .then(response => {
-          setNmsVersion('v' + response.data);
+          setNmsVersion(`v${response.data}`);
         })
-        .catch(_ => {
+        .catch(() => {
           enqueueSnackbar?.('failed fetching NMS version information', {
             variant: 'error',
           });
         });
-      const version: version_info = await MagmaV1API.getAboutVersion();
-      // $FlowIgnore[incompatible-type]: Container image version should exist
-      setOrc8rVersion('v' + version.container_image_version);
+
+      const version = (await MagmaAPI.about.aboutVersionGet()).data;
+      setOrc8rVersion(`v${version.container_image_version!}`);
     };
 
-    fetchNmsVersion();
+    void fetchNmsVersion();
   });
 
   return (
