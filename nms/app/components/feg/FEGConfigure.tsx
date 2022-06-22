@@ -9,18 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Configure from '../network/Configure';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeConfig from '../network/UpgradeConfig';
 
-export default function CWFConfigure() {
+export default function FEGConfigure() {
   const tabs = [
     {
       component: UpgradeConfig,
