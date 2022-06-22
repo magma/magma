@@ -9,24 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {MetricGraphConfig} from '../insights/Metrics';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Metrics from '../insights/Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
+import type {MetricGraphConfig} from '../insights/Metrics';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 
 const IMSI_CONFIGS: Array<MetricGraphConfig> = [
   {
@@ -84,7 +77,7 @@ export default function () {
   const navigate = useNavigate();
 
   const {response, error, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
+    MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet,
     {
       networkId: nullthrows(params.networkId),
     },
@@ -93,7 +86,7 @@ export default function () {
     return <LoadingFiller />;
   }
 
-  const imsiSet = new Set();
+  const imsiSet = new Set<string>();
   response.forEach(item => {
     if (item.imsi) {
       imsiSet.add(item.imsi);
@@ -126,13 +119,16 @@ function ImsiAndIPMenuItem(props: {imsi: string}) {
   const queryIMSI = props.imsi.startsWith('IMSI')
     ? props.imsi
     : 'IMSI' + props.imsi;
-  const {
-    response,
-  } = useMagmaAPI(
-    MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
-    {networkId: params.networkId, subscriberId: queryIMSI},
+  const {response} = useMagmaAPI(
+    MagmaAPI.carrierWifiNetworks
+      .cwfNetworkIdSubscribersSubscriberIdDirectoryRecordGet,
+    {networkId: params.networkId!, subscriberId: queryIMSI},
   );
 
   const ipv4 = response?.ipv4_addr;
-  return ipv4 ? `${props.imsi} : ${ipv4}` : props.imsi;
+  return (
+    <>
+      ipv4 ? `${props.imsi} : ${ipv4}` : props.imsi
+    </>
+  );
 }
