@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkMetrics from '../insights/NetworkMetrics';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
