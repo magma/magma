@@ -21,6 +21,7 @@ import type {
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFGatewayConfigFields from './CWFGatewayConfigFields';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';

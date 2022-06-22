@@ -9,15 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {
-  allowed_gre_peers,
-  ipdr_export_dst,
-} from '../../../generated/MagmaAPIBindings';
+import type {AllowedGrePeer, IpdrExportDst} from '../../../generated-ts';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Button from '@material-ui/core/Button';
@@ -25,13 +19,12 @@ import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   container: {
     display: 'block',
     margin: '5px 0',
@@ -53,13 +46,13 @@ const useStyles = makeStyles(() => ({
     height: '30px',
     verticalAlign: 'bottom',
   },
-}));
+});
 
 type Props = {
-  allowedGREPeers: allowed_gre_peers,
-  onChange: allowed_gre_peers => void,
-  ipdrExportDst: ?ipdr_export_dst,
-  onIPDRChanged: ipdr_export_dst => void,
+  allowedGREPeers: Array<AllowedGrePeer>;
+  onChange: (allowedGrePeers: Array<AllowedGrePeer>) => void;
+  ipdrExportDst: IpdrExportDst | null | undefined;
+  onIPDRChanged: (ipdrExportDst: IpdrExportDst) => void;
 };
 
 export default function (props: Props) {
@@ -67,18 +60,18 @@ export default function (props: Props) {
   const {allowedGREPeers, onIPDRChanged} = props;
   const ipdrExportDst = props.ipdrExportDst || {ip: '', port: 0};
 
-  const onChange = (index, field: 'ip' | 'key', value) => {
+  const onChange = (index: number, field: 'ip' | 'key', value: string) => {
     const newValue = [...allowedGREPeers];
     newValue[index] = {...allowedGREPeers[index]};
     if (field === 'key') {
-      newValue[index].key = parseInt(value.replace(/[^0-9]*/g, '') || 0);
+      newValue[index].key = parseInt(value.replace(/[^0-9]*/g, '') || '0');
     } else {
       newValue[index][field] = value;
     }
     props.onChange(newValue);
   };
 
-  const removePeer = index => {
+  const removePeer = (index: number) => {
     const newValue = [...allowedGREPeers];
     newValue.splice(index, 1);
     props.onChange(newValue);
