@@ -9,12 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {tier} from '../../../generated/MagmaAPIBindings';
+import type {Tier} from '../../../generated-ts';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
@@ -29,10 +26,10 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  gatewayID: string,
-  onChange: (gatewayID: string, newTierID: string) => Promise<void>,
-  tierID: ?string,
-  networkUpgradeTiers: ?(tier[]),
+  gatewayID: string;
+  onChange: (gatewayID: string, newTierID: string) => Promise<void>;
+  tierID: string | null | undefined;
+  networkUpgradeTiers: Array<Tier> | null | undefined;
 };
 
 export default function UpgradeStatusTierID(props: Props) {
@@ -59,7 +56,7 @@ export default function UpgradeStatusTierID(props: Props) {
     <Select
       value={tierID}
       onChange={({target}) => {
-        props.onChange(props.gatewayID, target.value);
+        void props.onChange(props.gatewayID, target.value as string);
       }}
       className={classes.select}>
       <MenuItem key={0} value="" disabled>
