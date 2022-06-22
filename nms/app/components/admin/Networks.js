@@ -24,11 +24,12 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
+import EmptyState from '../EmptyState';
+import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '../NestedRouteLink';
-import NoNetworksMessage from '../NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
 import React, {useCallback, useContext, useState} from 'react';
 import Table from '@material-ui/core/Table';
@@ -50,7 +51,7 @@ const useStyles = makeStyles(() => ({
   header: {
     margin: '10px',
     display: 'flex',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   paper: {
     margin: '10px',
@@ -137,33 +138,50 @@ function Networks() {
   ));
 
   const closeDialog = () => navigate('');
+
+  const cardActions = {
+    buttonText: 'Add Network',
+    onClick: () => navigate('new'),
+    linkText: 'Learn more about Networks',
+    link: 'https://docs.magmacore.org/docs/next/nms/network',
+  };
   return (
     <div className={classes.paper}>
-      <div className={classes.header}>
-        <div />
-        <NestedRouteLink to="new">
-          <Button>Add Network</Button>
-        </NestedRouteLink>
-      </div>
       {rows.length === 0 ? (
-        <div className={classes.noNetworks}>
-          <NoNetworksMessage>
-            You currently do not have any networks configured. Click "Add
-            Network" to create a new network
-          </NoNetworksMessage>
-        </div>
+        <Grid container justify="space-between" spacing={3}>
+          <EmptyState
+            title={'Set up a Network'}
+            instructions={
+              'Add your first network from the Network Selector.  If you already have multiple networks, use the Network Selector to switch networks.'
+            }
+            cardActions={cardActions}
+            overviewTitle={'Network Overview'}
+            overviewDescription={
+              'In Magma, a Network is formed by a group of subscribers that have access to a group of access-gateways. On the Network dashboard, you can configure your network information, and view the summary of the network components.'
+            }
+          />
+        </Grid>
       ) : (
-        <Paper elevation={2}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Network ID</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>{rows}</TableBody>
-          </Table>
-        </Paper>
+        <>
+          <div className={classes.header}>
+            <NestedRouteLink to="new">
+              <Button variant="contained" color="primary">
+                Add Network
+              </Button>
+            </NestedRouteLink>
+          </div>
+          <Paper elevation={2}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Network ID</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableHead>
+              <TableBody>{rows}</TableBody>
+            </Table>
+          </Paper>
+        </>
       )}
       {networkToDelete && (
         <DialogWithConfirmationPhrase
