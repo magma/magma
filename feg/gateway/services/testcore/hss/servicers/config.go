@@ -49,6 +49,14 @@ var (
 	streamSubscribersFlag = flag.Bool("stream_subscribers", false, "Whether to stream subscribers from the cloud")
 )
 
+const (
+	ServerProtocol     = "HSS_SERVER_PROTOCOL"
+	ServerAddress      = "HSS_SERVER_ADDRESS"
+	ServerLocalAddress = "HSS_SERVER_LOCAL_ADDRESS"
+	ServerDestHost     = "HSS_SERVER_DEST_HOST"
+	ServerDestRealm    = "HSS_SERVER_DEST_REALM"
+)
+
 func init() {
 	flag.Uint64(maxUlBitRateFlag, defaultMaxUlBitRate, "Maximum uplink bit rate (AMBR-UL)")
 	flag.Uint64(maxDlBitRateFlag, defaultMaxDlBitRate, "Maximum downlink bit rate (AMBR-DL)")
@@ -70,11 +78,11 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 		glog.Errorf("%s Managed Configs Load Error: %v\n", hssServiceName, err)
 		return &mconfig.HSSConfig{
 			Server: &mconfig.DiamServerConfig{
-				Address:      diameter.GetValue(diameter.AddrFlag, ""),
-				Protocol:     diameter.GetValue(diameter.NetworkFlag, hssDefaultProtocol),
-				LocalAddress: diameter.GetValue(diameter.LocalAddrFlag, ""),
-				DestHost:     diameter.GetValue(diameter.DestHostFlag, hssDefaultHost),
-				DestRealm:    diameter.GetValue(diameter.DestRealmFlag, hssDefaultRealm),
+				Protocol:     diameter.GetValueOrEnv(diameter.NetworkFlag, ServerProtocol, hssDefaultProtocol),
+				Address:      diameter.GetValueOrEnv(diameter.AddrFlag, ServerAddress, ""),
+				LocalAddress: diameter.GetValueOrEnv(diameter.LocalAddrFlag, ServerLocalAddress, ""),
+				DestHost:     diameter.GetValueOrEnv(diameter.DestHostFlag, ServerDestHost, hssDefaultHost),
+				DestRealm:    diameter.GetValueOrEnv(diameter.DestRealmFlag, ServerDestRealm, hssDefaultRealm),
 			},
 			LteAuthOp:  hssDefaultLteAuthOp,
 			LteAuthAmf: hssDefaultLteAuthAmf,
