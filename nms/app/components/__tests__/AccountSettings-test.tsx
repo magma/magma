@@ -9,23 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AccountSettings from '../AccountSettings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {fireEvent, render} from '@testing-library/react';
 
-const Wrapper = (props: {children: React.Node}) => (
+const Wrapper = (props: {children: React.ReactNode}) => (
   <MemoryRouter initialEntries={['/nms/mynetwork/settings']} initialIndex={0}>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
