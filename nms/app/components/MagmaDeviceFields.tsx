@@ -9,12 +9,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-
-import type {magmad_gateway_configs} from '../../generated/MagmaAPIBindings';
 
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -23,6 +18,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
+import {MagmadGatewayConfigs} from '../../generated-ts';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -34,8 +30,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  configs: magmad_gateway_configs,
-  configChangeHandler: (string, string | boolean) => void,
+  configs: MagmadGatewayConfigs;
+  configChangeHandler: <K extends keyof MagmadGatewayConfigs>(
+    key: K,
+    value: MagmadGatewayConfigs[K],
+  ) => void;
 };
 
 export default function MagmaDeviceFields(props: Props) {
@@ -61,7 +60,10 @@ export default function MagmaDeviceFields(props: Props) {
         className={classes.input}
         value={props.configs.autoupgrade_poll_interval}
         onChange={({target}) =>
-          props.configChangeHandler('autoupgrade_poll_interval', target.value)
+          props.configChangeHandler(
+            'autoupgrade_poll_interval',
+            parseInt(target.value),
+          )
         }
         placeholder="E.g. 300"
       />
@@ -70,7 +72,7 @@ export default function MagmaDeviceFields(props: Props) {
         className={classes.input}
         value={props.configs.checkin_interval}
         onChange={({target}) =>
-          props.configChangeHandler('checkin_interval', target.value)
+          props.configChangeHandler('checkin_interval', parseInt(target.value))
         }
         placeholder="E.g. 60"
       />
@@ -79,7 +81,7 @@ export default function MagmaDeviceFields(props: Props) {
         className={classes.input}
         value={props.configs.checkin_timeout}
         onChange={({target}) =>
-          props.configChangeHandler('checkin_timeout', target.value)
+          props.configChangeHandler('checkin_timeout', parseInt(target.value))
         }
         placeholder="E.g. 5"
       />

@@ -27,6 +27,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayCommandFields from '../GatewayCommandFields';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import MagmaDeviceFields from '../MagmaDeviceFields';
 import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
