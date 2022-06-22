@@ -9,23 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DataGrid from '../DataGrid';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {DataRows} from '../DataGrid';
 
-const data: DataRows[] = [
+const data: Array<DataRows> = [
   [
     {
       category: 'Total',
@@ -55,14 +49,14 @@ const Wrapper = () => {
 };
 
 describe('<DataGrid />', () => {
-  it('displays the passed tooltip', async () => {
+  it('displays the passed tooltip', () => {
     const {getByText} = render(<Wrapper />);
 
     const dataEntryElement = getByText('eNodeBs');
     expect(dataEntryElement).toHaveAttribute('title', 'Tooltip text');
   });
 
-  it('defaults to the data entry value when the tooltip prop in not passed', async () => {
+  it('defaults to the data entry value when the tooltip prop in not passed', () => {
     const {getByText} = render(<Wrapper />);
 
     const dataEntryElement = getByText('Value used as a tooltip');
@@ -72,7 +66,7 @@ describe('<DataGrid />', () => {
     );
   });
 
-  it('displays the data unit along with data value as the tooltip when unit prop is passed', async () => {
+  it('displays the data unit along with data value as the tooltip when unit prop is passed', () => {
     const {getByText} = render(<Wrapper />);
 
     const dataEntryElement = getByText('100ms');
