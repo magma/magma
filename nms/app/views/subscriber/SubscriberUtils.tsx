@@ -202,7 +202,7 @@ export type EditSubscriberProps = {
     val: string,
     index: number,
   ) => void;
-  onDeleteApn: (apn: subscriberStaticIpsRowType | undefined) => void;
+  onDeleteApn: (apn: subscriberStaticIpsRowType) => void;
   onAddApnStaticIP: () => void;
   subProfiles: Record<string, string> | undefined;
   subscriberStaticIPRows: Array<subscriberStaticIpsRowType>;
@@ -215,24 +215,24 @@ export type EditSubscriberProps = {
 
 export type SubscribersDialogDetailProps = {
   // Subscribers to add, edit or delete
-  setSubscribers: (arg0: Array<SubscriberInfo>) => void;
+  setSubscribers: (subscribers: Array<SubscriberInfo>) => void;
   subscribers: Array<SubscriberInfo>;
   // Formatting error (eg: field missing, wrong IMSI format)
-  setAddError: (arg0: Array<string>) => void;
+  setAddError: (errors: Array<string>) => void;
   addError: Array<string>;
   // Display dropzone if set to true
-  setUpload: (arg0: boolean) => void;
+  setUpload: (upload: boolean) => void;
   upload: boolean;
   onClose: () => void;
   // Add, edit or delete subscribers
   onSave: (
-    arg0: Array<SubscriberInfo>,
+    subscribers: Array<SubscriberInfo>,
     selectedSubscribers?: Array<string>,
   ) => void;
   error?: string;
   // Row added with the Add New Row button
   rowAdd: boolean;
-  setRowAdd: (arg0: boolean) => void;
+  setRowAdd: (rowAdd: boolean) => void;
   // Delete, Edit or Add subscriber
   subscriberAction: SubscriberActionType;
 };
