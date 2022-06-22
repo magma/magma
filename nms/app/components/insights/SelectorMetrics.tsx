@@ -9,45 +9,37 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from './Metrics';
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Metrics from './Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useCallback, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbar} from '../../hooks';
 
 export default function (props: {
-  configs: MetricGraphConfig[],
-  selectorKey: string,
+  configs: Array<MetricGraphConfig>;
+  selectorKey: string;
 }) {
   const navigate = useNavigate();
   const params = useParams();
 
-  const [allMetrics, setAllMetrics] = useState();
+  const [allMetrics, setAllMetrics] = useState<Record<string, Set<string>>>();
   const [selectedItem, setSelectedItem] = useState('');
 
   const {error, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
+    MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet,
     {networkId: nullthrows(params.networkId)},
     useCallback(
-      response => {
-        const metricsByDeviceID = {};
+      (response: Array<Record<string, string>>) => {
+        const metricsByDeviceID: Record<string, Set<string>> = {};
         response.forEach(item => {
           if (item[props.selectorKey]) {
             metricsByDeviceID[item[props.selectorKey]] =
@@ -62,7 +54,7 @@ export default function (props: {
     ),
   );
 
-  useSnackbar('Error fetching subscribers', {variant: 'error'}, error);
+  useSnackbar('Error fetching subscribers', {variant: 'error'}, !!error);
 
   if (error || isLoading || !allMetrics) {
     return <LoadingFiller />;

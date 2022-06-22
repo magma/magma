@@ -15,6 +15,7 @@
  */
 
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectorMetrics from '../insights/SelectorMetrics';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from '../insights/Metrics';
