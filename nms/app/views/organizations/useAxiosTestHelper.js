@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useAxios from '../../hooks/useAxios';
 
 // $FlowIgnore because responses contains multiple types
