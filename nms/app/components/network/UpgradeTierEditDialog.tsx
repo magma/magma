@@ -9,12 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {tier} from '../../../generated/MagmaAPIBindings';
+import type {Tier} from '../../../generated-ts';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -22,21 +19,20 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 type Props = {
-  onSave: tier => void,
-  onCancel: () => void,
-  tier?: tier,
+  onSave: (tier: Tier) => void;
+  onCancel: () => void;
+  tier?: Tier;
 };
 
 export default function UpgradeTierEditDialog(props: Props) {
@@ -54,24 +50,22 @@ export default function UpgradeTierEditDialog(props: Props) {
 
   const onSave = () => {
     if (!props.tier) {
-      MagmaV1API.postNetworksByNetworkIdTiers({
-        networkId: nullthrows(params.networkId),
-        tier,
-      })
+      void MagmaAPI.upgrades
+        .networksNetworkIdTiersPost({
+          networkId: nullthrows(params.networkId),
+          tier,
+        })
         .then(() => props.onSave(tier))
-        .catch(e =>
-          enqueueSnackbar(e.response.data.message, {variant: 'error'}),
-        );
+        .catch(e => enqueueSnackbar(getErrorMessage(e), {variant: 'error'}));
     } else {
-      MagmaV1API.putNetworksByNetworkIdTiersByTierId({
-        networkId: nullthrows(params.networkId),
-        tierId: tier.id,
-        tier,
-      })
-        .then(_resp => props.onSave(tier))
-        .catch(e =>
-          enqueueSnackbar(e.response.data.message, {variant: 'error'}),
-        );
+      void MagmaAPI.upgrades
+        .networksNetworkIdTiersTierIdPut({
+          networkId: nullthrows(params.networkId),
+          tierId: tier.id,
+          tier,
+        })
+        .then(() => props.onSave(tier))
+        .catch(e => enqueueSnackbar(getErrorMessage(e), {variant: 'error'}));
     }
   };
 
