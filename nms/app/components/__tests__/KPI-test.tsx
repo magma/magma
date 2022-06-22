@@ -9,34 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
-import EnodebContext from '../context/EnodebContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import EnodebContext, {EnodebContextType} from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
-// $FlowFixMe migrated to typescript
 import GatewayContext from '../context/GatewayContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayKPIs from '../GatewayKPIs';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../api/MagmaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
+import {EnodebInfo} from '../lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {mockAPI, mockAPIOnce} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 import type {
-  enodeb_state,
-  feg_lte_network,
-  lte_gateway,
-} from '../../../generated/MagmaAPIBindings';
+  EnodebState,
+  FegLteNetwork,
+  LteGateway,
+} from '../../../generated-ts';
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',
@@ -44,7 +36,7 @@ const mockFegLteNetworks: Array<string> = [
   'test_network3',
 ];
 
-const mockFegLteNetwork: feg_lte_network = {
+const mockFegLteNetwork: FegLteNetwork = {
   cellular: {
     epc: {
       gx_gy_relay_enabled: false,
@@ -70,7 +62,7 @@ const mockFegLteNetwork: feg_lte_network = {
   id: 'test_network1',
   name: 'test_network',
 };
-const mockGwSt: lte_gateway = {
+const mockGwSt: LteGateway = {
   id: 'test_gw1',
   name: 'test_gateway',
   description: 'hello I am a gateway',
@@ -84,7 +76,6 @@ const mockGwSt: lte_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   connected_enodeb_serials: [],
   cellular: {
@@ -110,7 +101,7 @@ const mockGwSt: lte_gateway = {
   checked_in_recently: false,
 };
 
-const mockEnbSt: enodeb_state = {
+const mockEnbSt: EnodebState = {
   enodeb_configured: true,
   enodeb_connected: true,
   fsm_state: '',
@@ -174,7 +165,7 @@ describe('<GatewaysKPIs />', () => {
 describe('<EnodebKPIs />', () => {
   const mockEnbNotTxSt = Object.assign({}, mockEnbSt);
   mockEnbNotTxSt.rf_tx_on = false;
-  const enbInfo = {
+  const enbInfo: Record<string, EnodebInfo> = {
     test1: {
       enb: {
         name: 'test1',
@@ -212,7 +203,7 @@ describe('<EnodebKPIs />', () => {
       enb_state: mockEnbNotTxSt,
     },
   };
-  const enodebCtx = {
+  const enodebCtx: EnodebContextType = {
     state: {enbInfo},
     setState: async () => {},
   };
@@ -232,7 +223,7 @@ describe('<EnodebKPIs />', () => {
       </MemoryRouter>
     );
   };
-  it('renders', async () => {
+  it('renders', () => {
     const {getByTestId} = render(<Wrapper />);
     expect(getByTestId('Total')).toHaveTextContent('3');
     expect(getByTestId('Transmitting')).toHaveTextContent('2');
@@ -247,23 +238,31 @@ describe('<ServicingAccessGatewaysKPI />', () => {
   };
   const mockFegLteNetwork3 = {...mockFegLteNetwork, id: 'test_network3'};
   beforeEach(() => {
-    jest
-      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteGet')
-      .mockResolvedValue({data: mockFegLteNetworks});
-    jest
-      .spyOn(MagmaAPI.federatedLTENetworks, 'fegLteNetworkIdGet')
-      .mockReturnValueOnce({data: mockFegLteNetwork})
-      .mockReturnValueOnce({data: mockFegLteNetwork2})
-      .mockResolvedValue({data: mockFegLteNetwork3});
-    jest
-      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet')
-      .mockReturnValueOnce({
-        data: {
-          [mockGwSt.id]: mockGwSt,
-          test_gw2: {...mockGwSt, id: 'test_gw2'},
-        },
-      })
-      .mockResolvedValue({data: {[mockGwSt.id]: mockGwSt}});
+    mockAPI(MagmaAPI.federatedLTENetworks, 'fegLteGet', mockFegLteNetworks);
+
+    mockAPIOnce(
+      MagmaAPI.federatedLTENetworks,
+      'fegLteNetworkIdGet',
+      mockFegLteNetwork,
+    );
+    mockAPIOnce(
+      MagmaAPI.federatedLTENetworks,
+      'fegLteNetworkIdGet',
+      mockFegLteNetwork2,
+    );
+    mockAPI(
+      MagmaAPI.federatedLTENetworks,
+      'fegLteNetworkIdGet',
+      mockFegLteNetwork3,
+    );
+
+    mockAPIOnce(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet', {
+      [mockGwSt.id]: mockGwSt,
+      test_gw2: {...mockGwSt, id: 'test_gw2'},
+    });
+    mockAPI(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet', {
+      [mockGwSt.id]: mockGwSt,
+    });
   });
 
   const Wrapper = () => {
