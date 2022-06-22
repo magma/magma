@@ -17,6 +17,7 @@
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Configure from '../network/Configure';
 import React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeConfig from '../network/UpgradeConfig';
 
 export default function CWFConfigure() {
