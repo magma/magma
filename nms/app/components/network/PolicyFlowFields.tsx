@@ -9,12 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {flow_description} from '../../../generated/MagmaAPIBindings';
+import type {FlowDescription} from '../../../generated-ts';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -26,14 +23,12 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../TypedSelect';
 
-// $FlowFixMe migrated to typescript
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
+import {FlowDescriptionActionEnum, FlowMatch} from '../../../generated-ts';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -57,23 +52,26 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  index: number,
-  flow: flow_description,
-  handleDelete: number => void,
-  onChange: (number, flow_description) => void,
+  index: number;
+  flow: FlowDescription;
+  handleDelete: (index: number) => void;
+  onChange: (index: number, flowDescription: FlowDescription) => void;
 };
 
 export default function PolicyFlowFields(props: Props) {
   const classes = useStyles();
   const {flow} = props;
 
-  const handleActionChange = action =>
+  const handleActionChange = (action: FlowDescriptionActionEnum) =>
     props.onChange(props.index, {
       ...props.flow,
       action,
     });
 
-  const handleFieldChange = (field: string, value: number | string | {}) =>
+  const handleFieldChange = <K extends keyof FlowMatch>(
+    field: K,
+    value: FlowMatch[K],
+  ) =>
     props.onChange(props.index, {
       ...props.flow,
       match: {
