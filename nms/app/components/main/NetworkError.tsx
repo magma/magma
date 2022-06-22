@@ -9,26 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import type {$AxiosError} from 'axios';
-
 import React from 'react';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbar} from '../../hooks';
+import type {AxiosError} from 'axios';
 
-export default function NetworkError({error}: {error: $AxiosError<string>}) {
+export default function NetworkError({error}: {error: AxiosError<string>}) {
   let errorMessage = error.message;
+
   if (error.response && error.response.status >= 400) {
     errorMessage = error.response?.statusText;
   }
+
   useSnackbar(
-    'Unable to communicate with magma controller: ' + errorMessage,
-    {variant: 'error'},
+    `Unable to communicate with magma controller: ${errorMessage}`,
+    {
+      variant: 'error',
+    },
     !!error,
   );
   return <div />;
