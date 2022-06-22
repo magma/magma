@@ -29,6 +29,7 @@ import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaV1API from '../../../generated/WebClient';
 // $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyBaseNameDialog from './PolicyBaseNameDialog';
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';
 import React from 'react';

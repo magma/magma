@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import Button from '@material-ui/core/Button';
@@ -19,18 +16,16 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -42,29 +37,31 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  mirrorNetwork?: string,
-  onCancel: () => void,
-  onSave: string => void,
+  mirrorNetwork?: string;
+  onCancel: () => void;
+  onSave: (basename: string) => void;
 };
 
 export default function (props: Props) {
   const classes = useStyles();
   const params = useParams();
-  const [baseName, setBaseName] = useState();
+  const [baseName, setBaseName] = useState<{name: string; ruleNames: string}>();
   const enqueueSnackbar = useEnqueueSnackbar();
   const editingBaseName = params.baseName;
 
   useEffect(() => {
     if (editingBaseName) {
-      MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName({
-        networkId: nullthrows(params.networkId),
-        baseName: editingBaseName,
-      }).then(response =>
-        setBaseName({
-          name: editingBaseName,
-          ruleNames: response.rule_names.join(','),
-        }),
-      );
+      void MagmaAPI.policies
+        .networksNetworkIdPoliciesBaseNamesBaseNameGet({
+          networkId: nullthrows(params.networkId),
+          baseName: editingBaseName,
+        })
+        .then(({data}) =>
+          setBaseName({
+            name: editingBaseName,
+            ruleNames: data.rule_names.join(','),
+          }),
+        );
     } else {
       setBaseName({name: '', ruleNames: ''});
     }
@@ -98,7 +95,7 @@ export default function (props: Props) {
       if (editingBaseName) {
         await Promise.all(
           data.map(d =>
-            MagmaV1API.putNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+            MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNamePut({
               ...d,
               baseName: editingBaseName,
             }),
@@ -106,13 +103,15 @@ export default function (props: Props) {
         );
       } else {
         await Promise.all(
-          data.map(d => MagmaV1API.postNetworksByNetworkIdPoliciesBaseNames(d)),
+          data.map(d =>
+            MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesPost(d),
+          ),
         );
       }
 
       props.onSave(baseName.name);
     } catch (e) {
-      enqueueSnackbar(e?.response?.data?.message || e, {variant: 'error'});
+      enqueueSnackbar(getErrorMessage(e), {variant: 'error'});
     }
   };
 
@@ -144,7 +143,10 @@ export default function (props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onCancel}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </DialogActions>
