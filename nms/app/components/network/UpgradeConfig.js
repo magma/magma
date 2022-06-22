@@ -38,6 +38,7 @@ import TableRow from '@material-ui/core/TableRow';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -49,7 +50,7 @@ import {makeStyles} from '@material-ui/styles';
 import {map, sortBy} from 'lodash';
 import {useEffect, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
   header: {
