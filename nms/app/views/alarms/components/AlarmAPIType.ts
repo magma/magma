@@ -188,7 +188,7 @@ export type AlertSuppression = {
 
 export type Labels = Record<string, string>;
 
-export type PrometheusLabelset = Record<string, string>;
+export type PrometheusLabelSet = Record<string, string>;
 
 export type AlertManagerGlobalConfig = {
   resolve_timeout: string;

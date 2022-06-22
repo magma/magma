@@ -23,6 +23,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../../api/useMagmaAPI';
 
 import MagmaAPI from '../../../api/MagmaAPI';
+import {PrometheusLabelSet} from '../alarms/components/AlarmAPIType';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
@@ -32,8 +33,6 @@ import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const TITLE = 'Metrics Explorer';
-
-export type PrometheusLabelset = Record<string, string>;
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
@@ -127,9 +126,9 @@ export default function MetricsExplorer() {
   }
 
   // filter only those metrics which are relevant to this network
-  const metricsMap: Record<string, PrometheusLabelset> = {};
+  const metricsMap: Record<string, PrometheusLabelSet> = {};
   if (metricSeries != null) {
-    metricSeries.forEach((labelSet: PrometheusLabelset) => {
+    metricSeries.forEach((labelSet: PrometheusLabelSet) => {
       metricsMap[labelSet['__name__']] = labelSet;
     });
   }
