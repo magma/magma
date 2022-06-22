@@ -32,6 +32,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 
 import * as React from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
 // $FlowFixMe migrated to typescript

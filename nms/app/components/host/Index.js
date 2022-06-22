@@ -15,6 +15,7 @@
  */
 
 import AccountSettings from '../AccountSettings';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
