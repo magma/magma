@@ -9,22 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SelectorMetrics from '../insights/SelectorMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from '../insights/Metrics';
 
 const APN_CONFIGS: Array<MetricGraphConfig> = [
   {
     label: 'Authorization',
     basicQueryConfigs: [],
-    filters: [],
     customQueryConfigs: [
       {
         resolveQuery: apn => `sum(eap_auth{apn="${apn}"}) by (code)`,
