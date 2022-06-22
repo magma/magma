@@ -9,36 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGateways from '../FEGGateways';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FEGGatewayContextProvider} from '../FEGContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
-import type {
-  federation_gateway,
-  federation_gateway_health_status,
-  federation_network_cluster_status,
-} from '../../../../generated/MagmaAPIBindings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import MagmaAPI from '../../../../api/MagmaAPI';
+import {mockAPI} from '../../../util/TestUtils';
+import type {FederationGateway} from '../../../../generated-ts';
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 jest.mock('../../../../app/hooks/useSnackbar');
 
-const mockGw0: federation_gateway = {
+const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',
   name: 'test_gateway0',
   description: 'hello I am a federated gateway',
@@ -52,7 +40,6 @@ const mockGw0: federation_gateway = {
     autoupgrade_poll_interval: 300,
     checkin_interval: 60,
     checkin_timeout: 100,
-    tier: 'tier2',
   },
   federation: {
     aaa_server: {},
@@ -88,7 +75,7 @@ const mockGw0: federation_gateway = {
   },
 };
 
-const mockGw1: federation_gateway = {
+const mockGw1: FederationGateway = {
   ...mockGw0,
   id: 'test_gw1',
   name: 'test_gateway1',
@@ -104,39 +91,13 @@ const fegGateways = {
   [mockGw1.id]: mockGw1,
 };
 
-const mockHealthyGatewayStatus: federation_gateway_health_status = {
-  description: '',
-  status: 'HEALTHY',
-};
-
-const mockUnhealthyGatewayStatus: federation_gateway_health_status = {
-  description: '',
-  status: 'UNHEALTHY',
-};
-
-const mockClusterStatus: federation_network_cluster_status = {
-  active_gateway: mockGw0.id,
-};
-
 describe('<FEGGatewaysTest />', () => {
   beforeEach(() => {
     // gateway context gets list of federation gateways
-    jest
-      .spyOn(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGet')
-      .mockResolvedValue({data: fegGateways});
-    // gateway context gets health status of the gateways
-    MagmaAPIBindings.getFegByNetworkIdGatewaysByGatewayIdHealthStatus.mockImplementation(
-      req => {
-        if (req.gatewayId == mockGw0.id) {
-          // only gateway 0 is healthy
-          return mockHealthyGatewayStatus;
-        }
-        return mockUnhealthyGatewayStatus;
-      },
-    );
-    // gateway context gets the active gateway id
-    MagmaAPIBindings.getFegByNetworkIdClusterStatus.mockResolvedValue(
-      mockClusterStatus,
+    mockAPI(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysGet',
+      fegGateways,
     );
   });
 
@@ -144,7 +105,7 @@ describe('<FEGGatewaysTest />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork/gateways']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <FEGGatewayContextProvider networkId="mynetwork" networkType="FEG">
+          <FEGGatewayContextProvider networkId="mynetwork" networkType="feg">
             <Routes>
               <Route
                 path="/nms/:networkId/gateways/"
@@ -159,7 +120,7 @@ describe('<FEGGatewaysTest />', () => {
   it('test gateway table rendered correctly', async () => {
     const {getAllByRole} = render(<Wrapper />);
     await wait();
-    const rowItems = await getAllByRole('row');
+    const rowItems = getAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
     expect(rowItems[0]).toHaveTextContent('Hardware UUID');
