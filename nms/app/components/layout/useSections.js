@@ -17,7 +17,8 @@
 import type {NetworkContextType} from '../context/NetworkContext';
 // $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
-import type {SectionsConfigs} from '../layout/Section';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {SectionsConfigs} from './Section';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
