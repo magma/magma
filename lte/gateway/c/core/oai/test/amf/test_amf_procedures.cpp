@@ -1749,6 +1749,7 @@ TEST_F(AMFAppProcedureTest, ServiceRequestMTWithPDU) {
                                         NGAP_PDUSESSION_RESOURCE_SETUP_REQ,
                                         NGAP_UE_CONTEXT_RELEASE_COMMAND,
                                         AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+                                        NGAP_NAS_DL_DATA_REQ,
                                         NGAP_INITIAL_CONTEXT_SETUP_REQ,
                                         NGAP_PDUSESSIONRESOURCE_REL_REQ,
                                         NGAP_NAS_DL_DATA_REQ,
