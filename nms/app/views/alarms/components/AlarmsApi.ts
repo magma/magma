@@ -18,7 +18,7 @@ import type {
   AlertReceiver,
   AlertRoutingTree,
   AlertSuppression,
-  PrometheusLabelset,
+  PrometheusLabelSet,
   TenancyConfig,
 } from './AlarmAPIType';
 import type {CancelToken} from 'axios';
@@ -98,7 +98,7 @@ export type ApiUtil = {
   getMetricNames: (req: ApiRequest) => Promise<{data: Array<string>}>;
   getMetricSeries: (
     req: {name: string} & ApiRequest,
-  ) => Promise<{data: Array<PrometheusLabelset>}>;
+  ) => Promise<{data: Array<PrometheusLabelSet>}>;
 
   //alertmanager global config
   getGlobalConfig: (
