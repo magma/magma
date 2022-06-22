@@ -18,6 +18,7 @@ import * as React from 'react';
 import AccountSettings from './AccountSettings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Admin from './admin/Admin';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from './layout/AppContent';
 import AppSideBar from './AppSideBar';
 import {Route, Routes} from 'react-router-dom';
