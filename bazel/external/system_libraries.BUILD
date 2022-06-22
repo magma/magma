@@ -96,6 +96,11 @@ cc_library(
 )
 
 cc_library(
+    name = "libglog",
+    srcs = ["usr/lib/x86_64-linux-gnu/libglog.so.0"],
+)
+
+cc_library(
     name = "libgnutls",
     srcs = ["usr/lib/libgnutls.so"],
     linkopts = ["-lgnutls"],

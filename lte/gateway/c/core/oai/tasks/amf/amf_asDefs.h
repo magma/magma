@@ -85,11 +85,13 @@ class amf_as_data_t {
 #define AMF_AS_NAS_AMF_INFORMATION 0x05             // Amf information
 #define AMF_AS_NAS_DATA_DEREGISTRATION_ACCEPT 0x06  // DEREGISTRATION Accept
 #define AMF_AS_NAS_DL_NAS_TRANSPORT 0x09            // Downlink Nas Transport
+#define AMF_AS_NAS_INFO_SR_REJ 0x07
   uint8_t nas_info;     // Type of NAS information to transfer
   std::string nas_msg;  // NAS message to be transferred
   void amf_as_set_security_data(amf_as_security_data_t* data,
                                 const void* context, bool is_new,
                                 bool is_ciphered);
+  uint8_t amf_cause;
 };
 
 // Structure to handle UL/DL NAS message in AMF

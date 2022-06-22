@@ -30,11 +30,11 @@ jobs:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
       - uses: actions/checkout@v2
-      - name: Cache Vagrant Boxes
+      - name: Cache magma dev
         uses: actions/cache@v3
         with:
-          path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-lte
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
+          key: vagrant-box-magma-dev
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:

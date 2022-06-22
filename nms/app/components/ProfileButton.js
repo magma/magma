@@ -107,6 +107,11 @@ const ProfileButton = (props: Props) => {
 
   const hasAdministration = user.isSuperUser && !isOrganizations;
   const hasDocumentation = isFeatureEnabled('documents_site');
+  const settingsPath = isOrganizations
+    ? '/host/settings'
+    : networkId === null
+    ? '/settings'
+    : 'settings';
 
   return (
     <Popout
@@ -128,7 +133,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
                 props.setMenuOpen(false);
-                navigate(networkId === null ? '/settings' : 'settings');
+                navigate(settingsPath);
               }}
               component="a">
               <Text className={classes.profileItemText}>Account Settings</Text>

@@ -25,8 +25,8 @@ cc_library(
     hdrs = ["GrpcMagmaUtils.hpp"],
     deps = [
         "//orc8r/gateway/c/common/logging",
-        "@com_github_google_glog//:glog",
         "@com_google_protobuf//:protobuf",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -89,8 +89,8 @@ cc_library(
         "//orc8r/gateway/c/common/config:service_config_loader",
         "//orc8r/gateway/c/common/logging",
         "//orc8r/protos:redis_cpp_proto",
-        "@com_github_google_glog//:glog",
         "@cpp_redis",
+        "@system_libraries//:libglog",
         "@yaml-cpp//:yaml-cpp",
     ],
 )
@@ -104,8 +104,8 @@ cc_library(
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
-        "@com_github_google_glog//:glog",
         "@system_libraries//:folly",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -119,8 +119,8 @@ cc_library(
         "//lte/protos:pipelined_cpp_grpc",
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/logging",
-        "@com_github_google_glog//:glog",
         "@system_libraries//:folly",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -133,7 +133,7 @@ cc_library(
         "//lte/protos:pipelined_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
-        "@com_github_google_glog//:glog",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -211,8 +211,8 @@ cc_library(
         ":metering_reporter",
         ":session_state",
         "//orc8r/gateway/c/common/logging",
-        "@com_github_google_glog//:glog",
         "@cpp_redis",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -273,7 +273,7 @@ cc_library(
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/logging",
         "//orc8r/gateway/c/common/service_registry",
-        "@com_github_google_glog//:glog",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -286,8 +286,8 @@ cc_library(
         "//lte/protos:session_manager_cpp_grpc",
         "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
         "//orc8r/gateway/c/common/service_registry",
-        "@com_github_google_glog//:glog",
         "@com_github_grpc_grpc//:grpc++",
+        "@system_libraries//:libglog",
     ],
 )
 

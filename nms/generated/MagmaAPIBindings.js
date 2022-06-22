@@ -53,7 +53,7 @@ export type alert_receiver_config = {
         ,
 };
 export type alert_routing_tree = {
-    continue ?: boolean,
+    continue ? : boolean,
     group_by ? : Array < string >
         ,
     group_interval ? : string,

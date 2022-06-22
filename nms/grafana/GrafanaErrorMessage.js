@@ -30,7 +30,7 @@ export default function GrafanaErrorMessage(props: {
       <p>
         An unrecoverable error was encountered while trying to load Grafana.
         Please contact your NMS administrator or open an issue on
-        <a href="https://github.com/facebookincubator/magma/issues"> github </a>
+        <a href="https://github.com/magma/magma/issues"> github </a>
         and include this error log.
       </p>
       <h3>Completed Tasks:</h3>

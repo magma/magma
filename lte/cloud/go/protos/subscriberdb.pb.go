@@ -2095,7 +2095,7 @@ var file_lte_protos_subscriberdb_proto_rawDesc = []byte{
 	0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x53, 0x75, 0x63, 0x69, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65,
 	0x4c, 0x69, 0x73, 0x74, 0x22, 0x00, 0x32, 0x86, 0x01, 0x0a, 0x13, 0x4d, 0x35, 0x47, 0x53, 0x55,
 	0x43, 0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x6f,
-	0x0a, 0x1e, 0x4d, 0x35, 0x47, 0x44, 0x65, 0x63, 0x72, 0x79, 0x70, 0x74, 0x49, 0x6d, 0x73, 0x69,
+	0x0a, 0x1e, 0x4d, 0x35, 0x47, 0x44, 0x65, 0x63, 0x72, 0x79, 0x70, 0x74, 0x4d, 0x73, 0x69, 0x6e,
 	0x53, 0x55, 0x43, 0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
 	0x12, 0x25, 0x2e, 0x6d, 0x61, 0x67, 0x6d, 0x61, 0x2e, 0x6c, 0x74, 0x65, 0x2e, 0x4d, 0x35, 0x47,
 	0x53, 0x55, 0x43, 0x49, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
@@ -2205,7 +2205,7 @@ var file_lte_protos_subscriberdb_proto_depIdxs = []int32{
 	27, // 39: magma.lte.SuciProfileDB.AddSuciProfile:input_type -> magma.lte.SuciProfile
 	27, // 40: magma.lte.SuciProfileDB.DeleteSuciProfile:input_type -> magma.lte.SuciProfile
 	38, // 41: magma.lte.SuciProfileDB.ListSuciProfile:input_type -> magma.orc8r.Void
-	28, // 42: magma.lte.M5GSUCIRegistration.M5GDecryptImsiSUCIRegistration:input_type -> magma.lte.M5GSUCIRegistrationRequest
+	28, // 42: magma.lte.M5GSUCIRegistration.M5GDecryptMsinSUCIRegistration:input_type -> magma.lte.M5GSUCIRegistrationRequest
 	38, // 43: magma.lte.SubscriberDB.AddSubscriber:output_type -> magma.orc8r.Void
 	38, // 44: magma.lte.SubscriberDB.DeleteSubscriber:output_type -> magma.orc8r.Void
 	38, // 45: magma.lte.SubscriberDB.UpdateSubscriber:output_type -> magma.orc8r.Void
@@ -2218,7 +2218,7 @@ var file_lte_protos_subscriberdb_proto_depIdxs = []int32{
 	38, // 52: magma.lte.SuciProfileDB.AddSuciProfile:output_type -> magma.orc8r.Void
 	38, // 53: magma.lte.SuciProfileDB.DeleteSuciProfile:output_type -> magma.orc8r.Void
 	12, // 54: magma.lte.SuciProfileDB.ListSuciProfile:output_type -> magma.lte.SuciProfileList
-	29, // 55: magma.lte.M5GSUCIRegistration.M5GDecryptImsiSUCIRegistration:output_type -> magma.lte.M5GSUCIRegistrationAnswer
+	29, // 55: magma.lte.M5GSUCIRegistration.M5GDecryptMsinSUCIRegistration:output_type -> magma.lte.M5GSUCIRegistrationAnswer
 	43, // [43:56] is the sub-list for method output_type
 	30, // [30:43] is the sub-list for method input_type
 	30, // [30:30] is the sub-list for extension type_name
@@ -3097,7 +3097,7 @@ var _SuciProfileDB_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type M5GSUCIRegistrationClient interface {
-	M5GDecryptImsiSUCIRegistration(ctx context.Context, in *M5GSUCIRegistrationRequest, opts ...grpc.CallOption) (*M5GSUCIRegistrationAnswer, error)
+	M5GDecryptMsinSUCIRegistration(ctx context.Context, in *M5GSUCIRegistrationRequest, opts ...grpc.CallOption) (*M5GSUCIRegistrationAnswer, error)
 }
 
 type m5GSUCIRegistrationClient struct {
@@ -3108,9 +3108,9 @@ func NewM5GSUCIRegistrationClient(cc grpc.ClientConnInterface) M5GSUCIRegistrati
 	return &m5GSUCIRegistrationClient{cc}
 }
 
-func (c *m5GSUCIRegistrationClient) M5GDecryptImsiSUCIRegistration(ctx context.Context, in *M5GSUCIRegistrationRequest, opts ...grpc.CallOption) (*M5GSUCIRegistrationAnswer, error) {
+func (c *m5GSUCIRegistrationClient) M5GDecryptMsinSUCIRegistration(ctx context.Context, in *M5GSUCIRegistrationRequest, opts ...grpc.CallOption) (*M5GSUCIRegistrationAnswer, error) {
 	out := new(M5GSUCIRegistrationAnswer)
-	err := c.cc.Invoke(ctx, "/magma.lte.M5GSUCIRegistration/M5GDecryptImsiSUCIRegistration", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.lte.M5GSUCIRegistration/M5GDecryptMsinSUCIRegistration", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3119,35 +3119,35 @@ func (c *m5GSUCIRegistrationClient) M5GDecryptImsiSUCIRegistration(ctx context.C
 
 // M5GSUCIRegistrationServer is the server API for M5GSUCIRegistration service.
 type M5GSUCIRegistrationServer interface {
-	M5GDecryptImsiSUCIRegistration(context.Context, *M5GSUCIRegistrationRequest) (*M5GSUCIRegistrationAnswer, error)
+	M5GDecryptMsinSUCIRegistration(context.Context, *M5GSUCIRegistrationRequest) (*M5GSUCIRegistrationAnswer, error)
 }
 
 // UnimplementedM5GSUCIRegistrationServer can be embedded to have forward compatible implementations.
 type UnimplementedM5GSUCIRegistrationServer struct {
 }
 
-func (*UnimplementedM5GSUCIRegistrationServer) M5GDecryptImsiSUCIRegistration(context.Context, *M5GSUCIRegistrationRequest) (*M5GSUCIRegistrationAnswer, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method M5GDecryptImsiSUCIRegistration not implemented")
+func (*UnimplementedM5GSUCIRegistrationServer) M5GDecryptMsinSUCIRegistration(context.Context, *M5GSUCIRegistrationRequest) (*M5GSUCIRegistrationAnswer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method M5GDecryptMsinSUCIRegistration not implemented")
 }
 
 func RegisterM5GSUCIRegistrationServer(s *grpc.Server, srv M5GSUCIRegistrationServer) {
 	s.RegisterService(&_M5GSUCIRegistration_serviceDesc, srv)
 }
 
-func _M5GSUCIRegistration_M5GDecryptImsiSUCIRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _M5GSUCIRegistration_M5GDecryptMsinSUCIRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(M5GSUCIRegistrationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(M5GSUCIRegistrationServer).M5GDecryptImsiSUCIRegistration(ctx, in)
+		return srv.(M5GSUCIRegistrationServer).M5GDecryptMsinSUCIRegistration(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.lte.M5GSUCIRegistration/M5GDecryptImsiSUCIRegistration",
+		FullMethod: "/magma.lte.M5GSUCIRegistration/M5GDecryptMsinSUCIRegistration",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(M5GSUCIRegistrationServer).M5GDecryptImsiSUCIRegistration(ctx, req.(*M5GSUCIRegistrationRequest))
+		return srv.(M5GSUCIRegistrationServer).M5GDecryptMsinSUCIRegistration(ctx, req.(*M5GSUCIRegistrationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3157,8 +3157,8 @@ var _M5GSUCIRegistration_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*M5GSUCIRegistrationServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "M5GDecryptImsiSUCIRegistration",
-			Handler:    _M5GSUCIRegistration_M5GDecryptImsiSUCIRegistration_Handler,
+			MethodName: "M5GDecryptMsinSUCIRegistration",
+			Handler:    _M5GSUCIRegistration_M5GDecryptMsinSUCIRegistration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

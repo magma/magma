@@ -20,6 +20,10 @@
     name: "{{ packages }}"
     state: latest
     update_cache: yes
+  register: result
+  until: result is not failed
+  retries: 7
+  delay: 9
   vars:
     packages:
       - ca-certificates
