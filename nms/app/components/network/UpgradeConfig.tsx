@@ -9,25 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import type {MagmadGateway, Tier} from '../../../generated-ts';
 import type {WithAlert} from '../Alert/withAlert';
-import type {magmad_gateway, tier} from '../../../generated/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -35,22 +28,18 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeStatusTierID from './UpgradeStatusTierID';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import withAlert from '../Alert/withAlert';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../../../shared/util/nullthrows';
+import withAlert from '../Alert/withAlert';
+import {GatewayId} from '../../../shared/types/network';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {map, sortBy} from 'lodash';
 import {useEffect, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
@@ -60,8 +49,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 const UpgradeTiersTable = (props: {
-  onTierDeleteClick: (tierId: string) => void,
-  tableData: Array<tier>,
+  onTierDeleteClick: (tierId: string) => void;
+  tableData: Array<Tier>;
 }) => {
   return (
     <Table>
@@ -96,7 +85,7 @@ const UpgradeTiersTable = (props: {
   );
 };
 
-const SupportedVersionsTable = (props: {supportedVersions: string[]}) => {
+const SupportedVersionsTable = (props: {supportedVersions: Array<string>}) => {
   return (
     <Table>
       <TableBody>
@@ -116,9 +105,9 @@ const SupportedVersionsTable = (props: {supportedVersions: string[]}) => {
 };
 
 const GatewayUpgradeStatusTable = (props: {
-  tableData: {[string]: magmad_gateway},
-  networkUpgradeTiers: ?(tier[]),
-  onUpgradeTierChange: (gatewayID: string, tierID: string) => Promise<void>,
+  tableData: Record<string, MagmadGateway>;
+  networkUpgradeTiers: Array<Tier> | null | undefined;
+  onUpgradeTierChange: (gatewayID: string, tierID: string) => Promise<void>;
 }) => {
   const {networkUpgradeTiers, onUpgradeTierChange, tableData} = props;
   const sortedTableData = sortBy(
@@ -126,7 +115,7 @@ const GatewayUpgradeStatusTable = (props: {
     row => row.name.toLowerCase(),
   );
 
-  const getGatewayVersionString = (gateway): string => {
+  const getGatewayVersionString = (gateway: MagmadGateway): string => {
     const packages = gateway.status?.platform_info?.packages || [];
     return packages.find(p => p.name === 'magma')?.version || 'Not Reported';
   };
@@ -163,8 +152,8 @@ const GatewayUpgradeStatusTable = (props: {
 };
 
 function EditDialog(props: {
-  networkUpgradeTiers?: Array<tier>,
-  setLastFetchTime: (time: number) => void,
+  networkUpgradeTiers?: Array<Tier>;
+  setLastFetchTime: (time: number) => void;
 }) {
   const navigate = useNavigate();
   const params = useParams();
@@ -185,21 +174,24 @@ function EditDialog(props: {
 
 async function fetchAllNetworkUpgradeTiers(
   networkId: string,
-): Promise<Array<tier>> {
-  const tiers = await MagmaV1API.getNetworksByNetworkIdTiers({networkId});
+): Promise<Array<Tier>> {
+  const tiers = (await MagmaAPI.upgrades.networksNetworkIdTiersGet({networkId}))
+    .data;
   const requests = tiers.map(tierId =>
-    MagmaV1API.getNetworksByNetworkIdTiersByTierId({networkId, tierId}),
+    MagmaAPI.upgrades
+      .networksNetworkIdTiersTierIdGet({networkId, tierId})
+      .then(({data}) => data),
   );
   return await Promise.all(requests);
 }
 
-function UpgradeConfig(props: WithAlert & {}) {
+function UpgradeConfig(props: WithAlert) {
   const classes = useStyles();
   const navigate = useNavigate();
   const params = useParams();
-  const [gateways, setGateways] = useState();
-  const [networkUpgradeTiers, setNetworkUpgradeTiers] = useState();
-  const [supportedVersions, setSupportedVersions] = useState();
+  const [gateways, setGateways] = useState<Record<string, MagmadGateway>>();
+  const [networkUpgradeTiers, setNetworkUpgradeTiers] = useState<Array<Tier>>();
+  const [supportedVersions, setSupportedVersions] = useState<Array<string>>();
   const [saving, setSaving] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -210,10 +202,10 @@ function UpgradeConfig(props: WithAlert & {}) {
       let supportedVersions;
       try {
         supportedVersions = (
-          await MagmaV1API.getChannelsByChannelId({
+          await MagmaAPI.upgrades.channelsChannelIdGet({
             channelId: 'stable',
           })
-        ).supported_versions;
+        ).data.supported_versions;
       } catch (e) {
         enqueueSnackbar('Unable to fetch stable releases', {variant: 'error'});
       }
@@ -223,15 +215,17 @@ function UpgradeConfig(props: WithAlert & {}) {
     async function fetchAllData() {
       const [networkUpgradeTiers, response] = await Promise.all([
         fetchAllNetworkUpgradeTiers(networkId),
-        MagmaV1API.getNetworksByNetworkIdGateways({networkId}),
+        MagmaAPI.gateways.networksNetworkIdGatewaysGet({networkId}),
         fetchStableReleases(),
       ]);
 
-      setGateways(response.gateways);
+      setGateways(response.data.gateways);
       setNetworkUpgradeTiers(networkUpgradeTiers);
     }
 
-    fetchAllData().catch(e => enqueueSnackbar(e, {variant: 'error'}));
+    fetchAllData().catch(e =>
+      enqueueSnackbar(getErrorMessage(e), {variant: 'error'}),
+    );
   }, [
     networkId,
     setGateways,
@@ -246,37 +240,41 @@ function UpgradeConfig(props: WithAlert & {}) {
   }
 
   const handleUpgradeTierDelete = (tierId: string) => {
-    props
+    void props
       .confirm(`Are you sure you want to delete the tier ${tierId}?`)
       .then(confirmed => {
         if (!confirmed) {
           return;
         }
-        MagmaV1API.deleteNetworksByNetworkIdTiersByTierId({
-          networkId,
-          tierId,
-        })
+        void MagmaAPI.upgrades
+          .networksNetworkIdTiersTierIdDelete({
+            networkId,
+            tierId,
+          })
           .then(() => setLastFetchTime(Date.now()))
-          .catch(e => enqueueSnackbar(e, {variant: 'error'}));
+          .catch(e => enqueueSnackbar(getErrorMessage(e), {variant: 'error'}));
       });
   };
 
-  const handleGatewayUpgradeTierChange = async (gatewayID, newTierID) => {
+  const handleGatewayUpgradeTierChange = async (
+    gatewayID: GatewayId,
+    newTierID: string,
+  ) => {
     setSaving(true);
     try {
-      await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdTier({
+      await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdTierPut({
         networkId,
         gatewayId: gatewayID,
         tierId: JSON.stringify(`"${newTierID}"`),
       });
-      const paginated_gateways = await MagmaV1API.getNetworksByNetworkIdGateways(
-        {
+      const paginated_gateways = (
+        await MagmaAPI.gateways.networksNetworkIdGatewaysGet({
           networkId,
-        },
-      );
+        })
+      ).data;
       setGateways(paginated_gateways.gateways);
     } catch (error) {
-      enqueueSnackbar(error.response?.data?.message || error, {
+      enqueueSnackbar(getErrorMessage(error), {
         variant: 'error',
       });
     }
