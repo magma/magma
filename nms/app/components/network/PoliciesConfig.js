@@ -31,6 +31,7 @@ import MagmaV1API from '../../../generated/WebClient';
 import NestedRouteLink from '../NestedRouteLink';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyBaseNameDialog from './PolicyBaseNameDialog';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';
 import React from 'react';
 import Table from '@material-ui/core/Table';

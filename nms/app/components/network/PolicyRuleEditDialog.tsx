@@ -9,17 +9,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
-import type {
-  policy_qos_profile,
-  policy_rule,
-} from '../../../generated/MagmaAPIBindings';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Button from '@material-ui/core/Button';
@@ -30,26 +22,26 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
-import MagmaV1API from '../../../generated/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
-// $FlowFixMe migrated to typescript
+import MagmaAPI from '../../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe migrated to typescript
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
-// $FlowFixMe migrated to typescript
 import {CWF, FEG, LTE} from '../../../shared/types/network';
-// $FlowFixMe[cannot-resolve-module]
+import {
+  FlowDescription,
+  LTENetworksApiLteNetworkIdSubscriberConfigRuleNamesRuleIdDeleteRequest,
+  LTENetworksApiLteNetworkIdSubscriberConfigRuleNamesRuleIdPostRequest,
+  PolicyQosProfile,
+  PolicyRule,
+} from '../../../generated-ts';
 import {base64ToHex, decodeBase64} from '../../util/strings';
-// $FlowFixMe migrated to typescript
 import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
@@ -60,22 +52,24 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  onCancel: () => void,
-  onSave: string => void,
-  qosProfiles: {[string]: policy_qos_profile},
-  rule?: policy_rule,
-  mirrorNetwork?: string,
+  onCancel: () => void;
+  qosProfiles: Record<string, PolicyQosProfile>;
+  rule?: PolicyRule;
+  mirrorNetwork?: string;
 };
 
 export default function PolicyRuleEditDialog(props: Props) {
   const classes = useStyles();
-  const {networkId} = useParams();
+  const networkId = useParams().networkId!;
   const {qosProfiles, mirrorNetwork} = props;
-  const [networkType, setNetworkType] = useState<?NetworkType>(null);
-  const [mirrorNetworkType, setMirrorNetworkType] = useState<?NetworkType>(
-    null,
-  );
-  const [networkWideRuleIDs, setNetworkWideRuldIDs] = useState(null);
+  const [networkType, setNetworkType] = useState<NetworkType | null>(null);
+  const [
+    mirrorNetworkType,
+    setMirrorNetworkType,
+  ] = useState<NetworkType | null>(null);
+  const [networkWideRuleIDs, setNetworkWideRuldIDs] = useState<Array<
+    string
+  > | null>(null);
   const [isNetworkWide, setIsNetworkWide] = useState<boolean>(false);
 
   const [rule, setRule] = useState(
@@ -103,21 +97,27 @@ export default function PolicyRuleEditDialog(props: Props) {
   useEffect(() => {
     switch (networkType) {
       case LTE:
-        MagmaV1API.getLteByNetworkIdSubscriberConfigRuleNames({
-          networkId: networkId,
-        }).then(ruleIDs => setNetworkWideRuldIDs(ruleIDs));
+        void MagmaAPI.lteNetworks
+          .lteNetworkIdSubscriberConfigRuleNamesGet({
+            networkId: networkId,
+          })
+          .then(({data: ruleIDs}) => setNetworkWideRuldIDs(ruleIDs));
         break;
       case CWF:
-        MagmaV1API.getCwfByNetworkIdSubscriberConfigRuleNames({
-          networkId: networkId,
-        }).then(ruleIDs => {
-          setNetworkWideRuldIDs(ruleIDs);
-        });
+        void MagmaAPI.carrierWifiNetworks
+          .cwfNetworkIdSubscriberConfigRuleNamesGet({
+            networkId: networkId,
+          })
+          .then(({data: ruleIDs}) => {
+            setNetworkWideRuldIDs(ruleIDs);
+          });
         break;
       case FEG:
-        MagmaV1API.getFegByNetworkIdSubscriberConfigRuleNames({
-          networkId: networkId,
-        }).then(ruleIDs => setNetworkWideRuldIDs(ruleIDs));
+        void MagmaAPI.federationNetworks
+          .fegNetworkIdSubscriberConfigRuleNamesGet({
+            networkId: networkId,
+          })
+          .then(({data: ruleIDs}) => setNetworkWideRuldIDs(ruleIDs));
         break;
     }
   }, [networkId, networkType]);
@@ -125,7 +125,9 @@ export default function PolicyRuleEditDialog(props: Props) {
   // The rule is network-wide if the rule's ID exists in network-wide rule IDs
   useEffect(() => {
     networkWideRuleIDs
-      ? setIsNetworkWide(networkWideRuleIDs.includes(props.rule?.id))
+      ? setIsNetworkWide(
+          !!props.rule && networkWideRuleIDs.includes(props.rule.id),
+        )
       : false;
   }, [networkWideRuleIDs, props.rule]);
 
@@ -144,7 +146,7 @@ export default function PolicyRuleEditDialog(props: Props) {
     setRule({...rule, flow_list: flowList});
   };
 
-  const onFlowChange = (index, flow) => {
+  const onFlowChange = (index: number, flow: FlowDescription) => {
     const flowList = [...(rule.flow_list || [])];
     flowList[index] = flow;
     setRule({...rule, flow_list: flowList});
@@ -176,12 +178,14 @@ export default function PolicyRuleEditDialog(props: Props) {
     if (props.rule) {
       await Promise.all(
         ruleData.map(d =>
-          MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId(d),
+          MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut(d),
         ),
       );
     } else {
       await Promise.all(
-        ruleData.map(d => MagmaV1API.postNetworksByNetworkIdPoliciesRules(d)),
+        ruleData.map(d =>
+          MagmaAPI.policies.networksNetworkIdPoliciesRulesPost(d),
+        ),
       );
     }
 
@@ -190,16 +194,16 @@ export default function PolicyRuleEditDialog(props: Props) {
       ruleId: rule.id,
     };
     if (isNetworkWide) {
-      await postNetworkWideRuleID(networkWideRuleData, networkType);
+      await postNetworkWideRuleID(networkWideRuleData, networkType!);
       if (mirrorNetwork != null) {
         networkWideRuleData.networkId = mirrorNetwork;
-        await postNetworkWideRuleID(networkWideRuleData, mirrorNetworkType);
+        await postNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
       }
     } else {
-      await deleteNetworkWideRuleID(networkWideRuleData, networkType);
+      await deleteNetworkWideRuleID(networkWideRuleData, networkType!);
       if (mirrorNetwork != null) {
         networkWideRuleData.networkId = mirrorNetwork;
-        await deleteNetworkWideRuleID(networkWideRuleData, mirrorNetworkType);
+        await deleteNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
       }
     }
   };
@@ -352,7 +356,7 @@ export default function PolicyRuleEditDialog(props: Props) {
             className={classes.input}
             value={rule?.qos_profile ?? ''}
             onChange={({target}) =>
-              setRule({...rule, qos_profile: target.value})
+              setRule({...rule, qos_profile: target.value as string})
             }>
             {Object.keys(qosProfiles).map(profileID => (
               <MenuItem key={profileID} value={profileID}>
@@ -379,7 +383,10 @@ export default function PolicyRuleEditDialog(props: Props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onCancel}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
           Save
         </Button>
       </DialogActions>
@@ -387,40 +394,46 @@ export default function PolicyRuleEditDialog(props: Props) {
   );
 }
 
-async function postNetworkWideRuleID(networkWideRuleData, networkType) {
+async function postNetworkWideRuleID(
+  networkWideRuleData: LTENetworksApiLteNetworkIdSubscriberConfigRuleNamesRuleIdPostRequest,
+  networkType: NetworkType,
+) {
   switch (networkType) {
     case LTE:
-      MagmaV1API.postLteByNetworkIdSubscriberConfigRuleNamesByRuleId(
+      await MagmaAPI.lteNetworks.lteNetworkIdSubscriberConfigRuleNamesRuleIdPost(
         networkWideRuleData,
       );
       break;
     case CWF:
-      MagmaV1API.postCwfByNetworkIdSubscriberConfigRuleNamesByRuleId(
+      await MagmaAPI.carrierWifiNetworks.cwfNetworkIdSubscriberConfigRuleNamesRuleIdPost(
         networkWideRuleData,
       );
       break;
     case FEG:
-      MagmaV1API.postFegByNetworkIdSubscriberConfigRuleNamesByRuleId(
+      await MagmaAPI.federationNetworks.fegNetworkIdSubscriberConfigRuleNamesRuleIdPost(
         networkWideRuleData,
       );
       break;
   }
 }
 
-async function deleteNetworkWideRuleID(networkWideRuleData, networkType) {
+async function deleteNetworkWideRuleID(
+  networkWideRuleData: LTENetworksApiLteNetworkIdSubscriberConfigRuleNamesRuleIdDeleteRequest,
+  networkType: NetworkType,
+) {
   switch (networkType) {
     case LTE:
-      MagmaV1API.deleteLteByNetworkIdSubscriberConfigRuleNamesByRuleId(
+      await MagmaAPI.lteNetworks.lteNetworkIdSubscriberConfigRuleNamesRuleIdDelete(
         networkWideRuleData,
       );
       break;
     case CWF:
-      MagmaV1API.deleteCwfByNetworkIdSubscriberConfigRuleNamesByRuleId(
+      await MagmaAPI.carrierWifiNetworks.cwfNetworkIdSubscriberConfigRuleNamesRuleIdDelete(
         networkWideRuleData,
       );
       break;
     case FEG:
-      MagmaV1API.deleteFegByNetworkIdSubscriberConfigRuleNamesByRuleId(
+      await MagmaAPI.federationNetworks.fegNetworkIdSubscriberConfigRuleNamesRuleIdDelete(
         networkWideRuleData,
       );
       break;
@@ -428,12 +441,14 @@ async function deleteNetworkWideRuleID(networkWideRuleData, networkType) {
 }
 
 function getNetworkType(
-  networkId: ?string,
-  setNetworkType: (?NetworkType) => void,
+  networkId: string | null | undefined,
+  setNetworkType: (networkType: NetworkType | null) => void,
 ) {
-  if (networkId != null) {
-    MagmaV1API.getNetworksByNetworkIdType({networkId}).then(networkType =>
-      setNetworkType(coalesceNetworkType(networkId, networkType)),
-    );
+  if (networkId) {
+    void MagmaAPI.networks
+      .networksNetworkIdTypeGet({networkId})
+      .then(({data: networkType}) =>
+        setNetworkType(coalesceNetworkType(networkId, networkType)),
+      );
   }
 }
