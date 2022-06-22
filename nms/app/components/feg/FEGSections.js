@@ -26,6 +26,7 @@ import FEGConfigure from './FEGConfigure';
 import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGEquipmentDashboard from '../../views/equipment/FEGEquipmentDashboard';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
