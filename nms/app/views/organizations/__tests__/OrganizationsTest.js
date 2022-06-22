@@ -16,6 +16,7 @@
 
 import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Organizations from '../Organizations';
 import axios from 'axios';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
