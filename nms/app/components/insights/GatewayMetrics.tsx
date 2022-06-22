@@ -9,38 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from './Metrics';
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Metrics from './Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useSnackbar} from '../../hooks';
 
-export default function (props: {configs: MetricGraphConfig[]}) {
+export default function (props: {configs: Array<MetricGraphConfig>}) {
   const navigate = useNavigate();
   const params = useParams();
 
   const {error, isLoading, response: selectors} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdGateways,
+    MagmaAPI.gateways.networksNetworkIdGatewaysGet,
     {
-      networkId: params.networkId,
+      networkId: params.networkId!,
     },
   );
 
-  useSnackbar('Error fetching devices', {variant: 'error'}, error);
+  useSnackbar('Error fetching devices', {variant: 'error'}, !!error);
 
   if (error || isLoading || !selectors) {
     return <LoadingFiller />;

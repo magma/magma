@@ -9,35 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {MetricGraphConfig} from './Metrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {TimeRange} from './AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AsyncMetric from './AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TimeRangeSelector from '../insights/TimeRangeSelector';
 
+import {Theme} from '@material-ui/core/styles';
 import {makeStyles} from '@material-ui/styles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {resolveQuery} from './Metrics';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   formControl: {
     minWidth: '200px',
     padding: theme.spacing(),
@@ -65,9 +57,7 @@ export default function (props: {configs: Array<MetricGraphConfig>}) {
           <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
-                <Text component="h6" variant="h6">
-                  {config.label}
-                </Text>
+                <Text variant="h6">{config.label}</Text>
                 <div style={{height: 250}}>
                   <AsyncMetric
                     label={config.label}

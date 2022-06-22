@@ -22,6 +22,7 @@ import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Explorer from '../../views/metrics/Explorer';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayMetrics from '../insights/GatewayMetrics';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Grafana from '../Grafana';
