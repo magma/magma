@@ -71,9 +71,7 @@ export default function EditSubscriberTrafficPolicy(
               onChange={({target}) => {
                 props.onSubscriberChange('active_apns', target.value as string);
               }}
-              renderValue={(selected: unknown) =>
-                (selected as Array<string>).join(', ')
-              }
+              renderValue={selected => (selected as Array<string>).join(', ')}
               input={<OutlinedInput />}>
               {apns.map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
@@ -102,9 +100,7 @@ export default function EditSubscriberTrafficPolicy(
                   target.value as string,
                 );
               }}
-              renderValue={(selected: unknown) =>
-                (selected as Array<string>).join(', ')
-              }
+              renderValue={selected => (selected as Array<string>).join(', ')}
               input={<OutlinedInput />}>
               {(baseNames || []).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
@@ -134,9 +130,7 @@ export default function EditSubscriberTrafficPolicy(
                   target.value as string,
                 );
               }}
-              renderValue={(selected: unknown) =>
-                (selected as Array<string>).join(', ')
-              }
+              renderValue={selected => (selected as Array<string>).join(', ')}
               input={<OutlinedInput />}>
               {Object.keys(policyCtx.state).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
