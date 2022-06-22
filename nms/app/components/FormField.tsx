@@ -174,6 +174,8 @@ type PasswordProps = {
   onChange: (onChange: string) => void;
   placeholder?: string;
   value: string;
+  required?: boolean;
+  autoComplete?: string;
 };
 
 export function FormDivider() {

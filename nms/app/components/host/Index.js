@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AccountSettings from '../AccountSettings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
