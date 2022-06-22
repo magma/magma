@@ -21,7 +21,7 @@ import MagmaAPI from '../../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {Subscriber} from '../../../../generated-ts';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
 
@@ -125,32 +125,34 @@ describe('<SubscriberDashboard />', () => {
 
   it('Verify Subscribers Dashboard', async () => {
     const {getAllByTitle, getAllByRole, getByTestId} = render(<Wrapper />);
-    await wait();
-    const rowItems = getAllByRole('row');
 
-    // first row is the header
-    expect(rowItems[0]).toHaveTextContent('Name');
-    expect(rowItems[0]).toHaveTextContent('IMSI');
-    expect(rowItems[0]).toHaveTextContent('Service');
-    expect(rowItems[0]).toHaveTextContent('Current Usage');
-    expect(rowItems[0]).toHaveTextContent('Daily Average');
-    expect(rowItems[0]).toHaveTextContent('Last Reported Time');
+    await waitFor(() => {
+      const rowItems = getAllByRole('row');
+      // first row is the header
+      expect(rowItems[0]).toHaveTextContent('Name');
+      expect(rowItems[0]).toHaveTextContent('IMSI');
+      expect(rowItems[0]).toHaveTextContent('Service');
+      expect(rowItems[0]).toHaveTextContent('Current Usage');
+      expect(rowItems[0]).toHaveTextContent('Daily Average');
+      expect(rowItems[0]).toHaveTextContent('Last Reported Time');
 
-    expect(rowItems[1]).toHaveTextContent('subscriber0');
-    expect(rowItems[1]).toHaveTextContent('IMSI0000000000');
-    expect(rowItems[1]).toHaveTextContent('ACTIVE');
-    expect(rowItems[1]).toHaveTextContent('0');
+      expect(rowItems[1]).toHaveTextContent('subscriber0');
+      expect(rowItems[1]).toHaveTextContent('IMSI0000000000');
+      expect(rowItems[1]).toHaveTextContent('ACTIVE');
+      expect(rowItems[1]).toHaveTextContent('0');
 
-    expect(rowItems[2]).toHaveTextContent('subscriber1');
-    expect(rowItems[2]).toHaveTextContent('IMSI0000000001');
-    expect(rowItems[2]).toHaveTextContent('INACTIVE');
-    expect(rowItems[2]).toHaveTextContent('0');
+      expect(rowItems[2]).toHaveTextContent('subscriber1');
+      expect(rowItems[2]).toHaveTextContent('IMSI0000000001');
+      expect(rowItems[2]).toHaveTextContent('INACTIVE');
+      expect(rowItems[2]).toHaveTextContent('0');
+    });
 
     // click the actions button for subscriber0
     const actionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(actionList[0]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+    await waitFor(() => {
+      expect(getByTestId('actions-menu')).toBeVisible();
+    });
   });
 });

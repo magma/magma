@@ -22,6 +22,7 @@ import type {cwf_ha_pair} from '../../../generated/MagmaAPIBindings';
 // $FlowFixMe migrated to typescript
 import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@material-ui/core/Button';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
