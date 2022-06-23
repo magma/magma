@@ -9,35 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AccountSettings from '../AccountSettings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppSideBar from '../AppSideBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CloudMetrics from '../../views/metrics/CloudMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Features from '../../views/features/Features';
 import FlagIcon from '@material-ui/icons/Flag';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationEdit from '../../views/organizations/OrganizationEdit';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Organizations from '../../views/organizations/Organizations';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UsersSettings from '../UsersSettings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../context/AppContext';
 import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
