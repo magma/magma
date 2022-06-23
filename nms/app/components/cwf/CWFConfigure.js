@@ -19,6 +19,7 @@ import Configure from '../network/Configure';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import MagmaV1API from '../../../generated/WebClient';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
