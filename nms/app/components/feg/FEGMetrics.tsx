@@ -9,27 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
 import Grid from '@material-ui/core/Grid';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteMetrics from '../lte/LteMetrics';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../../theme/design-system/Text';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },

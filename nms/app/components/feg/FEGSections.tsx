@@ -9,28 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGConfigure from './FEGConfigure';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGEquipmentDashboard from '../../views/equipment/FEGEquipmentDashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import FEGNetworkDashboard from '../../views/network/FEGNetworkDashboard';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import React from 'react';
