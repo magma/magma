@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
+      ANSIBLE_HOST_KEY_CHECKING: "False"
       CODE_DIR: "${{ github.workspace }}/experimental/cloudstrapper"
       VARS_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks/roles/vars"
       WORK_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks"
