@@ -191,7 +191,6 @@ export function NetworkFederationEdit(props: EditProps) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
-  //const networkCtx = useContext(NetworkContext);
   const [config, setConfig] = useState<federated_network_configs>(
     props.config == null || Object.keys(props.config).length === 0
       ? {

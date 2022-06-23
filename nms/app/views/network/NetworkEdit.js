@@ -60,14 +60,22 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
-const EditTableType = {
+const LTE_TABS = {
   info: 0,
+  feg: -1,
   epc: 1,
   ran: 2,
 };
 
+const FEG_TABS = {
+  info: 0,
+  feg: 1,
+  epc: 2,
+  ran: 3,
+};
+
 type EditProps = {
-  editTable: $Keys<typeof EditTableType>,
+  editTable: $Keys<typeof LTE_TABS> & $Keys<typeof FEG_TABS>,
 };
 
 type DialogProps = {
@@ -131,18 +139,30 @@ export function NetworkEditDialog(props: DialogProps) {
   const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
   const lteRanConfigs = editProps ? ctx.state.cellular?.ran : undefined;
 
-  const [tabPos, setTabPos] = React.useState(
-    editProps ? EditTableType[editProps.editTable] : 0,
-  );
+  const [tabPos, setTabPos] = React.useState(0);
 
   useEffect(() => {
-    setLteNetwork(editProps ? ctx.state : {});
-    setEpcConfigs(editProps ? ctx.state.cellular?.epc ?? {} : {});
+    if (editProps) {
+      const network = ctx.state;
+      setLteNetwork(network);
+      setEpcConfigs(network.cellular?.epc ?? {});
+      setTabPos(
+        network.federation
+          ? FEG_TABS[editProps.editTable]
+          : LTE_TABS[editProps.editTable],
+      );
+    } else {
+      setLteNetwork({});
+      setEpcConfigs({});
+      setTabPos(0);
+    }
   }, [open, editProps, ctx.state]);
 
   const onClose = () => {
     props.onClose();
   };
+  const isFegLet = !!lteNetwork.federation;
+  const tabs = isFegLet ? FEG_TABS : LTE_TABS;
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="md">
@@ -155,34 +175,29 @@ export function NetworkEditDialog(props: DialogProps) {
         onChange={(_, v) => setTabPos(v)}
         indicatorColor="primary"
         className={classes.tabBar}>
-        <Tab key="network" data-testid="networkTab" label={NETWORK_TITLE} />;
-        {lteNetwork.federation ? (
+        <Tab key="network" data-testid="networkTab" label={NETWORK_TITLE} />
+        {isFegLet && (
           <Tab
             key="federation"
             data-testid="federationTab"
             disabled={editProps ? false : true}
             label={FEDERATION_TITLE}
           />
-        ) : (
-          <div />
         )}
-        ;
         <Tab
           key="epc"
           data-testid="epcTab"
           disabled={editProps ? false : true}
           label={EPC_TITLE}
         />
-        ;
         <Tab
           key="ran"
           data-testid="ranTab"
           disabled={editProps ? false : true}
           label={RAN_TITLE}
         />
-        ;
       </Tabs>
-      {tabPos === 0 && (
+      {tabPos === tabs.info && (
         <NetworkInfoEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           lteNetwork={lteNetwork}
@@ -192,13 +207,12 @@ export function NetworkEditDialog(props: DialogProps) {
             if (editProps) {
               onClose();
             } else {
-              // $FlowIgnore: Check for null or undefined
-              setTabPos(lteNetwork.federation ? tabPos + 2 : tabPos + 1);
+              setTabPos(isFegLet ? tabPos + 2 : tabPos + 1);
             }
           }}
         />
       )}
-      {tabPos === 1 && (
+      {tabPos === tabs.feg && (
         <NetworkFederationEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           networkId={lteNetwork.id}
@@ -214,7 +228,7 @@ export function NetworkEditDialog(props: DialogProps) {
           }}
         />
       )}
-      {tabPos === 2 && (
+      {tabPos === tabs.epc && (
         <NetworkEpcEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           networkId={lteNetwork.id}
@@ -230,7 +244,7 @@ export function NetworkEditDialog(props: DialogProps) {
           }}
         />
       )}
-      {tabPos === 3 && (
+      {tabPos === tabs.ran && (
         <NetworkRanEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Add Network'}
           networkId={lteNetwork.id}
