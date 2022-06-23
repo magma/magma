@@ -35,6 +35,7 @@ import {
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getCWFSections} from '../cwf/CWFSections';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getFEGSections} from '../feg/FEGSections';
 import {getLteSections} from '../lte/LteSections';
 import {useContext, useEffect, useState} from 'react';
