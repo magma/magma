@@ -12,7 +12,7 @@ limitations under the License.
 """
 import logging
 from datetime import datetime
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceServicer
@@ -22,7 +22,7 @@ from magma.db_service.models import (
     DBGrant,
     DBGrantState,
     DBRequest,
-    DBRequestType,
+    DBRequestType, DBChannel,
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
@@ -234,10 +234,10 @@ class DPService(DPServiceServicer):
             filter(DBCbsdState.name == CbsdStates.REGISTERED.value).first()
         cbsd.desired_state = registered_state
 
-    def _get_authorized_grant(self, session: Session, cbsd: DBCbsd) -> DBGrant:
+    def _get_authorized_grants(self, session: Session, cbsd: DBCbsd) -> List[DBGrant]:
         authorized_state = session.query(DBGrantState). \
             filter(DBGrantState.name == GrantStates.AUTHORIZED.value).first()
-        grant = session.query(DBGrant).filter(
+        grants = session.query(DBGrant).filter(
             DBGrant.cbsd_id == cbsd.id,
             DBGrant.state_id == authorized_state.id,
             (DBGrant.transmit_expire_time == None) | (  # noqa: WPS465,E711
@@ -246,23 +246,33 @@ class DPService(DPServiceServicer):
             (DBGrant.grant_expire_time == None) | (  # noqa: WPS465,E711
                 DBGrant.grant_expire_time > now()
             ),
-        ).first()
-        return grant
+        )
+        return grants
 
     def _build_result(self, cbsd: Optional[DBCbsd] = None, session: Optional[Session] = None):
         if not cbsd:
-            return CBSDStateResult(radio_enabled=False)
-        grant = self._get_authorized_grant(session, cbsd)
-        if not grant or cbsd.is_deleted:
-            return CBSDStateResult(radio_enabled=False)
+            return CBSDStateResult(radio_enabled=False, carrier_aggregation_enabled=False)
+        grants = self._get_authorized_grants(session, cbsd)
+        if not grants or cbsd.is_deleted:
+            return CBSDStateResult(radio_enabled=False, carrier_aggregation_enabled=False)
+        channels = self._build_lte_channels(grants)
         return CBSDStateResult(
             radio_enabled=True,
-            channel=LteChannel(
-                low_frequency_hz=grant.low_frequency,
-                high_frequency_hz=grant.high_frequency,
-                max_eirp_dbm_mhz=grant.max_eirp,
-            ),
+            carrier_aggregation_enabled=cbsd.carrier_aggregation_enabled,
+            channels=channels,
         )
+
+    def _build_lte_channels(self, grants: List[DBChannel]) -> List[LteChannel]:
+        channels = []
+        for g in grants:
+            channels.append(
+                LteChannel(
+                    low_frequency_hz=g.low_frequency,
+                    high_frequency_hz=g.high_frequency,
+                    max_eirp_dbm_mhz=g.max_eirp,
+                )
+            )
+        return channels
 
     def _log_request(self, message_type: str, request: CBSDRequest, cbsd: DBCbsd):
         try:
