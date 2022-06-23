@@ -61,7 +61,7 @@ coverage: $(BIN)/coverage
 	$(BIN)/coverage report
 
 $(BIN)/coverage: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "coverage>=6.1.2"
+	$(VIRT_ENV_PIP_INSTALL) coverage==6.4.1
 
 $(BIN)/pytest: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pytest==7.1.2
