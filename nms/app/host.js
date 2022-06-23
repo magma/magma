@@ -16,6 +16,7 @@
 
 import './common/polyfill';
 
+// $FlowFixMe migrated to typescript
 import Index from './components/host/Index';
 import React from 'react';
 import ReactDOM from 'react-dom';
