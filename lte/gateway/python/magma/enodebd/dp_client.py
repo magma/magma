@@ -19,7 +19,11 @@ from dp.protos.cbsd_pb2 import (
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from google.protobuf.wrappers_pb2 import BoolValue, DoubleValue, StringValue
+from google.protobuf.wrappers_pb2 import (  # pylint: disable=no-name-in-module
+    BoolValue,
+    DoubleValue,
+    StringValue,
+)
 from magma.common.service_registry import ServiceRegistry
 from magma.enodebd.logger import EnodebdLogger
 

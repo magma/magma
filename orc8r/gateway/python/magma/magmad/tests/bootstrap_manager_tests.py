@@ -25,7 +25,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
-from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.timestamp_pb2 import (  # pylint: disable=no-name-in-module
+    Timestamp,
+)
 from orc8r.protos import bootstrapper_pb2_grpc
 from orc8r.protos.bootstrapper_pb2 import Challenge, ChallengeKey
 from orc8r.protos.certifier_pb2 import CSR, Certificate
