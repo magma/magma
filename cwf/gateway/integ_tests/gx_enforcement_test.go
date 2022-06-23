@@ -77,7 +77,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(uint64(math.Round(0.2 * 1 * MegaBytes))).
+		SetUsageReportDelta(uint64(math.Round(0.5 * 1 * MegaBytes))).
 		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
@@ -102,8 +102,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
-	//tr.AssertPolicyUsage(imsi, "usage-enforcement-static-pass-all", 1, uint64(math.Round(1.2*MegaBytes+Buffer)))
-	//TODO why is this no longer the case?
+	tr.AssertPolicyUsage(imsi, "usage-enforcement-static-pass-all", 1, uint64(math.Round(1.2*MegaBytes+Buffer)))
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
