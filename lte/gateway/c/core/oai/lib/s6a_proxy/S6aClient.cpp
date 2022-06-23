@@ -130,20 +130,17 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
   // then create a channel towards the FeG.
   // Otherwise, create a channel towards either local or cloud-based
   // subscriberdb.
-  std::cout << "[INFO] cloud authentication: " << mme_cloud_subscriberdb_enabled << std::endl;
   if ((get_s6a_relay_enabled() == true) && (enable_s6a_proxy_channel)) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "s6a_proxy", ServiceRegistrySingleton::CLOUD);
     // Create stub for S6aProxy gRPC service
     stub_ = S6aProxy::NewStub(channel);
-  }
-  else if (mme_cloud_subscriberdb_enabled){
+  } else if (get_cloud_subscriberdb_enabled()) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "eps_authentication", ServiceRegistrySingleton::CLOUD);
     // Create stub for eps_authentication gRPC service
     stub_ = S6aProxy::NewStub(channel);
-  }
-  else {
+  } else {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "subscriberdb", ServiceRegistrySingleton::LOCAL);
     // Create stub for subscriberdb gRPC service

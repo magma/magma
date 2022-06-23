@@ -110,6 +110,6 @@ services:
 
   eps_authentication:
     host: "localhost"
-    port: 9667
+    port: 9181
     proxy_type: "clientcert"
-    echo_port: 10089
+    echo_port: 10090
