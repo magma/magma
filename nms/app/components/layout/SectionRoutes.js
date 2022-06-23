@@ -23,6 +23,7 @@ import AppContext from '../../../app/components/context/AppContext';
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import React, {useContext} from 'react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useSections from './useSections';
 import {Navigate, Route, Routes} from 'react-router-dom';
 

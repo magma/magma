@@ -9,41 +9,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SectionsConfigs} from '../layout/Section';
 
 import * as React from 'react';
 import AlarmIcon from '@material-ui/icons/Alarm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
-// $FlowFixMe migrated to typescript
 import NetworkDashboard from '../../views/network/NetworkDashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import RouterIcon from '@material-ui/icons/Router';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TracingDashboard from '../../views/tracing/TracingDashboard';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import TrafficDashboard from '../../views/traffic/TrafficOverview';
 import WifiTetheringIcon from '@material-ui/icons/WifiTethering';
 
 export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
-  const sections = [
+  const sections: SectionsConfigs = [
     'dashboard', // landing path
     [
       {
