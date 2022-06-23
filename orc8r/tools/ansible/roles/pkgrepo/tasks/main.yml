@@ -49,17 +49,17 @@
 
 - name: Copy gpg key from codebase
   copy:
-    src: jfrog.pub
-    dest: /tmp/jfrog.pub
+    src: fbkey.pub
+    dest: /tmp/fbkey.pub
 
 - name: Adding the key to agent
   apt_key:
-    file: /tmp/jfrog.pub
+    file: /tmp/fbkey.pub
     state: present
 
 - name: Configuring the registry in sources.list.d
   ansible.builtin.shell:
-    cmd: echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list
+    cmd: echo 'deb https://facebookconnectivity.jfrog.io/artifactory/list/cwf-prod/ bionic main' > /etc/apt/sources.list.d/magma.list
 
 - name: Update apt
   apt:
