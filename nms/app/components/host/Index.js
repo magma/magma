@@ -18,6 +18,7 @@
 import AccountSettings from '../AccountSettings';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppSideBar from '../AppSideBar';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from '../../components/ApplicationMain';

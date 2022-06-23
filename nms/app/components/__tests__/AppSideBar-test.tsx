@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import AppSideBar from '../AppSideBar';
@@ -20,8 +17,9 @@ import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
 import {MemoryRouter} from 'react-router-dom';
 import {fireEvent, render} from '@testing-library/react';
+import type {MemoryRouterProps} from 'react-router-dom';
 
-const Wrapper = props => {
+const Wrapper = (props: MemoryRouterProps) => {
   return (
     <MemoryRouter initialEntries={['/nms']} initialIndex={0}>
       {props.children}
