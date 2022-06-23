@@ -61,6 +61,8 @@
   file:
     path: "{{ ansible_env.HOME }}/.ssh"
     state: directory
+  when: keyhost_val.changed
+  tags: [never, keyCreate]
 
 - name: copy .pem file
   copy:
