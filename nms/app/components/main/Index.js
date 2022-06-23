@@ -35,6 +35,7 @@ import type {
 import * as React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppSideBar from '../AppSideBar';
 // $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';

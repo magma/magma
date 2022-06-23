@@ -21,6 +21,7 @@ import AccountSettings from './AccountSettings';
 import Admin from './admin/Admin';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from './layout/AppContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppSideBar from './AppSideBar';
 import {Route, Routes} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';

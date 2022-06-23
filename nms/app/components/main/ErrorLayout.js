@@ -17,6 +17,7 @@
 import * as React from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppSideBar from '../AppSideBar';
 
 import {makeStyles} from '@material-ui/styles';

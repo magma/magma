@@ -9,22 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileButton from './ProfileButton';
 import React, {useContext, useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import SidebarItem from './SidebarItem';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import VersionContext from './context/VersionContext';
 import classNames from 'classnames';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
@@ -62,13 +54,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 type ItemConfig = {
-  path: string,
-  label: string,
-  icon: any,
+  path: string;
+  label: string;
+  icon: any;
 };
 
 type Props = {
-  items: Array<ItemConfig>,
+  items: Array<ItemConfig>;
 };
 
 const AppSideBar = (props: Props) => {
@@ -82,6 +74,7 @@ const AppSideBar = (props: Props) => {
     if (!isOpen) {
       setIsExpanded(false);
     }
+
     _setProfileMenuOpen(isOpen);
   };
 
@@ -106,6 +99,7 @@ const AppSideBar = (props: Props) => {
               key={label}
               path={path}
               label={label}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               icon={icon}
               expanded={expanded}
             />
