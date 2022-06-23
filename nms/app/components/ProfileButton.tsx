@@ -9,26 +9,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from './context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-// $FlowFixMe migrated to typescript
 import NetworkContext from './context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Popout from './Popout';
 import React, {useContext} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
@@ -54,7 +46,6 @@ const useStyles = makeStyles(() => ({
   },
   selected: {
     backgroundColor: colors.secondary.dodgerBlue,
-
     '& $icon': {
       color: colors.primary.white,
     },
@@ -88,9 +79,9 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  isMenuOpen: boolean,
-  setMenuOpen: (isOpen: boolean) => void,
-  expanded: boolean,
+  isMenuOpen: boolean;
+  setMenuOpen: (isOpen: boolean) => void;
+  expanded: boolean;
 };
 
 const ProfileButton = (props: Props) => {
@@ -104,11 +95,9 @@ const ProfileButton = (props: Props) => {
     isFeatureEnabled,
     isOrganizations,
   } = useContext(AppContext);
-
   const isSelected =
     location.pathname.startsWith(resolvedPath.pathname + '/admin') ||
     location.pathname.startsWith(resolvedPath.pathname + '/settings');
-
   const hasAdministration = user.isSuperUser && !isOrganizations;
   const hasDocumentation = isFeatureEnabled('documents_site');
   const settingsPath = isOrganizations

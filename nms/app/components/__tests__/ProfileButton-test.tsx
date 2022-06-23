@@ -9,28 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../theme/default';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../context/AppContext';
+import {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-// $FlowFixMe[missing-export]
 import {fireEvent, render, waitFor} from '@testing-library/react';
+import type {FeatureID} from '../../../shared/types/features';
 
 type Props = {
-  expanded: boolean,
-  path: string,
-  isOrganizations: boolean,
+  expanded: boolean;
+  path: string;
+  isOrganizations: boolean;
 };
 
 const WrappedProfileButton = (props: Props) => {
@@ -57,11 +53,11 @@ const WrappedProfileButton = (props: Props) => {
 describe('<ProfileButton />', () => {
   it.each([true, false])('respects expanded=%s', expanded => {
     window.CONFIG = {
-      appData: {
-        user: {},
+      appData: ({
+        user: {} as User,
         ssoEnabled: false,
         enabledFeatures: [],
-      },
+      } as unknown) as EmbeddedData,
     };
 
     const {queryByText} = render(
@@ -71,6 +67,7 @@ describe('<ProfileButton />', () => {
         expanded={expanded}
       />,
     );
+
     if (expanded) {
       expect(queryByText('Account & Settings')).toBeInTheDocument();
     } else {
@@ -84,17 +81,17 @@ describe('<ProfileButton />', () => {
     ssoEnabled = false,
     enabledFeatures = [],
   }: {
-    isSuperUser?: boolean,
-    isOrganizations?: boolean,
-    ssoEnabled?: boolean,
-    enabledFeatures?: Array<string>,
+    isSuperUser?: boolean;
+    isOrganizations?: boolean;
+    ssoEnabled?: boolean;
+    enabledFeatures?: Array<FeatureID>;
   }) {
     window.CONFIG = {
-      appData: {
-        user: {isSuperUser},
+      appData: ({
+        user: {isSuperUser} as User,
         ssoEnabled,
         enabledFeatures,
-      },
+      } as unknown) as EmbeddedData,
     };
 
     const {getByRole, getByTestId} = render(
@@ -111,6 +108,7 @@ describe('<ProfileButton />', () => {
     const links = await waitFor(() =>
       getByRole('navigation').querySelectorAll('a'),
     );
+
     return Array.from(links).map(t => t.textContent);
   }
 
@@ -130,6 +128,7 @@ describe('<ProfileButton />', () => {
     'renders Administration depending on isSuperUser',
     async isSuperUser => {
       const links = await getRenderedLinks({isSuperUser});
+
       if (isSuperUser) {
         expect(links).toContain('Administration');
       } else {
@@ -152,6 +151,7 @@ describe('<ProfileButton />', () => {
       const links = await getRenderedLinks({
         enabledFeatures: isFeatureEnabled ? ['documents_site'] : [],
       });
+
       if (isFeatureEnabled) {
         expect(links).toContain('Documentation');
       } else {
