@@ -19,4 +19,4 @@ services:
     port: 50075
   ctraced:
     ip_address: 127.0.0.1
-    port: 50079s
+    port: 50079
