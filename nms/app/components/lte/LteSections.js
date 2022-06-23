@@ -26,6 +26,7 @@ import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 // $FlowFixMe migrated to typescript

@@ -9,31 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {MetricGraphConfig} from '../insights/Metrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Explorer from '../../views/metrics/Explorer';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import GatewayMetrics from '../insights/GatewayMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Grafana from '../Grafana';
-// $FlowFixMe migrated to typescript
-import NestedRouteLink from '../NestedRouteLink';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
-// $FlowFixMe migrated to typescript
-import TopBar from '../TopBar';
+import TopBar, {BarLabel} from '../TopBar';
 import {Navigate, Route, Routes} from 'react-router-dom';
+import type {MetricGraphConfig} from '../insights/Metrics';
 
 const CONFIGS: Array<MetricGraphConfig> = [
   {
@@ -155,7 +143,6 @@ const INTERNAL_CONFIGS: Array<MetricGraphConfig> = [
   {
     label: 'Memory Utilization',
     basicQueryConfigs: [],
-    filters: [],
     unit: '',
     customQueryConfigs: [
       {
@@ -252,16 +239,14 @@ export default function () {
     tabNames.push('grafana');
   }
 
-  let tabList = [];
+  let tabList: Array<BarLabel> = [];
   if (!grafanaEnabled) {
     tabList = [
       {
-        component: {NestedRouteLink},
         label: 'Gateways',
         to: 'gateways',
       },
       {
-        component: {NestedRouteLink},
         label: 'Internal',
         to: 'internal',
       },
@@ -270,13 +255,11 @@ export default function () {
     tabList = [
       {
         icon: AssessmentIcon,
-        component: {NestedRouteLink},
         label: 'Grafana',
         to: 'grafana',
       },
       {
         icon: ExploreIcon,
-        component: {NestedRouteLink},
         label: 'Explorer',
         to: 'explorer',
       },

@@ -60,7 +60,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
 }));
 
-type BarLabel = {
+export type BarLabel = {
   icon?: typeof SvgIcon;
   label: string;
   to: string;
