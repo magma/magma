@@ -21,14 +21,12 @@ import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import LineStyleIcon from '@material-ui/icons/LineStyle';
-import LteConfigure from '../LteConfigure';
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
 import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkDashboard from '../../views/network/NetworkDashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import RouterIcon from '@material-ui/icons/Router';
-import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
 import TracingDashboard from '../../views/tracing/TracingDashboard';
@@ -80,12 +78,6 @@ export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
         label: 'Metrics',
         icon: <ShowChartIcon />,
         component: LteMetrics,
-      },
-      {
-        path: 'configure',
-        label: 'Configure',
-        icon: <SettingsCellIcon />,
-        component: LteConfigure,
       },
     ],
   ];
