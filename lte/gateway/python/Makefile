@@ -60,9 +60,6 @@ endif
 coverage: $(BIN)/coverage
 	$(BIN)/coverage report
 
-$(BIN)/nosetests: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) -I nose==1.3.7
-
 $(BIN)/coverage: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "coverage>=6.1.2"
 
