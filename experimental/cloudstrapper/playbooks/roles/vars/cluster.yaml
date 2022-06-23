@@ -6,8 +6,8 @@
 #Orc8r deployment variables
 orc8rClusterName: Sydney
 orc8rDomainName: bbbath.fbmagma.ninja
-orc8rLabel: 1.5.0
-orc8rVersion: v1.5
+orc8rLabel: 1.7.0
+orc8rVersion: v1.7
 gitHelmRepo: helm15
 
 
@@ -17,7 +17,7 @@ awsHostKey: "{{ keyHost }}"
 awsAgwRegion: us-west-2
 awsOrc8rRegion: us-west-2
 awsAgwAz: "{{ awsAgwRegion }}a"
-awsAgwVersion: v1.5
+awsAgwVersion: v1.7
 awsInstanceType: "t2.medium"
 
 awsAgwAmi: ami-06447b6fef489a898
