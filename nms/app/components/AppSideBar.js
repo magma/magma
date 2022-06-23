@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ProfileButton from './ProfileButton';
 import React, {useContext, useState} from 'react';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
