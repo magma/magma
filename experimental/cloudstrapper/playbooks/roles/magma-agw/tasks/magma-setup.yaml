@@ -14,11 +14,9 @@
 
 - name: Add magma user to wheel group
   user:
-    name=magma
-    groups=magma
-    append=yes
-    state=present
-    createhome=yes
+    name: magma
+    groups: magma
+    append: yes
 
 - name: download github repo
   git:
