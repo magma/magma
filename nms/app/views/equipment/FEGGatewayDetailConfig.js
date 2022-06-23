@@ -55,8 +55,6 @@ export default function FEGGatewayConfig() {
   const ctx = useContext(FEGGatewayContext);
   const gwInfo: federation_gateway = ctx.state[gatewayId];
 
-  console.log('gwInfo:', gwInfo);
-
   function editFilter(tabOption: TabOption) {
     return (
       <EditGatewayButton
