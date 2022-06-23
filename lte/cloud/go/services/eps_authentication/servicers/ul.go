@@ -56,19 +56,25 @@ func (srv *EPSAuthServer) UpdateLocation(
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	networkID, gatewayID, err := identity.GetClientNetworkAndGatewayID(ctx)
+
+	networkID, err := identity.GetClientNetworkID(ctx)
+	glog.V(2).Infof("Network id is '%s'", networkID)
 	if err != nil {
 		glog.V(2).Infof("could not lookup networkID: %v", err.Error())
 		metrics.NetworkIDErrors.Inc()
 		return nil, err
 	}
-	config, err := GetConfig(networkID)
+
+	config, err := getConfig(networkID)
+	glog.Info("Config id is '%s'", config)
 	if err != nil {
 		glog.V(2).Infof("could not lookup config for networkID '%s': %v", networkID, err.Error())
 		metrics.ConfigErrors.Inc()
 		return nil, err
 	}
-	subscriber, staticIps, apns, errorCode, err := srv.lookupSubscriberProfile(ulr.UserName, networkID)
+
+	subscriber, errorCode, err := srv.lookupSubscriber(ulr.UserName, networkID)
+	glog.Info("Subscriber  is '%s'", subscriber)
 	if err != nil {
 		glog.V(2).Infof("failed to lookup subscriber '%s': %v", ulr.UserName, err.Error())
 		metrics.UnknownSubscribers.Inc()
