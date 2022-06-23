@@ -16,6 +16,7 @@
 
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import IndexWithoutNetwork from './IndexWithoutNetwork';
 import MagmaV1API from '../../generated/WebClient';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
