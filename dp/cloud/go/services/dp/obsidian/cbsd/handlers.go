@@ -139,7 +139,8 @@ func createCbsd(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := payload.Validate(strfmt.Default); err != nil {
+	ctx := c.Request().Context()
+	if err := payload.ValidateModel(ctx); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	client, err := getCbsdManagerClient()
@@ -151,7 +152,6 @@ func createCbsd(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	req := protos.CreateCbsdRequest{NetworkId: networkId, Data: data}
-	ctx := c.Request().Context()
 	_, err = client.CreateCbsd(ctx, &req)
 	if err != nil {
 		return getHttpError(err)

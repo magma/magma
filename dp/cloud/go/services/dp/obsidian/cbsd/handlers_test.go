@@ -257,13 +257,20 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		expectedStatus: http.StatusCreated,
 		expectedError:  "",
 	}, {
-		name: "test create with carrier aggregation == true and grant_redundancy == false",
+		name: "test create with carrier aggregation is enabled and grant_redundancy is false",
 		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
 			WithGrantRedundancy(to_pointer.Bool(false)).
 			WithCarrierAggregationEnabled(to_pointer.Bool(true)).
 			Payload,
 		expectedStatus: http.StatusBadRequest,
-		expectedError:  "Validation failed for grant_redundancy: cannot be set to false when carrier_aggregation_enabled == true",
+		expectedError:  "grant_redundancy cannot be set to false when carrier_aggregation_enabled is enabled",
+	}, {
+		name: "test failed model validation raises 400",
+		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
+			WithSingleStepEnabled(nil).
+			Payload,
+		expectedStatus: http.StatusBadRequest,
+		expectedError:  "single_step_enabled in body is required",
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {

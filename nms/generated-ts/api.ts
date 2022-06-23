@@ -554,7 +554,7 @@ export interface CallTraceState {
  */
 export interface Capabilities {
     /**
-     * this is the maximum allowed difference in MHz between bandwidths used by a Base Station (eNB)
+     * this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
      * @type {number}
      * @memberof Capabilities
      */
@@ -656,7 +656,7 @@ export interface Cbsd {
      */
     'capabilities': Capabilities;
     /**
-     * this flag controls eNB behavior, should multiple channels be used for Carrier Aggregation, or Single Carrier
+     * this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
      * @type {boolean}
      * @memberof Cbsd
      */
@@ -698,7 +698,7 @@ export interface Cbsd {
      */
     'grant'?: Grant;
     /**
-     * tells Domain Proxy how many channels should be requested from SAS
+     * tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
      * @type {boolean}
      * @memberof Cbsd
      */
@@ -4098,7 +4098,7 @@ export interface MutableCbsd {
      */
     'capabilities': Capabilities;
     /**
-     * this flag controls eNB behavior, should multiple channels be used for Carrier Aggregation, or Single Carrier
+     * this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
      * @type {boolean}
      * @memberof MutableCbsd
      */
@@ -4128,7 +4128,7 @@ export interface MutableCbsd {
      */
     'frequency_preferences': FrequencyPreferences;
     /**
-     * tells Domain Proxy how many channels should be requested from SAS
+     * Tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
      * @type {boolean}
      * @memberof MutableCbsd
      */

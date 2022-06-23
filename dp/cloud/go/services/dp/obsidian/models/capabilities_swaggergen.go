@@ -19,7 +19,7 @@ import (
 // swagger:model capabilities
 type Capabilities struct {
 
-	// this is the maximum allowed difference in MHz between bandwidths used by a Base Station (eNB)
+	// this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
 	// Required: true
 	MaxIbwMhz int64 `json:"max_ibw_mhz"`
 

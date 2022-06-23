@@ -6846,8 +6846,9 @@ definitions:
   capabilities:
     properties:
       max_ibw_mhz:
-        description: this is the maximum allowed difference in MHz between bandwidths
-          used by a Base Station (eNB)
+        description: this is the maximum allowed difference in MHz between leftmost
+          end of leftmost channel and rightmost end of rightmost channel used by a
+          Base Station (eNB)
         type: integer
         x-nullable: false
       max_power:
@@ -6910,8 +6911,8 @@ definitions:
       capabilities:
         $ref: '#/definitions/capabilities'
       carrier_aggregation_enabled:
-        description: this flag controls eNB behavior, should multiple channels be
-          used for Carrier Aggregation, or Single Carrier
+        description: this flag controls eNB behavior, should multiple grants be used
+          for Carrier Aggregation, or one for Single Carrier
         type: boolean
         x-nullable: false
       cbsd_category:
@@ -6944,8 +6945,9 @@ definitions:
         $ref: '#/definitions/grant'
         x-nullable: false
       grant_redundancy:
-        description: tells Domain Proxy how many channels should be requested from
-          SAS
+        description: tells Domain Proxy how many grants from SAS should be maintained.
+          If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled,
+          Domain Proxy will maintain only 1 grant
         type: boolean
         x-nullable: false
       id:
@@ -9226,8 +9228,8 @@ definitions:
       capabilities:
         $ref: '#/definitions/capabilities'
       carrier_aggregation_enabled:
-        description: this flag controls eNB behavior, should multiple channels be
-          used for Carrier Aggregation, or Single Carrier
+        description: this flag controls eNB behavior, should multiple grants be used
+          for Carrier Aggregation, or one for Single Carrier
         type: boolean
       cbsd_category:
         default: b
@@ -9252,8 +9254,9 @@ definitions:
       frequency_preferences:
         $ref: '#/definitions/frequency_preferences'
       grant_redundancy:
-        description: tells Domain Proxy how many channels should be requested from
-          SAS
+        description: Tells Domain Proxy how many grants from SAS should be maintained.
+          If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled,
+          Domain Proxy will maintain only 1 grant
         type: boolean
       installation_param:
         $ref: '#/definitions/mutable_installation_param'

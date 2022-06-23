@@ -14,35 +14,17 @@ limitations under the License.
 package models
 
 import (
+	"context"
 	"fmt"
 
+	oerrors "github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 )
 
-type ValidationError struct {
-	field string
-	msg   string
-}
-
-func (e ValidationError) Error() string {
-	return fmt.Sprintf("Validation failed for %s: %s", e.field, e.msg)
-}
-
-func validateCbsd(m *MutableCbsd) error {
-	if *m.GrantRedundancy == false && *m.CarrierAggregationEnabled == true {
-		return ValidationError{"grant_redundancy", "cannot be set to false when carrier_aggregation_enabled == true"}
-	}
-	return nil
-}
-
 func CbsdToBackend(m *MutableCbsd) (*protos.CbsdData, error) {
-	err := validateCbsd(m)
-	if err != nil {
-		return nil, err
-	}
 	return &protos.CbsdData{
 		UserId:                    m.UserID,
 		FccId:                     m.FccID,
@@ -95,6 +77,21 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		CbsdCategory:              details.Data.CbsdCategory,
 		InstallationParam:         getModelInstallationParam(details.Data.InstallationParam),
 	}
+}
+
+func (m *MutableCbsd) ValidateModel(ctx context.Context) error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	var res []error
+	if !*m.GrantRedundancy && *m.CarrierAggregationEnabled {
+		err := fmt.Errorf("grant_redundancy cannot be set to false when carrier_aggregation_enabled is enabled")
+		res = append(res, err)
+	}
+	if len(res) > 0 {
+		return oerrors.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func makeSliceNotNil(s []int64) []int64 {

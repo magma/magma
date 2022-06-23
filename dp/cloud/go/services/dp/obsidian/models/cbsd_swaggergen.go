@@ -24,7 +24,7 @@ type Cbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
-	// this flag controls eNB behavior, should multiple channels be used for Carrier Aggregation, or Single Carrier
+	// this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
 	// Required: true
 	CarrierAggregationEnabled bool `json:"carrier_aggregation_enabled"`
 
@@ -55,7 +55,7 @@ type Cbsd struct {
 	// grant
 	Grant *Grant `json:"grant,omitempty"`
 
-	// tells Domain Proxy how many channels should be requested from SAS
+	// tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
 	// Required: true
 	GrantRedundancy bool `json:"grant_redundancy"`
 
