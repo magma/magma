@@ -44,7 +44,7 @@ typedef enum proto_map_return_code_e {
 **                                                                        **
 ***************************************************************************/
 
-static std::string map_rc_code2string(proto_map_rc_t rc) {
+static char* map_rc_code2string(proto_map_rc_t rc) {
   switch (rc) {
     case PROTO_MAP_OK:
       return "MAP_OK";

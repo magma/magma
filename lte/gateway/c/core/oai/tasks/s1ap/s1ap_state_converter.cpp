@@ -106,7 +106,7 @@ void S1apStateConverter::enb_to_proto(enb_description_t* enb,
   proto->set_ran_cp_ipaddr_sz(enb->ran_cp_ipaddr_sz);
 
   // store ue_ids
-  proto_map_uint32_uint64_to_proto(enb->ue_id_coll, proto->mutable_ue_ids());
+  copy_int_protomap_to_proto(enb->ue_id_coll, proto->mutable_ue_ids());
 
   supported_ta_list_to_proto(&enb->supported_ta_list,
                              proto->mutable_supported_ta_list());
@@ -206,13 +206,15 @@ void S1apStateConverter::proto_to_ue(const oai::UeDescription& proto,
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(
     const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto) {
-  hashtable_uint64_ts_to_proto(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                               s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
+  google::protobuf::Map<uint32_t, uint64_t> map =
+      *(s1ap_imsi_map->mme_ueid2imsi_map.map);
+  *s1ap_imsi_proto->mutable_mme_ue_id_imsi_map() = map;
 }
+
 void S1apStateConverter::proto_to_s1ap_imsi_map(
     const oai::S1apImsiMap& s1ap_imsi_proto, s1ap_imsi_map_t* s1ap_imsi_map) {
-  proto_to_hashtable_uint64_ts(s1ap_imsi_proto.mme_ue_id_imsi_map(),
-                               s1ap_imsi_map->mme_ue_id_imsi_htbl);
+  *(s1ap_imsi_map->mme_ueid2imsi_map.map) =
+      s1ap_imsi_proto.mme_ue_id_imsi_map();
 }
 
 void S1apStateConverter::supported_ta_list_to_proto(
