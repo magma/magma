@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import NetworkContext from '../../context/NetworkContext';
 import React from 'react';
 import useSections from '../useSections';
@@ -19,10 +18,10 @@ import useSections from '../useSections';
 import {AppContextProvider} from '../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
+import MagmaAPI from '../../../../api/MagmaAPI';
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
-
-jest.mock('../../../../generated/MagmaAPIBindings.js');
+import {mockAPI} from '../../../util/TestUtils';
 
 window.CONFIG = {
   appData: ({
@@ -91,9 +90,7 @@ describe.each([CWF, FEG, LTE, FEG_LTE, XWFM])('Should render', networkType => {
   // different config defaults
   const apiNetworkType = networkType === XWFM ? CWF : networkType;
   it(networkType, async () => {
-    (MagmaAPIBindings.getNetworksByNetworkIdType as jest.Mock).mockResolvedValue(
-      apiNetworkType,
-    );
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', apiNetworkType);
 
     const {result, waitForNextUpdate} = renderHook(() => useSections(), {
       wrapper,

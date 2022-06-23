@@ -44,6 +44,7 @@ import {useEffect, useState} from 'react';
 
 // $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
