@@ -14,6 +14,27 @@
   become: yes
   ignore_errors: yes
 
+- name: Wait for APT Lock
+  shell: |
+    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
+      sleep 1
+    done
+    while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
+      sleep 1
+    done
+    if [ -f /var/log/unattended-upgrades/unattended-upgrades.log ]; then
+      while sudo fuser /var/log/unattended-upgrades/unattended-upgrades.log >/dev/null 2>&1 ; do
+        sleep 1
+      done
+    fi
+
+- name: Remove unattended upgrades
+  apt:
+    state: absent
+    purge: yes
+    pkg:
+      - unattended-upgrades
+
 - name: Ensure ca-certificates is up to date
   become: yes
   apt:
@@ -22,8 +43,6 @@
     update_cache: yes
   register: result
   until: result is not failed
-  retries: 7
-  delay: 9
   vars:
     packages:
       - ca-certificates
