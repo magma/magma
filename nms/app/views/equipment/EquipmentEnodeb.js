@@ -17,8 +17,14 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+import Button from '@material-ui/core/Button';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
+import EmptyState from '../../components/EmptyState';
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
@@ -27,20 +33,36 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {EnodeEditDialog} from './EnodebDetailConfigEdit';
+import {FetchEnodebs} from '../../state/lte/EquipmentState';
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useInterval} from '../../hooks';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const CHART_TITLE = 'Total Throughput';
+const EMPTY_STATE_INSTRUCTIONS =
+  'eNodeBs can be either managed (via TR-069) or unmanaged.  Managed eNodeBs can be configured directly' +
+  ' from the Access Gateway via the enodebd service. Unmanaged eNodeBs are configured externally on their own device management portal.';
+const EMPTY_STATE_OVERVIEW =
+  'The eNodeB is the Radio Access Network that connects the user devices to the Packet Core. ' +
+  'eNodeBs (eNBs) can be either managed (via TR-069) or unmanaged.';
 
 const useStyles = makeStyles(theme => ({
+  cardContent: {
+    padding: '0 16px',
+  },
+  cardHeaderTitle: {
+    fontSize: '14px',
+    fontWeight: 'bold',
+  },
+  customIntructions: {
+    marginTop: '24px',
+    width: '100%',
+  },
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -80,26 +102,131 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     minWidth: 120,
   },
+  instructions: {
+    backgroundColor: colors.primary.concrete,
+    height: '100%',
+  },
+  bulletList: {
+    padding: '8px',
+    listStyleType: 'disc',
+    fontSize: '14px',
+  },
 }));
+function AddEnodebInstructions(props: {setOpen: () => void}) {
+  const classes = useStyles();
 
+  return (
+    <Grid
+      className={classes.customIntructions}
+      spacing={3}
+      container
+      justify="space-between">
+      <Grid item xs={6}>
+        <Card className={classes.instructions}>
+          <CardHeader
+            classes={{title: classes.cardHeaderTitle}}
+            title={"If you're provisioning a managed eNodeB"}
+          />
+          <CardContent className={classes.cardContent}>
+            <ul className={classes.bulletList}>
+              <li>Enter name and serial number</li>
+              <li>
+                Configure the RAN parameters (Note that fields left blank will
+                be inherited from either the network or gateway LTE parameters)
+              </li>
+            </ul>
+          </CardContent>
+          <CardActions disableSpacing={true}>
+            <Grid container direction="column" spacing={1}>
+              <Grid item xs={5}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => props.setOpen()}>
+                  Add enodeb
+                </Button>
+              </Grid>
+              <Grid item>
+                <Link
+                  href="https://docs.magmacore.org/docs/next/lte/deploy_config_enodebd#configure-enodeb"
+                  target="_blank">
+                  Learn more about the supported eNodeB and protocols
+                </Link>
+              </Grid>
+            </Grid>
+          </CardActions>
+        </Card>
+      </Grid>
+      <Grid item xs={6}>
+        <Card className={classes.instructions}>
+          <CardHeader
+            classes={{title: classes.cardHeaderTitle}}
+            title={"If you're configuring an unmanaged eNodeB"}
+          />
+          <CardContent className={classes.cardContent}>
+            <ul className={classes.bulletList}>
+              <li>The unmanaged eNodeB is configured manually on the eNodeB</li>
+              <li>
+                Optionally, you can add the eNodeB to the NMS for tracking
+                purposes
+              </li>
+            </ul>
+          </CardContent>
+          <CardActions disableSpacing={true}>
+            <Link
+              href="https://docs.magmacore.org/docs/next/lte/deploy_config_enodebd#manual-configuration"
+              target="_blank">
+              How to configure an unmanaged eNodeB
+            </Link>
+          </CardActions>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+}
 export default function Enodeb() {
   const classes = useStyles();
+  const ctx = useContext(EnodebContext);
+  const [open, setOpen] = useState(false);
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container justifyContent="space-between" spacing={3}>
-        <Grid item xs={12}>
-          <DateTimeMetricChart
-            unit={'Throughput(mb/s)'}
-            title={CHART_TITLE}
-            queries={[
-              `sum(rate(gtp_port_user_plane_dl_bytes{service="pipelined"}[5m]) + rate(gtp_port_user_plane_ul_bytes{service="pipelined"}[5m]))/1000`,
-            ]}
-            legendLabels={['mbps']}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <EnodebTable />
-        </Grid>
+        <EnodeEditDialog
+          open={open}
+          onClose={() => {
+            setOpen(false);
+          }}
+        />
+        {Object.keys(ctx.state?.enbInfo || {}).length > 0 ? (
+          <>
+            <Grid item xs={12}>
+              <DateTimeMetricChart
+                unit={'Throughput(mb/s)'}
+                title={CHART_TITLE}
+                queries={[
+                  `sum(rate(gtp_port_user_plane_dl_bytes{service="pipelined"}[5m]) + rate(gtp_port_user_plane_ul_bytes{service="pipelined"}[5m]))/1000`,
+                ]}
+                legendLabels={['mbps']}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <EnodebTable />
+            </Grid>
+          </>
+        ) : (
+          <>
+            <EmptyState
+              title={'Set up an eNodeB'}
+              instructions={EMPTY_STATE_INSTRUCTIONS}
+              overviewTitle={'eNodeB Overview'}
+              overviewDescription={EMPTY_STATE_OVERVIEW}
+              customIntructions={
+                <AddEnodebInstructions setOpen={() => setOpen(true)} />
+              }
+            />
+          </>
+        )}
       </Grid>
     </div>
   );
@@ -117,35 +244,26 @@ type EnodebRowType = {
 
 function EnodebTableRaw(props: WithAlert) {
   const navigate = useNavigate();
-  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(EnodebContext);
   const [refresh, setRefresh] = useState(true);
-  const [lastRefreshTime, setLastRefreshTime] = useState(
-    new Date().toLocaleString(),
-  );
-
-  // Auto refresh  every 30 seconds
-  const state = useRefreshingContext({
-    context: EnodebContext,
-    networkId: networkId,
-    type: 'enodeb',
-    interval: REFRESH_INTERVAL,
-    refresh: refresh,
-    lastRefreshTime: lastRefreshTime,
-  });
-  const ctxValues = [...Object.values(ctx.state.enbInfo)];
-  useEffect(() => {
-    setLastRefreshTime(new Date().toLocaleString());
-  }, [ctxValues.length]);
-
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
-  // $FlowIgnore
-  const enbInfo = state?.enbInfo;
-  const enbRows: Array<EnodebRowType> = enbInfo
-    ? Object.keys(enbInfo).map((serialNum: string) => {
-        const enbInf = enbInfo[serialNum];
+  const params = useParams();
+  const networkId: string = nullthrows(params.networkId);
+  const REFRESH_INTERVAL = 30000;
+  useInterval(
+    () => {
+      FetchEnodebs({networkId, enqueueSnackbar}).then(enodebs => {
+        if (enodebs) {
+          ctx.setState('', undefined, {enbInfo: enodebs});
+        }
+      });
+    },
+    refresh ? REFRESH_INTERVAL : null,
+  );
+  const enbRows: Array<EnodebRowType> = ctx.state?.enbInfo
+    ? Object.keys(ctx.state?.enbInfo).map((serialNum: string) => {
+        const enbInf = ctx.state?.enbInfo[serialNum];
         const isEnbManaged =
           enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
         return {
@@ -172,7 +290,7 @@ function EnodebTableRaw(props: WithAlert) {
       <CardTitleRow
         key="title"
         icon={SettingsInputAntennaIcon}
-        label={`Enodebs (${Object.keys(state?.enbInfo || {}).length})`}
+        label={`Enodebs (${Object.keys(ctx.state?.enbInfo || {}).length})`}
         filter={() => (
           <Grid
             container
@@ -238,7 +356,6 @@ function EnodebTableRaw(props: WithAlert) {
 
                   try {
                     await ctx.setState(currRow.id);
-                    // setLastRefreshTime(new Date().toLocaleString());
                   } catch (e) {
                     enqueueSnackbar('failed deleting enodeb ' + currRow.id, {
                       variant: 'error',
