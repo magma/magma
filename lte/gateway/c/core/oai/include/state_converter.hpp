@@ -183,10 +183,6 @@ class StateConverter {
       const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
       map_uint64_uint64_t* map);
 
-  static void proto_map_uint32_uint64_to_proto(
-      proto_map_uint32_uint64_t& map,
-      google::protobuf::Map<uint32_t, uint64_t>* proto_map);
-
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
   static void chars_to_plmn(const char* plmn_array, plmn_t* state_plmn);
