@@ -78,7 +78,6 @@ export default function Configure(props: Props) {
           onChange={(_, tab) => setCurrentTab(tab as number)}
           className={classes.tabs}>
           {tabRoutes.map((route, i) => (
-            // @ts-ignore
             <Tab
               key={i}
               component={NestedRouteLink}

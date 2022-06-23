@@ -9,23 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import APMetrics from './APMetrics';
 import AppBar from '@material-ui/core/AppBar';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../context/AppContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFNetworkMetrics from './CWFNetworkMetrics';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Grafana from '../Grafana';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import IMSIMetrics from './IMSIMetrics';
-// $FlowFixMe migrated to typescript
 import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
@@ -38,13 +29,12 @@ import {
   useLocation,
   useResolvedPath,
 } from 'react-router-dom';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles({
   bar: {
     backgroundColor: colors.primary.brightGray,
   },
@@ -52,7 +42,7 @@ const useStyles = makeStyles(_ => ({
     flex: 1,
     color: colors.primary.white,
   },
-}));
+});
 
 function GrafanaDashboard() {
   return <Grafana grafanaURL="/grafana" />;

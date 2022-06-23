@@ -25,7 +25,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   to: string;
   className?: string;
 };
