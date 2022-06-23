@@ -122,7 +122,7 @@ def clear_gateways():
 
 def clear_orc8r_db():
     """
-    Delete orc8r database. Requieres orc8r to be stopped
+    Delete orc8r database. Requires orc8r to be stopped
     """
     print('#### Clearing swagger database from Orc8r ####')
     subprocess.check_call(['./run.py --clear-db'], shell=True, cwd=orc8_docker_path)
