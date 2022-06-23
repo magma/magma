@@ -1,4 +1,16 @@
 ---
+################################################################################
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
 - name: Verify eth0 and eth1 exist
   assert:
     that:
@@ -56,6 +68,13 @@
     cmd: "docker-compose build --parallel"
     chdir: /opt/magma/lte/gateway/docker
   when: docker_registry is not defined
+
+- name: Insert ryu static service to pipelined
+  lineinfile:
+    path: /etc/magma/pipelined.yml
+    search_string: "^static_services"
+    insertafter: "^static_services"
+    line: "  'ryu_rest_service',"
 
 - name: "Start AGW containers"
   shell:
