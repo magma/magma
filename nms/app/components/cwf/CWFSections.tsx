@@ -9,18 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Alarms from '../../views/alarms/legacy/Alarms';
 import CWFConfigure from './CWFConfigure';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';
 import CellWifiIcon from '@material-ui/icons/CellWifi';

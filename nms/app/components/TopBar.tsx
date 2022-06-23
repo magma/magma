@@ -116,7 +116,6 @@ export default function TopBar(props: Props) {
                 textColor="inherit"
                 className={classes.tabs}>
                 {props.tabs.map(tab => (
-                  // @ts-ignore
                   <Tab
                     key={tab.key ?? tab.label}
                     component={NestedRouteLink}

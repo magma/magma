@@ -9,23 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Configure from '../network/Configure';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-import MagmaV1API from '../../../generated/WebClient';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
 import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import UpgradeConfig from '../network/UpgradeConfig';
-
-import useMagmaAPI from '../../../api/useMagmaAPIFlow';
+import useMagmaAPI from '../../../api/useMagmaAPI';
 import {useParams} from 'react-router-dom';
 
 export default function CWFConfigure() {
@@ -47,9 +39,12 @@ export default function CWFConfigure() {
 function CWFPolicies() {
   const {networkId} = useParams();
 
-  const {response, isLoading} = useMagmaAPI(MagmaV1API.getCwfByNetworkId, {
-    networkId,
-  });
+  const {response, isLoading} = useMagmaAPI(
+    MagmaAPI.carrierWifiNetworks.cwfNetworkIdGet,
+    {
+      networkId: networkId!,
+    },
+  );
 
   if (isLoading) {
     return <LoadingFiller />;
