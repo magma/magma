@@ -14,7 +14,7 @@ limitations under the License.
 package servicers
 
 import (
-	"magma/lte/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
 )
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_NilRequest() {
