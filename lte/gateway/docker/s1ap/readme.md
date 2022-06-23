@@ -1,6 +1,6 @@
 # Build and publish s1aptester images
 
-1. Clone the magma repository and move into the AGW docker directory in the repo and run build script.
+1. Clone magma and move into the AGW docker directory and run build script.
 
 ```
 git clone https://github.com/magma/magma
@@ -90,26 +90,26 @@ ssh-add -l
 ### ssh to the agw instance and deploy as a containerized AGW
 
 ```
-# ssh to AGW instance
-ssh -A ubuntu@184.72.47.28
+# ssh to AGW instance using the elastic IP address from AWS. Notice the '-A' argument. You must load in the key pair that you created in AWS for it to forward your ssh agent key.
+ssh -A ubuntu@${YOUR_AWS_IP}
 
 # Download containerized AGW bootstrap script
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_docker.sh
 
-# Create certs directory and populate with your orc8r rootCA
+# Create certs directory and populate with your orc8r rootCA. Note that the certificate contents here have been omitted.
 sudo mkdir -p /var/opt/magma/certs
 sudo su root -c 'sudo echo "-----BEGIN CERTIFICATE-----
 -----END CERTIFICATE-----" > /var/opt/magma/certs/rootCA.pem'
 
 # Run bootstrap script and reboot
-sudo su -c 'bash -x agw_install_docker.sh'
+sudo bash agw_install_docker.sh
 sudo reboot
 ```
 
 ### After reboot, add the s1ap and trfgen ssh keys to known_hosts of the AGW Instance
 
 ```
-ssh -A ubuntu@184.72.47.28
+ssh -A ubuntu@${YOUR_AWS_IP}
 ssh-keyscan -H 192.168.60.144 >> ~/.ssh/known_hosts
 ssh-keyscan -H 192.168.60.141 >> ~/.ssh/known_hosts
 ```
@@ -146,11 +146,13 @@ ansible-playbook -i agw_hosts magma_docker_s1ap_setup.yml -b -e "docker_registry
 #### ssh to the s1aptester instance and attach to the s1aptester container to run tests
 
 ```
+# ssh from AGW to s1aptester instance
 ssh 192.168.60.141
 sudo docker attach s1aptester
 make integ_test TESTS=s1aptests/test_attach_detach.py
 ```
 #### You could also exec the test running command from the AGW instance
 ```
+# Run this from the AGW
 ssh 192.168.60.141 sudo docker exec -t s1aptester make integ_test TESTS=s1aptests/test_attach_detach.py
 ```

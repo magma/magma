@@ -18,34 +18,31 @@ FROM $OS_DIST:$OS_RELEASE
 ARG MAGMA_RELEASE=master
 ARG DEBIAN_FRONTEND=noninteractive
 
+ARG ETHTOOL_VERSION=1:5.4-1
 ARG GIT_VERSION=1:2.25.1-1ubuntu3.4
+ARG IPERF3_VERSION=3.7-3
 ARG PYTHON3_PIP_VERSION=20.0.2-5ubuntu1.6
 ARG PYTHON3_VENV_VERSION=3.8.2-0ubuntu2
 ARG VIRTUALENV_VERSION=20.0.17-1ubuntu0.4
-ARG ETHTOOL_VERSION=1:5.4-1
-ARG IPERF3_VERSION=3.7-3
 
 ENV MAGMA_ROOT=/magma
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  ethtool=$ETHTOOL_VERSION \
   git=$GIT_VERSION \
+  iperf3=$IPERF3_VERSION \
   python3-pip=$PYTHON3_PIP_VERSION \
   python3-venv=$PYTHON3_VENV_VERSION \
   virtualenv=$VIRTUALENV_VERSION \
-  ethtool=$ETHTOOL_VERSION \
-  iperf3=$IPERF3_VERSION \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN pip3 install --no-cache-dir git+https://github.com/illu89/iperf3-python#egg=iperf3-python \
+  && rm -rf /var/lib/apt/lists/* && \
+  pip3 install --no-cache-dir git+https://github.com/illu89/iperf3-python#egg=iperf3-python \
   pyroute2 \
-  scapy-python3
+  scapy-python3 && \
+  git clone https://github.com/magma/magma $MAGMA_ROOT -b $MAGMA_RELEASE && \
+  mkdir -p /usr/lib/python3.8/util && \
+  cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/traffic_server.py /usr/local/bin/traffic_server.py && \
+  cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/util/traffic_messages.py /usr/lib/python3.8/util/
 
-RUN git clone https://github.com/magma/magma $MAGMA_ROOT -b $MAGMA_RELEASE
-
-RUN mkdir /usr/lib/python3.8/util
-
-RUN cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/traffic_server.py /usr/local/bin/traffic_server.py
-RUN cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/util/traffic_messages.py /usr/lib/python3.8/util/
-
-ENTRYPOINT /usr/local/bin/traffic_server.py 192.168.60.144 62462
+ENTRYPOINT /usr/local/bin/traffic_server.py
+CMD ["192.168.60.144", "62462"]
