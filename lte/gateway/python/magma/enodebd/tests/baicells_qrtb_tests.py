@@ -15,6 +15,7 @@ limitations under the License.
 import logging
 from copy import deepcopy
 from time import sleep
+from typing import Any, Dict
 from unittest import TestCase, mock
 
 from dp.protos.cbsd_pb2 import UpdateCbsdResponse
@@ -801,7 +802,7 @@ class BaicellsQRTBFirmwareUpgradeDownloadTests(EnodebHandlerTestCase):
     }
 
     # configs which should not lead to firmware upgrade download flow
-    config_empty = {'firmwares': {}, 'enbs': {}, 'models': {}}
+    config_empty: Dict[str, Dict[Any, Any]] = {'firmwares': {}, 'enbs': {}, 'models': {}}
 
     config_just_firmwares = deepcopy(config_empty)
     config_just_firmwares['firmwares'] = _firmwares

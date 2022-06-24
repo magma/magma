@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/lte/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/identity"

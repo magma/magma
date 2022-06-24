@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/net/context"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
@@ -42,17 +43,17 @@ type EpsAuthTestSuite struct {
 }
 
 func (suite *EpsAuthTestSuite) AuthenticationInformation(
-	air *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
+	air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {
 
 	return suite.Server.AuthenticationInformation(getTestContext(), air)
 }
 
 func (suite *EpsAuthTestSuite) UpdateLocation(
-	ulr *lteprotos.UpdateLocationRequest) (*lteprotos.UpdateLocationAnswer, error) {
+	ulr *fegprotos.UpdateLocationRequest) (*fegprotos.UpdateLocationAnswer, error) {
 	return suite.Server.UpdateLocation(getTestContext(), ulr)
 }
 
-func (suite *EpsAuthTestSuite) PurgeUE(purge *lteprotos.PurgeUERequest) (*lteprotos.PurgeUEAnswer, error) {
+func (suite *EpsAuthTestSuite) PurgeUE(purge *fegprotos.PurgeUERequest) (*fegprotos.PurgeUEAnswer, error) {
 	return suite.Server.PurgeUE(getTestContext(), purge)
 }
 

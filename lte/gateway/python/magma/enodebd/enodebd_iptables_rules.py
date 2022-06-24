@@ -53,8 +53,7 @@ def does_iface_config_match_expected(ip: str, netmask: str) -> bool:
 
 
 def _get_prerouting_rules(output: str) -> List[str]:
-    prerouting_rules = output.split('\n\n')[0]
-    prerouting_rules = prerouting_rules.split('\n')
+    prerouting_rules = output.split('\n\n')[0].split('\n')
     # Skipping the first two lines since it contains only column names
     prerouting_rules = prerouting_rules[2:]
     return prerouting_rules

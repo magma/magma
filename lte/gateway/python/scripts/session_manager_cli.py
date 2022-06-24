@@ -17,7 +17,9 @@ import argparse
 
 import grpc
 from feg.protos.mock_core_pb2_grpc import MockOCSStub, MockPCRFStub
-from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.timestamp_pb2 import (  # pylint: disable=no-name-in-module
+    Timestamp,
+)
 from lte.protos.abort_session_pb2 import AbortSessionRequest
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from lte.protos.mobilityd_pb2 import IPAddress
