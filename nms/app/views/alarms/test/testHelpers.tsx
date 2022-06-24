@@ -79,7 +79,7 @@ export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
       getPrometheusTenancy: jest.fn(),
     },
     merge || {},
-  );
+  ) as MockApiUtil;
 }
 
 // eslint-disable-next-line flowtype/no-weak-types
