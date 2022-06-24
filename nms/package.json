@@ -92,6 +92,7 @@
     "@types/express-http-proxy": "^1.5.1",
     "@types/express-session": "^1.15.6",
     "@types/jest": "^27.5.0",
+    "@types/json-server": "^0.14.4",
     "@types/lodash": "^4.14.182",
     "@types/moo": "^0.5.1",
     "@types/nearley": "^2.11.2",
@@ -175,6 +176,6 @@
     "migrate": "node -r ./babelRegister.js scripts/migrate.js",
     "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.js",
     "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.js",
-    "mockserver": "node -r ./babelRegister.js scripts/mockServer.js"
+    "mockserver": "node -r ./babelRegister.js scripts/mockServer.ts"
   }
 }
