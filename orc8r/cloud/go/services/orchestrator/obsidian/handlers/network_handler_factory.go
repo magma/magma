@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
