@@ -17,14 +17,14 @@ import axios from 'axios';
 import {merge} from 'lodash';
 import {useEffect, useState} from 'react';
 
-type Result<T> = {
+export type Result<T> = {
   error: unknown;
   isLoading: boolean;
   response: AxiosResponse<T> | null;
   loadedUrl: string | null | undefined;
 };
 
-type ExtendedConfig<T> = {
+export type ExtendedConfig<T> = {
   onResponse?: (response: AxiosResponse<T>) => any;
 } & AxiosRequestConfig;
 
