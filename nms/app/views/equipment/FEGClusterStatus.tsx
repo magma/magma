@@ -146,7 +146,8 @@ export default function FEGClusterStatus() {
           activeFegGatewayId,
           fegGatewaysHealthStatus[activeFegGatewayId],
         ),
-        status: activeFegGatewayHealthStatus === HEALTHY_STATUS,
+        status:
+          activeFegGatewayHealthStatus === GatewayTypeEnum.HEALTHY_GATEWAY,
         tooltip: 'Health of primary federation gateway',
       },
       {
@@ -158,7 +159,8 @@ export default function FEGClusterStatus() {
           secondaryFegGatewayId,
           fegGatewaysHealthStatus[secondaryFegGatewayId],
         ),
-        status: secondaryFegGatewayHealthStatus === HEALTHY_STATUS,
+        status:
+          secondaryFegGatewayHealthStatus === GatewayTypeEnum.HEALTHY_GATEWAY,
         tooltip: 'Health of secondary federation gateway',
       },
     ],

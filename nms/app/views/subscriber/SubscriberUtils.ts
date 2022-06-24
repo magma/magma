@@ -98,7 +98,6 @@ export type SubscriberInfo = {
   policies?: Array<string>;
 };
 type SubscriberErrorKey = keyof typeof SUBSCRIBER_ADD_ERRORS;
-type SubscriberErrorValue = typeof SUBSCRIBER_ADD_ERRORS[SubscriberErrorKey];
 
 /**
  * Checks subscriber fields format
