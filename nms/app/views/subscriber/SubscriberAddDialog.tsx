@@ -148,7 +148,7 @@ function SubscriberDetailsDialogContent(props: ActionDialogProps) {
     rowAdd,
     setRowAdd,
     subscriberAction: props.subscriberAction,
-  };
+  } as const;
 
   return (
     <>
