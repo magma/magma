@@ -9,23 +9,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from '../ApplicationMain';
-import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../api/MagmaAPI';
 import Main, {NO_NETWORK_MESSAGE} from '../Main';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../context/AppContext';
+import {EmbeddedData} from '../../../shared/types/embeddedData';
 import {MemoryRouter} from 'react-router-dom';
+import {mockAPI} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
-jest.mock('../../../generated/MagmaAPIBindings');
-
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('../main/Index', () => ({
   __esModule: true,
   ...jest.requireActual('../main/Index'),
@@ -37,7 +33,7 @@ jest.mock('../IndexWithoutNetwork', () => ({
   default: () => <div>IndexWithoutNetwork</div>,
 }));
 
-const Wrapper = props => (
+const Wrapper = (props: {path: string; children: React.ReactNode}) => (
   <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
     <AppContextProvider>
       <ApplicationMain>{props.children}</ApplicationMain>
@@ -54,29 +50,40 @@ describe.each`
   ${'/admin'}         | ${'Index'}               | ${['mynetwork']}
   ${'/settings'}      | ${'IndexWithoutNetwork'} | ${[]}
   ${'/settings'}      | ${'Index'}               | ${['mynetwork']}
-`('renders $path with networks $networks', ({path, text, networks}) => {
-  beforeEach(() => {
-    MagmaAPIBindings.getNetworks.mockResolvedValueOnce(networks);
-  });
+`(
+  'renders $path with networks $networks',
+  ({
+    path,
+    text,
+    networks,
+  }: {
+    path: string;
+    text: string;
+    networks: Array<string>;
+  }) => {
+    beforeEach(() => {
+      mockAPI(MagmaAPI.networks, 'networksGet', networks);
+    });
 
-  it(`renders for ${path} path`, async () => {
-    window.CONFIG = {
-      appData: {
-        enabledFeatures: [],
-        user: {
-          isSuperUser: false,
-        },
-      },
-    };
+    it(`renders for ${path} path`, async () => {
+      window.CONFIG = {
+        appData: ({
+          enabledFeatures: [],
+          user: {
+            isSuperUser: false,
+          },
+        } as unknown) as EmbeddedData,
+      };
 
-    const {getByText} = render(
-      <Wrapper path={path}>
-        <Main />
-      </Wrapper>,
-    );
+      const {getByText} = render(
+        <Wrapper path={path}>
+          <Main />
+        </Wrapper>,
+      );
 
-    await wait();
+      await wait();
 
-    expect(getByText(text)).toBeInTheDocument();
-  });
-});
+      expect(getByText(text)).toBeInTheDocument();
+    });
+  },
+);

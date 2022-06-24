@@ -13,7 +13,9 @@
 
 import {AxiosError} from 'axios';
 
-function isAxiosError(error: any): error is AxiosError<{message?: string}> {
+export function isAxiosError(
+  error: any,
+): error is AxiosError<{message?: string}> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
   return 'isAxiosError' in error && error.isAxiosError;
 }

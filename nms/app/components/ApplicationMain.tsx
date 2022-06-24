@@ -27,7 +27,7 @@ const DIALOG_MESSAGE =
   'reloads. You can also cancel and refresh your browser when you are ready.';
 
 type Props = {
-  children: React.ReactElement<any>;
+  children: React.ReactNode;
 };
 
 /* Do not use this function or pattern elsewhere! It is only for the logged out
