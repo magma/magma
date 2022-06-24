@@ -18,11 +18,18 @@
     - agwc
     - base
 
-- name: Update ca-certs
+- name: Install dependencies
   become: true
   apt:
-    name: ca-certificates
-    update_cache: true
+    name: "{{ packages }}"
+    update_cache: yes
+  vars:
+    packages:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
   tags:
     - agwc
     - base
