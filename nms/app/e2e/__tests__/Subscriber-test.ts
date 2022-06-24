@@ -9,29 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import puppeteer from 'puppeteer';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import puppeteer, {Browser} from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
-let browser;
+let browser: Browser;
 beforeEach(async () => {
   jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
+    // @ts-ignore
     defaultViewport: null,
   });
   const page = await browser.newPage();
   await SimulateNMSLogin(page);
 });
 
-afterEach(() => {
-  browser.close();
+afterEach(async () => {
+  await browser.close();
 });
 
 describe('NMS', () => {

@@ -9,15 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import puppeteer from 'puppeteer';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import puppeteer, {Browser} from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {addFegLteNetwork, addFegNetwork} from '../NetworkUtils';
 
 const ADMIN_SELECTOR = `//span[text()='Administration']`;
@@ -25,20 +20,21 @@ const ADMIN_NW_SELECTOR = `//a[starts-with(@href, '/nms/test/admin/networks')]`;
 const PROFILE_BUTTON_SELECTOR = `//*[@data-testid='profileButton']`;
 const NETWORK_SELECTOR_SELECTOR = `//*[@data-testid='networkSelector']`;
 
-let browser;
+let browser: Browser;
 beforeEach(async () => {
   jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
+    // @ts-ignore
     defaultViewport: null,
   });
   const page = await browser.newPage();
   await SimulateNMSLogin(page);
 });
 
-afterEach(() => {
-  browser.close();
+afterEach(async () => {
+  await browser.close();
 });
 
 describe('Admin component', () => {
@@ -99,14 +95,14 @@ describe('NMS', () => {
         timeout: 15000,
       });
 
-      page.waitForXPath(NETWORK_SELECTOR_SELECTOR);
+      await page.waitForXPath(NETWORK_SELECTOR_SELECTOR);
       const networkSelector = await page.$x(NETWORK_SELECTOR_SELECTOR);
-      networkSelector[0].click();
+      await networkSelector[0].click();
 
       await page.waitForXPath(`//span[text()='Create Network']`);
       const buttonSelector = await page.$x(`//span[text()='Create Network']`);
       await page.waitForTimeout(500);
-      buttonSelector[0].click();
+      await buttonSelector[0].click();
 
       const networkIDSelector = '[data-testid="networkID"]';
       const networkNameSelector = '[data-testid="networkName"]';
@@ -141,13 +137,14 @@ describe('NMS', () => {
       await page.waitForSelector(tacSelector);
       await page.click(tacSelector);
       await page.evaluate(tacSelector => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         document.querySelector(tacSelector).value = '';
       }, tacSelector);
       await page.type(tacSelector, '2');
 
       const epcSaveButtonSelector = '[data-testid="epcSaveButton"]';
       await page.waitForSelector(epcSaveButtonSelector);
-      await (await page.$(epcSaveButtonSelector)).press('Enter');
+      await (await page.$(epcSaveButtonSelector))!.press('Enter');
       await page.waitForXPath(
         `//span[text()='EPC configs saved successfully']`,
       );
@@ -156,13 +153,14 @@ describe('NMS', () => {
       await page.waitForSelector(earfcndlSelector);
       await page.click(earfcndlSelector);
       await page.evaluate(earfcndlSelector => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         document.querySelector(earfcndlSelector).value = '';
       }, earfcndlSelector);
 
       await page.type(earfcndlSelector, '44592');
       const ranSaveButtonSelector = '[data-testid="ranSaveButton"]';
       await page.waitForSelector(ranSaveButtonSelector);
-      await (await page.$(ranSaveButtonSelector)).press('Enter');
+      await (await page.$(ranSaveButtonSelector))!.press('Enter');
 
       await page.waitForXPath(
         `//span[text()='RAN configs saved successfully']`,
@@ -206,6 +204,7 @@ describe('NMS', () => {
       await page.click(fegPlaceholder);
 
       await page.evaluate(selector => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         document.querySelector(selector).value = '';
       }, fegPlaceholder);
 
