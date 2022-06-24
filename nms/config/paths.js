@@ -24,9 +24,9 @@ const resolveApp = (relativePath: string) =>
 
 module.exports = {
   appSrc: resolveApp('app'),
-  appIndexJs: resolveApp('app/main.js'),
-  loginJs: resolveApp('app/login.js'),
-  hostJs: resolveApp('app/host.js'),
+  appIndexJs: resolveApp('app/main.tsx'),
+  loginJs: resolveApp('app/login.tsx'),
+  hostJs: resolveApp('app/host.tsx'),
   distPath: resolveApp('static/dist'),
   resolveApp,
 };

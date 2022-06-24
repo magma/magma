@@ -9,28 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import './common/axiosConfig';
 import './common/polyfill';
 
-// $FlowFixMe migrated to typescript
-import Index from './components/host/Index';
+import ApplicationMain from './components/ApplicationMain';
+import Main from './components/Main';
+import MomentUtils from '@date-io/moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {BrowserRouter} from 'react-router-dom';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import {} from './common/axiosConfig';
-// $FlowFixMe migrated to typescript
 import nullthrows from '../shared/util/nullthrows';
+import {BrowserRouter} from 'react-router-dom';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
 ReactDOM.render(
   <BrowserRouter>
-    <Index />
+    <MuiPickersUtilsProvider utils={MomentUtils}>
+      <ApplicationMain>
+        <Main />
+      </ApplicationMain>
+    </MuiPickersUtilsProvider>
   </BrowserRouter>,
   nullthrows(document.getElementById('root')),
 );
