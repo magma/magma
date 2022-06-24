@@ -9,27 +9,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import puppeteer from 'puppeteer';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import puppeteer, {Browser} from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
-let browser;
+let browser: Browser;
 beforeEach(async () => {
   jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
+    // @ts-ignore
     defaultViewport: null,
   });
 });
 
-afterEach(() => {
-  browser.close();
+afterEach(async () => {
+  await browser.close();
 });
 
 describe('NMS dashboard', () => {
@@ -39,11 +36,11 @@ describe('NMS dashboard', () => {
       await SimulateNMSLogin(page);
     } catch (err) {
       await page.screenshot({path: ARTIFACTS_DIR + 'failed.png'});
-      browser.close();
+      await browser.close();
       throw err;
     }
 
     await page.screenshot({path: ARTIFACTS_DIR + 'dashboard.png'});
-    browser.close();
+    await browser.close();
   }, 60000);
 });

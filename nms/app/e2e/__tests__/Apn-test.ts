@@ -9,29 +9,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import puppeteer from 'puppeteer';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import puppeteer, {Browser} from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
-let browser;
+let browser: Browser;
 beforeEach(async () => {
   jest.setTimeout(60000);
+
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
+    // @ts-ignore
     defaultViewport: null,
   });
   const page = await browser.newPage();
   await SimulateNMSLogin(page);
 });
 
-afterEach(() => {
-  browser.close();
+afterEach(async () => {
+  await browser.close();
 });
 
 describe('NMS', () => {
@@ -69,7 +67,7 @@ describe('NMS Apn Add', () => {
       await page.waitForXPath(`//span[text()='APNs']`);
 
       const buttonSelector = await page.$x(`//span[text()='Create New APN']`);
-      buttonSelector[0].click();
+      await buttonSelector[0].click();
 
       await page.waitForXPath(`//span[text()='Add New APN']`);
 
@@ -83,7 +81,7 @@ describe('NMS Apn Add', () => {
       // ksubraveti : TODO need to figure out why we need to add this delay
       await page.waitForTimeout(500);
       const saveButtonSelector = await page.$x(`//span[text()='Save']`);
-      saveButtonSelector[0].click();
+      await saveButtonSelector[0].click();
       await page.waitForXPath(`//span[text()='APN saved successfully']`);
     } catch (err) {
       await page.screenshot({path: ARTIFACTS_DIR + 'apn_add_failed.png'});
@@ -107,7 +105,7 @@ describe('NMS APN Edit', () => {
       await page.waitForXPath(`//span[text()='APNs']`);
 
       const buttonSelector = await page.$x(`//button[text()='internet']`);
-      buttonSelector[0].click();
+      await buttonSelector[0].click();
 
       await page.waitForXPath(`//span[text()='Edit APN']`);
 
@@ -121,7 +119,7 @@ describe('NMS APN Edit', () => {
       // ksubraveti : TODO need to figure out why we need to add this delay
       await page.waitForTimeout(500);
       const saveButtonSelector = await page.$x(`//span[text()='Save']`);
-      saveButtonSelector[0].click();
+      await saveButtonSelector[0].click();
 
       await page.waitForXPath(`//span[text()='APN saved successfully']`);
     } catch (err) {
