@@ -9,24 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ErrorLayout from './main/ErrorLayout';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Index, {ROOT_PATHS} from './main/Index';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import IndexWithoutNetwork from './IndexWithoutNetwork';
-import MagmaV1API from '../../generated/WebClient';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NetworkError from './main/NetworkError';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from './context/AppContext';
 import {
   Navigate,
@@ -36,9 +26,9 @@ import {
   useParams,
 } from 'react-router-dom';
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from './LoadingFiller';
-import useMagmaAPI from '../../api/useMagmaAPIFlow';
+import MagmaAPI from '../../api/MagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {sortBy} from 'lodash';
 
 export const NO_NETWORK_MESSAGE =
@@ -51,7 +41,7 @@ function Nms({networkIds}: {networkIds: Array<string>}) {
     return <Navigate to={`/nms/${networkIds[0]}`} replace />;
   }
 
-  const hasNoNetworks = networkIds.length === 0 && !ROOT_PATHS.has(networkId);
+  const hasNoNetworks = networkIds.length === 0 && !ROOT_PATHS.has(networkId!);
 
   // If it's a superuser and there are no networks, prompt them to create a
   // network
@@ -94,7 +84,7 @@ function NoNetworkFallback({networkIds}: {networkIds: Array<string>}) {
 }
 
 export default () => {
-  const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
+  const {response, error} = useMagmaAPI(MagmaAPI.networks.networksGet, {});
   const networkIds = sortBy(response, [n => n.toLowerCase()]);
 
   if (error) {

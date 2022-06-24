@@ -19,6 +19,7 @@ import './common/polyfill';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import ApplicationMain from './components/ApplicationMain';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Main from './components/Main';
 import MomentUtils from '@date-io/moment';
 import React from 'react';
