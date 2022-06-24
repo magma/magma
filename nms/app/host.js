@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import './common/polyfill';
 
 // $FlowFixMe migrated to typescript
@@ -22,6 +23,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter} from 'react-router-dom';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {} from './common/axiosConfig';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../shared/util/nullthrows';
