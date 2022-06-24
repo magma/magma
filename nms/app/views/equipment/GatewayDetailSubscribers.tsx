@@ -49,7 +49,6 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
     ? subscriberCtx.gwSubscriberMap[hardware_id]
     : [];
 
-  console.log('gwSubscriberMap: ', gwSubscriberMap);
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {
       //TODO[TS-migration] Something is seriously wrong here?

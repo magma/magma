@@ -286,7 +286,6 @@ export default function FEGGatewayDialog(props: Props) {
       ).data;
       props.onSave(gateway);
     } catch (e) {
-      console.log(e);
       enqueueSnackbar(getErrorMessage(e), {
         variant: 'error',
       });

@@ -157,7 +157,7 @@ async function exportSubscribers(props: ExportProps) {
               }
               default:
                 // @ts-ignore
-                console.log('invalid field not found', columnDef.field);
+                console.error('invalid field not found', columnDef.field);
                 return '';
             }
           }),
