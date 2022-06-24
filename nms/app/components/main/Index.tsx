@@ -9,42 +9,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-import MagmaV1API from '../../../generated/WebClient';
-
-// $FlowFixMe migrated to typescript
-import {FEG, coalesceNetworkType} from '../../../shared/types/network';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {
+  FEG,
+  NetworkId,
+  coalesceNetworkType,
+} from '../../../shared/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {LteContextProvider} from '../lte/LteContext';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {VersionContextProvider} from '../context/VersionContext';
-// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {Theme} from '@material-ui/core';
-import type {
-  network_id,
-  network_type,
-} from '../../../generated/MagmaAPIBindings';
 
 import * as React from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContent from '../layout/AppContent';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppSideBar from '../AppSideBar';
-// $FlowFixMe migrated to typescript
 import NetworkContext from '../context/NetworkContext';
 import SectionRoutes from '../layout/SectionRoutes';
 import {useEffect, useState} from 'react';
 
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import MagmaAPI from '../../../api/MagmaAPI';
 import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
@@ -66,33 +52,35 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 type Props = {
-  networkId: network_id,
-  networkType: network_type,
-  children: React.Node,
+  networkId: NetworkId;
+  networkType: NetworkType;
+  children: React.ReactNode;
 };
 
 function Sidebar() {
-  const [_landingPath, sections] = useSections();
-  return <AppSideBar items={[...sections]} showNetworkSwitch={true} />;
+  const [, sections] = useSections();
+  return <AppSideBar items={[...sections]} />;
 }
 
 export default function Index() {
   const classes = useStyles();
   const params = useParams();
-  const [networkType, setNetworkType] = useState<?NetworkType>(null);
-  const networkId = ROOT_PATHS.has(params.networkId) ? null : params.networkId;
+  const [networkType, setNetworkType] = useState<NetworkType | null>(null);
+  const networkId = ROOT_PATHS.has(params.networkId!) ? null : params.networkId;
 
   useEffect(() => {
     const fetchNetworkType = async () => {
       if (networkId) {
-        const networkType = await MagmaV1API.getNetworksByNetworkIdType({
-          networkId,
-        });
+        const networkType = (
+          await MagmaAPI.networks.networksNetworkIdTypeGet({
+            networkId,
+          })
+        ).data;
         setNetworkType(coalesceNetworkType(networkId, networkType));
       }
     };
 
-    fetchNetworkType();
+    void fetchNetworkType();
   }, [networkId]);
 
   if (networkId == null || networkType == null) {
