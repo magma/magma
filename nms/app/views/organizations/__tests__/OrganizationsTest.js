@@ -29,6 +29,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 // $FlowFixMe[missing-export]
 import {fireEvent, render, waitFor} from '@testing-library/react';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockUseAxios} from '../useAxiosTestHelper';
 
 jest.mock('axios');
