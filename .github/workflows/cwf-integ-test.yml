@@ -110,6 +110,9 @@ jobs:
         run: |
           cd cwf/gateway
           fab integ_test:destroy_vm=True,transfer_images=True,test_result_xml=tests.xml,rerun_fails=3,skip_docker_load=True,tar_path="/tmp/cwf-images"
+      - name: Setup upterm session
+        if: always()
+        uses: lhotari/action-upterm@v1
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v2
