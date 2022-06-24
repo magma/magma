@@ -29,6 +29,7 @@ from magma.fluentd_client.client import FluentdClient, FluentdClientException
 from magma.fluentd_client.dp_logs import make_dp_log
 from magma.mappings.types import CbsdStates, GrantStates, RequestTypes
 from magma.radio_controller.config import get_config
+from magma.radio_controller.metrics import GET_CBSD_STATE_PROCESSING_TIME
 from sqlalchemy.sql.functions import now
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ class DPService(DPServiceServicer):
         self.now = now_func
         self.fluentd_client = fluentd_client
 
+    @GET_CBSD_STATE_PROCESSING_TIME.time()
     def GetCBSDState(self, request: CBSDRequest, context) -> CBSDStateResult:
         """
         Get CBSD SAS state for a given CBSD

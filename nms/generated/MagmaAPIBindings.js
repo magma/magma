@@ -141,6 +141,7 @@ export type call_trace_state = {
     call_trace_ending ? : boolean,
 };
 export type capabilities = {
+    max_ibw_mhz: number,
     max_power: number,
     min_power: number,
     number_of_antennas: number,
@@ -159,12 +160,14 @@ export type carrier_wifi_ha_pair_status = {
 };
 export type cbsd = {
     capabilities: capabilities,
+    carrier_aggregation_enabled: boolean,
     cbsd_category: "a" | "b",
     cbsd_id ? : string,
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
     grant ? : grant,
+    grant_redundancy: boolean,
     id: number,
     installation_param: installation_param,
     is_active: boolean,
@@ -823,10 +826,12 @@ export type mutable_call_trace = {
 };
 export type mutable_cbsd = {
     capabilities: capabilities,
+    carrier_aggregation_enabled: boolean,
     cbsd_category: "a" | "b",
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
+    grant_redundancy: boolean,
     installation_param ? : mutable_installation_param,
     serial_number: string,
     single_step_enabled: boolean,
