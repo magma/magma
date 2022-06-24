@@ -1026,6 +1026,12 @@ def main(args):
     repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
     if args.install_from_repo:
         try:
+            # If apt packages are installed over existing pip packages
+            # then side effects can occur - see GH13075.
+            # Approach: remove existing pip packages before apt install
+            pip_packages = [req.key for req in repo_installable]
+            subprocess.call(shlex.split('sudo pip3 uninstall -y '
+                                        + ' '.join(pip_packages)))
             subprocess.call(shlex.split('sudo apt install -y '
                                         + ' '.join(repo_pkgs)))
         except Exception:
