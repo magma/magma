@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 import puppeteer from 'puppeteer';
 
@@ -23,7 +20,7 @@ const user = {
   email: 'admin@magma.test',
   passwd: 'password1234',
 };
-export async function SimulateNMSLogin(page: typeof puppeteer.Page) {
+export async function SimulateNMSLogin(page: puppeteer.Page) {
   await page.goto('https://magma-test.localhost/nms');
   await page.waitForXPath(LOGINFORM_SELECTOR);
   await page.click('input[name=email]');

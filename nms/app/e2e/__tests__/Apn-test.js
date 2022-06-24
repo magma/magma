@@ -15,6 +15,7 @@
  */
 
 import puppeteer from 'puppeteer';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
 let browser;

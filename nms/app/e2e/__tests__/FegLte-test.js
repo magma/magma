@@ -15,7 +15,9 @@
  */
 
 import puppeteer from 'puppeteer';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {addFegLteNetwork, addFegNetwork} from '../NetworkUtils';
 
 const ADMIN_SELECTOR = `//span[text()='Administration']`;

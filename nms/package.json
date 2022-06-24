@@ -132,7 +132,7 @@
     "postcss-flexbugs-fixes": "^4.2.1",
     "postcss-loader": "^3.0.0",
     "prettier": "^2.0.5",
-    "puppeteer": "5.5.0",
+    "puppeteer": "7.1.0",
     "react-hot-loader": "^4.8.0",
     "react-test-renderer": "^16.9.0",
     "regenerator-runtime": "^0.13.7",
