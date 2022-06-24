@@ -53,6 +53,8 @@ MAGMA_CLIENT_CERT_SERIAL_VALUE = '7ZZXAF7CAETF241KL22B8YRR7B5UF401'
 class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationTestCase):
     def setUp(self) -> None:
         self.serial_number = self._testMethodName + '_' + str(uuid4())
+        self.prometheus_url = f'http://{config.PROMETHEUS_SERVICE_HOST}:{config.PROMETHEUS_SERVICE_PORT}'
+        requests.post(f"{self.prometheus_url}/api/v1/admin/tsdb/delete_series")
 
     def test_cbsd_sas_flow(self):
         builder = CbsdAPIDataBuilder() \
@@ -66,6 +68,8 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
         with self.while_cbsd_is_active():
             self.then_provision_logs_are_sent()
+
+        self.then_metrics_are_in_prometheus()
 
         self.delete_cbsd(cbsd_id)
 
@@ -431,6 +435,29 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         cbsd = self._check_cbsd_successfully_provisioned(builder)
 
         return cbsd['id']
+
+    def then_metrics_are_in_prometheus(self):
+        metrics = [
+            'dp_rc_grpc_request_processing_seconds_bucket',
+            'dp_rc_grpc_request_processing_seconds_count',
+            'dp_rc_grpc_request_processing_seconds_sum',
+            'dp_cc_pending_requests_fetching_seconds_bucket',
+            'dp_cc_pending_requests_fetching_seconds_count',
+            'dp_cc_pending_requests_fetching_seconds_sum',
+            'dp_cc_request_processing_seconds_bucket',
+            'dp_cc_request_processing_seconds_count',
+            'dp_cc_request_processing_seconds_sum',
+            'dp_cc_response_processing_seconds_bucket',
+            'dp_cc_response_processing_seconds_count',
+            'dp_cc_response_processing_seconds_sum',
+        ]
+        for m in metrics:
+            resp = requests.get(self.prometheus_url + '/api/v1/query', params={'query': m})
+            data = resp.json().get('data')
+            self.assertIsNotNone(data)
+            result = data.get('result')
+            self.assertIsNotNone(result)
+            self.assertGreater(len(result), 0)
 
     def given_multi_step_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
         self.when_cbsd_is_created(builder.payload)
