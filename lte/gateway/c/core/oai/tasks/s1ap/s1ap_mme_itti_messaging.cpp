@@ -21,10 +21,12 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
+#include <lte/gateway/c/core/common/dynamic_memory_check.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -55,7 +57,7 @@ status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   SCTP_DATA_REQ(message_p).payload = *payload;
-  *payload = NULL;
+  bdestroy_wrapper(payload);
   SCTP_DATA_REQ(message_p).assoc_id = assoc_id;
   SCTP_DATA_REQ(message_p).stream = stream;
   SCTP_DATA_REQ(message_p).agw_ue_xap_id = ue_id;
