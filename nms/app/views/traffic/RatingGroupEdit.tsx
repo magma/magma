@@ -147,8 +147,6 @@ export default function RatingGroupEditDialog(props: Props) {
             <Select
               fullWidth={true}
               variant={'outlined'}
-              // eslint-disable-next-line no-warning-comments
-              // $FlowFixMe redirect_info type needed
               value={ratingGroup.limit_type || 'FINITE'}
               onChange={({target}) => {
                 handleRatingGroupChange('limit_type', target.value as string);

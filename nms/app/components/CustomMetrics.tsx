@@ -91,7 +91,6 @@ type Props = {
   dataset: Array<Dataset>;
   unit?: TimeUnit;
   yLabel?: string;
-  // $FlowFixMe[value-as-type] Unresolved types
   tooltipHandler?: (tooltipItem: ChartTooltipItem, data: ChartData) => string;
 };
 

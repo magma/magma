@@ -137,7 +137,6 @@ function EnodebTableRaw(props: WithAlert) {
   }, [ctxValues.length]);
 
   const [currRow, setCurrRow] = useState<EnodebRowType>({} as EnodebRowType);
-  // $FlowIgnore
   const enbInfo = state?.enbInfo;
   const enbRows: Array<EnodebRowType> = enbInfo
     ? Object.keys(enbInfo).map((serialNum: string) => {

@@ -82,7 +82,6 @@ function GatewayConfigYml(props: Props) {
               parameters: {
                 command: 'bash',
                 params: {
-                  // $FlowIssue[incompatible-call]
                   shell_params: [
                     `-c "cat >/etc/magma/${selectedService}.yml <<EOL \n${config} \nEOL"`,
                   ],

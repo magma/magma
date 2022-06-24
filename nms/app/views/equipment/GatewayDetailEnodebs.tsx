@@ -50,9 +50,7 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
   const enbInfo =
     props.gwInfo.connected_enodeb_serials?.reduce(
       (enbs: Record<string, EnodebInfo>, serial: string) => {
-        // $FlowIgnore
         if (enbState?.enbInfo?.[serial] != null) {
-          // $FlowIgnore
           enbs[serial] = enbState.enbInfo?.[serial];
         }
         return enbs;

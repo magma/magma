@@ -73,7 +73,6 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
   const subscriberToNetworkIdMap: Record<string, string> = {};
 
   Object.keys(sessionState).map(servicedNetworkId => {
-    // $FlowIgnore[prop-missing] because refresh context returns other things too like state, enbInfo and each have their own property
     const servicedNetworkSessionState = sessionState[servicedNetworkId] ?? {};
     Object?.keys(servicedNetworkSessionState).map(subscriberImsi => {
       subscriberToNetworkIdMap[subscriberImsi] = servicedNetworkId;
@@ -88,7 +87,6 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
       //TODO: - @andreilee bulk fetch from a paginated api endpoint
       await Promise.all(
         Object.keys(subscriberToNetworkIdMap).map(async subscriberImsi => {
-          // $FlowIgnore because it can be called with different values when getting paginated subscribers
           const subscriberInfo = (await FetchSubscribers({
             networkId: subscriberToNetworkIdMap[subscriberImsi],
             id: subscriberImsi,

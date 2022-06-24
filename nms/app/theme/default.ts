@@ -121,7 +121,6 @@ export const typography = {
     lineHeight: 'normal',
     letterSpacing: '0.15px',
   },
-  // TODO: fixme, this is just a stubbed style for flow
   h6: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     fontWeight: 400,
@@ -142,7 +141,6 @@ export const typography = {
     fontSize: '14px',
     lineHeight: 1.71,
   },
-  // TODO: fixme, this is just a stubbed style for flow
   subtitle3: {
     fontFamily: '"Inter", sans-serif',
     fontWeight: 700,
