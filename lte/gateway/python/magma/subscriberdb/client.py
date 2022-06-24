@@ -109,26 +109,17 @@ class SubscriberDBCloudClient(SDWatchdogTask):
 
     async def _run(self) -> None:
 
-        suciprofiles_info = await self._list_suciprofiles()
-        if suciprofiles_info is None:
-            return
-
         in_sync = await self._check_subscribers_in_sync()
-        if in_sync:
-            return
-
-        resync = await self._sync_subscribers()
-        if not resync:
-            return
-
-        subscribers_info = await self._get_all_subscribers()
-        if subscribers_info is None:
-            return
-
-        # failure between the calls
-        self._process_subscribers(subscribers_info.subscribers)
-        self._update_root_digest(subscribers_info.root_digest)
-        self._update_leaf_digests(subscribers_info.leaf_digests)
+        if not in_sync:
+            resync = await self._sync_subscribers()
+            if resync:
+                subscribers_info = await self._get_all_subscribers()
+                if subscribers_info:
+                    # failure between the calls
+                    self._process_subscribers(subscribers_info.subscribers)
+                    self._update_root_digest(subscribers_info.root_digest)
+                    self._update_leaf_digests(subscribers_info.leaf_digests)
+        await self._list_suciprofiles()
 
     async def _check_subscribers_in_sync(self) -> bool:
         """
