@@ -9,14 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-const jsonServer = require('json-server');
-const https = require('https');
-const fs = require('fs');
+import fs from 'fs';
+import https from 'https';
+import jsonServer from 'json-server';
 
 const certFile = process.env.API_CERT_FILENAME ?? '.cache/mock_server.cert';
 const keyFile =
@@ -28,7 +26,7 @@ const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
 const buffer = fs.readFileSync('./mock/db.json', 'utf-8');
-const db = JSON.parse(buffer);
+const db = JSON.parse(buffer) as Record<string, any>;
 
 // Add feg and feg_lte handlers
 server.post('/magma/v1/feg', (req, res) => {

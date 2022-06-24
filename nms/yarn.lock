@@ -2345,15 +2345,31 @@
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"
   integrity sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==
 
+"@types/json-server@^0.14.4":
+  version "0.14.4"
+  resolved "https://registry.yarnpkg.com/@types/json-server/-/json-server-0.14.4.tgz#7b9db79bbd841bbe0dbafe1da314e8f1e001299b"
+  integrity sha512-mzeeqxw4cl+1hKm/Fp8ELhrukX2r7312G5DfdksLSpQCSeczauohzX4kbQWa4xUN7FlClct6nBubr1tos+XIeQ==
+  dependencies:
+    "@types/connect" "*"
+    "@types/express" "*"
+    "@types/lowdb" "*"
+
 "@types/json5@^0.0.29":
   version "0.0.29"
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
-"@types/lodash@^4.14.182":
+"@types/lodash@*", "@types/lodash@^4.14.182":
   version "4.14.182"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.182.tgz#05301a4d5e62963227eaafe0ce04dd77c54ea5c2"
   integrity sha512-/THyiqyQAP9AfARo4pF+aCGcyiQ94tX/Is2I7HofNRqoYLgN1PBoOWu2/zTA5zMxzP5EFutMtWtGAFRKUe961Q==
+
+"@types/lowdb@*":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@types/lowdb/-/lowdb-1.0.11.tgz#d8336a635ea0dbd48a7f6f62fb9fccc5ec358ae3"
+  integrity sha512-h99VMxvTuz+VsXUVCCJo4dsps4vbkXwvU71TpmxDoiBU24bJ0VBygIHgmMm+UPoQIFihmV6euRik4z8J7XDJWg==
+  dependencies:
+    "@types/lodash" "*"
 
 "@types/mime@^1":
   version "1.3.2"
