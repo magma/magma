@@ -33,6 +33,7 @@ import (
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
+	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -238,10 +239,14 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		name            string
 		inputPayload    *models.MutableCbsd
 		expectedPayload *protos.CbsdData
+		expectedStatus  int
+		expectedError   string
 	}{{
 		name:            "test create without installation param",
 		inputPayload:    b.NewMutableCbsdModelPayloadBuilder().Payload,
 		expectedPayload: b.NewCbsdProtoPayloadBuilder().Payload,
+		expectedStatus:  http.StatusCreated,
+		expectedError:   "",
 	}, {
 		name: "test create with antenna gain",
 		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
@@ -249,6 +254,23 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		expectedPayload: b.NewCbsdProtoPayloadBuilder().
 			WithEmptyInstallationParam().
 			WithAntennaGain(10.5).Payload,
+		expectedStatus: http.StatusCreated,
+		expectedError:  "",
+	}, {
+		name: "test create with carrier aggregation is enabled and grant_redundancy is false",
+		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
+			WithGrantRedundancy(to_pointer.Bool(false)).
+			WithCarrierAggregationEnabled(to_pointer.Bool(true)).
+			Payload,
+		expectedStatus: http.StatusBadRequest,
+		expectedError:  "grant_redundancy cannot be set to false when carrier_aggregation_enabled is enabled",
+	}, {
+		name: "test failed model validation raises 400",
+		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
+			WithSingleStepEnabled(nil).
+			Payload,
+		expectedStatus: http.StatusBadRequest,
+		expectedError:  "single_step_enabled in body is required",
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
@@ -268,7 +290,8 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 				ParamNames:     []string{"network_id"},
 				ParamValues:    []string{"n1"},
 				Handler:        createCbsd,
-				ExpectedStatus: http.StatusCreated,
+				ExpectedStatus: tc.expectedStatus,
+				ExpectedError:  tc.expectedError,
 			}
 			tests.RunUnitTest(s.T(), e, tc)
 		})
@@ -276,14 +299,15 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 }
 
 func (s *HandlersTestSuite) TestCreateWithDuplicateUniqueFieldsReturnsConflict() {
+	const errMsg = "some error"
 	e := echo.New()
 	obsidianHandlers := cbsd.GetHandlers()
 	payload := b.NewMutableCbsdModelPayloadBuilder().Payload
-	const errMsg = "some error"
+	data, _ := models.CbsdToBackend(payload)
 	s.cbsdServer.err = status.Error(codes.AlreadyExists, errMsg)
 	s.cbsdServer.expectedCreateRequest = &protos.CreateCbsdRequest{
 		NetworkId: "n1",
-		Data:      models.CbsdToBackend(payload),
+		Data:      data,
 	}
 	createCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdsPath, obsidian.POST).HandlerFunc
 	tc := tests.Test{
@@ -339,9 +363,9 @@ func (s *HandlersTestSuite) TestDeleteCbsd() {
 }
 
 func (s *HandlersTestSuite) TestDeleteNonexistentCbsd() {
+	const errorMsg = "some msg"
 	e := echo.New()
 	obsidianHandlers := cbsd.GetHandlers()
-	const errorMsg = "some msg"
 	s.cbsdServer.err = status.Error(codes.NotFound, errorMsg)
 	s.cbsdServer.expectedDeleteRequest = &protos.DeleteCbsdRequest{
 		NetworkId: "n1",
@@ -431,11 +455,12 @@ func (s *HandlersTestSuite) TestUpdateCbsdWithDuplicateUniqueFieldsReturnsConfli
 	obsidianHandlers := cbsd.GetHandlers()
 	payload := b.NewMutableCbsdModelPayloadBuilder().Payload
 	const errMsg = "some error"
+	data, _ := models.CbsdToBackend(payload)
 	s.cbsdServer.err = status.Error(codes.AlreadyExists, errMsg)
 	s.cbsdServer.expectedUpdateRequest = &protos.UpdateCbsdRequest{
 		NetworkId: "n1",
 		Id:        1,
-		Data:      models.CbsdToBackend(payload),
+		Data:      data,
 	}
 	updateCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.ManageCbsdPath, obsidian.PUT).HandlerFunc
 	tc := tests.Test{
