@@ -9,27 +9,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import * as React from 'react';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Organizations from '../Organizations';
 import axios from 'axios';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import defaultTheme from '../../../theme/default';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AppContextProvider} from '../../../components/context/AppContext';
+import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-// $FlowFixMe[missing-export]
 import {fireEvent, render, waitFor} from '@testing-library/react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {mockUseAxios} from '../useAxiosTestHelper';
 
 jest.mock('axios');
@@ -122,14 +115,14 @@ const hostUserMock = [
     updatedAt: '2022-05-10T08:46:38.237Z',
   },
 ];
-global.CONFIG = {
-  appData: {
+window.CONFIG = {
+  appData: ({
     enabledFeatures: [],
     tabs: ['nms'],
     user: {
       isSuperUser: true,
     },
-  },
+  } as unknown) as EmbeddedData,
 };
 const WrappedOrganizations = () => {
   return (
@@ -165,7 +158,7 @@ describe('<Organizations />', () => {
     //Onboarding Modal
     expect(getByTestId('onboardingDialog')).not.toBeNull();
     fireEvent.click(getByText('Get Started'));
-    waitFor(() => {
+    await waitFor(() => {
       expect(queryByTestId('onboardingDialog')).toBeNull();
     });
   });
@@ -176,10 +169,10 @@ describe('<Organizations />', () => {
       '/host/networks/async': {data: []},
     };
     mockUseAxios(responses);
-    axios.get.mockResolvedValueOnce({
+    (axios.get as jest.Mock).mockResolvedValueOnce({
       data: hostUserMock,
     });
-    axios.get.mockResolvedValueOnce({
+    (axios.get as jest.Mock).mockResolvedValueOnce({
       data: usersMock,
     });
     const {getByTestId, getByText, queryByTestId, getAllByRole} = render(
@@ -193,7 +186,7 @@ describe('<Organizations />', () => {
     //Onboarding Modal
     expect(getByTestId('onboardingDialog')).not.toBeNull();
     fireEvent.click(getByText('Get Started'));
-    waitFor(() => {
+    await waitFor(() => {
       expect(queryByTestId('onboardingDialog')).toBeNull();
     });
     const rowItems = getAllByRole('row');
