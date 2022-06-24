@@ -9,16 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 import * as notistack from 'notistack';
 import React from 'react';
 
 import {renderHook} from '@testing-library/react-hooks';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {useSnackbar} from '../index';
 
 jest.mock('@material-ui/core/Slide', () => () => <div />);
