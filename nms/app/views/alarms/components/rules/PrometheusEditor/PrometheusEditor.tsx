@@ -450,7 +450,6 @@ function getMostSignificantTime(
 }
 
 function getThresholdExpression(
-  // $FlowFixMe[value-as-type] migrated to TypeScript
   exp: PromQL.Expression<string | number>,
 ): ThresholdExpression | null | undefined {
   if (
@@ -480,9 +479,7 @@ function getThresholdExpression(
 }
 
 function asBinaryComparator(
-  // $FlowFixMe[value-as-type] migrated to TypeScript
   operator: PromQL.BinaryOperator,
-  // $FlowFixMe[value-as-type] migrated to TypeScript
 ): PromQL.BinaryComparator | null | undefined {
   if (operator instanceof Object) {
     return operator;

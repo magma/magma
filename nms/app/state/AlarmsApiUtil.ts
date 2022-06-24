@@ -86,7 +86,6 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   createReceiver: async ({networkId, receiver}) => {
     return await MagmaAPI.alerts.networksNetworkIdPrometheusAlertReceiverPost({
       networkId: nullthrows(networkId),
-      // $FlowFixMe[prop-missing]: require_tls needs to be added
       receiverConfig: receiver,
     });
   },
@@ -95,7 +94,6 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
       {
         networkId: nullthrows(networkId),
         receiver: receiver.name,
-        // $FlowFixMe[prop-missing]: require_tls needs to be added
         receiverConfig: receiver,
       },
     );

@@ -190,10 +190,7 @@ export function BaseNameEdit(props: Props) {
                 input={<OutlinedInput id="ruleNames" />}>
                 {Object.keys(ctx.state).map(profileID => (
                   <MenuItem key={profileID} value={profileID}>
-                    <Checkbox
-                      // $FlowIgnore cannot be void
-                      checked={editedRuleNames.includes(profileID)}
-                    />
+                    <Checkbox checked={editedRuleNames.includes(profileID)} />
                     <ListItemText primary={profileID} />
                   </MenuItem>
                 ))}
@@ -220,7 +217,6 @@ export function BaseNameEdit(props: Props) {
                 {subscriberIMSIs.map(imsi => (
                   <MenuItem key={imsi} value={imsi}>
                     <Checkbox
-                      // $FlowIgnore cannot be void
                       checked={editedAssignedSubscribers.includes(imsi)}
                     />
                     <ListItemText primary={imsi} />

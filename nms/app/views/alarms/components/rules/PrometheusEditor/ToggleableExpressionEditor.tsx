@@ -56,9 +56,7 @@ const useStyles = makeStyles<Theme>(theme => ({
 
 export type ThresholdExpression = {
   metricName: string;
-  // $FlowFixMe[value-as-type] migrated to TypeScript
   comparator: PromQL.BinaryComparator;
-  // $FlowFixMe[value-as-type] migrated to TypeScript
   filters: PromQL.Labels;
   value: number;
 };

@@ -128,7 +128,6 @@ export default function (props: DialogProps) {
                 onChange={({target}) => {
                   props.onOrganizationChange({
                     ...organization,
-                    // $FlowIgnore: value guaranteed to match the string literals
                     ssoSelectedType: target.value as SSOSelectedType,
                   });
                 }}

@@ -10,9 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
- *
  * Edit's alertmanager's "global" config section. This feature is NOT available
  * in Magma NMS since it's multitenant.
  */

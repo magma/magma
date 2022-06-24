@@ -81,7 +81,6 @@ export function mockApiUtil(merge?: Partial<ApiUtil>): MockApiUtil {
   ) as MockApiUtil;
 }
 
-// eslint-disable-next-line flowtype/no-weak-types
 export async function renderAsync(
   renderElement: JSX.Element,
 ): Promise<RenderResult> {

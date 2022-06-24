@@ -129,7 +129,6 @@ async function exportSubscribers(props: ExportProps) {
   try {
     // last page next_page_token is an empty string
     while (token !== '') {
-      // $FlowIgnore
       const subscriberRows = (await FetchSubscribers({
         networkId,
         token,
