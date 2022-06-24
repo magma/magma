@@ -15,8 +15,10 @@
  */
 'use strict';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import './common/polyfill';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {} from './common/axiosConfig';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import LoginForm from './views/login/LoginForm.tsx';

@@ -9,14 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
 
 import axios from 'axios';
 
-axios.defaults.headers.common['X-CSRF-Token'] = window.CONFIG.appData.csrfToken;
+(axios.defaults.headers as {common: {'X-CSRF-Token': string}}).common[
+  'X-CSRF-Token'
+] = window.CONFIG.appData.csrfToken;
 
 export default axios;

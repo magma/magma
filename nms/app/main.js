@@ -15,6 +15,7 @@
  */
 'use strict';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import './common/polyfill';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
@@ -29,6 +30,7 @@ import nullthrows from '../shared/util/nullthrows';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {} from './common/axiosConfig';
 
 ReactDOM.render(
