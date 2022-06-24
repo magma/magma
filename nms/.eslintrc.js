@@ -247,6 +247,7 @@ module.exports = {
         '**/*eslint*/*.js',
         '.eslintrc.js',
         'babel.config.js',
+        'babelRegister.js',
         'jest.config.js',
         '**/flow-typed/**/*.js',
         './babel.config.js',
