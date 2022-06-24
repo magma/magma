@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 import puppeteer from 'puppeteer';
 
@@ -20,19 +17,16 @@ const ADD_NETWORK_DIALOG = `//span[text()='Add Network']`;
 const ADD_NETWORK_SAVE = `//span[text()='Save']`;
 
 type AddParams = {
-  name: string,
-  desc: string,
-  federation?: string,
+  name: string;
+  desc: string;
+  federation?: string;
 };
 
-export async function addFegNetwork(
-  page: typeof puppeteer.Page,
-  params: AddParams,
-) {
+export async function addFegNetwork(page: puppeteer.Page, params: AddParams) {
   // assuming that we are in administrative tools page
   await page.waitForXPath(ADD_NETWORK_SELECTOR);
   const buttonSelector = await page.$x(ADD_NETWORK_SELECTOR);
-  buttonSelector[0].click();
+  await buttonSelector[0].click();
 
   await page.waitForXPath(ADD_NETWORK_DIALOG);
 
@@ -50,7 +44,7 @@ export async function addFegNetwork(
   // select network type
   await page.click('#types');
   const [fegSelector] = await page.$x(`//span[text()='feg']`);
-  fegSelector.click();
+  await fegSelector.click();
   await page.waitForFunction(
     'document.getElementById("types").value === "feg"',
   );
@@ -63,13 +57,13 @@ export async function addFegNetwork(
 }
 
 export async function addFegLteNetwork(
-  page: typeof puppeteer.Page,
+  page: puppeteer.Page,
   params: AddParams,
 ) {
   // assuming that we are in administrative tools page
   await page.waitForXPath(ADD_NETWORK_SELECTOR);
   const buttonSelector = await page.$x(ADD_NETWORK_SELECTOR);
-  buttonSelector[0].click();
+  await buttonSelector[0].click();
 
   await page.waitForXPath(ADD_NETWORK_DIALOG);
 
@@ -87,7 +81,7 @@ export async function addFegLteNetwork(
   // select network type
   await page.click('#types');
   const [fegSelector] = await page.$x(`//span[text()='feg_lte']`);
-  fegSelector.click();
+  await fegSelector.click();
   await page.waitForFunction(
     'document.getElementById("types").value === "feg_lte"',
   );
