@@ -35,21 +35,20 @@ ifndef UT_PATH
 endif
 endif
 ifdef MAGMA_SERVICE
-	$(eval TEST_PATH_LTE ?= $(shell grep -oP '[^\s]+(?=$(MAGMA_SERVICE))[^\s]+' $(MAGMA_ROOT)/lte/gateway/python/defs.mk))
+	$(eval SELECTED_TESTS ?= $(shell grep -oP '[^\s]+(?=$(MAGMA_SERVICE))[^\s]+' $(MAGMA_ROOT)/lte/gateway/python/defs.mk))
 	$(eval TEST_PATH_ORC8R ?= $(shell grep -oP '[^\s]+(?=$(MAGMA_SERVICE))[^\s]+' $(MAGMA_ROOT)/orc8r/gateway/python/defs.mk))
 else ifdef UT_PATH
-	$(eval TEST_PATH_LTE ?= $(UT_PATH))
+	$(eval SELECTED_TESTS ?= $(subst $(MAGMA_ROOT)/lte/gateway/python/, , $(UT_PATH)))
 endif
 	@if [ ! -d "$(MAGMA_ROOT)/lte/gateway/python/$(TEST_PATH)" ]; then if [ ! -d "$(MAGMA_ROOT)/orc8r/gateway/python/$(TEST_PATH_ORC8R)" ]; then echo "no tests found" && exit 1; fi; fi
 ifndef DONT_BUILD_ENV
-	@$(MAKE) buildenv $(BIN)/nosetests $(BIN)/coverage
+	@$(MAKE) buildenv $(BIN)/nosetests
 endif
 ifdef MAGMA_SERVICE
 	sudo service magma@$(MAGMA_SERVICE) stop
 endif
 	$(eval NON_SUDO_TESTS ?= $(patsubst %, \%%,$(TESTS)))
 	$(eval M_SUDO_TESTS ?= $(patsubst %, \%%,$(SUDO_TESTS)))
-	$(eval SELECTED_TESTS ?= $(patsubst %/, %\\/, $(TEST_PATH_LTE)))
 
 	$(if $(strip $(NON_SUDO_TESTS)),$(eval SEL_TEST_PATH_LTE ?= $(filter $(NON_SUDO_TESTS), $(SELECTED_TESTS))))
 	$(if $(strip $(M_SUDO_TESTS)),$(eval SEL_SUDO_TEST_PATH_LTE ?= $(filter $(M_SUDO_TESTS), $(SELECTED_TESTS))))

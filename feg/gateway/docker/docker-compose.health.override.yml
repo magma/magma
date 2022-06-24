@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  hss:
+    environment:
+      HSS_SERVER_ADDRESS: "localhost:5001"
+      HSS_SERVER_LOCAL_ADDRESS: "localhost:5000"
+
+volumes:
+  gwcerts:
+  gwconfigs:

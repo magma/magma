@@ -13,14 +13,6 @@ on:
     branches:
       - master
       - 'v1.*'
-  pull_request:
-    branches:
-      - master
-      - 'v1.*'
-    types:
-      - opened
-      - reopened
-      - synchronize
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   CACHE_KEY: bazel-base-image
@@ -32,6 +24,7 @@ concurrency:
 # See [Example Sharing Container Between Jobs](https://github.com/docker/build-push-action/issues/225)
 jobs:
   path_filter:
+    if: github.repository_owner == 'magma'
     runs-on: ubuntu-latest
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}

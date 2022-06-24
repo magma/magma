@@ -102,7 +102,8 @@ class DataModel(ABC):
     def get_names_of_optional_params(cls) -> List[ParameterName]:
         all_optional_params = []
         for name in cls.get_parameter_names():
-            if cls.get_parameter(name).is_optional:
+            parameter = cls.get_parameter(name)
+            if parameter and parameter.is_optional:
                 all_optional_params.append(name)
         return all_optional_params
 

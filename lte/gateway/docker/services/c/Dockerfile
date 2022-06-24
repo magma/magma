@@ -187,6 +187,7 @@ RUN apt-get update && apt-get install -y \
   tzdata \
   iproute2 \
   iptables \
+  libtspi1 \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list

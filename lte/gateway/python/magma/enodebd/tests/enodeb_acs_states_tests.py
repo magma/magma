@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Dict
+from typing import Any, Dict
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -70,7 +70,7 @@ class DummyHandler(BasicEnodebAcsStateMachine):
             self,
             service: MagmaService,
     ) -> None:
-        self._state_map = {}
+        self._state_map: Dict[str, Any] = {}
         super().__init__(service=service, use_param_key=False)
 
     def are_invasive_changes_applied(self) -> bool:

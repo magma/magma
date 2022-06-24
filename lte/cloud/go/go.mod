@@ -51,6 +51,7 @@ require (
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/feg/cloud/go v0.0.0
+	magma/feg/cloud/go/protos v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
@@ -107,7 +108,6 @@ require (
 	golang.org/x/tools v0.1.8 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	magma/feg/cloud/go/protos v0.0.0 // indirect
 	magma/gateway v0.0.0 // indirect
 )
 
