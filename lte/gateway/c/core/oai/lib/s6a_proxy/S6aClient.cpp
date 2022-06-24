@@ -138,7 +138,7 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
   } else if (get_cloud_subscriberdb_enabled()) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "eps_authentication", ServiceRegistrySingleton::CLOUD);
-    // Create stub for eps_authentication gRPC service
+    // Create S6aProxy stub for eps_authentication gRPC service
     stub_ = S6aProxy::NewStub(channel);
   } else {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
