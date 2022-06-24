@@ -45,7 +45,10 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: /usr/bin/env python3 -m magma.magmad.main
+    command: >
+      /bin/bash -c "
+        /usr/bin/env python3 /usr/local/bin/generate_oai_config.py &&
+        /usr/bin/env python3 -m magma.magmad.main"
 
   redis:
     <<: *pyservice
@@ -181,12 +184,6 @@ services:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: /usr/local/bin/sctpd
 
-  oai_config:
-    <<: *pyservice
-    container_name: oai_config
-    command: /usr/bin/env python3 /usr/local/bin/generate_oai_config.py
-    restart: "no"
-
   oai_mme:
     <<: *ltecservice
     container_name: oai_mme
@@ -202,7 +199,7 @@ services:
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
     depends_on:
-      - oai_config
+      - magmad
     cap_add:
       - NET_ADMIN
       - NET_RAW
