@@ -12,17 +12,18 @@ limitations under the License.
 """
 import logging
 from datetime import datetime
-from typing import Callable, Optional, List
+from typing import Callable, List, Optional
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceServicer
 from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
+    DBChannel,
     DBGrant,
     DBGrantState,
     DBRequest,
-    DBRequestType, DBChannel,
+    DBRequestType,
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
@@ -246,16 +247,18 @@ class DPService(DPServiceServicer):
             (DBGrant.grant_expire_time == None) | (  # noqa: WPS465,E711
                 DBGrant.grant_expire_time > now()
             ),
-        )
+        ).all()
         return grants
 
     def _build_result(self, cbsd: Optional[DBCbsd] = None, session: Optional[Session] = None):
+        logger.debug("Building GetCbsdResult")
         if not cbsd:
-            return CBSDStateResult(radio_enabled=False, carrier_aggregation_enabled=False)
+            return CBSDStateResult(radio_enabled=False)
         grants = self._get_authorized_grants(session, cbsd)
         if not grants or cbsd.is_deleted:
-            return CBSDStateResult(radio_enabled=False, carrier_aggregation_enabled=False)
+            return CBSDStateResult(radio_enabled=False)
         channels = self._build_lte_channels(grants)
+        logger.debug("grants=")
         return CBSDStateResult(
             radio_enabled=True,
             carrier_aggregation_enabled=cbsd.carrier_aggregation_enabled,
@@ -270,7 +273,7 @@ class DPService(DPServiceServicer):
                     low_frequency_hz=g.low_frequency,
                     high_frequency_hz=g.high_frequency,
                     max_eirp_dbm_mhz=g.max_eirp,
-                )
+                ),
             )
         return channels
 

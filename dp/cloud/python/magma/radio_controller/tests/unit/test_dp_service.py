@@ -244,11 +244,14 @@ class DPTestCase(LocalDBTestCase):
     def _build_expected_result(grant: DBGrant) -> CBSDStateResult:
         return CBSDStateResult(
             radio_enabled=True,
-            channel=LteChannel(
-                low_frequency_hz=grant.low_frequency,
-                high_frequency_hz=grant.high_frequency,
-                max_eirp_dbm_mhz=grant.max_eirp,
-            ),
+            carrier_aggregation_enabled=False,
+            channels=[
+                LteChannel(
+                    low_frequency_hz=grant.low_frequency,
+                    high_frequency_hz=grant.high_frequency,
+                    max_eirp_dbm_mhz=grant.max_eirp,
+                ),
+            ],
         )
 
     @staticmethod
