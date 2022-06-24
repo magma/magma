@@ -9,21 +9,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AccountSettings from '../AccountSettings';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import Admin from '../admin/Admin';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import AppContext from '../../../app/components/context/AppContext';
-// $FlowFixMe migrated to typescript
 import LoadingFiller from '../LoadingFiller';
 import React, {useContext} from 'react';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import useSections from './useSections';
 import {Navigate, Route, Routes} from 'react-router-dom';
 

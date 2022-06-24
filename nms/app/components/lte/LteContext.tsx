@@ -940,7 +940,7 @@ export function LteContextProvider(props: Props) {
   const {networkId, networkType} = props;
   const lteNetwork = networkType === LTE || networkType === FEG_LTE;
   if (!lteNetwork) {
-    return props.children;
+    return <>props.children</>;
   }
 
   return (
