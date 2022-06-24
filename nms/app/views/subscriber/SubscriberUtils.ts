@@ -110,7 +110,7 @@ export function validateSubscribers(
   subscribers: Array<SubscriberInfo>,
   action: SubscriberActionType,
 ) {
-  const errors: Record<SubscriberErrorValue, Array<number>> = {};
+  const errors: Record<string, Array<number>> = {};
   const imsiList: Array<string> = [];
 
   Object.keys(SUBSCRIBER_ADD_ERRORS).map(error => {
