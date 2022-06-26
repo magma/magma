@@ -67,7 +67,7 @@ const (
 
 	KiloBytes                = 1024
 	MegaBytes                = 1024 * KiloBytes
-	Buffer                   = 100 * KiloBytes
+	Buffer                   = 200 * KiloBytes
 	RevalidationTimeoutEvent = 17
 
 	ReAuthMaxUsageBytes   = 5 * MegaBytes
