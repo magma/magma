@@ -16,7 +16,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"

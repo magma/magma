@@ -20,7 +20,7 @@ import (
 	neturl "net/url"
 
 	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/orc8r/cloud/go/obsidian"
 )

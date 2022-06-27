@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/serdes"

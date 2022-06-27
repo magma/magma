@@ -24,7 +24,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -568,7 +568,7 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 	}
 	err = errs.ErrorOrNil()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	return nil
