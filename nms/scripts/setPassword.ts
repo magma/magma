@@ -9,31 +9,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {OrganizationType} from '../shared/sequelize_models/models/organization';
 
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
-// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../shared/roles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization, User} from '../shared/sequelize_models';
+import {OrganizationModel} from '../shared/sequelize_models/models/organization';
+import {UserModel} from '../shared/sequelize_models/models/user';
 
 const SALT_GEN_ROUNDS = 10;
 
 type UserObject = {
-  organization: string,
-  email: string,
-  password: string,
-  role: number,
+  organization: string;
+  email: string;
+  password: string;
+  role: number;
 };
 
-async function updateUser(user: User, userObject: UserObject) {
+async function updateUser(user: UserModel, userObject: UserObject) {
   const {password, role} = userObject;
   const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
   const passwordHash = await bcrypt.hash(password, salt);
@@ -74,7 +68,7 @@ async function createOrUpdateUser(userObject: UserObject) {
 
 async function createOrFetchOrganization(
   organization: string,
-): Promise<OrganizationType> {
+): Promise<OrganizationModel> {
   let org = await Organization.findOne({
     where: {
       name: Sequelize.where(
@@ -115,7 +109,7 @@ function main() {
   };
   console.log('Creating a new user: email=' + userObject.email);
   createOrUpdateUser(userObject)
-    .then(_res => {
+    .then(() => {
       console.log('Success');
       process.exit();
     })

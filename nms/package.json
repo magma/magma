@@ -197,7 +197,7 @@
     "start:dev": "nodemon scripts/server",
     "start:prod": "NODE_ENV=production node -r ./babelRegister.js scripts/server",
     "migrate": "node -r ./babelRegister.js scripts/migrate.js",
-    "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.js",
+    "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.ts",
     "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.ts",
     "mockserver": "node -r ./babelRegister.js scripts/mockServer.ts"
   }

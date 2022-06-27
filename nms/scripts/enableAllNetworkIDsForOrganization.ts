@@ -9,17 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
 
 import Sequelize from 'sequelize';
 import https from 'https';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {API_HOST, apiCredentials} from '../config/config';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization} from '../shared/sequelize_models';
 
 async function enableNetworks(
@@ -55,8 +49,12 @@ function main() {
 
   https.get(options, res => {
     res.on('data', networkIDs => {
-      enableNetworks(args[0], JSON.parse(networkIDs.toString()))
-        .then(_res => {
+      enableNetworks(
+        args[0],
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+        JSON.parse(networkIDs.toString()) as Array<string>,
+      )
+        .then(() => {
           console.log('Success');
           process.exit();
         })
