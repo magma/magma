@@ -168,7 +168,10 @@ export function CbsdAddEditDialog(props: DialogProps) {
           min_power: parseInt(cbsdFormData.minPower),
           max_power: parseInt(cbsdFormData.maxPower),
           number_of_antennas: parseInt(cbsdFormData.numberOfAntennas),
+          max_ibw_mhz: 150,
         },
+        carrier_aggregation_enabled: false,
+        grant_redundancy: true,
         installation_param: {
           antenna_gain: parseInt(cbsdFormData.antennaGain),
         },
