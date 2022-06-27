@@ -1,0 +1,92 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/swagger
+  dependencies: []
+  temp-gen-filename: common-swagger.yml
+  output-dir: magma/orc8r/cloud/go/swagger/testdata
+  types:
+    - go-struct-name: fruit
+      filename: fruit_swaggergen.go
+
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+
+basePath: /fruit
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+tags:
+  - name: SweetTag
+    description: Tag Sweet
+  - name: SourTag
+    description: Tag Sour
+
+responses:
+  UnexpectedError:
+    description: Unexpected Error
+    schema:
+      $ref: '#/definitions/error'
+
+paths:
+  /fruitpath/{fruit}:
+    get:
+      summary: Get Fruit
+      parameters:
+        - $ref: '#/definitions/fruit'
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: integer
+    post:
+      summary: Add a fruit
+      tags:
+        - SweetTag
+      parameters:
+        - description: Add a fruit
+          in: body
+          name: fruit
+          required: true
+          schema:
+            $ref: '#/definitions/fruit'
+      responses:
+        "201":
+          description: Success
+    delete:
+      summary: Delete Fruit
+      tags:
+        - SourTag
+      parameters:
+        - $ref: '#/definitions/fruit'
+      responses:
+        '204':
+          description: Ok
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+definitions:
+  fruit:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Orange
+  error:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+        example: Error string
