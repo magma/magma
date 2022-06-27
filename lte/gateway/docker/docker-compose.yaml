@@ -89,6 +89,8 @@ services:
       test: ["CMD", "nc", "-zv", "localhost", "60055"]
       timeout: "4s"
       retries: 3
+    cap_add:
+      - NET_ADMIN  # The container is invoking iptables and needs NET_ADMIN for that
     command: /usr/bin/env python3 -m magma.enodebd.main
 
   state:
