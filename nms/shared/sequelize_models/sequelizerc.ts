@@ -9,17 +9,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowIgnore[untyped-import]
-require('../../babelRegister');
+import path from 'path';
 
-const path = require('path');
-
-module.exports = {
+export default {
   config: path.resolve(__dirname, 'sequelizeConfig.js'),
   'migrations-path': path.resolve(__dirname, 'migrations'),
   'models-path': path.resolve(__dirname, 'models'),

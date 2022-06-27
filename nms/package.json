@@ -120,6 +120,7 @@
     "@types/react": "^16.8.6",
     "@types/react-dom": "^16.8.6",
     "@types/react-textarea-autosize": "^4.3.6",
+    "@types/umzug": "^2.3.3",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
     "autoprefixer": "^7.1.6",
@@ -196,7 +197,7 @@
     "start": "yarn run start:dev",
     "start:dev": "nodemon scripts/server",
     "start:prod": "NODE_ENV=production node -r ./babelRegister.js scripts/server",
-    "migrate": "node -r ./babelRegister.js scripts/migrate.js",
+    "migrate": "node -r ./babelRegister.js scripts/migrate.ts",
     "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.ts",
     "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.ts",
     "mockserver": "node -r ./babelRegister.js scripts/mockServer.ts"

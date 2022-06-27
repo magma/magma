@@ -9,19 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
-// $FlowFixMe migrated to typescript
-const logger = require('../shared/logging.ts').getLogger(module);
-// $FlowFixMe migrated to typescript
-const {sequelize} = require('../shared/sequelize_models/index.ts');
-const sequelizerc = require('../shared/sequelize_models/sequelizerc');
+import Logging from '../shared/logging';
 
-// $FlowFixMe sequelize does a weird thing where the types are objects/funcs
-const {DataTypes} = require('sequelize');
-const Umzug = require('umzug');
+const logger = Logging.getLogger(module);
+
+import sequelizerc from '../shared/sequelize_models/sequelizerc';
+import {sequelize} from '../shared/sequelize_models';
+
+import Umzug from 'umzug';
+import {DataTypes} from 'sequelize';
 
 const umzug = new Umzug({
   storage: 'sequelize',
@@ -30,7 +27,7 @@ const umzug = new Umzug({
   },
   // The logging function.
   // A function that gets executed everytime migrations start and have ended.
-  logging: msg => logger.info(msg),
+  logging: (msg: string) => logger.info(msg),
   // The name of the positive method in migrations.
   upName: 'up',
   // The name of the negative method in migrations.
