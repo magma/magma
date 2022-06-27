@@ -21,9 +21,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/merrors"
 )
 

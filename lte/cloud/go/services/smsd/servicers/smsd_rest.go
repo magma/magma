@@ -10,7 +10,7 @@ import (
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	"magma/lte/cloud/go/services/smsd/obsidian/models"
 	"magma/lte/cloud/go/services/smsd/storage"
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 )
 
 const (

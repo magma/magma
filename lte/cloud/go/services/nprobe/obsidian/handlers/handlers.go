@@ -27,8 +27,8 @@ import (
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/lte/cloud/go/services/nprobe/storage"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/merrors"
 )
 

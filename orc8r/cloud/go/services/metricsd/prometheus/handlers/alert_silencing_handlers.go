@@ -15,7 +15,7 @@ import (
 	"github.com/prometheus/alertmanager/pkg/parse"
 	"github.com/prometheus/prometheus/pkg/labels"
 
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/metrics"
 )
 
