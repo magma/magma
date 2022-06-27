@@ -21,10 +21,10 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo/v4"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier/protos"
+	"magma/orc8r/cloud/go/services/obsidian"
 )
 
 const (

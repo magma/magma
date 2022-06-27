@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/olivere/elastic/v7"
 
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 )
 
 const (

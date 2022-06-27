@@ -25,8 +25,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	bootstrapperTestInit "magma/orc8r/cloud/go/services/bootstrapper/test_init"
@@ -34,6 +32,8 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian/tests"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"

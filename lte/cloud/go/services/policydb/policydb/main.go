@@ -21,10 +21,10 @@ import (
 	"magma/lte/cloud/go/services/policydb"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policydb_servicer "magma/lte/cloud/go/services/policydb/servicers/southbound"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swaggger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swaggger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 )
 
 func main() {
