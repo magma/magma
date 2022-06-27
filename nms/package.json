@@ -198,7 +198,7 @@
     "start:prod": "NODE_ENV=production node -r ./babelRegister.js scripts/server",
     "migrate": "node -r ./babelRegister.js scripts/migrate.js",
     "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.js",
-    "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.js",
+    "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.ts",
     "mockserver": "node -r ./babelRegister.js scripts/mockServer.ts"
   }
 }
