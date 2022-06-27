@@ -14,13 +14,14 @@
  * @format
  */
 'use strict';
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {OrganizationType} from '../shared/sequelize_models/models/organization';
 
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
 // $FlowFixMe migrated to typescript
 import {AccessRoles} from '../shared/roles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization, User} from '../shared/sequelize_models';
 
 const SALT_GEN_ROUNDS = 10;

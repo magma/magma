@@ -17,7 +17,6 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import helmet from 'helmet';
-// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 
 import {RequestHandler} from 'express';
@@ -28,7 +27,6 @@ import {config} from 'process';
  * first thing used.  These shouldn't have any side effects in the application
  * it should just introduce additional functionality
  */
-// $FlowIgnore[value-as-type]
 export default function appMiddleware(): RequestHandler {
   const router = express.Router();
   [

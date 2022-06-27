@@ -10,8 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 import MagmaAPI from '../../api/MagmaAPI';
 import getCwfAlerts from './cwfAlerts';
@@ -20,14 +18,12 @@ import getLteAlerts from './lteAlerts';
 
 // $FlowFixMe migrated to typescript
 import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
-//import type {FBCNMSRequest} from '../../server/auth/access';
 import type {NetworkType} from '../../shared/types/network';
 import type {PromAlertConfig} from '../../generated-ts';
 import type {Response} from 'express';
-//import type {UserType} from '../../shared/sequelize_models/models/user';
 
 type OutputRequest<T> = {
-  //logIn: (T, (err?: ?Error) => void) => void,
+  logIn: (user: T, callback: (err?: Error | null | undefined) => void) => void;
   logOut: () => void;
   logout: () => void;
   user: T;
@@ -119,8 +115,8 @@ async function syncAlerts(networkID: string, res: Response) {
     }
     res.status(200).end();
   } catch (e) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-    res.status(500).end(`Exception occurred ${e.message as string}`);
+    const message = e instanceof Error ? e.message : 'unknown error';
+    res.status(500).end(`Exception occurred ${message}`);
   }
 }
 

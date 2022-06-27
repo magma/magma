@@ -10,24 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
-'use strict';
-
-// $FlowFixMe migrated to typescript
+import openRoutes from './openRoutes';
+import path from 'path';
 import {AccessRoleLevel, AccessRoles} from '../../shared/roles';
-// $FlowFixMe migrated to typescript
 import {ErrorCodes} from '../../shared/errorCodes';
+import {addQueryParamsToUrl} from './util';
+import {getLogger} from '../../shared/logging';
 
-const path = require('path');
-const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
-// $FlowFixMe migrated to typescript
-const logger = require('../../shared/logging.ts').getLogger(module);
-const openRoutes = require('./openRoutes.ts').default;
-
-import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSPassportRequest} from './passport';
+import type {NextFunction, Response} from 'express';
+const logger = getLogger(module);
 
 type Options = {loginUrl: string};
 // Final type, thus naming it as thus.
@@ -45,7 +38,7 @@ const validators = {
 export const configureAccess = (options: Options) => {
   return function setup(
     req: FBCNMSPassportRequest & {access?: Options},
-    _res: ExpressResponse,
+    _res: Response,
     next: NextFunction,
   ) {
     req.access = options;
@@ -56,7 +49,7 @@ export const configureAccess = (options: Options) => {
 export const access = (level: AccessRoleLevel) => {
   return async function access(
     req: FBCNMSRequest,
-    res: ExpressResponse,
+    res: Response,
     next: NextFunction,
   ) {
     const normalizedURL = path.normalize(req.originalUrl);

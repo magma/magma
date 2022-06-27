@@ -61,7 +61,8 @@
 const inquirer = require('inquirer');
 const process = require('process');
 const argv = require('minimist')(process.argv.slice(2));
-const {exportToDatabase, importFromDatabase} = require('./index');
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+const {exportToDatabase, importFromDatabase} = require('./index.ts');
 import type {Options} from 'sequelize';
 
 const dbQuestions = [

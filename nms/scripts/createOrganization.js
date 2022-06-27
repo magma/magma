@@ -14,11 +14,12 @@
  * @format
  */
 'use strict';
-
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {OrganizationType} from '../shared/sequelize_models/models/organization';
 
 import Sequelize from 'sequelize';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization} from '../shared/sequelize_models';
 import {union} from 'lodash';
 

@@ -16,9 +16,11 @@
 // $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../../shared/roles';
 import {MultiSamlStrategy} from 'passport-saml'; // compatibility with breaking change in 3.1.0
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {User} from '../../../shared/sequelize_models';
-
+// $FlowFixMe migrated to typescript
 import {getUserFromRequest} from '../util';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {injectOrganizationParams} from '../organization';
 
 import crypto from 'crypto';

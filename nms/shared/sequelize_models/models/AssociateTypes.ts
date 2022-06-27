@@ -10,13 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 import type {Model} from 'sequelize';
 
-type AssociateModel = {[model: string]: Model<Record<string, unknown>>};
+type AssociateModel = {[model: string]: typeof Model};
 
 export type AssociateProp = {
   associate: (model: AssociateModel) => void;

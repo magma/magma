@@ -35,6 +35,7 @@ import {
   FEG_LTE,
   NetworkId,
   XWFM,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../shared/types/network';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

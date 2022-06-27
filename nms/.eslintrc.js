@@ -232,7 +232,7 @@ module.exports = {
         'babelRegister.js',
         'jest.config.js',
         'jest.*.config.js',
-        'config/*.js',
+        'config/*',
         'scripts/**/*',
         'server/**/*',
         'shared/**/*',

@@ -13,23 +13,22 @@
  * @flow strict-local
  * @format
  */
-
-const fs = require('fs');
-const path = require('path');
-const paths = require('./paths');
+import fs from 'fs';
+import path from 'path';
+import paths from './paths';
 
 const DEV_MODE = process.env.NODE_ENV !== 'production';
 const MANIFEST_FILE = path.join(paths.appSrc, '../static/dist/manifest.json');
 
-let manifest = null;
+let manifest: null | Record<string, string> = null;
 if (fs.existsSync(MANIFEST_FILE)) {
   const manifestRaw = fs.readFileSync(MANIFEST_FILE).toString('utf8').trim();
-  manifest = JSON.parse(manifestRaw);
+  manifest = JSON.parse(manifestRaw) as Record<string, string>;
 }
 export default function staticDist(
   filename: string,
   projectName: string,
-): ?string {
+): string | null | undefined {
   if (DEV_MODE || !manifest) {
     const path = '/static/dist/' + filename;
     if (typeof projectName === 'string') {
@@ -37,5 +36,6 @@ export default function staticDist(
     }
     return path;
   }
+
   return manifest[filename] || '/dev/null/' + filename;
 }

@@ -33,6 +33,7 @@ import {
 import type {Task} from '../../grafana/handlers';
 
 import type {ExpressResponse} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';
 import type {GrafanaClient} from '../../grafana/GrafanaAPI';
 

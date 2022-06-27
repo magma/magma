@@ -15,7 +15,8 @@
  */
 // $FlowFixMe migrated to typescript
 const logger = require('../shared/logging.ts').getLogger(module);
-const {sequelize} = require('../shared/sequelize_models');
+// $FlowFixMe migrated to typescript
+const {sequelize} = require('../shared/sequelize_models/index.ts');
 const sequelizerc = require('../shared/sequelize_models/sequelizerc');
 
 // $FlowFixMe sequelize does a weird thing where the types are objects/funcs

@@ -17,12 +17,12 @@ import type {SectionsConfigs} from './Section';
 
 import AppContext from '../../../app/components/context/AppContext';
 import NetworkContext from '../context/NetworkContext';
-// $FlowFixMe migrated to typescript
 import {
   CWF,
   FEG,
   LTE,
   coalesceNetworkType,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../shared/types/network';
 
 import MagmaAPI from '../../../api/MagmaAPI';

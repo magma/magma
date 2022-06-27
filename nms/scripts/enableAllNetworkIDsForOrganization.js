@@ -17,7 +17,9 @@
 
 import Sequelize from 'sequelize';
 import https from 'https';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {API_HOST, apiCredentials} from '../config/config';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization} from '../shared/sequelize_models';
 
 async function enableNetworks(

@@ -11,6 +11,9 @@
  * limitations under the License.
  */
 
+import nullthrows from '../shared/util/nullthrows';
+import {API_HOST} from '../config/config';
+
 import {
   APNsApi,
   AboutApi,
@@ -45,41 +48,49 @@ import {
 
 import {BaseAPI} from '../generated-ts/base';
 
+const BASE_PATH_FRONTEND = '/nms/apicontroller/magma/v1';
 const config = new Configuration();
-const BASE_PATH = '/nms/apicontroller/magma/v1';
 
-export const BASE_API = new BaseAPI(config, BASE_PATH);
+export const BASE_API = new BaseAPI(config, BASE_PATH_FRONTEND);
 
 /**
  * New API need to be added here
  */
-export default {
-  apns: new APNsApi(config, BASE_PATH),
-  about: new AboutApi(config, BASE_PATH),
-  alerts: new AlertsApi(config, BASE_PATH),
-  callTracing: new CallTracingApi(config, BASE_PATH),
-  carrierWifiGateways: new CarrierWifiGatewaysApi(config, BASE_PATH),
-  carrierWifiNetworks: new CarrierWifiNetworksApi(config, BASE_PATH),
-  cbsds: new CbsdsApi(config, BASE_PATH),
-  commands: new CommandsApi(config, BASE_PATH),
-  default: new DefaultApi(config, BASE_PATH),
-  enodebs: new EnodeBsApi(config, BASE_PATH),
-  events: new EventsApi(config, BASE_PATH),
-  federatedLTENetworks: new FederatedLTENetworksApi(config, BASE_PATH),
-  federationGateways: new FederationGatewaysApi(config, BASE_PATH),
-  federationNetworks: new FederationNetworksApi(config, BASE_PATH),
-  gateways: new GatewaysApi(config, BASE_PATH),
-  lteGateways: new LTEGatewaysApi(config, BASE_PATH),
-  lteNetworks: new LTENetworksApi(config, BASE_PATH),
-  logs: new LogsApi(config, BASE_PATH),
-  metrics: new MetricsApi(config, BASE_PATH),
-  networkProbes: new NetworkProbesApi(config, BASE_PATH),
-  networks: new NetworksApi(config, BASE_PATH),
-  policies: new PoliciesApi(config, BASE_PATH),
-  ratingGroups: new RatingGroupsApi(config, BASE_PATH),
-  sms: new SMSApi(config, BASE_PATH),
-  subscribers: new SubscribersApi(config, BASE_PATH),
-  tenants: new TenantsApi(config, BASE_PATH),
-  upgrades: new UpgradesApi(config, BASE_PATH),
-  user: new UserApi(config, BASE_PATH),
-};
+function setUpApi(basePath: string) {
+  return {
+    apns: new APNsApi(config, basePath),
+    about: new AboutApi(config, basePath),
+    alerts: new AlertsApi(config, basePath),
+    callTracing: new CallTracingApi(config, basePath),
+    carrierWifiGateways: new CarrierWifiGatewaysApi(config, basePath),
+    carrierWifiNetworks: new CarrierWifiNetworksApi(config, basePath),
+    cbsds: new CbsdsApi(config, basePath),
+    commands: new CommandsApi(config, basePath),
+    default: new DefaultApi(config, basePath),
+    enodebs: new EnodeBsApi(config, basePath),
+    events: new EventsApi(config, basePath),
+    federatedLTENetworks: new FederatedLTENetworksApi(config, basePath),
+    federationGateways: new FederationGatewaysApi(config, basePath),
+    federationNetworks: new FederationNetworksApi(config, basePath),
+    gateways: new GatewaysApi(config, basePath),
+    lteGateways: new LTEGatewaysApi(config, basePath),
+    lteNetworks: new LTENetworksApi(config, basePath),
+    logs: new LogsApi(config, basePath),
+    metrics: new MetricsApi(config, basePath),
+    networkProbes: new NetworkProbesApi(config, basePath),
+    networks: new NetworksApi(config, basePath),
+    policies: new PoliciesApi(config, basePath),
+    ratingGroups: new RatingGroupsApi(config, basePath),
+    sms: new SMSApi(config, basePath),
+    subscribers: new SubscribersApi(config, basePath),
+    tenants: new TenantsApi(config, basePath),
+    upgrades: new UpgradesApi(config, basePath),
+    user: new UserApi(config, basePath),
+  };
+}
+const orchestratorUrl = !/^https?\:\/\//.test(nullthrows(API_HOST))
+  ? `https://${nullthrows(API_HOST)}/magma/v1`
+  : `${nullthrows(API_HOST)}/magma/v1`;
+
+export default setUpApi(BASE_PATH_FRONTEND);
+export const OrchestratorAPI = setUpApi(orchestratorUrl);

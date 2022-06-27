@@ -14,11 +14,14 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSMiddleWareRequest} from '../../../server/middleware';
-import type {UserType} from '../../../shared/sequelize_models/models/user.js';
+// $FlowFixMe migrated to typescript
+import type {UserModel} from '../../../shared/sequelize_models/models/user';
 
 import bcrypt from 'bcryptjs';
 import {Strategy as LocalStrategy} from 'passport-local';
+// $FlowFixMe migrated to typescript
 import {getUserFromRequest} from '../util';
 
 export default function () {
@@ -36,7 +39,7 @@ export async function validateUser(
   req: FBCNMSMiddleWareRequest,
   email: string,
   password: string,
-  done: (?Error, UserType | ?boolean, ?{message: string}) => void,
+  done: (?Error, UserModel | ?boolean, ?{message: string}) => void,
 ) {
   try {
     const user = await getUserFromRequest(req, email);

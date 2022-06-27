@@ -27,8 +27,10 @@ import OrganizationLocalStrategy from './auth/strategies/OrganizationLocalStrate
 import OrganizationSamlStrategy from './auth/strategies/OrganizationSamlStrategy';
 import alertRoutes from './alerts/routes';
 import connectSession from 'connect-session-sequelize';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import devWebpackConfig from '../config/webpack.config';
 import express from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import fbcPassport from './auth/passport';
 import fs from 'fs';
 import grafanaRoutes from './grafana/routes';
@@ -37,8 +39,12 @@ import passport from 'passport';
 import path from 'path';
 import session from 'express-session';
 // $FlowFixMe migrated to typescript
+import paths from '../config/paths';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../shared/roles';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {DEV_MODE, LOG_FORMAT, LOG_LEVEL} from '../config/config';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {access, configureAccess} from './auth/access';
 import {
   appMiddleware,
@@ -46,12 +52,14 @@ import {
   organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './middleware';
-import {distPath} from '../config/paths';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {sequelize} from '../shared/sequelize_models';
 import {unprotectedUserRoutes} from '../server/auth/express';
 
 import type {ExpressResponse} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from './auth/access';
 
 // Create Sequelize Store
@@ -87,6 +95,7 @@ passport.use(
 app.set('views', path.join(__dirname, '../server/', 'views'));
 app.set('view engine', 'pug');
 
+const distPath = paths.distPath;
 // Routes
 // TO DO - fix this in webpack-dev-middleware code in fbc-js-core
 app.use(

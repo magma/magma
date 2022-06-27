@@ -12,11 +12,16 @@
  */
 
 import {EmbeddedData} from './shared/types/embeddedData';
+import {UserModel} from './shared/sequelize_models/models/user';
 
 declare global {
   interface Window {
     CONFIG: {
       appData: EmbeddedData;
     };
+  }
+
+  namespace Express {
+    type User = UserModel;
   }
 }

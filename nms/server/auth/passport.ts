@@ -18,30 +18,27 @@ import passport from 'passport';
 import {User} from '../../shared/sequelize_models';
 
 import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
-import type {UserType} from '../../shared/sequelize_models/models/user';
+import type {UserModel} from '../../shared/sequelize_models/models/user';
 
 type OutputRequest<T> = {
-  logIn: (T, (err?: ?Error) => void) => void,
-  logOut: () => void,
-  logout: () => void,
-  user: T,
-  isAuthenticated: () => boolean,
-  isUnauthenticated: () => boolean,
+  logIn: (user: T, callback: (err?: Error | null | undefined) => void) => void;
+  logOut: () => void;
+  logout: () => void;
+  user: T;
+  isAuthenticated: () => boolean;
+  isUnauthenticated: () => boolean;
 } & FBCNMSMiddleWareRequest;
-export type FBCNMSPassportRequest = OutputRequest<UserType>;
+export type FBCNMSPassportRequest = OutputRequest<UserModel>;
 
 function use() {
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
 
-  passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await User.findByPk(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
+  passport.deserializeUser<number>((id, done) => {
+    User.findByPk(id)
+      .then(user => done(null, user))
+      .catch(error => done(error));
   });
 }
 

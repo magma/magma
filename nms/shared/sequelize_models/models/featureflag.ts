@@ -10,50 +10,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 
-import Sequelize from 'sequelize';
-// $FlowFixMe migrated to typescript
+import sequelize from 'sequelize';
+import {BuildOptions, DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes';
-import type {DataTypes, Model} from 'sequelize';
 
-export type FeatureFlagRawType = {|
-  featureId: string,
-  organization: string,
-  enabled: boolean,
-|};
+export interface FeatureFlagRawType {
+  featureId: string;
+  organization: string;
+  enabled: boolean;
+}
 
-type FeatureFlagReadAttributes = {|
-  ...FeatureFlagRawType,
-  id: number,
-|};
+interface FeatureFlagModel extends FeatureFlagRawType, Model {
+  readonly id: number;
+}
 
-type FeatureFlagModel = Model<FeatureFlagReadAttributes, FeatureFlagRawType>;
-export type StaticFeatureFlagModel = Class<FeatureFlagModel>;
-export type FeatureFlagType = FeatureFlagModel & FeatureFlagRawType;
+type FeatureFlagModelStatic = typeof Model & {
+  new (values?: object, options?: BuildOptions): FeatureFlagModel;
+} & AssociateProp;
 
-export default (
-  sequelize: Sequelize,
-  types: DataTypes,
-): AssociateProp & StaticFeatureFlagModel => {
+export default (sequelize: sequelize.Sequelize) => {
   return sequelize.define(
     'FeatureFlag',
     {
       featureId: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       organization: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       enabled: {
-        type: types.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         allowNull: false,
       },
     },
     {},
-  );
+  ) as FeatureFlagModelStatic;
 };

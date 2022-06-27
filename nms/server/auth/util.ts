@@ -10,17 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
+import type {UserModel} from '../../shared/sequelize_models/models/user';
 import type {UserRawType} from '../../shared/sequelize_models/models/user';
-import type {UserType} from '../../shared/sequelize_models/models/user.js';
 
 import bcrypt from 'bcryptjs';
 import querystring from 'querystring';
-// $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../shared/roles';
 import {User} from '../../shared/sequelize_models';
 import {format, parse} from 'url';
@@ -40,13 +37,12 @@ const FIELD_MAP = {
 
 export function addQueryParamsToUrl(
   url: string,
-  params: {[string]: any},
+  params: {[key: string]: any},
 ): string {
   const parsedUrl = parse(url, true /* parseQueryString */);
   if (params) {
     parsedUrl.search = querystring.stringify({
       ...parsedUrl.query,
-      // $FlowIssue T56760595
       ...params,
     });
   }
@@ -56,29 +52,28 @@ export function addQueryParamsToUrl(
 export async function getUserFromRequest(
   req: FBCNMSMiddleWareRequest,
   email: string,
-): Promise<?UserType> {
+): Promise<UserModel | null | undefined> {
   const where = await injectOrganizationParams(req, {email});
   return await User.findOne({where});
 }
 
 export async function getPropsToUpdate(
-  allowedProps: $Keys<typeof FIELD_MAP>[],
-  body: {[string]: mixed},
-  organizationInjector: ({[string]: any}) => Promise<{
-    [string]: any,
-    organization?: string,
-  }>,
-): Promise<$Shape<UserRawType>> {
+  allowedProps: Array<keyof typeof FIELD_MAP>,
+  body: {[key: string]: string | number},
+  organizationInjector: (params: {
+    [key: string]: any;
+  }) => Promise<{[key: string]: any; organization?: string}>,
+): Promise<Partial<UserRawType>> {
   allowedProps = allowedProps.filter(prop =>
     User.rawAttributes.hasOwnProperty(FIELD_MAP[prop]),
   );
-  const userProperties = {};
+  const userProperties: Record<string, number | string | Array<string>> = {};
   for (const prop of allowedProps) {
     if (body.hasOwnProperty(prop)) {
       switch (prop) {
         case 'email':
           const emailUnsafe = body[prop];
-          if (typeof emailUnsafe !== 'string' || !validateEmail(body.email)) {
+          if (typeof emailUnsafe !== 'string' || !validateEmail(emailUnsafe)) {
             throw new Error('Please enter a valid email');
           }
           const email = emailUnsafe.toLowerCase();
@@ -138,7 +133,7 @@ export async function validateAndHashPassword(password: string) {
     password.length < MIN_PASSWORD_LENGTH
   ) {
     throw new Error(
-      'Password must contain at least ' + MIN_PASSWORD_LENGTH + ' characters',
+      `Password must contain at least ${MIN_PASSWORD_LENGTH} characters`,
     );
   }
 

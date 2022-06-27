@@ -10,27 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
-import type {Options, Transaction} from 'sequelize';
+import {
+  DataTypes,
+  Model,
+  Options,
+  QueryTypes,
+  Sequelize,
+  Transaction,
+  WhereOptions,
+} from 'sequelize';
 
-import AuditLogEntryModel from './models/audit_log_entry';
-import FeatureFlagModel from './models/featureflag';
-// eslint-disable-next-line import/default -- TS-migration
-import OrganizationModel from './models/organization';
-import Sequelize from 'sequelize';
-// eslint-disable-next-line import/default -- TS-migration
-import UserModel from './models/user';
+import createAuditLogEntryModel from './models/audit_log_entry';
+import createFeatureFlagModel from './models/featureflag';
+import createOrganizationModel from './models/organization';
+import createUserModel, {UserModelStatic} from './models/user';
 import sequelizeConfig from './sequelizeConfig';
 
 const env = process.env.NODE_ENV || 'development';
 const config = sequelizeConfig[env];
 
-export const sequelize = new Sequelize(
+export const sequelize: Sequelize = new Sequelize(
   config.database || '',
-  config.username,
+  config.username || '',
   config.password,
   config,
 );
@@ -47,37 +50,38 @@ const db = createNmsDb(sequelize);
 
 function createNmsDb(sequelize: Sequelize) {
   const db = {
-    AuditLogEntry: AuditLogEntryModel(sequelize, Sequelize),
-    FeatureFlag: FeatureFlagModel(sequelize, Sequelize),
-    Organization: OrganizationModel(sequelize, Sequelize),
-    User: UserModel(sequelize, Sequelize),
+    AuditLogEntry: createAuditLogEntryModel(sequelize),
+    FeatureFlag: createFeatureFlagModel(sequelize),
+    Organization: createOrganizationModel(sequelize),
+    User: createUserModel(sequelize),
   };
 
-  Object.keys(db).forEach(
+  (Object.keys(db) as Array<keyof typeof db>).forEach(
     modelName => db[modelName].associate != null && db[modelName].associate(db),
   );
   return db;
 }
 
-// $FlowIgnore Cannot define type for userModel
-async function isMigrationNeeded(userModel): Promise<boolean> {
+async function isMigrationNeeded(userModel: UserModelStatic): Promise<boolean> {
   try {
     const allUsers = await userModel.findAll();
+
     if (allUsers.length > 0) {
       console.warn('Users found in target DB. Migration may already have run');
-      return await false;
+      return false;
     }
-    return await true;
+    return true;
   } catch (e) {
+    const message = e instanceof Error ? e.message : 'unknown error';
     console.error(
       `Unable to run migration. Connection error to specified database: \n` +
         `------------------------\n` +
-        `${e} \n` +
+        `${message} \n` +
         `------------------------\n`,
     );
     process.exit(1);
   }
-  return await false;
+  return false;
 }
 
 export const AuditLogEntry = db.AuditLogEntry;
@@ -85,12 +89,17 @@ export const Organization = db.Organization;
 export const User = db.User;
 export const FeatureFlag = db.FeatureFlag;
 
-export function jsonArrayContains(column: string, value: string) {
+export function jsonArrayContains(column: string, value: string): WhereOptions {
   if (
     sequelize.getDialect() === 'mysql' ||
     sequelize.getDialect() === 'mariadb'
   ) {
-    return Sequelize.fn('JSON_CONTAINS', Sequelize.col(column), `"${value}"`);
+    // TODO[ts-migration]
+    return (Sequelize.fn(
+      'JSON_CONTAINS',
+      Sequelize.col(column),
+      `"${value}"`,
+    ) as unknown) as WhereOptions;
   } else if (sequelize.getDialect() === 'postgres') {
     const escapedColumn = sequelize
       .getQueryInterface()
@@ -115,7 +124,7 @@ export function jsonArrayContains(column: string, value: string) {
 export async function importFromDatabase(sourceConfig: Options) {
   const sourceSequelize = new Sequelize(
     sourceConfig.database || '',
-    sourceConfig.username,
+    sourceConfig.username || '',
     sourceConfig.password,
     sourceConfig,
   );
@@ -134,19 +143,15 @@ export async function importFromDatabase(sourceConfig: Options) {
 
   await migrateMeta(sourceSequelize, sequelize);
 
-  // $FlowIgnore findAll function exists for AuditLogEntry
   const auditLogEntries = await sourceDb.AuditLogEntry.findAll();
   await AuditLogEntry.bulkCreate(getDataValues(auditLogEntries));
 
-  // $FlowIgnore findAll function exists for FeatureFlag
   const featureFlags = await sourceDb.FeatureFlag.findAll();
   await FeatureFlag.bulkCreate(getDataValues(featureFlags));
 
-  // $FlowIgnore findAll function exists for Organization
   const organizations = await sourceDb.Organization.findAll();
   await Organization.bulkCreate(getDataValues(organizations));
 
-  // $FlowIgnore findAll function exists for User
   const users = await sourceDb.User.findAll();
   await User.bulkCreate(getDataValues(users));
 }
@@ -154,7 +159,7 @@ export async function importFromDatabase(sourceConfig: Options) {
 export async function exportToDatabase(targetConfig: Options) {
   const targetSequelize = new Sequelize(
     targetConfig.database || '',
-    targetConfig.username,
+    targetConfig.username || '',
     targetConfig.password,
     targetConfig,
   );
@@ -173,20 +178,15 @@ export async function exportToDatabase(targetConfig: Options) {
 
   await migrateMeta(sequelize, targetSequelize);
 
-  // $FlowIgnore findAll function exists for AuditLogEntry
   const auditLogEntries = await AuditLogEntry.findAll();
   await targetDb.AuditLogEntry.bulkCreate(getDataValues(auditLogEntries));
 
-  // $FlowIgnore findAll function exists for FeatureFlag
   const featureFlags = await FeatureFlag.findAll();
   await targetDb.FeatureFlag.bulkCreate(getDataValues(featureFlags));
 
-  // NOTE: While the tabs field should be non-null, it does happen
-  // $FlowIgnore findAll function exists for Organization
   const organizations = await Organization.findAll();
   await targetDb.Organization.bulkCreate(getDataValues(organizations));
 
-  // $FlowIgnore findAll function exists for User
   const users = await User.findAll();
   await targetDb.User.bulkCreate(getDataValues(users));
 
@@ -206,10 +206,10 @@ async function resetPgIdSeq(sequelize: Sequelize) {
           // Get current highest value from the table
           const [
             [{max}],
-          ] = await sequelize.query(
+          ] = (await sequelize.query(
             `SELECT MAX("${SequenceColumn}") AS max FROM "${table}";`,
             {transaction},
-          );
+          )) as [[{max: number}], unknown];
 
           // Set the autoincrement current value to highest value + 1
           await sequelize.query(
@@ -235,14 +235,14 @@ async function resetPgIdSeq(sequelize: Sequelize) {
 async function migrateMeta(source: Sequelize, target: Sequelize) {
   // Read in the current SequelizeMeta data
   const rows = await sequelize.query('SELECT * FROM `SequelizeMeta`', {
-    type: source.QueryTypes.SELECT,
+    type: QueryTypes.SELECT,
   });
 
   // Write SequelizeMeta data
   const targetInterface = target.getQueryInterface();
   await targetInterface.createTable('SequelizeMeta', {
     name: {
-      type: Sequelize.STRING,
+      type: DataTypes.STRING,
       allowNull: false,
       unique: true,
       primaryKey: true,
@@ -251,7 +251,7 @@ async function migrateMeta(source: Sequelize, target: Sequelize) {
   await targetInterface.bulkInsert('SequelizeMeta', rows);
 }
 
-// eslint-disable-next-line flowtype/no-weak-types
-function getDataValues(sequelizeModels: Array<Object>): Array<Object> {
-  return sequelizeModels.map(model => model.dataValues);
+function getDataValues(sequelizeModels: Array<Model>): Array<object> {
+  // @ts-ignore
+  return sequelizeModels.map(model => model.dataValues); // eslint-disable-line @typescript-eslint/no-unsafe-return
 }

@@ -10,13 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
 
-export async function injectOrganizationParams<T: {[string]: any}>(
+export async function injectOrganizationParams<T extends Record<string, any>>(
   req: FBCNMSMiddleWareRequest,
   params: T,
 ): Promise<T & {organization?: string}> {

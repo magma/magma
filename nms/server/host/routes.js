@@ -15,19 +15,24 @@
  */
 
 import type {ExpressResponse} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FeatureID} from '../../shared/types/features';
 
 import Sequelize from 'sequelize';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import express from 'express';
 import featureConfigs from '../features';
 // $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FeatureFlag, Organization} from '../../shared/sequelize_models';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {User} from '../../shared/sequelize_models';
+// $FlowFixMe migrated to typescript
 import {getPropsToUpdate} from '../auth/util';
 
 const logger = logging.getLogger(module);

@@ -15,11 +15,13 @@
  */
 
 import type {ExpressResponse} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';
 
 const url = require('url');
 import pathToRegexp from 'path-to-regexp';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AuditLogEntry} from '../../shared/sequelize_models';
 // $FlowFixMe migrated to typescript
 const logger = require('../../shared/logging.ts').getLogger(module);

@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSMiddleWareRequest} from '../../../server/middleware';
 
 import {Strategy} from 'passport-strategy';

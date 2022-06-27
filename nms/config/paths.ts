@@ -14,15 +14,17 @@
  * @format
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+// const fs = require('fs');
+// const path = require('path');
 
 const appDirectory = fs.realpathSync(process.cwd());
 
 const resolveApp = (relativePath: string) =>
   path.resolve(appDirectory, relativePath);
 
-module.exports = {
+const paths = {
   appSrc: resolveApp('app'),
   appIndexJs: resolveApp('app/main.tsx'),
   loginJs: resolveApp('app/login.tsx'),
@@ -30,3 +32,4 @@ module.exports = {
   distPath: resolveApp('static/dist'),
   resolveApp,
 };
+export default paths;

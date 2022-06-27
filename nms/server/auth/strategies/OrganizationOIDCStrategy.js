@@ -18,11 +18,15 @@ import DynamicStrategy from './DynamicStrategy';
 // $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../../shared/roles';
 import {Strategy as OidcStrategy} from 'openid-client';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {User} from '../../../shared/sequelize_models';
 
 import {TokenSet} from 'openid-client';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {clientFromRequest} from '../oidc/client';
+// $FlowFixMe migrated to typescript
 import {getUserFromRequest} from '../util';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {injectOrganizationParams} from '../organization';
 
 import type {OpenidUserInfoClaims} from 'openid-client';
