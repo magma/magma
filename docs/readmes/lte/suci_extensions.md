@@ -64,8 +64,8 @@ This flow diagram represents the network create/update flow and the modules invo
 
 ### AGW
 
-- The AMF to invoke the SIDF Module of subscriberdb for SUCI decryption.  In initial registration NAS (Network-attached storage) message, if type of identity is SUCI and protection scheme ID is either ECIES scheme profile A OR ECIES scheme profile B, then the AMF initiates a gRPC call to the subscriberdb with parameters such as home network public key identifier, UE ciphertext and encrypted IMSI.
-- The subscriberdb periodically fetches the list of SUCI profiles from the Orc8r and stores it as in- memory data.
+- The AMF to invoke the SIDF Module of subscriberdb for SUCI decryption.  In initial registration NAS (Network-Attached Storage) message, if type of identity is SUCI and protection scheme ID is either ECIES scheme profile A or ECIES scheme profile B, then the AMF initiates a gRPC call to the subscriberdb with parameters such as home network public key identifier, UE ciphertext and encrypted IMSI.
+- The subscriberdb periodically fetches the list of SUCI profiles from the Orc8r and stores it as in-memory data.
 - The subscriberdb has the SIDF functionality, that performs an in-memory data lookup to extract the private key associated with the home network public key identifier and protection scheme that we obtained from the initial registration NAS message. The SIDF has an algorithm that uses the private key to decode the SUCI.
 
 ## Prerequisites
@@ -87,10 +87,31 @@ sequenceDiagram
 
 - While creating the LTE network, SUCI Profiles can be established using the below swagger API.
 
-```text
-POST - /lte
-{
-  "ngc": {
+  ```text
+  POST - /lte
+  {
+    "ngc": {
+      "suci_profiles": [
+        {
+          "home_network_private_key": "2S2YxQinTRiAYmkL+i3WW0TpJ+RHf83HC1JqWE1bxzs=",
+          "home_network_public_key": "YHkGb8+c4KQYsWtz5pevQinvdHQyz1jkgq8vg1vMp08=",
+          "home_network_public_key_identifier": 2,
+          "protection_scheme": "ProfileA"    
+        }
+      ]
+    }
+  }
+  ```
+
+  The sample configuration is shown in the below figure
+
+  ![Create New LTE Network with SuciProfile](assets/lte/create_new_lte_network_with_suciprofile.png?raw=true "Create New LTE Network with SuciProfile")
+
+- If we want to add a SUCI Profile to an existing LTE network, we may do it with the swagger API listed below.
+
+  ```text
+  PUT - /lte/{network_id}/cellular/ngc
+  {
     "suci_profiles": [
       {
         "home_network_private_key": "2S2YxQinTRiAYmkL+i3WW0TpJ+RHf83HC1JqWE1bxzs=",
@@ -100,32 +121,11 @@ POST - /lte
       }
     ]
   }
-}
-```
+  ```
 
-The sample configuration is shown in the below figure
+  The sample configuration is shown in the below figure
 
-![Create New LTE Network with SuciProfile](assets/lte/create_new_lte_network_with_suciprofile.png?raw=true "Create New LTE Network with SuciProfile")
-
-- If we want to add a SUCI Profile to an existing LTE network, we may do it with the swagger API listed below.
-
-```text
-PUT - /lte/{network_id}/cellular/ngc
-{
-  "suci_profiles": [
-    {
-      "home_network_private_key": "2S2YxQinTRiAYmkL+i3WW0TpJ+RHf83HC1JqWE1bxzs=",
-      "home_network_public_key": "YHkGb8+c4KQYsWtz5pevQinvdHQyz1jkgq8vg1vMp08=",
-      "home_network_public_key_identifier": 2,
-      "protection_scheme": "ProfileA"    
-    }
-  ]
-}
-```
-
-The sample configuration is shown in the below figure
-
-![Update Existing LTE Network with SuciProfile](assets/lte/update_existing_lte_network_with_suciprofile.png?raw=true "Update Existing LTE Network with SuciProfile")
+  ![Update Existing LTE Network with SuciProfile](assets/lte/update_existing_lte_network_with_suciprofile.png?raw=true "Update Existing LTE Network with SuciProfile")
 
 ## 3GPP References
 
