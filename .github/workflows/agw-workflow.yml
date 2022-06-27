@@ -139,7 +139,10 @@ jobs:
 
   c_cpp_unit_tests:
     needs: path_filter
-    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    if: |
+      needs.path_filter.outputs.should_not_skip == 'true' &&
+      github.repository_owner == 'magma' &&
+      github.ref_name == 'master'
     name: C/C++ unit tests with Bazel
     runs-on: ubuntu-latest
     steps:
@@ -379,7 +382,10 @@ jobs:
             make coverage
             cp $C_BUILD/coverage.info $MAGMA_ROOT
       - name: Run coverage with Bazel (COMMON / SESSIOND / SCTPD / LIAGENT / CONNECTIOND)
-        if: always()
+        if: |
+          always() &&
+          github.repository_owner == 'magma' &&
+          github.ref_name == 'master'
         id: bazel-codecoverage
         uses: addnab/docker-run-action@v3
         with:
@@ -406,7 +412,10 @@ jobs:
           flags: c_cpp
       - name: Publish bazel profile
         uses: actions/upload-artifact@v3
-        if: always()
+        if: |
+          always() &&
+          github.repository_owner == 'magma' &&
+          github.ref_name == 'master'
         with:
           name: Bazel test coverage profile
           path: Bazel_test_coverage_profile

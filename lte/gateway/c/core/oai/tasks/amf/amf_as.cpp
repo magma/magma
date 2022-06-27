@@ -1226,11 +1226,6 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
   req->Security_Key = (unsigned char*)&amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  // Get the ambr values
-  amf_smf_context_ue_aggregate_max_bit_rate_get(
-      amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
-      &(req->ue_aggregate_max_bit_rate.ul));
-
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;
     pdu_resource_transfer_ie = &req->PDU_Session_Resource_Setup_Transfer_List;

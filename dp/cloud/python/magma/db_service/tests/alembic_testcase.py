@@ -6,6 +6,7 @@ import sqlalchemy as sa
 import testing.postgresql
 from alembic.command import downgrade, stamp, upgrade
 from alembic.script import ScriptDirectory
+from magma.db_service.models import Base
 from magma.db_service.tests.db_testcase import DBTestCaseBlueprint
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -90,3 +91,6 @@ class AlembicTestCase(DBTestCaseBlueprint):
         except Exception as e:
             self.fail(f"Downgrade to base failed: {e}")
         self.then_tables_are()
+
+    def then_column_does_not_exist(self, entity: Base, column_name: str):
+        self.assertFalse(hasattr(entity, column_name))

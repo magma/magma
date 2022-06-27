@@ -97,7 +97,10 @@ cc_library(
 
 cc_library(
     name = "libglog",
-    srcs = ["usr/lib/x86_64-linux-gnu/libglog.so.0"],
+    srcs = glob(
+        ["usr/lib/*-linux-gnu/libglog.so.0"],
+        allow_empty = False,
+    ),
 )
 
 cc_library(

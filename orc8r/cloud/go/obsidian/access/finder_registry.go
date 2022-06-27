@@ -16,7 +16,7 @@ package access
 import (
 	"strings"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/obsidian"

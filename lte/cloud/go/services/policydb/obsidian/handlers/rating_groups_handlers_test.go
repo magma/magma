@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
 	"magma/lte/cloud/go/lte"

@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
