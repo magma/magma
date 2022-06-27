@@ -9,28 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-'use strict';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {OrganizationType} from '../shared/sequelize_models/models/organization';
 
 import Sequelize from 'sequelize';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization} from '../shared/sequelize_models';
+import {OrganizationModel} from '../shared/sequelize_models/models/organization';
 import {union} from 'lodash';
 
 type OrganizationObject = {
-  name: string,
-  networkIDs: Array<string>,
-  csvCharset: '',
+  name: string;
+  networkIDs: Array<string>;
+  csvCharset: '';
 };
 
 async function updateOrganization(
-  organization: OrganizationType,
+  organization: OrganizationModel,
   organizationObject: OrganizationObject,
 ) {
   console.log(
@@ -92,9 +86,9 @@ function main() {
     name: args[0],
     networkIDs,
     csvCharset: '',
-  };
+  } as const;
   createOrUpdateOrganization(organizationObject)
-    .then(_res => {
+    .then(() => {
       console.log('Success');
       process.exit();
     })
