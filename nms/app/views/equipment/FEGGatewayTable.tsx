@@ -45,6 +45,7 @@ type EquipmentFegGatewayRowType = {
   gy: string;
   swx: string;
   s6a: string;
+  s8: string;
   csfb: string;
 };
 
