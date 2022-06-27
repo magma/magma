@@ -27,6 +27,7 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/cloud/go/services/metricsd/test_init"
@@ -165,4 +166,28 @@ func TestPush(t *testing.T) {
 	assert.Equal(t, networkID, *e.queue[0].Labels()[1].Value)
 	assert.Equal(t, timestamp, e.queue[0].TimestampMs())
 	assert.Equal(t, strconv.FormatFloat(value, 'f', -1, 64), e.queue[0].Value())
+}
+
+func TestPushRaw(t *testing.T) {
+	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	e := &testMetricExporter{}
+	test_init.StartNewTestExporter(t, e)
+	srv := NewCloudMetricsControllerServer()
+
+	fam := collection.MakeSingleGaugeFamily("name1", "help1", nil, 12.34)
+
+	c := &protos.RawMetricsContainer{
+		HostName: "someHostName",
+		Families: []*prometheusProto.MetricFamily{fam},
+	}
+
+	_, err := srv.PushRaw(context.Background(), c)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(e.queue))
+	assert.Equal(t, "name1", e.queue[0].Name())
+	assert.Equal(t, 2, len(e.queue[0].Labels()))
+	assert.Equal(t, "cloudHost", *e.queue[0].Labels()[0].Name)
+	assert.Equal(t, "someHostName", *e.queue[0].Labels()[0].Value)
 }

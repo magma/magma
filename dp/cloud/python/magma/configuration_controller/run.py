@@ -44,6 +44,7 @@ from magma.fluentd_client.dp_logs import make_dp_log
 from magma.mappings.request_mapping import request_mapping
 from magma.mappings.request_response_mapping import request_response
 from magma.mappings.types import RequestTypes
+from magma.metricsd_client.client import get_metricsd_client, process_metrics
 from sqlalchemy import create_engine
 
 logging.basicConfig(
@@ -88,6 +89,8 @@ def run():
         ssl_verify=config.SAS_CERT_PATH,
     )
     fluentd_client = FluentdClient()
+    metricsd_client = get_metricsd_client()
+
     for request_type in RequestTypes:
         req_type = request_type.value
         response_type = request_response[req_type]
@@ -110,6 +113,16 @@ def run():
             max_instances=1,
             name=f"{req_type}_job",
         )
+
+    scheduler.add_job(
+        process_metrics,
+        args=[metricsd_client, config.SERVICE_HOSTNAME, "configuration_controller"],
+        trigger=IntervalTrigger(
+            seconds=config.METRICS_PROCESSING_INTERVAL_SEC,
+        ),
+        max_instances=1,
+        name="metrics_processing_job",
+    )
     scheduler.start()
 
     while True:

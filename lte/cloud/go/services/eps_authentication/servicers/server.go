@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/storage"
 	"magma/orc8r/lib/go/protos"
@@ -38,15 +39,15 @@ func NewEPSAuthServer(store storage.SubscriberDBStorage) (*EPSAuthServer, error)
 
 // lookupSubscriber returns a subscriber's data or an error.
 func (srv *EPSAuthServer) lookupSubscriber(
-	userName, networkID string) (*lteprotos.SubscriberData, lteprotos.ErrorCode, error) {
+	userName, networkID string) (*lteprotos.SubscriberData, fegprotos.ErrorCode, error) {
 	subscriber, err := srv.store.GetSubscriberData(
 		&lteprotos.SubscriberID{Id: userName}, &protos.NetworkID{Id: networkID})
 
 	if err != nil {
 		if status.Convert(err).Code() == codes.NotFound {
-			return nil, lteprotos.ErrorCode_USER_UNKNOWN, err
+			return nil, fegprotos.ErrorCode_USER_UNKNOWN, err
 		}
-		return nil, lteprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, err
+		return nil, fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, err
 	}
-	return subscriber, lteprotos.ErrorCode_SUCCESS, nil
+	return subscriber, fegprotos.ErrorCode_SUCCESS, nil
 }

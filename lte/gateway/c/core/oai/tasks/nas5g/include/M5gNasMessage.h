@@ -86,4 +86,7 @@ namespace magma5g {
 #define IMSI_LENGTH 15
 #define NATIVE_SECURITY_CONTEXT 0
 #define MAPPED_SECURITY_CONTEXT 1
+#define SERVICE_REJ_T3346_LEN 1
+#define SERVICE_REJ_T3346_VALUE 60
+
 }  // namespace magma5g

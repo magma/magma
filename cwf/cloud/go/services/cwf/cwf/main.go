@@ -21,15 +21,15 @@ import (
 	cwf_analytics "magma/cwf/cloud/go/services/cwf/analytics"
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	builder_servicers "magma/cwf/cloud/go/services/cwf/servicers/protected"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	analytics_servicer "magma/orc8r/cloud/go/services/analytics/servicers/protected"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 	"magma/orc8r/lib/go/service/config"
 )
 

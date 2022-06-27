@@ -23,7 +23,7 @@ import type {
   network_subscriber_config,
 } from '../../../generated/MagmaAPIBindings';
 
-import MagmaV1API from '../../../generated/MagmaAPIBindings';
+import MagmaV1API from '../../../generated/WebClient';
 
 import {UpdateNetworkState as UpdateLteNetworkState} from '../lte/NetworkState';
 export type UpdateNetworkProps = {

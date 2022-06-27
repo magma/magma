@@ -25,7 +25,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
     format='%(asctime)s %(levelname)-8s %(message)s',
 )
-logger = logging.getLogger("configuration_controller.run")
+logger = logging.getLogger("fluentd_client.client")
 
 
 class FluentdClientException(Exception):

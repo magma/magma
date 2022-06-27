@@ -19,7 +19,7 @@ from concurrent import futures
 from unittest.mock import MagicMock
 
 import grpc
-from google.protobuf.any_pb2 import Any
+from google.protobuf.any_pb2 import Any  # pylint: disable=no-name-in-module
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.subscriberdb_pb2 import (
     CheckInSyncRequest,

@@ -94,7 +94,13 @@ export default function AutorefreshCheckbox(props: Props) {
 
   return (
     <FormControlLabel
-      control={<Checkbox checked={autorefreshEnabled} onChange={onToggle} />}
+      control={
+        <Checkbox
+          checked={autorefreshEnabled}
+          onChange={onToggle}
+          data-testid="autorefresh-checkbox"
+        />
+      }
       label={
         <Text variant="body3" className={classes.autorefreshCheckbox}>
           Autorefresh

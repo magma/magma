@@ -62,7 +62,7 @@ def build_all(clear_orc8r='False', provision_vm='False'):
     build_agw(provision_vm=provision_vm)
 
     if clear_orc8r:
-        clear_orc8r()
+        clear_orc8r_db()
 
     # build other VMs
     build_test_vm(provision_vm=provision_vm)
@@ -120,9 +120,9 @@ def clear_gateways():
     subprocess.check_call('fab deregister_feg_gw', shell=True, cwd=feg_path)
 
 
-def clear_orc8r():
+def clear_orc8r_db():
     """
-    Delete orc8r database. Requieres orc8r to be stopped
+    Delete orc8r database. Requires orc8r to be stopped
     """
     print('#### Clearing swagger database from Orc8r ####')
     subprocess.check_call(['./run.py --clear-db'], shell=True, cwd=orc8_docker_path)
