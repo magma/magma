@@ -14,7 +14,7 @@ import ipaddress
 import socket
 import subprocess
 from collections import namedtuple
-from typing import Optional, Union
+from typing import Optional
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -363,8 +363,8 @@ class Classifier(MagmaController):
 
     def add_tunnel_flows(
         self, precedence: int, i_teid: int,
-        o_teid: int, enodeb_ip_addr: Union[str, IPAddress],
-        ue_ip_adr: Optional[IPAddress] = None, sid: Optional[int] = None,
+        o_teid: int, enodeb_ip_addr: str,
+        ue_ip_adr: IPAddress = None, sid: Optional[int] = None,
         ng_flag: bool = True,
         ue_ipv6_address: Optional[IPAddress] = None,
         unused_apn: Optional[str] = None, unused_vlan: int = 0,
