@@ -9,14 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {
-  federated_network_configs,
-  mode_map_item,
-} from '../../../generated/MagmaAPIBindings';
+import type {FederatedNetworkConfigs, ModeMapItem} from '../../../generated-ts';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -40,25 +34,30 @@ import Switch from '@material-ui/core/Switch';
 import Text from '../../theme/design-system/Text';
 
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
+import {ModeMapItemModeEnum} from '../../../generated-ts';
 import {federationStyles} from './FederationStyles';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-const useStyles = makeStyles(() => federationStyles);
+const useStyles = makeStyles(federationStyles);
 
 type FieldProps = {
-  index: number,
-  mapping: mode_map_item,
-  handleDelete: number => void,
-  onChange: (number, mode_map_item) => void,
+  index: number;
+  mapping: ModeMapItem;
+  handleDelete: (index: number) => void;
+  onChange: (index: number, mapping: ModeMapItem) => void;
 };
 
 function FederationMappingFields(props: FieldProps) {
   const classes = useStyles();
   const {mapping} = props;
 
-  const handleFieldChange = (field: string, value: number | string | {}) =>
+  const handleFieldChange = <K extends keyof ModeMapItem>(
+    field: K,
+    value: ModeMapItem[K],
+  ) =>
     props.onChange(props.index, {
       ...props.mapping,
       [field]: value,
@@ -124,7 +123,10 @@ function FederationMappingFields(props: FieldProps) {
                     variant={'outlined'}
                     value={mapping.mode}
                     onChange={({target}) => {
-                      handleFieldChange('mode', target.value);
+                      handleFieldChange(
+                        'mode',
+                        target.value as ModeMapItemModeEnum,
+                      );
                     }}
                     input={<OutlinedInput id="mode" />}>
                     <MenuItem value={'local_subscriber'}>
@@ -165,19 +167,19 @@ function FederationMappingFields(props: FieldProps) {
  *    Title of save button, eg. "Continue", or "Save".
  * @property {string} networkId
  *    ID of network being modified
- * @property {federated_network_configs} federatedNetworkConfigs
+ * @property {FederatedNetworkConfigs} federatedNetworkConfigs
  *    Federation configuration.
  * @property {() => void} onClose
  *    Callback on closing the config modal.
- * @property {(federated_network_configs) => void} onSave
+ * @property {(FederatedNetworkConfigs) => void} onSave
  *    Callback on saving the configs.
  */
 type EditProps = {
-  saveButtonTitle: string,
-  networkId: string,
-  config: federated_network_configs,
-  onClose: () => void,
-  onSave: federated_network_configs => void,
+  saveButtonTitle: string;
+  networkId: string;
+  config: FederatedNetworkConfigs;
+  onClose: () => void;
+  onSave: (configs: FederatedNetworkConfigs) => void;
 };
 
 /**
@@ -191,7 +193,7 @@ export function NetworkFederationEdit(props: EditProps) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
-  const [config, setConfig] = useState<federated_network_configs>(
+  const [config, setConfig] = useState<FederatedNetworkConfigs>(
     props.config == null || Object.keys(props.config).length === 0
       ? {
           feg_network_id: '',
@@ -204,7 +206,7 @@ export function NetworkFederationEdit(props: EditProps) {
   );
 
   const handleAddMapping = () => {
-    const mapping: Array<mode_map_item> = [
+    const mapping: Array<ModeMapItem> = [
       ...(config?.federated_modes_mapping?.mapping || []),
       {
         mode: 'local_subscriber',
@@ -220,8 +222,8 @@ export function NetworkFederationEdit(props: EditProps) {
     });
   };
 
-  const onMappingChange = (index: number, newMapping: mode_map_item) => {
-    const mapping: Array<mode_map_item> = [
+  const onMappingChange = (index: number, newMapping: ModeMapItem) => {
+    const mapping: Array<ModeMapItem> = [
       ...(config?.federated_modes_mapping?.mapping || []),
     ];
     mapping[index] = newMapping;
@@ -233,7 +235,7 @@ export function NetworkFederationEdit(props: EditProps) {
   };
 
   const handleDeleteMapping = (index: number) => {
-    const mapping: Array<mode_map_item> = [
+    const mapping: Array<ModeMapItem> = [
       ...(config?.federated_modes_mapping?.mapping || []),
     ];
     mapping.splice(index, 1);
@@ -258,11 +260,11 @@ export function NetworkFederationEdit(props: EditProps) {
       });
       props.onSave(config);
     } catch (e) {
-      setError(e.response?.data?.message ?? e?.message);
+      setError(getErrorMessage(e));
     }
   };
 
-  const mappingsList: Array<mode_map_item> = [
+  const mappingsList: Array<ModeMapItem> = [
     ...(config?.federated_modes_mapping?.mapping || []),
   ];
 
@@ -345,15 +347,12 @@ export function NetworkFederationEdit(props: EditProps) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button
-          data-testid="cancelButton"
-          onClick={props.onClose}
-          skin="regular">
+        <Button data-testid="cancelButton" onClick={props.onClose}>
           Cancel
         </Button>
         <Button
           data-testid="saveButton"
-          onClick={onSave}
+          onClick={() => void onSave()}
           variant="contained"
           color="primary">
           {props.saveButtonTitle}

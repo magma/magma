@@ -130,8 +130,9 @@ export function NetworkEditDialog(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(LteNetworkContext);
 
-  const [lteNetwork, setLteNetwork] =
-    useState < Partial<LteNetwork & FegLteNetwork>({});
+  const [lteNetwork, setLteNetwork] = useState<
+    Partial<LteNetwork & FegLteNetwork>
+  >({});
   //  eslint-disable-next-line @typescript-eslint/ban-types
   const [epcConfigs, setEpcConfigs] = useState<NetworkEpcConfigs | {}>({});
 
@@ -213,8 +214,8 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === tabs.feg && (
         <NetworkFederationEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
-          networkId={lteNetwork.id}
-          config={lteNetwork.federation}
+          networkId={lteNetwork.id!}
+          config={lteNetwork.federation!}
           onClose={onClose}
           onSave={federationConfigs => {
             setLteNetwork({...lteNetwork, federation: federationConfigs});
