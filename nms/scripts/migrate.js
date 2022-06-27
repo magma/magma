@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {LOG_FORMAT, LOG_LEVEL} from '../config/config';
 
 // This must be done before any module imports to configure

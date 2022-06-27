@@ -13,10 +13,15 @@
  * @format
  */
 
-declare let global: {
-  CONFIG: {
-    appData: {
-      enabledFeatures: Array<string>;
+import {UserModel} from './shared/sequelize_models/models/user';
+
+declare global {
+  interface Window {
+    CONFIG: {
+      appData: EmbeddedData;
     };
-  };
-};
+  }
+  namespace Express {
+    type User = UserModel;
+  }
+}

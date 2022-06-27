@@ -10,12 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 import express from 'express';
-// $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
 import webpack from 'webpack';
 import webpackHotMiddleware, {MiddlewareOptions} from 'webpack-hot-middleware';
@@ -35,7 +32,6 @@ type WebpackSmartMiddlewareOptions = WebpackMiddlewareOptions & {
   devMode: boolean;
 };
 
-// $FlowIgnore[value-as-type]
 function webpackDevMiddleware(
   options: WebpackMiddlewareOptions,
 ): RequestHandler {
@@ -66,7 +62,6 @@ function webpackDevMiddleware(
 
 export default function webpackSmartMiddleware(
   options: WebpackSmartMiddlewareOptions,
-  // $FlowIgnore[value-as-type]
 ): RequestHandler {
   const {devMode, devWebpackConfig, distPath} = options;
 

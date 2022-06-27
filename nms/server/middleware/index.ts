@@ -10,23 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 export {default as organizationMiddleware} from './organizationMiddleware';
 export {default as appMiddleware} from './appMiddleware';
-// $FlowFixMe migrated to typescript
 export {default as csrfMiddleware} from './csrfMiddleware';
-// $FlowFixMe migrated to typescript
 export {default as sessionMiddleware} from './sessionMiddleware';
-// $FlowFixMe migrated to typescript
 export {default as webpackSmartMiddleware} from './webpackSmartMiddleware';
 
+import {TabScrollButton} from '@material-ui/core';
 import type {OrganizationMiddlewareRequest} from './organizationMiddleware';
 
 export type FBCNMSMiddleWareRequest = {
-  csrfToken: () => string, // from csrf
-  body: Object, // from bodyParser
-  session: any,
+  csrfToken: () => string; // from csrf
+  body: object; // from bodyParser
+  session: any;
 } & OrganizationMiddlewareRequest;
+TabScrollButton;

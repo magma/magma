@@ -15,6 +15,7 @@
  */
 
 import type {ExpressResponse} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';
 
 import HttpsProxyAgent from 'https-proxy-agent';
@@ -22,6 +23,7 @@ import auditLoggingDecorator from './auditLoggingDecorator';
 import express from 'express';
 import proxy from 'express-http-proxy';
 import url from 'url';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {API_HOST, apiCredentials} from '../../config/config';
 import {intersection} from 'lodash';
 

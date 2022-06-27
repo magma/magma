@@ -10,15 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
  */
 
 import type {OrganizationMiddlewareRequest} from '../../../server/middleware/organizationMiddleware';
 
-import {Issuer} from 'openid-client';
+import {Client, Issuer} from 'openid-client';
 
-const _clientCache = {};
+const _clientCache: Record<string, Client> = {};
 
 export async function clientFromRequest(req: OrganizationMiddlewareRequest) {
   if (!req.organization) {

@@ -18,6 +18,7 @@ import express from 'express';
 // $FlowFixMe migrated to typescript
 import syncAlerts from './sync';
 import type {ExpressResponse} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();

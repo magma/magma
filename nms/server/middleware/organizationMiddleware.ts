@@ -10,19 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 
 import Sequelize from 'sequelize';
 
 import {Organization, jsonArrayContains} from '../../shared/sequelize_models';
-import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-import type {OrganizationType} from '../../shared/sequelize_models/models/organization';
+import type {NextFunction, Request, Response} from 'express';
+import type {OrganizationModel} from '../../shared/sequelize_models/models/organization';
 
 async function getOrganizationFromHost(
   host: string,
-): Promise<?OrganizationType> {
+): Promise<OrganizationModel | null | undefined> {
   const org = await Organization.findOne({
     where: jsonArrayContains('customDomains', host),
   });
@@ -41,8 +39,8 @@ async function getOrganizationFromHost(
 }
 
 export async function getOrganization(req: {
-  get(field: string): string | void,
-}): Promise<OrganizationType> {
+  get(field: string): string | void;
+}): Promise<OrganizationModel> {
   for (const header of ['host', 'x-forwarded-host']) {
     const host = req.get(header);
     if (host != null && host !== '') {
@@ -57,15 +55,15 @@ export async function getOrganization(req: {
 
 // We don't depend on organization to be there in other modules.
 export type OrganizationRequestPart = {
-  organization: () => Promise<OrganizationType>,
+  organization: () => Promise<OrganizationModel>;
 };
-export type OrganizationMiddlewareRequest = ExpressRequest &
-  $Shape<OrganizationRequestPart>;
+export type OrganizationMiddlewareRequest = Request &
+  Partial<OrganizationRequestPart>;
 
 export default function organizationMiddleware() {
   return (
     req: OrganizationMiddlewareRequest,
-    res: ExpressResponse,
+    res: Response,
     next: NextFunction,
   ) => {
     try {

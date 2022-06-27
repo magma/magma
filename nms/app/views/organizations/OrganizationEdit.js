@@ -14,7 +14,8 @@
  * @format
  */
 
-import type {Organization} from './Organizations';
+import type { Organization } from './Organizations';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 import type {WithAlert} from '../../components/Alert/withAlert';
 

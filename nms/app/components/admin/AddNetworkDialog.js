@@ -31,13 +31,13 @@ import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe migrated to typescript
 import {
   AllNetworkTypes,
   CWF,
   FEG,
   FEG_LTE,
   XWFM,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {triggerAlertSync} from '../../state/SyncAlerts';

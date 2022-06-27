@@ -26,7 +26,7 @@ import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
 
 jest.mock('../../../../generated/MagmaAPIBindings.js');
 
-global.CONFIG = {
+window.CONFIG = {
   appData: {
     enabledFeatures: [],
   },

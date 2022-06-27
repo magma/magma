@@ -15,7 +15,8 @@
  */
 
 import type {EditUser} from './OrganizationEdit';
-import type {Organization} from './Organizations';
+import type { Organization } from './Organizations';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
 
 import AppContext from '../../components/context/AppContext';

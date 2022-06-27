@@ -22,6 +22,7 @@ import Main from './components/Main';
 import MomentUtils from '@date-io/moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
+// $FlowFixMe migrated to typescript
 import nullthrows from '../shared/util/nullthrows';
 import {BrowserRouter} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';

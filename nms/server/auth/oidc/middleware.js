@@ -15,9 +15,11 @@
  */
 
 import {TokenSet} from 'openid-client';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {clientFromRequest} from './client';
 
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../access';
 
 type OIDCTokenSet = {
