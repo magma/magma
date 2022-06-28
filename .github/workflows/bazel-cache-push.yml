@@ -58,6 +58,7 @@ jobs:
           sudo mkdir -p /etc/vbox/
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+          sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
       - name: Bring up the Magma VM
         run: |
           cd lte/gateway
