@@ -164,11 +164,9 @@ class CbsdAPIDataBuilder:
         return CBSDStateResult(
             radio_enabled=True,
             carrier_aggregation_enabled=False,
-            channels=[
-                LteChannel(
-                    low_frequency_hz=frequency_hz - half_bandwidth_hz,
-                    high_frequency_hz=frequency_hz + half_bandwidth_hz,
-                    max_eirp_dbm_mhz=max_eirp,
-                ),
-            ],
+            channel=LteChannel(
+                low_frequency_hz=frequency_hz - half_bandwidth_hz,
+                high_frequency_hz=frequency_hz + half_bandwidth_hz,
+                max_eirp_dbm_mhz=max_eirp,
+            ),
         )

@@ -262,7 +262,7 @@ class DPService(DPServiceServicer):
         return CBSDStateResult(
             radio_enabled=True,
             carrier_aggregation_enabled=cbsd.carrier_aggregation_enabled,
-            channels=channels,
+            channel=channels[0],
         )
 
     def _build_lte_channels(self, grants: List[DBChannel]) -> List[LteChannel]:
