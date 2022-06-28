@@ -741,9 +741,9 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that the og stats flow was not removed and flow data hit restrict rule
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 1, 6*MegaBytes+Buffer)
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 1*MegaBytes-Buffer, 6*MegaBytes+Buffer)
 	// Check that data went through the restrict rule
-	tr.AssertPolicyUsage(imsi, "restrict-pass-user", 1, 3*MegaBytes+Buffer)
+	tr.AssertPolicyUsage(imsi, "restrict-pass-user", 1*MegaBytes-Buffer, 6*MegaBytes+Buffer)
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(imsi, 1)
