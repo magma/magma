@@ -9,28 +9,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import type {EnqueueSnackbarOptions} from 'notistack';
+import type {OptionsObject} from 'notistack';
 
-import MagmaV1API from '../../../generated/WebClient';
-import type {
-  mutable_cbsd,
-  paginated_cbsds,
-} from '../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../api/MagmaAPI';
+import type {MutableCbsd, PaginatedCbsds} from '../../../generated-ts';
 
 type FetchProps = {
-  networkId: string,
-  page: number,
-  pageSize: number,
-  setIsLoading: (value: boolean) => void,
-  setFetchResponse: (response: paginated_cbsds) => void,
+  networkId: string;
+  page: number;
+  pageSize: number;
+  setIsLoading: (value: boolean) => void;
+  setFetchResponse: (response: PaginatedCbsds) => void;
   enqueueSnackbar?: (
     msg: string,
-    cfg: EnqueueSnackbarOptions,
-  ) => ?(string | number),
+    cfg: OptionsObject,
+  ) => string | number | null | undefined;
 };
 
 export async function fetch(props: FetchProps) {
@@ -47,11 +41,13 @@ export async function fetch(props: FetchProps) {
   try {
     setIsLoading(true);
 
-    const response = await MagmaV1API.getDpByNetworkIdCbsds({
-      networkId,
-      offset: page * pageSize,
-      limit: pageSize,
-    });
+    const response = (
+      await MagmaAPI.cbsds.dpNetworkIdCbsdsGet({
+        networkId,
+        offset: page * pageSize,
+        limit: pageSize,
+      })
+    ).data;
     setFetchResponse(response);
   } catch {
     enqueueSnackbar?.('failed fetching CBSDs information', {
@@ -63,31 +59,31 @@ export async function fetch(props: FetchProps) {
 }
 
 type CreateProps = {
-  networkId: string,
-  newCbsd: mutable_cbsd,
+  networkId: string;
+  newCbsd: MutableCbsd;
 };
 
 export async function create(props: CreateProps) {
   const {networkId, newCbsd} = props;
   if (networkId == null) return;
 
-  await MagmaV1API.postDpByNetworkIdCbsds({
+  await MagmaAPI.cbsds.dpNetworkIdCbsdsPost({
     networkId,
     cbsd: newCbsd,
   });
 }
 
 type UpdateProps = {
-  networkId: string,
-  id: number,
-  cbsd: mutable_cbsd,
+  networkId: string;
+  id: number;
+  cbsd: MutableCbsd;
 };
 
 export async function update(props: UpdateProps) {
   const {networkId, id, cbsd} = props;
   if (networkId == null) return;
 
-  await MagmaV1API.putDpByNetworkIdCbsdsByCbsdId({
+  await MagmaAPI.cbsds.dpNetworkIdCbsdsCbsdIdPut({
     networkId,
     cbsdId: id,
     cbsd,
@@ -95,30 +91,30 @@ export async function update(props: UpdateProps) {
 }
 
 type DeregisterProps = {
-  networkId: string,
-  id: number,
+  networkId: string;
+  id: number;
 };
 
 export async function deregister(props: DeregisterProps) {
   const {networkId, id} = props;
   if (networkId == null) return;
 
-  await MagmaV1API.postDpByNetworkIdCbsdsByCbsdIdDeregister({
+  await MagmaAPI.cbsds.dpNetworkIdCbsdsCbsdIdDeregisterPost({
     networkId,
     cbsdId: id,
   });
 }
 
 type RemoveProps = {
-  networkId: string,
-  cbsdId: number,
+  networkId: string;
+  cbsdId: number;
 };
 
 export async function remove(props: RemoveProps) {
   const {networkId, cbsdId} = props;
   if (networkId == null) return;
 
-  await MagmaV1API.deleteDpByNetworkIdCbsdsByCbsdId({
+  await MagmaAPI.cbsds.dpNetworkIdCbsdsCbsdIdDelete({
     networkId,
     cbsdId,
   });

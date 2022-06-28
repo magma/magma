@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
@@ -23,23 +20,23 @@ import React, {useCallback, useRef, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-// $FlowFixMe @material-ui/pickers have no flow types
 import {KeyboardDateTimePicker} from '@material-ui/pickers';
 import {isFinite} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';
 
-import ActionTable from '../../components/ActionTable';
+import ActionTable, {TableRef} from '../../components/ActionTable';
 import AutorefreshCheckbox, {
   useRefreshingDateRange,
 } from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import MagmaV1API from '../../../generated/WebClient';
+import MagmaAPI from '../../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
 import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {Theme} from '@material-ui/core/styles/createTheme';
 import {colors} from '../../theme/default';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -61,11 +58,11 @@ const useStyles = makeStyles(theme => ({
 type LogsDirectionNullable = 'SAS' | 'DP' | 'CBSD' | null;
 
 type LogsDirectionFilterProps = {
-  value: LogsDirectionNullable,
-  onChange: (value: LogsDirectionNullable) => void,
-  selectProps: {|
-    'data-testid': string,
-  |},
+  value: LogsDirectionNullable;
+  onChange: (value: LogsDirectionNullable) => void;
+  selectProps: {
+    'data-testid': string;
+  };
 };
 
 function LogsDirectionFilter({
@@ -97,8 +94,8 @@ function LogsDirectionFilter({
         className={classes.logsDirectionFilter}
         value={parsedValue}
         onChange={({target}) => {
-          let newValue;
-          switch (parseInt(target.value)) {
+          let newValue: LogsDirectionNullable;
+          switch (parseInt(target.value as string)) {
             case 1:
               newValue = 'SAS';
               break;
@@ -131,7 +128,7 @@ function LogsList() {
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
 
-  const tableRef = useRef(null);
+  const tableRef: TableRef = useRef();
 
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
@@ -149,23 +146,25 @@ function LogsList() {
   const [logName, setLogName] = useState<string>('');
 
   const getDataFn = useCallback(
-    async query => {
-      const responseCodeParsed = parseInt(responseCode);
-      const response = await MagmaV1API.getDpByNetworkIdLogs({
-        networkId,
-        offset: query.page * query.pageSize,
-        limit: query.pageSize,
-        begin: startDate?.toISOString(),
-        end: endDate?.toISOString(),
-        serialNumber: serialNumber || undefined,
-        fccId: fccId || undefined,
-        type: logName || undefined,
-        responseCode: isFinite(responseCodeParsed)
-          ? responseCodeParsed
-          : undefined,
-        from: from || undefined,
-        to: to || undefined,
-      });
+    async (query: {page: number; pageSize: number}) => {
+      const responseCodeParsed = parseInt(responseCode!);
+      const response = (
+        await MagmaAPI.logs.dpNetworkIdLogsGet({
+          networkId,
+          offset: query.page * query.pageSize,
+          limit: query.pageSize,
+          begin: startDate?.toISOString(),
+          end: endDate?.toISOString(),
+          serialNumber: serialNumber || undefined,
+          fccId: fccId || undefined,
+          type: logName || undefined,
+          responseCode: isFinite(responseCodeParsed)
+            ? responseCodeParsed
+            : undefined,
+          from: from || undefined,
+          to: to || undefined,
+        })
+      ).data;
 
       const totalCount = response?.total_count || 0;
 
@@ -317,7 +316,7 @@ function LogsList() {
                   maxDate={endDate}
                   disableFuture
                   value={startDate}
-                  onChange={newValue => setStartDate(newValue)}
+                  onChange={newValue => setStartDate(newValue as moment.Moment)}
                   format="yyyy/MM/DD HH:mm"
                 />
               </Grid>
@@ -416,7 +415,7 @@ function LogsList() {
                   inputVariant="outlined"
                   disableFuture
                   value={endDate}
-                  onChange={newValue => setEndDate(newValue)}
+                  onChange={newValue => setEndDate(newValue as moment.Moment)}
                   format="yyyy/MM/DD HH:mm"
                 />
               </Grid>
@@ -476,7 +475,6 @@ function LogsList() {
               actionsColumnIndex: -1,
               pageSize: 20,
               pageSizeOptions: [20, 60, 100],
-              exportButton: true,
               search: false,
               sorting: false,
             }}

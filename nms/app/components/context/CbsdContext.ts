@@ -30,4 +30,4 @@ export type CbsdContextType = {
   remove: (id: number) => Promise<void>;
 };
 
-export default React.createContext<CbsdContextType>({});
+export default React.createContext<CbsdContextType>({} as CbsdContextType);

@@ -183,7 +183,7 @@ export function CbsdContextProvider({networkId, children}: Props) {
   ]);
 
   useEffect(() => {
-    refetch();
+    void refetch();
   }, [refetch, paginationOptions.page, paginationOptions.pageSize]);
 
   const state = useMemo(() => {
@@ -218,10 +218,10 @@ export function CbsdContextProvider({networkId, children}: Props) {
               enqueueSnackbar?.('failed to create CBSD', {
                 variant: 'error',
               });
-              throw e;
+              throw e as Error;
             })
             .then(() => {
-              refetch();
+              void refetch();
             });
         },
         update: (id: number, cbsd: MutableCbsd) => {
@@ -235,10 +235,10 @@ export function CbsdContextProvider({networkId, children}: Props) {
               enqueueSnackbar?.('failed to update CBSD', {
                 variant: 'error',
               });
-              throw e;
+              throw e as Error;
             })
             .then(() => {
-              refetch();
+              void refetch();
             });
         },
         deregister: (id: number) => {
@@ -253,7 +253,7 @@ export function CbsdContextProvider({networkId, children}: Props) {
               });
             })
             .then(() => {
-              refetch();
+              void refetch();
             });
         },
         remove: (id: number) => {
@@ -268,7 +268,7 @@ export function CbsdContextProvider({networkId, children}: Props) {
               });
             })
             .then(() => {
-              refetch();
+              void refetch();
             });
         },
       }}>
