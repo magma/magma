@@ -80,7 +80,10 @@ collect_services
 for SERVICE in "${SERVICES[@]}"
 do
     echo "Building service: ${SERVICE}"
-    bazel build "${SERVICE}"
+    bazel build --remote_download_toplevel "${SERVICE}"
+# 'bazel build' needs the --remote_download_toplevel option here in order to have
+# the same options as the 'bazel run' below. For 'bazel run' the option is set
+# in the bazelrc, due to https://github.com/bazelbuild/bazel/issues/11920
     echo "Testing service: ${SERVICE}"
     if timeout --preserve-status 5 bazel run "${SERVICE}" 2>&1  | tee "${LOGGING_FILE}";
     then

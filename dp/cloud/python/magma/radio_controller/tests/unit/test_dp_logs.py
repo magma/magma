@@ -91,14 +91,22 @@ class DPLogsTestCase(LocalDBTestCase):
         cbsd = None
         if with_cbsd:
             cbsd = self.session.query(DBCbsd).first()
-        channel = LteChannel(
-            low_frequency_hz=1,
-            high_frequency_hz=2,
-            max_eirp_dbm_mhz=3,
-        )
+        channels = [
+            LteChannel(
+                low_frequency_hz=1,
+                high_frequency_hz=2,
+                max_eirp_dbm_mhz=3,
+            ),
+            LteChannel(
+                low_frequency_hz=4,
+                high_frequency_hz=5,
+                max_eirp_dbm_mhz=6,
+            ),
+        ]
         message = CBSDStateResult(
-            channel=channel,
+            channels=channels,
             radio_enabled=True,
+            carrier_aggregation_enabled=True,
         )
 
         # When

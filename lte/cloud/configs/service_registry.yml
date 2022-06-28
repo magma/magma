@@ -107,3 +107,9 @@ services:
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/lte/:network_id/network_probe,
+
+  eps_authentication:
+    host: "localhost"
+    port: 9181
+    proxy_type: "clientcert"
+    echo_port: 10090
