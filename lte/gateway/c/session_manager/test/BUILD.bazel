@@ -64,8 +64,8 @@ cc_test(
         "//lte/gateway/c/session_manager:session_store",
         "//orc8r/gateway/c/common/logging",
         "//orc8r/gateway/c/common/service303",
-        "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
+        "@system_libraries//:libglog",
     ],
 )
 

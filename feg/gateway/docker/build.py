@@ -55,7 +55,7 @@ def main() -> None:
     elif args.health:
         # _set_mac_env_vars is needed to override LOG_DRIVER for mac
         _set_mac_env_vars()
-        _run(['up', '-d'])
+        _run(['-f', 'docker-compose.yml', '-f', 'docker-compose.override.yml', '-f', 'docker-compose.health.override.yml', 'up', '-d'])
         _run_health()
         _down(args)
 

@@ -830,7 +830,7 @@ int amf_nas_proc_authentication_info_answer(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
+int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
   int rc = RETURNerror;
   amf_context_t* amf_ctxt_p = NULL;
@@ -844,10 +844,6 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(aia->ue_id);
-
-  IMSI_STRING_TO_IMSI64((char*)aia->imsi, &imsi64);
-
-  OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   if (ue_context) {
     amf_ctxt_p = &ue_context->amf_context;
@@ -885,7 +881,16 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   supi_imsi.plmn.mnc_digit3 =
       ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3;
 
-  memcpy(&supi_imsi.msin, aia->imsi, MSIN_MAX_LENGTH);
+  supi_imsi.msin[0] =
+      (uint8_t)(((aia->msin[0] - '0') << 4) | (aia->msin[1] - '0'));
+  supi_imsi.msin[1] =
+      (uint8_t)(((aia->msin[2] - '0') << 4) | (aia->msin[3] - '0'));
+  supi_imsi.msin[2] =
+      (uint8_t)(((aia->msin[4] - '0') << 4) | (aia->msin[5] - '0'));
+  supi_imsi.msin[3] =
+      (uint8_t)(((aia->msin[6] - '0') << 4) | (aia->msin[7] - '0'));
+  supi_imsi.msin[4] =
+      (uint8_t)(((aia->msin[8] - '0') << 4) | (aia->msin[9] - '0'));
 
   // Copy entire supi_imsi to param->imsi->u.value
   memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
@@ -909,6 +914,8 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
   ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
   ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
 
+  OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi" IMSI_64_FMT "\n", imsi64);
+
   params->decode_status = ue_context->amf_context.decode_status;
   /*
    * Execute the requested new UE registration procedure
@@ -920,9 +927,8 @@ imsi64_t amf_decrypt_imsi_info_answer(itti_amf_decrypted_imsi_info_ans_t* aia) {
                  "processing registration request failed for ue-id "
                  ": " AMF_UE_NGAP_ID_FMT,
                  aia->ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
-  OAILOG_FUNC_RETURN(LOG_AMF_APP, imsi64);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 int amf_handle_s6a_update_location_ans(

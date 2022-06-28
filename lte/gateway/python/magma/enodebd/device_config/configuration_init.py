@@ -13,7 +13,7 @@ limitations under the License.
 
 import json
 from collections import namedtuple
-from typing import Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import get_ip_from_if
@@ -85,7 +85,7 @@ def build_desired_config(
 
     # Attempt to load device configuration from YANG before service mconfig
     enb_config = _get_enb_yang_config(device_config) or \
-                 _get_enb_config(mconfig, device_config)
+        _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(
         device_config, cfg_desired, data_model,
@@ -140,7 +140,7 @@ def _get_enb_yang_config(
     Returns:
         None or a SingleEnodebConfig from YANG with matching serial number
     """
-    enb = []
+    enb: List[Dict[Any, Any]] = []
     mme_list = []
     mme_address = None
     mme_port = None
@@ -428,10 +428,10 @@ def _set_plmnids_tac(
     Input 'plmnids' is comma-separated list of PLMNIDs
     """
     # Convert int PLMNID to string
-    if type(plmnids) == int:
+    if isinstance(plmnids, int):
         plmnid_str = str(plmnids)
     else:
-        config_assert(type(plmnids) == str, 'PLMNID must be string')
+        config_assert(isinstance(plmnids, str), 'PLMNID must be string')
         plmnid_str = plmnids
 
     # Multiple PLMNIDs will be supported using comma-separated list.

@@ -14,7 +14,7 @@ limitations under the License.
 import unittest
 from unittest import mock
 
-from google.protobuf.any_pb2 import Any
+from google.protobuf.any_pb2 import Any  # pylint: disable=no-name-in-module
 from magma.configuration import mconfigs
 from orc8r.protos.mconfig import mconfigs_pb2
 

@@ -121,7 +121,7 @@ bool AMFClientServicerBase::get_decrypt_imsi_info(
     const std::string& ciphertext, const std::string& mac_tag,
     amf_ue_ngap_id_t ue_id) {
   return (AsyncM5GSUCIRegistrationServiceClient::getInstance()
-              .get_decrypt_imsi_info(ue_pubkey_identifier, ue_pubkey,
+              .get_decrypt_msin_info(ue_pubkey_identifier, ue_pubkey,
                                      ciphertext, mac_tag, ue_id));
 }
 

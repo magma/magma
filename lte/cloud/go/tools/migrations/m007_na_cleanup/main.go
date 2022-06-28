@@ -41,7 +41,7 @@ const (
 
 // This migration cleans up cellular gateways on the backend which are
 // "hanging" - i.e. have no associated magmad gateway.
-// See https://github.com/facebookincubator/magma/issues/1071
+// See https://github.com/magma/magma/issues/1071
 func main() {
 	flag.Parse()
 	dbDriver := migrations.GetEnvWithDefault("SQL_DRIVER", "postgres")

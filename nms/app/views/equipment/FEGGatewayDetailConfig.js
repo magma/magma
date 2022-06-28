@@ -19,6 +19,7 @@ import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 import type {
   diameter_client_configs,
   federation_gateway,
+  s8,
   sctp_client_configs,
 } from '../../../generated/MagmaAPIBindings';
 
@@ -93,6 +94,16 @@ export default function FEGGatewayConfig() {
                   <GatewaySctpServerConfig
                     serverConfig={gwInfo?.federation?.csfb?.client || {}}
                     testID={'CSFB'}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <CardTitleRow
+                    label="S8"
+                    filter={() => editFilter(TAB_OPTIONS.S8)}
+                  />
+                  <GatewayS8Config
+                    s8Config={gwInfo?.federation?.s8 || {}}
+                    testID={'S8'}
                   />
                 </Grid>
               </Grid>
@@ -240,6 +251,37 @@ function GatewayDiameterServerConfig({
       {
         category: 'Protocol',
         value: serverConfig?.protocol || '-',
+      },
+    ],
+  ];
+
+  return <DataGrid data={data} testID={testID} />;
+}
+
+/**
+ * Returns useful information about the federation gateway's diameter based
+ * server.
+ * @param {s8} s8Config Configuration object of the diameter based server.
+ * @param {string} testId
+ */
+function GatewayS8Config({s8Config, testID}: {s8Config: s8, testID: string}) {
+  const data: DataRows[] = [
+    [
+      {
+        category: 'Local Address',
+        value: s8Config?.local_address || '-',
+      },
+    ],
+    [
+      {
+        category: 'PGW Address',
+        value: s8Config?.pgw_address || '-',
+      },
+    ],
+    [
+      {
+        category: 'APN Operator Suffix',
+        value: s8Config?.apn_operator_suffix || '-',
       },
     ],
   ];
