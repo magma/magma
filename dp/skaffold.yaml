@@ -42,7 +42,7 @@ build:
     - image: dp-postgres
       context: ../dp/cloud/docker/postgresql
       docker:
-        dockerfile: ../dp/cloud/docker/postgresql/Dockerfile
+        dockerfile: Dockerfile
 
 deploy:
   kubeContext: minikube
@@ -281,6 +281,14 @@ profiles:
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
       - op: remove
         path: /deploy/helm/hooks/before/6
+  - name: metrics
+    patches:
+      - op: add
+        path: /deploy/helm/releases/0/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
   - name: remote-push
     patches:
       - op: remove

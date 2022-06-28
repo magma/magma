@@ -17,7 +17,11 @@
   \company
   \email:
 */
-
+/* TODO(rsarwad): mme_init.hpp is temporary file created to bridge between
+ * main(), which is in oai_mme.c file and cpp version of individual tasks.
+ * On final conversion, initialization shall be declared within task's
+ * header file
+ */
 #pragma once
 
 #include "lte/gateway/c/core/oai/include/mme_config.h"

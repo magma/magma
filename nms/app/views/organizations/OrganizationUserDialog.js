@@ -59,6 +59,7 @@ export default function OrganizationUserDialog(props: DialogProps) {
           data-testid="email"
           placeholder="Email"
           fullWidth={true}
+          disabled={user.id !== undefined}
           value={user.email || ''}
           onChange={({target}) => {
             props.onUserChange({...user, email: target.value});

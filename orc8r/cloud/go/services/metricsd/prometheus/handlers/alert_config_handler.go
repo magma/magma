@@ -23,7 +23,7 @@ import (
 	neturl "net/url"
 
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 

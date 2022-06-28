@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian/access/tests"

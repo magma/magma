@@ -25,18 +25,21 @@ import (
 
 func TestCbsdToBackend(t *testing.T) {
 	cbsd := b.NewMutableCbsdModelPayloadBuilder().Payload
-	data := models.CbsdToBackend(cbsd)
+	data, _ := models.CbsdToBackend(cbsd)
 	assert.Equal(t, data.UserId, cbsd.UserID)
 	assert.Equal(t, data.FccId, cbsd.FccID)
 	assert.Equal(t, data.SerialNumber, cbsd.SerialNumber)
 	assert.Equal(t, data.Capabilities.MaxPower, *cbsd.Capabilities.MaxPower)
 	assert.Equal(t, data.Capabilities.MinPower, *cbsd.Capabilities.MinPower)
 	assert.Equal(t, data.Capabilities.NumberOfAntennas, cbsd.Capabilities.NumberOfAntennas)
+	assert.Equal(t, data.Capabilities.MaxIbwMhz, cbsd.Capabilities.MaxIbwMhz)
 	assert.Equal(t, data.Preferences.BandwidthMhz, cbsd.FrequencyPreferences.BandwidthMhz)
 	assert.Equal(t, data.Preferences.FrequenciesMhz, cbsd.FrequencyPreferences.FrequenciesMhz)
 	assert.Equal(t, data.DesiredState, cbsd.DesiredState)
 	assert.Equal(t, data.SingleStepEnabled, *cbsd.SingleStepEnabled)
 	assert.Equal(t, data.CbsdCategory, cbsd.CbsdCategory)
+	assert.Equal(t, data.CarrierAggregationEnabled, *cbsd.CarrierAggregationEnabled)
+	assert.Equal(t, data.GrantRedundancy, *cbsd.GrantRedundancy)
 }
 
 func TestCbsdFromBackendWithoutGrant(t *testing.T) {
@@ -53,11 +56,14 @@ func TestCbsdFromBackendWithoutGrant(t *testing.T) {
 	assert.Equal(t, *data.Capabilities.MinPower, details.Data.Capabilities.MinPower)
 	assert.Equal(t, *data.Capabilities.MaxPower, details.Data.Capabilities.MaxPower)
 	assert.Equal(t, data.Capabilities.NumberOfAntennas, details.Data.Capabilities.NumberOfAntennas)
+	assert.Equal(t, data.Capabilities.MaxIbwMhz, details.Data.Capabilities.MaxIbwMhz)
 	assert.Equal(t, data.FrequencyPreferences.BandwidthMhz, details.Data.Preferences.BandwidthMhz)
 	assert.Equal(t, data.FrequencyPreferences.FrequenciesMhz, details.Data.Preferences.FrequenciesMhz)
 	assert.Equal(t, data.DesiredState, details.Data.DesiredState)
 	assert.Equal(t, data.SingleStepEnabled, details.Data.SingleStepEnabled)
 	assert.Equal(t, data.CbsdCategory, details.Data.CbsdCategory)
+	assert.Equal(t, data.CarrierAggregationEnabled, details.Data.CarrierAggregationEnabled)
+	assert.Equal(t, data.GrantRedundancy, details.Data.GrantRedundancy)
 }
 
 func TestCbsdFromBackendWithEmptyInstallationParam(t *testing.T) {

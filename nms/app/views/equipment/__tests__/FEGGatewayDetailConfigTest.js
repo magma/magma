@@ -129,6 +129,11 @@ const mockGw0: federation_gateway = {
     health: {},
     hss: {},
     s6a: mockS6a,
+    s8: {
+      apn_operator_suffix: '',
+      local_address: '',
+      pgw_address: '',
+    },
     served_network_ids: [],
     swx: mockSwx,
     csfb: mockCsfb,

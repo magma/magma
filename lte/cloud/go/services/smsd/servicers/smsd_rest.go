@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/thoas/go-funk"
 
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"

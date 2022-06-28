@@ -123,7 +123,17 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
 int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
     ImsiM5GSMobileIdentity* imsi, uint8_t* buffer, uint8_t ielen) {
   int decoded = 0;
+  /* 5GS mobile identity comprises of
+     1  byte  for spare bits, supi format and type of identity
+     3  bytes for mcc and mnc length
+     2  bytes for Routing indicator
+     1  byte  for Protection scheme id
+     1  byte  for Home network id
+     32 bytes for EPHEMERAL PUBLIC KEY LENGTH
+     *  variable bytes for ciphertext
+     8  bytes for MAC TAG LENGTH */
 
+  int cipherTextLen = ielen - 48;
   imsi->spare2 = (*(buffer + decoded) >> 7) & 0x1;
   imsi->supi_format = (*(buffer + decoded) >> 4) & 0x7;
   imsi->spare1 = (*(buffer + decoded) >> 3) & 0x1;
@@ -190,9 +200,8 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
           '\0';
     }
 
-    memcpy(&imsi->ciphertext, buffer + decoded, CIPHERTEXT_LENGTH);
-    decoded += CIPHERTEXT_LENGTH;
-    imsi->ciphertext[CIPHERTEXT_LENGTH] = '\0';
+    imsi->ciphertext = blk2bstr(buffer + decoded, cipherTextLen);
+    decoded += cipherTextLen;
 
     memcpy(&imsi->mac_tag, buffer + decoded, MAC_TAG_LENGTH);
     decoded += MAC_TAG_LENGTH;

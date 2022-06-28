@@ -21,7 +21,9 @@ import grpc
 import snowflake
 from google.protobuf import json_format
 from google.protobuf.json_format import MessageToJson
-from google.protobuf.struct_pb2 import Struct
+from google.protobuf.struct_pb2 import (  # pylint: disable=no-name-in-module
+    Struct,
+)
 from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry

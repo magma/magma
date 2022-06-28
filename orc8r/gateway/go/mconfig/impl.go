@@ -139,6 +139,7 @@ func loadFromFile(path string) error {
 		return err
 	}
 	mc := new(protos.GatewayConfigs)
+
 	err = protos.UnmarshalMconfig(cont, mc)
 	if err != nil {
 		return err

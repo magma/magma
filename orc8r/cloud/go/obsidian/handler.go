@@ -21,7 +21,7 @@ import (
 	"strconv"
 
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/util"

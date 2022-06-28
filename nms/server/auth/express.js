@@ -312,9 +312,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
     async (req: FBCNMSRequest, res) => {
       try {
         const {id} = req.params;
-
-        const where = await injectOrganizationParams(req, {id});
-        const user = await User.findOne({where});
+        const user = await User.findOne({where: {id}});
 
         // Check if user exists
         if (!user) {
@@ -351,8 +349,7 @@ function userMiddleware(options: Options): express.Router<FBCNMSRequest, *> {
       const {id} = req.params;
 
       try {
-        const where = await injectOrganizationParams(req, {id});
-        await User.destroy({where});
+        await User.destroy({where: {id}});
         await logUserChange(req, req.user, 'DELETE', {}, 'SUCCESS');
         res.status(200).send();
       } catch (error) {
