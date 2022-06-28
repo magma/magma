@@ -57,10 +57,29 @@ Runs a UE simulator service and all tests.
 
 Runs an iperf3 server to drive traffic through CWAG.
 
+#### Entire test suite
+
 To run all setup work and the entire CWF integration test suite, run
 
 ```bash
 [HOST] fab integ_test
 ```
+
+Once the above command has been executed, which means that the set-up of the VMs etc. has been
+performed, command-line options can be utilized to rerun the tests without redoing the set-up
+
+```bash
+[HOST] fab integ_test:provision_vm=False,no_build=True
+```
+
+#### Individual tests
+
+The command above can be further modified to run one integration test at a time
+
+```bash
+[HOST] fab integ_test:provision_vm=False,no_build=True,skip_unit_tests=True,test_re=<TEST_TO_RUN>
+```
+
+where `<TEST_TO_RUN>` is to be replaced by the desired test, e.g. `TestGyReAuth`.
 
 See `fab --display integ_test` for more information.
