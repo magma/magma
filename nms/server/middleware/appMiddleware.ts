@@ -20,7 +20,6 @@ import helmet from 'helmet';
 import logging from '../../shared/logging';
 
 import {RequestHandler} from 'express';
-import {config} from 'process';
 
 /**
  * General middleware that every application should use, and it should be the

@@ -42,7 +42,7 @@ import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate} from 'react-router-dom';
 import type {OptionsObject} from 'notistack';
 import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
-import type {UserType} from '../../../shared/sequelize_models/models/user.js';
+import type {UserRawType} from '../../../shared/sequelize_models/models/user';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 export type Organization = OrganizationPlainAttributes;
@@ -168,7 +168,7 @@ function OnboardingDialog(props: {setClosed: () => void}) {
 
 async function getUsers(
   organizations: Array<Organization>,
-  setUsers: (users: Array<UserType>) => void,
+  setUsers: (users: Array<UserRawType>) => void,
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
@@ -176,7 +176,7 @@ async function getUsers(
 ) {
   const requests = organizations.map(async organization => {
     try {
-      const response = await axios.get<Array<UserType>>(
+      const response = await axios.get<Array<UserRawType>>(
         `/host/organization/async/${organization.name}/users`,
       );
       return response.data;
@@ -205,7 +205,7 @@ function Organizations(props: WithAlert) {
   const [currRow, setCurrRow] = useState<OrganizationRowType>(
     {} as OrganizationRowType,
   );
-  const [users, setUsers] = useState<Array<UserType>>([]);
+  const [users, setUsers] = useState<Array<UserRawType>>([]);
   const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
   const [showOrganizationDialog, setShowOrganizationDialog] = useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();

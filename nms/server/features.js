@@ -15,10 +15,12 @@
  */
 
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from './auth/access';
 // $FlowFixMe migrated to typescript
 import type {FeatureID} from '../shared/types/features';
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FeatureFlag} from '../shared/sequelize_models';
 
 export type RequestInfo = {

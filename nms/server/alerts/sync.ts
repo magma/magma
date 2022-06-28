@@ -18,7 +18,6 @@ import getLteAlerts from './lteAlerts';
 
 // $FlowFixMe migrated to typescript
 import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
-import type {NetworkType} from '../../shared/types/network';
 import type {PromAlertConfig} from '../../generated-ts';
 import type {Response} from 'express';
 
@@ -31,7 +30,6 @@ type OutputRequest<T> = {
   isUnauthenticated: () => boolean;
 };
 export type FBCNMSPassportRequest = OutputRequest<any>;
-type Params = {networkID: string};
 type Options = {loginUrl: string};
 export type FBCNMSRequest = FBCNMSPassportRequest & {access: Options};
 

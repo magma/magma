@@ -28,11 +28,11 @@ import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../shared/sequelize_models';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {access} from './access';
-// $FlowFixMe migrated to typescript
 import {
   addQueryParamsToUrl,
   getPropsToUpdate,
   validateAndHashPassword,
+  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from './util';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {injectOrganizationParams} from './organization';
