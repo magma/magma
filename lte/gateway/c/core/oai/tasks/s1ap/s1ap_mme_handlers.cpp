@@ -3699,7 +3699,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 
   if (reset) {
     /* UE state at s1ap task is created on reception of initial ue message
-     * The map, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id

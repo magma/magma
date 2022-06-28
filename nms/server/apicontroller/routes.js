@@ -205,6 +205,15 @@ router.use(
 );
 
 router.use(
+  '/magma/v1/dp/:networkID',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: apiFilter,
+    proxyErrorHandler,
+  }),
+);
+
+router.use(
   '/magma/v1/about/version',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,

@@ -117,13 +117,13 @@ RUN ./run.sh build
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
-FROM ubuntu:focal as gocache
+FROM ${baseImage} as gocache
 COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:focal AS gateway_go
+FROM ${baseImage} AS gateway_go
 ARG MAGMA_BUILD_BRANCH=unknown
 ARG MAGMA_BUILD_TAG=unknown
 ARG MAGMA_BUILD_COMMIT_HASH=unknonw

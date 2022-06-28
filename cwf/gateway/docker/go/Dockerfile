@@ -82,13 +82,18 @@ COPY orc8r/lib/go/protos/go.* $MAGMA_ROOT/orc8r/lib/go/protos/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/cwf/gateway
-RUN go mod download; exit 0
+RUN go mod download
 # Install protoc-gen-go
-RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
+RUN go install github.com/golang/protobuf/protoc-gen-go
 
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
 RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
+
+# -----------------------------------------------------------------------------
+# Builder image with binary
+# -----------------------------------------------------------------------------
+FROM base as builder
 
 # Build the code.
 COPY cwf $MAGMA_ROOT/cwf
@@ -98,10 +103,6 @@ COPY orc8r/lib/go $MAGMA_ROOT/orc8r/lib/go
 COPY orc8r/cloud $MAGMA_ROOT/orc8r/cloud
 COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 
-# -----------------------------------------------------------------------------
-# Builder image with binary
-# -----------------------------------------------------------------------------
-FROM base as builder
 # Enable make gen if proto gen is required
 # RUN make -C $MAGMA_ROOT/cwf/gateway gen
 RUN make -C $MAGMA_ROOT/cwf/gateway build
@@ -109,7 +110,7 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:focal AS cwag_go
+FROM ${baseImage} AS cwag_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools curl arping

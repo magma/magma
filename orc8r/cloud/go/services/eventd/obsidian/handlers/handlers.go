@@ -25,9 +25,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/olivere/elastic/v7"
 
-	"magma/orc8r/cloud/go/obsidian"
 	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
 	logH "magma/orc8r/cloud/go/services/eventd/log/handlers"
+	"magma/orc8r/cloud/go/services/obsidian"
 )
 
 const (
