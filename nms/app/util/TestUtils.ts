@@ -56,17 +56,25 @@ export function mockAPIOnce<
   } as any);
 }
 
+class MockAxiosError extends Error {
+  isAxiosError = true;
+  constructor(public response: unknown) {
+    super();
+  }
+}
+
 export function mockAPIError<
   SERVICE extends typeof MagmaAPI[keyof typeof MagmaAPI],
   API_METHOD extends jest.FunctionPropertyNames<SERVICE>
 >(
   service: SERVICE,
   apiMethod: API_METHOD,
+  errorResponse?: unknown,
 ): jest.SpyInstance<AxiosResponse<{data: Response<SERVICE, API_METHOD>}>> {
-  return (
-    jest
-      .spyOn(service, apiMethod)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      .mockRejectedValue(new Error('error') as any)
+  return jest.spyOn(service, apiMethod).mockRejectedValue(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    errorResponse
+      ? new MockAxiosError({data: errorResponse})
+      : new Error('error'),
   );
 }

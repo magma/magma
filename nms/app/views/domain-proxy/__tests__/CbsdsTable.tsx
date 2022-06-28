@@ -9,11 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-import CbsdContext from '../../../components/context/CbsdContext';
+import CbsdContext, {
+  CbsdContextType,
+} from '../../../components/context/CbsdContext';
 import CbsdsTable from '../CbsdsTable';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -102,7 +101,7 @@ const cbsdState = {
   update: jest.fn(),
   deregister: jest.fn(),
   remove: jest.fn(),
-};
+} as CbsdContextType;
 
 const renderTable = () => {
   return render(
@@ -139,7 +138,7 @@ describe('<CbsdsTable /> with 2 cbsds', () => {
     const row = rows[1];
 
     const menuButton = await within(row).findByRole(
-      (role, element) => element.getAttribute('title') === 'Actions',
+      (role, element) => element?.getAttribute('title') === 'Actions',
     );
 
     fireEvent.click(menuButton);

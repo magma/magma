@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -19,20 +16,19 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AddEditCbsdButton, CbsdAddEditDialog} from '../CbsdEdit';
 
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import {CbsdContextProvider} from '../../../components/lte/LteContext';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, waitFor, within} from '@testing-library/react';
-import type {cbsd, mutable_cbsd} from '../../../../generated/MagmaAPIBindings';
-
-jest.mock('../../../../generated/MagmaAPIBindings.js');
+import {mockAPI, mockAPIError} from '../../../util/TestUtils';
+import type {Cbsd, MutableCbsd} from '../../../../generated-ts';
 
 const mockEnqueueSnackbar = jest.fn();
 jest.mock('../../../hooks/useSnackbar', () => ({
   useEnqueueSnackbar: () => mockEnqueueSnackbar,
 }));
 
-const mockCbsd: cbsd = {
+const mockCbsd: Cbsd = {
   capabilities: {
     max_power: 24,
     min_power: 0,
@@ -62,17 +58,12 @@ const mockCbsd: cbsd = {
 
 const networkId = 'test-network';
 
-const convertCbsdToMutableCbsd = (cbsdToConvert: cbsd): mutable_cbsd => {
-  const payload = {};
-  for (const prop in cbsdToConvert) {
-    if (!['is_active', 'id', 'state', 'cbsd_id'].includes(prop)) {
-      payload[prop] = cbsdToConvert[prop];
-    }
-  }
+const convertCbsdToMutableCbsd = (cbsdToConvert: Cbsd): MutableCbsd => {
+  const {is_active, id, state, cbsd_id, ...payload} = cbsdToConvert;
   return payload;
 };
 
-const renderWithProviders = jsx => {
+const renderWithProviders = (jsx: React.ReactNode) => {
   return render(
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
@@ -86,7 +77,7 @@ const renderWithProviders = jsx => {
 
 describe('<AddEditCbsdButton />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getDpByNetworkIdCbsds.mockResolvedValue({
+    mockAPI(MagmaAPI.cbsds, 'dpNetworkIdCbsdsGet', {
       cbsds: [mockCbsd],
       total_count: 1,
     });
@@ -107,10 +98,12 @@ describe('<AddEditCbsdButton />', () => {
 
 describe('<CbsdAddEditDialog />', () => {
   beforeEach(() => {
-    MagmaAPIBindings.getDpByNetworkIdCbsds.mockResolvedValue({
+    mockAPI(MagmaAPI.cbsds, 'dpNetworkIdCbsdsGet', {
       cbsds: [mockCbsd],
       total_count: 1,
     });
+    mockAPI(MagmaAPI.cbsds, 'dpNetworkIdCbsdsCbsdIdPut');
+    mockAPI(MagmaAPI.cbsds, 'dpNetworkIdCbsdsPost');
   });
 
   it('Shows "Add New CBSD" text when rendered without cbsd', async () => {
@@ -154,9 +147,7 @@ describe('<CbsdAddEditDialog />', () => {
     });
 
     await waitFor(() =>
-      expect(
-        MagmaAPIBindings.putDpByNetworkIdCbsdsByCbsdId,
-      ).toHaveBeenCalledWith({
+      expect(MagmaAPI.cbsds.dpNetworkIdCbsdsCbsdIdPut).toHaveBeenCalledWith({
         cbsd: expectedCbsdPayload,
         networkId,
         cbsdId: mockCbsd.id,
@@ -184,9 +175,7 @@ describe('<CbsdAddEditDialog />', () => {
       message: 'validation failure list',
     };
 
-    MagmaAPIBindings.putDpByNetworkIdCbsdsByCbsdId.mockImplementation(() => {
-      return Promise.reject(response);
-    });
+    mockAPIError(MagmaAPI.cbsds, 'dpNetworkIdCbsdsCbsdIdPut', response);
 
     const button = await findByTestId('save-cbsd-button');
 
@@ -205,12 +194,12 @@ describe('<CbsdAddEditDialog />', () => {
       <CbsdAddEditDialog open={true} onClose={() => {}} />,
     );
 
-    const fillInput = (testId, value) => {
+    const fillInput = (testId: string, value: unknown) => {
       fireEvent.change(getByTestId(testId), {target: {value}});
     };
 
     // See https://stackoverflow.com/a/61491607
-    const fillMuiSelect = (testId, optionText) => {
+    const fillMuiSelect = (testId: string, optionText: string | number) => {
       const select = getByTestId(testId);
       fireEvent.mouseDown(within(select).getByRole('button'));
       const listbox = within(getByRole('listbox'));
@@ -227,7 +216,7 @@ describe('<CbsdAddEditDialog />', () => {
       'number-of-antennas-input',
       mockCbsd.capabilities.number_of_antennas,
     );
-    fillInput('antenna-gain-input', mockCbsd.installation_param.antenna_gain);
+    fillInput('antenna-gain-input', mockCbsd.installation_param.antenna_gain!);
     fillMuiSelect('desired-state-input', mockCbsd.desired_state);
     fillMuiSelect('cbsd-category-input', mockCbsd.cbsd_category);
     fillInput('single-step-enabled-input', mockCbsd.single_step_enabled);
@@ -253,7 +242,7 @@ describe('<CbsdAddEditDialog />', () => {
     const expectedCbsdPayload = convertCbsdToMutableCbsd(mockCbsd);
 
     await waitFor(() =>
-      expect(MagmaAPIBindings.postDpByNetworkIdCbsds).toHaveBeenCalledWith({
+      expect(MagmaAPI.cbsds.dpNetworkIdCbsdsPost).toHaveBeenCalledWith({
         cbsd: expectedCbsdPayload,
         networkId,
       }),

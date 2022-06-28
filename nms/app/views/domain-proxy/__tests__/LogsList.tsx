@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import LogsList from '../LogsList';
@@ -22,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
+import MagmaAPI from '../../../../api/MagmaAPI';
 import moment from 'moment';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
@@ -32,17 +29,16 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import {mockAPI} from '../../../util/TestUtils';
 
-jest.mock('../../../../generated/MagmaAPIBindings.js');
-
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(require('../../../../app/hooks/useSnackbar'), 'useEnqueueSnackbar')
-  .mockReturnValue(enqueueSnackbarMock);
+const mockEnqueueSnackbar = jest.fn();
+jest.mock('../../../hooks/useSnackbar', () => ({
+  useEnqueueSnackbar: () => mockEnqueueSnackbar,
+}));
 
 const networkId = 'test-network';
 
-const renderWithProviders = jsx => {
+const renderWithProviders = (jsx: React.ReactNode) => {
   return render(
     <MemoryRouter
       initialEntries={[`/nms/${networkId}/metrics/domain-proxy-logs`]}
@@ -66,20 +62,21 @@ const renderWithProviders = jsx => {
 
 describe('<LogsList />', () => {
   describe('Filtering', () => {
-    const expectApiCallParam = async (param, value) => {
+    let getLogsMock: jest.SpyInstance;
+
+    const expectApiCallParam = async (param: string, value: unknown) => {
       await waitFor(() =>
-        expect(
-          MagmaAPIBindings.getDpByNetworkIdLogs.mock.calls[0][0][param],
-        ).toBe(value),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(getLogsMock.mock.calls[0][0][param]).toBe(value),
       );
     };
 
-    const fillInput = (testId, value) => {
+    const fillInput = (testId: string, value: unknown) => {
       fireEvent.change(screen.getByTestId(testId), {target: {value}});
     };
 
     // See https://stackoverflow.com/a/61491607
-    const fillMuiSelect = (testId, optionText) => {
+    const fillMuiSelect = (testId: string, optionText: string) => {
       const select = screen.getByTestId(testId);
       fireEvent.mouseDown(within(select).getByRole('button'));
       const listbox = within(screen.getByRole('listbox'));
@@ -102,12 +99,13 @@ describe('<LogsList />', () => {
     };
 
     beforeEach(async () => {
+      getLogsMock = mockAPI(MagmaAPI.logs, 'dpNetworkIdLogsGet');
       renderWithProviders(<LogsList />);
 
       // Wait for initial request after mount and clear it
       // So we can test calls caused by clicking the search button
       await expectApiCallParam('offset', 0);
-      MagmaAPIBindings.getDpByNetworkIdLogs.mockClear();
+      getLogsMock.mockClear();
     });
 
     it('Sends serial number', async () => {
