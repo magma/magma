@@ -14,14 +14,20 @@ RUN rm -Rf $MAGMA_ROOT $C_BUILD && mkdir -p $C_BUILD
 # Copy Code to Test
 COPY ./ $MAGMA_ROOT
 
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -sf /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
 # Build MME executables
-RUN cd $MAGMA_ROOT/lte/gateway && \
+RUN cd $MAGMA_ROOT && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/sctpd/src/sctpd
+    bazel build //lte/gateway/c/core:mme_oai && \
+    bazel build //lte/gateway/c/sctpd/src:sctpd && \
+    cp $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/mme_oai $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/mme_oai && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd
 
 # Prepare config file
 RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
@@ -65,12 +71,12 @@ ENV TZ=Europe/Paris
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-      psmisc \
-      openssl \
-      net-tools \
-      tshark \
-      tzdata \
-  && rm -rf /var/lib/apt/lists/*
+    psmisc \
+    openssl \
+    net-tools \
+    tshark \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
 COPY --from=magma-mme-builder \
@@ -87,6 +93,23 @@ COPY --from=magma-mme-builder \
     /usr/lib/x86_64-linux-gnu/libsodium.so.23.1.0 \
     /usr/lib/x86_64-linux-gnu/libpgm-5.2.so.0.0.122 \
     /usr/lib/x86_64-linux-gnu/libnorm.so.1.0.0 \
+    /usr/lib/x86_64-linux-gnu/libcurl.so \
+    /usr/lib/x86_64-linux-gnu/librtmp.so.1 \
+    /usr/lib/x86_64-linux-gnu/libpsl.so.5 \
+    /usr/lib/x86_64-linux-gnu/libldap_r-2.4.so.2 \
+    /usr/lib/x86_64-linux-gnu/liblber-2.4.so.2 \
+    /usr/lib/x86_64-linux-gnu/libsasl2.so.2 \
+    /usr/lib/x86_64-linux-gnu/libgssapi.so.3 \
+    /usr/lib/x86_64-linux-gnu/libheimntlm.so.0 \
+    /usr/lib/x86_64-linux-gnu/libkrb5.so.26 \
+    /usr/lib/x86_64-linux-gnu/libasn1.so.8 \
+    /usr/lib/x86_64-linux-gnu/libhcrypto.so.4 \
+    /usr/lib/x86_64-linux-gnu/libroken.so.18 \
+    /usr/lib/x86_64-linux-gnu/libwind.so.0 \
+    /usr/lib/x86_64-linux-gnu/libheimbase.so.1 \
+    /usr/lib/x86_64-linux-gnu/libhx509.so.5 \
+    /usr/lib/x86_64-linux-gnu/libsqlite3.so.0 \
+    /usr/lib/x86_64-linux-gnu/libheimbase.so.1 \
     /lib/x86_64-linux-gnu/libidn.so.11 \
     /usr/lib/x86_64-linux-gnu/
 
@@ -115,8 +138,8 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder \
-    $C_BUILD/core/oai/oai_mme/oai_mme \
-    $C_BUILD/sctpd/src/sctpd \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd \
     ./
 
 # For the moment, we are not putting any etc/*.conf files
@@ -142,10 +165,10 @@ COPY --from=magma-mme-builder \
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
-           -e "s@\$SUDO@@" \
-           -e "s@echo_error@echo@" \
-           -e "s@echo_success@echo@" \
-           -e "s@echo_warning@echo@" check_mme_s6a_certificate
+    -e "s@\$SUDO@@" \
+    -e "s@echo_error@echo@" \
+    -e "s@echo_success@echo@" \
+    -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 
