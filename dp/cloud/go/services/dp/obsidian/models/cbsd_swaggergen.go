@@ -24,6 +24,10 @@ type Cbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
+	// this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+	// Required: true
+	CarrierAggregationEnabled bool `json:"carrier_aggregation_enabled"`
+
 	// is the radio type A (only) or B (also applies to A/B type radios)
 	// Required: true
 	// Enum: [a b]
@@ -50,6 +54,10 @@ type Cbsd struct {
 
 	// grant
 	Grant *Grant `json:"grant,omitempty"`
+
+	// tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+	// Required: true
+	GrantRedundancy bool `json:"grant_redundancy"`
 
 	// database id of cbsd
 	// Required: true
@@ -93,6 +101,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateCarrierAggregationEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
@@ -110,6 +122,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateGrant(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGrantRedundancy(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -155,6 +171,15 @@ func (m *Cbsd) validateCapabilities(formats strfmt.Registry) error {
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateCarrierAggregationEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("carrier_aggregation_enabled", "body", bool(m.CarrierAggregationEnabled)); err != nil {
 		return err
 	}
 
@@ -288,6 +313,15 @@ func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateGrantRedundancy(formats strfmt.Registry) error {
+
+	if err := validate.Required("grant_redundancy", "body", bool(m.GrantRedundancy)); err != nil {
+		return err
 	}
 
 	return nil

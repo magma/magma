@@ -27,7 +27,7 @@ PROTO_INCLUDES := /usr/include
 endif
 export PROTO_INCLUDES
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/services/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_V1_ROOT)/swagger.yml
@@ -182,8 +182,7 @@ nms_prereqs_ubuntu: nms_node_ubuntu
 	apt-get install -y nodejs
 	# get codegen dependency
 	npm install --global yarn
-	yarn add swagger-js-codegen
-	yarn add @openapitools/openapi-generator-cli
+	yarn
 
 nms_node_ubuntu:
 	# install pre-reqs
@@ -203,8 +202,7 @@ nms_prereqs_osx:
 	node --version || brew install node
 	npm --version || brew install npm
 	yarn --version || npm install --global yarn
-	yarn add swagger-js-codegen
-	yarn add @openapitools/openapi-generator-cli
+	yarn
 
 nms_gen:
 	# generate Swagger API bindings for NMS

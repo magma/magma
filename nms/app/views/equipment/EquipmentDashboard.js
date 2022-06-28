@@ -17,6 +17,7 @@
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import AddEditGatewayPoolButton from './GatewayPoolEdit';
+import Cbsds from '../domain-proxy/Cbsds';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';
@@ -25,10 +26,12 @@ import GatewayDetail from './GatewayDetailMain';
 import GatewayPools from './EquipmentGatewayPools';
 import Grid from '@material-ui/core/Grid';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import RadioIcon from '@material-ui/icons/Radio';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
+import {AddEditCbsdButton} from '../domain-proxy/CbsdEdit';
 
 import {Navigate, Route, Routes} from 'react-router-dom';
 
@@ -81,6 +84,12 @@ function EquipmentDashboardInternal() {
             filters: <AddEditEnodeButton title="Add New" isLink={false} />,
           },
           {
+            label: 'CBSDs',
+            to: 'cbsds',
+            icon: RadioIcon,
+            filters: <AddEditCbsdButton title="Add New" isLink={false} />,
+          },
+          {
             label: 'Gateway Pools',
             to: 'pools',
             icon: GroupWorkIcon,
@@ -93,6 +102,7 @@ function EquipmentDashboardInternal() {
       <Routes>
         <Route path="/gateway" element={<Gateway />} />
         <Route path="/enodeb" element={<Enodeb />} />
+        <Route path="/cbsds" element={<Cbsds />} />
         <Route path="/pools/*" element={<GatewayPools />} />
         <Route index element={<Navigate to="gateway" replace />} />
       </Routes>

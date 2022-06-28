@@ -19,7 +19,11 @@ from dp.protos.cbsd_pb2 import (
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
-from google.protobuf.wrappers_pb2 import BoolValue, DoubleValue, StringValue
+from google.protobuf.wrappers_pb2 import (  # pylint: disable=no-name-in-module
+    BoolValue,
+    DoubleValue,
+    StringValue,
+)
 from magma.common.service_registry import ServiceRegistry
 from magma.enodebd.logger import EnodebdLogger
 
@@ -80,12 +84,13 @@ def build_enodebd_update_cbsd_request(
 
     indoor_deployment_bool = _indoortobool(indoor_deployment)
     antenna_gain_float = float(antenna_gain)
+    antenna_height_float = float(antenna_height)
 
     installation_param = InstallationParam(
         latitude_deg=DoubleValue(value=latitude_deg_float),
         longitude_deg=DoubleValue(value=longitude_deg_float),
         indoor_deployment=BoolValue(value=indoor_deployment_bool),
-        height_m=DoubleValue(value=float(antenna_height)) if antenna_height else None,
+        height_m=DoubleValue(value=antenna_height_float),
         height_type=StringValue(value=antenna_height_type),
         antenna_gain=DoubleValue(value=antenna_gain_float),
     )

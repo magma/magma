@@ -64,7 +64,7 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
             self,
             service: MagmaService,
     ) -> None:
-        self._state_map = {}
+        self._state_map: Dict[str, Any] = {}
         super().__init__(service=service, use_param_key=False)
 
     def reboot_asap(self) -> None:
@@ -139,7 +139,7 @@ def _get_object_params_to_get(
     if device_cfg.has_object(ParameterName.PLMN_N % 1):
         return []
 
-    names = []
+    names: List[ParameterName] = []
     num_plmns = data_model.get_num_plmns()
     obj_to_params = data_model.get_numbered_param_names()
     for i in range(1, num_plmns + 1):

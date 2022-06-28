@@ -13,6 +13,7 @@ limitations under the License.
 import logging
 import os
 from copy import deepcopy
+from typing import Any, Dict
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
@@ -54,10 +55,12 @@ from magma.enodebd.tests.test_utils.tr069_msg_builder import Tr069MessageBuilder
 from magma.enodebd.tr069 import models
 from parameterized import parameterized
 
-SRC_CONFIG_DIR = os.path.join(
-    os.environ.get('MAGMA_ROOT'),
-    'lte/gateway/configs',
-)
+magma_root = os.environ.get('MAGMA_ROOT')
+if magma_root:
+    SRC_CONFIG_DIR = os.path.join(
+        magma_root,
+        'lte/gateway/configs',
+    )
 
 MOCK_CBSD_STATE = CBSDStateResult(
     radio_enabled=True,
@@ -1072,7 +1075,7 @@ class FreedomFiOneFirmwareUpgradeDownloadTests(EnodebHandlerTestCase):
     }
 
     # configs which should not lead to firmware upgrade download flow
-    config_empty = {'firmwares': {}, 'enbs': {}, 'models': {}}
+    config_empty: Dict[str, Dict[Any, Any]] = {'firmwares': {}, 'enbs': {}, 'models': {}}
 
     config_just_firmwares = deepcopy(config_empty)
     config_just_firmwares['firmwares'] = _firmwares

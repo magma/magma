@@ -17,7 +17,7 @@ import (
 	"github.com/magma/milenage"
 	"golang.org/x/net/context"
 
-	"magma/lte/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 )
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_NilRequest() {
@@ -26,7 +26,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_NilRequest() {
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_EmptyUserName() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 1,
 	}
@@ -36,7 +36,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_EmptyUserName() {
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_EmptyPlmm() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub1",
 		NumRequestedEutranVectors: 1,
 	}
@@ -47,7 +47,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_EmptyPlmm() {
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_0RequestedVectors() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:    "sub1",
 		VisitedPlmn: []byte{0, 0, 0},
 	}
@@ -57,7 +57,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_0RequestedVectors()
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownGateway() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub1",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 1,
@@ -68,7 +68,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownGateway() {
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownSubscriber() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub_unknown",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 1,
@@ -78,11 +78,11 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownSubscriber()
 	suite.EqualError(
 		err,
 		"rpc error: code = NotFound desc = error loading subscriber entity for NID: test, SID: sub_unknown: Not found")
-	suite.checkAIA(aia, protos.ErrorCode_USER_UNKNOWN, 0)
+	suite.checkAIA(aia, fegprotos.ErrorCode_USER_UNKNOWN, 0)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_MissingAuthKey() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "missing_auth_key",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 1,
@@ -92,11 +92,11 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_MissingAuthKey() {
 	suite.EqualError(
 		err,
 		"rpc error: code = Unauthenticated desc = Authentication rejected: incorrect key size. Expected 16 bytes, but got 0 bytes")
-	suite.checkAIA(aia, protos.ErrorCode_AUTHORIZATION_REJECTED, 0)
+	suite.checkAIA(aia, fegprotos.ErrorCode_AUTHORIZATION_REJECTED, 0)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_MissingSubscriberState() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "empty_sub",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 1,
@@ -105,11 +105,11 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_MissingSubscriberSt
 	aia, err := suite.AuthenticationInformation(air)
 	suite.EqualError(
 		err, "rpc error: code = Unauthenticated desc = Authentication rejected: Subscriber data missing LTE subscription")
-	suite.checkAIA(aia, protos.ErrorCode_AUTHORIZATION_REJECTED, 0)
+	suite.checkAIA(aia, fegprotos.ErrorCode_AUTHORIZATION_REJECTED, 0)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_Success() {
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub1",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 3,
@@ -117,13 +117,13 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_Success() {
 
 	aia, err := suite.AuthenticationInformation(air)
 	suite.NoError(err)
-	suite.checkAIA(aia, protos.ErrorCode_SUCCESS, 3)
+	suite.checkAIA(aia, fegprotos.ErrorCode_SUCCESS, 3)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_InvalidResyncInfo() {
 	resyncInfo := make([]byte, 10)
 	resyncInfo[5] = 1
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub1",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 3,
@@ -134,14 +134,14 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_InvalidResyncInfo()
 	suite.EqualError(
 		err,
 		"rpc error: code = Unauthenticated desc = Authentication rejected: resync info incorrect length. expected 30 bytes, but got 10 bytes")
-	suite.checkAIA(aia, protos.ErrorCode_AUTHORIZATION_REJECTED, 0)
+	suite.checkAIA(aia, fegprotos.ErrorCode_AUTHORIZATION_REJECTED, 0)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_InvalidResyncMacS() {
 	resyncInfo := make([]byte, 30)
 	macS := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	copy(resyncInfo[22:], macS)
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub1",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 3,
@@ -152,14 +152,14 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_InvalidResyncMacS()
 	suite.EqualError(
 		err,
 		"rpc error: code = Unauthenticated desc = Authentication rejected: Invalid resync authentication code")
-	suite.checkAIA(aia, protos.ErrorCode_AUTHORIZATION_REJECTED, 0)
+	suite.checkAIA(aia, fegprotos.ErrorCode_AUTHORIZATION_REJECTED, 0)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_ResyncSuccess() {
 	resyncInfo := make([]byte, 30)
 	macS := []byte{47, 223, 5, 242, 77, 209, 76, 218}
 	copy(resyncInfo[22:], macS)
-	air := &protos.AuthenticationInformationRequest{
+	air := &fegprotos.AuthenticationInformationRequest{
 		UserName:                  "sub1",
 		VisitedPlmn:               []byte{0, 0, 0},
 		NumRequestedEutranVectors: 3,
@@ -168,11 +168,11 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_ResyncSuccess() {
 
 	aia, err := suite.AuthenticationInformation(air)
 	suite.NoError(err)
-	suite.checkAIA(aia, protos.ErrorCode_SUCCESS, 3)
+	suite.checkAIA(aia, fegprotos.ErrorCode_SUCCESS, 3)
 }
 
 func (suite *EpsAuthTestSuite) checkAIA(
-	aia *protos.AuthenticationInformationAnswer, errorCode protos.ErrorCode, numVectors int) {
+	aia *fegprotos.AuthenticationInformationAnswer, errorCode fegprotos.ErrorCode, numVectors int) {
 
 	suite.Equal(errorCode, aia.ErrorCode)
 	suite.Equal(numVectors, len(aia.EutranVectors))

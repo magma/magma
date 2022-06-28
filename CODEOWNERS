@@ -78,7 +78,7 @@
 **/go.sum @ghost
 **/*.pb.go @ghost
 **/*_swaggergen.go @ghost
-/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @ghost
+/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml @ghost
 /orc8r/cloud/api/ @ghost
 /nms/generated/MagmaAPIBindings.js @ghost
 /nms/generated-ts/ @ghost
