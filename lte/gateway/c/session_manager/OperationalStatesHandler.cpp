@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <regex>
 
 #include "lte/gateway/c/session_manager/EnumToString.hpp"
 #include "lte/gateway/c/session_manager/SessionState.hpp"
@@ -111,7 +112,10 @@ std::string get_gateway_hw_id() {
   std::ifstream input_file(SNOWFLAKE_PATH, std::ifstream::in);
   std::stringstream buffer;
   buffer << input_file.rdbuf();
-  return buffer.str();
+  std::string hw_id = buffer.str();
+  hw_id = std::regex_replace(hw_id, std::regex("\\s+$"),
+                             std::string(""));  // trim right
+  return hw_id;
 }
 
 }  // namespace magma
