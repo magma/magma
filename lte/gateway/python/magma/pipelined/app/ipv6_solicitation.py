@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging
 from collections import namedtuple
 
 from magma.common.misc_utils import get_link_local_ipv6_from_if
@@ -91,14 +90,11 @@ class IPV6SolicitationController(MagmaController):
             ipv6_src = get_link_local_ipv6_from_if(s1_interface)
             if ipv6_src is None:
                 ipv6_src = self.DEFAULT_LINK_LOCAL_ADDR
-        ng_service = config_dict.get('enable5g_features', None)
-        logging.info("enable5g")
-        logging.info(ng_service)
         return self.IPv6RouterConfig(
             ipv6_src=ipv6_src,
             ll_addr=config_dict['virtual_mac'],
             prefix_len=self.DEFAULT_PREFIX_LEN,
-            ng_service_enabled=ng_service,
+            ng_service_enabled=config_dict.get('enable5g_features', None),
             classifier_controller_id=config_dict['classifier_controller_id'],
         )
 
@@ -134,29 +130,22 @@ class IPV6SolicitationController(MagmaController):
             direction=Direction.OUT,
         )
 
-        if self.config.ng_service_enabled == True:
+        if self.config.ng_service_enabled:
             action = [
                 parser.NXActionController(
                     0, self.config.classifier_controller_id,
                     ofproto.OFPR_ACTION_SET,
                 ),
             ]
+        else:
+            action = []
         flows.add_output_flow(
             datapath, self.tbl_num,
-            match=match_rs, actions=[],
+            match=match_rs, actions=action,
             priority=flows.DEFAULT_PRIORITY,
             output_port=ofproto.OFPP_CONTROLLER,
             max_len=ofproto.OFPCML_NO_BUFFER,
         )
-
-        if self.config.ng_service_enabled == True:
-            flows.add_output_flow(
-                datapath, self.tbl_num,
-                match=match_rs, actions=action,
-                priority=flows.DEFAULT_PRIORITY,
-                output_port=ofproto.OFPP_CONTROLLER,
-                max_len=ofproto.OFPCML_NO_BUFFER,
-            )
 
         match_ns_ue = MagmaMatch(
             eth_type=ether_types.ETH_TYPE_IPV6,
@@ -168,19 +157,11 @@ class IPV6SolicitationController(MagmaController):
 
         flows.add_output_flow(
             datapath, self.tbl_num,
-            match=match_ns_ue, actions=[],
+            match=match_ns_ue, actions=action,
             priority=flows.DEFAULT_PRIORITY,
             output_port=ofproto.OFPP_CONTROLLER,
             max_len=ofproto.OFPCML_NO_BUFFER,
         )
-        if self.config.ng_service_enabled == True:
-            flows.add_output_flow(
-                datapath, self.tbl_num,
-                match=match_ns_ue, actions=action,
-                priority=flows.DEFAULT_PRIORITY,
-                output_port=ofproto.OFPP_CONTROLLER,
-                max_len=ofproto.OFPCML_NO_BUFFER,
-            )
 
         match_ns_sgi = MagmaMatch(
             eth_type=ether_types.ETH_TYPE_IPV6,
@@ -192,19 +173,11 @@ class IPV6SolicitationController(MagmaController):
 
         flows.add_output_flow(
             datapath, self.tbl_num,
-            match=match_ns_sgi, actions=[],
+            match=match_ns_sgi, actions=action,
             priority=flows.DEFAULT_PRIORITY,
             output_port=ofproto.OFPP_CONTROLLER,
             max_len=ofproto.OFPCML_NO_BUFFER,
         )
-        if self.config.ng_service_enabled == True:
-            flows.add_output_flow(
-                datapath, self.tbl_num,
-                match=match_ns_sgi, actions=action,
-                priority=flows.DEFAULT_PRIORITY,
-                output_port=ofproto.OFPP_CONTROLLER,
-                max_len=ofproto.OFPCML_NO_BUFFER,
-            )
 
     def _send_router_advertisement(
         self, ipv6_src: str, tun_id: int,
