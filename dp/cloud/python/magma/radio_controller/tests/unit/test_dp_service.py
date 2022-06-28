@@ -220,7 +220,7 @@ class DPTestCase(LocalDBTestCase):
         )
 
     def _get_cbsd_with_serial_count(self, serial_number: str) -> int:
-        return self.session.query(DBCbsd).\
+        return self.session.query(DBCbsd). \
             filter(DBCbsd.cbsd_serial_number == serial_number).count()
 
     def _get_active_cbsd_count(self, request: CBSDRequest) -> int:
@@ -244,6 +244,7 @@ class DPTestCase(LocalDBTestCase):
     def _build_expected_result(grant: DBGrant) -> CBSDStateResult:
         return CBSDStateResult(
             radio_enabled=True,
+            carrier_aggregation_enabled=False,
             channel=LteChannel(
                 low_frequency_hz=grant.low_frequency,
                 high_frequency_hz=grant.high_frequency,
