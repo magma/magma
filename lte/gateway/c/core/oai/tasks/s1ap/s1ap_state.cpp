@@ -157,14 +157,14 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
 
 void get_mme_ue_ids_no_imsi(uint32_t keyP, uint64_t const dataP,
                             uint32_t* num_ues_checked,
-                            std::vector<uint32_t>& mme_id_list,
+                            std::vector<uint32_t>* mme_id_list,
                             hash_table_ts_t* s1ap_ue_state) {
   ue_description_t* ue_ref_p = NULL;
 
   // Check if a UE reference exists for this comp_s1ap_id
   hashtable_ts_get(s1ap_ue_state, (const hash_key_t)dataP, (void**)&ue_ref_p);
   if (!ue_ref_p) {
-    mme_id_list.push_back(keyP);
+    mme_id_list->push_back(keyP);
     ++(*num_ues_checked);
     OAILOG_DEBUG(
         LOG_S1AP,
@@ -203,7 +203,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
          ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
       get_mme_ue_ids_no_imsi(ue_itr->first, ue_itr->second, &num_ues_checked,
-                             mme_ue_id_no_imsi_list, s1ap_ue_state);
+                             &mme_ue_id_no_imsi_list, s1ap_ue_state);
     }
     for (uint32_t i = 0; i < num_ues_checked; i++) {
       enb_association_p->ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);

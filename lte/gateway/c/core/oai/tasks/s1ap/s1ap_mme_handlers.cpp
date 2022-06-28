@@ -406,7 +406,8 @@ void clean_stale_enb_state(s1ap_state_t* state,
   enb_description_t* stale_enb_association = NULL;
 
   state->enbs.map_apply_callback_on_all_elements(
-      get_stale_enb_connection_with_enb_id, (void*)new_enb_association,
+      get_stale_enb_connection_with_enb_id,
+      reinterpret_cast<void*>(new_enb_association),
       (void**)&stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -4567,7 +4568,7 @@ status_code_e s1ap_handle_paging_request(
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
        itr++) {
-    enb_ref_p = (enb_description_t*)itr->second;
+    enb_ref_p = reinterpret_cast<enb_description_t*>(itr->second);
     if (!enb_ref_p) {
       continue;
     }

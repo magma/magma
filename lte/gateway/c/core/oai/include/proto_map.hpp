@@ -181,7 +181,7 @@ struct proto_map_s {
     if (free_callback_func) {
       valueT value;
       if (get(key, &value) == PROTO_MAP_OK) {
-        free_callback_func((void**)&value);
+        free_callback_func( reinterpret_cast<void**>(&value));
       } else {
         return PROTO_MAP_KEY_NOT_EXISTS;
       }
@@ -253,7 +253,7 @@ struct proto_map_s {
       for (auto itr = map->begin(); itr != map->end(); itr++) {
         if (free_callback_func) {
           valueT value = itr->second;
-          free_callback_func((void**)&value);
+          free_callback_func(reinterpret_cast<void**>(&value));
         }
       }
     }

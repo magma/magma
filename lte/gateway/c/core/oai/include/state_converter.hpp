@@ -77,7 +77,7 @@ class StateConverter {
    * @param conversion_callable conversion function for each entry of hashtable
    * @param log_task_level log level for task (LOG_MME_APP, LOG_SPGW_APP)
    */
-  // TODO (rsarwad): Shall be removed once all modules are converted to cpp and
+  // TODO(rsarwad): Shall be removed once all modules are converted to cpp and
   // use protobuf map instead of hash table
   template <typename NodeType, typename ProtoMessage>
   static void hashtable_ts_to_proto(
@@ -146,7 +146,7 @@ class StateConverter {
       NodeType* node = itr->second;
       if (node) {
         ProtoMessage proto;
-        conversion_callable((NodeType*)node, &proto);
+        conversion_callable(reinterpret_cast<NodeType*>(node), &proto);
         (*proto_map)[itr->first] = proto;
       } else {
         OAILOG_ERROR(log_task_level, "Key %lu not found on %s hashtable",
