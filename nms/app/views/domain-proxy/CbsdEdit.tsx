@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';
@@ -31,15 +28,17 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React, {useContext, useEffect, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 import CbsdContext from '../../components/context/CbsdContext';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
+import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
-import type {cbsd, mutable_cbsd} from '../../../generated/MagmaAPIBindings';
+import {getErrorMessage, isAxiosErrorResponse} from '../../util/ErrorUtils';
+import type {Cbsd, MutableCbsd} from '../../../generated-ts';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -71,7 +70,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type ButtonProps = {
-  title: string,
+  title: string;
 };
 
 export function AddEditCbsdButton(props: ButtonProps) {
@@ -92,9 +91,9 @@ export function AddEditCbsdButton(props: ButtonProps) {
 }
 
 type DialogProps = {
-  open: boolean,
-  onClose: () => void,
-  cbsd?: cbsd,
+  open: boolean;
+  onClose: () => void;
+  cbsd?: Cbsd;
 };
 
 // 0 = unregistered; 1 = registered
@@ -106,21 +105,21 @@ type BandwidthEnum = 5 | 10 | 15 | 20;
 type CbsdCategoryEnum = 0 | 1;
 
 type CbsdFormData = {
-  serialNumber: string,
-  fccId: string,
-  userId: string,
-  minPower: number,
-  maxPower: number,
-  numberOfAntennas: number,
-  antennaGain: number,
-  desiredState: DesiredStateEnum,
-  bandwidthMhz: BandwidthEnum,
-  frequenciesMhz: number[],
-  cbsdCategory: CbsdCategoryEnum,
-  singleStepEnabled: boolean,
+  serialNumber: string;
+  fccId: string;
+  userId: string;
+  minPower: number | string;
+  maxPower: number | string;
+  numberOfAntennas: number | string;
+  antennaGain: number | string;
+  desiredState: DesiredStateEnum;
+  bandwidthMhz: BandwidthEnum;
+  frequenciesMhz: Array<number | string>;
+  cbsdCategory: CbsdCategoryEnum;
+  singleStepEnabled: boolean;
 };
 
-const convertToCbsdFormData = (cbsd?: cbsd): CbsdFormData => {
+const convertToCbsdFormData = (cbsd?: Cbsd): CbsdFormData => {
   return {
     serialNumber: cbsd?.serial_number || '',
     fccId: cbsd?.fcc_id || '',
@@ -130,7 +129,8 @@ const convertToCbsdFormData = (cbsd?: cbsd): CbsdFormData => {
     numberOfAntennas: cbsd?.capabilities?.number_of_antennas || 0,
     antennaGain: cbsd?.installation_param?.antenna_gain || 0,
     desiredState: cbsd?.desired_state === 'registered' ? 1 : 0,
-    bandwidthMhz: cbsd?.frequency_preferences?.bandwidth_mhz || 5,
+    bandwidthMhz:
+      (cbsd?.frequency_preferences?.bandwidth_mhz as BandwidthEnum) || 5,
     frequenciesMhz: cbsd?.frequency_preferences?.frequencies_mhz || [0],
     cbsdCategory: cbsd?.cbsd_category === 'b' ? 1 : 0,
     singleStepEnabled: cbsd?.single_step_enabled || false,
@@ -145,7 +145,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
   const ctx = useContext(CbsdContext);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [formErrors, setFormErrors] = useState<Array<string>>([]);
   const [cbsdFormData, setCbsdFormData] = useState<CbsdFormData>(
     convertToCbsdFormData(),
   );
@@ -163,17 +163,17 @@ export function CbsdAddEditDialog(props: DialogProps) {
     try {
       setIsLoading(true);
 
-      const cbsdData: mutable_cbsd = {
+      const cbsdData: MutableCbsd = {
         capabilities: {
-          min_power: parseInt(cbsdFormData.minPower),
-          max_power: parseInt(cbsdFormData.maxPower),
-          number_of_antennas: parseInt(cbsdFormData.numberOfAntennas),
+          min_power: parseInt(cbsdFormData.minPower as string),
+          max_power: parseInt(cbsdFormData.maxPower as string),
+          number_of_antennas: parseInt(cbsdFormData.numberOfAntennas as string),
           max_ibw_mhz: 150,
         },
         carrier_aggregation_enabled: false,
         grant_redundancy: true,
         installation_param: {
-          antenna_gain: parseInt(cbsdFormData.antennaGain),
+          antenna_gain: parseInt(cbsdFormData.antennaGain as string),
         },
         cbsd_category: cbsdFormData.cbsdCategory === 0 ? 'a' : 'b',
         desired_state:
@@ -181,7 +181,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
         frequency_preferences: {
           bandwidth_mhz: cbsdFormData.bandwidthMhz,
           frequencies_mhz: cbsdFormData.frequenciesMhz.map(value =>
-            parseInt(value),
+            parseInt(value as string),
           ),
         },
         fcc_id: cbsdFormData.fccId,
@@ -200,11 +200,20 @@ export function CbsdAddEditDialog(props: DialogProps) {
         variant: 'success',
       });
     } catch (e) {
-      if (e.response?.data?.errors?.length) {
-        const getErrorMessages = (errors): string[] => {
+      type NestedError = {message: string} | {errors: Array<NestedError>};
+
+      if (
+        isAxiosErrorResponse<{errors: Array<NestedError>}>(e) &&
+        e.response.data.errors.length
+      ) {
+        const getErrorMessages = (
+          errors: Array<NestedError>,
+        ): Array<string> => {
           return errors
             .map(item => {
-              return item.errors ? getErrorMessages(item.errors) : item.message;
+              return 'errors' in item
+                ? getErrorMessages(item.errors)
+                : item.message;
             })
             .flat();
         };
@@ -212,7 +221,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
         const validationErrors = getErrorMessages(e.response.data.errors);
         setFormErrors(validationErrors);
       } else {
-        setFormErrors([e.response?.data?.message ?? e.message]);
+        setFormErrors([getErrorMessage(e)]);
       }
     } finally {
       setIsLoading(false);
@@ -342,8 +351,9 @@ export function CbsdAddEditDialog(props: DialogProps) {
                 data-testid="desired-state-input"
                 value={cbsdFormData.desiredState}
                 onChange={({target}) => {
-                  // $FlowFixMe: Value will be of type DesiredStateEnum
-                  const desiredState: DesiredStateEnum = parseInt(target.value);
+                  const desiredState = parseInt(
+                    target.value as string,
+                  ) as DesiredStateEnum;
                   setCbsdFormData({
                     ...cbsdFormData,
                     desiredState,
@@ -363,8 +373,9 @@ export function CbsdAddEditDialog(props: DialogProps) {
                 data-testid="cbsd-category-input"
                 value={cbsdFormData.cbsdCategory}
                 onChange={({target}) => {
-                  // $FlowFixMe: Value will be of type CbsdCategoryEnum
-                  const cbsdCategory: CbsdCategoryEnum = parseInt(target.value);
+                  const cbsdCategory = parseInt(
+                    target.value as string,
+                  ) as CbsdCategoryEnum;
                   setCbsdFormData({
                     ...cbsdFormData,
                     cbsdCategory,
@@ -381,9 +392,11 @@ export function CbsdAddEditDialog(props: DialogProps) {
             <FormControlLabel
               control={
                 <Checkbox
-                  inputProps={{
-                    'data-testid': 'single-step-enabled-input',
-                  }}
+                  inputProps={
+                    ({
+                      'data-testid': 'single-step-enabled-input',
+                    } as unknown) as React.InputHTMLAttributes<HTMLInputElement>
+                  }
                   checked={cbsdFormData.singleStepEnabled}
                   onChange={({target}) =>
                     setCbsdFormData({
@@ -414,10 +427,9 @@ export function CbsdAddEditDialog(props: DialogProps) {
                       disabled={isLoading}
                       value={cbsdFormData.bandwidthMhz}
                       onChange={({target}) => {
-                        // $FlowFixMe: Value will be of type BandwidthEnum
-                        const bandwidthMhz: BandwidthEnum = parseInt(
-                          target.value,
-                        );
+                        const bandwidthMhz = parseInt(
+                          target.value as string,
+                        ) as BandwidthEnum;
                         setCbsdFormData({
                           ...cbsdFormData,
                           bandwidthMhz,
@@ -521,13 +533,13 @@ export function CbsdAddEditDialog(props: DialogProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button disabled={isLoading} onClick={props.onClose} skin="regular">
+        <Button disabled={isLoading} onClick={props.onClose}>
           Cancel
         </Button>
         <Button
           data-testid="save-cbsd-button"
           disabled={isLoading}
-          onClick={onSave}
+          onClick={() => void onSave()}
           variant="contained"
           color="primary">
           Save

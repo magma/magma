@@ -84,7 +84,7 @@ function EquipmentDashboardInternal() {
             label: 'CBSDs',
             to: 'cbsds',
             icon: RadioIcon,
-            filters: <AddEditCbsdButton title="Add New" isLink={false} />,
+            filters: <AddEditCbsdButton title="Add New" />,
           },
           {
             label: 'Gateway Pools',

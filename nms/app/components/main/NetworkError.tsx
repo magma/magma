@@ -12,13 +12,13 @@
  */
 
 import React from 'react';
-import {getErrorMessage, isAxiosError} from '../../util/ErrorUtils';
+import {getErrorMessage, isAxiosErrorResponse} from '../../util/ErrorUtils';
 import {useSnackbar} from '../../hooks';
 
 export default function NetworkError({error}: {error: unknown}) {
   let errorMessage = getErrorMessage(error);
 
-  if (isAxiosError(error) && error.response && error.response.status >= 400) {
+  if (isAxiosErrorResponse(error) && error.response.status >= 400) {
     errorMessage = error.response?.statusText;
   }
 

@@ -25,21 +25,22 @@ import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CbsdContext from '../../components/context/CbsdContext';
 import {CbsdAddEditDialog} from './CbsdEdit';
-import type {cbsd} from '../../../generated/MagmaAPIBindings';
+import {Query} from '@material-table/core';
+import type {Cbsd} from '../../../generated-ts';
 
 type CbsdRowType = {
-  id: number,
-  isActive: boolean,
-  serialNumber: string,
-  state: 'registered' | 'unregistered',
-  userId: string,
-  fccId: string,
-  cbsdId?: string,
-  maxEirp?: number,
-  bandwidth?: number,
-  frequency?: number,
-  grantExpireTime?: string,
-  transmitExpireTime?: string,
+  id: number;
+  isActive: boolean;
+  serialNumber: string;
+  state: 'registered' | 'unregistered';
+  userId: string;
+  fccId: string;
+  cbsdId?: string;
+  maxEirp?: number;
+  bandwidth?: number;
+  frequency?: number;
+  grantExpireTime?: string;
+  transmitExpireTime?: string;
 };
 
 function CbsdsTable(props: WithAlert) {
@@ -47,31 +48,33 @@ function CbsdsTable(props: WithAlert) {
 
   const ctx = useContext(CbsdContext);
 
-  const [currentRow, setCurrentRow] = useState<CbsdRowType>({});
+  const [currentRow, setCurrentRow] = useState<CbsdRowType>({} as CbsdRowType);
 
   const data: Array<CbsdRowType> = useMemo(() => {
     return ctx.state.cbsds
-      ? ctx.state.cbsds.map((item: cbsd): CbsdRowType => {
-          return {
-            id: item.id,
-            isActive: item.is_active,
-            serialNumber: item.serial_number,
-            state: item.state,
-            userId: item.user_id,
-            fccId: item.fcc_id,
-            cbsdId: item.cbsd_id,
-            maxEirp: item.grant?.max_eirp,
-            bandwidth: item.grant?.bandwidth_mhz,
-            frequency: item.grant?.frequency_mhz,
-            grantExpireTime: item.grant?.grant_expire_time,
-            transmitExpireTime: item.grant?.transmit_expire_time,
-          };
-        })
+      ? ctx.state.cbsds.map(
+          (item: Cbsd): CbsdRowType => {
+            return {
+              id: item.id,
+              isActive: item.is_active,
+              serialNumber: item.serial_number,
+              state: item.state,
+              userId: item.user_id,
+              fccId: item.fcc_id,
+              cbsdId: item.cbsd_id,
+              maxEirp: item.grant?.max_eirp,
+              bandwidth: item.grant?.bandwidth_mhz,
+              frequency: item.grant?.frequency_mhz,
+              grantExpireTime: item.grant?.grant_expire_time,
+              transmitExpireTime: item.grant?.transmit_expire_time,
+            };
+          },
+        )
       : [];
   }, [ctx.state.cbsds]);
 
   const getDataFn = useCallback(
-    query => {
+    (query: Query<CbsdRowType>) => {
       ctx.setPaginationOptions({
         page: query.page,
         pageSize: query.pageSize,
@@ -114,11 +117,7 @@ function CbsdsTable(props: WithAlert) {
             title: 'Active Status',
             field: 'isActive',
             render: currRow => (
-              <DeviceStatusCircle
-                isGrey={false}
-                isFilled={true}
-                isActive={currRow.isActive}
-              />
+              <DeviceStatusCircle isGrey={false} isActive={currRow.isActive} />
             ),
           },
           {
@@ -167,15 +166,15 @@ function CbsdsTable(props: WithAlert) {
           {
             name: 'Deregister',
             handleFunc: () => {
-              props
+              void props
                 .confirm(
                   `Are you sure you want to deregister ${currentRow?.serialNumber}?`,
                 )
-                .then(async confirmed => {
+                .then(confirmed => {
                   if (!confirmed && isNumber(currentRow?.id)) {
                     return;
                   }
-                  ctx.deregister(currentRow.id);
+                  void ctx.deregister(currentRow.id);
                 });
             },
           },
@@ -186,15 +185,15 @@ function CbsdsTable(props: WithAlert) {
           {
             name: 'Remove',
             handleFunc: () => {
-              props
+              void props
                 .confirm(
                   `Are you sure you want to delete ${currentRow?.serialNumber}?`,
                 )
-                .then(async confirmed => {
+                .then(confirmed => {
                   if (!confirmed && isNumber(currentRow?.id)) {
                     return;
                   }
-                  ctx.remove(currentRow.id);
+                  void ctx.remove(currentRow.id);
                 });
             },
           },

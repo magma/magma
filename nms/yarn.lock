@@ -2511,7 +2511,7 @@
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.0.tgz#e486d0d97396d79beedd0a6e33f4534ff6b4973e"
   integrity sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
 
-"@types/openid-client@2.4.5":
+"@types/openid-client@3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@types/openid-client/-/openid-client-3.1.0.tgz#863a0a6aa4a86c785a72e8d69c0128db84b7f29d"
   integrity sha512-7lMdqGwoai136aalaooC3XzEZ9+oRqlrtGuhZPVXkuAd4fwsw8cWoC9rUCzX2eqdO/JemUNfdKtcoE/otEYGNA==

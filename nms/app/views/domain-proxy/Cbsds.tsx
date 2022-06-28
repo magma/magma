@@ -9,17 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
+import CbsdsTable from './CbsdsTable';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+import {Theme} from '@material-ui/core/styles/createTheme';
 import {makeStyles} from '@material-ui/styles';
 
-import CbsdsTable from './CbsdsTable';
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   root: {
     margin: theme.spacing(3),
     flexGrow: 1,
