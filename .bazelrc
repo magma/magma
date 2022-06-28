@@ -12,25 +12,44 @@ build --cxxopt=-std=c++14
 build --experimental_strict_action_env
 build --compilation_mode=dbg
 
-# Default test configuration
+# DEFAULT TEST CONFIGURATION
+# Please read the GH issue #13073 before adding "test" options.
 test --test_output=errors
-test --flaky_test_attempts=5
+
+# Use dynamically linked folly library
+build --define=folly_so=1
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
-build:vm --disk_cache=/home/vagrant/magma/.bazel-cache
-common:vm --repository_cache=/home/vagrant/magma/.bazel-cache-repo
-build:vm --define=folly_so=1
 build:vm --config=specify_vm_cc
 
-# MAGMA-BUILDER DOCKER CONTAINER CONFIGS
-build:docker --disk_cache=/magma/.bazel-cache
-common:docker --repository_cache=/magma/.bazel-cache-repo
+# DISK CACHE CONFIGS
+# The locations of the disk_cache/repository_cache are symlinks in the
+# docker containers/magma-vm. They point to the correct cache locations
+# $MAGMA/.bazel-cache and $MAGMA/.bazel-cache-repo inside the magma repository.
+build:disk_cache --disk_cache=/var/cache/bazel-cache
+common:disk_cache --repository_cache=/var/cache/bazel-cache-repo
 
-# DEVCONTAINER CONFIGS
-build:devcontainer --disk_cache=/workspaces/magma/.bazel-cache
-common:devcontainer --repository_cache=/workspaces/magma/.bazel-cache-repo
-build:devcontainer --define=folly_so=1
+# REMOTE CACHING READ AND WRITE CONFIGS
+# The file bazel/bazelrcs/remote_caching_rw.bazelrc is templated in CI
+# The full config is then written to bazel/bazelrcs/cache.bazelrc
+build:remote_caching_rw --remote_download_minimal
+# --remote_download_toplevel instead of --remote_download_minimal is
+# needed for 'bazel run' due to https://github.com/bazelbuild/bazel/issues/11920
+run:remote_caching_rw --remote_download_toplevel
+
+# REMOTE CACHING READ-ONLY CONFIGS
+# The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
+# The full config is then written to bazel/bazelrcs/cache.bazelrc
+build:remote_caching_ro --remote_upload_local_results=false 
+build:remote_caching_ro --remote_download_minimal
+# --remote_download_toplevel instead of --remote_download_minimal is
+# needed for 'bazel run' due to https://github.com/bazelbuild/bazel/issues/11920
+run:remote_caching_ro --remote_download_toplevel
+
+# Import the bazel caching config, with default disk cache,
+# which in CI gets overwritten by the remote caching config. 
+import bazel/bazelrcs/cache.bazelrc
 
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
@@ -42,7 +61,8 @@ build --test_env=MAGMA_ROOT
 
 # MME specific compile time defines
 # Compile mme libraries with unit test flag
-test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST
+test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST  # See GH issue #13073
+build:mme_unit_test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST  # See GH issue #13073
 # TODO: deprecate these flags used for logging if possible
 build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_BUGREPORT=\"TBD\"
 build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_VERSION=\"0.1\"
@@ -53,10 +73,7 @@ build --per_file_copt=^lte/gateway/c/core/oai/tasks/sgw/.*$@-DPACKAGE_NAME=\"S/P
 # CODE COVERAGE CONFIGS
 build --javacopt="-source 8"
 build --javacopt="-target 8"
-build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
-build --javabase=@bazel_tools//tools/jdk:remote_jdk11
-build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
-build --java_toolchain=@bazel_tools//tools/jdk:toolchain_java11
+build --java_runtime_version=remotejdk_11
 
 coverage --config=coverage
 build:coverage --combined_report=lcov

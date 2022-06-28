@@ -15,25 +15,24 @@
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
 
-# ubuntu bionic image
-ARG OS_DIST=ubuntu OS_RELEASE=bionic EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
+ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG OS_DIST OS_RELEASE EXTRA_REPO
 
 RUN apt-get update && \
-    # Setup necessary tools for adding the Magma repository
-    apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget && \
-    # Download Bazel
-    wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
-    chmod +x /usr/sbin/bazelisk-linux-amd64 && \
-    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+  # Setup necessary tools for adding the Magma repository
+  apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget && \
+  # Download Bazel
+  wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+  chmod +x /usr/sbin/bazelisk-linux-amd64 && \
+  ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
 # Add the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
+  apt-add-repository "deb ${EXTRA_REPO} focal-ci main"
 
 # Install dependencies required for building
 RUN apt-get -y update && apt-get -y install \
@@ -57,7 +56,8 @@ RUN apt-get -y update && apt-get -y install \
   libboost-context-dev \
   libboost-program-options-dev \
   libboost-filesystem-dev \
-  libboost-regex-dev
+  libboost-regex-dev \
+  python3-distutils
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
@@ -69,7 +69,6 @@ COPY bazel/ ${MAGMA_ROOT}/bazel
 # Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
 RUN bazel build \
   @com_github_grpc_grpc//:grpc++ \
-  @com_github_google_glog//:glog \
   @com_google_protobuf//:protobuf \
   @prometheus_cpp//:prometheus-cpp \
   @yaml-cpp//:yaml-cpp \
@@ -104,7 +103,6 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libicui18n.* /usr/lib/x86_64-linux
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libicuuc.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libicudata.* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libssl* /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/openssl* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcrypto* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libunwind* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/local/lib/libfolly.so /usr/local/lib/

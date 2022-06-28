@@ -22,6 +22,8 @@ volumeMounts:
   - name: {{ .Values.persistent.name }}
     mountPath: /var/opt/magma
     readOnly: false
+  - mountPath: /etc/snowflake
+    name: snowflake-file
 resources:
 {{ toYaml .Values.resources | indent 2 }}
 {{- end -}}

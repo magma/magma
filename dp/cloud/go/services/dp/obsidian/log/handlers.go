@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/olivere/elastic/v7"
 
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/service/config"
 )
 
@@ -36,7 +36,7 @@ const (
 	responseCode      = "response_code"
 	beginTimestamp    = "begin"
 	endTimestamp      = "end"
-	sortTag           = "@timestamp"
+	sortTag           = "event_timestamp"
 	Dp                = "dp"
 	DpPath            = obsidian.V1Root + Dp
 	ManageNetworkPath = DpPath + obsidian.UrlSep + ":network_id"

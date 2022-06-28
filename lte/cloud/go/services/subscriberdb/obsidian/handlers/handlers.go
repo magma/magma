@@ -15,6 +15,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -23,8 +24,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/hashicorp/go-multierror"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -34,10 +34,10 @@ import (
 	policydbmodels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
@@ -230,16 +230,17 @@ func listSubscribersHandler(c echo.Context) error {
 		return c.JSON(http.StatusOK, nil)
 	}
 	var paginatedSubs interface{}
+	token := subscribermodels.PageToken(nextPageToken)
 	if verbose {
 		paginatedSubs = subscribermodels.PaginatedSubscribers{
 			TotalCount:    int64(count),
-			NextPageToken: subscribermodels.PageToken(nextPageToken),
+			NextPageToken: &token,
 			Subscribers:   mapSubscribersForVerbosity(subs, verbose).(map[string]*subscribermodels.Subscriber),
 		}
 	} else {
 		paginatedSubs = subscribermodels.PaginatedSubscriberIds{
 			TotalCount:    int64(count),
-			NextPageToken: subscribermodels.PageToken(nextPageToken),
+			NextPageToken: &token,
 			Subscribers:   mapSubscribersForVerbosity(subs, verbose).([]string),
 		}
 	}
@@ -305,7 +306,7 @@ func updateSubscriberHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(payload.Lte.SubProfile)); nerr != nil {
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(*payload.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -454,8 +455,8 @@ func updateSubscriberProfile(c echo.Context) error {
 	}
 
 	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
-	desiredCfg.Lte.SubProfile = *payload
-	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(desiredCfg.Lte.SubProfile)); nerr != nil {
+	desiredCfg.Lte.SubProfile = payload
+	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(*desiredCfg.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -466,7 +467,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to update profile"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update profile: %w", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -538,7 +539,7 @@ func getNetworkAndMSISDN(c echo.Context) (string, string, *echo.HTTPError) {
 func getSubProfiles(subs subscribermodels.MutableSubscribers) []string {
 	profiles := map[string]struct{}{}
 	for _, sub := range subs {
-		profiles[string(sub.Lte.SubProfile)] = struct{}{}
+		profiles[string(*sub.Lte.SubProfile)] = struct{}{}
 	}
 	return funk.Keys(profiles).([]string)
 }
@@ -562,12 +563,12 @@ func validateSubscriberProfiles(ctx context.Context, networkID string, profiles 
 	errs := &multierror.Error{}
 	for _, p := range nonDefaultProfiles {
 		if _, ok := networkProfiles[p]; !ok {
-			errs = multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))
+			errs = multierror.Append(errs, fmt.Errorf("subscriber profile '%s' does not exist for the network", p))
 		}
 	}
 	err = errs.ErrorOrNil()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	return nil
@@ -617,7 +618,7 @@ func loadSubscribers(ctx context.Context, networkID string, includeSub subscribe
 	for _, key := range keys {
 		sub, err := loadSubscriber(ctx, networkID, key)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error loading subscriber %s", key)
+			return nil, fmt.Errorf("error loading subscriber %s: %w", key, err)
 		}
 		if includeSub(sub) {
 			subs[string(sub.ID)] = sub
@@ -693,7 +694,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	if len(uniqueIDs) != len(ids) {
 		duplicates := funk.FilterString(ids, func(s string) bool { return uniqueIDs[s] > 1 })
-		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
 	}
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
@@ -703,7 +704,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
 	if len(found) != 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
 	}
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)

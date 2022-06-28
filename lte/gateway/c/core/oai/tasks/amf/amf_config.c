@@ -59,7 +59,7 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
   nas_conf->t3586_sec = T3586_DEFAULT_VALUE;
   nas_conf->t3589_sec = T3589_DEFAULT_VALUE;
   nas_conf->t3595_sec = T3595_DEFAULT_VALUE;
-  nas_conf->implicit_dereg_sec = IMPLICIT_DEREG_TIMER;
+  nas_conf->implicit_dereg_sec = IMPLICIT_DEREG_TIMER_VALUE;
   nas_conf->force_reject_tau = true;
   nas_conf->force_reject_sr = true;
   nas_conf->disable_esm_information = false;
@@ -515,7 +515,7 @@ void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
 
 void copy_amf_config_from_mme_config(amf_config_t* dest,
                                      const mme_config_t* src) {
-  OAILOG_DEBUG(LOG_MME_APP, "copy_amf_config_from_mme_config");
+  OAILOG_DEBUG(LOG_AMF_APP, "copy_amf_config_from_mme_config");
   // LOGGING setting
   dest->log_config = src->log_config;
   if (src->log_config.output)

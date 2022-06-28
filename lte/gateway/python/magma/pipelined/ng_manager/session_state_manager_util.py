@@ -10,37 +10,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
 )
 
-FARRuleEntry = NamedTuple(
-    'FARRuleEntry',
-    [
-        ('apply_action', int),
-        ('o_teid', int),
-        ('gnb_ip_addr', str),
-    ],
-)
 
-PDRRuleEntry = NamedTuple(
-    'PDRRuleEntry',
-    [
-        ('pdr_id', int),
-        ('pdr_version', int),
-        ('pdr_state', int),
-        ('precedence', int),
-        ('local_f_teid', int),
-        ('ue_ip_addr', str),
-        ('del_qos_enforce_rule', DeactivateFlowsRequest),
-        ('add_qos_enforce_rule', ActivateFlowsRequest),
-        ('far_action', FARRuleEntry),
-        ('ue_ipv6_addr', str),
-    ],
-)
+class FARRuleEntry(NamedTuple):
+    apply_action: int
+    o_teid: int
+    gnb_ip_addr: Optional[str]
+
+
+class PDRRuleEntry(NamedTuple):
+    pdr_id: int
+    pdr_version: int
+    pdr_state: int
+    precedence: int
+    local_f_teid: int
+    ue_ip_addr: Optional[str]
+    del_qos_enforce_rule: DeactivateFlowsRequest
+    add_qos_enforce_rule: ActivateFlowsRequest
+    far_action: Optional[FARRuleEntry]
+    ue_ipv6_addr: Optional[str]
 
 # Create the Named tuple for the FAR entry
 

@@ -14,42 +14,34 @@
  * @format
  */
 
-import type {AppContextAppData} from '../../fbc_js_core/ui/context/AppContext';
+import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from '../auth/access';
 
 import MagmaV1API from '../magma/index';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
-import asyncHandler from '../../fbc_js_core/util/asyncHandler';
+import asyncHandler from '../util/asyncHandler';
 import express from 'express';
+import hostRoutes from '../host/routes';
+import loggerRoutes from '../logger/routes';
 import networkRoutes from '../network/routes';
 import path from 'path';
-import staticDist from '../../fbc_js_core/webpack_config/staticDist';
-import userMiddleware from '../../fbc_js_core/auth/express';
-import {AccessRoles} from '../../fbc_js_core/auth/roles';
-import {MAPBOX_ACCESS_TOKEN} from '../../fbc_js_core/platform_server/config';
-
-import {TABS} from '../../fbc_js_core/types/tabs';
-import {access} from '../../fbc_js_core/auth/access';
-import {getEnabledFeatures} from '../../fbc_js_core/platform_server/features';
-import {hostOrgMiddleware} from '../../fbc_js_core/platform_server/host/middleware';
+import staticDist from '../../config/staticDist';
+import testRoutes from '../test/routes';
+import userMiddleware from '../auth/express';
+import {AccessRoles} from '../../shared/roles';
+import {access} from '../auth/access';
+import {getEnabledFeatures} from '../features';
+import {hostOrgMiddleware} from '../host/middleware';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
-const handleReact = tab =>
+const handleReact = () =>
   async function (req: FBCNMSRequest, res) {
     const organization = req.organization ? await req.organization() : null;
-    const orgTabs = organization?.tabs || [];
-    if (TABS[tab] && orgTabs.indexOf(tab) === -1) {
-      res.redirect(
-        organization?.tabs.length ? `/${organization.tabs[0]}` : '/',
-      );
-      return;
-    }
-    const appData: AppContextAppData = {
+    const appData: EmbeddedData = {
       csrfToken: req.csrfToken(),
-      tabs: organization?.tabs || [],
       user: req.user
         ? {
             tenant: organization?.name || '',
@@ -67,7 +59,6 @@ const handleReact = tab =>
       staticDist,
       configJson: JSON.stringify({
         appData,
-        MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
       }),
     });
   };
@@ -77,16 +68,14 @@ router.use('/version', (req: FBCNMSRequest, res) =>
   res.send(process.env.VERSION_TAG),
 );
 router.use('/admin', access(AccessRoles.SUPERUSER), adminRoutes);
-router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
+router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact());
+router.get('/settings', access(AccessRoles.USER), handleReact());
 router.use('/nms/apicontroller', apiControllerRoutes);
 router.use('/nms/network', networkRoutes);
 router.use('/nms/static', express.static(path.join(__dirname, '../static')));
 
-router.use(
-  '/logger',
-  require('../../fbc_js_core/platform_server/logger/routes'),
-);
-router.use('/test', require('../../fbc_js_core/platform_server/test/routes'));
+router.use('/logger', loggerRoutes);
+router.use('/test', testRoutes);
 router.use(
   '/user',
   userMiddleware({
@@ -94,7 +83,7 @@ router.use(
     loginFailureUrl: '/user/login?invalid=true',
   }),
 );
-router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
+router.get('/nms*', access(AccessRoles.USER), handleReact());
 
 router.get(
   '/host/networks/async',
@@ -104,11 +93,10 @@ router.get(
   }),
 );
 
-const hostRouter = require('../../fbc_js_core/platform_server/host/routes');
-router.use('/host', hostOrgMiddleware, hostRouter.default);
+router.use('/host', hostOrgMiddleware, hostRoutes);
 
 async function handleHost(req: FBCNMSRequest, res) {
-  const appData: AppContextAppData = {
+  const appData: EmbeddedData = {
     csrfToken: req.csrfToken(),
     user: {
       tenant: 'host',
@@ -117,7 +105,6 @@ async function handleHost(req: FBCNMSRequest, res) {
       isReadOnlyUser: req.user.isReadOnlyUser,
     },
     enabledFeatures: await getEnabledFeatures(req, 'host'),
-    tabs: [],
     ssoEnabled: false,
     ssoSelectedType: 'none',
     csvCharset: null,
@@ -135,16 +122,12 @@ router.get(
   access(AccessRoles.USER),
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const organization = await req.organization();
+
     if (organization.isHostOrg) {
       res.redirect('/host');
-    } else if (req.user.tabs && req.user.tabs.length > 0) {
-      res.redirect(req.user.tabs[0]);
-    } else if (organization.tabs && organization.tabs.length > 0) {
-      res.redirect(organization.tabs[0]);
+    } else if (organization.networkIDs.length === 0) {
+      res.redirect(req.user.isSuperUser ? '/admin' : '/nms');
     } else {
-      console.warn(
-        `no tabs for user ${req.user.email}, organization ${organization.name}`,
-      );
       res.redirect('/nms');
     }
   }),

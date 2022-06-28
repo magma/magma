@@ -18,7 +18,7 @@ import * as React from 'react';
 import AccountSettings from './AccountSettings';
 import Admin from './admin/Admin';
 import AppContent from './layout/AppContent';
-import AppSideBar from '../../fbc_js_core/ui/components/layout/AppSideBar';
+import AppSideBar from './AppSideBar';
 import {Route, Routes} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 

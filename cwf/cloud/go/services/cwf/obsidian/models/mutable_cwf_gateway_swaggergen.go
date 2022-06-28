@@ -6,16 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models5 "magma/orc8r/cloud/go/models"
 	models6 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // MutableCwfGateway CWF gateway object with read-only fields omitted
+//
 // swagger:model mutable_cwf_gateway
 type MutableCwfGateway struct {
 
@@ -95,6 +97,8 @@ func (m *MutableCwfGateway) validateCarrierWifi(formats strfmt.Registry) error {
 		if err := m.CarrierWifi.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("carrier_wifi")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("carrier_wifi")
 			}
 			return err
 		}
@@ -105,9 +109,15 @@ func (m *MutableCwfGateway) validateCarrierWifi(formats strfmt.Registry) error {
 
 func (m *MutableCwfGateway) validateDescription(formats strfmt.Registry) error {
 
+	if err := validate.Required("description", "body", models5.GatewayDescription(m.Description)); err != nil {
+		return err
+	}
+
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
 		}
 		return err
 	}
@@ -116,7 +126,6 @@ func (m *MutableCwfGateway) validateDescription(formats strfmt.Registry) error {
 }
 
 func (m *MutableCwfGateway) validateDevice(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Device) { // not required
 		return nil
 	}
@@ -125,6 +134,8 @@ func (m *MutableCwfGateway) validateDevice(formats strfmt.Registry) error {
 		if err := m.Device.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("device")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("device")
 			}
 			return err
 		}
@@ -135,9 +146,15 @@ func (m *MutableCwfGateway) validateDevice(formats strfmt.Registry) error {
 
 func (m *MutableCwfGateway) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models5.GatewayID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -155,6 +172,8 @@ func (m *MutableCwfGateway) validateMagmad(formats strfmt.Registry) error {
 		if err := m.Magmad.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("magmad")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("magmad")
 			}
 			return err
 		}
@@ -165,9 +184,15 @@ func (m *MutableCwfGateway) validateMagmad(formats strfmt.Registry) error {
 
 func (m *MutableCwfGateway) validateName(formats strfmt.Registry) error {
 
+	if err := validate.Required("name", "body", models5.GatewayName(m.Name)); err != nil {
+		return err
+	}
+
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
 		}
 		return err
 	}
@@ -177,9 +202,157 @@ func (m *MutableCwfGateway) validateName(formats strfmt.Registry) error {
 
 func (m *MutableCwfGateway) validateTier(formats strfmt.Registry) error {
 
+	if err := validate.Required("tier", "body", models6.TierID(m.Tier)); err != nil {
+		return err
+	}
+
 	if err := m.Tier.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("tier")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("tier")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this mutable cwf gateway based on the context it is used
+func (m *MutableCwfGateway) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCarrierWifi(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDescription(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateDevice(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMagmad(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateName(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTier(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateCarrierWifi(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.CarrierWifi != nil {
+		if err := m.CarrierWifi.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("carrier_wifi")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("carrier_wifi")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateDescription(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Description.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("description")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("description")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateDevice(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Device != nil {
+		if err := m.Device.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("device")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("device")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateMagmad(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Magmad != nil {
+		if err := m.Magmad.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("magmad")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("magmad")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateName(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Name.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCwfGateway) contextValidateTier(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Tier.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("tier")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("tier")
 		}
 		return err
 	}

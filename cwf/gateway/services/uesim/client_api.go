@@ -38,7 +38,6 @@ type ueSimClient struct {
 // getUESimClient is a utility function to get a RPC connection to the
 // UESim service
 func getUESimClient() (*ueSimClient, error) {
-	//conn, err := registry.GetConnectionWithTimeout(registry.UeSim, 60*time.Second)
 	conn, err := registry.GetConnection(registry.UeSim)
 	if err != nil {
 		errMsg := fmt.Sprintf("UESim client initialization error: %s", err)
@@ -94,7 +93,7 @@ func GenTrafficWithReatempts(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTr
 		resp, err = GenTraffic(req)
 		if err != nil &&
 			(strings.Contains(strings.ToLower(err.Error()), "connection refused") ||
-				strings.Contains(err.Error(),"DeadlineExceeded")) {
+				strings.Contains(err.Error(), "DeadlineExceeded")) {
 			// try again due to connection error
 			fmt.Printf("genTrafficSingleAttempt failed, retrying: %s\n", err)
 			continue

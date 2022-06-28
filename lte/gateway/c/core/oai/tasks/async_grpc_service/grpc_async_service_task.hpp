@@ -108,6 +108,7 @@ class S6aProxyResponderAsyncService final
       std::shared_ptr<S6aProxyAsyncResponderHandler> handler);
 
  public:
+  std::thread async_grpc_message_receiver_thread;
   static S6aProxyResponderAsyncService* getInstance() {
     if (!s6a_async_service) {
       s6a_async_service = new S6aProxyResponderAsyncService(nullptr, nullptr);

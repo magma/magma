@@ -642,43 +642,68 @@ int send_uplink_nas_message_service_request_with_pdu(
 }
 
 // Check the ue context state
-bool check_ue_context_state(amf_ue_ngap_id_t ue_id,
-                            m5gmm_state_t expected_mm_state,
-                            m5gcm_state_t expected_cm_state,
-                            n2cause_e expected_ue_context_rel_cause) {
+int check_ue_context_state(amf_ue_ngap_id_t ue_id,
+                           m5gmm_state_t expected_mm_state,
+                           m5gcm_state_t expected_cm_state) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   m5gmm_state_t mm_state;
-  int rc = RETURNerror;
-
-  rc = amf_get_ue_context_mm_state(ue_id, &mm_state);
-  if (rc != RETURNok) {
-    return false;
+  if (amf_get_ue_context_mm_state(ue_id, &mm_state) != RETURNok) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Error: amf_ue_context_mm_context does not exist, "
+                 "ue_id: " AMF_UE_NGAP_ID_FMT "\n",
+                 ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (mm_state != expected_mm_state) {
-    return false;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   m5gcm_state_t cm_state;
-  rc = amf_get_ue_context_cm_state(ue_id, &cm_state);
-  if (rc != RETURNok) {
-    return false;
+  if (amf_get_ue_context_cm_state(ue_id, &cm_state) != RETURNok) {
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Error: amf_ue_context_cm_context does not exist, "
+                 "ue_id: " AMF_UE_NGAP_ID_FMT "\n",
+                 ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (cm_state != expected_cm_state) {
-    return false;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   n2cause_e ue_context_rel_cause;
-  rc = amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause);
-  if (rc != RETURNok) {
-    return false;
+  if (amf_get_ue_context_rel_cause(ue_id, &ue_context_rel_cause) != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
-  if (ue_context_rel_cause != expected_ue_context_rel_cause) {
-    return false;
+  if (ue_context_rel_cause != NGAP_RADIO_NR_GENERATED_REASON) {
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
-  return (true);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
+}
+
+// 5th expiry of t3550 during registration complete from UE
+// mimicing registration_accept_t3550_handler
+int unit_test_registration_accept_t3550(amf_ue_ngap_id_t ue_id) {
+  int rc = RETURNerror;
+  ue_m5gmm_context_s* ue_amf_context = NULL;
+
+  // assuming 5 times expiry of T3550 timer for registration accept
+  // Get the UE context
+  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_amf_context == NULL) {
+    return RETURNerror;
+  }
+
+  // 5.5.1.2.8 abnormal case on network side
+  // at 5th expiry of timer, amf enters into REGISTERED state
+  rc = ue_state_handle_message_initial(
+      COMMON_PROCEDURE_INITIATED2, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
+      ue_amf_context, &ue_amf_context->amf_context);
+
+  return (rc);
 }
 
 }  // namespace magma5g

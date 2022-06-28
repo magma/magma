@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -22,11 +21,10 @@ import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {TroubleshootingControl} from '../GatewayCommandFields';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
-afterEach(cleanup);
 jest.mock('../../../generated/MagmaAPIBindings');
-jest.mock('../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../app/hooks/useSnackbar');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
@@ -57,11 +55,6 @@ describe('<verify successful aggregation validation/>', () => {
       validControlProxyContent,
     );
     MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(0);
-  });
-
-  afterEach(() => {
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockClear();
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockClear();
   });
 
   it('', async () => {
@@ -95,11 +88,6 @@ describe('<verify control proxy validation failure/>', () => {
     MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockResolvedValue(0);
   });
 
-  afterEach(() => {
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockClear();
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockClear();
-  });
-
   it('', async () => {
     const {getByTestId, getAllByTestId} = render(<Wrapper />);
     await wait();
@@ -123,11 +111,6 @@ describe('<verify api validation failure/>', () => {
     MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockRejectedValueOnce(
       new Error('error'),
     );
-  });
-
-  afterEach(() => {
-    MagmaAPIBindings.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric.mockClear();
-    MagmaAPIBindings.getEventsByNetworkIdAboutCount.mockClear();
   });
 
   it('', async () => {

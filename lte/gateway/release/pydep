@@ -35,7 +35,6 @@ pass as a parameter to fpm.
 import argparse
 import contextlib
 import copy
-import functools
 import glob
 import hashlib
 import json
@@ -48,11 +47,10 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import typing
 import zipfile
 from datetime import datetime
 from functools import lru_cache, partial
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, cast
 
 import apt  # type: ignore
 import pkg_resources
@@ -396,18 +394,14 @@ def get_latest_apt_pkg_version(pkgname: str, py2: bool = False) -> Optional[str]
     """
     cache = apt.Cache()
     sys_pkgname = gen_sys_package_name(pkgname, py2)
+
     try:
-        avail_versions = cache[sys_pkgname].versions
+        package = cache[sys_pkgname]
     except KeyError:
         # package isn't available
         return None
 
-    latest = None
-    for v in avail_versions:
-        if not latest or v.version > latest:
-            latest = v.version
-
-    return latest
+    return package.candidate.version
 
 
 def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
@@ -542,10 +536,10 @@ def lcd(path):
         os.chdir(oldcwd)
 
 
-PkgInfo = typing.NamedTuple('PkgInfo',
-                            [('name', str),
-                             ('version', str),
-                             ('arch', str)])
+class PkgInfo(NamedTuple):
+    name: str
+    version: str
+    arch: str
 
 
 def _cleanup(pkgname: str) -> None:
@@ -854,7 +848,7 @@ def gen_pip_distributions(
                                 'sys.stdout.buffer)')])
 
     result = venv(['python', '-c', freeze_script], capture=True)
-    pip_distributions = {str(p.key): typing.cast(pkg_resources.Distribution, p)
+    pip_distributions = {str(p.key): cast(pkg_resources.Distribution, p)
                          for p in pickle.loads(result.stdout)}
     return pip_distributions
 
@@ -1022,7 +1016,7 @@ def main(args):
     for key in deps:
         if deps[key]['source'] == 'pypi':
             try:
-                ver = typing.cast(str, deps[key]['version'])
+                ver = cast(str, deps[key]['version'])
                 existing_versions[key] = ver
             except KeyError as e:
                 log.error('{} missing key: {}'.format(key, e))
@@ -1032,6 +1026,12 @@ def main(args):
     repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
     if args.install_from_repo:
         try:
+            # If apt packages are installed over existing pip packages
+            # then side effects can occur - see GH13075.
+            # Approach: remove existing pip packages before apt install
+            pip_packages = [req.key for req in repo_installable]
+            subprocess.call(shlex.split('sudo pip3 uninstall -y '
+                                        + ' '.join(pip_packages)))
             subprocess.call(shlex.split('sudo apt install -y '
                                         + ' '.join(repo_pkgs)))
         except Exception:
@@ -1047,7 +1047,7 @@ def main(args):
 
         required_distributions = {}
         to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]
-                       if k not in repo_installable]
+                       if k not in [inst.key for inst in repo_installable]]
         while to_traverse:
             dist = to_traverse.pop()
             required_distributions[dist.key] = dist
@@ -1064,8 +1064,9 @@ def main(args):
 
     dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
 
-    root_versions = {req.key: {'version': pip_distributions[req.key].version}
-                     for req in input_root_requirements}
+    root_versions = {req.key: {'version': pip_distributions[k].version}
+                     for k in [req.key for req in input_root_requirements]
+                     if k not in [inst.key for inst in repo_installable]}
 
     log.debug(root_versions)
 

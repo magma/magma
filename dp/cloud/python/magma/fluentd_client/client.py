@@ -25,7 +25,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
     format='%(asctime)s %(levelname)-8s %(message)s',
 )
-logger = logging.getLogger("configuration_controller.run")
+logger = logging.getLogger("fluentd_client.client")
 
 
 class FluentdClientException(Exception):
@@ -38,6 +38,7 @@ class DPLog(object):
     """
     Class representation of DPLog. An abstraction for messages sent to and from DP.
     """
+    event_timestamp: str
     log_from: str
     log_to: str
     log_name: str

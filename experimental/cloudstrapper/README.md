@@ -79,8 +79,6 @@
      - devOpsCloudstrapper indicates the 'Name' tag used to identify the DevOps Cloudstrapper instance
      - primaryCloudstrapper indicates the 'Name' tag used to identify the Primary Cloudstrapper instance
      - devOpsAmi indicates the name of the AMI created for the Cloudstrapper base image
-   - build.yaml
-    - buildUbuntuAmi - AMI id of base Ubuntu image to be used, available in the region where Cloudstrapper is run
 
   Run the following commands
   - devops-provision: Setup instance using default security group, Bootkey and Ubuntu
@@ -133,7 +131,6 @@
 
       - buildAwsRegion indicates which region will host the build instance.
       - buildAwsAz indicates an Availability Zone within the region specified above
-      - buildUbuntuAmi reflects the base Ubuntu AMI available in the region described in buildAwsRegion
 
     All variables can be customized by making a change in the build.yaml file. Invocations
     using Dynamic Inventory would have to be changed to reflect the new labels.
@@ -250,7 +247,6 @@
   - Tunables (in roles/vars/):
 
     - build.yaml:
-      - buildUbuntuAmi: AMI ID of Base Ubuntu 20.04 image
       - buildAgwAmiName: Name of the AGW AMI created, used to label the AMI
       - buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance for configuration
       - buildAgwVersion: Version of AGW to be built

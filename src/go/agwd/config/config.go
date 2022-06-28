@@ -19,7 +19,6 @@ import (
 	"sync"
 
 	"github.com/magma/magma/src/go/protos/magma/config"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -199,21 +198,21 @@ func loadConfigFile(
 	path string,
 ) (*config.AgwD, error) {
 	if _, err := osStat(path); err != nil {
-		return nil, errors.Wrap(err, "path="+path)
+		return nil, fmt.Errorf("path=%s: %w", path, err)
 	}
 
 	bytes, err := readFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "path="+path)
+		return nil, fmt.Errorf("path=%s: %w", path, err)
 	}
 	filtered := []byte(filterJSONComments(string(bytes)))
 	config := &config.AgwD{}
 	if err := unmarshalProto(filtered, config); err != nil {
-		return nil, errors.Wrapf(
-			err,
-			"path=%s filtered=%s",
+		return nil, fmt.Errorf(
+			"path=%s filtered=%s: %w",
 			path,
-			string(filtered))
+			string(filtered),
+			err)
 	}
 	return config, nil
 }

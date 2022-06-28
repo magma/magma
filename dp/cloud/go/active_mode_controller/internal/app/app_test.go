@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package app_test
 
 import (
@@ -208,10 +221,12 @@ func buildSomeState(names ...string) *active_mode.State {
 	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
 		cbsds[i] = &active_mode.Cbsd{
-			DesiredState:      active_mode.CbsdState_Registered,
-			UserId:            name,
-			FccId:             name,
-			SerialNumber:      name,
+			DesiredState: active_mode.CbsdState_Registered,
+			SasSettings: &active_mode.SasSettings{
+				UserId:       name,
+				FccId:        name,
+				SerialNumber: name,
+			},
 			State:             active_mode.CbsdState_Unregistered,
 			LastSeenTimestamp: currentTime,
 		}
@@ -231,7 +246,7 @@ func buildStateWithAuthorizedGrants(name string, interval time.Duration, timesta
 	}
 	cbsds := []*active_mode.Cbsd{{
 		DesiredState:      active_mode.CbsdState_Registered,
-		Id:                name,
+		CbsdId:            name,
 		State:             active_mode.CbsdState_Registered,
 		Grants:            grants,
 		LastSeenTimestamp: currentTime,

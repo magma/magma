@@ -14,6 +14,10 @@ int verify_service_area_restriction(tac_t tac,
                                     const regional_subscription_t* reg_sub,
                                     uint8_t num_reg_sub);
 
+int mme_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,
+                               const char mcc_digit3P, const char mnc_digit1P,
+                               const char mnc_digit2P, const char mnc_digit3P);
+
 #ifdef __cplusplus
 }
 #endif

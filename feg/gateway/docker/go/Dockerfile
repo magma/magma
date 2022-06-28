@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-ARG baseImage="ubuntu:bionic"
+ARG baseImage="ubuntu:focal"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -9,7 +9,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
@@ -39,13 +39,16 @@ RUN apt-get update && apt-get install -y \
     vim \
     virtualenv
 
-# Install Golang 1.13.
+# Golang 1.18
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
-    cp -r go/bin/* /usr/local/bin/
+ARG GOLANG_VERSION="1.18"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+ && rm ${GO_TARBALL}
 
-# Install protobuf compiler.
+# Install protobuf compiler.y
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
     unzip protoc3.zip -d protoc3 && \
     mv protoc3/bin/protoc /bin/protoc && \
@@ -65,9 +68,10 @@ ENV GOPROXY https://proxy.golang.org
 
 RUN printenv > /etc/environment
 
-COPY feg/radius/lib/go/ /radius/lib/go
-COPY feg/radius/src/go.* /radius/src/
-WORKDIR /radius/src
+COPY feg/radius/lib/go/ $MAGMA_ROOT/feg/radius/lib/go
+COPY feg/radius/src/go.* $MAGMA_ROOT/feg/radius/src/
+COPY orc8r/lib/go/go.* $MAGMA_ROOT/orc8r/lib/go/
+WORKDIR $MAGMA_ROOT/feg/radius/src
 RUN go mod download
 
 # Copy just the go.mod and go.sum files to download the golang deps.
@@ -77,20 +81,20 @@ COPY lte/cloud/go/go.* $MAGMA_ROOT/lte/cloud/go/
 COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
 COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
-COPY orc8r/lib/go/go.* $MAGMA_ROOT/orc8r/lib/go/
 COPY orc8r/lib/go/protos/go.* $MAGMA_ROOT/orc8r/lib/go/protos/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
-RUN go mod download; exit 0
+RUN go mod download
+
 # Install protoc-gen-go
-RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
-RUN go get -u github.com/vektra/mockery/v2/.../; exit 0
-RUN go get github.com/deepmap/oapi-codegen/cmd/oapi-codegen; exit 0
+RUN go install github.com/golang/protobuf/protoc-gen-go \
+ && go get -u github.com/vektra/mockery/v2/.../ \
+ && go get github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 
 # Symlink python scripts.
-RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
-RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
+RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py \
+ && ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
 
 # Build the code.
 COPY feg $MAGMA_ROOT/feg
@@ -113,13 +117,13 @@ RUN ./run.sh build
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic as gocache
+FROM ${baseImage} as gocache
 COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS gateway_go
+FROM ${baseImage} AS gateway_go
 ARG MAGMA_BUILD_BRANCH=unknown
 ARG MAGMA_BUILD_TAG=unknown
 ARG MAGMA_BUILD_COMMIT_HASH=unknonw

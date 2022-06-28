@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
@@ -21,7 +20,7 @@ import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 
-import {FEG_LTE, LTE} from '../../../../fbc_js_core/types/network';
+import {FEG_LTE, LTE} from '../../../../shared/types/network';
 import {
   LteNetworkContextProvider,
   PolicyProvider,
@@ -30,18 +29,12 @@ import {
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 // $FlowFixMe Upgrade react-testing-library
-import {cleanup, fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
-  .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
+jest.mock('../../../hooks/useSnackbar');
 
 const policies = {
   policy_0: {
@@ -156,14 +149,11 @@ const feg_lte_network = {
 };
 
 describe('<TrafficDashboard />', () => {
-  afterEach(() => {
-    MagmaAPIBindings.getFegLteByNetworkId.mockClear();
-    MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules.mockClear();
-    MagmaAPIBindings.putFegLteByNetworkIdSubscriberConfig.mockClear();
-    MagmaAPIBindings.putFegByNetworkIdSubscriberConfig.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdSubscriberConfig.mockClear();
-  });
   beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
     MagmaAPIBindings.getFegLteByNetworkId.mockResolvedValue(feg_lte_network);
     MagmaAPIBindings.getFegByNetworkId.mockResolvedValue(feg_network);
     MagmaAPIBindings.getLteByNetworkIdPolicyQosProfiles.mockResolvedValue({});

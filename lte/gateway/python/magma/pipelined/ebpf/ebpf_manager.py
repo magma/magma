@@ -11,23 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+
 import ctypes
 import logging
-import os
 import socket
 import struct
 import subprocess
-from builtins import input
-from socket import AF_INET, htons
-from subprocess import call
-from sys import argv
-from threading import Thread
 
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
-from pyroute2 import IPDB, IPRoute, NetlinkError, NetNS, NSPopen
+from pyroute2 import IPRoute, NetlinkError
 from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import getmacbyip
 
@@ -340,7 +336,7 @@ class EbpfManager:
         mac_bytes = bytes.fromhex(mac_addr.replace(':', ''))
         return (ctypes.c_ubyte * 6).from_buffer(bytearray(mac_bytes))
 
-    def _unpack_mac_addr(self, mac_addr: ctypes.c_ubyte):
+    def _unpack_mac_addr(self, mac_addr: ctypes.Array[ctypes.c_ubyte]):
         mac_bytes = bytearray(mac_addr)
         return mac_bytes.hex(":")
 
@@ -348,9 +344,9 @@ class EbpfManager:
         user_data = bytearray(imsi, encoding='utf8')
         return (ctypes.c_ubyte * 64)(*user_data)
 
-    def _unpack_imsi(self, user_data: ctypes.c_ubyte):
-        user_data = bytearray(user_data)
-        imsi_bytes = user_data[0:16]
+    def _unpack_imsi(self, user_data: ctypes.Array[ctypes.c_ubyte]):
+        user_data_bytearray = bytearray(user_data)
+        imsi_bytes = user_data_bytearray[0:16]
         return imsi_bytes.decode()
 
 

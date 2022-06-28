@@ -53,7 +53,7 @@ export type alert_receiver_config = {
         ,
 };
 export type alert_routing_tree = {
-    continue ?: boolean,
+    continue ? : boolean,
     group_by ? : Array < string >
         ,
     group_interval ? : string,
@@ -141,7 +141,7 @@ export type call_trace_state = {
     call_trace_ending ? : boolean,
 };
 export type capabilities = {
-    antenna_gain: number,
+    max_ibw_mhz: number,
     max_power: number,
     min_power: number,
     number_of_antennas: number,
@@ -160,14 +160,19 @@ export type carrier_wifi_ha_pair_status = {
 };
 export type cbsd = {
     capabilities: capabilities,
+    carrier_aggregation_enabled: boolean,
+    cbsd_category: "a" | "b",
     cbsd_id ? : string,
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
     grant ? : grant,
+    grant_redundancy: boolean,
     id: number,
+    installation_param: installation_param,
     is_active: boolean,
     serial_number: string,
+    single_step_enabled: boolean,
     state: "unregistered" | "registered",
     user_id: string,
 };
@@ -270,6 +275,10 @@ export type disk_partition = {
     mount_point ? : string,
     total ? : number,
     used ? : number,
+};
+export type distribution_package = {
+    name ? : string,
+    version ? : string,
 };
 export type dns_config_record = {
     a_record ? : Array < string >
@@ -473,6 +482,7 @@ export type gateway_cellular_configs = {
     pooling ? : cellular_gateway_pool_records,
     ran: gateway_ran_configs,
 };
+export type gateway_checked_in_recently = boolean;
 export type gateway_cwf_configs = {
     allowed_gre_peers: allowed_gre_peers,
     gateway_health_configs ? : gateway_health_configs,
@@ -685,6 +695,14 @@ export type imei = {
     snr ? : string,
     tac: string,
 };
+export type installation_param = {
+    antenna_gain ? : number,
+    height_m ? : number,
+    height_type ? : "agl" | "amsl",
+    indoor_deployment ? : boolean,
+    latitude_deg ? : number,
+    longitude_deg ? : number,
+};
 export type ip_address = {
     address ? : string,
     version ? : "IPv4" | "IPv6",
@@ -719,6 +737,7 @@ export type log = {
 export type lte_gateway = {
     apn_resources ? : apn_resources,
     cellular: gateway_cellular_configs,
+    checked_in_recently: gateway_checked_in_recently,
     connected_enodeb_serials: enodeb_serials,
     description: gateway_description,
     device ? : gateway_device,
@@ -807,10 +826,15 @@ export type mutable_call_trace = {
 };
 export type mutable_cbsd = {
     capabilities: capabilities,
+    carrier_aggregation_enabled: boolean,
+    cbsd_category: "a" | "b",
     desired_state: "unregistered" | "registered",
     fcc_id: string,
     frequency_preferences: frequency_preferences,
+    grant_redundancy: boolean,
+    installation_param ? : mutable_installation_param,
     serial_number: string,
+    single_step_enabled: boolean,
     user_id: string,
 };
 export type mutable_cellular_gateway_pool = {
@@ -841,6 +865,9 @@ export type mutable_federation_gateway = {
     magmad: magmad_gateway_configs,
     name: gateway_name,
     tier: tier_id,
+};
+export type mutable_installation_param = {
+    antenna_gain ? : number,
 };
 export type mutable_lte_gateway = {
     apn_resources ? : apn_resources,
@@ -1052,10 +1079,6 @@ export type network_type = string;
 export type nh_routes = {
     [string]: string,
 };
-export type package_type = {
-    name ? : string,
-    version ? : string,
-};
 export type page_token = string;
 export type paginated_cbsds = {
     cbsds: Array < cbsd >
@@ -1116,7 +1139,7 @@ export type platform_info = {
     kernel_version ? : string,
     kernel_versions_installed ? : Array < string >
         ,
-    packages ? : Array < package_type >
+    packages ? : Array < distribution_package >
         ,
     vpn_ip ? : string,
 };

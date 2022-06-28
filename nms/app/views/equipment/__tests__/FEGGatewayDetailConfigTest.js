@@ -14,7 +14,6 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
@@ -24,8 +23,8 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetGatewayState} from '../../../state/feg/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
-import {useEnqueueSnackbar} from '../../../../fbc_js_core/ui/hooks/useSnackbar';
+import {fireEvent, render, wait} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../../app/hooks/useSnackbar';
 import {useState} from 'react';
 import type {
   csfb,
@@ -38,9 +37,7 @@ import type {
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
-
+jest.mock('../../../../app/hooks/useSnackbar');
 const mockGx: gx = {
   server: {
     address: '174.16.1.14:3868',
@@ -132,6 +129,11 @@ const mockGw0: federation_gateway = {
     health: {},
     hss: {},
     s6a: mockS6a,
+    s8: {
+      apn_operator_suffix: '',
+      local_address: '',
+      pgw_address: '',
+    },
     served_network_ids: [],
     swx: mockSwx,
     csfb: mockCsfb,
@@ -161,9 +163,7 @@ describe('<FEGGatewayDetailConfig />', () => {
     // Mocking value because it is called by FEGGatewayDialogue / Edit Gateway Page
     MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValue([]);
   });
-  afterEach(() => {
-    MagmaAPIBindings.putFegByNetworkIdGatewaysByGatewayId.mockClear();
-  });
+
   const Wrapper = () => (
     <MemoryRouter
       initialEntries={[

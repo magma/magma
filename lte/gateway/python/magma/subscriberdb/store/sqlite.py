@@ -30,12 +30,10 @@ from magma.subscriberdb.store.base import (
 from magma.subscriberdb.store.onready import OnDataReady, OnDigestsReady
 from orc8r.protos.digest_pb2 import Digest, LeafDigest
 
-DigestDBInfo = NamedTuple(
-    'DigestDBInfo', [
-        ('root_digest_db_location', str),
-        ('leaf_digests_db_location', str),
-    ],
-)
+
+class DigestDBInfo(NamedTuple):
+    root_digest_db_location: str
+    leaf_digests_db_location: str
 
 
 class SqliteStore(BaseStore):
@@ -170,7 +168,7 @@ class SqliteStore(BaseStore):
         try:
             with conn:
                 res = conn.execute(
-                    "SELECT data FROM subscriberdb WHERE " "subscriber_id = ?",
+                    "SELECT data FROM subscriberdb WHERE subscriber_id = ?",
                     (subscriber_id,),
                 )
                 row = res.fetchone()

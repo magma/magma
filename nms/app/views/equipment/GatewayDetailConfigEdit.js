@@ -16,6 +16,7 @@
 import type {
   apn_resources,
   challenge_key,
+  distribution_package,
   enodeb_serials,
   gateway_device,
   gateway_dns_configs,
@@ -25,7 +26,6 @@ import type {
   gateway_ran_configs,
   lte_gateway,
   magmad_gateway_configs,
-  package_type,
 } from '../../../generated/MagmaAPIBindings';
 
 import Accordion from '@material-ui/core/Accordion';
@@ -60,7 +60,7 @@ import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';
 import {
@@ -72,7 +72,7 @@ import {
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const GATEWAY_TITLE = 'Gateway';
@@ -344,7 +344,7 @@ type Props = {
   onSave: lte_gateway => void,
 };
 
-type VersionType = $PropertyType<package_type, 'version'>;
+type VersionType = $PropertyType<distribution_package, 'version'>;
 
 export function ConfigEdit(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -486,9 +486,7 @@ export function ConfigEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -604,9 +602,7 @@ export function DynamicServicesEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -784,9 +780,7 @@ export function EPCEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -924,9 +918,7 @@ export function RanEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -1091,9 +1083,7 @@ export function ApnResourcesEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
@@ -1267,9 +1257,7 @@ export function HeaderEnrichmentConfig(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
           {props.isAdd ? 'Save And Close' : 'Save'}
         </Button>

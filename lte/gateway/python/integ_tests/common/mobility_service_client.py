@@ -14,10 +14,9 @@ limitations under the License.
 import abc
 import ipaddress
 import logging
-import time
 
 import grpc
-from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
+from integ_tests.gateway.rpc import get_rpc_channel
 from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from orc8r.protos.common_pb2 import Void

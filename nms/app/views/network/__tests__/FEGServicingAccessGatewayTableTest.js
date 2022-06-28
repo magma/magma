@@ -14,24 +14,20 @@
  * @format
  */
 
-import 'jest-dom/extend-expect';
 import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 import type {
   feg_lte_network,
   feg_network,
   lte_gateway,
 } from '../../../../generated/MagmaAPIBindings';
-
-afterEach(cleanup);
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',
@@ -103,11 +99,12 @@ const mockGw1: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
+jest.mock('../../../../app/hooks/useSnackbar');
 
 describe('<ServicingAccessGatewaysInfo />', () => {
   const testNetwork: feg_network = {
@@ -147,6 +144,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
     ...mockGw1,
     id: 'test_gw3',
     name: 'test gateway3',
+    checked_in_recently: true,
     status: {checkin_time: Date.now()},
   };
   beforeEach(() => {
@@ -161,10 +159,6 @@ describe('<ServicingAccessGatewaysInfo />', () => {
         [mockGw2.id]: mockGw2,
       })
       .mockResolvedValue({[mockGw3.id]: mockGw3});
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   const Wrapper = () => {

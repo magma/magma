@@ -20,14 +20,18 @@ RUN apt-get update && apt-get install -y \
   gcc \
   git \
   make \
+  openjdk-8-jre-headless \
   unzip \
   vim
 
-# Golang 1.13
+# Golang 1.18
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
-    cp -r go/bin/* /usr/local/bin/
+ARG GOLANG_VERSION="1.18"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+ && rm ${GO_TARBALL}
 
 # Install goimports
 # RUN go get golang.org/x/tools/cmd/goimports
@@ -109,7 +113,7 @@ COPY src/magma/orc8r/cloud/docker/wait-for-it.sh /usr/local/bin
 RUN mkdir -p /var/opt/magma/envdir
 
 # Build artifacts
-ARG SWAGGER_FILES=src/magma/orc8r/cloud/go/obsidian/swagger
+ARG SWAGGER_FILES=src/magma/orc8r/cloud/go/services/obsidian/swagger
 COPY --from=builder /${SWAGGER_FILES}/v1/index.html /var/opt/magma/static/swagger/v1/ui/index.html
 COPY --from=builder /${SWAGGER_FILES}/v1/css/sidebar.css /var/opt/magma/static/swagger/v1/static/sidebar.css
 COPY --from=builder /${SWAGGER_FILES}/v1/swagger.yml /var/opt/magma/static/swagger/v1/spec/swagger.yml

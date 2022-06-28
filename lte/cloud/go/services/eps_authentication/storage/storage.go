@@ -81,7 +81,7 @@ func (s *subscriberDBStorageImpl) GetSubscriberData(
 			codes.NotFound, "missing subscriber configuration for NID: %s, SID: %s", nid.GetId(), sid.GetId())
 	}
 	if cfg := ent.Config.(*models.SubscriberConfig); cfg != nil && cfg.Lte != nil {
-		subData.SubProfile = string(cfg.Lte.SubProfile)
+		subData.SubProfile = string(*cfg.Lte.SubProfile)
 		subData.Lte = &lteprotos.LTESubscription{
 			State: lteprotos.LTESubscription_LTESubscriptionState(
 				lteprotos.LTESubscription_LTESubscriptionState_value[cfg.Lte.State]),

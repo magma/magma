@@ -19,27 +19,21 @@ RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.8 since it's not native on focal
-RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
 ENV MAGMA_ROOT /magma
 ENV PYTHON_BUILD /build/python
 ENV PIP_CACHE_HOME ~/.pipcache
 ENV CODEGEN_ROOT /var/tmp/codegen
-ENV SWAGGER_CODEGEN_JAR $CODEGEN_ROOT/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
-ENV MVN_VERSION 3.5.4
-ENV MVN_DIR /var/tmp/apache-maven-$MVN_VERSION
-ENV M2_HOME $MVN_DIR
+ENV CODEGEN_VERSION 2.2.3
+ENV SWAGGER_CODEGEN_DIR $CODEGEN_ROOT/modules/swagger-codegen-cli/target
+ENV SWAGGER_CODEGEN_JAR $SWAGGER_CODEGEN_DIR/swagger-codegen-cli.jar
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 RUN printenv > /etc/environment
 
-# Install swagger codegen
-RUN git clone -b v2.2.3 'https://github.com/swagger-api/swagger-codegen' $CODEGEN_ROOT
-RUN curl -L http://mirrors.ibiblio.org/apache/maven/maven-3/$MVN_VERSION/binaries/apache-maven-$MVN_VERSION-bin.tar.gz > $MVN_DIR-bin.tar.gz
-RUN tar -xvf $MVN_DIR-bin.tar.gz -C /var/tmp
-COPY lte/gateway/deploy/roles/dev_common/files/build_swagger_codegen.sh /var/tmp/build_swagger_codegen.sh
-RUN ./var/tmp/build_swagger_codegen.sh
+# Download swagger codegen
+RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
+    curl -Lfs https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -o ${SWAGGER_CODEGEN_JAR}
 
 # Generate python proto bindings.
 COPY cwf/protos $MAGMA_ROOT/cwf/protos
@@ -74,14 +68,10 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https curl
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
     apt-add-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
-
-# Install python3.8 since it's not native on focal
-RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.8
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
@@ -100,6 +90,7 @@ RUN apt-get -y update && apt-get -y install \
   pkg-config \
   python-cffi \
   python3-pip \
+  python3.8 \
   python3.8-dev \
   redis-server \
   git \

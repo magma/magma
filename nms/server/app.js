@@ -14,46 +14,43 @@
  * @format
  */
 
-const {
-  DEV_MODE,
-  LOG_FORMAT,
-  LOG_LEVEL,
-} = require('../fbc_js_core/platform_server/config');
-
 // This must be done before any module imports to configure
 // logging correctly
-const logging = require('../fbc_js_core/logging');
+import logging from '../shared/logging';
 logging.configure({
   LOG_FORMAT,
   LOG_LEVEL,
 });
 
-const {
+import OrganizationLocalStrategy from './auth/strategies/OrganizationLocalStrategy';
+import OrganizationSamlStrategy from './auth/strategies/OrganizationSamlStrategy';
+import alertRoutes from './alerts/routes';
+import connectSession from 'connect-session-sequelize';
+import devWebpackConfig from '../config/webpack.config';
+import express from 'express';
+import fbcPassport from './auth/passport';
+import fs from 'fs';
+import grafanaRoutes from './grafana/routes';
+import mainRoutes from './main/routes';
+import passport from 'passport';
+import path from 'path';
+import session from 'express-session';
+import {AccessRoles} from '../shared/roles';
+import {DEV_MODE, LOG_FORMAT, LOG_LEVEL} from '../config/config';
+import {access, configureAccess} from './auth/access';
+import {
   appMiddleware,
   csrfMiddleware,
   organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
-} = require('../fbc_js_core/express_middleware');
-const connectSession = require('connect-session-sequelize');
-const express = require('express');
-const passport = require('passport');
-const path = require('path');
-const fbcPassport = require('../fbc_js_core/auth/passport').default;
-const session = require('express-session');
-const {sequelize} = require('../fbc_js_core/sequelize_models');
-const OrganizationLocalStrategy = require('../fbc_js_core/auth/strategies/OrganizationLocalStrategy')
-  .default;
-const OrganizationSamlStrategy = require('../fbc_js_core/auth/strategies/OrganizationSamlStrategy')
-  .default;
-
-const {access, configureAccess} = require('../fbc_js_core/auth/access');
-const {
-  AccessRoles: {SUPERUSER, USER},
-} = require('../fbc_js_core/auth/roles');
+} from './middleware';
+import {distPath} from '../config/paths';
+import {sequelize} from '../shared/sequelize_models';
+import {unprotectedUserRoutes} from '../server/auth/express';
 
 import type {ExpressResponse} from 'express';
-import type {FBCNMSRequest} from '../fbc_js_core/auth/access';
+import type {FBCNMSRequest} from './auth/access';
 
 // Create Sequelize Store
 const SessionStore = connectSession(session.Store);
@@ -85,7 +82,7 @@ passport.use(
 );
 
 // Views
-app.set('views', path.join(__dirname, '..', 'views'));
+app.set('views', path.join(__dirname, '../server/', 'views'));
 app.set('view engine', 'pug');
 
 // Routes
@@ -93,38 +90,34 @@ app.set('view engine', 'pug');
 app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,
-    devWebpackConfig: require('../config/webpack.config.js'),
-    distPath: require('../config/paths').distPath,
+    devWebpackConfig,
+    distPath,
   }),
 );
-app.use(
-  '/user',
-  require('../fbc_js_core/auth/express').unprotectedUserRoutes(),
-);
+app.use('/user', unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
 
 // Grafana uses its own CSRF, so we don't need to handle it on our side.
 // Grafana can access all metrics of an org, so it must be restricted
 // to superusers
-app.use('/grafana', access(SUPERUSER), require('../grafana/routes.js').default);
+app.use('/grafana', access(AccessRoles.SUPERUSER), grafanaRoutes);
 
 // add lte metrics json file handler
-const fs = require('fs');
 const lteMetricsJsonData = fs.readFileSync(
-  path.join(__dirname, '..', 'data/LteMetrics.json'),
+  path.join(__dirname, '..', 'api/data/LteMetrics.json'),
   'utf-8',
 );
 const alertLinksJsonData = fs.readFileSync(
-  path.join(__dirname, '..', 'data/AlertLinks.json'),
+  path.join(__dirname, '..', 'api/data/AlertLinks.json'),
   'utf-8',
 );
-app.get('/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
-app.get('/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
+app.get('api/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
+app.get('api/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
 
 // Trigger syncing of automatically generated alerts
-app.use('/sync_alerts', access(USER), require('../alerts/routes.js').default);
+app.use('/sync_alerts', access(AccessRoles.USER), alertRoutes);
 
-app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
+app.use('/', csrfMiddleware(), access(AccessRoles.USER), mainRoutes);
 
 export default app;

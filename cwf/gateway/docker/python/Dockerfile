@@ -19,8 +19,6 @@ RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.8 since it's not native on focal
-RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
 ENV MAGMA_ROOT /magma
@@ -51,12 +49,9 @@ COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 # TODO: change repo to focal once there will be such
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" && \
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" && \
     apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
 
- # Install python3.8 since it's not native on focal
-RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.8
 RUN apt-get -y update && apt-get -y install \
     curl \
     libc-ares2 \
@@ -72,6 +67,7 @@ RUN apt-get -y update && apt-get -y install \
     pkg-config \
     python-cffi \
     python3-pip \
+    python3.8 \
     python3.8-dev \
     redis-server \
     iptables \
@@ -115,7 +111,7 @@ RUN python3.8 -m pip install --no-cache-dir \
     click \
     pycares \
     python-dateutil \
-    aioeventlet>=0.4 \ 
+    aioeventlet>=0.4 \
     jsonpickle
 
 # TODO: aioeventlet>=0.4 was manually added to fix regression tracked with GH issue 6152

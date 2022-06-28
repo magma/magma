@@ -23,7 +23,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -46,7 +45,7 @@ type syncStore struct {
 func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.StoreFactory, config Config) (SyncStore, error) {
 	err := config.Validate(true)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid configs for syncstore")
+		return nil, fmt.Errorf("invalid configs for syncstore: %w", err)
 	}
 	store := &syncStore{
 		db:                           db,
@@ -65,7 +64,7 @@ func (l *syncStore) SetDigest(network string, digests *protos.DigestTree) error 
 	leafDigestsToSerialize := &protos.LeafDigests{Digests: digests.GetLeafDigests()}
 	leafDigests, err := proto.Marshal(leafDigestsToSerialize)
 	if err != nil {
-		return errors.Wrapf(err, "marshal leaf digests for network %+v", network)
+		return fmt.Errorf("marshal leaf digests for network %+v: %w", network, err)
 	}
 	now := clock.Now().Unix()
 
@@ -85,7 +84,7 @@ func (l *syncStore) SetDigest(network string, digests *protos.DigestTree) error 
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "insert digests for network %+v", network)
+			return nil, fmt.Errorf("insert digests for network %+v: %w", network, err)
 		}
 		return nil, nil
 	}
@@ -105,7 +104,10 @@ func (l *syncStore) UpdateCache(network string) (CacheWriter, error) {
 			PrimaryKey(nidCol, idCol).
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "create cached objs tmp table")
+		if err != nil {
+			return nil, fmt.Errorf("create cached objs tmp table: %w", err)
+		}
+		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	if err != nil {
@@ -115,7 +117,7 @@ func (l *syncStore) UpdateCache(network string) (CacheWriter, error) {
 	// The start time of cacheWriters is tracked by the store for garbage collection
 	err = l.recordCacheWriterStartTime(network, writerID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "record start time of cache writer %+v of network %+v", writerID, network)
+		return nil, fmt.Errorf("record start time of cache writer %+v of network %+v: %w", writerID, network, err)
 	}
 
 	return l.NewCacheWriter(network, writerID), nil
@@ -124,7 +126,7 @@ func (l *syncStore) UpdateCache(network string) (CacheWriter, error) {
 func (l *syncStore) RecordResync(network string, gateway string, t int64) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrapf(err, "error starting transaction")
+		return fmt.Errorf("error starting transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -134,7 +136,7 @@ func (l *syncStore) RecordResync(network string, gateway string, t int64) error 
 		Value: encodeInt64(t),
 	}})
 	if err != nil {
-		return errors.Wrapf(err, "set last resync time of network %+v, gateway %+v in blobstore", network, gateway)
+		return fmt.Errorf("set last resync time of network %+v, gateway %+v in blobstore: %w", network, gateway, err)
 	}
 
 	return store.Commit()
@@ -144,7 +146,7 @@ func (l *syncStore) RecordResync(network string, gateway string, t int64) error 
 func (l *syncStore) recordCacheWriterStartTime(network string, writerID string) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrapf(err, "error starting transaction")
+		return fmt.Errorf("error starting transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -154,7 +156,7 @@ func (l *syncStore) recordCacheWriterStartTime(network string, writerID string) 
 		Value: encodeInt64(clock.Now().Unix()),
 	}})
 	if err != nil {
-		return errors.Wrapf(err, "set start time of network %+v, cachewriter %+v in blobstore", network, writerID)
+		return fmt.Errorf("set start time of network %+v, cachewriter %+v in blobstore: %w", network, writerID, err)
 	}
 	return store.Commit()
 }
@@ -197,7 +199,7 @@ func (l *syncStore) collectGarbageSQL(tracked []string) error {
 		}
 		_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "collect garbage for table %+v", tableName))
+			errs = multierror.Append(errs, fmt.Errorf("collect garbage for table %+v: %w", tableName, err))
 		}
 	}
 	return errs.ErrorOrNil()
@@ -206,20 +208,20 @@ func (l *syncStore) collectGarbageSQL(tracked []string) error {
 func (l *syncStore) getStoredNetworksSQL(tx *sql.Tx, tableName string) ([]string, error) {
 	rows, err := l.builder.Select(nidCol).From(tableName).RunWith(tx).Query()
 	if err != nil {
-		return nil, errors.Wrapf(err, "get all networks in store %+v", tableName)
+		return nil, fmt.Errorf("get all networks in store %+v: %w", tableName, err)
 	}
 	var storedNetworks []string
 	for rows.Next() {
 		network := ""
 		err = rows.Scan(&network)
 		if err != nil {
-			return nil, errors.Wrapf(err, "get all networks in store %+v, SQL rows scan error", tableName)
+			return nil, fmt.Errorf("get all networks in store %+v, SQL rows scan error: %w", tableName, err)
 		}
 		storedNetworks = append(storedNetworks, network)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, errors.Wrapf(err, "get all networks in store %+v, SQL rows error", tableName)
+		return nil, fmt.Errorf("get all networks in store %+v, SQL rows error: %w", tableName, err)
 	}
 	return storedNetworks, nil
 }
@@ -227,7 +229,7 @@ func (l *syncStore) getStoredNetworksSQL(tx *sql.Tx, tableName string) ([]string
 func getStoredNetworksBlobstore(store blobstore.Store) ([]string, error) {
 	keysByNetwork, err := blobstore.ListKeysByNetwork(store)
 	if err != nil {
-		return nil, errors.Wrap(err, "list blobstore keys by network")
+		return nil, fmt.Errorf("list blobstore keys by network: %w", err)
 	}
 	return funk.Keys(keysByNetwork).([]string), nil
 }
@@ -237,13 +239,13 @@ func getStoredNetworksBlobstore(store blobstore.Store) ([]string, error) {
 func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "error starting transaction")
+		return fmt.Errorf("error starting transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	stored, err := getStoredNetworksBlobstore(store)
 	if err != nil {
-		return errors.Wrap(err, "get all networks in blobstore")
+		return fmt.Errorf("get all networks in blobstore: %w", err)
 	}
 	deleted, _ := funk.DifferenceString(stored, tracked)
 
@@ -255,14 +257,10 @@ func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 			continue
 		}
 		err = store.Delete(network, storage.MakeTKs(lastResyncBlobstoreType, keys))
-		if err != nil {
-			errs = multierror.Append(errs, err)
-		}
-	}
-	err = store.Commit()
-	if err != nil {
 		errs = multierror.Append(errs, err)
 	}
+	err = store.Commit()
+	errs = multierror.Append(errs, err)
 	return errs.ErrorOrNil()
 }
 
@@ -271,19 +269,19 @@ func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
 
 	invalidByNetwork, err := l.getInvalidCacheWriter(tracked, l.cacheWriterValidIntervalSecs)
 	if err != nil {
-		errs = multierror.Append(errs, errors.Wrapf(err, "get invalid cache writers for tracked networks %+v", tracked))
+		errs = multierror.Append(errs, fmt.Errorf("get invalid cache writers for tracked networks %+v: %w", tracked, err))
 	}
 
 	// Attempt to drop the tmp tables of all invalid cacheWriters, and only delete the blobstore records of those
 	// whose tables have been successfully dropped; the rest is left to be garbage collected in future runs
 	deletedByNetwork, err := l.dropInvalidCaches(invalidByNetwork)
 	if err != nil {
-		errs = multierror.Append(errs, errors.Wrapf(err, "drop invalid cache writer tables %+v", invalidByNetwork))
+		errs = multierror.Append(errs, fmt.Errorf("drop invalid cache writer tables %+v: %w", invalidByNetwork, err))
 	}
 
 	err = l.deleteCacheWriterBlobstoreRecords(deletedByNetwork)
 	if err != nil {
-		errs = multierror.Append(errs, errors.Wrapf(err, "delete cache writer blobstore records %+v", deletedByNetwork))
+		errs = multierror.Append(errs, fmt.Errorf("delete cache writer blobstore records %+v: %w", deletedByNetwork, err))
 	}
 
 	return errs.ErrorOrNil()
@@ -294,13 +292,13 @@ func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
 func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidIntervalSecs int64) (map[string][]string, error) {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, errors.Wrap(err, "error starting transaction")
+		return nil, fmt.Errorf("error starting transaction: %w", err)
 	}
 	defer store.Rollback()
 
 	stored, err := getStoredNetworksBlobstore(store)
 	if err != nil {
-		return nil, errors.Wrap(err, "get all networks in blobstore")
+		return nil, fmt.Errorf("get all networks in blobstore: %w", err)
 	}
 
 	deleted, _ := funk.DifferenceString(stored, tracked)
@@ -310,7 +308,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 	for _, network := range deleted {
 		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "list cache writers of deleted network %+v", network))
+			errs = multierror.Append(errs, fmt.Errorf("list cache writers of deleted network %+v: %w", network, err))
 			continue
 		}
 		invalidByNetwork[network] = keys
@@ -319,12 +317,12 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 	for _, network := range tracked {
 		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "list all cache-writer-type blobstore keys of network %+v", network))
+			errs = multierror.Append(errs, fmt.Errorf("list all cache-writer-type blobstore keys of network %+v: %w", network, err))
 			continue
 		}
 		blobs, err := store.GetMany(network, storage.MakeTKs(cacheWriterBlobstoreType, keys))
 		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "get cache writer blobs of network %+v", network))
+			errs = multierror.Append(errs, fmt.Errorf("get cache writer blobs of network %+v: %w", network, err))
 			continue
 		}
 
@@ -338,9 +336,7 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 		invalidByNetwork[network] = invalid
 	}
 	err = store.Commit()
-	if err != nil {
-		errs = multierror.Append(errs, err)
-	}
+	errs = multierror.Append(errs, err)
 	return invalidByNetwork, errs.ErrorOrNil()
 }
 
@@ -354,7 +350,10 @@ func (l *syncStore) dropInvalidCaches(invalidByNetwork map[string][]string) (map
 		for _, tableName := range invalid {
 			txFn := func(tx *sql.Tx) (interface{}, error) {
 				_, err := tx.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
-				return nil, errors.Wrapf(err, "drop cache writer table %+v for network %+v", tableName, network)
+				if err != nil {
+					return nil, fmt.Errorf("drop cache writer table %+v for network %+v: %w", tableName, network, err)
+				}
+				return nil, nil
 			}
 			_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 			if err != nil {
@@ -373,7 +372,7 @@ func (l *syncStore) dropInvalidCaches(invalidByNetwork map[string][]string) (map
 func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[string][]string) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
-		return errors.Wrap(err, "error starting transaction")
+		return fmt.Errorf("error starting transaction: %w", err)
 	}
 	defer store.Rollback()
 
@@ -382,13 +381,11 @@ func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[strin
 		tks := storage.MakeTKs(cacheWriterBlobstoreType, deleted)
 		err := store.Delete(network, tks)
 		if err != nil {
-			errs = multierror.Append(errs, errors.Wrapf(err, "delete blobstore cache writer records %+v for network %+v", deleted, network))
+			errs = multierror.Append(errs, fmt.Errorf("delete blobstore cache writer records %+v for network %+v: %w", deleted, network, err))
 		}
 	}
 	err = store.Commit()
-	if err != nil {
-		errs = multierror.Append(errs, err)
-	}
+	errs = multierror.Append(errs, err)
 
 	return errs.ErrorOrNil()
 }

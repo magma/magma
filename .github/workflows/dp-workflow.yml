@@ -1,4 +1,5 @@
-name: Domain proxy workflow
+---
+name: dp-workflow
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -11,6 +12,10 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types: [opened, reopened, synchronize]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   path_filter:
     runs-on: ubuntu-latest
@@ -20,7 +25,7 @@ jobs:
       rc: ${{ steps.filter.outputs.rc }}
       db: ${{ steps.filter.outputs.db }}
       helm: ${{ steps.filter.outputs.helm }}
-      integration_tests_no_orc8r: ${{ steps.filter.outputs.integration_tests_no_orc8r }}
+      integration_tests: ${{ steps.filter.outputs.integration_tests }}
     steps:
       - uses: actions/checkout@v2
         if: github.event_name == 'push'
@@ -33,6 +38,7 @@ jobs:
               - 'dp/cloud/python/configuration_controller/**'
               - 'dp/cloud/docker/python/configuration_controller/**'
               - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/cloud/python/magma/fluentd_client/**'
               - 'dp/protos/**'
               - 'dp/cloud/go/protos/**'
               - 'dp/cloud/go/active_mode_controller/protos'
@@ -49,18 +55,33 @@ jobs:
               - 'dp/cloud/python/radio_controller/**'
               - 'dp/cloud/docker/python/radio_controller/**'
               - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/cloud/python/magma/fluentd_client/**'
               - 'dp/protos/**'
               - 'dp/cloud/go/protos/**'
               - 'dp/cloud/go/active_mode_controller/protos'
             helm:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/helm/**'
-            integration_tests_no_orc8r:
+            integration_tests:
+              - '.github/workflows/**'
+              - 'orc8r/**'
+              - 'lte/**'
               - 'dp/**'
+              - 'src/**'
+              - 'protos/**'
             db:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/python/magma/db_service/**'
-
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.filter.outputs.integration_tests  == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
 
   configuration_controller_unit_tests:
     needs: path_filter
@@ -105,7 +126,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
@@ -125,14 +146,14 @@ jobs:
     strategy:
       matrix:
         go-version:
-          - 1.16
+          - 1.18.x
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -148,7 +169,7 @@ jobs:
           go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,active-mode-controller
           name: codecov-active-mode-controller
@@ -186,7 +207,7 @@ jobs:
       - name: Install python3-aioeventlet from the magma apt repo
         run: |
           cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
-          echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
+          echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" | sudo -E tee /etc/apt/sources.list.d/magma.list
           sudo apt-get update -y
           sudo apt-get install -y python3-aioeventlet
           sudo rm -rf /var/lib/apt/lists/*
@@ -230,7 +251,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,radio-controller
           name: codecov-radio-controller
@@ -331,7 +352,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           flags: unittests,db-service
           name: codecov-db-service
@@ -341,6 +362,8 @@ jobs:
   integration_tests:
     name: "Domain proxy integration tests"
     runs-on: ubuntu-latest
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.integration_tests == 'true' }}
     continue-on-error: false
     defaults:
       run:
@@ -382,38 +405,32 @@ jobs:
         run: |
           make ${{ matrix.test_type }}
 
+      - name: Collect Pods logs
+        if: always()
+        run: >-
+          mkdir ${TEST_DIR}/k8s-pods-logs;
+          for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers);
+          do
+            kubectl logs --timestamps=true $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
+          done
+      - name: Collect Elasticsearch data
+        if: always()
+        run: >
+          kubectl exec
+          $(kubectl get pods -o custom-columns=NAME:.metadata.name | grep elasticsearch)
+          -- curl localhost:9200/dp-*/_search?size=200 > ${TEST_DIR}/elasticsearch-data.json
+
       - name: Upload integration test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.test_type }}-results
-          path: |
-            ${{ env.TEST_DIR }}
-            /tmp/${{ matrix.test_type }}.txt
-
-  integration-test-results:
-    needs: integration_tests
-    name: Integration test results
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: dp-workflow.yml
-          path: test-results
-
-      - name: Publish integration test results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          commit: ${{ github.event.workflow_run.head_sha }}
-          files: test-results/**/*.xml
-          comment_title: "Domain Proxy integration tests results"
-
+          path: ${{ env.TEST_DIR }}
 
   helm_chart_tests:
     name: "Helm chart smoke tests"
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.helm == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:

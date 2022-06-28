@@ -13,7 +13,7 @@ limitations under the License.
 
 package servicers
 
-import "magma/lte/cloud/go/protos"
+import "magma/feg/cloud/go/protos"
 
 func (suite *EpsAuthTestSuite) TestPurgeUE_UnknownSubscriber() {
 	purge := &protos.PurgeUERequest{UserName: "sub_unknown"}

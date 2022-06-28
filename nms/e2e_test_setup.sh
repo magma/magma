@@ -32,7 +32,7 @@ do
 done
 
 docker-compose exec -T magmalte yarn setAdminPassword magma-test admin@magma.test password1234
-docker-compose exec -T magmalte yarn createOrganization magma-test nms test,test_feg_lte_network
+docker-compose exec -T magmalte yarn createOrganization magma-test test,test_feg_lte_network
 
 # run the end to end test
 set +e

@@ -13,17 +13,14 @@ limitations under the License.
 import logging
 import socket
 import subprocess
-import threading
-import time
 import unittest
-import warnings
-from concurrent.futures import Future
+from typing import List
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.ebpf.ebpf_manager import EbpfManager
 from scapy.all import AsyncSniffer
-from scapy.layers.inet import IP, UDP
+from scapy.layers.inet import IP
 
 GTP_SCRIPT = "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
 PY_PATH = "/home/vagrant/build/python/bin/python"
@@ -48,7 +45,7 @@ class eBpfDatapathULTest(unittest.TestCase):
     gtp_pkt_dst = '11.1.1.1'
     gtp_pkt_src = '11.1.1.2'
 
-    packet_cap1 = []
+    packet_cap1: List = []
     sniffer = None
     ebpf_man = None
 
@@ -110,14 +107,12 @@ class eBpfDatapathULTest(unittest.TestCase):
 
     @classmethod
     def pkt_cap_fun(cls, packet):
-        # print("got packet: %s", packet)
         cls.packet_cap1.append(packet)
 
     @classmethod
     def count_udp_packet(cls):
         cnt = 0
         for pkt in cls.packet_cap1:
-            # print(pkt.show(dump=True))
             if IP in pkt:
                 if pkt[IP].src == cls.inner_src_ip and pkt[IP].dst == cls.inner_dst_ip:
                     cnt = cnt + 1

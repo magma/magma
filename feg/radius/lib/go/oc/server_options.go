@@ -15,13 +15,14 @@ package oc
 
 import (
 	"encoding/json"
+	"fmt"
+
+	"fbc/lib/go/http/server"
+	"fbc/lib/go/oc/helpers"
 
 	"contrib.go.opencensus.io/exporter/aws"
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/prometheus"
-	"fbc/lib/go/http/server"
-	"fbc/lib/go/oc/helpers"
-	"github.com/pkg/errors"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
@@ -56,7 +57,7 @@ var ServerResponseCountByStatusAndPath = &view.View{
 func NewConfig(config string) (*CensusConfig, error) {
 	var cc CensusConfig
 	if err := json.Unmarshal([]byte(config), &cc); err != nil {
-		return nil, errors.Wrapf(err, "parsing census config: %q", config)
+		return nil, fmt.Errorf("parsing census config: %q: %w", config, err)
 	}
 	return &cc, nil
 }
@@ -115,12 +116,12 @@ func xrayOption(options xrayOptions) server.Option {
 		})))
 		exporter, err := aws.NewExporter(opts...)
 		if err != nil {
-			return errors.Wrap(err, "creating xray exporter")
+			return fmt.Errorf("creating xray exporter: %w", err)
 		}
 		trace.RegisterExporter(exporter)
 		err = srv.Apply(server.Closer(closerFunc(func() error { exporter.Flush(); return nil })))
 		if err != nil {
-			return errors.WithMessage(err, "registering xray flusher")
+			return fmt.Errorf("registering xray flusher: %w", err)
 		}
 		return nil
 	})
@@ -133,12 +134,12 @@ func jaegerOption(options jaeger.Options) server.Option {
 		}
 		exporter, err := jaeger.NewExporter(options)
 		if err != nil {
-			return errors.Wrap(err, "creating jaeger exporter")
+			return fmt.Errorf("creating jaeger exporter: %w", err)
 		}
 		trace.RegisterExporter(exporter)
 		err = srv.Apply(server.Closer(closerFunc(func() error { exporter.Flush(); return nil })))
 		if err != nil {
-			return errors.WithMessage(err, "registering jaeger flusher")
+			return fmt.Errorf("registering jaeger flusher: %w", err)
 		}
 		return nil
 	})
@@ -152,19 +153,19 @@ func prometheusOption(options prometheus.Options) server.Option {
 		options.Registry = prom_client.NewRegistry()
 		exporter, err := prometheus.NewExporter(options)
 		if err != nil {
-			return errors.Wrap(err, "creating prometheus exporter")
+			return fmt.Errorf("creating prometheus exporter: %w", err)
 		}
 
 		// Adding process collector
 		if err := options.Registry.Register(prom_client.NewProcessCollector(
 			prom_client.ProcessCollectorOpts{Namespace: options.Namespace},
 		)); err != nil {
-			return errors.Wrap(err, "registering process collector")
+			return fmt.Errorf("registering process collector: %w", err)
 		}
 
 		// Adding GO collector
 		if err := options.Registry.Register(prom_client.NewGoCollector()); err != nil {
-			return errors.Wrap(err, "registering go collector")
+			return fmt.Errorf("registering go collector: %w", err)
 		}
 		if err := view.Register(
 			ochttp.ServerRequestCountView,
@@ -175,7 +176,7 @@ func prometheusOption(options prometheus.Options) server.Option {
 			ochttp.ServerResponseCountByStatusCode,
 			ServerResponseCountByStatusAndPath,
 		); err != nil {
-			return errors.Wrap(err, "registering http server views")
+			return fmt.Errorf("registering http server views: %w", err)
 		}
 		if err := view.Register(
 			ochttp.ClientCompletedCount,
@@ -184,7 +185,7 @@ func prometheusOption(options prometheus.Options) server.Option {
 			ochttp.ClientRoundtripLatencyDistribution,
 			ochttp.ClientCompletedCount,
 		); err != nil {
-			return errors.Wrap(err, "registering http client views")
+			return fmt.Errorf("registering http client views: %w", err)
 		}
 		if err := view.Register(
 			helpers.LatencyView,
@@ -192,7 +193,7 @@ func prometheusOption(options prometheus.Options) server.Option {
 			helpers.SuccessCountView,
 			helpers.CountView,
 		); err != nil {
-			return errors.Wrap(err, "registering customized KPI views")
+			return fmt.Errorf("registering customized KPI views: %w", err)
 		}
 
 		view.RegisterExporter(exporter)

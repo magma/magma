@@ -13,32 +13,23 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import Gateway from '../EquipmentGateway';
 import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 import type {
   lte_gateway,
   promql_return_object,
 } from '../../../../generated/MagmaAPIBindings';
 
-const enqueueSnackbarMock = jest.fn();
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
-  .mockReturnValue(enqueueSnackbarMock);
-afterEach(cleanup);
+jest.mock('../../../hooks/useSnackbar');
 
 const mockCheckinMetric: promql_return_object = {
   status: 'success',
@@ -92,6 +83,7 @@ const mockGw0: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockKPIMetric: promql_return_object = {
@@ -124,21 +116,19 @@ describe('<Gateway />', () => {
     );
   });
 
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
-
-  const mockGw1 = Object.assign({}, mockGw0);
-  const mockGw2 = Object.assign({}, mockGw0);
-  mockGw1.id = 'test_gw1';
-  mockGw1.name = 'test_gateway1';
-  mockGw1.connected_enodeb_serials = ['xxx', 'yyy'];
-
-  mockGw2.id = 'test_gw2';
-  mockGw2.name = 'test_gateway2';
-  mockGw2.connected_enodeb_serials = ['xxx'];
-  mockGw2.status = {
-    checkin_time: currTime,
+  const mockGw1 = {
+    ...mockGw0,
+    id: 'test_gw1',
+    name: 'test_gateway1',
+    connected_enodeb_serials: ['xxx', 'yyy'],
+  };
+  const mockGw2 = {
+    ...mockGw0,
+    id: 'test_gw2',
+    name: 'test_gateway2',
+    checked_in_recently: true,
+    connected_enodeb_serials: ['xxx'],
+    status: {...mockGw0.status, checkin_time: currTime},
   };
   const lteGateways = {
     test1: mockGw0,
@@ -172,10 +162,9 @@ describe('<Gateway />', () => {
     const {getByTestId, getAllByRole, getAllByTitle} = render(<Wrapper />);
     await wait();
 
-    // TODO(andreilee): Figure out why this expectation is broken
-    // expect(
-    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    // ).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+    ).toHaveBeenCalledTimes(1);
 
     expect(
       MagmaAPIBindings.getNetworksByNetworkIdPrometheusQuery,

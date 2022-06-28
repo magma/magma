@@ -71,10 +71,11 @@ class BridgeTools:
             ["ovs-ofctl", "show", bridge],
             stdout=subprocess.PIPE,
         )
-        for line1 in dump1.stdout.readlines():
-            if interface_name not in str(line1):
-                continue
-            return True
+        if dump1.stdout is not None:
+            for line1 in dump1.stdout.readlines():
+                if interface_name not in str(line1):
+                    continue
+                return True
         return False
 
     @staticmethod

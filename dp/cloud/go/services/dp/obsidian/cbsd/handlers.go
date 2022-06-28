@@ -20,7 +20,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,7 +29,7 @@ import (
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/merrors"
 	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
@@ -139,16 +139,19 @@ func createCbsd(c echo.Context) error {
 	if err := c.Bind(payload); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := payload.Validate(strfmt.Default); err != nil {
+	ctx := c.Request().Context()
+	if err := payload.ValidateModel(ctx); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	client, err := getCbsdManagerClient()
 	if err != nil {
 		return err
 	}
-	data := models.CbsdToBackend(payload)
+	data, err := models.CbsdToBackend(payload)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 	req := protos.CreateCbsdRequest{NetworkId: networkId, Data: data}
-	ctx := c.Request().Context()
 	_, err = client.CreateCbsd(ctx, &req)
 	if err != nil {
 		return getHttpError(err)
@@ -206,10 +209,13 @@ func updateCbsd(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err)
 	}
-	data := models.CbsdToBackend(payload)
+	data, err := models.CbsdToBackend(payload)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 	req := protos.UpdateCbsdRequest{NetworkId: networkId, Id: int64(id), Data: data}
 	ctx := c.Request().Context()
-	_, ierr := client.UpdateCbsd(ctx, &req)
+	_, ierr := client.UserUpdateCbsd(ctx, &req)
 	if ierr != nil {
 		return getHttpError(ierr)
 	}

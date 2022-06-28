@@ -15,7 +15,6 @@
  */
 import type {lte_gateway} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
@@ -31,21 +30,13 @@ import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
 } from '../../../state/lte/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
-  .mockReturnValue(enqueueSnackbarMock);
-
-afterEach(cleanup);
+jest.mock('../../../hooks/useSnackbar');
 
 const gwPoolStateMock = {
   pool1: {
@@ -149,6 +140,7 @@ const mockGw0: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockGw1 = Object.assign({}, mockGw0);
@@ -243,11 +235,11 @@ describe('<GatewayPools />', () => {
 });
 
 describe('<AddEditGatewayPoolButton />', () => {
-  afterEach(() => {
-    MagmaAPIBindings.postLteByNetworkIdGatewayPools.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularPooling.mockClear();
-  });
   beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
     MagmaAPIBindings.getLteByNetworkIdGatewayPoolsByGatewayPoolId.mockResolvedValue(
       {
         config: {mme_group_id: 4},

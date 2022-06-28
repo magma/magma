@@ -25,10 +25,10 @@ import (
 	subscriberdbcloud_servicer "magma/lte/cloud/go/services/subscriberdb/servicers/southbound"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -67,6 +67,11 @@ func main() {
 	}
 	if err := subscriberStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing subscriber syncstore: %+v", err)
+	}
+
+	subscriberStateStore := subscriberdb_storage.NewSubscriberStorage(db, sqorc.GetSqlBuilder())
+	if err := subscriberStateStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing subscriber state storage : %+v", err)
 	}
 
 	var serviceConfig subscriberdb.Config

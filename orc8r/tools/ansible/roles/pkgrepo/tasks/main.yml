@@ -9,20 +9,58 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-- name: Check if role variables are defined
-  fail: msg="distribution is undefined for the pkgrepo role"
-  when: distribution is undefined
-
-- name: remove fluentbit repo as its broken
-  shell: rm -rf /etc/apt/sources.list.d/packages_fluentbit_io_ubuntu_focal.list
+- name: Remove all old registries
+  shell: rm -rf /etc/apt/sources.list.d/*.list
   become: yes
   ignore_errors: yes
 
-- name: Set up debian style repository
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  include_tasks: debian.yml
+- name: Wait for APT Lock
+  shell: |
+    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
+      sleep 1
+    done
+    while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
+      sleep 1
+    done
+    if [ -f /var/log/unattended-upgrades/unattended-upgrades.log ]; then
+      while sudo fuser /var/log/unattended-upgrades/unattended-upgrades.log >/dev/null 2>&1 ; do
+        sleep 1
+      done
+    fi
 
-- name: Set up redhat style repository
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  include_tasks: redhat.yml
+- name: Remove unattended upgrades
+  apt:
+    state: absent
+    purge: yes
+    pkg:
+      - unattended-upgrades
+
+- name: Ensure ca-certificates is up to date
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+  register: result
+  until: result is not failed
+  vars:
+    packages:
+      - ca-certificates
+
+- name: Copy gpg key from codebase
+  copy:
+    src: jfrog.pub
+    dest: /tmp/jfrog.pub
+
+- name: Adding the key to agent
+  apt_key:
+    file: /tmp/jfrog.pub
+    state: present
+
+- name: Configuring the registry in sources.list.d
+  ansible.builtin.shell:
+    cmd: echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list
+
+- name: Update apt
+  apt:
+    update_cache: yes

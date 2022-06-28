@@ -15,7 +15,7 @@ package db
 
 type Model interface {
 	GetMetadata() *ModelMetadata
-	Fields() []BaseType // TODO use slice
+	Fields() []BaseType
 }
 
 type ModelMetadata struct {

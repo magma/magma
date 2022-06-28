@@ -25,12 +25,12 @@ services:
     build: .
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
     volumes:
+      - ./api:/usr/src/api
       - ./app:/usr/src/app
-      - ./fbc_js_core:/usr/src/fbc_js_core
+      - ./generated:/usr/src/generated
       - ./scripts:/usr/src/scripts
       - ./server:/usr/src/server
-      - ./grafana:/usr/src/grafana
-      - ./alerts:/usr/src/alerts
+      - ./shared:/usr/src/shared
     depends_on:
       - postgres
     networks:
@@ -49,7 +49,6 @@ services:
       MYSQL_DB: nms
       MYSQL_USER: nms
       MYSQL_PASS: password
-      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       MYSQL_DIALECT: postgres
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_DOWNLOAD: "true"

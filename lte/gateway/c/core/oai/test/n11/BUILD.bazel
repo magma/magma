@@ -15,6 +15,7 @@ package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
 
 cc_test(
     name = "n11_auth_service_client_test",
+    size = "small",
     srcs = [
         "test_auth_service_client.cpp",
     ],
@@ -26,6 +27,7 @@ cc_test(
 
 cc_test(
     name = "n11_smf_service_client_test",
+    size = "small",
     srcs = [
         "test_smf_service_client.cpp",
     ],

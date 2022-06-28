@@ -31,10 +31,10 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    4. [Vagrant](https://vagrantup.com)
 
    ```bash
-   brew install go@1.13 pyenv
+   brew install go@1.18 pyenv
    # NOTE: this assumes you're using zsh.
    # See the above pyenv install instructions if using alternative shells.
-   echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
+   echo 'export PATH="/usr/local/opt/go@1.18/bin:$PATH"' >> ~/.zshrc
    echo 'eval "$(pyenv init --path)"' >> ~/.zprofile
    echo 'eval "$(pyenv init -)"' >> ~/.zshrc
    exec $SHELL
@@ -60,19 +60,19 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 1. Install the following tools
    1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
-   3. [Vagrant](https://www.vagrantup.com/downloads)
-2. Install golang version 13.
+   3. [Vagrant](https://www.vagrantup.com/downloads) (Install by downloading the `.deb` file. Installing via the command line using `apt-get` can currently cause an issue with OpenSSL. See also [this discussion](https://github.com/hashicorp/vagrant/issues/12751).)
+2. Install golang version 18.
 
    1. Download the tar file.
 
       ```bash
-      wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
+      wget https://artifactory.magmacore.org/artifactory/generic/go1.18.linux-amd64.tar.gz
       ```
 
    2. Extract the archive you downloaded into `/usr/local`, creating a Go tree in `/usr/local/go`.
 
       ```bash
-      sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.13.15.linux-amd64.tar.gz
+      sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
       ```
 
    3. Add `/usr/local/go/bin` to the PATH environment variable.
@@ -90,7 +90,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       You should expect something like this
 
       ```bash
-      go version go1.13.15 linux/amd64
+      go version go1.18 linux/amd64
       ```
 
 3. Install `pyenv`.
@@ -106,6 +106,8 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       ```bash
       apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev  libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
       ```
+
+      **Note**: For Ubuntu 22.04, use `python3-openssl` instead of `python-openssl`.
 
    3. Clone `pyenv` repository.
 
@@ -129,6 +131,8 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       pyenv global 3.7.3
       ```
 
+        **Note**: The `pyenv` installation [might fail with a segmentation fault](https://github.com/pyenv/pyenv/issues/2046). Try using `CFLAGS="-O2" pyenv install 3.7.3` in that case.
+
 4. Install `pip3` and its dependencies.
 
    1. Install `pip3`.
@@ -148,6 +152,8 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    ```bash
    vagrant plugin install vagrant-vbguest
    ```
+
+    Make sure `virtualbox` is the default provider for `vagrant` by adding the following line to your `.bashrc` (or equivalent) and restart your shell: `export VAGRANT_DEFAULT_PROVIDER="virtualbox"`.
 
 ## Downloading Magma
 

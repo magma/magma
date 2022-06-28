@@ -1,0 +1,27 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: get required log for '{{ process }}'
+  tags: get-log
+  shell: journalctl -u "{{ process }}" --since "{{ start }}"
+  async: 900
+  poll: 10
+  register: cur_log
+  become: yes
+  ignore_errors: yes
+
+- name: copy the output to a local file
+  tags: get-log
+  copy:
+    content: "{{ cur_log.stdout }}"
+    dest: "{{ process_log_loc }}"
+  delegate_to: localhost

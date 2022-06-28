@@ -23,12 +23,12 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"

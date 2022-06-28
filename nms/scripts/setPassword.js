@@ -15,13 +15,13 @@
  */
 'use strict';
 
-import type {OrganizationType} from '../fbc_js_core/sequelize_models/models/organization';
+import type {OrganizationType} from '../shared/sequelize_models/models/organization';
 
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
 
-import {AccessRoles} from '../fbc_js_core/auth/roles';
-import {Organization, User} from '../fbc_js_core/sequelize_models';
+import {AccessRoles} from '../shared/roles';
+import {Organization, User} from '../shared/sequelize_models';
 
 const SALT_GEN_ROUNDS = 10;
 
@@ -52,7 +52,6 @@ async function createUser(userObject: UserObject) {
     password: passwordHash,
     role,
     networkIDs: [],
-    tabs: ['nms'],
     organization: org.name,
     readOnly: false,
   });

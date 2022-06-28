@@ -1,11 +1,24 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 import os
-from typing import List, Optional
+from typing import Any, Optional
 
 import alembic.config
 import sqlalchemy as sa
 import testing.postgresql
 from alembic.command import downgrade, stamp, upgrade
 from alembic.script import ScriptDirectory
+from magma.db_service.models import Base
 from magma.db_service.tests.db_testcase import DBTestCaseBlueprint
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -72,6 +85,9 @@ class AlembicTestCase(DBTestCaseBlueprint):
     def drop_all(self):
         self.metadata.drop_all()
 
+    def given_resource_inserted(self, table: sa.Table, **data: Any):
+        self.engine.execute(table.insert().values(**data))
+
     def then_tables_are(self, tables=None):
         if tables is None:
             tables = []
@@ -87,3 +103,6 @@ class AlembicTestCase(DBTestCaseBlueprint):
         except Exception as e:
             self.fail(f"Downgrade to base failed: {e}")
         self.then_tables_are()
+
+    def then_column_does_not_exist(self, entity: Base, column_name: str):
+        self.assertFalse(hasattr(entity, column_name))

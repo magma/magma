@@ -16,10 +16,10 @@
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
-import LoadingFiller from '../../fbc_js_core/ui/components/LoadingFiller';
+import LoadingFiller from './LoadingFiller';
 import MagmaV1API from '../../generated/WebClient';
 import React from 'react';
-import nullthrows from '../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../shared/util/nullthrows';
 import type {DataRows} from './DataGrid';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {
@@ -29,7 +29,7 @@ import type {
 
 import {FetchGateways} from '../state/lte/EquipmentState';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 /**
@@ -132,7 +132,7 @@ export default function ServicingAccessGatewayKPIs() {
       {
         category: 'Gateway Count',
         value: servicedAccessGatewaysCount,
-        tooltip: 'Number of gateways checked in within last 5 minutes',
+        tooltip: 'Number of gateways checked in recently',
       },
     ],
   ];

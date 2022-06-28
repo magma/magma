@@ -14,10 +14,10 @@
 package configurator
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/serde"
@@ -54,7 +54,7 @@ func (n Network) ToProto(serdes serde.Registry) (*storage.Network, error) {
 	}
 	bConfigs, err := marshalConfigs(n.Configs, serdes)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error serializing network %s", n.ID)
+		return nil, fmt.Errorf("error serializing network %s: %w", n.ID, err)
 	}
 	ret.Configs = bConfigs
 	return ret, nil
@@ -64,7 +64,7 @@ func (n Network) ToProto(serdes serde.Registry) (*storage.Network, error) {
 func (n Network) FromProto(protoNet *storage.Network, serdes serde.Registry) (Network, error) {
 	iConfigs, err := unmarshalConfigs(protoNet.Configs, serdes)
 	if err != nil {
-		return n, errors.Wrapf(err, "error deserializing network %s", protoNet.ID)
+		return n, fmt.Errorf("error deserializing network %s: %w", protoNet.ID, err)
 	}
 
 	n.ID = protoNet.ID
@@ -101,7 +101,7 @@ type NetworkUpdateCriteria struct {
 func (nuc NetworkUpdateCriteria) toProto(serdes serde.Registry) (*storage.NetworkUpdateCriteria, error) {
 	bConfigs, err := marshalConfigs(nuc.ConfigsToAddOrUpdate, serdes)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal update")
+		return nil, fmt.Errorf("failed to marshal update: %w", err)
 	}
 
 	ret := &storage.NetworkUpdateCriteria{
@@ -180,7 +180,7 @@ func (ent NetworkEntity) toProto(serdes serde.Registry) (*storage.NetworkEntity,
 	if ent.Config != nil {
 		bConfigs, err := serde.Serialize(ent.Config, ent.Type, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to serialize entity %s", ent.GetTK())
+			return nil, fmt.Errorf("failed to serialize entity %s: %w", ent.GetTK(), err)
 		}
 		ret.Config = bConfigs
 	}
@@ -194,7 +194,7 @@ func (ent NetworkEntity) fromProto(p *storage.NetworkEntity, serdes serde.Regist
 	if len(p.Config) != 0 {
 		iConfig, err := serde.Deserialize(p.Config, e.Type, serdes)
 		if err != nil {
-			return ent, errors.Wrapf(err, "failed to deserialize entity %s", ent.GetTK())
+			return ent, fmt.Errorf("failed to deserialize entity %s: %w", ent.GetTK(), err)
 		}
 		e.Config = iConfig
 		e.isSerialized = false
@@ -366,7 +366,7 @@ func (eg EntityGraph) FromProto(protoGraph *storage.EntityGraph, serdes serde.Re
 	for _, protoEnt := range protoGraph.Entities {
 		ent, err := (NetworkEntity{}).fromProtoWithDefault(protoEnt, serdes)
 		if err != nil {
-			return eg, errors.Wrapf(err, "failed to deserialize entity %s", protoEnt.GetTK())
+			return eg, fmt.Errorf("failed to deserialize entity %s: %w", protoEnt.GetTK(), err)
 		}
 		eg.Entities = append(eg.Entities, ent)
 	}
@@ -386,7 +386,7 @@ func (eg EntityGraph) ToProto(serdes serde.Registry) (*storage.EntityGraph, erro
 	for _, ent := range eg.Entities {
 		protoEnt, err := ent.toProto(serdes)
 		if err != nil {
-			return protoGraph, errors.Wrapf(err, "failed to convert entity %s to storage proto", ent.GetTK())
+			return protoGraph, fmt.Errorf("failed to convert entity %s to storage proto: %w", ent.GetTK(), err)
 		}
 		protoGraph.Entities = append(protoGraph.Entities, protoEnt)
 	}
@@ -552,7 +552,7 @@ func (euc EntityUpdateCriteria) toProto(serdes serde.Registry) (*storage.EntityU
 	if euc.NewConfig != nil {
 		bConfig, err := serde.Serialize(euc.NewConfig, euc.Type, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to serialize update %s", euc.GetTK())
+			return nil, fmt.Errorf("failed to serialize update %s: %w", euc.GetTK(), err)
 		}
 		ret.NewConfig = &wrappers.BytesValue{Value: bConfig}
 	}
@@ -578,7 +578,7 @@ func marshalConfigs(configs map[string]interface{}, serdes serde.Registry) (map[
 
 		sConfig, err := serde.Serialize(iConfig, configType, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to serialize config %s", configType)
+			return nil, fmt.Errorf("failed to serialize config %s: %w", configType, err)
 		}
 		ret[configType] = sConfig
 	}
@@ -595,7 +595,7 @@ func unmarshalConfigs(configs map[string][]byte, serdes serde.Registry) (map[str
 		}
 		iConfig, err := serde.Deserialize(config, typ, serdes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to deserialize network config %s", typ)
+			return nil, fmt.Errorf("failed to deserialize network config %s: %w", typ, err)
 		}
 		ret[typ] = iConfig
 	}

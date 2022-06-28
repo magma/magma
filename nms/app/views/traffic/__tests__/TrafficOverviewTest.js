@@ -13,14 +13,12 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
 import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
-import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -31,13 +29,11 @@ import {
   SetQosProfileState,
   SetRatingGroupState,
 } from '../../../state/PolicyState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
-
+jest.mock('../../../../app/hooks/useSnackbar');
 const apns = {
   apn_0: {
     apn_configuration: {
@@ -314,7 +310,6 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       ruleId: 'policy_0',
     });
-    axiosMock.delete.mockClear();
   });
   it('shows prompt when remove profile is clicked', async () => {
     MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId.mockResolvedValueOnce(
@@ -344,7 +339,6 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       profileId: 'profile_1',
     });
-    axiosMock.delete.mockClear();
   });
   it('shows prompt when remove rating group is clicked', async () => {
     MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId.mockResolvedValueOnce(
@@ -374,12 +368,15 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       ratingGroupId: 0,
     });
-    axiosMock.delete.mockClear();
   });
 });
 
 describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
+  beforeEach(() => {
+    MagmaAPIBindings.getNetworks.mockResolvedValue([]);
+  });
+
   beforeAll((): void => {
     delete window.location;
     window.location = {
@@ -511,6 +508,5 @@ describe('<TrafficDashboard APNs/>', () => {
       networkId: 'test',
       apnName: 'apn_0',
     });
-    axiosMock.delete.mockClear();
   });
 });

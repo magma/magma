@@ -20,7 +20,6 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/pkg/errors"
 )
 
 func (m *CwfNetwork) ValidateModel(context.Context) error {
@@ -45,7 +44,7 @@ func (m *GatewayCwfConfigs) ValidateModel(context.Context) error {
 	for _, peer := range m.AllowedGrePeers {
 		for _, key := range set[peer.IP] {
 			if swag.Uint32Value(peer.Key) == key {
-				return errors.New(fmt.Sprintf("Found duplicate peer %s with key %d", peer.IP, key))
+				return fmt.Errorf("Found duplicate peer %s with key %d", peer.IP, key)
 			}
 		}
 		set[peer.IP] = append(set[peer.IP], swag.Uint32Value(peer.Key))

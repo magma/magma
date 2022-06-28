@@ -16,13 +16,13 @@ from typing import Optional  # noqa
 
 from lte.protos.policydb_pb2 import FlowMatch
 
+from .tc_ops import TcOpsBase
 from .tc_ops_cmd import TcOpsCmd, argSplit, run_cmd
 from .tc_ops_pyroute2 import TcOpsPyRoute2
 from .types import QosInfo
 from .utils import IdManager
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
-# LOG.setLevel(logging.DEBUG)
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
@@ -35,10 +35,13 @@ class TrafficClass:
     Creates/Deletes queues in linux. Using Qdiscs for flow based
     rate limiting(traffic shaping) of user traffic.
     """
-    tc_ops = None
+    tc_ops: Optional[TcOpsBase] = None
 
     @staticmethod
     def delete_class(intf: str, qid: int, skip_filter=False) -> int:
+        if not TrafficClass.tc_ops:
+            raise ValueError("tc_ops not initialized yet")
+
         qid_hex = hex(qid)
 
         if not skip_filter:
@@ -51,6 +54,9 @@ class TrafficClass:
         intf: str, qid: int, max_bw: int, rate=None,
         parent_qid=None, skip_filter=False,
     ) -> int:
+        if not TrafficClass.tc_ops:
+            raise ValueError("tc_ops not initialized yet")
+
         if not rate:
             rate = DEFAULT_RATE
 
@@ -194,6 +200,7 @@ class TrafficClass:
                 LOG.error("could not find rate: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
+        return None
 
     @staticmethod
     def _get_qdisc_type(intf: str) -> Optional[str]:
@@ -210,6 +217,7 @@ class TrafficClass:
                 LOG.error("could not qdisc type: %s", output)
         except subprocess.CalledProcessError:
             LOG.error("Exception dumping Qos State for %s", tc_cmd)
+        return None
 
 
 class TCManager(object):

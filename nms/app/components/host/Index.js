@@ -16,21 +16,20 @@
 
 import AccountSettings from '../AccountSettings';
 import AppContent from '../layout/AppContent';
-import AppSideBar from '../../../fbc_js_core/ui/components/layout/AppSideBar';
+import AppSideBar from '../AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import CloudMetrics from '../../views/metrics/CloudMetrics';
-import Features from '../../../fbc_js_core/ui/host/Features';
+import Features from '../../views/features/Features';
 import FlagIcon from '@material-ui/icons/Flag';
-import OrganizationEdit from '../../../fbc_js_core/ui/host/OrganizationEdit';
-import Organizations from '../../../fbc_js_core/ui/host/Organizations';
+import OrganizationEdit from '../../views/organizations/OrganizationEdit';
+import Organizations from '../../views/organizations/Organizations';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '../admin/userManagement/UsersSettings';
-import {AppContextProvider} from '../../../fbc_js_core/ui/context/AppContext';
+import {AppContextProvider} from '../context/AppContext';
 import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
-import {getProjectTabs as getAllProjectTabs} from '../../../fbc_js_core/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -38,8 +37,6 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
   },
 }));
-
-const accessibleTabs = ['NMS'];
 
 function Frame() {
   const classes = useStyles();
@@ -81,15 +78,7 @@ const Index = () => {
           <Route path="/host" element={<Frame />}>
             <Route
               path="organizations/detail/:name"
-              element={
-                <OrganizationEdit
-                  getProjectTabs={() =>
-                    getAllProjectTabs().filter(tab =>
-                      accessibleTabs.includes(tab.name),
-                    )
-                  }
-                />
-              }
+              element={<OrganizationEdit />}
             />
             <Route path="organizations/*" element={<Organizations />} />
             <Route path="features/*" element={<Features />} />

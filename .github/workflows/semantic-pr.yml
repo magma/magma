@@ -97,6 +97,7 @@ jobs:
             feg_hello
             feg_relay
             health
+            lte
             magmad
             mme
             mobilityd

@@ -36,7 +36,7 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
 import TopBar from '../../components/TopBar';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../../shared/util/nullthrows';
 
 import {EVENT_STREAM} from '../../views/events/EventsTable';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';

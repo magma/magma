@@ -18,8 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -27,9 +26,9 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -193,9 +192,10 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load cellular gateway"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load cellular gateway: %w", err))
 	}
 
+	checkedInRecently := lte_models.GatewayCheckedInRecently(orc8r_models.LastGatewayCheckInWasRecent(magmadModel.Status, magmadModel.Magmad))
 	ret := &lte_models.LteGateway{
 		ID:                     magmadModel.ID,
 		Name:                   magmadModel.Name,
@@ -205,6 +205,7 @@ func getGateway(c echo.Context) error {
 		Status:                 magmadModel.Status,
 		Tier:                   magmadModel.Tier,
 		Magmad:                 magmadModel.Magmad,
+		CheckedInRecently:      &checkedInRecently,
 		ConnectedEnodebSerials: lte_models.EnodebSerials{},
 		ApnResources:           lte_models.ApnResources{},
 	}
@@ -219,7 +220,7 @@ func getGateway(c echo.Context) error {
 		case lte.APNResourceEntityType:
 			e, err := configurator.LoadEntity(reqCtx, nid, tk.Type, tk.Key, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 			if err != nil {
-				return errors.Wrap(err, "error loading apn resource entity")
+				return fmt.Errorf("error loading apn resource entity: %w", err)
 			}
 			apnResource := (&lte_models.ApnResource{}).FromEntity(e)
 			ret.ApnResources[string(apnResource.ApnName)] = *apnResource
@@ -257,7 +258,7 @@ func deleteGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "error loading existing cellular gateway"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error loading existing cellular gateway: %w", err))
 	}
 	deletes = append(deletes, gw.Associations.Filter(lte.APNResourceEntityType)...)
 
@@ -339,9 +340,10 @@ func listEnodebs(c echo.Context) error {
 	for _, ent := range ents {
 		enodebs[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
 	}
+	token := lte_models.PageToken(nextPageToken)
 	paginatedEnodebs := &lte_models.PaginatedEnodebs{
 		Enodebs:    enodebs,
-		PageToken:  lte_models.PageToken(nextPageToken),
+		PageToken:  &token,
 		TotalCount: count,
 	}
 	return c.JSON(http.StatusOK, paginatedEnodebs)
@@ -618,7 +620,7 @@ func updateApnConfiguration(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load existing APN"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load existing APN: %w", err))
 	}
 
 	err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.APNEntityType, apnName, payload.ApnConfiguration, serdes.Entity)
@@ -669,7 +671,7 @@ func AddNetworkWideSubscriberRuleName(c echo.Context) error {
 	}
 	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to update config"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -685,7 +687,7 @@ func AddNetworkWideSubscriberBaseName(c echo.Context) error {
 	}
 	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to update config"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -701,7 +703,7 @@ func RemoveNetworkWideSubscriberRuleName(c echo.Context) error {
 	}
 	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to update config"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -717,7 +719,7 @@ func RemoveNetworkWideSubscriberBaseName(c echo.Context) error {
 	}
 	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to update config"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -882,7 +884,7 @@ func updateGatewayPoolHandler(c echo.Context) error {
 	// 404 if pool doesn't exist
 	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Error while checking if gateway pool exists"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error while checking if gateway pool exists: %w", err))
 	}
 	if !exists {
 		return echo.ErrNotFound

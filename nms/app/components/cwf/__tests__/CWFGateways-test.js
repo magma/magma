@@ -23,12 +23,11 @@ import {SnackbarProvider} from 'notistack';
 import type {cwf_gateway} from '../../../../generated/MagmaAPIBindings';
 import type {cwf_ha_pair} from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
-import {cleanup, render, wait} from '@testing-library/react';
+import {render, wait} from '@testing-library/react';
 
 const CWF_HA_GATEWAY_1: cwf_gateway = {
   magmad: {
@@ -125,8 +124,6 @@ const Wrapper = () => (
   </MemoryRouter>
 );
 
-afterEach(cleanup);
-
 describe('<CWFGateways />', () => {
   beforeEach(() => {
     axiosMock.get.mockResolvedValueOnce({
@@ -142,10 +139,6 @@ describe('<CWFGateways />', () => {
     MagmaAPIBindings.getNetworksByNetworkIdTiers.mockResolvedValueOnce([
       'default',
     ]);
-  });
-
-  afterEach(() => {
-    axiosMock.get.mockClear();
   });
 
   it('renders', async () => {

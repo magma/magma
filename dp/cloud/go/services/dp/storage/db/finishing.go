@@ -99,7 +99,11 @@ func filterValues(arg *arg) map[string]interface{} {
 	fields := arg.model.Fields()
 	for i, p := range arg.metadata.Properties {
 		if arg.mask.ShouldInclude(p.Name) {
-			values[p.Name] = fields[i].value()
+			if p.HasDefault && fields[i].isNull() {
+				values[p.Name] = p.DefaultValue
+			} else {
+				values[p.Name] = fields[i].value()
+			}
 		}
 	}
 	return values
@@ -110,5 +114,6 @@ func buildQuery(builder sq.StatementBuilderType, q *Query, filter sq.Sqlizer, co
 		Select(columns...).
 		From(buildFrom(q.arg)).
 		JoinClause(&joinClause{query: q}).
-		Where(filter)
+		Where(filter).
+		Suffix(q.arg.lock)
 }

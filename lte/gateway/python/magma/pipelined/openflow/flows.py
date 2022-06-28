@@ -639,20 +639,6 @@ def __get_instructions_for_actions(
     return instructions
 
 
-def _check_scratch_reg_load(actions, parser):
-    scratch_reg_load_action_exists = \
-        actions is not None and \
-        any(
-            isinstance(action, parser.NXActionRegLoad2)
-            and action.dst in SCRATCH_REGS for action in actions
-        )
-    if scratch_reg_load_action_exists:
-        raise Exception(
-            'Scratch register should not be loaded when '
-            'resubmitting to another table owned by other apps',
-        )
-
-
 def _check_resubmit_action(actions, parser):
     resubmit_action_exists = \
         actions is not None and \
@@ -668,8 +654,8 @@ def _check_resubmit_action(actions, parser):
 
 
 def send_stats_request(
-    datapath, tbl_num, cookie: hex = 0,
-    cookie_mask: hex = 0, retries: int = 3,
+    datapath, tbl_num, cookie: int = 0,
+    cookie_mask: int = 0, retries: int = 3,
 ):
     """
     Send a stats request msg 
@@ -677,8 +663,8 @@ def send_stats_request(
         datapath (ryu.controller.controller.Datapath):
             Datapath to query from
         table (int): Table number to query for
-        cookie (hex): cookie value for the request
-        cookie_mask (hex): cookie mask for the request
+        cookie (int): a hex cookie value for the request
+        cookie_mask (int): a hex cookie mask for the request
         retries (int): retry attempts on failure
     """
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser

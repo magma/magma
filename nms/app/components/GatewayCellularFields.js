@@ -16,7 +16,7 @@
 
 import type {GatewayV1} from './GatewayUtils';
 
-import Button from '../../fbc_js_core/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
@@ -28,10 +28,10 @@ import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '../theme/design-system/Text';
 
-import nullthrows from '../../fbc_js_core/util/nullthrows';
+import nullthrows from '../../shared/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
-import {useEnqueueSnackbar} from '../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../app/hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -280,10 +280,10 @@ export default function GatewayCellularFields(props: Props) {
         </FormField>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          Cancel
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          Save
         </Button>
-        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </>
   );

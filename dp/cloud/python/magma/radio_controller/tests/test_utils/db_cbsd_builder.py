@@ -1,3 +1,15 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 from __future__ import annotations
 
 import json
@@ -40,12 +52,41 @@ class DBCbsdBuilder:
     def with_eirp_capabilities(
         self,
         min_power: float, max_power: float,
-        antenna_gain: float, no_ports: int,
+        no_ports: int,
     ) -> DBCbsdBuilder:
         self.cbsd.min_power = min_power
         self.cbsd.max_power = max_power
-        self.cbsd.antenna_gain = antenna_gain
         self.cbsd.number_of_ports = no_ports
+        return self
+
+    def with_single_step_enabled(self) -> DBCbsdBuilder:
+        self.cbsd.single_step_enabled = True
+        return self
+
+    def with_category(self, category: str) -> DBCbsdBuilder:
+        self.cbsd.cbsd_category = category
+        return self
+
+    def with_antenna_gain(
+        self,
+        antenna_gain_dbi: float,
+    ) -> DBCbsdBuilder:
+        self.cbsd.antenna_gain = antenna_gain_dbi
+        return self
+
+    def with_installation_params(
+        self,
+        latitude_deg: float,
+        longitude_deg: float,
+        height_m: float,
+        height_type: str,
+        indoor_deployment: bool,
+    ) -> DBCbsdBuilder:
+        self.cbsd.latitude_deg = latitude_deg
+        self.cbsd.longitude_deg = longitude_deg
+        self.cbsd.height_m = height_m
+        self.cbsd.height_type = height_type
+        self.cbsd.indoor_deployment = indoor_deployment
         return self
 
     def with_last_seen(self, last_seen: int) -> DBCbsdBuilder:

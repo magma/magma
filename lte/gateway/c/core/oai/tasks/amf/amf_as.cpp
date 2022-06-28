@@ -63,6 +63,8 @@ static AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
                                  const amf_as_security_data_t* security);
 static int amf_service_rejectmsg(const amf_as_establish_t* msg,
                                  ServiceRejectMsg* service_reject);
+static int amf_service_reject(const amf_as_data_t* msg,
+                              ServiceRejectMsg* service_reject);
 /**************************************************************************
 **                                                                       **
 ** Name        : amf_as_send()                                           **
@@ -81,7 +83,7 @@ int amf_as_send(amf_as_t* msg) {
   int rc = RETURNok;
   int amf_cause = AMF_CAUSE_SUCCESS;
   amf_as_primitive_t primitive = msg->primitive;
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   switch (primitive) {
     case _AMFAS_DATA_IND:
     case _AMFAS_ESTABLISH_REQ:
@@ -119,6 +121,7 @@ int amf_as_send(amf_as_t* msg) {
 **                                                                        **
 ***************************************************************************/
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_security_context_t* amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
   memset(&decode_status, 0, sizeof(decode_status));
@@ -228,7 +231,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
                    static_cast<uint8_t>(amf_msg->header.message_type),
                    __FUNCTION__);
   }
-  return rc;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
 /**************************************************************************
@@ -700,6 +703,14 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
         size = amf_de_reg_acceptmsg(msg, as_msg, &nas_msg,
                                     &amf_msg->msg.deregistrationacceptmsg);
       } break;
+      case AMF_AS_NAS_INFO_SR_REJ: {
+        size = amf_service_reject(msg, &amf_msg->msg.service_reject);
+        nas_msg.plain.amf.header.message_type =
+            M5GMessageType::M5G_SERVICE_REJECT;
+        nas_msg.plain.amf.header.extended_protocol_discriminator =
+            M5G_MOBILITY_MANAGEMENT_MESSAGES;
+      } break;
+
       default:
         // Send other NAS messages as already encoded SMF messages
         size = msg->nas_msg.length();
@@ -871,6 +882,7 @@ static int amf_identity_request(const amf_as_security_t* msg,
  **************************************************************************/
 static int amf_auth_reject(const amf_as_security_t* msg,
                            AuthenticationRejectMsg* amf_msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   int size = AUTHENTICATION_REJECT_MINIMUM_LENGTH;
   amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
@@ -1007,7 +1019,7 @@ static int amf_as_security_req(const amf_as_security_t* msg,
         } else {
           OAILOG_ERROR(LOG_AMF_APP, "UE not found : " AMF_UE_NGAP_ID_FMT "\n",
                        as_msg->ue_id);
-          return -2;
+          OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
         }
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .nas_key_set_identifier.tsc = 0;
@@ -1172,6 +1184,7 @@ static int amf_as_security_rej(const amf_as_security_t* msg,
 
 int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
                                   amf_context_t* amf_ctx, bstring nas_msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/
 
@@ -1186,7 +1199,7 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     OAILOG_ERROR(
         LOG_AMF_APP,
         "Failed to allocate memory for ngap_initial_context_setup_req\n");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   req = &message_p->ittiMsg.ngap_initial_context_setup_req;
   memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
@@ -1212,11 +1225,6 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
       htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
   req->Security_Key = (unsigned char*)&amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
-
-  // Get the ambr values
-  amf_smf_context_ue_aggregate_max_bit_rate_get(
-      amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
-      &(req->ue_aggregate_max_bit_rate.ul));
 
   for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
     pdusession_setup_item_t* item = nullptr;
@@ -1270,11 +1278,11 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     req->nas_pdu = nas_msg;
   } else {
     OAILOG_DEBUG(LOG_AMF_APP, "Invalid nas_msg for registration accept");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
 /****************************************************************************
@@ -1585,11 +1593,36 @@ static int amf_service_rejectmsg(const amf_as_establish_t* msg,
 
   if (msg->amf_cause == AMF_CAUSE_CONGESTION) {
     service_reject->t3346Value.iei = GPRS_TIMER2;
-    service_reject->t3346Value.len = 1;
-    service_reject->t3346Value.timervalue = 60;
+    service_reject->t3346Value.len = SERVICE_REJ_T3346_LEN;
+    service_reject->t3346Value.timervalue = SERVICE_REJ_T3346_VALUE;
   }
 
   size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
+
+static int amf_service_reject(const amf_as_data_t* msg,
+                              ServiceRejectMsg* service_reject) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int size = M5G_SERVICE_REJECT_MINIMUM_LENGTH;
+
+  service_reject->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  service_reject->message_type.msg_type =
+      static_cast<uint8_t>(M5GMessageType::M5G_SERVICE_REJECT);
+  service_reject->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+
+  service_reject->cause.iei = static_cast<uint8_t>(M5GIei::M5GMM_CAUSE);
+  service_reject->cause.m5gmm_cause = msg->amf_cause;
+
+  if (msg->amf_cause == AMF_CAUSE_CONGESTION) {
+    service_reject->t3346Value.iei = GPRS_TIMER2;
+    service_reject->t3346Value.len = SERVICE_REJ_T3346_LEN;
+    service_reject->t3346Value.timervalue = SERVICE_REJ_T3346_VALUE;
+  }
+
+  size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+}
+
 }  // namespace magma5g

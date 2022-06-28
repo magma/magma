@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Cbsd cbsd
+//
 // swagger:model cbsd
 type Cbsd struct {
 
@@ -23,7 +24,17 @@ type Cbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
+	// this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+	// Required: true
+	CarrierAggregationEnabled bool `json:"carrier_aggregation_enabled"`
+
+	// is the radio type A (only) or B (also applies to A/B type radios)
+	// Required: true
+	// Enum: [a b]
+	CbsdCategory string `json:"cbsd_category"`
+
 	// id of cbsd in SAS
+	// Example: some_cbsd_id
 	CbsdID string `json:"cbsd_id,omitempty"`
 
 	// desired state of cbsd in SAS
@@ -32,6 +43,7 @@ type Cbsd struct {
 	DesiredState string `json:"desired_state"`
 
 	// fcc id
+	// Example: some_fcc_id
 	// Required: true
 	// Min Length: 1
 	FccID string `json:"fcc_id"`
@@ -43,18 +55,31 @@ type Cbsd struct {
 	// grant
 	Grant *Grant `json:"grant,omitempty"`
 
+	// tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+	// Required: true
+	GrantRedundancy bool `json:"grant_redundancy"`
+
 	// database id of cbsd
 	// Required: true
 	ID int64 `json:"id"`
+
+	// installation param
+	// Required: true
+	InstallationParam InstallationParam `json:"installation_param"`
 
 	// false if cbsd have not contacted DP for certain amount of time
 	// Required: true
 	IsActive bool `json:"is_active"`
 
 	// serial number
+	// Example: some_serial_number
 	// Required: true
 	// Min Length: 1
 	SerialNumber string `json:"serial_number"`
+
+	// should the CBSD be registered in a single-step mode
+	// Required: true
+	SingleStepEnabled bool `json:"single_step_enabled"`
 
 	// state of cbsd in SAS
 	// Required: true
@@ -62,6 +87,7 @@ type Cbsd struct {
 	State string `json:"state"`
 
 	// user id
+	// Example: some_user_id
 	// Required: true
 	// Min Length: 1
 	UserID string `json:"user_id"`
@@ -72,6 +98,14 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCapabilities(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCarrierAggregationEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -91,7 +125,15 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateGrantRedundancy(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateInstallationParam(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,6 +142,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSerialNumber(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSingleStepEnabled(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -122,7 +168,61 @@ func (m *Cbsd) validateCapabilities(formats strfmt.Registry) error {
 	if err := m.Capabilities.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("capabilities")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateCarrierAggregationEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("carrier_aggregation_enabled", "body", bool(m.CarrierAggregationEnabled)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var cbsdTypeCbsdCategoryPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["a","b"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		cbsdTypeCbsdCategoryPropEnum = append(cbsdTypeCbsdCategoryPropEnum, v)
+	}
+}
+
+const (
+
+	// CbsdCbsdCategoryA captures enum value "a"
+	CbsdCbsdCategoryA string = "a"
+
+	// CbsdCbsdCategoryB captures enum value "b"
+	CbsdCbsdCategoryB string = "b"
+)
+
+// prop value enum
+func (m *Cbsd) validateCbsdCategoryEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, cbsdTypeCbsdCategoryPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Cbsd) validateCbsdCategory(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("cbsd_category", "body", m.CbsdCategory); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateCbsdCategoryEnum("cbsd_category", "body", m.CbsdCategory); err != nil {
 		return err
 	}
 
@@ -152,7 +252,7 @@ const (
 
 // prop value enum
 func (m *Cbsd) validateDesiredStateEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, cbsdTypeDesiredStatePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, cbsdTypeDesiredStatePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -160,7 +260,7 @@ func (m *Cbsd) validateDesiredStateEnum(path, location string, value string) err
 
 func (m *Cbsd) validateDesiredState(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("desired_state", "body", string(m.DesiredState)); err != nil {
+	if err := validate.RequiredString("desired_state", "body", m.DesiredState); err != nil {
 		return err
 	}
 
@@ -174,11 +274,11 @@ func (m *Cbsd) validateDesiredState(formats strfmt.Registry) error {
 
 func (m *Cbsd) validateFccID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("fcc_id", "body", string(m.FccID)); err != nil {
+	if err := validate.RequiredString("fcc_id", "body", m.FccID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("fcc_id", "body", string(m.FccID), 1); err != nil {
+	if err := validate.MinLength("fcc_id", "body", m.FccID, 1); err != nil {
 		return err
 	}
 
@@ -190,6 +290,8 @@ func (m *Cbsd) validateFrequencyPreferences(formats strfmt.Registry) error {
 	if err := m.FrequencyPreferences.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("frequency_preferences")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("frequency_preferences")
 		}
 		return err
 	}
@@ -198,7 +300,6 @@ func (m *Cbsd) validateFrequencyPreferences(formats strfmt.Registry) error {
 }
 
 func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Grant) { // not required
 		return nil
 	}
@@ -207,6 +308,8 @@ func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
 		if err := m.Grant.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("grant")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("grant")
 			}
 			return err
 		}
@@ -215,9 +318,32 @@ func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *Cbsd) validateGrantRedundancy(formats strfmt.Registry) error {
+
+	if err := validate.Required("grant_redundancy", "body", bool(m.GrantRedundancy)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *Cbsd) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", int64(m.ID)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateInstallationParam(formats strfmt.Registry) error {
+
+	if err := m.InstallationParam.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
+		}
 		return err
 	}
 
@@ -235,11 +361,20 @@ func (m *Cbsd) validateIsActive(formats strfmt.Registry) error {
 
 func (m *Cbsd) validateSerialNumber(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("serial_number", "body", string(m.SerialNumber)); err != nil {
+	if err := validate.RequiredString("serial_number", "body", m.SerialNumber); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("serial_number", "body", string(m.SerialNumber), 1); err != nil {
+	if err := validate.MinLength("serial_number", "body", m.SerialNumber, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateSingleStepEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("single_step_enabled", "body", bool(m.SingleStepEnabled)); err != nil {
 		return err
 	}
 
@@ -269,7 +404,7 @@ const (
 
 // prop value enum
 func (m *Cbsd) validateStateEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, cbsdTypeStatePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, cbsdTypeStatePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -277,7 +412,7 @@ func (m *Cbsd) validateStateEnum(path, location string, value string) error {
 
 func (m *Cbsd) validateState(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("state", "body", string(m.State)); err != nil {
+	if err := validate.RequiredString("state", "body", m.State); err != nil {
 		return err
 	}
 
@@ -291,11 +426,95 @@ func (m *Cbsd) validateState(formats strfmt.Registry) error {
 
 func (m *Cbsd) validateUserID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("user_id", "body", string(m.UserID)); err != nil {
+	if err := validate.RequiredString("user_id", "body", m.UserID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("user_id", "body", string(m.UserID), 1); err != nil {
+	if err := validate.MinLength("user_id", "body", m.UserID, 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this cbsd based on the context it is used
+func (m *Cbsd) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCapabilities(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateFrequencyPreferences(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateGrant(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateInstallationParam(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Cbsd) contextValidateCapabilities(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Capabilities.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("capabilities")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("capabilities")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateFrequencyPreferences(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.FrequencyPreferences.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("frequency_preferences")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("frequency_preferences")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateGrant(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Grant != nil {
+		if err := m.Grant.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("grant")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("grant")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Cbsd) contextValidateInstallationParam(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.InstallationParam.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
+		}
 		return err
 	}
 

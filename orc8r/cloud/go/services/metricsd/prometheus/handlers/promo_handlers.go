@@ -21,15 +21,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers/cache"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenantH "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
@@ -340,12 +339,12 @@ func GetTenantPromSeriesHandler(api PrometheusAPI, useCache bool) func(c echo.Co
 		startStr := c.QueryParam(utils.ParamRangeStart)
 		startTime, err := utils.ParseTime(startStr, &defaultStartTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, errors.Wrapf(err, "parse start time: %s", startStr))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse start time: %s: %w", startStr, err))
 		}
 		endStr := c.QueryParam(utils.ParamRangeEnd)
 		endTime, err := utils.ParseTime(endStr, &defaultEndTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, errors.Wrapf(err, "parse end time: %s", endStr))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse end time: %s: %w", endStr, err))
 		}
 
 		res, _, err := api.Series(reqCtx, seriesMatches, startTime, endTime)
@@ -435,11 +434,11 @@ func GetTenantPromValuesHandler(api PrometheusAPI) func(c echo.Context) error {
 		endStr := c.QueryParam(utils.ParamRangeEnd)
 		startTime, err := utils.ParseTime(startStr, &defaultStartTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, errors.Wrapf(err, "parse start time: %s", startStr))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse start time: %s: %w", startStr, err))
 		}
 		endTime, err := utils.ParseTime(endStr, &maxTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, errors.Wrapf(err, "parse end time: %s", endStr))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse end time: %s: %w", endStr, err))
 		}
 
 		res, _, err := api.Series(reqCtx, seriesMatchers, startTime, endTime)

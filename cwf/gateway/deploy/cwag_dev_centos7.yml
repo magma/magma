@@ -31,6 +31,9 @@
     - role: test_certs
     - role: ovs
     - role: golang
+      vars:
+        golang_tar: go1.18.linux-amd64.tar.gz
+        golang_tar_checksum: 'sha256:e85278e98f57cdb150fe8409e6e5df5343ecb13cebf03a5d5ff12bd55a80264f'
 #    - role: cwag
 
   tasks:
@@ -67,7 +70,7 @@
       copy:
         dest: /etc/sudoers.d/secure_path
         content: "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/go/bin\n"
-        
+
     - name: Install basic build tools
       yum:
         name:

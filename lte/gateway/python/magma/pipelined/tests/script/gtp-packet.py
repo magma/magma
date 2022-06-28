@@ -5,8 +5,8 @@
 import sys
 import time
 
-from scapy.all import *
-from scapy.contrib.gtp import GTP_U_Header, GTPPDUSessionContainer
+from scapy.all import IP, UDP, Ether, sendp
+from scapy.contrib.gtp import GTP_U_Header
 from scapy.layers.l2 import getmacbyip
 
 ip_src = sys.argv[1]

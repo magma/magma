@@ -3,7 +3,7 @@
 # GitHub-specific: https://github.com/github/linguist/blob/master/docs/overrides.md
 
 # Monolithic swagger.yml is generated
-/orc8r/cloud/go/obsidian/swagger/v1/swagger.yml linguist-generated
+/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml linguist-generated
 # NMS bindings are generated
 /nms/generated/MagmaAPIBindings.js linguist-generated
 # SBI openapi interface generated files

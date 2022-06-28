@@ -17,16 +17,11 @@ import time
 from collections import namedtuple
 
 import grpc
-from lte.protos.pipelined_pb2 import (
-    ActivateFlowsRequest,
-    DeactivateFlowsRequest,
-)
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
-from magma.subscriberdb.sid import SIDUtils
 from ryu.lib import hub
 
 SubContextConfig = namedtuple(
-    'ContextConfig', [
+    'SubContextConfig', [
         'imsi', 'ip', 'ambr',
         'table_id',
     ],

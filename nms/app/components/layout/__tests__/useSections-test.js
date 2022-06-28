@@ -19,27 +19,12 @@ import NetworkContext from '../../context/NetworkContext';
 import React from 'react';
 import useSections from '../useSections';
 
-import {AppContextProvider} from '../../../../fbc_js_core/ui/context/AppContext';
+import {AppContextProvider} from '../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
-const enqueueSnackbarMock = jest.fn();
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('mapbox-gl', () => {});
-jest.mock('../../insights/map/MapView', () => {});
-jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
-  .mockReturnValue(enqueueSnackbarMock);
 
-import {
-  CWF,
-  FEG,
-  FEG_LTE,
-  LTE,
-  XWFM,
-} from '../../../../fbc_js_core/types/network';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
 
 global.CONFIG = {
   appData: {
@@ -62,36 +47,33 @@ type TestCase = {
 
 const testCases: {[string]: TestCase} = {
   lte: {
-    default: 'map',
+    default: 'dashboard',
     sections: [
-      'map',
-      'metrics',
+      'dashboard',
+      'equipment',
+      'network',
       'subscribers',
-      'gateways',
-      'enodebs',
-      'configure',
-      'alerts',
+      'traffic',
+      'tracing',
+      'metrics',
     ],
   },
   feg_lte: {
-    default: 'map',
+    default: 'dashboard',
     sections: [
-      'map',
-      'metrics',
+      'dashboard',
+      'equipment',
+      'network',
       'subscribers',
-      'gateways',
-      'enodebs',
-      'configure',
-      'alerts',
+      'traffic',
+      'tracing',
+      'metrics',
     ],
   },
-  mesh: {
-    default: 'map',
-    sections: [],
-  },
   feg: {
-    default: 'gateways',
+    default: 'dashboard',
     sections: [
+      'dashboard',
       'gateways',
       'network',
       'equipment',
@@ -110,13 +92,12 @@ const testCases: {[string]: TestCase} = {
   },
 };
 
-const AllNetworkTypes = [CWF, FEG, LTE, FEG_LTE, XWFM];
-AllNetworkTypes.forEach(networkType => {
+describe.each([CWF, FEG, LTE, FEG_LTE, XWFM])('Should render', networkType => {
   const testCase = testCases[networkType];
   // XWF-M network selection in NMS creates a CWF network on the API just with
   // different config defaults
   const apiNetworkType = networkType === XWFM ? CWF : networkType;
-  test('Should render ' + networkType, async () => {
+  it(networkType, async () => {
     MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValue(
       apiNetworkType,
     );
@@ -135,7 +116,5 @@ AllNetworkTypes.forEach(networkType => {
 
     const paths = result.current[1].map(r => r.path);
     expect(paths).toStrictEqual(testCase.sections);
-
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockClear();
   });
 });

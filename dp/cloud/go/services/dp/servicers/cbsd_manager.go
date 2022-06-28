@@ -16,9 +16,9 @@ package servicers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -50,12 +50,31 @@ func (c *cbsdManager) CreateCbsd(_ context.Context, request *protos.CreateCbsdRe
 	return &protos.CreateCbsdResponse{}, nil
 }
 
-func (c *cbsdManager) UpdateCbsd(_ context.Context, request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
 	err := c.store.UpdateCbsd(request.NetworkId, request.Id, cbsdToDatabase(request.Data))
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
 	}
 	return &protos.UpdateCbsdResponse{}, nil
+}
+
+func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+	cbsd := requestToDbCbsd(request)
+	err := c.store.EnodebdUpdateCbsd(cbsd)
+	if err != nil {
+		return nil, makeErr(err, "update cbsd")
+	}
+	return &protos.UpdateCbsdResponse{}, nil
+}
+
+func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
+	cbsd := storage.DBCbsd{
+		CbsdSerialNumber: db.MakeString(request.SerialNumber),
+		CbsdCategory:     db.MakeString(request.CbsdCategory),
+	}
+	params := request.GetInstallationParam()
+	setInstallationParam(&cbsd, params)
+	return &cbsd
 }
 
 func (c *cbsdManager) DeleteCbsd(_ context.Context, request *protos.DeleteCbsdRequest) (*protos.DeleteCbsdResponse, error) {
@@ -120,24 +139,47 @@ func dbFilter(filter *protos.CbsdFilter) *storage.CbsdFilter {
 }
 
 func cbsdToDatabase(data *protos.CbsdData) *storage.MutableCbsd {
-	capabilities := data.Capabilities
-	preferences := data.Preferences
-	b, _ := json.Marshal(preferences.FrequenciesMhz)
+	cbsd := buildCbsd(data)
 	return &storage.MutableCbsd{
-		Cbsd: &storage.DBCbsd{
-			UserId:                  db.MakeString(data.UserId),
-			FccId:                   db.MakeString(data.FccId),
-			CbsdSerialNumber:        db.MakeString(data.SerialNumber),
-			MinPower:                db.MakeFloat(capabilities.MinPower),
-			MaxPower:                db.MakeFloat(capabilities.MaxPower),
-			AntennaGain:             db.MakeFloat(capabilities.AntennaGain),
-			NumberOfPorts:           db.MakeInt(capabilities.NumberOfAntennas),
-			PreferredBandwidthMHz:   db.MakeInt(preferences.BandwidthMhz),
-			PreferredFrequenciesMHz: db.MakeString(string(b)),
-		},
+		Cbsd: cbsd,
 		DesiredState: &storage.DBCbsdState{
 			Name: db.MakeString(data.DesiredState),
 		},
+	}
+}
+
+func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
+	capabilities := data.GetCapabilities()
+	preferences := data.GetPreferences()
+	installationParam := data.GetInstallationParam()
+	b, _ := json.Marshal(preferences.GetFrequenciesMhz())
+	cbsd := &storage.DBCbsd{
+		UserId:                    db.MakeString(data.GetUserId()),
+		FccId:                     db.MakeString(data.GetFccId()),
+		CbsdSerialNumber:          db.MakeString(data.GetSerialNumber()),
+		MinPower:                  db.MakeFloat(capabilities.GetMinPower()),
+		MaxPower:                  db.MakeFloat(capabilities.GetMaxPower()),
+		NumberOfPorts:             db.MakeInt(capabilities.GetNumberOfAntennas()),
+		PreferredBandwidthMHz:     db.MakeInt(preferences.GetBandwidthMhz()),
+		PreferredFrequenciesMHz:   db.MakeString(string(b)),
+		SingleStepEnabled:         db.MakeBool(data.GetSingleStepEnabled()),
+		CbsdCategory:              db.MakeString(data.GetCbsdCategory()),
+		CarrierAggregationEnabled: db.MakeBool(data.GetCarrierAggregationEnabled()),
+		GrantRedundancy:           db.MakeBool(data.GetGrantRedundancy()),
+		MaxIbwMhx:                 db.MakeInt(data.Capabilities.GetMaxIbwMhz()),
+	}
+	setInstallationParam(cbsd, installationParam)
+	return cbsd
+}
+
+func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam) {
+	if params != nil {
+		cbsd.LatitudeDeg = dbFloat64OrNil(params.LatitudeDeg)
+		cbsd.LongitudeDeg = dbFloat64OrNil(params.LongitudeDeg)
+		cbsd.HeightM = dbFloat64OrNil(params.HeightM)
+		cbsd.HeightType = dbStringOrNil(params.HeightType)
+		cbsd.IndoorDeployment = dbBoolOrNil(params.IndoorDeployment)
+		cbsd.AntennaGain = dbFloat64OrNil(params.AntennaGain)
 	}
 }
 
@@ -162,20 +204,25 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 	return &protos.CbsdDetails{
 		Id: data.Cbsd.Id.Int64,
 		Data: &protos.CbsdData{
-			UserId:       data.Cbsd.UserId.String,
-			FccId:        data.Cbsd.FccId.String,
-			SerialNumber: data.Cbsd.CbsdSerialNumber.String,
+			UserId:            data.Cbsd.UserId.String,
+			FccId:             data.Cbsd.FccId.String,
+			SerialNumber:      data.Cbsd.CbsdSerialNumber.String,
+			CbsdCategory:      data.Cbsd.CbsdCategory.String,
+			SingleStepEnabled: data.Cbsd.SingleStepEnabled.Bool,
 			Capabilities: &protos.Capabilities{
 				MinPower:         data.Cbsd.MinPower.Float64,
 				MaxPower:         data.Cbsd.MaxPower.Float64,
 				NumberOfAntennas: data.Cbsd.NumberOfPorts.Int64,
-				AntennaGain:      data.Cbsd.AntennaGain.Float64,
+				MaxIbwMhz:        data.Cbsd.MaxIbwMhx.Int64,
 			},
 			Preferences: &protos.FrequencyPreferences{
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
 				FrequenciesMhz: frequencies,
 			},
-			DesiredState: data.DesiredState.Name.String,
+			DesiredState:              data.DesiredState.Name.String,
+			InstallationParam:         getInstallationParam(data.Cbsd),
+			CarrierAggregationEnabled: data.Cbsd.CarrierAggregationEnabled.Bool,
+			GrantRedundancy:           data.Cbsd.GrantRedundancy.Bool,
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,
@@ -184,8 +231,19 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 	}
 }
 
+func getInstallationParam(c *storage.DBCbsd) *protos.InstallationParam {
+	p := &protos.InstallationParam{}
+	p.LatitudeDeg = protoDoubleOrNil(c.LatitudeDeg)
+	p.LongitudeDeg = protoDoubleOrNil(c.LongitudeDeg)
+	p.IndoorDeployment = protoBoolOrNil(c.IndoorDeployment)
+	p.HeightM = protoDoubleOrNil(c.HeightM)
+	p.HeightType = protoStringOrNil(c.HeightType)
+	p.AntennaGain = protoDoubleOrNil(c.AntennaGain)
+	return p
+}
+
 func makeErr(err error, wrap string) error {
-	e := errors.Wrap(err, wrap)
+	e := fmt.Errorf(wrap+": %w", err)
 	code := codes.Internal
 	if err == merrors.ErrNotFound {
 		code = codes.NotFound

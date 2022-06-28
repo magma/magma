@@ -102,9 +102,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       force_ue_write = true;
       break;
 
-    case AMF_APP_DECRYPT_IMSI_INFO_RESP:
-      amf_decrypt_imsi_info_answer(
-          &AMF_APP_DECRYPT_IMSI_RESPONSE_DATA(received_message_p));
+    case AMF_APP_DECRYPT_MSIN_INFO_RESP:
+      amf_decrypt_msin_info_answer(
+          &AMF_APP_DECRYPT_MSIN_RESPONSE_DATA(received_message_p));
       is_task_state_same = true;
       force_ue_write = true;
       break;
@@ -118,7 +118,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
-      OAILOG_INFO(LOG_MME_APP,
+      OAILOG_INFO(LOG_AMF_APP,
                   "Received S6A Update Location Answer from subscriberd\n");
       amf_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);

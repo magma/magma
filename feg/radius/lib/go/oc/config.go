@@ -15,15 +15,16 @@ package oc
 
 import (
 	"encoding/json"
-	"fbc/lib/go/oc/ocstats"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"fbc/lib/go/oc/ocstats"
+
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
@@ -171,12 +172,12 @@ func (cfg *Config) buildStats(opt options) (handler http.Handler, closers []func
 		}
 		viewer := GetViewer(name)
 		if viewer == nil {
-			err = errors.Errorf("unknown view name %q", name)
+			err = fmt.Errorf("unknown view name %q", name)
 			return
 		}
 		views := viewer.Views()
 		if err = view.Register(views...); err != nil {
-			err = errors.WithMessagef(err, "registering %s views", name)
+			err = fmt.Errorf("registering %s views: %w", name, err)
 			return
 		}
 		closers = append(closers, func() {
@@ -186,7 +187,7 @@ func (cfg *Config) buildStats(opt options) (handler http.Handler, closers []func
 
 	var closer func()
 	if handler, closer, err = ocstats.NewHandler(opts...); err != nil {
-		err = errors.WithMessage(err, "creating stats handler")
+		err = fmt.Errorf("creating stats handler: %w", err)
 		return
 	}
 	closers = append(closers, closer)
@@ -238,7 +239,7 @@ func (cfg *Config) buildJaeger(opt options) (func(), error) {
 	}
 	exporter, err := jaeger.NewExporter(cfg.Jaeger.Options)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating jaeger exporter")
+		return nil, fmt.Errorf("creating jaeger exporter: %w", err)
 	}
 	trace.RegisterExporter(exporter)
 	return func() {

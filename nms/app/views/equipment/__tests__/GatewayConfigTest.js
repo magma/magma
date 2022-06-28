@@ -19,8 +19,6 @@ import type {
   lte_network,
 } from '../../../../generated/MagmaAPIBindings';
 
-import 'jest-dom/extend-expect';
-
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 import ApnContext from '../../../components/context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
@@ -38,20 +36,13 @@ import {
   SetGatewayState,
   UpdateGateway,
 } from '../../../state/lte/EquipmentState';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait} from '@testing-library/react';
+import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
-jest.mock('../../../../fbc_js_core/ui/hooks/useSnackbar');
-afterEach(cleanup);
-const enqueueSnackbarMock = jest.fn();
-jest
-  .spyOn(
-    require('../../../../fbc_js_core/ui/hooks/useSnackbar'),
-    'useEnqueueSnackbar',
-  )
-  .mockReturnValue(enqueueSnackbarMock);
+jest.mock('../../../hooks/useSnackbar');
 
 const mockGw0: lte_gateway = {
   apn_resources: {},
@@ -93,6 +84,7 @@ const mockGw0: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockGw1: lte_gateway = {
@@ -135,6 +127,7 @@ const mockGw1: lte_gateway = {
       mme_connected: '0',
     },
   },
+  checked_in_recently: false,
 };
 
 const mockNw: lte_network = {
@@ -193,12 +186,11 @@ const mockApns: {[string]: apn} = {
 };
 
 describe('<AddEditGatewayButton />', () => {
-  afterEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue({
-      testGatewayId0: mockGw0,
-    });
-    MagmaAPIBindings.postLteByNetworkIdGateways.mockClear();
-    MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularDns.mockClear();
+  beforeEach(() => {
+    (useEnqueueSnackbar: JestMockFn<
+      Array<empty>,
+      $Call<typeof useEnqueueSnackbar>,
+    >).mockReturnValue(jest.fn());
   });
 
   const AddWrapper = () => {
@@ -365,6 +357,7 @@ describe('<AddEditGatewayButton />', () => {
             transmit_enabled: true,
           },
         },
+        checked_in_recently: false,
         connected_enodeb_serials: [],
         description: 'Test Gateway Description',
         device: {
@@ -615,6 +608,7 @@ describe('<AddEditGatewayButton />', () => {
           },
           ran: {pci: 260, transmit_enabled: true},
         },
+        checked_in_recently: false,
         connected_enodeb_serials: [],
         description: 'Test Gateway Description',
         device: {

@@ -25,6 +25,7 @@ import (
 	"github.com/bmatcuk/doublestar"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/hashicorp/go-multierror"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,10 +37,9 @@ import (
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/services/tenants"
-	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/security/cert"
-	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 )
 
 var (
@@ -130,7 +130,7 @@ func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *prot
 	// add to table
 	snString := cert.SerialToString(sn)
 	// Ensure serial number is not the orc8r client reserved SN
-	if snString == unarylib.ORC8R_CLIENT_CERT_VALUE {
+	if snString == registry.ORC8R_CLIENT_CERT_VALUE {
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
 	}
 	err = srv.store.PutCertInfo(snString, certInfo)
@@ -207,7 +207,7 @@ func (srv *CertifierServer) AddCertificate(ctx context.Context, req *certprotos.
 	}
 	snStr := cert.SerialToString(x509Cert.SerialNumber)
 	// Ensure serial number is not the orc8r client reserved SN
-	if snStr == unarylib.ORC8R_CLIENT_CERT_VALUE {
+	if snStr == registry.ORC8R_CLIENT_CERT_VALUE {
 		return res, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
 	}
 	// Verify that the certificate is signed by our CA
@@ -297,27 +297,27 @@ func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error)
 	if err != nil {
 		return 0, err
 	}
-	var multiErr *merrors.Multi
+	errs := &multierror.Error{}
 	count := 0
 	for _, sn := range snList.Sns {
 		certInfo, err := srv.getCertInfo(sn)
 		if err != nil {
-			multiErr.AddFmt(err, "'%s' get info error:", sn)
+			errs = multierror.Append(errs, fmt.Errorf("'%s' get info error: %v", sn, err))
 		}
 		notAfter, _ := ptypes.Timestamp(certInfo.NotAfter)
 		notAfter = notAfter.Add(CollectGarbageAfter)
 		if time.Now().UTC().After(notAfter) {
 			err = srv.store.DeleteCertInfo(sn)
 			if err != nil {
-				multiErr.AddFmt(err, "'%s' delete error:", sn)
+				errs = multierror.Append(errs, fmt.Errorf("'%s' delete error: %v", sn, err))
 			} else {
 				count += 1
 			}
 		}
 	}
-	if multiErr.AsError() != nil {
-		glog.Errorf("Failed to delete certificate[s]: %v", multiErr)
-		return count, status.Error(codes.Internal, multiErr.Error())
+	if errs.ErrorOrNil() != nil {
+		glog.Errorf("Failed to delete certificate[s]: %v", errs)
+		return count, status.Error(codes.Internal, errs.Error())
 	}
 	return count, nil
 }

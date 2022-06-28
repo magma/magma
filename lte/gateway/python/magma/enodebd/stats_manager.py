@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import asyncio
+from typing import Optional
 from xml.etree import ElementTree
 
 from aiohttp import web
@@ -72,7 +73,7 @@ class StatsManager:
         self.enb_manager = enb_acs_manager
         self.loop = asyncio.get_event_loop()
         self._prev_rf_tx = False
-        self.mme_timeout_handler = None
+        self.mme_timeout_handler: Optional[asyncio.TimerHandle] = None
 
     def run(self) -> None:
         """ Create and start HTTP server """

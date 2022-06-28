@@ -20,7 +20,7 @@ package protos
 
 import (
 	context "context"
-	any "github.com/golang/protobuf/ptypes/any"
+	any1 "github.com/golang/protobuf/ptypes/any"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -48,7 +48,7 @@ type StreamRequest struct {
 	StreamName string `protobuf:"bytes,2,opt,name=stream_name,json=streamName,proto3" json:"stream_name,omitempty"`
 	// extra_args contain any extra data to send up with the stream request.
 	// This value will be different per stream provider.
-	ExtraArgs *any.Any `protobuf:"bytes,3,opt,name=extra_args,json=extraArgs,proto3" json:"extra_args,omitempty"`
+	ExtraArgs *any1.Any `protobuf:"bytes,3,opt,name=extra_args,json=extraArgs,proto3" json:"extra_args,omitempty"`
 }
 
 func (x *StreamRequest) Reset() {
@@ -97,7 +97,7 @@ func (x *StreamRequest) GetStreamName() string {
 	return ""
 }
 
-func (x *StreamRequest) GetExtraArgs() *any.Any {
+func (x *StreamRequest) GetExtraArgs() *any1.Any {
 	if x != nil {
 		return x.ExtraArgs
 	}
@@ -272,7 +272,7 @@ var file_orc8r_protos_streamer_proto_goTypes = []interface{}{
 	(*StreamRequest)(nil),   // 0: magma.orc8r.StreamRequest
 	(*DataUpdateBatch)(nil), // 1: magma.orc8r.DataUpdateBatch
 	(*DataUpdate)(nil),      // 2: magma.orc8r.DataUpdate
-	(*any.Any)(nil),         // 3: google.protobuf.Any
+	(*any1.Any)(nil),        // 3: google.protobuf.Any
 }
 var file_orc8r_protos_streamer_proto_depIdxs = []int32{
 	3, // 0: magma.orc8r.StreamRequest.extra_args:type_name -> google.protobuf.Any

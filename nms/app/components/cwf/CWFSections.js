@@ -16,7 +16,7 @@
 import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '../insights/alarms/Alarms';
+import Alarms from '../../views/alarms/legacy/Alarms';
 import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';
@@ -25,7 +25,7 @@ import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
-export function getCWFSections(dashboardV2Enabled: boolean): SectionsConfigs {
+export function getCWFSections(): SectionsConfigs {
   const sections = [
     {
       path: 'gateways',
@@ -52,10 +52,6 @@ export function getCWFSections(dashboardV2Enabled: boolean): SectionsConfigs {
       component: Alarms,
     },
   ];
-
-  if (dashboardV2Enabled) {
-    // TODO add equipment, policy and subscriber section
-  }
 
   return [
     'gateways', // landing path

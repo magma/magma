@@ -34,7 +34,7 @@ import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import {AltFormField} from '../../components/FormField';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 /**
  * A prop passed to DataPlanEditDialog
@@ -234,11 +234,9 @@ export function BaseNameEdit(props: Props) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
-          {'Cancel'}
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {'Save'}
+          Save
         </Button>
       </DialogActions>
     </>

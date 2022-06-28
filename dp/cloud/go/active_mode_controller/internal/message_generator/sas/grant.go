@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package sas
 
 import (
@@ -28,7 +41,7 @@ func (g *grantRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Requ
 		return nil
 	}
 	req := &grantRequest{
-		CbsdId:         cbsd.Id,
+		CbsdId:         cbsd.CbsdId,
 		OperationParam: operationParam,
 	}
 	return []*Request{asRequest(Grant, req)}
@@ -54,7 +67,7 @@ const (
 )
 
 func chooseSuitableChannel(cbsd *active_mode.Cbsd, rng RNG) *operationParam {
-	calc := newEirpCalculator(cbsd.GetEirpCapabilities())
+	calc := newEirpCalculator(cbsd.GetInstallationParams().GetAntennaGainDbi(), cbsd.GetEirpCapabilities())
 	pts := channelsToPoints(cbsd.GetChannels())
 	preferred, other := getCandidates(cbsd.GetPreferences(), pts, calc)
 
@@ -172,11 +185,11 @@ type eirpCalculator struct {
 	noPorts     float64
 }
 
-func newEirpCalculator(capabilities *active_mode.EirpCapabilities) *eirpCalculator {
+func newEirpCalculator(antennaGain float32, capabilities *active_mode.EirpCapabilities) *eirpCalculator {
 	return &eirpCalculator{
 		minPower:    float64(capabilities.GetMinPower()),
 		maxPower:    float64(capabilities.GetMaxPower()),
-		antennaGain: float64(capabilities.GetAntennaGain()),
+		antennaGain: float64(antennaGain),
 		noPorts:     float64(capabilities.GetNumberOfPorts()),
 	}
 }

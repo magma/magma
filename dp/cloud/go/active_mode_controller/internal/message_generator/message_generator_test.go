@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package message_generator_test
 
 import (
@@ -50,7 +63,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState:      active_mode.CbsdState_Unregistered,
-					Id:                "some_cbsd_id",
+					CbsdId:            "some_cbsd_id",
 					State:             active_mode.CbsdState_Registered,
 					LastSeenTimestamp: now.Unix(),
 				}},
@@ -69,10 +82,12 @@ func TestGenerateMessages(t *testing.T) {
 			name: "Should generate registration request for active non registered cbsd",
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
-					DesiredState:      active_mode.CbsdState_Registered,
-					UserId:            "some_user_id",
-					FccId:             "some_fcc_id",
-					SerialNumber:      "some_serial_number",
+					DesiredState: active_mode.CbsdState_Registered,
+					SasSettings: &active_mode.SasSettings{
+						UserId:       "some_user_id",
+						FccId:        "some_fcc_id",
+						SerialNumber: "some_serial_number",
+					},
 					State:             active_mode.CbsdState_Unregistered,
 					LastSeenTimestamp: now.Unix(),
 				}},
@@ -94,7 +109,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState:      active_mode.CbsdState_Registered,
-					Id:                "some_cbsd_id",
+					CbsdId:            "some_cbsd_id",
 					State:             active_mode.CbsdState_Registered,
 					LastSeenTimestamp: now.Unix(),
 				}},
@@ -106,7 +121,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Id:           "some_cbsd_id",
+					CbsdId:       "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Channels: []*active_mode.Channel{{
 						LowFrequencyHz:  3.62e9,
@@ -116,8 +131,10 @@ func TestGenerateMessages(t *testing.T) {
 					EirpCapabilities: &active_mode.EirpCapabilities{
 						MinPower:      0,
 						MaxPower:      10,
-						AntennaGain:   15,
 						NumberOfPorts: 1,
+					},
+					InstallationParams: &active_mode.InstallationParams{
+						AntennaGainDbi: 15,
 					},
 					LastSeenTimestamp: now.Unix(),
 				}},
@@ -129,7 +146,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Id:           "some_cbsd_id",
+					CbsdId:       "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Channels: []*active_mode.Channel{{
 						LowFrequencyHz:  3.62e9,
@@ -139,8 +156,10 @@ func TestGenerateMessages(t *testing.T) {
 					EirpCapabilities: &active_mode.EirpCapabilities{
 						MinPower:      0,
 						MaxPower:      100,
-						AntennaGain:   0,
 						NumberOfPorts: 1,
+					},
+					InstallationParams: &active_mode.InstallationParams{
+						AntennaGainDbi: 15,
 					},
 					LastSeenTimestamp: now.Unix(),
 				}},
@@ -167,7 +186,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Id:           "some_cbsd_id",
+					CbsdId:       "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Grants: []*active_mode.Grant{{
 						Id:    "some_grant_id",
@@ -193,7 +212,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Id:           "some_cbsd_id",
+					CbsdId:       "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Grants: []*active_mode.Grant{
 						{
@@ -237,7 +256,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState: active_mode.CbsdState_Registered,
-					Id:           "some_cbsd_id",
+					CbsdId:       "some_cbsd_id",
 					State:        active_mode.CbsdState_Registered,
 					Grants: []*active_mode.Grant{{
 						Id:    "some_grant_id",
@@ -262,7 +281,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState:      active_mode.CbsdState_Registered,
-					Id:                "some_cbsd_id",
+					CbsdId:            "some_cbsd_id",
 					State:             active_mode.CbsdState_Registered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
@@ -285,7 +304,6 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState:      active_mode.CbsdState_Registered,
-					SerialNumber:      "some_serial_number",
 					State:             active_mode.CbsdState_Unregistered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
@@ -303,7 +321,7 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState:      active_mode.CbsdState_Registered,
-					Id:                "some_cbsd_id",
+					CbsdId:            "some_cbsd_id",
 					State:             active_mode.CbsdState_Registered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{
@@ -326,7 +344,6 @@ func TestGenerateMessages(t *testing.T) {
 			state: &active_mode.State{
 				Cbsds: []*active_mode.Cbsd{{
 					DesiredState:      active_mode.CbsdState_Registered,
-					SerialNumber:      "some_serial_number",
 					State:             active_mode.CbsdState_Unregistered,
 					LastSeenTimestamp: now.Unix(),
 					DbData: &active_mode.DatabaseCbsd{

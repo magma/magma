@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+# pylint: disable=unnecessary-ellipsis
 
 from __future__ import (
     absolute_import,
@@ -30,7 +31,7 @@ class TcOpsBase(ABC):
 
     @abstractmethod
     def create_htb(
-        self, iface: str, qid: str, max_bw: str, rate: str,
+        self, iface: str, qid: str, max_bw: int, rate: str,
         parent_qid: str = None,
     ) -> int:
         """

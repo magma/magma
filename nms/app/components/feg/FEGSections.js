@@ -31,8 +31,14 @@ import RouterIcon from '@material-ui/icons/Router';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
-export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
+export function getFEGSections(): SectionsConfigs {
   const sections = [
+    {
+      path: 'dashboard',
+      label: 'Dashboard',
+      icon: <DashboardIcon />,
+      component: FEGDashboard,
+    },
     {
       path: 'gateways',
       label: 'Gateways',
@@ -71,22 +77,8 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
     },
   ];
 
-  if (dashboardV2Enabled) {
-    // TODO add equipment, policy and subscriber section
-    sections.splice(0, 0, {
-      path: 'dashboard',
-      label: 'Dashboard',
-      icon: <DashboardIcon />,
-      component: FEGDashboard,
-    });
-    return [
-      'dashboard', //landing path
-      sections,
-    ];
-  }
-
   return [
-    'gateways', // landing path
+    'dashboard', // landing path
     sections,
   ];
 }

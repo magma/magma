@@ -18,7 +18,6 @@ import (
 	"database/sql"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 // ExecInTx executes a callback inside a sql transaction on the provided DB.
@@ -64,6 +63,6 @@ func CloseRowsLogOnError(rows *sql.Rows, callsite string) {
 		return
 	}
 	if err := rows.Close(); err != nil {
-		glog.Errorf("Error closing sql rows in %s: %+v", callsite, errors.WithStack(err))
+		glog.Errorf("Error closing sql rows in %s: %+v", callsite, err)
 	}
 }

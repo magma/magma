@@ -14,7 +14,7 @@ limitations under the License.
 package servicers
 
 import (
-	"magma/lte/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
 )
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_NilRequest() {
@@ -85,7 +85,7 @@ func (suite *EpsAuthTestSuite) checkULA(ula *protos.UpdateLocationAnswer, maxUlB
 	apn := ula.Apn[0]
 	suite.Equal(maxDlBitRate, apn.GetAmbr().GetMaxBandwidthDl())
 	suite.Equal(maxUlBitRate, apn.GetAmbr().GetMaxBandwidthUl())
-	suite.Equal("oai.ipv4", apn.GetServiceSelection())
+	suite.Equal("magma.ipv4", apn.GetServiceSelection())
 	suite.Equal(protos.UpdateLocationAnswer_APNConfiguration_IPV4, apn.GetPdn())
 
 	qos := apn.GetQosProfile()

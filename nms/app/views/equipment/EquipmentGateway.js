@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {WithAlert} from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import type {WithAlert} from '../../components/Alert/withAlert';
 import type {
   gateway_id,
   lte_gateway,
@@ -34,10 +34,9 @@ import Paper from '@material-ui/core/Paper';
 import React, {useContext, useEffect, useState} from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import TypedSelect from '../../../fbc_js_core/ui/components/TypedSelect';
-import isGatewayHealthy from '../../components/GatewayUtils';
-import nullthrows from '../../../fbc_js_core/util/nullthrows';
-import withAlert from '../../../fbc_js_core/ui/components/Alert/withAlert';
+import TypedSelect from '../../components/TypedSelect';
+import nullthrows from '../../../shared/util/nullthrows';
+import withAlert from '../../components/Alert/withAlert';
 
 import {
   REFRESH_INTERVAL,
@@ -46,7 +45,7 @@ import {
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '../../../fbc_js_core/ui/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
@@ -350,7 +349,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
         num_subscribers:
           // $FlowIgnore: gateway.device should be present
           gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
-        health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
+        health: gateway.checked_in_recently ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });
     });

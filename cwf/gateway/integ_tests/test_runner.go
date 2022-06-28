@@ -21,17 +21,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/magma/milenage"
+	"github.com/stretchr/testify/assert"
+
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
@@ -80,7 +79,7 @@ const (
 	GyValidityTime  = 60   // in second
 )
 
-//TestRunner helps setting up all associated services
+// TestRunner helps setting up all associated services
 type TestRunner struct {
 	t           *testing.T
 	imsis       map[string]bool
@@ -162,7 +161,7 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 	for _, imsi := range IMSIs {
 		// If IMSIs were generated properly they should never give an error here
 		if _, present := tr.imsis[imsi]; present {
-			return nil, errors.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
+			return nil, fmt.Errorf("IMSI %s already exist in database, use generateRandomIMSIS(num, tr.imsis) to create unique list", imsi)
 		}
 		key, opc, err := getRandKeyOpcFromOp([]byte(Op))
 		if err != nil {
@@ -175,19 +174,19 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 
 		err = uesim.AddUE(ue)
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding UE to UESimServer")
+			return nil, fmt.Errorf("Error adding UE to UESimServer: %w", err)
 		}
 		err = addSubscriberToHSS(sub)
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
+			return nil, fmt.Errorf("Error adding Subscriber to HSS: %w", err)
 		}
 		err = addSubscriberToPCRFPerInstance(pcrfInstance, sub.GetSid())
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding Subscriber to PCRF")
+			return nil, fmt.Errorf("Error adding Subscriber to PCRF: %w", err)
 		}
 		err = addSubscriberToOCSPerInstance(ocsInstance, sub.GetSid())
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
+			return nil, fmt.Errorf("Error adding Subscriber to OCS: %w", err)
 		}
 
 		ues = append(ues, ue)
@@ -211,7 +210,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 	encoded := res.GetRadiusPacket()
 	radiusP, err := radius.Parse(encoded, []byte(Secret))
 	if err != nil {
-		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		err = fmt.Errorf("Error while parsing encoded Radius packet: %w", err)
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
@@ -230,7 +229,7 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 	encoded := res.GetRadiusPacket()
 	radiusP, err := radius.Parse(encoded, []byte(Secret))
 	if err != nil {
-		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		err = fmt.Errorf("Error while parsing encoded Radius packet: %w", err)
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
@@ -281,14 +280,14 @@ func (tr *TestRunner) GenULTrafficBasedOnPolicyUsage(req *cwfprotos.GenTrafficRe
 	for start := time.Now(); time.Since(start) < waitFor; {
 		startGenTrafficTime := time.Now()
 		res, err = uesim.GenTrafficWithReatempts(req)
-		if err != nil{
+		if err != nil {
 			return res, fmt.Errorf("GenULTrafficBasedOnPolicyUsage failed during GenTraffic: %s", err)
 		}
-		completeCycle := time.Now().Sub(startGenTrafficTime)%time.Second
-		if  waitNeeded {
+		completeCycle := time.Now().Sub(startGenTrafficTime) % time.Second
+		if waitNeeded {
 			// this wait makes sure the time passes is exact in seconds. This way
 			// we make sure policies had time to sync
-			time.Sleep(completeCycle + 200 * time.Millisecond)
+			time.Sleep(completeCycle + 200*time.Millisecond)
 			waitNeeded = false
 		}
 		time.Sleep(2200 * time.Millisecond)
@@ -306,19 +305,21 @@ func (tr *TestRunner) GenULTrafficBasedOnPolicyUsage(req *cwfprotos.GenTrafficRe
 		req.Bitrate = &wrappers.StringValue{Value: "10M"}
 		if remaining > 100*KiloBytes {
 			newVolume = uint64(float64(remaining) * 0.95)
-			if newVolume > 5 * MegaBytes {
+			if newVolume > 5*MegaBytes {
 				newVolume = 5 * MegaBytes
 			}
 			// only add wait for the bigger chunks
 			waitNeeded = true
 		}
-		if newVolume < 1000 {newVolume = 1000}
+		if newVolume < 1000 {
+			newVolume = 1000
+		}
 		newVolumeStr := fmt.Sprintf("%dK", newVolume/1000)
 
 		req.Volume = &wrappers.StringValue{Value: newVolumeStr}
 		fmt.Printf("- not enough traffic genereted, sending %dKB more. Will be around %d%% of volume requested\n",
 			newVolume/1000,
-			100 * (record.BytesTx+newVolume)/totalVolume,
+			100*(record.BytesTx+newVolume)/totalVolume,
 		)
 	}
 	return res, fmt.Errorf("error: not enough traffic generated to fullfil GenULTrafficBasedOnPolicyUsage requieriment: %s", err)
@@ -477,34 +478,34 @@ func (tr *TestRunner) WaitForEnforcementStatsForRuleGreaterThanOrDoesNotExist(im
 	}
 }
 
- func (tr *TestRunner) WaitForEnforcementStatsForRuleGreaterThanOrDoesNotExistFunc (imsi, ruleID string, min uint64)(*lteprotos.RuleRecord, bool) {
-		fmt.Printf("\tWaiting until %s, %s has more than %d bytes in enforcement stats or rule does not exist ...\n", imsi, ruleID, min)
-		records, err := tr.GetPolicyUsage()
-		if err != nil {
-			return nil, false
-		}
-		imsi = prependIMSIPrefix(imsi)
-		if records[imsi] == nil {
-			// Session is gone
-			fmt.Printf("\tSession for %s, does not exist...\n", imsi)
-			return nil, true
-		}
-		record := records[imsi][ruleID]
-		if record == nil {
-			// Session is gone
-			fmt.Printf("\tRule %s for %s, does not exist...\n", ruleID, imsi)
-			return nil, true
-		}
-		txBytes := record.BytesTx
-		if record.BytesTx < min {
-			return record, false
-		}
-		fmt.Printf("\t\u2713 %s, %s now passed %d > %d in enforcement stats!(%d%%)\n",
-			imsi, ruleID, txBytes, min, 100* txBytes/min)
-		return record, true
+func (tr *TestRunner) WaitForEnforcementStatsForRuleGreaterThanOrDoesNotExistFunc(imsi, ruleID string, min uint64) (*lteprotos.RuleRecord, bool) {
+	fmt.Printf("\tWaiting until %s, %s has more than %d bytes in enforcement stats or rule does not exist ...\n", imsi, ruleID, min)
+	records, err := tr.GetPolicyUsage()
+	if err != nil {
+		return nil, false
 	}
+	imsi = prependIMSIPrefix(imsi)
+	if records[imsi] == nil {
+		// Session is gone
+		fmt.Printf("\tSession for %s, does not exist...\n", imsi)
+		return nil, true
+	}
+	record := records[imsi][ruleID]
+	if record == nil {
+		// Session is gone
+		fmt.Printf("\tRule %s for %s, does not exist...\n", ruleID, imsi)
+		return nil, true
+	}
+	txBytes := record.BytesTx
+	if record.BytesTx < min {
+		return record, false
+	}
+	fmt.Printf("\t\u2713 %s, %s now passed %d > %d in enforcement stats!(%d%%)\n",
+		imsi, ruleID, txBytes, min, 100*txBytes/min)
+	return record, true
+}
 
-//WaitForPolicyReAuthToProcess returns a method which checks for reauth answer and
+// WaitForPolicyReAuthToProcess returns a method which checks for reauth answer and
 // if it has sessionID which contains the IMSI
 func (tr *TestRunner) WaitForPolicyReAuthToProcess(raa *fegprotos.PolicyReAuthAnswer, imsi string) func() bool {
 	// Todo figure out the best way to figure out when RAR is processed
@@ -516,7 +517,7 @@ func (tr *TestRunner) WaitForPolicyReAuthToProcess(raa *fegprotos.PolicyReAuthAn
 	}
 }
 
-//WaitForChargingReAuthToProcess returns a method which checks for reauth answer and
+// WaitForChargingReAuthToProcess returns a method which checks for reauth answer and
 // if it has sessionID which contains the IMSI
 func (tr *TestRunner) WaitForChargingReAuthToProcess(raa *fegprotos.ChargingReAuthAnswer, imsi string) func() bool {
 	// Todo figure out the best way to figure out when RAR is processed
@@ -571,7 +572,7 @@ func getRandKeyOpcFromOp(op []byte) (key, opc []byte, err error) {
 	key = make([]byte, 16)
 	rand.Read(key)
 
-	tempOpc, err := crypto.GenerateOpc(key, op)
+	tempOpc, err := milenage.GenerateOpc(key, op)
 	if err != nil {
 		return nil, nil, err
 	}

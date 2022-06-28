@@ -18,14 +18,19 @@ import time
 import unittest
 import warnings
 from concurrent.futures import Future
-from os import pipe
-from typing import List
+from typing import Dict, List, Optional
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
-from magma.pipelined.app import egress, ingress, middle
+from magma.pipelined.app import egress
+from magma.pipelined.app.egress import EgressController
+from magma.pipelined.app.ingress import IngressController
+from magma.pipelined.app.middle import MiddleController
+from magma.pipelined.app.testing import TestingController
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
+    StartThread,
     TestSetup,
 )
 from magma.pipelined.tests.pipelined_test_util import (
@@ -38,7 +43,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-gw_info_map = {}
+gw_info_map: Dict = {}
 gw_info_lock = threading.RLock()  # re-entrant locks
 
 
@@ -47,7 +52,7 @@ def mocked_get_mobilityd_gw_info() -> List[GWInfo]:
     global gw_info_lock
 
     with gw_info_lock:
-        return gw_info_map.values()
+        return list(gw_info_map.values())
 
 
 def mocked_set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
@@ -95,6 +100,13 @@ class InOutNonNatTest(unittest.TestCase):
     UPLINK_BR = "up_inout_br0"
     DHCP_PORT = "tino_dhcp"
     UPLINK_VLAN_SW = "vlan_inout"
+
+    service_manager: ServiceManager
+    thread: StartThread
+    ingress_controller: IngressController
+    middle_controller: MiddleController
+    egress_controller: EgressController
+    testing_controller: TestingController
 
     @classmethod
     def setup_uplink_br(cls):
@@ -156,10 +168,10 @@ class InOutNonNatTest(unittest.TestCase):
 
         cls.service_manager = create_service_manager([])
 
-        ingress_controller_reference = Future()
-        middle_controller_reference = Future()
-        egress_controller_reference = Future()
-        testing_controller_reference = Future()
+        ingress_controller_reference: Future = Future()
+        middle_controller_reference: Future = Future()
+        egress_controller_reference: Future = Future()
+        testing_controller_reference: Future = Future()
 
         if non_nat_arp_egress_port is None:
             non_nat_arp_egress_port = cls.DHCP_PORT
@@ -536,10 +548,10 @@ def mocked_setmacbyip6(ipv6_addr: str, mac: str):
         ipv6_mac_table[ipv6_addr] = mac
 
 
-def mocked_getmacbyip6(ipv6_addr: str) -> str:
+def mocked_getmacbyip6(ipv6_addr: str) -> Optional[str]:
     global ipv6_mac_table
     with gw_info_lock:
-        return ipv6_mac_table.get(ipv6_addr, None)
+        return ipv6_mac_table.get(ipv6_addr)
 
 
 class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
@@ -557,7 +569,6 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        egress.getmacbyip6 = mocked_getmacbyip6
         egress.get_mobilityd_gw_info = mocked_get_mobilityd_gw_info
         egress.set_mobilityd_gw_info = mocked_set_mobilityd_gw_info
 
@@ -622,6 +633,7 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
         time.sleep(1)
         clear_gw_info_map()
 
+    @unittest.mock.patch('magma.pipelined.gw_mac_address.getmacbyip6', mocked_getmacbyip6)
     def testFlowSnapshotMatch(self):
         ipv6_addr1 = "2002::22"
         mac_addr1 = "11:22:33:44:55:88"
