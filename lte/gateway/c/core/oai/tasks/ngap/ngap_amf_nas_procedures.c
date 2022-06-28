@@ -1211,20 +1211,17 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
         &(session_item->PDU_Session_Resource_Setup_Request_Transfer);
 
     /*tx_out*/
-    Ngap_PDUSessionResourceSetupRequestTransfer_t*
-        pduSessionResourceSetupRequestTransferIEs =
-            (Ngap_PDUSessionResourceSetupRequestTransfer_t*)calloc(
-                1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
+    Ngap_PDUSessionResourceSetupRequestTransfer_t msg;
+    memset(&msg, 0, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
 
     ngap_fill_pdu_session_resource_setup_request_transfer(
-        amf_pdu_ses_setup_transfer_req,
-        pduSessionResourceSetupRequestTransferIEs);
+        amf_pdu_ses_setup_transfer_req, &msg);
     uint32_t buffer_size = 1024;
     char* buffer = (char*)calloc(1, buffer_size);
 
     asn_enc_rval_t er = aper_encode_to_buffer(
-        &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL,
-        pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
+        &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL, &msg,
+        buffer, buffer_size);
 
     if (er.encoded <= 0) {
       OAILOG_ERROR(LOG_NGAP, "PDU Session Resource Request IE encode error \n");
@@ -1232,15 +1229,15 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     }
 
     asn_fprint(stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-               pduSessionResourceSetupRequestTransferIEs);
+               &msg);
 
-    bstring transfer = blk2bstr(buffer, er.encoded);
+    bstring transfer = blk2bstr(buffer, ((er.encoded + 7) >> 3));
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf =
-        (uint8_t*)calloc(er.encoded, sizeof(uint8_t));
+        (uint8_t*)calloc(((er.encoded + 7) >> 3), sizeof(uint8_t));
 
     memcpy((void*)ngap_pdusession_setup_item_ies
                ->pDUSessionResourceSetupRequestTransfer.buf,
-           (void*)transfer->data, er.encoded);
+           (void*)transfer->data, blength(transfer));
 
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer
         .size = blength(transfer);
@@ -1252,9 +1249,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     bdestroy(transfer);
 
     ASN_STRUCT_FREE_CONTENTS_ONLY(
-        asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-        pduSessionResourceSetupRequestTransferIEs);
-    free(pduSessionResourceSetupRequestTransferIEs);
+        asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, &msg);
 
   } /*for loop*/
 
