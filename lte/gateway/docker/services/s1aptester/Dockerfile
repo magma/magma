@@ -15,7 +15,6 @@ ARG OS_RELEASE=focal
 
 
 FROM $OS_DIST:$OS_RELEASE
-ARG MAGMA_RELEASE=master
 
 ARG APT_UTILS_VERSION=2.0.9
 ARG BINUTILS_VERSION=2.34-6ubuntu1.3
@@ -30,12 +29,12 @@ ARG LIBMYSQL_VERSION=8.0.29-0ubuntu0.20.04.3
 ARG LIBPROTOBUF_VERSION=3.6.1.3-2ubuntu5
 ARG LIBSYSTEMD_DEV_VERSION=245.4-4ubuntu3.17
 ARG LSB_RELEASE_VERSION=11.1.0ubuntu2
-ARG MAGMA_RELEASE=master
 ARG MVN_VERSION=3.5.4
 ARG PIP_VERSION=20.0.2-5ubuntu1.6
 ARG PKG_CONFIG_VERSION=0.29.1-0ubuntu4
 ARG PROTOBUF_VERSION=3.6.1.3-2ubuntu5
 ARG PYSTEMD_VERSION=0.7.0-2build1
+ARG PYTHON_IS_PYTHON3_VERSION=3.8.2-4
 ARG RUBY_VERSION=1:2.7+1
 ARG RUBY_DEV_VERSION=1:2.7+1
 ARG RSYNC_VERSION=3.1.3-8ubuntu0.3
@@ -72,6 +71,7 @@ RUN apt-get update && \
   lsb-release=$LSB_RELEASE_VERSION \
   openjdk-8-jdk=$JDK_VERSION \
   pkg-config=$PKG_CONFIG_VERSION \
+  python-is-python3=$PYTHON_IS_PYTHON3_VERSION \
   python3-eventlet=$EVENTLET_VERSION \
   python3-pip=$PIP_VERSION \
   python3-protobuf=$PROTOBUF_VERSION \
@@ -88,7 +88,7 @@ RUN apt-get update && \
   apt-get clean && \
   gem install fpm
 
-RUN git clone https://github.com/magma/magma $MAGMA_ROOT -b $MAGMA_RELEASE
+COPY . $MAGMA_ROOT/
 
 WORKDIR /var/tmp/
 
@@ -99,12 +99,6 @@ RUN DIRECTORY="/tmp/aioeventlet" && \
   rm -rf ${DIRECTORY} && \
   mkdir -p ${SWAGGER_CODEGEN_DIR}modules/swagger-codegen-cli/target/; \
   wget -q https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
-
-RUN python3 -m venv $VIRTUAL_ENV
-
-WORKDIR /usr/local/bin
-
-RUN ln -s /usr/bin/python3 python
 
 WORKDIR $MAGMA_ROOT/lte/gateway/python
 
