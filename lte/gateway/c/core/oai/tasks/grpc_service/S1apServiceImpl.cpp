@@ -14,14 +14,14 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
 
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
 #include <string>
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 }
 

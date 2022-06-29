@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import sys
+import time
 from distutils.util import strtobool
 from time import sleep
 
@@ -219,23 +220,79 @@ def s1ap_setup_cloud():
     run("sudo systemctl restart magma@magmad")
 
 
+def open_orc8r_port_in_vagrant():
+    """
+    Add a line to Vagrantfile file to open 9445 port on Vagrant.
+    Note that localhost request to 9443 will be sent to Vagrant vm.
+    Remove this line manually if you intend to run orc8r on your host
+    """
+    cmd_yes_if_exists = """grep -q 'guest: 9443, host: 9443' Vagrantfile"""
+
+    # Insert line after a specific line
+    cmd_insert_line = \
+        "awk '/config.vm.define :magma,/{print;print " \
+        "\"    magma.vm.network \\\"forwarded_port\\\", " \
+        "guest: 9443, host: 9443\"" \
+        ";next}1' Vagrantfile >> Vagrantfile.bak00 && " \
+        "cp Vagrantfile.bak00 Vagrantfile && rm Vagrantfile.bak00"
+
+    local("{} || ({})".format(cmd_yes_if_exists, cmd_insert_line))
+
+
+def redirect_feg_agw_to_vagrant_orc8r():
+    """
+    Modifies feg docker-compose.override.yml hosts and AGW /etc/hosts
+    to point to localhost when Orc8r runs on inside Vagrant
+    """
+    local(
+        "sed -i '' 's/:10.0.2.2/:127.0.0.1/' {}/docker-compose.override.yml"
+        .format(FEG_INTEG_TEST_DOCKER_ROOT),
+    )
+
+    vagrant_setup(
+        'magma', destroy_vm=False, force_provision=False,
+    )
+    sudo("sed -i 's/10.0.2.2/127.0.0.1/' /etc/hosts")
+
+
 def federated_integ_test(
         build_all='False', clear_orc8r='False', provision_vm='False',
-        destroy_vm='False',
+        destroy_vm='False', orc8r_on_vagrant='False',
 ):
     build_all = bool(strtobool(build_all))
     clear_orc8r = bool(strtobool(clear_orc8r))
     provision_vm = bool(strtobool(provision_vm))
     destroy_vm = bool(strtobool(destroy_vm))
+    orc8r_on_vagrant = bool(strtobool(orc8r_on_vagrant))
+
+    if orc8r_on_vagrant:
+        # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
+        execute(open_orc8r_port_in_vagrant)
+
     with lcd(FEG_INTEG_TEST_ROOT):
         if build_all:
             local(
-                "fab build_all:clear_orc8r={},provision_vm={}".
-                format(clear_orc8r, provision_vm),
+                "fab build_all:clear_orc8r={},provision_vm={},"
+                "orc8r_on_vagrant={}".format(
+                    clear_orc8r,
+                    provision_vm,
+                    orc8r_on_vagrant,
+                ),
             )
-        local("fab start_all")
+
+        if orc8r_on_vagrant:
+            # modify dns entries to find Orc8r from inside Vagrant
+            execute(redirect_feg_agw_to_vagrant_orc8r)
+
+        local("fab start_all:orc8r_on_vagrant={}".format(orc8r_on_vagrant))
+
+        if orc8r_on_vagrant:
+            print("Wait for orc8r to be available")
+            sleep(60)
+
         local("fab configure_orc8r")
-        local("fab test_connectivity")
+        sleep(20)
+        local("fab test_connectivity:timeout=200")
 
     vagrant_setup(
         'magma_trfserver', destroy_vm, force_provision=provision_vm,
@@ -245,6 +302,7 @@ def federated_integ_test(
         'magma_test', destroy_vm, force_provision=provision_vm,
     )
     execute(_make_integ_tests)
+    sleep(20)
     execute(run_integ_tests, "federated_tests/s1aptests/test_attach_detach.py")
 
 
@@ -544,6 +602,17 @@ def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
     else:
         ansible_setup(test_host, "test", "magma_test.yml")
     sudo('service magma@magmad start')
+
+
+def build_test_vms(provision_vm='False', destroy_vm='False'):
+    vagrant_setup(
+        'magma_trfserver', destroy_vm, force_provision=provision_vm,
+    )
+
+    vagrant_setup(
+        'magma_test', destroy_vm, force_provision=provision_vm,
+    )
+    execute(_make_integ_tests)
 
 
 def _copy_out_c_execs_in_magma_vm():
