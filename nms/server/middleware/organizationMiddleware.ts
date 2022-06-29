@@ -38,9 +38,9 @@ async function getOrganizationFromHost(
   });
 }
 
-export async function getOrganization(req: {
-  get(field: string): string | void;
-}): Promise<OrganizationModel> {
+export async function getOrganization(
+  req: Request,
+): Promise<OrganizationModel> {
   for (const header of ['host', 'x-forwarded-host']) {
     const host = req.get(header);
     if (host != null && host !== '') {
@@ -53,19 +53,8 @@ export async function getOrganization(req: {
   throw new Error('Invalid organization!');
 }
 
-// We don't depend on organization to be there in other modules.
-export type OrganizationRequestPart = {
-  organization: () => Promise<OrganizationModel>;
-};
-export type OrganizationMiddlewareRequest = Request &
-  Partial<OrganizationRequestPart>;
-
 export default function organizationMiddleware() {
-  return (
-    req: OrganizationMiddlewareRequest,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     try {
       req.organization = () => getOrganization(req);
       next();

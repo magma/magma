@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
+import {Request} from 'express';
 import {Strategy} from 'passport-strategy';
-import type {FBCNMSMiddleWareRequest} from '../../middleware';
 
-type StrategyBuilder = (req: FBCNMSMiddleWareRequest) => Promise<Strategy>;
-type StrategyIDBuilder = (req: FBCNMSMiddleWareRequest) => Promise<string>;
+type StrategyBuilder = (req: Request) => Promise<Strategy>;
+type StrategyIDBuilder = (req: Request) => Promise<string>;
 
 export default class DynamicStrategy extends Strategy {
   _strategies: Record<string, Strategy> = {};
@@ -31,10 +31,7 @@ export default class DynamicStrategy extends Strategy {
     this._strategyBuilder = strategyBuilder;
   }
 
-  async _getStrategy(
-    req: FBCNMSMiddleWareRequest,
-    name: string,
-  ): Promise<Strategy> {
+  async _getStrategy(req: Request, name: string): Promise<Strategy> {
     let strategy = this._strategies[name];
 
     if (!strategy) {
@@ -50,7 +47,7 @@ export default class DynamicStrategy extends Strategy {
     return strategy;
   }
 
-  authenticate(req: FBCNMSMiddleWareRequest, options: any) {
+  authenticate(req: Request, options: any) {
     (async () => {
       const strategyID = await this._strategyIDBuilder(req);
       const strategy = await this._getStrategy(req, strategyID);

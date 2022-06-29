@@ -12,13 +12,12 @@
  *
  */
 
-import type {OrganizationMiddlewareRequest} from '../../middleware/organizationMiddleware';
-
 import {Client, Issuer} from 'openid-client';
+import {Request} from 'express';
 
 const _clientCache: Record<string, Client> = {};
 
-export async function clientFromRequest(req: OrganizationMiddlewareRequest) {
+export async function clientFromRequest(req: Request) {
   if (!req.organization) {
     throw new Error('Must be using organization');
   }

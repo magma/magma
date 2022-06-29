@@ -11,8 +11,10 @@
  * limitations under the License.
  */
 
-import {EmbeddedData} from './shared/types/embeddedData';
-import {UserModel} from './shared/sequelize_models/models/user';
+import {TokenSet} from 'openid-client';
+import type {EmbeddedData} from './shared/types/embeddedData';
+import type {OrganizationModel} from './shared/sequelize_models/models/organization';
+import type {UserModel} from './shared/sequelize_models/models/user';
 
 declare global {
   interface Window {
@@ -23,5 +25,22 @@ declare global {
 
   namespace Express {
     type User = UserModel;
+
+    interface Request {
+      csrfToken: () => string; // from csrf
+      body: object; // from bodyParser
+      session?: {oidc?: {tokenSet: TokenSet}};
+      organization?: () => Promise<OrganizationModel>;
+      logIn: (
+        user: UserModel,
+        callback: (err?: Error | null | undefined) => void,
+      ) => void;
+      logOut: () => void;
+      logout: () => void;
+      user: UserModel;
+      isAuthenticated: () => boolean;
+      isUnauthenticated: () => boolean;
+      access: {loginUrl: string};
+    }
   }
 }

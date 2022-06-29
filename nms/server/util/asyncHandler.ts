@@ -11,22 +11,15 @@
  * limitations under the License.
  */
 
-import {FBCNMSRequest} from '../auth/access';
-import {NextFunction, Response} from 'express';
+import {NextFunction, Request, RequestHandler, Response} from 'express';
 
-type InputHandler = (
-  req: FBCNMSRequest,
+type AsyncHandler = (
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => Promise<any>;
 
-type OutputHandler = (
-  req: FBCNMSRequest,
-  res: Response,
-  next: NextFunction,
-) => void;
-
-export default function asyncHandler(fn: InputHandler): OutputHandler {
+export default function asyncHandler(fn: AsyncHandler): RequestHandler {
   return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

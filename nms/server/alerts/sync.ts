@@ -21,18 +21,6 @@ import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
 import type {PromAlertConfig} from '../../generated-ts';
 import type {Response} from 'express';
 
-type OutputRequest<T> = {
-  logIn: (user: T, callback: (err?: Error | null | undefined) => void) => void;
-  logOut: () => void;
-  logout: () => void;
-  user: T;
-  isAuthenticated: () => boolean;
-  isUnauthenticated: () => boolean;
-};
-export type FBCNMSPassportRequest = OutputRequest<any>;
-type Options = {loginUrl: string};
-export type FBCNMSRequest = FBCNMSPassportRequest & {access: Options};
-
 async function syncAlertsForNetwork(
   networkID: string,
   autoAlerts: {[name: string]: PromAlertConfig},

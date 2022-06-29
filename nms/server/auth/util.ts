@@ -12,7 +12,7 @@
  *
  */
 
-import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
+import type {Request} from 'express';
 import type {UserModel} from '../../shared/sequelize_models/models/user';
 import type {UserRawType} from '../../shared/sequelize_models/models/user';
 
@@ -50,7 +50,7 @@ export function addQueryParamsToUrl(
 }
 
 export async function getUserFromRequest(
-  req: FBCNMSMiddleWareRequest,
+  req: Request,
   email: string,
 ): Promise<UserModel | null | undefined> {
   const where = await injectOrganizationParams(req, {email});

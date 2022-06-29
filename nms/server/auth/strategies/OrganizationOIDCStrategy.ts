@@ -15,12 +15,12 @@ import DynamicStrategy from './DynamicStrategy';
 import crypto from 'crypto';
 import logging from '../../../shared/logging';
 import {AccessRoles} from '../../../shared/roles';
-import {FBCNMSMiddleWareRequest} from '../../middleware';
 import {
   Strategy as OidcStrategy,
   OpenidUserInfoClaims,
   TokenSet,
 } from 'openid-client';
+import {Request} from 'express';
 import {User} from '../../../shared/sequelize_models';
 import {UserModel} from '../../../shared/sequelize_models/models/user';
 import {clientFromRequest} from '../oidc/client';
@@ -33,7 +33,7 @@ const logger = logging.getLogger(module);
 
 export default function OrganizationOIDCStrategy(config: Config) {
   const verify = async (
-    req: FBCNMSMiddleWareRequest,
+    req: Request,
     tokenSet: TokenSet,
     userInfo: OpenidUserInfoClaims,
     done: (error: Error | void, user?: UserModel) => void,
@@ -64,7 +64,7 @@ export default function OrganizationOIDCStrategy(config: Config) {
         user = await User.create(createArgs);
       }
 
-      req.session.oidc = {tokenSet};
+      req.session!.oidc = {tokenSet};
       done(undefined, user);
     } catch (e) {
       logger.error('Error creating user', e);

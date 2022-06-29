@@ -12,10 +12,10 @@
  *
  */
 
-import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
+import type {Request} from 'express';
 
 export async function injectOrganizationParams<T extends Record<string, any>>(
-  req: FBCNMSMiddleWareRequest,
+  req: Request,
   params: T,
 ): Promise<T & {organization?: string}> {
   if (req.organization) {

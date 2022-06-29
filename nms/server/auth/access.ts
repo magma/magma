@@ -18,29 +18,22 @@ import {ErrorCodes} from '../../shared/errorCodes';
 import {addQueryParamsToUrl} from './util';
 import {getLogger} from '../../shared/logging';
 
-import type {FBCNMSPassportRequest} from './passport';
-import type {NextFunction, Response} from 'express';
+import type {NextFunction, Request, Response} from 'express';
 const logger = getLogger(module);
 
 type Options = {loginUrl: string};
-// Final type, thus naming it as thus.
-export type FBCNMSRequest = FBCNMSPassportRequest & {access: Options};
 
 const validators = {
-  [AccessRoles.USER]: (req: FBCNMSPassportRequest) => {
+  [AccessRoles.USER]: (req: Request) => {
     return req.isAuthenticated();
   },
-  [AccessRoles.SUPERUSER]: (req: FBCNMSPassportRequest) => {
+  [AccessRoles.SUPERUSER]: (req: Request) => {
     return req.user && req.user.role === AccessRoles.SUPERUSER;
   },
 };
 
 export const configureAccess = (options: Options) => {
-  return function setup(
-    req: FBCNMSPassportRequest & {access?: Options},
-    _res: Response,
-    next: NextFunction,
-  ) {
+  return function setup(req: Request, _res: Response, next: NextFunction) {
     req.access = options;
     next();
   };
@@ -48,7 +41,7 @@ export const configureAccess = (options: Options) => {
 
 export const access = (level: AccessRoleLevel) => {
   return async function access(
-    req: FBCNMSRequest,
+    req: Request,
     res: Response,
     next: NextFunction,
   ) {

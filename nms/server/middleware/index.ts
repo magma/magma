@@ -12,20 +12,8 @@
  *
  */
 
-import {TokenSet} from 'openid-client';
-
 export {default as organizationMiddleware} from './organizationMiddleware';
 export {default as appMiddleware} from './appMiddleware';
 export {default as csrfMiddleware} from './csrfMiddleware';
 export {default as sessionMiddleware} from './sessionMiddleware';
 export {default as webpackSmartMiddleware} from './webpackSmartMiddleware';
-
-import {TabScrollButton} from '@material-ui/core';
-import type {OrganizationMiddlewareRequest} from './organizationMiddleware';
-
-export type FBCNMSMiddleWareRequest = {
-  csrfToken: () => string; // from csrf
-  body: object; // from bodyParser
-  session?: {oidc?: {tokenSet: TokenSet}};
-} & OrganizationMiddlewareRequest;
-TabScrollButton;

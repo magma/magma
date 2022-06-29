@@ -20,6 +20,7 @@ import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '../auth/access';
 
 import MagmaV1API from '../magma/index';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
 // $FlowFixMe migrated to typescript
