@@ -185,7 +185,7 @@ jobs:
         if: failure() && github.event.workflow_run.event == 'push'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: "LTE integ test"
+          SLACK_USERNAME: "FEG integ test"
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@2.1.0
         with:
