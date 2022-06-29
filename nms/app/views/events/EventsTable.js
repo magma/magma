@@ -34,6 +34,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback} from 'react';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
@@ -244,9 +245,9 @@ export default function EventsTable(props: EventTableProps) {
   const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
     isAutoRefreshing,
     30000,
-    () => {
-      tableRef.current && tableRef.current.onQueryChange();
-    },
+    useCallback(() => {
+      tableRef.current?.onQueryChange();
+    }, []),
   );
 
   const startEnd = useMemo(() => {
@@ -259,14 +260,17 @@ export default function EventsTable(props: EventTableProps) {
       format: format,
     };
   }, [startDate, endDate]);
+  useEffect(() => {
+    if (props.inStartDate) {
+      setStartDate(props.inStartDate);
+    }
+  }, [props.inStartDate, setStartDate]);
 
   useEffect(() => {
-    if (props.inStartDate && props.inEndDate) {
-      if (tableRef.current) {
-        tableRef.current.onQueryChange();
-      }
+    if (props.inEndDate) {
+      setEndDate(props.inEndDate);
     }
-  }, [props.inStartDate, props.inEndDate]);
+  }, [props.inEndDate, setEndDate]);
 
   let actionTableOptions = {
     actionsColumnIndex: -1,
