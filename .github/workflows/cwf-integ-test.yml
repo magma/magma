@@ -12,11 +12,6 @@ on:  # yamllint disable-line rule:truthy
       - 'v1.*'
     types:
       - completed
-  pull_request:
-    branches:
-      - master
-      - 'v1.*'
-    types: [opened, reopened, synchronize]
 env:
   SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
 
