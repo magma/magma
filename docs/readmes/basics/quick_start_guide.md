@@ -35,11 +35,12 @@ any production hardware on hand to test an end-to-end setup.
 We'll be setting up the LTE AGW VM in this tab.
 
 You need to make sure that your local network setup is correct for the VM to
-start properly. Especially the entry `* 192.168.0.0/16` must exist in your
+start properly. Especially the entries `* 192.168.0.0/16` and `* 3001::/64` must exist in your
 `/etc/vbox/networks.conf`.
 
 ```bash
 HOST [magma]$ echo "* 192.168.0.0/16" | sudo tee -a /etc/vbox/networks.conf
+HOST [magma]$ echo "* 3001::/64" | sudo tee -a /etc/vbox/networks.conf
 HOST [magma]$ cd lte/gateway
 HOST [magma/lte/gateway]$ vagrant up magma
 ```
