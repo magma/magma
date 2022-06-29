@@ -5402,7 +5402,7 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-// Frees the contents of pointer, called while freeing an entry from protibuf
+// Frees the contents of pointer, called while freeing an entry from protobuf
 // map
 void free_enb_description(void** ptr) {
   if (ptr) {

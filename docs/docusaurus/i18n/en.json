@@ -255,6 +255,9 @@
         "title": "AGW Setup (With Vagrant)",
         "sidebar_label": "Setup (With Vagrant)"
       },
+      "lte/suci_extensions": {
+        "title": "SUCI Extensions"
+      },
       "lte/dev_teid_allocation": {
         "title": "TEID Allocation"
       },

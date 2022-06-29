@@ -90,7 +90,7 @@
 
  - devops-configure: Install ansible, golang, packages, local working directory and latest github sources
      ```
-     ansible-playbook devops-configure.yaml -i <dynamic inventory file> -e "devops=tag_Name_<devOpsCloudstrapper>" -e "dirLocalInventory=<inventory folder>" -u ubuntu --skip-tags buildMagma,pubMagma,pubHelm,keyManager
+     ansible-playbook devops-configure.yaml -i "<WORK_DIR>/common_instance_aws_ec2.yaml" -e "devops=tag_Name_<devOpsCloudstrapper>" -e "dirLocalInventory=<inventory folder>" -u ubuntu --skip-tags buildMagma,pubMagma,pubHelm,keyManager
      ```
    - Result: Base instance configured using packages and latest Magma source
 
@@ -231,7 +231,7 @@
 
     agw-configure: configures the AGW to include controller information Command:
     ```
-    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> -e sshKey=<PATH-TO-PUBLIC-KEY-TO-ADD>]
+    ansible-playbook agw-configure.yaml -i "<WORK_DIR>/common_instance_aws_ec2.yaml" -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> -e sshKey=<PATH-TO-PUBLIC-KEY-TO-ADD>]
     ```
 
     Example:
@@ -266,12 +266,17 @@
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
         - Add ```--skip-tag clearSSHKeys``` if you want to keep ssh keys on the instance
-    ```
-
-    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
 
     ```
-    - ami-init: Snapshot the AMI instance
+    ansible-playbook ami-configure.yaml -i "<WORK_DIR>/common_instance_aws_ec2.yaml" -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+    ```
+
+    Example:
+    ```
+    ansible-playbook ami-configure.yaml -i "~/test_agwc/common_instance_aws_ec2.yaml" -e "dirLocalInventory=~/test_agwc" -e "aminode=tag_Name_buildGwJan" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+    ```
+
+    - ami-init: Snapshot the AGW instance
     ```
     ansible-playbook ami-init.yaml -e "dirLocalInventory=<Local Inventory Dir>"
     ```
