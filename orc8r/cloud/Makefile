@@ -27,7 +27,7 @@ PROTO_INCLUDES := /usr/include
 endif
 export PROTO_INCLUDES
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/services/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_V1_ROOT)/swagger.yml

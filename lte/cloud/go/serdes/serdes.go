@@ -19,6 +19,7 @@ import (
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/state"
@@ -49,6 +50,7 @@ var (
 		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
 		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
 		state.NewStateSerde(lte.SubscriberStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.GatewaySubscriberStateType, &subscriberdb_storage.GatewaySubscriberState{}),
 	))
 	// Device contains the full set of device serdes used in the LTE module
 	Device = serdes.Device

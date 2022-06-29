@@ -198,8 +198,8 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     }
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
-    num_ues_checked = 0;
     // ue_context, if not delete it
+    num_ues_checked = 0;
     for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
          ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
       get_mme_ue_ids_no_imsi(ue_itr->first, ue_itr->second, &num_ues_checked,

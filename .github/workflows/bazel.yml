@@ -90,6 +90,7 @@ jobs:
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             bazel build //... \
+              --config=mme_unit_test \
               --profile=Bazel_build_all_profile
       - name: Publish bazel profile
         uses: actions/upload-artifact@v3

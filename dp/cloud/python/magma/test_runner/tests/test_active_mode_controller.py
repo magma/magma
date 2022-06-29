@@ -150,6 +150,7 @@ class ActiveModeControllerTestCase(DomainProxyIntegrationTestCase):
     def _build_get_state_result() -> CBSDStateResult:
         return CBSDStateResult(
             radio_enabled=True,
+            carrier_aggregation_enabled=False,
             channel=LteChannel(
                 low_frequency_hz=3620_000_000,
                 high_frequency_hz=3630_000_000,

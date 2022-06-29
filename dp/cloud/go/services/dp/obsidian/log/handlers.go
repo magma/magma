@@ -26,8 +26,8 @@ import (
 
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/service/config"
 )
 

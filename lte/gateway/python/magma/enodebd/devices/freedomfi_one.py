@@ -83,6 +83,7 @@ DP_MODE_KEY = 'dp_mode'
 RADIO_MIN_POWER = 0
 RADIO_MAX_POWER = 24
 ANTENNA_GAIN_DBI = 5
+ANTENNA_HEIGHT = 0
 
 
 class SASParameters(object):
@@ -829,6 +830,8 @@ class FreedomFiOneTrDataModel(DataModel):
         # We don't set these parameters
         ParameterName.BAND_CAPABILITY: transform_for_magma.band_capability,
         ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode,
+        ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
+        ParameterName.GPS_LONG: transform_for_magma.gps_tr181,
     }
 
     @classmethod
@@ -1429,12 +1432,16 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         ff_one_update_desired_config_from_cbsd_state(
             state, self.acs.desired_cfg,
         )
+        # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
+        # antenna_gain: suggested by Sercomm to hardcode it
+        # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
+        #                 Hardcode it.
         enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
             serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
             latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
             longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
             indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
-            antenna_height=None,
+            antenna_height=str(ANTENNA_HEIGHT),
             antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
             antenna_gain=str(ANTENNA_GAIN_DBI),
             cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),

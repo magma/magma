@@ -15,15 +15,15 @@ buildenv: setupenv protos swagger $(BUILD_LIST) py_patches
 $(BUILD_LIST): %_build:
 	make -C $* install_egg
 
-test_all: buildenv $(BIN)/nosetests $(BIN)/coverage $(TEST_LIST)
+test_all: buildenv $(BIN)/pytest $(BIN)/pytest-cov $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $* .test
 
 define run_unit_tests
-    . $(PYTHON_BUILD)/bin/activate; cd $(2); $(PYTHON_BUILD)/bin/nosetests -s $(1) || exit 1
+    . $(PYTHON_BUILD)/bin/activate; cd $(2); $(PYTHON_BUILD)/bin/pytest -s $(1) || exit 1
 endef
 define run_sudo_unit_tests
-    . $(PYTHON_BUILD)/bin/activate; cd $(2); sudo $(PYTHON_BUILD)/bin/nosetests -s $(1) || exit 1
+    . $(PYTHON_BUILD)/bin/activate; cd $(2); sudo $(PYTHON_BUILD)/bin/pytest -s $(1) || exit 1
 endef
 
 # unit_tests (UT_PATH=unit_test_path|MAGMA_SERVICE=service_name)[DONT_BUILD_ENV=1]
@@ -42,7 +42,7 @@ else ifdef UT_PATH
 endif
 	@if [ ! -d "$(MAGMA_ROOT)/lte/gateway/python/$(TEST_PATH)" ]; then if [ ! -d "$(MAGMA_ROOT)/orc8r/gateway/python/$(TEST_PATH_ORC8R)" ]; then echo "no tests found" && exit 1; fi; fi
 ifndef DONT_BUILD_ENV
-	@$(MAKE) buildenv $(BIN)/nosetests
+	@$(MAKE) buildenv $(BIN)/pytest
 endif
 ifdef MAGMA_SERVICE
 	sudo service magma@$(MAGMA_SERVICE) stop
@@ -65,6 +65,12 @@ $(BIN)/nosetests: install_virtualenv
 
 $(BIN)/coverage: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "coverage>=6.1.2"
+
+$(BIN)/pytest: install_virtualenv
+	$(VIRT_ENV_PIP_INSTALL) pytest==7.1.2
+
+$(BIN)/pytest-cov: install_virtualenv
+	$(VIRT_ENV_PIP_INSTALL) pytest-cov==3.0.0
 
 $(BIN)/pylint: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pylint==2.14.0

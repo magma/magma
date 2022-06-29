@@ -19,9 +19,9 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"magma/orc8r/cloud/go/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
+	"magma/orc8r/cloud/go/services/obsidian"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 )
 
