@@ -12,7 +12,7 @@
  *
  */
 
-import type {OrganizationMiddlewareRequest} from '../../../server/middleware/organizationMiddleware';
+import type {OrganizationMiddlewareRequest} from '../../middleware/organizationMiddleware';
 
 import {Client, Issuer} from 'openid-client';
 

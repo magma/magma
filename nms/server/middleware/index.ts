@@ -12,6 +12,8 @@
  *
  */
 
+import {TokenSet} from 'openid-client';
+
 export {default as organizationMiddleware} from './organizationMiddleware';
 export {default as appMiddleware} from './appMiddleware';
 export {default as csrfMiddleware} from './csrfMiddleware';
@@ -24,6 +26,6 @@ import type {OrganizationMiddlewareRequest} from './organizationMiddleware';
 export type FBCNMSMiddleWareRequest = {
   csrfToken: () => string; // from csrf
   body: object; // from bodyParser
-  session: any;
+  session?: {oidc?: {tokenSet: TokenSet}};
 } & OrganizationMiddlewareRequest;
 TabScrollButton;
