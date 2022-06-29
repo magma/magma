@@ -48,6 +48,43 @@ imsi64_t send_initial_ue_message_no_tmsi(
   return imsi64;
 }
 
+// Create initial ue message without TMSI and replace tmsi in hexbuf
+imsi64_t send_initial_ue_message_no_tmsi_replace_mtmsi(
+    amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,
+    uint32_t gnb_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    amf_ue_ngap_id_t amf_ue_ngap_id, const plmn_t& plmn, const uint8_t* nas_msg,
+    uint8_t nas_msg_length, amf_ue_ngap_id_t ue_id, uint8_t tmsi_offset) {
+  itti_ngap_initial_ue_message_t initial_ue_message = {};
+
+  initial_ue_message.sctp_assoc_id = sctp_assoc_id;
+  initial_ue_message.gnb_id = gnb_id;
+  initial_ue_message.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  initial_ue_message.amf_ue_ngap_id = amf_ue_ngap_id;
+
+  initial_ue_message.nas = blk2bstr(nas_msg, nas_msg_length);
+
+  initial_ue_message.tai.plmn = plmn;
+  initial_ue_message.tai.tac = 1;
+  initial_ue_message.ecgi.plmn = plmn;
+  initial_ue_message.ecgi.cell_identity = {0, 0, 0};
+  initial_ue_message.m5g_rrc_establishment_cause = M5G_MO_SIGNALING;
+  initial_ue_message.ue_context_request = M5G_UEContextRequest_requested;
+  initial_ue_message.is_s_tmsi_valid = false;
+  tmsi_t ue_tmsi = amf_lookup_guti_by_ueid(ue_id);
+
+  ue_tmsi = htonl(ue_tmsi);
+  memcpy(&(initial_ue_message.nas
+               ->data[nas_msg_length - sizeof(tmsi_t) - tmsi_offset]),
+         &(ue_tmsi), sizeof(tmsi_t));
+
+  imsi64_t imsi64 = 0;
+
+  imsi64 =
+      amf_app_handle_initial_ue_message(amf_app_desc_p, &initial_ue_message);
+
+  return imsi64;
+}
+
 /* Create initial ue message without TMSI no context*/
 imsi64_t send_initial_ue_message_no_tmsi_no_ctx_req(
     amf_app_desc_t* amf_app_desc_p, sctp_assoc_id_t sctp_assoc_id,

@@ -225,18 +225,41 @@ status_code_e amf_proc_registration_request(
     }
   }
 
+  /* Implicit deregistartion of existing context should be triggered if
+   * same TMSI used and trigger fresh registration request*/
+  if (ies->guti) {
+    amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+    if (amf_app_desc_p == NULL) {
+      OAILOG_WARNING(LOG_NAS_AMF, " amf_app_desc_p null, from %s\n",
+                     __FUNCTION__);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    }
+    ue_m5gmm_context_s* guti_ue_mm_ctx = NULL;
+
+    guti_ue_mm_ctx =
+        amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, ies->guti);
+    if (guti_ue_mm_ctx) {
+      old_ue_id = guti_ue_mm_ctx->amf_ue_ngap_id;
+      if ((guti_ue_mm_ctx->mm_state == REGISTERED_CONNECTED) ||
+          (guti_ue_mm_ctx->mm_state == REGISTERED_IDLE)) {
+        amf_nas_proc_implicit_deregister_ue_ind(old_ue_id);
+      }
+    }
+  }
   if (!(is_nas_specific_procedure_registration_running(
           &ue_m5gmm_context->amf_context))) {
     amf_proc_create_procedure_registration_request(ue_m5gmm_context, ies);
   } else {
     /* Update the GUTI */
-    if (ies->guti) {
-      nas_amf_registration_proc_t* registration_proc =
-          get_nas_specific_procedure_registration(
-              &(ue_m5gmm_context->amf_context));
-
-      registration_proc->ies = ies;
+    nas_amf_registration_proc_t* registration_proc =
+        get_nas_specific_procedure_registration(
+            &(ue_m5gmm_context->amf_context));
+    if (registration_proc == NULL) {
+      OAILOG_WARNING(LOG_NAS_AMF, " Registration_proc null, from %s\n",
+                     __FUNCTION__);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }
+    registration_proc->ies = ies;
   }
 
   /* If in a connected state REGISTRATION_REQUEST is received
@@ -650,6 +673,34 @@ status_code_e amf_send_registration_accept(amf_context_t* amf_context) {
           amf_ctx_set_valid_imsi(amf_context, registration_proc->ies->imsi,
                                  new_imsi64);
         }
+      }
+      if (registration_proc->ies->guti) {
+        supi_as_imsi_t supi_imsi;
+        amf_guti_m5g_t amf_guti;
+        ue_m5gmm_context_s* ue_context =
+            amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+        if (ue_context == NULL) {
+          OAILOG_DEBUG(LOG_NAS_AMF,
+                       "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT
+                       "\n",
+                       ue_id);
+          OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+        }
+        supi_imsi.plmn.mcc_digit1 =
+            registration_proc->ies->guti->guamfi.plmn.mcc_digit1;
+        supi_imsi.plmn.mcc_digit2 =
+            registration_proc->ies->guti->guamfi.plmn.mcc_digit2;
+        supi_imsi.plmn.mcc_digit3 =
+            registration_proc->ies->guti->guamfi.plmn.mcc_digit3;
+        supi_imsi.plmn.mnc_digit1 =
+            registration_proc->ies->guti->guamfi.plmn.mnc_digit1;
+        supi_imsi.plmn.mnc_digit2 =
+            registration_proc->ies->guti->guamfi.plmn.mnc_digit2;
+        supi_imsi.plmn.mnc_digit3 =
+            registration_proc->ies->guti->guamfi.plmn.mnc_digit3;
+        amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+        amf_ue_context_on_new_guti(ue_context,
+                                   reinterpret_cast<guti_m5_t*>(&amf_guti));
       }
 
       m5gmm_state_t state =
