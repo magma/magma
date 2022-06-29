@@ -9,23 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSMiddleWareRequest} from '../../../server/middleware';
-
 import {Strategy} from 'passport-strategy';
+import type {FBCNMSMiddleWareRequest} from '../../middleware';
 
-// $FlowIgnore[value-as-type]
 type StrategyBuilder = (req: FBCNMSMiddleWareRequest) => Promise<Strategy>;
 type StrategyIDBuilder = (req: FBCNMSMiddleWareRequest) => Promise<string>;
 
 export default class DynamicStrategy extends Strategy {
-  // $FlowIgnore[value-as-type]
-  _strategies: {[string]: Strategy} = {};
+  _strategies: Record<string, Strategy> = {};
   _strategyBuilder: StrategyBuilder;
   _strategyIDBuilder: StrategyIDBuilder;
 
@@ -38,9 +31,12 @@ export default class DynamicStrategy extends Strategy {
     this._strategyBuilder = strategyBuilder;
   }
 
-  // $FlowIgnore[value-as-type]
-  async _getStrategy(req: FBCNMSMiddleWareRequest, name: string): Strategy {
+  async _getStrategy(
+    req: FBCNMSMiddleWareRequest,
+    name: string,
+  ): Promise<Strategy> {
     let strategy = this._strategies[name];
+
     if (!strategy) {
       strategy = this._strategies[name] = await this._strategyBuilder(req);
     }
@@ -60,7 +56,7 @@ export default class DynamicStrategy extends Strategy {
       const strategy = await this._getStrategy(req, strategyID);
       strategy.authenticate(req, options);
     })().catch(error => {
-      this.error(error);
+      this.error(error as Error);
     });
   }
 }

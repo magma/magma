@@ -14,6 +14,7 @@
  * @format
  */
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import DynamicStrategy from './DynamicStrategy';
 // $FlowFixMe migrated to typescript
 import {AccessRoles} from '../../../shared/roles';

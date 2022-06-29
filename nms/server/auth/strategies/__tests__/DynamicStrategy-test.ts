@@ -9,28 +9,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
+import DynamicStrategy from '../DynamicStrategy';
+import passport from 'passport';
+import {NextFunction} from 'express';
 import {Strategy} from 'passport-strategy';
 
-import DynamicStrategy from '../DynamicStrategy';
-
-import passport from 'passport';
-
 class StubStrategy extends Strategy {
+  name: string;
+  _success: boolean;
+
   constructor(success: boolean) {
     super();
     this.name = 'stub';
     this._success = success;
   }
+
   authenticate() {
     if (this._success) {
       return this.success({message: 'This is a success'});
     } else {
-      return this.fail({message: 'This is a failure'});
+      return this.fail({message: 'This is a failure'}, 401);
     }
   }
 }
@@ -42,24 +42,25 @@ function flushPromises() {
 test('authenticate failure', async () => {
   const req = {
     body: {},
-    logIn: jest.fn((user, options, next) => {
+    logIn: jest.fn((user, options, next: NextFunction) => {
       next(null);
       return true;
     }),
   };
 
-  const res = {end: jest.fn(), statusCode: null};
+  const res = {end: jest.fn<unknown, [string]>(), statusCode: null};
   const next = jest.fn();
 
-  const p = passport.use(
-    'dynamic',
-    new DynamicStrategy(
-      async _req => 'strategyID',
-      async _req => new StubStrategy(false),
-    ),
-  );
-
-  p.authenticate('dynamic')(req, res, next);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  passport
+    .use(
+      'dynamic',
+      new DynamicStrategy(
+        () => Promise.resolve('strategyID'),
+        () => Promise.resolve(new StubStrategy(false)),
+      ),
+    )
+    .authenticate('dynamic')(req, res, next);
 
   await flushPromises();
 
@@ -72,7 +73,7 @@ test('authenticate failure', async () => {
 test('authenticate success', async () => {
   const req = {
     body: {},
-    logIn: jest.fn((user, options, next) => {
+    logIn: jest.fn((user, options, next: NextFunction) => {
       next(null);
       return true;
     }),
@@ -81,15 +82,16 @@ test('authenticate success', async () => {
   const res = {end: jest.fn(), statusCode: null};
   const next = jest.fn();
 
-  const p = passport.use(
-    'dynamic',
-    new DynamicStrategy(
-      async _req => 'strategyID',
-      async _req => new StubStrategy(true),
-    ),
-  );
-
-  p.authenticate('dynamic', {})(req, res, next);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  passport
+    .use(
+      'dynamic',
+      new DynamicStrategy(
+        () => Promise.resolve('strategyID'),
+        () => Promise.resolve(new StubStrategy(true)),
+      ),
+    )
+    .authenticate('dynamic', {})(req, res, next);
 
   await flushPromises();
 
