@@ -431,7 +431,7 @@ def local_command_with_repetition(command, timeout=5):
     _command_with_repetition(local, command, timeout)
 
 
-def run_fab_command_with_repetition(command, timeout=5):
+def run_remote_command_with_repetition(command, timeout=5):
     """
     Run command on remote machine using fabric.api.run. Repeats on error
     Args:

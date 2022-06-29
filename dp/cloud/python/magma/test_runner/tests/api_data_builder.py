@@ -115,8 +115,8 @@ class CbsdAPIDataBuilder:
         return self
 
     def with_expected_grant(
-        self, bandwidth_mhz: int = 10, frequency_mhz: int = 3625, max_eirp: int = 28,
-        grant_state="authorized",
+            self, bandwidth_mhz: int = 10, frequency_mhz: int = 3625, max_eirp: int = 28,
+            grant_state="authorized",
     ) -> CbsdAPIDataBuilder:
         self.bandwidth_mhz = bandwidth_mhz
         self.frequency_mhz = frequency_mhz
@@ -125,7 +125,7 @@ class CbsdAPIDataBuilder:
         return self
 
     def with_grant(
-        self, bandwidth_mhz: int = None, frequency_mhz: int = None, max_eirp: int = None, grant_state=None,
+            self, bandwidth_mhz: int = None, frequency_mhz: int = None, max_eirp: int = None, grant_state=None,
     ) -> CbsdAPIDataBuilder:
         self.payload['grant'] = {
             'bandwidth_mhz': bandwidth_mhz or self.bandwidth_mhz,
@@ -163,6 +163,7 @@ class CbsdAPIDataBuilder:
         half_bandwidth_hz = int(5e5) * bandwidth_mhz
         return CBSDStateResult(
             radio_enabled=True,
+            carrier_aggregation_enabled=False,
             channel=LteChannel(
                 low_frequency_hz=frequency_hz - half_bandwidth_hz,
                 high_frequency_hz=frequency_hz + half_bandwidth_hz,
