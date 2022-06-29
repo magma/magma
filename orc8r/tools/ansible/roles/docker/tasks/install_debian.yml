@@ -39,11 +39,6 @@
     file: /tmp/docker.key
     state: present
 
-- name: Verify that you now have the key with the fingerprint
-  apt_key:
-    id: 0EBFCD88
-    state: present
-
 - name: Add the stable repository for Docker
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ docker_host_distribution }} stable
