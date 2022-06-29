@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 /**
@@ -56,14 +53,22 @@
  *  Completed data migration, importing from specified DB
  */
 
-/* eslint no-console: "off" */
+import inquirer from 'inquirer';
+import minimist from 'minimist';
+import process from 'process';
+import {exportToDatabase, importFromDatabase} from '.';
+import type {Dialect, Options} from 'sequelize';
 
-const inquirer = require('inquirer');
-const process = require('process');
-const argv = require('minimist')(process.argv.slice(2));
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-const {exportToDatabase, importFromDatabase} = require('./index.ts');
-import type {Options} from 'sequelize';
+interface Args {
+  password?: string;
+  username?: string;
+  database?: string;
+  host?: string;
+  port?: string;
+  dialect?: Dialect;
+}
+
+const argv = minimist<Args>(process.argv.slice(2));
 
 const dbQuestions = [
   {
@@ -125,7 +130,7 @@ async function getDbOptions(): Promise<Options> {
     };
     console.log(argv);
   } else {
-    await inquirer.prompt(dbQuestions).then(answers => {
+    await inquirer.prompt<Required<Args>>(dbQuestions).then(answers => {
       dbOptions = {
         username: answers['username'],
         password: answers['password'],
@@ -164,7 +169,7 @@ async function confirmAndRunMigration(dbOptions: Options): Promise<void> {
   }
 
   await inquirer
-    .prompt([
+    .prompt<{willRun: boolean; runType: 'import' | 'export'}>([
       {
         type: 'rawlist',
         name: 'runType',
@@ -181,10 +186,7 @@ async function confirmAndRunMigration(dbOptions: Options): Promise<void> {
     .then(answers => {
       if (answers['willRun']) {
         const isImport = answers['runType'] === 'import';
-        (async () => {
-          await runMigration(isImport, dbOptions);
-        })();
-        return;
+        return runMigration(isImport, dbOptions);
       }
       console.log('Aborting data migration');
     });
@@ -206,6 +208,7 @@ async function runMigration(
     console.log(
       `Unable to connect to specified database for migration:\n` +
         `--------------------------------------------------------------------------\n` +
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${error}\n` +
         `--------------------------------------------------------------------------\n`,
     );
@@ -214,7 +217,7 @@ async function runMigration(
 }
 
 function main() {
-  (async () => {
+  void (async () => {
     const dbOptions: Options = await getDbOptions();
     displayDbOptions(dbOptions);
     await confirmAndRunMigration(dbOptions);
