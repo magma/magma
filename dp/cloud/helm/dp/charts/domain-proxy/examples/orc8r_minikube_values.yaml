@@ -53,7 +53,7 @@ logging:
 #
 ## Metrics
 metrics:
-  enabled: false
+  enabled: true
   imagePullSecrets:
     - name: orc8r-secrets-registry
 

@@ -25,8 +25,11 @@ message CBSDRequest {
 }
 
 message CBSDStateResult {
-  LteChannel channel = 1;
+  repeated LteChannel channels = 1;
   bool radio_enabled = 2;
+  bool carrier_aggregation_enabled = 3;
+// TODO for backwards compatibility only. Remove once enodebd part is updated
+  LteChannel channel = 4;
 }
 
 message LteChannel {

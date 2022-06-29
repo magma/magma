@@ -25,10 +25,10 @@ import (
 	subscriberdbcloud_servicer "magma/lte/cloud/go/services/subscriberdb/servicers/southbound"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -81,7 +81,7 @@ func main() {
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.ProtectedGrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
-	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer())
+	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer(subscriberStateStore))
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, subscriberdbcloud_servicer.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.ProtectedGrpcServer, swagger_servicers.NewSpecServicerFromFile(subscriberdb.ServiceName))

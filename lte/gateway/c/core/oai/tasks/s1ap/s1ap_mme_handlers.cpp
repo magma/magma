@@ -406,7 +406,8 @@ void clean_stale_enb_state(s1ap_state_t* state,
   enb_description_t* stale_enb_association = NULL;
 
   state->enbs.map_apply_callback_on_all_elements(
-      get_stale_enb_connection_with_enb_id, (void*)new_enb_association,
+      get_stale_enb_connection_with_enb_id,
+      reinterpret_cast<void*>(new_enb_association),
       (void**)&stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -568,7 +569,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
                       "invalid_state");
     /* UE state at s1ap task is created on reception of initial ue message
-     * map, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map, ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
@@ -3701,7 +3702,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 
   if (reset) {
     /* UE state at s1ap task is created on reception of initial ue message
-     * map, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
@@ -4565,7 +4566,7 @@ status_code_e s1ap_handle_paging_request(
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
        itr++) {
-    enb_ref_p = (enb_description_t*)itr->second;
+    enb_ref_p = reinterpret_cast<enb_description_t*>(itr->second);
     if (!enb_ref_p) {
       continue;
     }

@@ -684,4 +684,26 @@ int check_ue_context_state(amf_ue_ngap_id_t ue_id,
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
+// 5th expiry of t3550 during registration complete from UE
+// mimicing registration_accept_t3550_handler
+int unit_test_registration_accept_t3550(amf_ue_ngap_id_t ue_id) {
+  int rc = RETURNerror;
+  ue_m5gmm_context_s* ue_amf_context = NULL;
+
+  // assuming 5 times expiry of T3550 timer for registration accept
+  // Get the UE context
+  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_amf_context == NULL) {
+    return RETURNerror;
+  }
+
+  // 5.5.1.2.8 abnormal case on network side
+  // at 5th expiry of timer, amf enters into REGISTERED state
+  rc = ue_state_handle_message_initial(
+      COMMON_PROCEDURE_INITIATED2, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
+      ue_amf_context, &ue_amf_context->amf_context);
+
+  return (rc);
+}
+
 }  // namespace magma5g

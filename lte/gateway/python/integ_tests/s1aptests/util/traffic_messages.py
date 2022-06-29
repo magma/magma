@@ -146,7 +146,7 @@ class TrafficMessage(object):
         assert (not stream.closed) and stream.readable
 
         length = stream.readline()
-        if len(length) and length is not b'0':
+        if len(length) and length != b'0':
             length = int(length.decode())
             line = stream.read(length)
             return pickle.loads(line)

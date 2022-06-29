@@ -171,8 +171,7 @@ typedef struct enb_description_s {
   /*@{*/
   uint32_t nb_ue_associated;  ///< Number of NAS associated UE on this eNB
   magma::proto_map_uint32_uint64_t
-      ue_id_coll;  ///< Contains comp_s1ap_id assoc to
-                   ///< enodeb, key is mme_ue_s1ap_id;
+      ue_id_coll;  ///< key: mme_ue_s1ap_id, value: comp_s1ap_id
   /*@}*/
   /** SCTP stuff **/
   /*@{*/

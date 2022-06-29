@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 import json
-from typing import Any, List
+from typing import Any, Dict, List
 
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -43,10 +43,10 @@ class EnodebConfiguration():
         self._data_model = data_model
 
         # Dict[ParameterName, Any]
-        self._param_to_value = {}
+        self._param_to_value: Dict[ParameterName, Any] = {}
 
         # Dict[ParameterName, Dict[ParameterName, Any]]
-        self._numbered_objects = {}
+        self._numbered_objects: Dict[ParameterName, Dict[ParameterName, Any]] = {}
         # If adding a PLMN object, then you would set something like
         # self._numbered_objects['PLMN_1'] = {'PLMN_1_ENABLED': True}
 

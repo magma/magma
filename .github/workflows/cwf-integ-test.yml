@@ -23,11 +23,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ env.SHA }}
-      - name: Cache Vagrant Boxes
-        uses: actions/cache@v3
-        with:
-          path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-cwf
       - name: Run docker compose
         run: |
           cd cwf/gateway/docker
@@ -70,6 +65,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ env.SHA }}
+      - name: Cache Vagrant Boxes
+        uses: actions/cache@v3
+        with:
+          path: ~/.vagrant.d/boxes
+          key: vagrant-boxes-cwf
       - name: Setup Python env
         uses: "gabrielfalcao/pyenv-action@v8"
         with:

@@ -6,7 +6,7 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
       - 'v1.*'
-  pull_request_target:
+  pull_request:
     branches:
       - master
       - 'v1.*'

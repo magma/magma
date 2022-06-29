@@ -85,7 +85,7 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
             self,
             service: MagmaService,
     ) -> None:
-        self._state_map = {}
+        self._state_map: Dict[str, Any] = {}
         super().__init__(service, use_param_key=False)
 
     def reboot_asap(self) -> None:
@@ -343,6 +343,10 @@ class BaicellsQRTBQueuedEventsWaitState(EnodebAcsState):
         Returns:
             AcsMsgAndTransition
         """
+        if not self.wait_timer:
+            logger.error('wait_timer is None.')
+            raise ValueError('wait_timer is None.')
+
         if self.wait_timer.is_done():
             return AcsMsgAndTransition(
                 msg=models.DummyInput(),
@@ -362,6 +366,10 @@ class BaicellsQRTBQueuedEventsWaitState(EnodebAcsState):
         Returns:
             str
         """
+        if not self.wait_timer:
+            logger.error('wait_timer is None.')
+            raise ValueError('wait_timer is None.')
+
         remaining = self.wait_timer.seconds_remaining()
         return 'Waiting for eNB REM to run for %d more seconds before ' \
                'resuming with configuration.' % remaining
