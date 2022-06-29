@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #ifdef __cplusplus
@@ -164,8 +165,8 @@ typedef struct enb_description_s {
   /** UE list for this eNB **/
   /*@{*/
   uint32_t nb_ue_associated;  ///< Number of NAS associated UE on this eNB
-  hash_table_uint64_ts_t ue_id_coll;  ///< Contains comp_s1ap_id assoc to
-                                      ///< enodeb, key is mme_ue_s1ap_id;
+  magma::proto_map_uint32_uint64_t
+      ue_id_coll;  ///< key: mme_ue_s1ap_id, value: comp_s1ap_id
   /*@}*/
   /** SCTP stuff **/
   /*@{*/

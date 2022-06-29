@@ -1209,13 +1209,12 @@ void s1ap_handle_mme_ue_id_notification(
           &state->mmeid2associd, (const hash_key_t)mme_ue_s1ap_id,
           (void*)(uintptr_t)sctp_assoc_id);
 
-      hashtable_uint64_ts_insert(&enb_ref->ue_id_coll,
-                                 (const hash_key_t)mme_ue_s1ap_id,
+      enb_ref->ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id,
                                  ue_ref->comp_s1ap_id);
 
       OAILOG_DEBUG(LOG_S1AP,
-                   "Num elements in ue_id_coll %zu and num ue associated %u",
-                   enb_ref->ue_id_coll.num_elements, enb_ref->nb_ue_associated);
+                   "Num elements in ue_id_coll %lu and num ue associated %u",
+                   enb_ref->ue_id_coll.size(), enb_ref->nb_ue_associated);
 
       OAILOG_DEBUG(
           LOG_S1AP,
