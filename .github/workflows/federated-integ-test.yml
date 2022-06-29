@@ -100,6 +100,21 @@ jobs:
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
+      - name: Cache magma-dev-box
+        uses: actions/cache@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
+          key: vagrant-box-magma-dev
+      - name: Cache magma-test-box
+        uses: actions/cache@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
+          key: vagrant-box-magma-test
+      - name: Cache magma-trfserver-box
+        uses: actions/cache@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
+          key: vagrant-box-magma-trfserver
       - name: Build test vms
         run: |
           cd ${{ env.AGW_ROOT }} && fab build_test_vms
