@@ -30,3 +30,23 @@ The images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker-compos
     * Adapt the docker registry in `/var/opt/magma/docker/.env`
       * Example for the registry setting: `DOCKER_REGISTRY=registry.hub.docker.com/arunuke/`
     * Make changes to config files and restart services by running `/var/opt/magma/docker/agw_upgrade.sh` or by running the `agw_install_docker.sh` script
+
+## Running the containerized AGW locally on the magma VM
+
+The magma VM defined in [../Vagrantfile](../Vagrantfile) can be used to run the
+containerized AGW by running the following steps inside the VM:
+
+```
+cd $MAGMA_ROOT/lte/gateway && make run  # You can skip this if you have built the AGW with make before
+for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done
+sudo systemctl stop 'magma@*'  # We don't want the systemd-based AGW to run when we start the containerized AGW
+cd $MAGMA_ROOT/lte/gateway/docker
+docker-compose build
+docker-compose up
+```
+
+Note that with the containerized AGW we ultimately want to get rid of the dependency
+on a VM. However we are not there yet as the containerized AGW currently depends
+on a patched Open vSwitch installation on the host machine. The magma VM happens
+to have the right packages installed, and thus can currently be used as a quick
+and dirty way to run the containers locally.
