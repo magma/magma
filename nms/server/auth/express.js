@@ -22,7 +22,7 @@ import logging from '../../shared/logging';
 import passport from 'passport';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import staticDist from '../../config/staticDist';
-// $FlowFixMe migrated to typescript
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AuditLogEntry, User} from '../../shared/sequelize_models';

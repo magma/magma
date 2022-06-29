@@ -39,7 +39,7 @@ const umzug = new Umzug({
     // The path to the migrations directory.
     path: sequelizerc['migrations-path'],
     // The pattern that determines whether or not a file is a migration.
-    pattern: /^\d+[\w-]+\.js$/,
+    pattern: /^\d+[\w-]+\.[jt]s$/,
     // A function that receives and returns the to be executed function.
     // This can be used to modify the function.
     wrap(func) {

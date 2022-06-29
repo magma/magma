@@ -26,6 +26,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
+import {getErrorMessage} from '../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -98,11 +99,9 @@ export default function AddGatewayDialog(props: Props) {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      props.onSave(values);
+      void props.onSave(values);
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
-      enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
+      enqueueSnackbar(getErrorMessage(e), {
         variant: 'error',
       });
     }

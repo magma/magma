@@ -9,8 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @format
  */
 
 // enforces copyright header to be present in every file
@@ -179,6 +177,7 @@ module.exports = {
   overrides: [
     {
       files: ['**/*.js'],
+      excludedFiles: '**/sequelize_models/migrations/*.js',
       plugins: ['flowtype'],
       rules: {
         'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
@@ -191,7 +190,7 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.ts', '**/*.tsx'],
+      files: ['**/*.ts', '**/*.tsx', '**/sequelize_models/migrations/*.js'],
       extends: [
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',

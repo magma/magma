@@ -13,12 +13,14 @@
 
 // @ts-ignore generated
 import grammar from './__generated__/PromQLGrammar.js';
-import nearley from 'nearley';
+import nearley, {CompiledRules} from 'nearley';
 import {BinaryOperation} from './PromQL';
 import {SyntaxError} from './PromQLTypes';
 
 export function Parser() {
-  return new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
+  return new nearley.Parser(
+    nearley.Grammar.fromCompiled(grammar as CompiledRules),
+  );
 }
 
 export function Parse(input: string | undefined | null): BinaryOperation {
