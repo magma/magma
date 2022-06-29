@@ -11,23 +11,16 @@
  * limitations under the License.
  */
 
-import {FBCNMSRequest} from '../auth/access';
-import {NextFunction, Response} from 'express';
+import asyncHandler from '../util/asyncHandler';
 
-type InputHandler = (
-  req: FBCNMSRequest,
-  res: Response,
-  next: NextFunction,
-) => Promise<any>;
+export const hostOrgMiddleware = asyncHandler(async (req, res, next) => {
+  if (req.organization) {
+    const organization = await req.organization();
+    if (organization.isHostOrg) {
+      next();
+      return;
+    }
+  }
 
-type OutputHandler = (
-  req: FBCNMSRequest,
-  res: Response,
-  next: NextFunction,
-) => void;
-
-export default function asyncHandler(fn: InputHandler): OutputHandler {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-}
+  return res.redirect(req.access?.loginUrl || '/user/login');
+});
