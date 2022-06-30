@@ -9,30 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from './auth/access';
-// $FlowFixMe migrated to typescript
 import type {FeatureID} from '../shared/types/features';
+import type {NextFunction, Request, Response} from 'express';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {FeatureFlag} from '../shared/sequelize_models';
 
 export type RequestInfo = {
-  isDev: boolean,
-  organization: string,
+  isDev: boolean;
+  organization: string;
 };
 
 // A rule that gets evaluated when the featureflag is checked
 // true means it passes the check
 // false means it fails the check
 // null means continue to the next check
-type FeatureFlagRule = (req: RequestInfo) => ?boolean;
+type FeatureFlagRule = (req: RequestInfo) => boolean | null | undefined;
 
 const AlwaysEnabledInTestEnvRule: FeatureFlagRule = (reqInfo: RequestInfo) => {
   if (reqInfo.isDev) {
@@ -45,8 +38,8 @@ const AlwaysEnabledInTestEnvRule: FeatureFlagRule = (reqInfo: RequestInfo) => {
 };
 
 function extractRequestInfo(
-  req: ExpressRequest,
-  organization: ?string,
+  req: Request,
+  organization: string | null | undefined,
 ): RequestInfo {
   const hostname = req.hostname || 'UNKNOWN_HOST';
   return {
@@ -56,14 +49,14 @@ function extractRequestInfo(
 }
 
 export type FeatureConfig = {
-  id: FeatureID,
-  title: string,
-  enabledByDefault: boolean,
-  rules?: FeatureFlagRule[],
-  publicAccess?: boolean,
+  id: FeatureID;
+  title: string;
+  enabledByDefault: boolean;
+  rules?: Array<FeatureFlagRule>;
+  publicAccess?: boolean;
 };
 
-export const arrayConfigs = [
+export const arrayConfigs: Array<FeatureConfig> = [
   {
     id: 'sso_example_feature',
     title: 'SSO Example Feature',
@@ -257,13 +250,13 @@ export const arrayConfigs = [
   },
 ];
 
-export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
+export const featureConfigs = {} as Record<FeatureID, FeatureConfig>;
 arrayConfigs.map(config => (featureConfigs[config.id] = config));
 
 export async function isFeatureEnabled(
   reqInfo: RequestInfo,
   featureId: FeatureID,
-  organization: ?string,
+  organization: string | null | undefined,
 ): Promise<boolean> {
   const config = featureConfigs[featureId];
 
@@ -287,27 +280,33 @@ export async function isFeatureEnabled(
 }
 
 export async function getEnabledFeatures(
-  req: ExpressRequest,
-  organization: ?string,
-  publicAccess: ?boolean,
-): Promise<FeatureID[]> {
+  req: Request,
+  organization: string | null | undefined,
+  publicAccess?: boolean | null,
+): Promise<Array<FeatureID>> {
   const reqInfo = extractRequestInfo(req, organization);
   const results = await Promise.all(
-    arrayConfigs.map(async (config): Promise<?FeatureID> => {
-      if (publicAccess && !config.publicAccess) {
-        return null;
-      }
-      const enabled = await isFeatureEnabled(reqInfo, config.id, organization);
-      return enabled ? config.id : null;
-    }),
+    arrayConfigs.map(
+      async (config): Promise<FeatureID | null> => {
+        if (publicAccess && !config.publicAccess) {
+          return null;
+        }
+        const enabled = await isFeatureEnabled(
+          reqInfo,
+          config.id,
+          organization,
+        );
+        return enabled ? config.id : null;
+      },
+    ),
   );
 
-  return results.filter(Boolean);
+  return results.filter(Boolean) as Array<FeatureID>;
 }
 
 export function insertFeatures(
-  req: FBCNMSRequest,
-  res: ExpressResponse,
+  req: Request,
+  res: Response,
   next: NextFunction,
 ) {
   if (req.user.organization) {

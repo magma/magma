@@ -40,6 +40,7 @@ import userMiddleware from '../auth/express';
 import {AccessRoles} from '../../shared/roles';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {access} from '../auth/access';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getEnabledFeatures} from '../features';
 // $FlowFixMe migrated to typescript
 import {hostOrgMiddleware} from '../host/middleware';

@@ -25,6 +25,7 @@ import Sequelize from 'sequelize';
 import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import express from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import featureConfigs from '../features';
 // $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
