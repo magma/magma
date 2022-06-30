@@ -16,6 +16,7 @@
 
 import bcrypt from 'bcryptjs';
 import express from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import expressOnboarding from './expressOnboarding';
 // $FlowFixMe migrated to typescript
 import logging from '../../shared/logging';
