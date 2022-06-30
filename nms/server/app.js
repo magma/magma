@@ -25,6 +25,7 @@ logging.configure({
 
 import OrganizationLocalStrategy from './auth/strategies/OrganizationLocalStrategy';
 import OrganizationSamlStrategy from './auth/strategies/OrganizationSamlStrategy';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import alertRoutes from './alerts/routes';
 import connectSession from 'connect-session-sequelize';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

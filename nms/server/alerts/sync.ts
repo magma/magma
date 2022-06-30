@@ -11,22 +11,22 @@
  * limitations under the License.
  *
  */
-import MagmaAPI from '../../api/MagmaAPI';
+import OrchestratorAPI from '../../api/MagmaAPI';
 import getCwfAlerts from './cwfAlerts';
 import getFegAlerts from './fegAlerts';
 import getLteAlerts from './lteAlerts';
 
-// $FlowFixMe migrated to typescript
+import asyncHandler from '../util/asyncHandler';
 import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
 import type {PromAlertConfig} from '../../generated-ts';
-import type {Response} from 'express';
+import type {Request} from 'express';
 
 async function syncAlertsForNetwork(
   networkID: string,
   autoAlerts: {[name: string]: PromAlertConfig},
 ) {
   // Get currently configured alerts
-  const alerts = await MagmaAPI.alerts.networksNetworkIdPrometheusAlertConfigGet(
+  const alerts = await OrchestratorAPI.alerts.networksNetworkIdPrometheusAlertConfigGet(
     {
       networkId: networkID,
     },
@@ -52,7 +52,7 @@ async function syncAlertsForNetwork(
   const requests = [];
   for (const alert of postAlerts) {
     requests.push(
-      MagmaAPI.alerts.networksNetworkIdPrometheusAlertConfigPost({
+      OrchestratorAPI.alerts.networksNetworkIdPrometheusAlertConfigPost({
         networkId: networkID,
         alertConfig: alert,
       }),
@@ -60,11 +60,13 @@ async function syncAlertsForNetwork(
   }
   for (const alert of putAlerts) {
     requests.push(
-      MagmaAPI.alerts.networksNetworkIdPrometheusAlertConfigAlertNamePut({
-        networkId: networkID,
-        alertName: alert.alert,
-        alertConfig: alert,
-      }),
+      OrchestratorAPI.alerts.networksNetworkIdPrometheusAlertConfigAlertNamePut(
+        {
+          networkId: networkID,
+          alertName: alert.alert,
+          alertConfig: alert,
+        },
+      ),
     );
   }
 
@@ -73,41 +75,46 @@ async function syncAlertsForNetwork(
   });
 }
 
-async function syncAlerts(networkID: string, res: Response) {
-  try {
-    const type = await getNetworkType(networkID);
-    if (type == null) {
-      res.status(500).send(`Invalid network type`).end();
-      return;
+const syncAlerts = asyncHandler(
+  async (req: Request<{networkID: string}>, res) => {
+    try {
+      const networkID = req.params.networkID;
+      const type = await getNetworkType(networkID);
+      if (type == null) {
+        res.status(500).send(`Invalid network type`).end();
+        return;
+      }
+      switch (type) {
+        case CWF:
+          await syncAlertsForNetwork(networkID, getCwfAlerts(networkID));
+          break;
+        case LTE:
+          await syncAlertsForNetwork(networkID, getLteAlerts(networkID));
+          break;
+        case FEG_LTE:
+          await syncAlertsForNetwork(networkID, getLteAlerts(networkID));
+          break;
+        case FEG:
+          await syncAlertsForNetwork(networkID, getFegAlerts(networkID));
+          break;
+        default:
+          res
+            .status(400)
+            .send(`Network type ${type} has no predefined alerts`)
+            .end();
+      }
+      res.status(200).end();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'unknown error';
+      res.status(500).end(`Exception occurred ${message}`);
     }
-    switch (type) {
-      case CWF:
-        await syncAlertsForNetwork(networkID, getCwfAlerts(networkID));
-        break;
-      case LTE:
-        await syncAlertsForNetwork(networkID, getLteAlerts(networkID));
-        break;
-      case FEG_LTE:
-        await syncAlertsForNetwork(networkID, getLteAlerts(networkID));
-        break;
-      case FEG:
-        await syncAlertsForNetwork(networkID, getFegAlerts(networkID));
-        break;
-      default:
-        res
-          .status(400)
-          .send(`Network type ${type} has no predefined alerts`)
-          .end();
-    }
-    res.status(200).end();
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'unknown error';
-    res.status(500).end(`Exception occurred ${message}`);
-  }
-}
+  },
+);
 
 async function getNetworkType(networkId: string): Promise<string | undefined> {
-  const networkInfo = await MagmaAPI.networks.networksNetworkIdGet({networkId});
+  const networkInfo = await OrchestratorAPI.networks.networksNetworkIdGet({
+    networkId,
+  });
   return networkInfo.data.type;
 }
 
