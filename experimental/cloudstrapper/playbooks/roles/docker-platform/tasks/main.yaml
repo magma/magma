@@ -1,5 +1,5 @@
 ---
 
-- include: magma-repo.yaml
-- include: install-root-ca.yaml
-- include: init-docker.yaml
+- include_tasks: magma-repo.yaml
+- include_tasks: install-root-ca.yaml
+- include_tasks: init-docker.yaml
