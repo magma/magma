@@ -23,7 +23,9 @@ logging.configure({
   LOG_LEVEL,
 });
 
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationLocalStrategy from './auth/strategies/OrganizationLocalStrategy';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import OrganizationSamlStrategy from './auth/strategies/OrganizationSamlStrategy';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import alertRoutes from './alerts/routes';
