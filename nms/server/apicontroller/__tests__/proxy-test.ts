@@ -9,31 +9,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {IncomingMessage} from 'http';
+import {Request} from 'express';
 import {apiFilter, networksResponseDecorator} from '../routes';
 
-// $FlowIgnore Ignoring error for tests.
-const testApiFilter = async req => await apiFilter(req);
+const testApiFilter = async (req: any) => await apiFilter(req as Request);
 
 const testNetworksResponseDecorator = async (
-  proxyResponse,
-  proxyResponseData,
-  userRequest,
-  {},
+  proxyResponse: IncomingMessage,
+  proxyResponseData: Buffer,
+  userRequest: any,
 ) =>
   await networksResponseDecorator(
-    // $FlowIgnore Ignoring error for tests.
     proxyResponse,
     proxyResponseData,
-    // $FlowIgnore Ignoring error for tests.
-    userRequest,
-    // $FlowIgnore Ignoring error for tests.
-    {}, // userResponse
+    userRequest as Request,
   );
 
 const createData = (
@@ -42,14 +34,14 @@ const createData = (
   userNetworks: Array<string>,
   isSuperUser: boolean,
 ) => {
-  const proxyResponse = {statusCode: 200};
+  const proxyResponse = {statusCode: 200} as IncomingMessage;
   const proxyResponseData = new Buffer(
     JSON.stringify(controllerNetworks),
     'utf8',
   );
 
   const userRequest = {
-    organization: async () => ({networkIDs: orgNetworks}),
+    organization: () => Promise.resolve({networkIDs: orgNetworks}),
     user: {isSuperUser, networkIDs: userNetworks},
   };
 
@@ -61,7 +53,7 @@ const createDataNoOrg = (
   userNetworks: Array<string>,
   isSuperUser: boolean,
 ) => {
-  const proxyResponse = {statusCode: 200};
+  const proxyResponse = {statusCode: 200} as IncomingMessage;
   const proxyResponseData = new Buffer(
     JSON.stringify(controllerNetworks),
     'utf8',
@@ -218,7 +210,6 @@ describe('Proxy test', () => {
         proxyResponse,
         proxyResponseData,
         userRequest,
-        {}, // userResponse
       );
 
       expect(JSON.parse(result)).toEqual(['network2']);
@@ -236,7 +227,6 @@ describe('Proxy test', () => {
         proxyResponse,
         proxyResponseData,
         userRequest,
-        {}, // userResponse
       );
 
       expect(JSON.parse(result)).toEqual(['network1', 'network2']);
@@ -254,7 +244,6 @@ describe('Proxy test', () => {
         proxyResponse,
         proxyResponseData,
         userRequest,
-        {}, // userResponse
       );
 
       expect(JSON.parse(result)).toEqual(['network1']);
@@ -272,7 +261,6 @@ describe('Proxy test', () => {
         proxyResponse,
         proxyResponseData,
         userRequest,
-        {}, // userResponse
       );
 
       expect(JSON.parse(result)).toEqual(['network1', 'network2']);
@@ -290,7 +278,6 @@ describe('Proxy test', () => {
           proxyResponse,
           proxyResponseData,
           userRequest,
-          {}, // userResponse
         );
 
         expect(result).toEqual('[]');
@@ -307,7 +294,6 @@ describe('Proxy test', () => {
           proxyResponse,
           proxyResponseData,
           userRequest,
-          {}, // userResponse
         );
 
         expect(JSON.parse(result)).toEqual(['network1']);
@@ -324,7 +310,6 @@ describe('Proxy test', () => {
           proxyResponse,
           proxyResponseData,
           userRequest,
-          {}, // userResponse
         );
 
         expect(JSON.parse(result)).toEqual([
