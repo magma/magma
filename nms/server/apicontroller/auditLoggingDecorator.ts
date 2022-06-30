@@ -9,41 +9,40 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
-import type {ExpressResponse} from 'express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from '../auth/access';
+import type {Request, Response} from 'express';
 
-const url = require('url');
-import pathToRegexp from 'path-to-regexp';
+import url from 'url';
+import {pathToRegexp} from 'path-to-regexp';
 
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import logging from '../../shared/logging';
 import {AuditLogEntry} from '../../shared/sequelize_models';
-// $FlowFixMe migrated to typescript
-const logger = require('../../shared/logging.ts').getLogger(module);
 
-const defaultResolver = (req: FBCNMSRequest, type: string) => {
+const logger = logging.getLogger(module);
+
+type Resolved = [string | null | undefined, string | null | undefined];
+
+type RequestWithIdBody = Request<Record<string, string>, any, {id: string}>;
+
+const defaultResolver = (req: Request, type: string): Resolved => {
   const {search} = url.parse(req.originalUrl);
   const params = new URLSearchParams(search ?? '');
   return [params.get('requested_id'), type];
 };
 
 const PATHS: Array<{
-  path: string,
-  type?: string,
-  resolver?: (FBCNMSRequest, string[]) => [?string, ?string],
+  path: string;
+  type?: string;
+  resolver?: (request: Request, params: Array<string>) => Resolved;
 }> = [
   {
     path: '/magma/networks/:networkId/gateways',
-    resolver: (req: FBCNMSRequest) => defaultResolver(req, 'gateway'),
+    resolver: (req: Request) => defaultResolver(req, 'gateway'),
   },
   {
     path: '/magma/networks/:networkId/configs/devices',
-    resolver: (req: FBCNMSRequest) => defaultResolver(req, 'device'),
+    resolver: (req: Request) => defaultResolver(req, 'device'),
   },
   {
     path: '/magma/networks/:networkId/gateways/:objectId',
@@ -67,7 +66,7 @@ const PATHS: Array<{
   },
   {
     path: '/magma/networks/:networkId/subscribers',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'Subscriber'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Subscriber'],
   },
   {
     path: '/magma/networks/:networkId/tracing',
@@ -87,7 +86,7 @@ const PATHS: Array<{
   },
   {
     path: '/magma/networks/:networkId/tiers',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'Network tier'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Network tier'],
   },
   {
     path: '/magma/networks/:networkId/configs/cellular',
@@ -159,7 +158,7 @@ const PATHS: Array<{
   },
   {
     path: '/magma/v1/lte/:networkId/gateways',
-    resolver: req => [req.body.id, 'LTE gateway'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'LTE gateway'],
   },
   {
     path: '/magma/v1/lte/:networkId/gateways/:objectId',
@@ -175,19 +174,19 @@ const PATHS: Array<{
   },
   {
     path: '/magma/v1/lte/:networkId/subscribers',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'Subscriber'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Subscriber'],
   },
   {
     path: '/magma/v1/lte/:networkId/policy_qos_profiles',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'Policy qos profiles'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Policy qos profiles'],
   },
   {
     path: '/magma/v1/lte/:networkId/policy_qos_profiles/(.*)',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'Policy qos profiles'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Policy qos profiles'],
   },
   {
     path: '/magma/v1/cwf/:networkId/gateways',
-    resolver: req => [req.body.id, 'Carrier wifi gateway'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Carrier wifi gateway'],
   },
   {
     path: '/magma/v1/cwf/:networkId/gateways/:objectId',
@@ -195,7 +194,7 @@ const PATHS: Array<{
   },
   {
     path: '/magma/v1/feg/:networkId/gateways',
-    resolver: req => [req.body.id, 'Federation gateway'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Federation gateway'],
   },
   {
     path: '/magma/v1/feg/:networkId/gateways/:objectId',
@@ -207,7 +206,7 @@ const PATHS: Array<{
   },
   {
     path: '/magma/v1/networks/:networkId/rules/policies',
-    resolver: req => [req.body.id, 'Policy'],
+    resolver: (req: RequestWithIdBody) => [req.body.id, 'Policy'],
   },
   {
     path: '/magma/v1/networks/:networkId/policies/rules/:objectId',
@@ -215,21 +214,21 @@ const PATHS: Array<{
   },
 ];
 
-const MUTATION_TYPE_MAP = {
+const MUTATION_TYPE_MAP: Record<string, string> = {
   POST: 'CREATE',
   PUT: 'UPDATE',
   DELETE: 'DELETE',
 };
 
-function getObjectIdAndType(req: FBCNMSRequest): [?string, ?string] {
+function getObjectIdAndType(req: Request): Resolved {
   const parsed = url.parse(
     req.originalUrl.replace(/^\/nms\/apicontroller/, ''),
   );
   for (let i = 0; i < PATHS.length; i++) {
-    const params = pathToRegexp(PATHS[i].path).exec(parsed.pathname);
+    const params = pathToRegexp(PATHS[i].path).exec(parsed.pathname!);
     if (params) {
       return PATHS[i].resolver
-        ? PATHS[i].resolver(req, params)
+        ? PATHS[i].resolver!(req, params)
         : [params[2], PATHS[i].type];
     }
   }
@@ -238,10 +237,9 @@ function getObjectIdAndType(req: FBCNMSRequest): [?string, ?string] {
 }
 
 export default async function auditLoggingDecorator(
-  proxyRes: ExpressResponse,
+  proxyRes: Response,
   proxyResData: Buffer,
-  userReq: FBCNMSRequest,
-  _userRes: ExpressResponse,
+  userReq: Request,
 ) {
   if (!MUTATION_TYPE_MAP[userReq.method]) {
     return proxyResData;
@@ -266,6 +264,7 @@ export default async function auditLoggingDecorator(
     objectId,
     objectType,
     objectDisplayName: objectId,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     mutationData: userReq.body,
     url: userReq.originalUrl,
     ipAddress: userReq.ip,
