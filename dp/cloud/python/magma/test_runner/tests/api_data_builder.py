@@ -169,4 +169,11 @@ class CbsdAPIDataBuilder:
                 high_frequency_hz=frequency_hz + half_bandwidth_hz,
                 max_eirp_dbm_mhz=max_eirp,
             ),
+            channels=[
+                LteChannel(
+                    low_frequency_hz=frequency_hz - half_bandwidth_hz,
+                    high_frequency_hz=frequency_hz + half_bandwidth_hz,
+                    max_eirp_dbm_mhz=max_eirp,
+                ),
+            ],
         )
