@@ -38,6 +38,7 @@ import path from 'path';
 import staticDist from '../../config/staticDist';
 // $FlowFixMe migrated to typescript
 import testRoutes from '../test/routes';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import userMiddleware from '../auth/express';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';

@@ -56,7 +56,8 @@ import {
 } from './middleware';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {sequelize} from '../shared/sequelize_models';
-import {unprotectedUserRoutes} from '../server/auth/express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {unprotectedUserRoutes} from './auth/express';
 
 import type {ExpressResponse} from 'express';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
