@@ -11,13 +11,14 @@
  * limitations under the License.
  */
 
-import type {Request, Response} from 'express';
+import type {Request} from 'express';
 
 import url from 'url';
 import {pathToRegexp} from 'path-to-regexp';
 
 import logging from '../../shared/logging';
 import {AuditLogEntry} from '../../shared/sequelize_models';
+import {IncomingMessage} from 'http';
 
 const logger = logging.getLogger(module);
 
@@ -237,7 +238,7 @@ function getObjectIdAndType(req: Request): Resolved {
 }
 
 export default async function auditLoggingDecorator(
-  proxyRes: Response,
+  proxyRes: IncomingMessage,
   proxyResData: Buffer,
   userReq: Request,
 ) {
@@ -268,8 +269,8 @@ export default async function auditLoggingDecorator(
     mutationData: userReq.body,
     url: userReq.originalUrl,
     ipAddress: userReq.ip,
-    status: proxyRes.statusCode < 300 ? 'SUCCESS' : 'FAILURE',
-    statusCode: `${proxyRes.statusCode}`,
+    status: proxyRes.statusCode! < 300 ? 'SUCCESS' : 'FAILURE',
+    statusCode: `${proxyRes.statusCode!}`,
   };
 
   try {

@@ -14,47 +14,46 @@
  * @format
  */
 
-import type {ExpressResponse} from 'express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from '../auth/access';
+import type {Request} from 'express';
 
-import HttpsProxyAgent from 'https-proxy-agent';
+import HttpsProxyAgent, {HttpsProxyAgentOptions} from 'https-proxy-agent';
 import auditLoggingDecorator from './auditLoggingDecorator';
-import express from 'express';
+import express, {NextFunction, Response} from 'express';
 import proxy from 'express-http-proxy';
 import url from 'url';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {API_HOST, apiCredentials} from '../../config/config';
+import {AxiosError} from 'axios';
+import {IncomingMessage, RequestOptions} from 'http';
 import {intersection} from 'lodash';
 
-const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
+const router = express.Router();
 
 const PROXY_TIMEOUT_MS = 30000;
 const MUTATORS = ['POST', 'PUT', 'DELETE'];
 
-let agent = null;
+let agent: HttpsProxyAgent | null = null;
 if (process.env.HTTPS_PROXY) {
-  const options = url.parse(process.env.HTTPS_PROXY);
+  const options = url.parse(process.env.HTTPS_PROXY) as HttpsProxyAgentOptions;
   agent = new HttpsProxyAgent(options);
 }
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
   timeout: PROXY_TIMEOUT_MS,
-  proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
+  proxyReqOptDecorator: (proxyReqOpts: RequestOptions) => {
     return {
       ...proxyReqOpts,
-      agent: agent,
+      agent: agent!,
       cert: apiCredentials().cert,
       key: apiCredentials().key,
       rejectUnauthorized: false,
     };
   },
-  proxyReqPathResolver: req =>
+  proxyReqPathResolver: (req: Request) =>
     req.originalUrl.replace(/^\/nms\/apicontroller/, ''),
 };
 
-export async function apiFilter(req: FBCNMSRequest): Promise<boolean> {
+export async function apiFilter(req: Request): Promise<boolean> {
   if (req.user.isReadOnlyUser && MUTATORS.includes(req.method)) {
     return false;
   }
@@ -83,12 +82,11 @@ export async function apiFilter(req: FBCNMSRequest): Promise<boolean> {
 }
 
 export async function networksResponseDecorator(
-  _proxyRes: ExpressResponse,
+  _proxyRes: IncomingMessage,
   proxyResData: Buffer,
-  userReq: FBCNMSRequest,
-  _userRes: ExpressResponse,
+  userReq: Request,
 ) {
-  let result = JSON.parse(proxyResData.toString('utf8'));
+  let result = JSON.parse(proxyResData.toString('utf8')) as Array<string>;
   if (userReq.organization) {
     const organization = await userReq.organization();
     result = intersection(result, organization.networkIDs);
@@ -102,7 +100,7 @@ export async function networksResponseDecorator(
 }
 
 const containsNetworkID = function (
-  allowedNetworkIDs: string[],
+  allowedNetworkIDs: Array<string>,
   networkID: string,
 ): boolean {
   return (
@@ -116,8 +114,8 @@ const containsNetworkID = function (
   );
 };
 
-const proxyErrorHandler = (err, res, next) => {
-  if (err.code === 'ENOTFOUND') {
+const proxyErrorHandler = (err: unknown, res: Response, next: NextFunction) => {
+  if ((err as AxiosError).code === 'ENOTFOUND') {
     res.status(503).send('Cannot reach Orchestrator server');
   } else {
     console.error('andreilee here: ', err, res);
@@ -168,7 +166,7 @@ router.use(
   '/magma/channels/:channel',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    filter: (req, _res) => req.method === 'GET',
+    filter: req => req.method === 'GET',
   }),
 );
 
@@ -176,7 +174,7 @@ router.use(
   '/magma/v1/channels/:channel',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    filter: (req, _res) => req.method === 'GET',
+    filter: req => req.method === 'GET',
   }),
 );
 
@@ -184,7 +182,7 @@ router.use(
   '/magma/v1/tenants/targets_metadata',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    filter: (req, _res) => req.method === 'GET',
+    filter: req => req.method === 'GET',
   }),
 );
 
@@ -219,11 +217,11 @@ router.use(
   '/magma/v1/about/version',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    filter: (req, _res) => req.method === 'GET',
+    filter: req => req.method === 'GET',
   }),
 );
 
-router.use('', (req: FBCNMSRequest, res: ExpressResponse) => {
+router.use('', (req, res) => {
   if (req.user.isReadOnlyUser && MUTATORS.includes(req.method)) {
     res.status(403).send('Mutation forbidden. Readonly access');
     return;
