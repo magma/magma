@@ -9,50 +9,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
 import type {EmbeddedData} from '../../shared/types/embeddedData';
-import type {ExpressResponse} from 'express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from '../auth/access';
+import type {Request} from 'express';
 
-import MagmaV1API from '../magma/index';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import adminRoutes from '../admin/routes';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import apiControllerRoutes from '../apicontroller/routes';
-// $FlowFixMe migrated to typescript
 import asyncHandler from '../util/asyncHandler';
 import express from 'express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import hostRoutes from '../host/routes';
-// $FlowFixMe migrated to typescript
 import loggerRoutes from '../logger/routes';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import networkRoutes from '../network/routes';
 import path from 'path';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import staticDist from '../../config/staticDist';
-// $FlowFixMe migrated to typescript
 import testRoutes from '../test/routes';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import userMiddleware from '../auth/express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {AccessRoles} from '../../shared/roles';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
+import {OrchestratorAPI} from '../../api/MagmaAPI';
 import {access} from '../auth/access';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {getEnabledFeatures} from '../features';
-// $FlowFixMe migrated to typescript
 import {hostOrgMiddleware} from '../host/middleware';
 
-const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
+const router = express.Router();
 
 const handleReact = () =>
-  async function (req: FBCNMSRequest, res) {
+  asyncHandler(async function (req: Request, res) {
     const organization = req.organization ? await req.organization() : null;
     const appData: EmbeddedData = {
       csrfToken: req.csrfToken(),
@@ -75,10 +56,10 @@ const handleReact = () =>
         appData,
       }),
     });
-  };
+  });
 
-router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));
-router.use('/version', (req: FBCNMSRequest, res) =>
+router.use('/healthz', (req: Request, res) => res.send('OK'));
+router.use('/version', (req: Request, res) =>
   res.send(process.env.VERSION_TAG),
 );
 router.use('/admin', access(AccessRoles.SUPERUSER), adminRoutes);
@@ -101,15 +82,15 @@ router.get('/nms*', access(AccessRoles.USER), handleReact());
 
 router.get(
   '/host/networks/async',
-  asyncHandler(async (_: FBCNMSRequest, res) => {
-    const networks = await MagmaV1API.getNetworks();
+  asyncHandler(async (_: Request, res) => {
+    const networks = await OrchestratorAPI.networks.networksGet();
     res.status(200).send(networks);
   }),
 );
 
 router.use('/host', hostOrgMiddleware, hostRoutes);
 
-async function handleHost(req: FBCNMSRequest, res) {
+const handleHost = asyncHandler(async function (req: Request, res) {
   const appData: EmbeddedData = {
     csrfToken: req.csrfToken(),
     user: {
@@ -127,15 +108,15 @@ async function handleHost(req: FBCNMSRequest, res) {
     staticDist,
     configJson: JSON.stringify({appData}),
   });
-}
+});
 
 router.get('/host*', hostOrgMiddleware, handleHost);
 
 router.get(
   '/*',
   access(AccessRoles.USER),
-  asyncHandler(async (req: FBCNMSRequest, res) => {
-    const organization = await req.organization();
+  asyncHandler(async (req: Request, res) => {
+    const organization = await req.organization!();
 
     if (organization.isHostOrg) {
       res.redirect('/host');
