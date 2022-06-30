@@ -10,17 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 import {
   apnTemplate,
   gatewayTemplate,
   getNetworkTemplate,
   msisdnTemplate,
-  // $FlowFixMe migrated to typescript
 } from './Dashboards';
-// $FlowFixMe migrated to typescript
 import type {GrafanaDBData} from './Dashboards';
 
 const dbDescription =
@@ -951,10 +947,10 @@ export const CWFGatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
                 legendFormat: '{{gatewayID}}',
               },
             ],
+            description:
+              'Rate of Gx CCR-U messages that were unable to be sent due to diameter connection errors',
           },
         ],
-        description:
-          'Rate of Gx CCR-U messages that were unable to be sent due to diameter connection errors',
       },
       {
         title: 'HSS Requests/Failures',

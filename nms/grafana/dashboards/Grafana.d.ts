@@ -40,7 +40,7 @@ declare module 'grafana-dash-gen' {
       templating: {
         list: Array<{
           type: string;
-          includeAll: booelan;
+          includeAll: boolean;
           options: Array<Option>;
           current: Option;
         }>;

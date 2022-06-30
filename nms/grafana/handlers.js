@@ -26,6 +26,7 @@ import {
   CWFGatewayDBData,
   CWFNetworkDBData,
   CWFSubscriberDBData,
+// $FlowFixMe migrated to typescript
 } from './dashboards/CWFDashboards';
 import {
   GatewayDBData,
