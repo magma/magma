@@ -13,13 +13,25 @@
 
 import {NextFunction, Request, RequestHandler, Response} from 'express';
 
-type AsyncHandler = (
-  req: Request,
-  res: Response,
+interface Query {
+  [key: string]: undefined | string | Array<string> | Query | Array<Query>;
+}
+
+type AsyncHandler<P, ResBody, ReqBody, ReqQuery, Locals> = (
+  req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
+  res: Response<ResBody, Locals>,
   next: NextFunction,
 ) => Promise<any>;
 
-export default function asyncHandler(fn: AsyncHandler): RequestHandler {
+export default function asyncHandler<
+  P = Record<string, string>,
+  ResBody = any,
+  ReqBody = any,
+  ReqQuery = Query,
+  Locals extends Record<string, any> = Record<string, any>
+>(
+  fn: AsyncHandler<P, ResBody, ReqBody, ReqQuery, Locals>,
+): RequestHandler<P, ResBody, ReqBody, ReqQuery, Locals> {
   return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

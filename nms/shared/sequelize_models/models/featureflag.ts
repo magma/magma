@@ -14,15 +14,16 @@
 
 import sequelize from 'sequelize';
 import {BuildOptions, DataTypes, Model} from 'sequelize';
+import {FeatureID} from '../../types/features';
 import type {AssociateProp} from './AssociateTypes';
 
 export interface FeatureFlagRawType {
-  featureId: string;
+  featureId: FeatureID;
   organization: string;
   enabled: boolean;
 }
 
-interface FeatureFlagModel extends FeatureFlagRawType, Model {
+export interface FeatureFlagModel extends FeatureFlagRawType, Model {
   readonly id: number;
 }
 

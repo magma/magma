@@ -58,8 +58,8 @@ export async function getUserFromRequest(
 }
 
 export async function getPropsToUpdate(
-  allowedProps: Array<keyof typeof FIELD_MAP>,
-  body: {[key: string]: string | number},
+  allowedProps: ReadonlyArray<keyof typeof FIELD_MAP>,
+  body: Partial<UserRawType>,
   organizationInjector: (params: {
     [key: string]: any;
   }) => Promise<{[key: string]: any; organization?: string}>,
@@ -115,7 +115,7 @@ export async function getPropsToUpdate(
           if (typeof body[prop] !== 'string') {
             throw new Error('Invalid Organization!');
           }
-          userProperties[prop] = body[prop];
+          userProperties[prop] = body[prop] as string;
           break;
         default:
           userProperties[prop] = body[prop];

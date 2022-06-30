@@ -26,6 +26,7 @@ import apiControllerRoutes from '../apicontroller/routes';
 // $FlowFixMe migrated to typescript
 import asyncHandler from '../util/asyncHandler';
 import express from 'express';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import hostRoutes from '../host/routes';
 // $FlowFixMe migrated to typescript
 import loggerRoutes from '../logger/routes';
