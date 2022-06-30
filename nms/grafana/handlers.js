@@ -53,6 +53,7 @@ import type {
 } from './GrafanaAPIType';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../server/auth/access';
+// $FlowFixMe migrated to typescript
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {OrganizationType} from '../shared/sequelize_models/models/organization';

@@ -10,11 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 
-import axios from 'axios';
+import axios, {AxiosError, AxiosRequestConfig, AxiosResponse} from 'axios';
 
 import type {
   AddOrgUserResponse,
@@ -33,74 +31,72 @@ import type {
   PostDatasource,
   StarDashboardResponse,
   User,
-  // $FlowFixMe migrated to typescript
 } from './GrafanaAPIType';
 
-type GrafanaPromise<T> = GrafanaPromise<T>;
+type GrafanaPromise<T> = Promise<GrafanaResponse<T>>;
 
 export type GrafanaResponse<T> = {
-  status: number,
-  data: T,
+  status: number;
+  data: T;
 };
 
 export type GrafanaClient = {
-  getUser: string => GrafanaPromise<GetUserResponse>,
-  createUser: User => GrafanaPromise<CreateUserResponse>,
+  getUser: (loginOrEmail: string) => GrafanaPromise<GetUserResponse>;
+  createUser: (user: User) => GrafanaPromise<CreateUserResponse>;
 
-  getOrg: string => GrafanaPromise<Organization>,
-  addOrg: string => GrafanaPromise<CreateOrgResponse>,
-  deleteOrg: number => GrafanaPromise<DeleteOrgResponse>,
+  getOrg: (orgName: string) => GrafanaPromise<Organization>;
+  addOrg: (orgName: string) => GrafanaPromise<CreateOrgResponse>;
+  deleteOrg: (orgID: number) => GrafanaPromise<DeleteOrgResponse>;
   addUserToOrg: (
     orgID: number,
     user: OrgUser,
-  ) => GrafanaPromise<AddOrgUserResponse>,
-  getUsersInOrg: (orgID: number) => GrafanaPromise<GetOrgUsersResponse>,
+  ) => GrafanaPromise<AddOrgUserResponse>;
+  getUsersInOrg: (orgID: number) => GrafanaPromise<GetOrgUsersResponse>;
 
   createDatasource: (
     ds: PostDatasource,
     orgID: number,
-  ) => GrafanaPromise<CreateDatasourceResponse>,
+  ) => GrafanaPromise<CreateDatasourceResponse>;
   updateDatasource: (
     dsID: number,
     orgID: number,
     ds: PostDatasource,
-  ) => GrafanaPromise<CreateDatasourceResponse>,
-  getDatasources: (orgID: number) => GrafanaPromise<GetDatasourcesResponse>,
+  ) => GrafanaPromise<CreateDatasourceResponse>;
+  getDatasources: (orgID: number) => GrafanaPromise<GetDatasourcesResponse>;
 
   createDashboard: (
     db: Dashboard,
     orgID: number,
-  ) => GrafanaPromise<CreateDashboardResponse>,
+  ) => GrafanaPromise<CreateDashboardResponse>;
 
   starDashboard: (
     dbID: number,
     orgID: number,
     username: string,
-  ) => GrafanaPromise<StarDashboardResponse>,
+  ) => GrafanaPromise<StarDashboardResponse>;
 
-  getHealth: () => GrafanaPromise<GetHealthResponse>,
+  getHealth: () => GrafanaPromise<GetHealthResponse>;
 };
 
-type axiosRequest = {
-  url: string,
-  method: string,
-  query?: {[string]: string},
-  body?: mixed,
-  headers?: {[string]: string},
-};
-
-async function request<T>(req: axiosRequest): GrafanaPromise<T> {
+async function request<Data>(req: AxiosRequestConfig): GrafanaPromise<Data> {
   try {
-    const res = await axios(req);
+    const res = (await axios(req)) as AxiosResponse<Data>;
     return {status: res.status, data: res.data};
   } catch (error) {
-    return {status: error.response?.status, data: error.response?.data};
+    return {
+      status: (error as AxiosError).response?.status || 0,
+      data:
+        (error as AxiosError<Data>).response?.data ||
+        (({
+          message: 'unknown error',
+        } as unknown) as Data),
+    };
   }
 }
 
 const client = (
   apiURL: string,
-  constHeaders: {[string]: string},
+  constHeaders: {[key: string]: string},
 ): GrafanaClient => ({
   async getUser(loginOrEmail: string): GrafanaPromise<GetUserResponse> {
     return await request({
@@ -181,11 +177,7 @@ const client = (
     });
   },
 
-  async updateDatasource(
-    dsID: number,
-    orgID: number,
-    ds: PostDatasource,
-  ): GrafanaPromise<CreateDatasourceResponse> {
+  async updateDatasource(dsID: number, orgID: number, ds: PostDatasource) {
     return await request({
       url: apiURL + `/api/datasources/${dsID}`,
       method: 'PUT',

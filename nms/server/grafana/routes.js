@@ -18,9 +18,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/server';
 import express from 'express';
 import proxy from 'express-http-proxy';
-
+// $FlowFixMe migrated to typescript
 import Client from '../../grafana/GrafanaAPI';
-
 import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
 import {
   makeGrafanaUsername,
@@ -30,11 +29,11 @@ import {
   syncTenants,
 } from '../../grafana/handlers';
 
-import type {Task} from '../../grafana/handlers';
-
 import type {ExpressResponse} from 'express';
+import type {Task} from '../../grafana/handlers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';
+// $FlowFixMe migrated to typescript
 import type {GrafanaClient} from '../../grafana/GrafanaAPI';
 
 const GRAFANA_PROTOCOL = 'http';
