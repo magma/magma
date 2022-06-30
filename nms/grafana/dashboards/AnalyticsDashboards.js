@@ -13,8 +13,9 @@
  * @flow strict-local
  * @format
  */
-
+// $FlowFixMe migrated to typescript
 import {apnTemplate, getNetworkTemplate} from './Dashboards';
+// $FlowFixMe migrated to typescript
 import type {GrafanaDBData} from './Dashboards';
 
 export const AnalyticsDBData = (networkIDs: Array<string>): GrafanaDBData => {

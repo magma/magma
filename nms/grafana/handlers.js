@@ -27,13 +27,13 @@ import {
   CWFNetworkDBData,
   CWFSubscriberDBData,
 } from './dashboards/CWFDashboards';
-
 import {
   GatewayDBData,
   InternalDBData,
   NetworkDBData,
   SubscriberDBData,
   createDashboard,
+  // $FlowFixMe migrated to typescript
 } from './dashboards/Dashboards';
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

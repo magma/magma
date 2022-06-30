@@ -13,13 +13,14 @@
  * @flow strict-local
  * @format
  */
-
 import {
   apnTemplate,
   gatewayTemplate,
   getNetworkTemplate,
   msisdnTemplate,
+  // $FlowFixMe migrated to typescript
 } from './Dashboards';
+// $FlowFixMe migrated to typescript
 import type {GrafanaDBData} from './Dashboards';
 
 const dbDescription =

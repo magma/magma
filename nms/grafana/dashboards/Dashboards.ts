@@ -10,17 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
 
-//$FlowFixMe TODO: type this package
 import * as Grafana from 'grafana-dash-gen';
 
 const netIDVar = 'networkID';
 const gwIDVar = 'gatewayID';
 
-const variableSortNumbers: {[VariableSortOption]: number} = {
+const variableSortNumbers: {[K in VariableSortOption]: number} = {
   none: 0,
   'alpha-asc': 1,
   'alpha-desc': 2,
@@ -120,7 +117,7 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'sum by(networkID) (increase(duplicate_attach_request{networkID=~"$networkID"}[1h]))',
-                legend: '{{networkID}}',
+                legendFormat: '{{networkID}}',
               },
             ],
           },
@@ -479,7 +476,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'sum by(networkID,gatewayID) (increase(duplicate_attach_request{networkID=~"$networkID",gatewayID=~"$gatewayID"}[1h]))',
-                legend: '{{networkID}} - {{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
           },
@@ -866,25 +863,25 @@ export function createDashboard(dbdata: GrafanaDBData) {
 }
 
 export type GrafanaDBData = {
-  title: string,
-  description: string,
-  rows: Array<GrafanaDBRow>,
-  templates: Array<TemplateConfig>,
+  title: string;
+  description: string;
+  rows: Array<GrafanaDBRow>;
+  templates: Array<TemplateConfig>;
 };
 
 type GrafanaDBRow = {
-  title: string,
-  panels: PanelParams[],
+  title: string;
+  panels: Array<PanelParams>;
 };
 
 type PanelParams = {
-  title: string,
-  targets: Array<{expr: string, legendFormat?: string}>,
-  unit?: string,
-  yMin?: ?number,
-  yMax?: number,
-  aggregates?: {avg?: boolean, max?: boolean},
-  description?: string,
+  title: string;
+  targets: Array<{expr: string; legendFormat?: string}>;
+  unit?: string;
+  yMin?: number | null | undefined;
+  yMax?: number;
+  aggregates?: {avg?: boolean; max?: boolean};
+  description?: string;
 };
 
 function newPanel(params: PanelParams) {
@@ -919,13 +916,13 @@ function newPanel(params: PanelParams) {
 }
 
 export type TemplateParams = {
-  name: string,
-  query?: string,
-  options?: Array<string>,
-  regex?: string,
-  sort?: VariableSortOption,
-  includeAll: boolean,
-  type?: string,
+  name: string;
+  query?: string;
+  options?: Array<string>;
+  regex?: string;
+  sort?: VariableSortOption;
+  includeAll: boolean;
+  type?: string;
 };
 
 type VariableSortOption =
@@ -937,7 +934,7 @@ type VariableSortOption =
   | 'alpha-insensitive-asc'
   | 'alpha-insensitive-desc';
 
-export function variableTemplate(params: TemplateParams): TemplateConfig {
+export function variableTemplate(params: TemplateParams) {
   return {
     allValue: '.+',
     definition: params.query,
@@ -968,17 +965,17 @@ export function customVariableTemplate(params: TemplateParams): TemplateConfig {
 }
 
 export type TemplateConfig = {
-  allValue: string,
-  definition?: string,
-  hide?: number,
-  includeAll: boolean,
-  allFormat: string,
-  multi: boolean,
-  name: string,
-  query?: string,
-  options: Array<string>,
-  regex?: string,
-  type?: string,
-  refresh?: boolean,
-  useTags?: boolean,
+  allValue: string;
+  definition?: string;
+  hide?: number;
+  includeAll: boolean;
+  allFormat: string;
+  multi: boolean;
+  name: string;
+  query?: string;
+  options: Array<string>;
+  regex?: string;
+  type?: string;
+  refresh?: boolean;
+  useTags?: boolean;
 };
