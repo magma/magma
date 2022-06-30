@@ -30,11 +30,6 @@ jobs:
       - run: echo "::set-output name=date::$(date +'%m-%d-%Y--%H-%M-%S')"
         id: date
       - uses: actions/checkout@v2
-      - name: Cache magma-dev-box
-        uses: actions/cache@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
-          key: vagrant-box-magma-dev
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -59,6 +54,10 @@ jobs:
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
+      - name: Log in to vagrant cloud
+        run: |
+          echo "Logging in to vagrant cloud..."
+          vagrant cloud auth login --token "${{ secrets.VAGRANT_CLOUD_TOKEN }}"
       - name: Bring up the Magma VM
         run: |
           cd lte/gateway

@@ -65,11 +65,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ env.SHA }}
-      - name: Cache Vagrant Boxes
-        uses: actions/cache@v3
-        with:
-          path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-cwf
       - name: Setup Python env
         uses: "gabrielfalcao/pyenv-action@v8"
         with:
@@ -102,6 +97,10 @@ jobs:
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
+      - name: Log in to vagrant cloud
+        run: |
+          echo "Logging in to vagrant cloud..."
+          vagrant cloud auth login --token "${{ secrets.VAGRANT_CLOUD_TOKEN }}"
       - name: Run the integ test
         run: |
           cd cwf/gateway
