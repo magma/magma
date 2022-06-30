@@ -77,7 +77,7 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) hash_key_t keyP,
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) hash_key_t keyP,
                              void* elementP, void* parameterP, void** resultP);
 
-bool get_mme_ue_ids_no_imsi(const hash_key_t keyP, uint64_t const dataP,
+bool get_mme_ue_ids_no_imsi(uint32_t keyP, uint64_t const dataP,
                             __attribute__((unused)) void* argP, void** resultP);
 
 void remove_ues_without_imsi_from_ue_id_coll(void);

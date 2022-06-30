@@ -40,6 +40,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
     magma.vm.network "private_network", ip: "3001::10", nic_type: "82540EM"
 
+
     magma.vm.provider "virtualbox" do |vb|
       vb.name = "magma-dev"
       vb.linked_clone = true

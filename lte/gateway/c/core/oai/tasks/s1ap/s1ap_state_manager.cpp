@@ -18,6 +18,7 @@
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 namespace {
 constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
@@ -63,8 +64,7 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
 s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
   bstring ht_name;
 
-  s1ap_state_t* state_cache_p =
-      static_cast<s1ap_state_t*>(calloc(1, sizeof(s1ap_state_t)));
+  s1ap_state_t* state_cache_p = new s1ap_state_t();
 
   ht_name = bfromcstr(S1AP_ENB_COLL);
   hashtable_ts_init(&state_cache_p->enbs, max_enbs, nullptr, free_wrapper,
@@ -111,7 +111,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       if (ht_rc != HASH_TABLE_OK) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
-        hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+        enb->ue_id_coll.destroy_map();
       }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
@@ -124,7 +124,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
     OAILOG_ERROR(LOG_S1AP,
                  "An error occurred while destroying assoc_id hash table");
   }
-  free(state_cache_p);
+  delete state_cache_p;
 }
 
 void S1apStateManager::free_state() {

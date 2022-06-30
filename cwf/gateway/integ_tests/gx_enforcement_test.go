@@ -18,16 +18,16 @@ package integration
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
+	"testing"
+	"time"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-
-	"math"
-	"math/rand"
-	"testing"
-	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes"
@@ -77,7 +77,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(uint64(math.Round(0.2 * 1 * MegaBytes))).
+		SetUsageReportDelta(uint64(math.Round(0.5 * 1 * MegaBytes))).
 		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
