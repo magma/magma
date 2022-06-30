@@ -9,32 +9,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import {TokenSet} from 'openid-client';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {clientFromRequest} from './client';
 
-import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from '../access';
+import type {NextFunction, Request, Response} from 'express';
 
-type OIDCTokenSet = {
-  access_token: string,
-};
-
-type OIDCRequest = ExpressRequest & {
-  session: {
-    oidc?: {
-      tokenSet: OIDCTokenSet,
-    },
-  },
-};
-
-export function oidcAccessToken(req: OIDCRequest) {
+export function oidcAccessToken(req: Request) {
   return req.session?.oidc?.tokenSet?.access_token;
 }
 
@@ -42,8 +24,8 @@ export function oidcAccessToken(req: OIDCRequest) {
 // If it's expired and can't be refreshed, the user will be logged out
 export function oidcAuthMiddleware() {
   return async function access(
-    req: FBCNMSRequest,
-    res: ExpressResponse,
+    req: Request,
+    res: Response,
     next: NextFunction,
   ) {
     try {
@@ -61,13 +43,13 @@ export function oidcAuthMiddleware() {
 
       const client = await clientFromRequest(req);
       const newToken = await client.refresh(tokenSet.refresh_token);
-      req.session.oidc = {tokenSet: newToken};
+      req.session!.oidc = {tokenSet: newToken};
       next();
     } catch (error) {
-      if (error.name === 'OpenIdConnectError') {
-        if (error.error === 'invalid_grant') {
+      if ((error as Error).name === 'OpenIdConnectError') {
+        if ((error as {error: string}).error === 'invalid_grant') {
           req.logout();
-          delete req.session.oidc;
+          delete req.session!.oidc;
           res.redirect('/');
         }
       }
