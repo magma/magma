@@ -258,11 +258,11 @@ class DPService(DPServiceServicer):
         if not grants or cbsd.is_deleted:
             return CBSDStateResult(radio_enabled=False)
         channels = self._build_lte_channels(grants)
-        logger.debug("grants=")
         return CBSDStateResult(
             radio_enabled=True,
             carrier_aggregation_enabled=cbsd.carrier_aggregation_enabled,
             channel=channels[0],
+            channels=channels,
         )
 
     def _build_lte_channels(self, grants: List[DBChannel]) -> List[LteChannel]:
