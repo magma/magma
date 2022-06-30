@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -12,17 +12,10 @@
  */
 
 import {TokenSet} from 'openid-client';
-import type {EmbeddedData} from './shared/types/embeddedData';
-import type {OrganizationModel} from './shared/sequelize_models/models/organization';
-import type {UserModel} from './shared/sequelize_models/models/user';
+import type {OrganizationModel} from '../shared/sequelize_models/models/organization';
+import type {UserModel} from '../shared/sequelize_models/models/user';
 
 declare global {
-  interface Window {
-    CONFIG: {
-      appData: EmbeddedData;
-    };
-  }
-
   namespace Express {
     type User = UserModel;
 
