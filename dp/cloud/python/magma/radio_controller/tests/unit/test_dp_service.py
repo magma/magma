@@ -250,6 +250,13 @@ class DPTestCase(LocalDBTestCase):
                 high_frequency_hz=grant.high_frequency,
                 max_eirp_dbm_mhz=grant.max_eirp,
             ),
+            channels=[
+                LteChannel(
+                    low_frequency_hz=grant.low_frequency,
+                    high_frequency_hz=grant.high_frequency,
+                    max_eirp_dbm_mhz=grant.max_eirp,
+                ),
+            ],
         )
 
     @staticmethod
