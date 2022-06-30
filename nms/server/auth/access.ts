@@ -30,6 +30,9 @@ const validators = {
   [AccessRoles.SUPERUSER]: (req: Request) => {
     return req.user && req.user.role === AccessRoles.SUPERUSER;
   },
+  [AccessRoles.READ_ONLY_USER]: () => {
+    return false;
+  },
 };
 
 export const configureAccess = (options: Options) => {
@@ -40,7 +43,7 @@ export const configureAccess = (options: Options) => {
 };
 
 export const access = (level: AccessRoleLevel) => {
-  return async function access(
+  const handler = async function access(
     req: Request,
     res: Response,
     next: NextFunction,
@@ -97,5 +100,9 @@ export const access = (level: AccessRoleLevel) => {
       // back if the user is logged in.
       res.redirect('/');
     }
+  };
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    void handler(req, res, next);
   };
 };

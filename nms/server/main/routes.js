@@ -30,6 +30,7 @@ import express from 'express';
 import hostRoutes from '../host/routes';
 // $FlowFixMe migrated to typescript
 import loggerRoutes from '../logger/routes';
+// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import networkRoutes from '../network/routes';
 import path from 'path';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration

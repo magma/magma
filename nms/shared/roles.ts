@@ -16,7 +16,7 @@ export const AccessRoles = {
   USER: 0,
   READ_ONLY_USER: 1,
   SUPERUSER: 3,
-};
+} as const;
 export const UserRoles = {
   USER: 0,
   READ_ONLY_USER: 1,
