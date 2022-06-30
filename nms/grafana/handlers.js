@@ -26,7 +26,7 @@ import {
   CWFGatewayDBData,
   CWFNetworkDBData,
   CWFSubscriberDBData,
-// $FlowFixMe migrated to typescript
+  // $FlowFixMe migrated to typescript
 } from './dashboards/CWFDashboards';
 import {
   GatewayDBData,
@@ -39,6 +39,7 @@ import {
 
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization} from '../shared/sequelize_models';
+// $FlowFixMe migrated to typescript
 import {XWFMDBData} from './dashboards/XWFMDashboards';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {apiCredentials} from '../config/config';
