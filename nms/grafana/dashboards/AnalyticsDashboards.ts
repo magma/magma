@@ -10,12 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
  */
-// $FlowFixMe migrated to typescript
 import {apnTemplate, getNetworkTemplate} from './Dashboards';
-// $FlowFixMe migrated to typescript
 import type {GrafanaDBData} from './Dashboards';
 
 export const AnalyticsDBData = (networkIDs: Array<string>): GrafanaDBData => {

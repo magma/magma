@@ -18,6 +18,7 @@ import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '../server/magma/index';
 import Sequelize from 'sequelize';
+// $FlowFixMe migrated to typescript
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
 // $FlowFixMe migrated to typescript
 import {CWF} from '../shared/types/network';
