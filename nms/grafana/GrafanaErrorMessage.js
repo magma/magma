@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-
+// $FlowFixMe migrated to typescript
 import type {GetHealthResponse} from './GrafanaAPIType';
 import type {Task} from './handlers';
 

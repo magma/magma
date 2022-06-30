@@ -33,6 +33,7 @@ import type {
   PostDatasource,
   StarDashboardResponse,
   User,
+  // $FlowFixMe migrated to typescript
 } from './GrafanaAPIType';
 
 type GrafanaPromise<T> = GrafanaPromise<T>;

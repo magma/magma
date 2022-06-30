@@ -49,6 +49,7 @@ import type {
   CreateDashboardResponse,
   Datasource,
   PostDatasource,
+  // $FlowFixMe migrated to typescript
 } from './GrafanaAPIType';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../server/auth/access';
