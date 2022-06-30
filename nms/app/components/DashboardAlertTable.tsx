@@ -21,7 +21,7 @@ import Grid from '@material-ui/core/Grid';
 import InfoIcon from '@material-ui/icons/Info';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from './LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
@@ -30,7 +30,7 @@ import Text from '../theme/design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
 // $FlowFixMe migrated to typescript
 import nullthrows from '../../shared/util/nullthrows';
-import useMagmaAPI from '../../api/useMagmaAPI';
+import useMagmaAPI from '../api/useMagmaAPI';
 import {Alarm} from '@material-ui/icons';
 import {REFRESH_INTERVAL} from './context/RefreshContext';
 import {Theme, withStyles} from '@material-ui/core/styles';

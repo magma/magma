@@ -16,7 +16,7 @@ import FEGGatewayContext from '../context/FEGGatewayContext';
 import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
 import LoadingFiller from '../LoadingFiller';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
 import type {
   FederationGateway,
@@ -25,7 +25,7 @@ import type {
 } from '../../../generated-ts';
 import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
 import {

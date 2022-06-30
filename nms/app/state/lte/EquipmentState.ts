@@ -40,7 +40,7 @@ import type {
 } from '../../components/context/GatewayPoolsContext';
 import type {OptionsObject} from 'notistack';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 
 /************************** Gateway Tier State *******************************/
 type InitTierStateProps = {

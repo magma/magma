@@ -20,7 +20,7 @@ import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';

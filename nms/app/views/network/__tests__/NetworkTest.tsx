@@ -45,7 +45,7 @@ import {
 import {fireEvent, render, wait} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../../subscriber/SubscriberUtils';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import axios from 'axios';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';

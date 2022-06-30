@@ -19,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import moment from 'moment';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {

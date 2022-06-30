@@ -16,7 +16,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import LoadingFiller from './LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../shared/util/nullthrows';

@@ -20,7 +20,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';

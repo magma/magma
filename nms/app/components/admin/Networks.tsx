@@ -35,9 +35,9 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import NetworkContext from '../context/NetworkContext';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {Route, Routes, useNavigate} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';

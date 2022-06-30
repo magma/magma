@@ -48,7 +48,7 @@ import type {EnodebState} from '../context/EnodebContext';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import * as cbsdState from '../../state/lte/CbsdState';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {
   FEG_LTE,
   LTE,

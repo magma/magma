@@ -12,7 +12,7 @@
  */
 import Gateway from '../EquipmentGateway';
 import GatewayContext from '../../../components/context/GatewayContext';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';

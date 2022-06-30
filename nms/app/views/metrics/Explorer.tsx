@@ -20,9 +20,9 @@ import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {PrometheusLabelSet} from '../alarms/components/AlarmAPIType';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';

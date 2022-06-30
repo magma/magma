@@ -20,7 +20,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';

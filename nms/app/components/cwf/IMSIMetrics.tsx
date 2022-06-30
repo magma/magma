@@ -17,9 +17,9 @@ import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import type {MetricGraphConfig} from '../insights/Metrics';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
 const IMSI_CONFIGS: Array<MetricGraphConfig> = [
   {

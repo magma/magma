@@ -12,7 +12,7 @@
  */
 
 import EventsTable from '../EventsTable';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';

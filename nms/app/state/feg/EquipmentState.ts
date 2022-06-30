@@ -18,7 +18,7 @@ import type {
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {OptionsObject} from 'notistack';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {GatewayId, NetworkId} from '../../../shared/types/network';
 import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
 type InitGatewayStateProps = {

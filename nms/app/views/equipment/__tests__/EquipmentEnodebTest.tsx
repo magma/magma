@@ -20,7 +20,7 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 
 import * as hooks from '../../../components/context/RefreshContext';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';

@@ -11,7 +11,7 @@
  * limitations under the License.
  *
  */
-import OrchestratorAPI from '../../api/MagmaAPI';
+import OrchestratorAPI from '../api/OrchestratorAPI';
 import getCwfAlerts from './cwfAlerts';
 import getFegAlerts from './fegAlerts';
 import getLteAlerts from './lteAlerts';

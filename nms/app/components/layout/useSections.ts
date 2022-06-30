@@ -25,7 +25,7 @@ import {
   // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../shared/types/network';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {getCWFSections} from '../cwf/CWFSections';
 import {getFEGSections} from '../feg/FEGSections';
 import {getLteSections} from '../lte/LteSections';

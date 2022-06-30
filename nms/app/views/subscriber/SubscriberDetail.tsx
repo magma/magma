@@ -19,7 +19,7 @@ import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
@@ -29,7 +29,7 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {
   REFRESH_INTERVAL,

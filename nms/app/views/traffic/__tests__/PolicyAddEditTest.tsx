@@ -22,7 +22,7 @@ import {
   PolicyProvider,
 } from '../../../components/lte/LteContext';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import {
   BaseNameRecord,
   FegLteNetwork,

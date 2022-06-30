@@ -30,7 +30,7 @@ import SectionRoutes from '../layout/SectionRoutes';
 import {useEffect, useState} from 'react';
 
 import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import useSections from '../layout/useSections';
 import {makeStyles} from '@material-ui/styles';
 import {useParams} from 'react-router-dom';

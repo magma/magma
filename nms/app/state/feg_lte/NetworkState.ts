@@ -19,7 +19,7 @@ import type {
 } from '../../../generated-ts';
 import type {NetworkId} from '../../../shared/types/network';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../lte/NetworkState';
 
 export type UpdateNetworkProps = {

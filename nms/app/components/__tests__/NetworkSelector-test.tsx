@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';

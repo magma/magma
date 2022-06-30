@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import DashboardAlertTable from '../DashboardAlertTable';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';

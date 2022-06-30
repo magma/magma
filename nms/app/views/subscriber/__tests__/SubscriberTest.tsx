@@ -17,7 +17,7 @@ import SubscriberContext from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {Subscriber} from '../../../../generated-ts';

@@ -35,10 +35,10 @@ import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '../Alert/withAlert';
 import {GatewayId} from '../../../shared/types/network';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';

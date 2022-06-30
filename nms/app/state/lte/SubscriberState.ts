@@ -21,7 +21,7 @@ import type {
 import type {OptionsObject} from 'notistack';
 import type {SubscriberContextType} from '../../components/context/SubscriberContext';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 
 import {
   DEFAULT_PAGE_SIZE,

@@ -18,9 +18,9 @@ import Metrics from './Metrics';
 import React from 'react';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {useCallback, useState} from 'react';
 import {useSnackbar} from '../../hooks';
 

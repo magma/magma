@@ -17,9 +17,9 @@ import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 

@@ -12,13 +12,13 @@
  */
 import AppContext from '../components/context/AppContext';
 import Divider from '@material-ui/core/Divider';
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import MenuButton from './MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from './context/NetworkContext';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Text from '../theme/design-system/Text';
-import useMagmaAPI from '../../api/useMagmaAPI';
+import useMagmaAPI from '../api/useMagmaAPI';
 import {LTE, coalesceNetworkType} from '../../shared/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {makeStyles} from '@material-ui/styles';

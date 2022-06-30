@@ -14,7 +14,7 @@ import EnodebContext, {EnodebContextType} from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';

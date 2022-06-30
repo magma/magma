@@ -18,7 +18,7 @@ import useSections from '../useSections';
 import {AppContextProvider} from '../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {mockAPI} from '../../../util/TestUtils';

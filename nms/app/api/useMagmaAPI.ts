@@ -14,7 +14,7 @@
 import {AxiosError} from 'axios';
 import {BASE_API} from './MagmaAPI';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../app/hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export default function <TParams, TResponse>(
   func: (params: TParams) => Promise<{data: TResponse}>,

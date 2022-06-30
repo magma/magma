@@ -22,7 +22,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

@@ -14,7 +14,7 @@
 import * as hooks from '../../../components/context/RefreshContext';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';

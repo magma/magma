@@ -12,7 +12,7 @@
  */
 
 import ApplicationMain from '../ApplicationMain';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import Main, {NO_NETWORK_MESSAGE} from '../Main';
 import React from 'react';
 import {AppContextProvider} from '../context/AppContext';

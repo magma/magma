@@ -47,9 +47,9 @@ import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {
   AddGatewayFields,
   EMPTY_GATEWAY_FIELDS,

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../components/context/NetworkContext';

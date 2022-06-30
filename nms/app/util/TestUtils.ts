@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import {AxiosResponse} from 'axios';
 
 type Response<

@@ -22,7 +22,7 @@ import type {CwfGateway, CwfHaPair} from '../../../../generated-ts';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
 
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 

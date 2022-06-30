@@ -18,8 +18,8 @@ import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import TextField from '@material-ui/core/TextField';
 
-import MagmaAPI from '../../../api/MagmaAPI';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {FegNetwork} from '../../../generated-ts';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

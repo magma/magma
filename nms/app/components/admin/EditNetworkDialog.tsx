@@ -17,8 +17,8 @@ import FEGNetworkDialog from './FEGNetworkDialog';
 import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 
-import MagmaAPI from '../../../api/MagmaAPI';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {CWF, FEG} from '../../../shared/types/network';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

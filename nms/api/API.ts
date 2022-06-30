@@ -11,9 +11,6 @@
  * limitations under the License.
  */
 
-import nullthrows from '../shared/util/nullthrows';
-import {API_HOST} from '../config/config';
-
 import {
   APNsApi,
   AboutApi,
@@ -45,18 +42,18 @@ import {
   UpgradesApi,
   UserApi,
 } from '../generated-ts';
-
 import {BaseAPI} from '../generated-ts/base';
 
-const BASE_PATH_FRONTEND = '/nms/apicontroller/magma/v1';
 const config = new Configuration();
 
-export const BASE_API = new BaseAPI(config, BASE_PATH_FRONTEND);
+export function createBaseAPI(basePath: string) {
+  return new BaseAPI(config, basePath);
+}
 
 /**
- * New API need to be added here
+ * New APIs need to be added here
  */
-function setUpApi(basePath: string) {
+export function setUpApi(basePath: string) {
   return {
     apns: new APNsApi(config, basePath),
     about: new AboutApi(config, basePath),
@@ -88,9 +85,3 @@ function setUpApi(basePath: string) {
     user: new UserApi(config, basePath),
   };
 }
-const orchestratorUrl = !/^https?\:\/\//.test(nullthrows(API_HOST))
-  ? `https://${nullthrows(API_HOST)}/magma/v1`
-  : `${nullthrows(API_HOST)}/magma/v1`;
-
-export default setUpApi(BASE_PATH_FRONTEND);
-export const OrchestratorAPI = setUpApi(orchestratorUrl);

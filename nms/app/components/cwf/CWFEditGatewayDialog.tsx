@@ -25,7 +25,7 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

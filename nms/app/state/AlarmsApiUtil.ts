@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import nullthrows from '../../shared/util/nullthrows';
-import useMagmaAPI from '../../api/useMagmaAPI';
+import useMagmaAPI from '../api/useMagmaAPI';
 import {AlertRoutingTree} from '../views/alarms/components/AlarmAPIType';
 import {AxiosResponse} from 'axios';
 

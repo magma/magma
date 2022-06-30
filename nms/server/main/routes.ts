@@ -13,6 +13,7 @@
 import type {EmbeddedData} from '../../shared/types/embeddedData';
 import type {Request} from 'express';
 
+import OrchestratorAPI from '../api/OrchestratorAPI';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
 import asyncHandler from '../util/asyncHandler';
@@ -25,7 +26,6 @@ import staticDist from '../../config/staticDist';
 import testRoutes from '../test/routes';
 import userMiddleware from '../auth/express';
 import {AccessRoles} from '../../shared/roles';
-import {OrchestratorAPI} from '../../api/MagmaAPI';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';
 import {hostOrgMiddleware} from '../host/middleware';

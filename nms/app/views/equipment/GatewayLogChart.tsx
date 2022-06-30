@@ -15,7 +15,7 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';

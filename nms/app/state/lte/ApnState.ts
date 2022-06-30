@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {Apn} from '../../../generated-ts';
 import {NetworkId} from '../../../shared/types/network';
 

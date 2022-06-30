@@ -21,11 +21,11 @@ import type {Request} from 'express';
 import asyncHandler from '../util/asyncHandler';
 import express from 'express';
 
+import OrchestratorAPI from '../api/OrchestratorAPI';
 import logging from '../../shared/logging';
 import {AccessRoles} from '../../shared/roles';
 import {AxiosError} from 'axios';
 import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
-import {OrchestratorAPI} from '../../api/MagmaAPI';
 import {access} from '../auth/access';
 import {difference} from 'lodash';
 

@@ -17,9 +17,9 @@ import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
-import useMagmaAPI from '../../../api/useMagmaAPI';
+import useMagmaAPI from '../../api/useMagmaAPI';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {HEALTHY_STATUS, UNHEALTHY_STATUS} from '../../components/GatewayUtils';
 import {getLatency} from './EquipmentGatewayKPIs';
 import {useContext} from 'react';

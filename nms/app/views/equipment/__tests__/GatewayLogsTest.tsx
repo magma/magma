@@ -13,7 +13,7 @@
 
 import * as customHistogram from '../../../components/CustomMetrics';
 import GatewayLogs from '../GatewayLogs';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

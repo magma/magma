@@ -20,7 +20,7 @@ import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

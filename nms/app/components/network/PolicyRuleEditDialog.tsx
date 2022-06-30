@@ -30,7 +30,7 @@ import TextField from '@material-ui/core/TextField';
 import TypedSelect from '../TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 // $FlowFixMe migrated to typescript

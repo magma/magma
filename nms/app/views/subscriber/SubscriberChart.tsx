@@ -19,7 +19,7 @@ import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import ApnContext from '../../../components/context/ApnContext';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext from '../../../components/context/PolicyContext';

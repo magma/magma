@@ -21,7 +21,7 @@ import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import LogChart from './GatewayLogChart';
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import React, {useMemo, useRef, useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';

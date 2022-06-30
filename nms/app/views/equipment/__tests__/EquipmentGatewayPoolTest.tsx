@@ -16,7 +16,7 @@ import GatewayPools from '../EquipmentGatewayPools';
 import GatewayPoolsContext, {
   GatewayPoolRecordsType,
 } from '../../../components/context/GatewayPoolsContext';
-import MagmaAPI from '../../../../api/MagmaAPI';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';

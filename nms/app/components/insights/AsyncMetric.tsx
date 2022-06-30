@@ -17,7 +17,7 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
-import MagmaAPI from '../../../api/MagmaAPI';
+import MagmaAPI from '../../api/MagmaAPI';
 import {PositionType, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated-ts';
 import {makeStyles} from '@material-ui/styles';
