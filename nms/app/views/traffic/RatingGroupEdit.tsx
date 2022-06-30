@@ -85,7 +85,7 @@ export default function RatingGroupEditDialog(props: Props) {
   const onSave = async () => {
     try {
       if (isAdd) {
-        if ((ratingGroup.id as any) === '') {
+        if (isNaN(ratingGroup.id)) {
           setError('empty Rating Group id');
           return;
         }
@@ -139,7 +139,7 @@ export default function RatingGroupEditDialog(props: Props) {
               placeholder="Eg. 1"
               value={ratingGroup.id}
               onChange={({target}) =>
-                handleRatingGroupChange('id', parseInt(target.value) || '')
+                handleRatingGroupChange('id', parseInt(target.value) || NaN)
               }
             />
           </AltFormField>
