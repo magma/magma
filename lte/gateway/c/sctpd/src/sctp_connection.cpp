@@ -86,7 +86,7 @@ void SctpConnection::Send(uint32_t assoc_id, uint32_t stream,
   auto buf = msg.c_str();
   auto n = msg.size();
   auto rc = sctp_sendmsg(assoc.sd, buf, n, NULL, 0, htonl(assoc.ppid), 0,
-                         stream, 0, 0);
+                         stream, 100, 0);
 
   if (rc < 0) {
     MLOG_perror("sctp_sendmsg");
