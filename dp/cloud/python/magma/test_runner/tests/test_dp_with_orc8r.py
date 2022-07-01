@@ -195,6 +195,7 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
             ),
         )
         self.when_cbsd_is_updated_by_enodebd(req)
+        self.then_logs_are({"serial_number": self.serial_number}, ["EnodebdUpdateCbsd"])
         cbsd = self.when_cbsd_is_fetched(self.serial_number)
         self.then_cbsd_is(cbsd, builder.with_cbsd_category("a").with_full_installation_param().payload)
 

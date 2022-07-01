@@ -19,26 +19,30 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"magma/dp/cloud/go/protos"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/merrors"
+
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type cbsdManager struct {
 	protos.UnimplementedCbsdManagementServer
 	store                  storage.CbsdManager
 	cbsdInactivityInterval time.Duration
+	logConsumerUrl         string
 }
 
-func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration) protos.CbsdManagementServer {
+func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration, logConsumerUrl string) protos.CbsdManagementServer {
 	return &cbsdManager{
 		store:                  store,
 		cbsdInactivityInterval: cbsdInactivityInterval,
+		logConsumerUrl:         logConsumerUrl,
 	}
 }
 
@@ -57,13 +61,26 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 	}
 	return &protos.UpdateCbsdResponse{}, nil
 }
-
-func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
 	cbsd := requestToDbCbsd(request)
-	err := c.store.EnodebdUpdateCbsd(cbsd)
-	if err != nil {
+	msg, _ := json.Marshal(request)
+	log := &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().Unix(),
+		LogFrom:          "CBSD",
+		LogTo:            "DP",
+		LogName:          "EnodebdUpdateCbsd",
+		LogMessage:       string(msg),
+		CbsdSerialNumber: cbsd.CbsdSerialNumber.String,
+		NetworkId:        cbsd.NetworkId.String,
+	}
+	if err := logs_pusher.PushDPLog(ctx, log, c.logConsumerUrl); err != nil {
+		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)
+	}
+
+	if err := c.store.EnodebdUpdateCbsd(cbsd); err != nil {
 		return nil, makeErr(err, "update cbsd")
 	}
+
 	return &protos.UpdateCbsdResponse{}, nil
 }
 
