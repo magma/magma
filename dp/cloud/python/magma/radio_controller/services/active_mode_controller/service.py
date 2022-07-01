@@ -128,6 +128,20 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
                 context.set_code(grpc.StatusCode.NOT_FOUND)
         return Empty()
 
+    def StoreAvailableFrequencies(self, request, context) -> Empty:
+        """
+        Store available frequencies in the database
+
+        Parameters
+            request: StoreAvailableFrequencies gRPC Message
+            context: gRPC context
+
+        Returns:
+            Empty: an empty gRPC message
+        """
+        # Not implemented yet
+        pass
+
 
 def _list_cbsds(session: Session) -> State:
     # It might be possible to use join instead of nested queries
