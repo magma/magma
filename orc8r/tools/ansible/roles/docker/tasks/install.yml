@@ -27,7 +27,7 @@
 - name: Add the user to the docker group
   user:
     name: "{{ user }}"
-    group: docker
+    groups: docker
     append: yes
 
 - name: Install python docker module
