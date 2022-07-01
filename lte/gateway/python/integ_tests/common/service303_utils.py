@@ -21,13 +21,13 @@ from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceInfo
 from orc8r.protos.service303_pb2_grpc import Service303Stub
 
+
 # Container for storing metric values
-MetricValue = NamedTuple(
-    'MetricValue', [
-        ('service', str), ('name', str),
-        ('labels', List), ('value', Any),
-    ],
-)
+class MetricValue(NamedTuple):
+    service: str
+    name: str
+    labels: List
+    value: Any
 
 
 class MetricNotFoundException(Exception):
@@ -144,8 +144,7 @@ class Service303Util(object):
                 return default
             else:
                 raise MetricNotFoundException(
-                    "No {metric_name} metric found."
-                    .format(metric_name=metric_name),
+                    f"No {metric_name} metric found.",
                 )
         metric_type = metric.type
         if not self._is_metric_type_supported(metric_type):
@@ -162,9 +161,8 @@ class Service303Util(object):
             return default
         else:
             raise MetricNotFoundException(
-                "No metric under {metric_name} "
-                "has all  of the label_values specified"
-                .format(metric_name=metric_name),
+                f"No metric under {metric_name} "
+                "has all of the label_values specified",
             )
 
     def get_start_time(self):
@@ -247,11 +245,11 @@ class Service303Util(object):
                 if self._service_started_after(started_after_time):
                     return True
                 else:
-                    print("%s hasn't restarted yet" % (self._service_name))
+                    print(f"{self._service_name} hasn't restarted yet")
             else:
-                print("%s not healthy, waiting..." % (self._service_name))
+                print(f"{self._service_name} not healthy, waiting...")
             time.sleep(self.SLEEP_TIME)
-        print("max iterations hit, %s not healthy" % (self._service_name))
+        print(f"max iterations hit, {self._service_name} not healthy")
         return False
 
 
@@ -329,11 +327,9 @@ def _verify_metric_differences(
         diff = final_vals[i].value - initial_vals[i].value
         expected = expected_vals[i].value
         logging.debug(
-            'Metric %s %s increased by %d, expected %d',
-            expected_vals[i].name,
-            str(expected_vals[i].labels),
-            diff,
-            expected,
+            f'Metric {expected_vals[i].name} '
+            f'{str(expected_vals[i].labels)} increased by {diff}, '
+            f'expected {expected}',
         )
         test_class.assertEqual(diff, expected)
     return

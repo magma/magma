@@ -97,7 +97,7 @@ func TestOmnipresentRules(t *testing.T) {
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
-			TotalOctets: 1 * MegaBytes,
+			TotalOctets: 5 * MegaBytes,
 		},
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,

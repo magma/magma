@@ -431,6 +431,9 @@ func (s *stubActiveModeControllerClient) AcknowledgeCbsdUpdate(_ context.Context
 	*s.actions = append(*s.actions, in)
 	return nil, nil
 }
+func (s *stubActiveModeControllerClient) StoreAvailableFrequencies(_ context.Context, _ *active_mode.StoreAvailableFrequenciesRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
+	panic("not implemented")
+}
 
 type stubRadioControllerClient struct {
 	requests *[]*requests.RequestPayload
