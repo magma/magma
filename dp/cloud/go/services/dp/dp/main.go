@@ -15,6 +15,8 @@ package main
 import (
 	"time"
 
+	"magma/dp/cloud/go/services/dp/logs_pusher"
+
 	"github.com/golang/glog"
 
 	"magma/dp/cloud/go/dp"
@@ -54,7 +56,7 @@ func main() {
 	interval := time.Second * time.Duration(serviceConfig.CbsdInactivityIntervalSec)
 	logConsumerUrl := serviceConfig.LogConsumerUrl
 
-	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl))
+	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
 
 	err = srv.Run()
 	if err != nil {

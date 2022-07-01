@@ -16,6 +16,8 @@ package builders
 import (
 	"time"
 
+	"magma/dp/cloud/go/services/dp/logs_pusher"
+
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/protos"
@@ -644,5 +646,26 @@ func (b *MutableCbsdModelBuilder) WithMaxPower(power *float64) *MutableCbsdModel
 
 func (b *MutableCbsdModelBuilder) WithCbsdCategory(c string) *MutableCbsdModelBuilder {
 	b.Payload.CbsdCategory = c
+	return b
+}
+
+type DPLogBuilder struct {
+	Log *logs_pusher.DPLog
+}
+
+func NewDPLogBuilder() *DPLogBuilder {
+	return &DPLogBuilder{Log: &logs_pusher.DPLog{
+		EventTimestamp:   1234,
+		LogFrom:          "CBSD",
+		LogTo:            "DP",
+		LogName:          "EnodebdUpdateCbsd",
+		LogMessage:       "some log message",
+		CbsdSerialNumber: "someCbsdSerialNumber",
+		NetworkId:        "someNetworkId",
+	}}
+}
+
+func (b *DPLogBuilder) WithLogMessage(m string) *DPLogBuilder {
+	b.Log.LogMessage = m
 	return b
 }

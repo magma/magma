@@ -17,16 +17,14 @@ type DPLog struct {
 	NetworkId        string `json:"network_id"`
 }
 
+type LogPusher func(ctx context.Context, log *DPLog, consumerUrl string) error
+
 func PushDPLog(ctx context.Context, log *DPLog, consumerUrl string) error {
 	client := http.Client{}
-	body, err := json.Marshal(*log)
-	if err != nil {
-		return err
-	}
+	body, _ := json.Marshal(*log)
 	req, _ := http.NewRequest(http.MethodPost, consumerUrl, strings.NewReader(string(body)))
-	req.Header.Set("cntentType", "application/json")
-	req.WithContext(ctx)
-	_, err = client.Do(req)
+	req.Header.Set("contentType", "application/json")
+	_, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		return err
 	}

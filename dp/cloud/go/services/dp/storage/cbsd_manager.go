@@ -124,6 +124,17 @@ func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, erro
 	return cbsd.(*DetailedCbsd), nil
 }
 
+func (c *cbsdManager) FetchCbsdBySerialNumber(serialNumber string) (*DetailedCbsd, error) {
+	cbsd, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
+		runner := c.getInTransactionManager(tx)
+		return runner.fetchDetailedCbsd(networkId, id)
+	})
+	if err != nil {
+		return nil, makeError(err, c.errorChecker)
+	}
+	return cbsd.(*DetailedCbsd), nil
+}
+
 func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error) {
 	cbsds, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)

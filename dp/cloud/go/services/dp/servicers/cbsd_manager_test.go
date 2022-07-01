@@ -18,6 +18,9 @@ import (
 	"testing"
 	"time"
 
+	"magma/dp/cloud/go/services/dp/logs_pusher"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -38,8 +41,16 @@ func TestCbsdManager(t *testing.T) {
 
 type CbsdManagerTestSuite struct {
 	suite.Suite
-	manager protos.CbsdManagementServer
-	store   *stubCbsdManager
+	manager   protos.CbsdManagementServer
+	store     *stubCbsdManager
+	logPusher LogPusher
+}
+
+type LogPusher struct {
+	expectedLog            logs_pusher.DPLog
+	expectedLogConsumerUrl string
+	expectedLogPusherError error
+	t                      *testing.T
 }
 
 const (
@@ -50,11 +61,13 @@ const (
 	someSerialNumber        = "some_serial_number"
 	someCbsdId              = "some_cbsd_id"
 	registered              = "registered"
+	someUrl                 = "someUrl"
 )
 
 func (s *CbsdManagerTestSuite) SetupTest() {
 	s.store = &stubCbsdManager{}
-	s.manager = servicers.NewCbsdManager(s.store, interval)
+	s.logPusher = LogPusher{t: s.T()}
+	s.manager = servicers.NewCbsdManager(s.store, interval, someUrl, s.logPusher.pushLogs)
 
 	now := time.Unix(lastSeenTimestamp, 0).Add(interval - time.Second)
 	clock.SetAndFreezeClock(s.T(), now)
@@ -136,28 +149,36 @@ func (s *CbsdManagerTestSuite) TestUserUpdateCbsd() {
 
 func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 	testCases := []struct {
-		name     string
-		payload  *protos.CbsdData
-		expected *storage.DBCbsd
+		name                   string
+		payload                *protos.CbsdData
+		expectedDBCbsd         *storage.DBCbsd
+		expectedLog            *logs_pusher.DPLog
+		expectedConsumerUrl    string
+		expectedLogPusherError error
 	}{{
-		name:     "update cbsd",
-		payload:  b.NewCbsdProtoPayloadBuilder().WithEmptyInstallationParam().Payload,
-		expected: b.NewDBCbsdBuilder().Cbsd,
+		name:                "update cbsd",
+		payload:             b.NewCbsdProtoPayloadBuilder().WithEmptyInstallationParam().Payload,
+		expectedDBCbsd:      b.NewDBCbsdBuilder().Cbsd,
+		expectedLog:         b.NewDPLogBuilder().WithLogMessage("{\"serial_number\":\"some_serial_number\",\"installation_param\":{},\"cbsd_category\":\"b\"}").Log,
+		expectedConsumerUrl: someUrl,
 	}, {
 		name: "update cbsd with full installation param",
 		payload: b.NewCbsdProtoPayloadBuilder().
 			WithFullInstallationParam().Payload,
-		expected: b.NewDBCbsdBuilder().
+		expectedDBCbsd: b.NewDBCbsdBuilder().
 			WithFullInstallationParam().Cbsd,
 	}, {
 		name: "update cbsd with incomplete installation param",
 		payload: b.NewCbsdProtoPayloadBuilder().
 			WithIncompleteInstallationParam().Payload,
-		expected: b.NewDBCbsdBuilder().
+		expectedDBCbsd: b.NewDBCbsdBuilder().
 			WithIncompleteInstallationParam().Cbsd,
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
+			s.logPusher.expectedLog = *tc.expectedLog
+			s.logPusher.expectedLogConsumerUrl = tc.expectedConsumerUrl
+			s.logPusher.expectedLogPusherError = tc.expectedLogPusherError
 			request := &protos.EnodebdUpdateCbsdRequest{
 				SerialNumber: tc.payload.SerialNumber,
 				InstallationParam: &protos.InstallationParam{
@@ -170,10 +191,10 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				},
 				CbsdCategory: tc.payload.CbsdCategory,
 			}
-			s.store.data = tc.expected
+			s.store.data = tc.expectedDBCbsd
 			_, err := s.manager.EnodebdUpdateCbsd(context.Background(), request)
 			s.Require().NoError(err)
-			s.Assert().Equal(tc.expected, s.store.data)
+			s.Assert().Equal(tc.expectedDBCbsd, s.store.data)
 		})
 	}
 }
@@ -552,4 +573,10 @@ func (s *stubCbsdManager) DeregisterCbsd(networkId string, id int64) error {
 	s.networkId = networkId
 	s.id = id
 	return s.err
+}
+
+func (p *LogPusher) pushLogs(_ context.Context, log *logs_pusher.DPLog, consumerUrl string) error {
+	assert.Equal(p.t, consumerUrl, p.expectedLogConsumerUrl)
+	assert.Equal(p.t, log, p.expectedLog)
+	return p.expectedLogPusherError
 }

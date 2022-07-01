@@ -36,13 +36,15 @@ type cbsdManager struct {
 	store                  storage.CbsdManager
 	cbsdInactivityInterval time.Duration
 	logConsumerUrl         string
+	logPusher              logs_pusher.LogPusher
 }
 
-func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration, logConsumerUrl string) protos.CbsdManagementServer {
+func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration, logConsumerUrl string, logPusher logs_pusher.LogPusher) protos.CbsdManagementServer {
 	return &cbsdManager{
 		store:                  store,
 		cbsdInactivityInterval: cbsdInactivityInterval,
 		logConsumerUrl:         logConsumerUrl,
+		logPusher:              logPusher,
 	}
 }
 
@@ -64,6 +66,7 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
 	cbsd := requestToDbCbsd(request)
 	msg, _ := json.Marshal(request)
+	c.store.FetchCbsd()
 	log := &logs_pusher.DPLog{
 		EventTimestamp:   clock.Now().Unix(),
 		LogFrom:          "CBSD",
@@ -73,7 +76,7 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 		CbsdSerialNumber: cbsd.CbsdSerialNumber.String,
 		NetworkId:        cbsd.NetworkId.String,
 	}
-	if err := logs_pusher.PushDPLog(ctx, log, c.logConsumerUrl); err != nil {
+	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
 		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)
 	}
 
