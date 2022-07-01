@@ -15,6 +15,7 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
@@ -69,7 +70,7 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
   state_cache_p->enbs.map =
       new google::protobuf::Map<unsigned int, struct enb_description_s*>();
   state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_enb_description);
+  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
 
   ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
   hashtable_ts_init(&state_cache_p->mmeid2associd, max_ues, nullptr,
