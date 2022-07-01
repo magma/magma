@@ -140,6 +140,7 @@ func (r *ListLogsRequest) toElasticSearchQuery() *elastic.BoolQuery {
 	logName := r.Filter.Name
 	serialNumber := r.Filter.SerialNumber
 	fccId := r.Filter.FccId
+	networkId := r.NetworkId
 	responseCode := r.Filter.ResponseCode
 
 	if logFrom != "" {
@@ -159,6 +160,9 @@ func (r *ListLogsRequest) toElasticSearchQuery() *elastic.BoolQuery {
 	}
 	if responseCode != nil {
 		matchQueries = append(matchQueries, elastic.NewMatchQuery("response_code", responseCode))
+	}
+	if networkId != "" {
+		matchQueries = append(matchQueries, elastic.NewMatchQuery("network_id", networkId))
 	}
 
 	boolQuery := elastic.NewBoolQuery()

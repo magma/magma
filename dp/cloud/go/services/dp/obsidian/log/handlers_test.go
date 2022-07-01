@@ -129,7 +129,7 @@ func (s *HandlersTestSuite) TestBoolQuery() {
 			name: "test query with no params",
 			params: ListLogsRequest{
 				Index:     "dp",
-				NetworkId: "someNetworkId",
+				NetworkId: "",
 				Filter:    &LogsFilter{},
 			},
 			expectedPayload: []byte(`{}`),
@@ -176,6 +176,13 @@ func (s *HandlersTestSuite) TestBoolQuery() {
          "match":{
             "cbsd_serial_number":{
                "query":"someSerialNumber123"
+            }
+         }
+      },
+      {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
             }
          }
       }
@@ -249,6 +256,13 @@ func (s *HandlersTestSuite) TestBoolQuery() {
          "match":{
             "response_code":{
                "query":0
+            }
+         }
+      },
+      {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
             }
          }
       }
@@ -343,7 +357,13 @@ func (s *HandlersTestSuite) TestListLogs() {
 			expectedPayload: `{
    "query":{
       "bool":{
-
+         "must":{
+		    "match":{
+			   "network_id":{
+				  "query":"n1"
+			   }
+		    }
+		 }
       }
    },
    "sort":[
@@ -367,7 +387,13 @@ func (s *HandlersTestSuite) TestListLogs() {
    "from":3,
    "query":{
       "bool":{
-
+         "must":{
+            "match":{
+               "network_id":{
+                  "query":"n1"
+               }
+            }
+         }
       }
    },
    "size":4,
@@ -453,6 +479,13 @@ func (s *HandlersTestSuite) TestListLogs() {
                "match":{
                   "response_code":{
                      "query":0
+                  }
+               }
+            },
+			{
+               "match":{
+                  "network_id":{
+                     "query":"n1"
                   }
                }
             }
