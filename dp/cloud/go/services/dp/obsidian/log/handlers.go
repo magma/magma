@@ -134,7 +134,6 @@ type ListLogsRequest struct {
 }
 
 func (r *ListLogsRequest) toElasticSearchQuery() *elastic.BoolQuery {
-	var matchQueries []elastic.Query
 	logFrom := r.Filter.LogFrom
 	logTo := r.Filter.LogTo
 	logName := r.Filter.Name
@@ -142,6 +141,7 @@ func (r *ListLogsRequest) toElasticSearchQuery() *elastic.BoolQuery {
 	fccId := r.Filter.FccId
 	networkId := r.NetworkId
 	responseCode := r.Filter.ResponseCode
+	matchQueries := []elastic.Query{elastic.NewMatchQuery("network_id", networkId)}
 
 	if logFrom != "" {
 		matchQueries = append(matchQueries, elastic.NewMatchQuery("log_from", logFrom))
@@ -160,9 +160,6 @@ func (r *ListLogsRequest) toElasticSearchQuery() *elastic.BoolQuery {
 	}
 	if responseCode != nil {
 		matchQueries = append(matchQueries, elastic.NewMatchQuery("response_code", responseCode))
-	}
-	if networkId != "" {
-		matchQueries = append(matchQueries, elastic.NewMatchQuery("network_id", networkId))
 	}
 
 	boolQuery := elastic.NewBoolQuery()

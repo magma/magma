@@ -129,10 +129,19 @@ func (s *HandlersTestSuite) TestBoolQuery() {
 			name: "test query with no params",
 			params: ListLogsRequest{
 				Index:     "dp",
-				NetworkId: "",
+				NetworkId: "someNetworkId",
 				Filter:    &LogsFilter{},
 			},
-			expectedPayload: []byte(`{}`),
+			expectedPayload: []byte(`{
+   "must":
+      {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
+            }
+         }
+      }
+   }`),
 		},
 		{
 			name: "test query with some params",
@@ -160,6 +169,13 @@ func (s *HandlersTestSuite) TestBoolQuery() {
       },
       {
          "match":{
+            "network_id":{
+               "query":"someNetworkId"
+            }
+         }
+      },
+      {
+         "match":{
             "log_to":{
                "query":"SAS"
             }
@@ -176,13 +192,6 @@ func (s *HandlersTestSuite) TestBoolQuery() {
          "match":{
             "cbsd_serial_number":{
                "query":"someSerialNumber123"
-            }
-         }
-      },
-      {
-         "match":{
-            "network_id":{
-               "query":"someNetworkId"
             }
          }
       }
@@ -214,6 +223,13 @@ func (s *HandlersTestSuite) TestBoolQuery() {
                "include_lower":true,
                "include_upper":true,
                "to":1000
+            }
+         }
+      },
+	  {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
             }
          }
       },
@@ -256,13 +272,6 @@ func (s *HandlersTestSuite) TestBoolQuery() {
          "match":{
             "response_code":{
                "query":0
-            }
-         }
-      },
-      {
-         "match":{
-            "network_id":{
-               "query":"someNetworkId"
             }
          }
       }
@@ -442,6 +451,13 @@ func (s *HandlersTestSuite) TestListLogs() {
             },
             {
                "match":{
+                  "network_id":{
+                     "query":"n1"
+                  }
+               }
+            },
+            {
+               "match":{
                   "log_from":{
                      "query":"SAS"
                   }
@@ -479,13 +495,6 @@ func (s *HandlersTestSuite) TestListLogs() {
                "match":{
                   "response_code":{
                      "query":0
-                  }
-               }
-            },
-			{
-               "match":{
-                  "network_id":{
-                     "query":"n1"
                   }
                }
             }
