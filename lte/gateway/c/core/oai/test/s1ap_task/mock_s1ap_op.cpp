@@ -52,8 +52,8 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 // samples
 status_code_e mock_read_s1ap_ue_state_db(
     const std::vector<std::string>& ue_samples) {
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  if (!state_ue_ht) {
+  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
     std::cerr << "Cannot get S1AP UE State" << std::endl;
     return RETURNerror;
   }
@@ -68,15 +68,14 @@ status_code_e mock_read_s1ap_ue_state_db(
       return RETURNerror;
     }
 
-    ue_description_t* ue_context_p = reinterpret_cast<ue_description_t*>(
-        calloc(1, sizeof(ue_description_t)));
+    ue_description_t* ue_context_p = new ue_description_t();
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
-    hashtable_rc_t h_rc =
-        hashtable_ts_insert(state_ue_ht, ue_context_p->comp_s1ap_id,
-                            reinterpret_cast<void*>(ue_context_p));
+    proto_map_rc_t rc =
+        state_ue_map->insert(ue_context_p->comp_s1ap_id,
+                             reinterpret_cast<ue_description_t*>(ue_context_p));
 
-    if (HASH_TABLE_OK != h_rc) {
+    if (magma::PROTO_MAP_OK != rc) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
       return RETURNerror;

@@ -22,7 +22,6 @@
 extern "C" {
 #endif
 
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
@@ -62,7 +61,7 @@ void put_s1ap_imsi_map(void);
  */
 s1ap_imsi_map_t* get_s1ap_imsi_map(void);
 
-hash_table_ts_t* get_s1ap_ue_state(void);
+map_uint64_ue_description_t* get_s1ap_ue_state(void);
 
 int read_s1ap_ue_state_db(void);
 
@@ -70,12 +69,12 @@ void put_s1ap_ue_state(imsi64_t imsi64);
 
 void delete_s1ap_ue_state(imsi64_t imsi64);
 
-bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) hash_key_t keyP,
-                                     void* elementP, void* parameterP,
+bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
+                                     struct ue_description_s* elementP, void* parameterP,
                                      void** resultP);
 
-bool s1ap_ue_compare_by_imsi(__attribute__((unused)) hash_key_t keyP,
-                             void* elementP, void* parameterP, void** resultP);
+bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
+                            struct  ue_description_s* elementP, void* parameterP, void** resultP);
 
 void remove_ues_without_imsi_from_ue_id_coll(void);
 

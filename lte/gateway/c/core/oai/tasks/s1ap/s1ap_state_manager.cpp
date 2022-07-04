@@ -83,9 +83,9 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
 
-  bstring ht_name = bfromcstr(S1AP_ENB_COLL);
-  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
-  bdestroy(ht_name);
+  state_ue_map.map = new google::protobuf::Map<uint64_t, ue_description_s*>();
+  state_ue_map.set_name(S1AP_ENB_COLL);
+  state_ue_map.bind_callback(free_enb_description);
 
   create_s1ap_imsi_map();
 }
@@ -134,9 +134,8 @@ void S1apStateManager::free_state() {
   free_s1ap_state(state_cache_p);
   state_cache_p = nullptr;
 
-  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
+  if (state_ue_map.destroy_map() != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying state_ue_map");
   }
   clear_s1ap_imsi_map();
 }
@@ -151,23 +150,23 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    auto* ue_context = (ue_description_t*)calloc(1, sizeof(ue_description_t));
+    auto* ue_context = new ue_description_t();
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
     S1apStateConverter::proto_to_ue(ue_proto, ue_context);
 
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        state_ue_ht, ue_context->comp_s1ap_id, (void*)ue_context);
-    if (HASH_TABLE_OK != h_rc) {
+    proto_map_rc_t rc =
+        state_ue_map.insert(ue_context->comp_s1ap_id, ue_context);
+    if (PROTO_MAP_OK != rc) {
       OAILOG_ERROR(
           log_task,
           "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
           ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
           ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
           ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
-          ue_context->mme_ue_s1ap_id, hashtable_rc_code2string(h_rc));
+          ue_context->mme_ue_s1ap_id, magma::map_rc_code2string(rc));
     } else {
       OAILOG_DEBUG(log_task,
                    "Inserted UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
@@ -225,5 +224,8 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   }
 }
 
+map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
+  return &state_ue_map;
+}
 }  // namespace lte
 }  // namespace magma

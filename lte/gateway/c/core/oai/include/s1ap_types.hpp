@@ -26,7 +26,6 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -130,6 +129,10 @@ typedef struct ue_description_s {
   // will abort the procedure due to timeouts, rendering this state useless.
   s1ap_handover_state_t s1ap_handover_state;
 } ue_description_t;
+
+// Map- Key:uint64_t, Data:ue_description_s*
+typedef magma::proto_map_s<uint64_t, struct ue_description_s*>
+    map_uint64_ue_description_t;
 
 /* Maximum no. of Broadcast PLMNs. Value is 6
  * 3gpp spec 36.413 section-9.1.8.4

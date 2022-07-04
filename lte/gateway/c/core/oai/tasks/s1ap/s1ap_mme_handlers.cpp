@@ -39,7 +39,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -442,32 +441,15 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
   OAILOG_FUNC_IN(LOG_S1AP);
   unsigned int i = 0;
   unsigned int num_elements = 0;
-  hash_table_ts_t* hashtblP = get_s1ap_ue_state();
-  hash_node_t *node = NULL, *oldnode = NULL;
-  if (!hashtblP) {
-    OAILOG_ERROR(LOG_S1AP, "No UEs found in comp_s1ap_id hash list");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
+  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+
+  /* TODO Rashmi for (auto const& itr : s1ap_ue_state.map) {*/
+
+  for (auto itr = s1ap_ue_state->map->begin(); itr != s1ap_ue_state->map->end();
+       itr++) {
+    if ((itr->second) && (sctp_assoc_id == itr->second->sctp_assoc_id)) {
+      s1ap_remove_ue(state, reinterpret_cast<ue_description_t*>(itr->second));
     }
-    while (node) {
-      num_elements++;
-      oldnode = node;
-      node = node->next;
-      if (oldnode->data &&
-          (sctp_assoc_id ==
-           ((ue_description_t*)oldnode->data)->sctp_assoc_id)) {
-        pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-        s1ap_remove_ue(state,
-                       reinterpret_cast<ue_description_t*>(oldnode->data));
-        pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-      }
-    }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    i++;
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
@@ -3552,8 +3534,8 @@ static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
   ue_description_t* ue_ref_p = NULL;
 
   // Ask for the release of each UE context associated to the eNB
-  hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
-  hashtable_ts_get(s1ap_ue_state, (const hash_key_t)dataP, (void**)&ue_ref_p);
+  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  s1ap_ue_state->get(dataP, &ue_ref_p);
   if (ue_ref_p) {
     if (arg->current_ue_index == 0) {
       arg->message_p = DEPRECATEDitti_alloc_new_message_fatal(
@@ -3620,8 +3602,8 @@ bool construct_s1ap_mme_full_reset_req(uint32_t keyP, const uint64_t dataP,
       reinterpret_cast<arg_s1ap_construct_enb_reset_req_t*>(argP);
   ue_description_t* ue_ref = reinterpret_cast<ue_description_t*>(dataP);
 
-  hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
-  hashtable_ts_get(s1ap_ue_state, (const hash_key_t)dataP, (void**)&ue_ref);
+  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  s1ap_ue_state->get(dataP, &ue_ref);
   uint32_t i = arg->current_ue_index;
   if (ue_ref) {
     S1AP_ENB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].mme_ue_s1ap_id =
