@@ -16,6 +16,7 @@ import logging from '../../../shared/logging';
 import {AccessRoles} from '../../../shared/roles';
 import {MultiSamlStrategy} from 'passport-saml'; // compatibility with breaking change in 3.1.0
 import {Request} from 'express';
+import {Strategy} from 'passport';
 import {User} from '../../../shared/sequelize_models';
 import {VerifyWithRequest} from 'passport-saml/lib/passport-saml/types';
 import {getUserFromRequest} from '../util';
@@ -68,7 +69,7 @@ export default function OrganizationSamlStrategy(config: Config) {
     void syncWrapper();
   };
 
-  return new MultiSamlStrategy(
+  return (new MultiSamlStrategy(
     {
       path: `${config.urlPrefix}/login/saml/callback`,
       getSamlOptions: ignoreAsync(
@@ -93,5 +94,5 @@ export default function OrganizationSamlStrategy(config: Config) {
       passReqToCallback: true,
     },
     verify,
-  );
+  ) as unknown) as Strategy;
 }

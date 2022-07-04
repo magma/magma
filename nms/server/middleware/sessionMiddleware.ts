@@ -13,7 +13,7 @@
 
 import session from 'express-session';
 import {RequestHandler} from 'express';
-import {SequelizeStore} from '../../shared/types';
+import {SequelizeStore} from 'connect-session-sequelize';
 
 type SessionMiddlewareOptions = {
   devMode: boolean;

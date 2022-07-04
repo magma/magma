@@ -12,8 +12,8 @@
  */
 
 import {TokenSet} from 'openid-client';
-import type {OrganizationModel} from '../shared/sequelize_models/models/organization';
-import type {UserModel} from '../shared/sequelize_models/models/user';
+import type {OrganizationModel} from './shared/sequelize_models/models/organization';
+import type {UserModel} from './shared/sequelize_models/models/user';
 
 declare global {
   namespace Express {

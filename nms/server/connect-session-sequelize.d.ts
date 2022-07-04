@@ -11,9 +11,14 @@
  * limitations under the License.
  */
 
-import {Store} from 'express-session';
-import {SyncOptions} from 'sequelize';
+declare module 'connect-session-sequelize' {
+  import {Store} from 'express-session';
+  import {SyncOptions} from 'sequelize';
 
-export class SequelizeStore extends Store {
-  sync(options?: SyncOptions): void;
+  export class SequelizeStore extends Store {
+    constructor(options: {db: any});
+    sync(options?: SyncOptions): void;
+  }
+
+  export default function configure(store: typeof Store): typeof SequelizeStore;
 }
