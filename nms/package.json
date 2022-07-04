@@ -187,7 +187,7 @@
     "webpack": "^4.46.0"
   },
   "scripts": {
-    "eslint": "./node_modules/.bin/eslint --fix --ignore-path .eslintignore",
+    "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
     "jest": "echo 'Dont run jest directly, use \"yarn run test\"' && exit 1",
     "test": "NODE_ENV=test jest --testPathIgnorePatterns=e2e",
     "test:e2e": "NODE_ENV=test jest --runInBand e2e",

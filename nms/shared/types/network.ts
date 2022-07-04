@@ -50,4 +50,3 @@ export type NetworkId = string;
 export type NetworkName = string;
 export type PolicyId = string;
 export type SubscriberId = string;
-export type TierId = string;

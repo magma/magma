@@ -41,11 +41,11 @@ import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate} from 'react-router-dom';
 import type {OptionsObject} from 'notistack';
-import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
+import type {OrganizationRawType} from '../../../shared/sequelize_models/models/organization';
 import type {UserRawType} from '../../../shared/sequelize_models/models/user';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
-export type Organization = OrganizationPlainAttributes;
+export type Organization = OrganizationRawType;
 export type OrganizationId = Organization['id'];
 export type OrganizationName = Organization['name'];
 

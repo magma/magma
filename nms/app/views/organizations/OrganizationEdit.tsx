@@ -38,7 +38,7 @@ import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 import type {Organization} from './Organizations';
-import type {OrganizationPlainAttributes} from '../../../shared/sequelize_models/models/organization';
+import type {OrganizationRawType} from '../../../shared/sequelize_models/models/organization';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 const useStyles = makeStyles({
@@ -169,7 +169,7 @@ function OrganizationEdit(props: WithAlert & Props) {
     return <LoadingFiller />;
   }
 
-  const onSave = (org: Partial<OrganizationPlainAttributes>) => {
+  const onSave = (org: Partial<OrganizationRawType>) => {
     axios
       .put('/host/organization/async/' + params.name!, org)
       .then(() => {

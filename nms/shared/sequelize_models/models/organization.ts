@@ -17,7 +17,7 @@ import {BuildOptions, DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes';
 import type {SSOSelectedType} from '../../types/auth';
 
-export interface OrganizationPlainAttributes {
+export interface OrganizationRawType {
   id: number;
   name: string;
   customDomains: Array<string>;
@@ -32,7 +32,7 @@ export interface OrganizationPlainAttributes {
   ssoOidcConfigurationURL: string;
 }
 
-export interface OrganizationModel extends OrganizationPlainAttributes, Model {
+export interface OrganizationModel extends OrganizationRawType, Model {
   isHostOrg: boolean;
 }
 
