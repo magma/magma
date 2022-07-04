@@ -22,8 +22,6 @@ import (
 	"time"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/cloud/go/protos"
-	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
@@ -145,9 +143,9 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	finalQuotaGrant := &fegprotos.QuotaGrant{
@@ -161,10 +159,10 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		},
 		ResultCode: 2001,
 	}
-	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
-	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(finalQuotaGrant)
-	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
+	updateRequest1 := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE)
+	updateAnswer1 := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(finalQuotaGrant)
+	updateExpectation1 := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation1}
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer1))
@@ -191,10 +189,10 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we use up all of the quota, we expect a termination request to go up.
-	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
-	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
-	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
-	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
+	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
+	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	expectations = []*fegprotos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// We need to generate over 100% of the quota to trigger a session termination
@@ -232,9 +230,9 @@ func TestGyCreditValidityTime(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    2001,
 	}
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update but not the full quota < 5MB
 	mscc := &fegprotos.MultipleServicesCreditControl{
@@ -244,11 +242,11 @@ func TestGyCreditValidityTime(t *testing.T) {
 	}
 	// accept 1k - 999k
 	// TODO Would be good to add asserting on less than, greater than, etc.
-	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+	updateRequest1 := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE).
 		SetMSCC(mscc).SetMSCCDelta(499 * KiloBytes)
-	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
+	updateAnswer1 := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	updateExpectation1 := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation1}
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer1))
@@ -306,12 +304,12 @@ func TestGyCreditExhaustionWithoutCCRU(t *testing.T) {
 		FinalUnitIndication: &finalUnitIndication,
 		ResultCode:          2001,
 	}
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
-	defaultUpdateAnswer := protos.NewGyCCAnswer(diam.Success)
-	expectations := []*protos.GyCreditControlExpectation{initExpectation}
+	defaultUpdateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation}
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, defaultUpdateAnswer))
@@ -324,10 +322,10 @@ func TestGyCreditExhaustionWithoutCCRU(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
-	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
-	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
-	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
+	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
+	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	expectations = []*fegprotos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// we need to generate over 100% of the quota to trigger a session termination
@@ -359,11 +357,11 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(0).SetLinkFailure(true)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(0).SetLinkFailure(true)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
-	expectations := []*protos.GyCreditControlExpectation{initExpectation}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation}
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 	tr.AuthenticateAndAssertFail(ue.Imsi)
@@ -371,7 +369,7 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	resultByIndex, errByIndex, err := getOCSAssertExpectationsResult()
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
-	expectedResult := []*protos.ExpectationResult{{ExpectationIndex: 0, ExpectationMet: true}}
+	expectedResult := []*fegprotos.ExpectationResult{{ExpectationIndex: 0, ExpectationMet: true}}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
 
 	// Since CCA-I was never received, there should be no rules installed
@@ -423,22 +421,22 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		ResultCode: diameter.SuccessCode,
 	}
 
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).
 		SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
-	expectedMSCC := &protos.MultipleServicesCreditControl{
+	expectedMSCC := &fegprotos.MultipleServicesCreditControl{
 		RatingGroup: 1,
 		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
 	}
 	// We expect an update request with some usage update after reauth
-	updateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+	updateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE).
 		SetMSCC(expectedMSCC)
-	updateAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).
+	updateAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	updateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest).
 		Return(updateAnswer)
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation}
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
@@ -496,10 +494,10 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 1*MegaBytes), time.Minute, 2*time.Second)
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
-	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
-	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
-	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
-	expectations = []*protos.GyCreditControlExpectation{terminateExpectation}
+	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
+	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	expectations = []*fegprotos.GyCreditControlExpectation{terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// trigger disconnection
@@ -530,22 +528,22 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// Return a permanent failure on Update
-	updateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
+	updateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE)
 	// The CCR/A-U exchange fails
-	updateAnswer := protos.NewGyCCAnswer(diam.UnableToComply).
+	updateAnswer := fegprotos.NewGyCCAnswer(diam.UnableToComply).
 		SetQuotaGrant(&fegprotos.QuotaGrant{ResultCode: diam.AuthorizationRejected})
-	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	updateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
 	// The failure above in CCR/A-U should trigger a termination
-	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
-	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
-	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
+	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation, terminateExpectation}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation, terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
@@ -636,7 +634,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	assert.Eventually(t,
 		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 3*MegaBytes), time.Minute, 2*time.Second)
 	asa, err := sendChargingAbortSession(
-		&fegProtos.AbortSessionRequest{
+		&fegprotos.AbortSessionRequest{
 			Imsi: imsi,
 		},
 	)
@@ -694,22 +692,22 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 		ResultCode: 2001,
 	}
 
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).
 		SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
-	expectedMSCC := &protos.MultipleServicesCreditControl{
+	expectedMSCC := &fegprotos.MultipleServicesCreditControl{
 		RatingGroup: 1,
 		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
 	}
 	// We expect an update request with some usage update after reauth
-	updateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+	updateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE).
 		SetMSCC(expectedMSCC)
-	updateAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).
+	updateAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	updateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest).
 		Return(updateAnswer)
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation}
 
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
@@ -821,17 +819,17 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	}
 
 	// CCR-I
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).
 		SetQuotaGrant(quotaGrant_Init)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// reauth
-	expectedMSCC_forReauth := &protos.MultipleServicesCreditControl{
+	expectedMSCC_forReauth := &fegprotos.MultipleServicesCreditControl{
 		RatingGroup: 1,
 		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
 	}
-	reauthRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE).
+	reauthRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE).
 		SetMSCC(expectedMSCC_forReauth)
 
 	quotaGrant_Reauth := &fegprotos.QuotaGrant{
@@ -844,11 +842,11 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 		ResultCode:          diam.Success,
 	}
 
-	reauthAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant_Reauth)
-	reauthExpectation := protos.NewGyCreditControlExpectation().Expect(reauthRequest).
+	reauthAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant_Reauth)
+	reauthExpectation := fegprotos.NewGyCreditControlExpectation().Expect(reauthRequest).
 		Return(reauthAnswer)
 
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, reauthExpectation}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, reauthExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -935,9 +933,9 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// grant with DiameterCreditLimitReached
 	quotaGrantCreditLimitReached := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
@@ -948,11 +946,11 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 		ResultCode:    diameter.DiameterCreditLimitReached,
 	}
 	// CCR-U  with ERROR CODE 4012 (DiameterCreditLimitReached)
-	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
-	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrantCreditLimitReached)
-	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+	updateRequest1 := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE)
+	updateAnswer1 := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrantCreditLimitReached)
+	updateExpectation1 := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	// Load expectations into OCS
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation1}
 	assert.NoError(t, setOCSExpectations(expectations, nil)) // We only expect one single CCR-U to be sent
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -969,10 +967,10 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 
 	// un-suspend credit
 	// set expectations on the OCS
-	updateRequestAfterRar := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
-	updateAnswerAfterRar := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	updateExpectationAfterRar := protos.NewGyCreditControlExpectation().Expect(updateRequestAfterRar).Return(updateAnswerAfterRar)
-	expectations = []*protos.GyCreditControlExpectation{updateExpectationAfterRar}
+	updateRequestAfterRar := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE)
+	updateAnswerAfterRar := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	updateExpectationAfterRar := fegprotos.NewGyCreditControlExpectation().Expect(updateRequestAfterRar).Return(updateAnswerAfterRar)
+	expectations = []*fegprotos.GyCreditControlExpectation{updateExpectationAfterRar}
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// Send ReAuth Request to update quota
@@ -1029,9 +1027,9 @@ func TestGyWithPermanentErrorCode(t *testing.T) {
 		IsFinalCredit: false,
 		ResultCode:    diam.Success,
 	}
-	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
-	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	initRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_INITIAL)
+	initAnswer := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// grant with any 5xxx error (permanent error)
 	quotaGrantCreditLimitReached := &fegprotos.QuotaGrant{
@@ -1044,17 +1042,17 @@ func TestGyWithPermanentErrorCode(t *testing.T) {
 	}
 
 	// CCR-U  with ERROR CODE 4012 (DiameterCreditLimitReached)
-	updateRequest1 := protos.NewGyCCRequest(imsi, protos.CCRequestType_UPDATE)
-	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrantCreditLimitReached)
-	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+	updateRequest1 := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_UPDATE)
+	updateAnswer1 := fegprotos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrantCreditLimitReached)
+	updateExpectation1 := fegprotos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 
 	// CCR-T
-	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
-	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
-	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
+	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := fegprotos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 
 	// Load expectations into OCS
-	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1, terminateExpectation}
+	expectations := []*fegprotos.GyCreditControlExpectation{initExpectation, updateExpectation1, terminateExpectation}
 	assert.NoError(t, setOCSExpectations(expectations, nil)) // We only expect one single CCR-U to be sent
 	tr.AuthenticateAndAssertSuccess(imsi)
 	// First wait until we see the original static-pass-all-ocs2 show up
