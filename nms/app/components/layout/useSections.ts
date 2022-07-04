@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import type {NetworkContextType} from '../context/NetworkContext';
-// $FlowFixMe migrated to typescript
 import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from './Section';
 
@@ -22,7 +21,6 @@ import {
   FEG,
   LTE,
   coalesceNetworkType,
-  // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 } from '../../../shared/types/network';
 
 import MagmaAPI from '../../api/MagmaAPI';

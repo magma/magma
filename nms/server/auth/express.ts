@@ -63,8 +63,6 @@ export function unprotectedUserRoutes() {
       failureRedirect: '/user/login?failure=true',
     }) as RequestHandler,
     (req: Request<never, any, never, {to?: string}>, res) => {
-      /* $FlowFixMe req.query is user-controlled input, properties and values
-       in this object are untrusted and should be validated before trusting */
       const redirectTo = ensureRelativeUrl(req.query.to) || '/';
       res.redirect(redirectTo);
     },
