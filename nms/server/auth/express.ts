@@ -85,7 +85,7 @@ function userMiddleware(options: Options) {
         : options.loginFailureUrl;
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      passport.authenticate('oidc', (err: Error, user: UserModel) => {
+      passport.authenticate('local', (err: Error, user: UserModel) => {
         if (!user || err) {
           logger.error('Failed login: ' + err.toString());
           return res.redirect(loginFailureUrl);
