@@ -72,9 +72,9 @@ function DataPlanOverview(props: WithAlert) {
   );
   const [open, setOpen] = React.useState(false);
   const ctx = useContext(LteNetworkContext);
-  const epcConfig = ctx.state.cellular!.epc;
+  const epcConfig = ctx.state.cellular?.epc;
 
-  const dataPlans = ctx.state.cellular!.epc.sub_profiles;
+  const dataPlans = ctx.state.cellular?.epc?.sub_profiles;
   const dataPlanRows: Array<DataPlanRowType> = dataPlans
     ? Object.keys(dataPlans || {}).map((id: string) => {
         const profile = nullthrows(dataPlans)[id];
@@ -95,11 +95,11 @@ function DataPlanOverview(props: WithAlert) {
     : [];
 
   const onDelete = async (dataPlanId: string) => {
-    const subProfiles = epcConfig.sub_profiles || {};
+    const subProfiles = epcConfig?.sub_profiles || {};
     delete subProfiles[dataPlanId];
 
     const newConfig = {
-      ...epcConfig,
+      ...epcConfig!,
       sub_profiles: subProfiles,
     };
     const updateNetworkProps: UpdateNetworkContextProps = {
