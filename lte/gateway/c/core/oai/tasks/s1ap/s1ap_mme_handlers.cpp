@@ -34,7 +34,6 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -43,6 +42,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_CNDomain.h"
@@ -2077,7 +2077,6 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   S1ap_HandoverRequestAcknowledgeIEs_t* ie = NULL;
   enb_description_t* source_enb = NULL;
   enb_description_t* target_enb = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t idx = 0;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -2775,7 +2774,6 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
   bstring src_tgt_container = {0};
   uint8_t* enb_id_buf = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint32_t idx = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -3238,7 +3236,6 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
   S1ap_ENBStatusTransferIEs_t* ie = NULL;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* target_enb_association = NULL;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -4553,7 +4550,6 @@ status_code_e s1ap_handle_paging_request(
   }
 
   /*Fetching eNB list to send paging request message*/
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* enb_ref_p = NULL;
   if (state == NULL) {
     OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
@@ -4866,7 +4862,6 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint8_t* enb_id_buf = NULL;
   enb_description_t* enb_association = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;

@@ -306,7 +306,8 @@
           "lte/eventd",
           "lte/access_service_restrictions",
           "lte/dev_teid_allocation",
-          "lte/integrated_5G_sa"
+          "lte/integrated_5G_sa",
+          "lte/suci_extensions"
         ]
       },
       {

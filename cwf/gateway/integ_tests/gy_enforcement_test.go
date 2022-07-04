@@ -263,7 +263,7 @@ func TestGyCreditValidityTime(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:    imsi,
 		Volume:  &wrappers.StringValue{Value: "500K"},
-		Bitrate: &wrappers.StringValue{Value: "10M"},
+		Bitrate: &wrappers.StringValue{Value: "1M"}, // usage report with no traffic needs low throughput
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
@@ -589,7 +589,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 
 	err = setNewOCSConfig(
 		&fegprotos.OCSConfig{
-			MaxUsageOctets: &fegprotos.Octets{TotalOctets: ReAuthMaxUsageBytes},
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: 8 * MegaBytes}, //we generate more then 5Mbyte traffic, if this is set below 7MB this session will terminate before the ASR goes through
 			MaxUsageTime:   ReAuthMaxUsageTimeSec,
 			ValidityTime:   ReAuthValidityTime,
 		},
@@ -741,9 +741,9 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that the og stats flow was not removed and flow data hit restrict rule
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 1, 6*MegaBytes+Buffer)
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 1*MegaBytes-Buffer, 6*MegaBytes+Buffer)
 	// Check that data went through the restrict rule
-	tr.AssertPolicyUsage(imsi, "restrict-pass-user", 1, 3*MegaBytes+Buffer)
+	tr.AssertPolicyUsage(imsi, "restrict-pass-user", 1*MegaBytes-Buffer, 6*MegaBytes+Buffer)
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(imsi, 1)
