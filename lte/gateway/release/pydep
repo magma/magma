@@ -102,13 +102,6 @@ def json_equal(a, b):
     return compare
 
 
-def _higher_version(version_a: Optional[str], version_b: Optional[str]) -> bool:
-    """ Return true if :version_a: > :version_b:, false otherwise. """
-    a = pkg_resources.parse_version(str(version_a))
-    b = pkg_resources.parse_version(str(version_b))
-    return a > b
-
-
 def _md5sum(filename: str) -> str:
     """
     It's like calling md5sum. Calculates the md5 checksum of a file.
@@ -705,31 +698,6 @@ def get_pkg_deps(pkgname: str,
         _cleanup(pkgname)
 
     return dependencies
-
-
-def _pkg_version_available(pkg: str,
-                           ver: str,
-                           py2: bool = False,
-                           pypi_only: bool = False) -> bool:
-    """
-    Returns True if the package version is available, False otherwise.
-    """
-
-    # if we're considering apt packages, first check if it's the latest
-    if not pypi_only:
-        if ver == get_latest_apt_pkg_version(pkg, py2):
-            return True
-
-    # then check every version listed on pypi. We don't do a string match
-    # because sometimes we'll see things like foo>=1.9 and PyPI has
-    # apackage for foo 1.9.0 -- equivalent but not identical.
-    for v in get_pypi_avail_releases(pkg):
-        py_ver = pkg_resources.Requirement.parse("%s==%s" % (pkg, v))
-        if ver in py_ver:
-            return True
-
-    # if we didn't find an *equivalent* match, we return false.
-    return False
 
 
 @contextlib.contextmanager
