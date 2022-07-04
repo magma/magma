@@ -9,9 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow
- * @format
  */
 
 if (!process.env.NODE_ENV) {
@@ -22,20 +19,15 @@ if (!process.env.NODE_ENV) {
 }
 
 import app from '../server/app';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import logging from '../shared/logging';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {runMigrations} from './runMigrations';
 
 const logger = logging.getLogger(module);
-const port = parseInt(process.env.PORT || 80);
+const port = parseInt(process.env.PORT || '80');
 
 (async function main() {
   await runMigrations();
-  app.listen(port, '', err => {
-    if (err) {
-      logger.error(err.toString());
-    }
+  app.listen(port, '', () => {
     if (process.env.NODE_ENV === 'development') {
       logger.info(`Development server started on port ${port}`);
     } else {
