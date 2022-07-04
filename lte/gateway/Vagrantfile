@@ -21,10 +21,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "../..", "/home/vagrant/magma"
 
   config.vm.define :magma, primary: true do |magma|
-    # Get our prepackaged box from the atlas cloud, based on
-    # - debian/contrib-jessie64
-    # - linux kernel from debian jessie backports
-    # - updated vbguest-tool
     config.vm.box = "magmacore/magma_dev"
     config.vm.box_version = "1.1.20210618"
      # Enable Dynamic Swap Space to prevent Out of Memory crashes
