@@ -234,7 +234,7 @@ router.post(
         .status(200)
         .send({
           success: true,
-          apiResponse: resp,
+          apiResponse: resp.data,
         })
         .end();
     },

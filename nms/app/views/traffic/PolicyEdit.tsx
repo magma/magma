@@ -43,7 +43,6 @@ const DEFAULT_POLICY_RULE: PolicyRule = {
   priority: 1,
   flow_list: [],
   rating_group: 0,
-  redirect: {} as RedirectInformation,
   monitoring_key: '',
   app_name: undefined,
   app_service_type: undefined,

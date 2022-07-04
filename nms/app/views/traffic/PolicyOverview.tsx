@@ -391,7 +391,7 @@ export function BaseNameTableRaw(props: WithAlert) {
             render: rowData => {
               return (
                 <TextField
-                  value={rowData.ruleNames.join(', ')}
+                  value={rowData.ruleNames ? rowData.ruleNames.join(', ') : ''}
                   InputProps={{
                     disableUnderline: true,
                     readOnly: true,
