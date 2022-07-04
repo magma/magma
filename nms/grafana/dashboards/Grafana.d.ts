@@ -46,7 +46,10 @@ declare module 'grafana-dash-gen' {
         }>;
       };
     };
+
     constructor(param: DashboardParam);
+
+    generate(): Record<string, any>;
   }
 
   type GraphParams = {

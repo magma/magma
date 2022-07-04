@@ -27,9 +27,11 @@ import {
   syncDatasource,
   syncGrafanaUser,
   syncTenants,
+  // $FlowFixMe migrated to typescript
 } from '../../grafana/handlers';
 
 import type {ExpressResponse} from 'express';
+// $FlowFixMe migrated to typescript
 import type {Task} from '../../grafana/handlers';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import type {FBCNMSRequest} from '../auth/access';

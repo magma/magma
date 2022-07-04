@@ -17,6 +17,7 @@
 import React from 'react';
 // $FlowFixMe migrated to typescript
 import type {GetHealthResponse} from './GrafanaAPIType';
+// $FlowFixMe migrated to typescript
 import type {Task} from './handlers';
 
 export default function GrafanaErrorMessage(props: {

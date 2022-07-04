@@ -9,25 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import {isEqual, sortBy} from 'lodash';
 
-import MagmaV1API from '../server/magma/index';
+import OrchestartorAPI from '../server/api/OrchestratorAPI';
 import Sequelize from 'sequelize';
-// $FlowFixMe migrated to typescript
+import logging from '../shared/logging';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
-// $FlowFixMe migrated to typescript
-import {CWF} from '../shared/types/network';
+import {AxiosError} from 'axios';
+import {CWF, NetworkType} from '../shared/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
   CWFNetworkDBData,
   CWFSubscriberDBData,
-  // $FlowFixMe migrated to typescript
 } from './dashboards/CWFDashboards';
 import {
   GatewayDBData,
@@ -35,45 +31,38 @@ import {
   NetworkDBData,
   SubscriberDBData,
   createDashboard,
-  // $FlowFixMe migrated to typescript
 } from './dashboards/Dashboards';
-
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {Organization} from '../shared/sequelize_models';
-// $FlowFixMe migrated to typescript
+import {Request} from 'express';
 import {XWFMDBData} from './dashboards/XWFMDashboards';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import {apiCredentials} from '../config/config';
-
 import type {
   CreateDashboardResponse,
   Datasource,
   PostDatasource,
-  // $FlowFixMe migrated to typescript
 } from './GrafanaAPIType';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from '../server/auth/access';
-// $FlowFixMe migrated to typescript
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {OrganizationType} from '../shared/sequelize_models/models/organization';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {UserType} from '../shared/sequelize_models/models/user';
-import type {network_type, tenant} from '../generated/MagmaAPIBindings';
-// $FlowFixMe migrated to typescript
-const logger = require('../shared/logging.ts').getLogger(module);
+import type {OrganizationModel} from '../shared/sequelize_models/models/organization';
+import type {Tenant} from '../generated-ts';
+import type {UserModel} from '../shared/sequelize_models/models/user';
 
-export type Task = {name: string, status: number, message: string};
+const logger = logging.getLogger(module);
+
+export type Task = {
+  name: string;
+  status: number;
+  message: string | Record<string, any>;
+};
 
 export const ORC8R_DATASOURCE_NAME = 'Orchestrator Datasource';
 
 export async function syncGrafanaUser(
   client: GrafanaClient,
-  req: FBCNMSRequest,
-): Promise<{completedTasks: Array<Task>, errorTask?: Task}> {
+  req: Request,
+): Promise<{completedTasks: Array<Task>; errorTask?: Task}> {
   const completedTasks: Array<Task> = [];
 
-  const nmsOrg = await req.organization();
+  const nmsOrg = await req.organization!();
   const username = makeGrafanaUsername(req.user.id);
 
   // Check if user's organization already exists in Grafana
@@ -139,8 +128,8 @@ export async function syncGrafanaUser(
       completedTasks,
       errorTask: {
         name: 'Check if user in correct organization',
-        status: error.status,
-        message: error.data,
+        status: (error as GrafanaResponse<Record<string, any>>).status,
+        message: (error as GrafanaResponse<Record<string, any>>).data,
       },
     };
   }
@@ -174,7 +163,7 @@ export async function syncGrafanaUser(
 async function createNewUser(
   client: GrafanaClient,
   username: string,
-): Promise<{completedTasks: Array<Task>, errorTask?: Task}> {
+): Promise<{completedTasks: Array<Task>; errorTask?: Task}> {
   const completedTasks: Array<Task> = [];
   // Create new global user
   const createUserResp = await client.createUser({
@@ -241,8 +230,8 @@ async function createNewUser(
 
 export async function syncDatasource(
   client: GrafanaClient,
-  req: FBCNMSRequest,
-): Promise<{completedTasks: Array<Task>, errorTask?: Task}> {
+  req: Request,
+): Promise<{completedTasks: Array<Task>; errorTask?: Task}> {
   const completedTasks: Array<Task> = [];
   // Retrieve admin cert and key
   const tryCreds = apiCredentials();
@@ -263,7 +252,7 @@ export async function syncDatasource(
     message: 'success',
   });
 
-  const nmsOrg = await req.organization();
+  const nmsOrg = await req.organization!();
   const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
   const nmsOrgID = nmsOrg.id;
   const apiHost = process.env.API_HOST;
@@ -351,9 +340,9 @@ export async function syncDatasource(
 }
 
 type updateDatasourceArgs = {
-  oldDS: Datasource,
-  newDSParams: DatasourceParams,
-  client: GrafanaClient,
+  oldDS: Datasource;
+  newDSParams: DatasourceParams;
+  client: GrafanaClient;
 };
 
 async function updateDatasourceIfChanged({
@@ -361,8 +350,8 @@ async function updateDatasourceIfChanged({
   newDSParams,
   client,
 }: updateDatasourceArgs): Promise<{
-  completedTasks: Array<Task>,
-  errorTask?: Task,
+  completedTasks: Array<Task>;
+  errorTask?: Task;
 }> {
   const completedTasks: Array<Task> = [];
   // Make sure API Endpoint matches and certs match
@@ -398,13 +387,13 @@ async function updateDatasourceIfChanged({
 }
 
 export async function syncTenants(): Promise<{
-  completedTasks: Array<Task>,
-  errorTask?: Task,
+  completedTasks: Array<Task>;
+  errorTask?: Task;
 }> {
   const completedTasks: Array<Task> = [];
-  const tenantMap = {};
+  const tenantMap: Record<string, Tenant> = {};
   try {
-    const orc8rTenants = await MagmaV1API.getTenants();
+    const orc8rTenants = (await OrchestartorAPI.tenants.tenantsGet()).data;
     orc8rTenants.forEach(tenant => {
       tenantMap[tenant.id] = tenant;
     });
@@ -418,8 +407,8 @@ export async function syncTenants(): Promise<{
       completedTasks,
       errorTask: {
         name: 'Retrieve Magma Tenants',
-        status: error.response.status,
-        message: error.response.data,
+        status: (error as AxiosError).response!.status,
+        message: (error as AxiosError<Record<string, any>>).response!.data,
       },
     };
   }
@@ -430,7 +419,7 @@ export async function syncTenants(): Promise<{
     try {
       // Update if tenant exists but is not equal to NMS Org
       if (orc8rTenant && !organizationsEqual(org, orc8rTenant)) {
-        await MagmaV1API.putTenantsByTenantId({
+        await OrchestartorAPI.tenants.tenantsTenantIdPut({
           tenant: {id: org.id, name: org.name, networks: org.networkIDs},
           tenantId: org.id,
         });
@@ -441,7 +430,7 @@ export async function syncTenants(): Promise<{
         });
       } else if (!orc8rTenant) {
         // Create new orc8r tenant if it didn't exist before
-        await MagmaV1API.postTenants({
+        await OrchestartorAPI.tenants.tenantsPost({
           tenant: {id: org.id, name: org.name, networks: org.networkIDs},
         });
         completedTasks.push({
@@ -455,8 +444,8 @@ export async function syncTenants(): Promise<{
         completedTasks,
         errorTask: {
           name: 'Update Magma Tenants',
-          status: error.response.status,
-          message: error.response.data,
+          status: (error as AxiosError).response!.status,
+          message: (error as AxiosError<Record<string, any>>).response!.data,
         },
       };
     }
@@ -466,10 +455,10 @@ export async function syncTenants(): Promise<{
 
 export async function syncDashboards(
   client: GrafanaClient,
-  req: FBCNMSRequest,
+  req: Request,
 ): Promise<{
-  completedTasks: Array<Task>,
-  errorTask?: Task,
+  completedTasks: Array<Task>;
+  errorTask?: Task;
 }> {
   const completedTasks: Array<Task> = [];
   const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
@@ -496,7 +485,7 @@ export async function syncDashboards(
     };
   }
 
-  const dashboardData = db => ({
+  const dashboardData = (db: Record<string, any>) => ({
     dashboard: db,
     folderId: 0,
     overwrite: true,
@@ -577,13 +566,15 @@ async function checkIfUserInOrg(
   return getUsersResp.data.some(user => user.login === username);
 }
 
-function getOrc8rDatasource(datasources: Array<Datasource>): ?Datasource {
+function getOrc8rDatasource(
+  datasources: Array<Datasource>,
+): Datasource | null | undefined {
   return datasources.find(ds => ds.name.startsWith(ORC8R_DATASOURCE_NAME));
 }
 
 async function getUserGrafanaOrgID(
   client: GrafanaClient,
-  user: UserType,
+  user: UserModel,
 ): Promise<number> {
   if (user.organization === undefined) {
     return NaN;
@@ -596,16 +587,16 @@ async function getUserGrafanaOrgID(
 }
 
 type DatasourceParams = {
-  grafanaOrgID: number,
-  nmsOrgID: number,
-  apiHost: string,
-  cert: string | Buffer,
-  key: string | Buffer,
+  grafanaOrgID: number;
+  nmsOrgID: number;
+  apiHost: string;
+  cert: string | Buffer;
+  key: string | Buffer;
 };
 
 function makeDatasourceConfig(params: DatasourceParams): PostDatasource {
   return {
-    name: ORC8R_DATASOURCE_NAME + '_' + params.grafanaOrgID,
+    name: `${ORC8R_DATASOURCE_NAME}_${params.grafanaOrgID}`,
     orgId: params.grafanaOrgID,
     type: 'prometheus',
     access: 'proxy',
@@ -629,8 +620,8 @@ function makeAPIUrl(apiHost: string, nmsOrgID: number): string {
 }
 
 function organizationsEqual(
-  nmsOrg: OrganizationType,
-  orc8rTenant: tenant,
+  nmsOrg: OrganizationModel,
+  orc8rTenant: Tenant,
 ): boolean {
   return (
     nmsOrg.name == orc8rTenant.name &&
@@ -639,18 +630,22 @@ function organizationsEqual(
 }
 
 async function hasNetworkOfType(
-  type: network_type,
+  type: NetworkType,
   networks: Array<string>,
 ): Promise<boolean> {
   for (const networkId of networks) {
     try {
-      const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
+      const networkInfo = (
+        await OrchestartorAPI.networks.networksNetworkIdGet({
+          networkId,
+        })
+      ).data;
       if (networkInfo.type === type) {
         return true;
       }
     } catch (error) {
       logger.error(
-        `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${error}`,
+        `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${(error as Error).toString()}`,
       );
     }
   }
@@ -660,13 +655,15 @@ async function hasNetworkOfType(
 async function hasNetworkOfXWFMType(networks: Array<string>): Promise<boolean> {
   for (const networkId of networks) {
     try {
-      const cwfNetwork = await MagmaV1API.getCwfByNetworkId({networkId});
+      const cwfNetwork = (
+        await OrchestartorAPI.carrierWifiNetworks.cwfNetworkIdGet({networkId})
+      ).data;
       return cwfNetwork.carrier_wifi?.is_xwfm_variant ?? false;
     } catch (error) {
       // not a real error, we are attempting to get all networks as cwf networks
       // few of them can result in errors. These can be ignored
       logger.error(
-        `Error attempting to retrieve ${networkId} as CWF network. Error: ${error}`,
+        `Error attempting to retrieve ${networkId} as CWF network. Error: ${(error as Error).toString()}`,
       );
     }
   }
