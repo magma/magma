@@ -83,7 +83,7 @@ router.get('/nms*', access(AccessRoles.USER), handleReact());
 router.get(
   '/host/networks/async',
   asyncHandler(async (_: Request, res) => {
-    const networks = await OrchestratorAPI.networks.networksGet();
+    const networks = (await OrchestratorAPI.networks.networksGet()).data;
     res.status(200).send(networks);
   }),
 );

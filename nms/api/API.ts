@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+import globalAxios from 'axios';
+import https from 'https';
 import {
   APNsApi,
   AboutApi,
@@ -53,35 +55,41 @@ export function createBaseAPI(basePath: string) {
 /**
  * New APIs need to be added here
  */
-export function setUpApi(basePath: string) {
+export function setUpApi(basePath: string, httpsAgent?: https.Agent) {
+  const axios = httpsAgent
+    ? globalAxios.create({
+        httpsAgent,
+      })
+    : globalAxios;
+
   return {
-    apns: new APNsApi(config, basePath),
-    about: new AboutApi(config, basePath),
-    alerts: new AlertsApi(config, basePath),
-    callTracing: new CallTracingApi(config, basePath),
-    carrierWifiGateways: new CarrierWifiGatewaysApi(config, basePath),
-    carrierWifiNetworks: new CarrierWifiNetworksApi(config, basePath),
-    cbsds: new CbsdsApi(config, basePath),
-    commands: new CommandsApi(config, basePath),
-    default: new DefaultApi(config, basePath),
-    enodebs: new EnodeBsApi(config, basePath),
-    events: new EventsApi(config, basePath),
-    federatedLTENetworks: new FederatedLTENetworksApi(config, basePath),
-    federationGateways: new FederationGatewaysApi(config, basePath),
-    federationNetworks: new FederationNetworksApi(config, basePath),
-    gateways: new GatewaysApi(config, basePath),
-    lteGateways: new LTEGatewaysApi(config, basePath),
-    lteNetworks: new LTENetworksApi(config, basePath),
-    logs: new LogsApi(config, basePath),
-    metrics: new MetricsApi(config, basePath),
-    networkProbes: new NetworkProbesApi(config, basePath),
-    networks: new NetworksApi(config, basePath),
-    policies: new PoliciesApi(config, basePath),
-    ratingGroups: new RatingGroupsApi(config, basePath),
-    sms: new SMSApi(config, basePath),
-    subscribers: new SubscribersApi(config, basePath),
-    tenants: new TenantsApi(config, basePath),
-    upgrades: new UpgradesApi(config, basePath),
-    user: new UserApi(config, basePath),
+    apns: new APNsApi(config, basePath, axios),
+    about: new AboutApi(config, basePath, axios),
+    alerts: new AlertsApi(config, basePath, axios),
+    callTracing: new CallTracingApi(config, basePath, axios),
+    carrierWifiGateways: new CarrierWifiGatewaysApi(config, basePath, axios),
+    carrierWifiNetworks: new CarrierWifiNetworksApi(config, basePath, axios),
+    cbsds: new CbsdsApi(config, basePath, axios),
+    commands: new CommandsApi(config, basePath, axios),
+    default: new DefaultApi(config, basePath, axios),
+    enodebs: new EnodeBsApi(config, basePath, axios),
+    events: new EventsApi(config, basePath, axios),
+    federatedLTENetworks: new FederatedLTENetworksApi(config, basePath, axios),
+    federationGateways: new FederationGatewaysApi(config, basePath, axios),
+    federationNetworks: new FederationNetworksApi(config, basePath, axios),
+    gateways: new GatewaysApi(config, basePath, axios),
+    lteGateways: new LTEGatewaysApi(config, basePath, axios),
+    lteNetworks: new LTENetworksApi(config, basePath, axios),
+    logs: new LogsApi(config, basePath, axios),
+    metrics: new MetricsApi(config, basePath, axios),
+    networkProbes: new NetworkProbesApi(config, basePath, axios),
+    networks: new NetworksApi(config, basePath, axios),
+    policies: new PoliciesApi(config, basePath, axios),
+    ratingGroups: new RatingGroupsApi(config, basePath, axios),
+    sms: new SMSApi(config, basePath, axios),
+    subscribers: new SubscribersApi(config, basePath, axios),
+    tenants: new TenantsApi(config, basePath, axios),
+    upgrades: new UpgradesApi(config, basePath, axios),
+    user: new UserApi(config, basePath, axios),
   };
 }

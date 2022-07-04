@@ -11,9 +11,16 @@
  * limitations under the License.
  */
 
+import https from 'https';
 import nullthrows from '../../shared/util/nullthrows';
-import {API_HOST} from '../../config/config';
+import {API_HOST, apiCredentials} from '../../config/config';
 import {setUpApi} from '../../api/API';
+
+const httpsAgent = new https.Agent({
+  cert: apiCredentials().cert,
+  key: apiCredentials().key,
+  rejectUnauthorized: false,
+});
 
 const host = nullthrows(API_HOST);
 
@@ -21,4 +28,4 @@ const orchestratorUrl = !/^https?\:\/\//.test(host)
   ? `https://${host}/magma/v1`
   : `${host}/magma/v1`;
 
-export default setUpApi(orchestratorUrl);
+export default setUpApi(orchestratorUrl, httpsAgent);
