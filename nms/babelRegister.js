@@ -14,5 +14,5 @@
 require('@babel/register')({
   rootMode: 'upward',
   ignore: [],
-  extensions: ['.ts', '.js'],
+  extensions: ['.ts', '.tsx', '.js'],
 });

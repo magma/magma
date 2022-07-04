@@ -36,6 +36,7 @@ import express from 'express';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import fbcPassport from './auth/passport';
 import fs from 'fs';
+// $FlowFixMe migrated to typescript
 import grafanaRoutes from './grafana/routes';
 // $FlowFixMe[cannot-resolve-module] for TypeScript migration
 import mainRoutes from './main/routes';

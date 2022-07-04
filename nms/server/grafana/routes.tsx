@@ -9,35 +9,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
+import Client from '../../grafana/GrafanaAPI';
+import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import express from 'express';
 import proxy from 'express-http-proxy';
-// $FlowFixMe migrated to typescript
-import Client from '../../grafana/GrafanaAPI';
-// $FlowFixMe migrated to typescript
-import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
 import {
   makeGrafanaUsername,
   syncDashboards,
   syncDatasource,
   syncGrafanaUser,
   syncTenants,
-  // $FlowFixMe migrated to typescript
 } from '../../grafana/handlers';
 
-import type {ExpressResponse} from 'express';
-// $FlowFixMe migrated to typescript
-import type {Task} from '../../grafana/handlers';
-// $FlowFixMe[cannot-resolve-module] for TypeScript migration
-import type {FBCNMSRequest} from '../auth/access';
-// $FlowFixMe migrated to typescript
+import asyncHandler from '../util/asyncHandler';
 import type {GrafanaClient} from '../../grafana/GrafanaAPI';
+import type {NextFunction, Request, Response} from 'express';
+import type {Task} from '../../grafana/handlers';
 
 const GRAFANA_PROTOCOL = 'http';
 const GRAFANA_ADDRESS = process.env.USER_GRAFANA_ADDRESS ?? 'user-grafana:3000';
@@ -45,17 +36,13 @@ const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_ADDRESS}`;
 
 const AUTH_PROXY_HEADER = 'X-WEBAUTH-USER';
 
-const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
+const router = express.Router();
 
 const grafanaAdminClient = Client(GRAFANA_URL, {
   [AUTH_PROXY_HEADER]: 'admin',
 });
 
-async function syncGrafana(
-  req: FBCNMSRequest,
-  res: ExpressResponse,
-  next: express$NextFunction,
-) {
+async function syncGrafana(req: Request, res: Response, next: NextFunction) {
   const [tenantsRes, grafanaSyncRes] = await Promise.all([
     syncTenants(),
     syncGrafanaMeta(grafanaAdminClient, req),
@@ -67,18 +54,18 @@ async function syncGrafana(
   ];
 
   if (tenantsRes.errorTask) {
-    displayErrorMessage(res, completedTasks, tenantsRes.errorTask);
+    await displayErrorMessage(res, completedTasks, tenantsRes.errorTask);
   }
   if (grafanaSyncRes.errorTask) {
-    displayErrorMessage(res, completedTasks, grafanaSyncRes.errorTask);
+    await displayErrorMessage(res, completedTasks, grafanaSyncRes.errorTask);
   }
   return next();
 }
 
 async function syncGrafanaMeta(
   grafanaClient: GrafanaClient,
-  req: FBCNMSRequest,
-): Promise<{completedTasks: Array<Task>, errorTask?: Task}> {
+  req: Request,
+): Promise<{completedTasks: Array<Task>; errorTask?: Task}> {
   const completedTasks = [];
 
   // Sync User/Organization
@@ -105,7 +92,7 @@ async function syncGrafanaMeta(
 }
 
 async function displayErrorMessage(
-  res: ExpressResponse,
+  res: Response,
   completedTasks: Array<Task>,
   errorTask: Task,
 ) {
@@ -121,16 +108,16 @@ async function displayErrorMessage(
 }
 
 const proxyMiddleware = () => {
-  return async function (req: FBCNMSRequest, res, next) {
+  return function (req: Request, res: Response, next: NextFunction) {
     const userID = req.user.id;
 
     return proxy(GRAFANA_URL, {
-      proxyReqOptDecorator: function (proxyReqOpts, _srcReq) {
-        proxyReqOpts.headers[AUTH_PROXY_HEADER] = makeGrafanaUsername(userID);
+      proxyReqOptDecorator: function (proxyReqOpts) {
+        proxyReqOpts.headers![AUTH_PROXY_HEADER] = makeGrafanaUsername(userID);
         return proxyReqOpts;
       },
       proxyReqPathResolver: req => req.originalUrl.replace(/^\/grafana/, ''),
-      userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      userResDecorator: (proxyRes, proxyResData: Buffer, userReq, userRes) => {
         userRes.set('X-Frame-Options', 'allow');
         return proxyResData;
       },
@@ -139,7 +126,7 @@ const proxyMiddleware = () => {
 };
 
 // Only the root path should perform the sync operations
-router.all('/', syncGrafana);
+router.all('/', asyncHandler(syncGrafana));
 // Use proxy on all paths
 router.use('/', proxyMiddleware());
 
