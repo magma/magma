@@ -20,6 +20,7 @@ import express from 'express';
 import proxy from 'express-http-proxy';
 // $FlowFixMe migrated to typescript
 import Client from '../../grafana/GrafanaAPI';
+// $FlowFixMe migrated to typescript
 import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
 import {
   makeGrafanaUsername,

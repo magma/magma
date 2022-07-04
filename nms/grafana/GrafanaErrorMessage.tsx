@@ -9,21 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 
 import React from 'react';
-// $FlowFixMe migrated to typescript
 import type {GetHealthResponse} from './GrafanaAPIType';
-// $FlowFixMe migrated to typescript
 import type {Task} from './handlers';
 
 export default function GrafanaErrorMessage(props: {
-  completedTasks: Array<Task>,
-  errorTask: Task,
-  grafanaHealth: GetHealthResponse,
+  completedTasks: Array<Task>;
+  errorTask: Task;
+  grafanaHealth: GetHealthResponse;
 }) {
   return (
     <div>
