@@ -433,10 +433,9 @@
       - unattended-upgrades
 
 - name: Install LLDB debugger
-  # TODO: Make this preburn
   apt:
     pkg: lldb
     state: present
     update_cache: no
   retries: 5
-  when: full_provision
+  when: preburn

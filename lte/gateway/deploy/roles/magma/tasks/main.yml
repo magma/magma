@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Fix resove conf
+- name: Fix resolve conf
   shell: ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
 
 - name: Include vars of all.yaml
@@ -244,17 +244,15 @@
       # install prometheus
       - prometheus-cpp-dev
       # install openvswitch
+      - libopenvswitch
+      - libopenvswitch-dev
+      - magma-libfluid
+      - openvswitch-common
+      - openvswitch-datapath-dkms
+      - openvswitch-doc
       - openvswitch-switch
       - openvswitch-test
-      - libopenvswitch
-      - openvswitch-datapath-dkms
-      - openvswitch-common
-      - libopenvswitch-dev
       - python3-openvswitch
-      - openvswitch-doc
-      - openvswitch-pki
-      - openvswitch-test
-      - magma-libfluid
       # install lxml
       - python3-lxml
       - bridge-utils
@@ -262,12 +260,12 @@
       - libyaml-cpp-dev
       - libgoogle-glog-dev
       # folly deps
-      - libfolly-dev
-      - libdouble-conversion-dev
       - libboost-chrono-dev
-      - redis-server
-      - python-redis
+      - libdouble-conversion-dev
+      - libfolly-dev
       - magma-cpp-redis
+      - python-redis
+      - redis-server
       # Time synchronization with NTP for eventd
       - ntpdate
       # For call tracing
@@ -330,28 +328,19 @@
     - gmock
   when: preburn
 
-- name: Remove existing golang installation
-  # TODO: make golang installation preburn and delete this step
-  # it is necessary because the old golang installation has to be removed
-  # before installing the new one (https://go.dev/doc/install)
-  shell: rm -rf /usr/local/go
-  when: full_provision
-
 - name: Download golang tar
-  # TODO: make this preburn again
   get_url:
     url: "https://artifactory.magmacore.org/artifactory/generic/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
-  when: full_provision
+  when: preburn
 
 - name: Extract Go tarball
-  # TODO: make this preburn again
   unarchive:
     src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: /usr/local
     copy: no
-  when: full_provision
+  when: preburn
 
 - name: Set Go environment vars in profile
   lineinfile:
@@ -361,7 +350,7 @@
   with_items:
     - export PATH=$PATH:/usr/local/bin/go/
     - export PATH=$PATH:$(go env GOPATH)/bin/
-  when: full_provision
+  when: preburn
 
 - name: Install dnsmasq
   apt: pkg=dnsmasq state=present update_cache=yes
@@ -456,7 +445,6 @@
     src: patches/aioeventlet_fd_exception.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
 
-# TODO: preburn this
 - name: Install dev requirements only used for Magma VM
   retries: 5
   apt:
@@ -465,22 +453,23 @@
       - clangd-12
       - lld
       - clang-format-11
+  when: preburn
 
-# TODO: preburn this
 - name: Create a symlink for clangd
   file:
     src: '/usr/bin/clangd-12'
     path: '/usr/bin/clangd'
     state: link
     force: yes
+  when: preburn
 
-# TODO: preburn this
 - name: Create a symlink for clang-format
   file:
     src: '/usr/bin/clang-format-11'
     path: '/usr/bin/clang-format'
     state: link
     force: yes
+  when: preburn
 
 # TODO: Fix magma-dev VM box and remove this step.
 - name: Install Magma dependencies
