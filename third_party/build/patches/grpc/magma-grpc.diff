@@ -1,0 +1,78 @@
+diff --git a/src/core/ext/filters/client_channel/client_channel.cc b/src/core/ext/filters/client_channel/client_channel.cc
+index d2bf4f388d..26e399c2c5 100644
+--- a/src/core/ext/filters/client_channel/client_channel.cc
++++ b/src/core/ext/filters/client_channel/client_channel.cc
+@@ -457,7 +457,7 @@ get_service_config_from_resolver_result_locked(channel_data* chand) {
+         grpc_uri* uri = grpc_uri_parse(server_uri, true);
+         GPR_ASSERT(uri->path[0] != '\0');
+         service_config_parsing_state parsing_state;
+-        memset(&parsing_state, 0, sizeof(parsing_state));
++        //memset(&parsing_state, 0, sizeof(parsing_state));
+         parsing_state.server_name =
+             uri->path[0] == '/' ? uri->path + 1 : uri->path;
+         service_config->ParseGlobalParams(parse_retry_throttle_params,
+diff --git a/src/core/ext/filters/client_channel/lb_policy/grpclb/load_balancer_api.cc b/src/core/ext/filters/client_channel/lb_policy/grpclb/load_balancer_api.cc
+index f24281a5bf..e2a0fe5aca 100644
+--- a/src/core/ext/filters/client_channel/lb_policy/grpclb/load_balancer_api.cc
++++ b/src/core/ext/filters/client_channel/lb_policy/grpclb/load_balancer_api.cc
+@@ -68,7 +68,7 @@ grpc_grpclb_request* grpc_grpclb_request_create(const char* lb_service_name) {
+   req->has_initial_request = true;
+   req->initial_request.has_name = true;
+   strncpy(req->initial_request.name, lb_service_name,
+-          GRPC_GRPCLB_SERVICE_NAME_MAX_LENGTH);
++          GRPC_GRPCLB_SERVICE_NAME_MAX_LENGTH - 1);
+   return req;
+ }
+ 
+diff --git a/src/core/ext/transport/chttp2/transport/flow_control.cc b/src/core/ext/transport/chttp2/transport/flow_control.cc
+index 53932bcb7f..4b1862735d 100644
+--- a/src/core/ext/transport/chttp2/transport/flow_control.cc
++++ b/src/core/ext/transport/chttp2/transport/flow_control.cc
+@@ -190,7 +190,7 @@ TransportFlowControl::TransportFlowControl(const grpc_chttp2_transport* t,
+ uint32_t TransportFlowControl::MaybeSendUpdate(bool writing_anyway) {
+   FlowControlTrace trace("t updt sent", this, nullptr);
+   const uint32_t target_announced_window =
+-      static_cast<const uint32_t>(target_window());
++      static_cast<uint32_t>(target_window());
+   if ((writing_anyway || announced_window_ <= target_announced_window / 2) &&
+       announced_window_ != target_announced_window) {
+     const uint32_t announce = static_cast<uint32_t> GPR_CLAMP(
+diff --git a/src/core/lib/gpr/log_linux.cc b/src/core/lib/gpr/log_linux.cc
+index 561276f0c2..694d7a4f16 100644
+--- a/src/core/lib/gpr/log_linux.cc
++++ b/src/core/lib/gpr/log_linux.cc
+@@ -40,7 +40,7 @@
+ #include <time.h>
+ #include <unistd.h>
+ 
+-static long gettid(void) { return syscall(__NR_gettid); }
++//static long gettid(void) { return syscall(__NR_gettid); }
+ 
+ void gpr_log(const char* file, int line, gpr_log_severity severity,
+              const char* format, ...) {
+diff --git a/src/core/lib/surface/channel.cc b/src/core/lib/surface/channel.cc
+index 82635d3c21..a28ed90010 100644
+--- a/src/core/lib/surface/channel.cc
++++ b/src/core/lib/surface/channel.cc
+@@ -100,7 +100,7 @@ grpc_channel* grpc_channel_create_with_builder(
+     return channel;
+   }
+ 
+-  memset(channel, 0, sizeof(*channel));
++//  memset(channel, 0, sizeof(grpc_channel));
+   channel->target = target;
+   channel->is_client = grpc_channel_stack_type_is_client(channel_stack_type);
+   size_t channel_tracer_max_nodes = 0;  // default to off
+diff --git a/src/core/tsi/alts_transport_security.cc b/src/core/tsi/alts_transport_security.cc
+index 2fd408103b..0b9cc3dbbf 100644
+--- a/src/core/tsi/alts_transport_security.cc
++++ b/src/core/tsi/alts_transport_security.cc
+@@ -45,7 +45,7 @@ void grpc_tsi_alts_signal_for_cq_destroy() {
+ }
+ 
+ void grpc_tsi_alts_init() {
+-  memset(&g_alts_resource, 0, sizeof(alts_shared_resource));
++//  memset(&g_alts_resource, 0, sizeof(alts_shared_resource));
+   gpr_mu_init(&g_alts_resource.mu);
+   gpr_cv_init(&g_alts_resource.cv);
+ }

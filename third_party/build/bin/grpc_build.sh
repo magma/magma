@@ -64,8 +64,10 @@ git submodule update --init
 # change default prefix from /usr/local to /tmp/build-grpc-dev/install/usr/local
 sed -i 's/.usr.local$/\/tmp\/build-grpc-dev\/install\/usr\/local/' Makefile
 
+patch -p1 < "${MAGMA_ROOT}/third_party/build/patches/grpc/magma-grpc.diff"
+
 # build and install grpc
-make -j$(nproc)
+CC=clang make -j$(nproc)
 make install
 
 # HACK see https://github.com/grpc/grpc/issues/11868
