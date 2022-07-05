@@ -899,6 +899,14 @@ def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
 
     # consolidate repeated dependencies
     # this may reveal inconsistencies in supplied requirements
+    dependencies = _consolidate_dependencies(dependencies)
+    return sorted(dependencies, key=lambda d: str(d))
+
+
+def _consolidate_dependencies(dependencies):
+    """
+    Consolidates dependencies to remove repeated entries.
+    """
     consolidated = {}  # type: Dict[str, pkg_resources.Requirement]
     for dep in dependencies:
         if dep.key in consolidated:
@@ -911,9 +919,8 @@ def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
             consolidated[dep.key] = new_dep
         else:
             consolidated[dep.key] = dep
-
     dependencies = list(consolidated.values())
-    return sorted(dependencies, key=lambda d: str(d))
+    return dependencies
 
 
 def main(args):
