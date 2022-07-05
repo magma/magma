@@ -95,13 +95,6 @@ def os_release():
     return release_info
 
 
-def json_equal(a, b):
-    a_json = json.dumps(a, sort_keys=True)
-    b_json = json.dumps(b, sort_keys=True)
-    compare = a == b
-    return compare
-
-
 def _md5sum(filename: str) -> str:
     """
     It's like calling md5sum. Calculates the md5 checksum of a file.
@@ -468,7 +461,7 @@ class Lockfile(object):
             self._root_packages[pkgname] = pkginfo
         else:
             default_info = self._root_packages.get(pkgname)
-            if default_info and json_equal(default_info, pkginfo):
+            if default_info and default_info == pkginfo:
                 # incoming pkginfo is the same as default_info -- no need to override
                 pass
             else:
@@ -481,7 +474,7 @@ class Lockfile(object):
             self._dependencies[pkgname] = depinfo
         else:
             default_info = self._dependencies.get(pkgname)
-            if default_info and json_equal(default_info, depinfo):
+            if default_info and default_info == depinfo:
                 # incoming pkginfo is the same as default_info -- no need to override
                 pass
             else:
