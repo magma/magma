@@ -12,7 +12,7 @@ limitations under the License.
 """
 import logging
 from math import log10
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from magma.enodebd.data_models import transform_for_magma
@@ -37,7 +37,11 @@ from magma.enodebd.device_config.enodeb_config_postprocessor import (
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.dp_client import get_cbsd_state
+from magma.enodebd.dp_client import (
+    build_enodebd_update_cbsd_request,
+    enodebd_update_cbsd,
+    get_cbsd_state,
+)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
 from magma.enodebd.state_machines.acs_state_utils import (
@@ -79,6 +83,7 @@ DP_MODE_KEY = 'dp_mode'
 RADIO_MIN_POWER = 0
 RADIO_MAX_POWER = 24
 ANTENNA_GAIN_DBI = 5
+ANTENNA_HEIGHT = 0
 
 
 class SASParameters(object):
@@ -468,7 +473,7 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
             self,
             service,
     ) -> None:
-        self._state_map = {}
+        self._state_map: Dict[str, Any] = {}
         super().__init__(service=service, use_param_key=True)
 
     def reboot_asap(self) -> None:
@@ -786,7 +791,7 @@ class FreedomFiOneTrDataModel(DataModel):
             is_optional=False,
         ),
     }
-    TRANSFORMS_FOR_ENB = {}
+    TRANSFORMS_FOR_ENB: Dict[ParameterName, Callable[[Any], Any]] = {}
     NUM_PLMNS_IN_CONFIG = 1
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):  # noqa: WPS604
         PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
@@ -825,6 +830,8 @@ class FreedomFiOneTrDataModel(DataModel):
         # We don't set these parameters
         ParameterName.BAND_CAPABILITY: transform_for_magma.band_capability,
         ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode,
+        ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
+        ParameterName.GPS_LONG: transform_for_magma.gps_tr181,
     }
 
     @classmethod
@@ -914,7 +921,7 @@ class FreedomFiOneTrDataModel(DataModel):
         return names
 
     @classmethod
-    def get_sas_param_names(cls) -> List[ParameterName]:
+    def get_sas_param_names(cls) -> Iterable[ParameterName]:
         """
         Retrieve names of SAS parameters
 
@@ -1425,6 +1432,21 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         ff_one_update_desired_config_from_cbsd_state(
             state, self.acs.desired_cfg,
         )
+        # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
+        # antenna_gain: suggested by Sercomm to hardcode it
+        # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
+        #                 Hardcode it.
+        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+            serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
+            longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
+            indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
+            antenna_height=str(ANTENNA_HEIGHT),
+            antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
+            antenna_gain=str(ANTENNA_GAIN_DBI),
+            cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
+        )
+        enodebd_update_cbsd(enodebd_update_cbsd_request)
 
 
 def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config: EnodebConfiguration) -> None:

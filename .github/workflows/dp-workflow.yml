@@ -35,7 +35,7 @@ jobs:
           filters: |
             cc:
               - '.github/workflows/dp-workflow.yml'
-              - 'dp/cloud/python/configuration_controller/**'
+              - 'dp/cloud/python/magma/configuration_controller/**'
               - 'dp/cloud/docker/python/configuration_controller/**'
               - 'dp/cloud/python/magma/db_service/**'
               - 'dp/cloud/python/magma/fluentd_client/**'
@@ -52,7 +52,7 @@ jobs:
               - 'dp/cloud/go/active_mode_controller/protos'
             rc:
               - '.github/workflows/dp-workflow.yml'
-              - 'dp/cloud/python/radio_controller/**'
+              - 'dp/cloud/python/magma/radio_controller/**'
               - 'dp/cloud/docker/python/radio_controller/**'
               - 'dp/cloud/python/magma/db_service/**'
               - 'dp/cloud/python/magma/fluentd_client/**'
@@ -411,11 +411,7 @@ jobs:
           mkdir ${TEST_DIR}/k8s-pods-logs;
           for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers);
           do
-            if [[ "$pod" == "postgres-database-0" ]]; then
-              kubectl logs --timestamps=true $pod --container postgres-test > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
-            else
-              kubectl logs --timestamps=true $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
-            fi;
+            kubectl logs --timestamps=true $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
           done
       - name: Collect Elasticsearch data
         if: always()

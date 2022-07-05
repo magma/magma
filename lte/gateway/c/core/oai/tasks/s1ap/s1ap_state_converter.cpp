@@ -122,7 +122,7 @@ void S1apStateConverter::enb_to_proto(enb_description_t* enb,
   proto->set_ran_cp_ipaddr_sz(enb->ran_cp_ipaddr_sz);
 
   // store ue_ids
-  hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
+  *(proto->mutable_ue_id_map()) = *(enb->ue_id_coll.map);
   supported_ta_list_to_proto(&enb->supported_ta_list,
                              proto->mutable_supported_ta_list());
 }
@@ -145,25 +145,12 @@ void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
   enb->ran_cp_ipaddr_sz = proto.ran_cp_ipaddr_sz();
 
   // load ues
-  hashtable_rc_t ht_rc;
-  auto ht_name = bfromcstr("s1ap_ue_coll");
+  char S1AP_UE_MAP_NAME[] = "s1ap_ue_coll";
+  proto_map_rc_t rc = {PROTO_MAP_OK};
+  enb->ue_id_coll.map = new google::protobuf::Map<uint32_t, uint64_t>();
+  enb->ue_id_coll.set_name(S1AP_UE_MAP_NAME);
+  *(enb->ue_id_coll.map) = proto.ue_id_map();
 
-  hashtable_uint64_ts_init(&enb->ue_id_coll, mme_config.max_ues, nullptr,
-                           ht_name);
-  bdestroy(ht_name);
-
-  auto ue_ids = proto.ue_ids();
-  for (auto const& kv : ue_ids) {
-    mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
-    uint64_t comp_s1ap_id = kv.second;
-
-    ht_rc = hashtable_uint64_ts_insert(
-        &enb->ue_id_coll, (hash_key_t)mme_ue_s1ap_id, comp_s1ap_id);
-    if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(LOG_S1AP,
-                   "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
-    }
-  }
   proto_to_supported_ta_list(&enb->supported_ta_list,
                              proto.supported_ta_list());
 }

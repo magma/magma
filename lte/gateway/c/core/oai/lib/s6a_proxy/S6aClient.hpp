@@ -78,6 +78,17 @@ class S6aClient : public GRPCReceiver {
  public:
   S6aClient(S6aClient const&) = delete;
   void operator=(S6aClient const&) = delete;
+  // There are 3 services which can handle authentication:
+  // 1) Local subscriberdb
+  // 2) Subscriberdb in the cloud (EPS Authentication)
+  // 3) S6a Proxy running in the FeG
+  // When relay_enabled is true, then auth requests are sent to the S6a Proxy.
+  // Otherwise, if cloud_subscriberdb_enabled is true, then auth requests are
+  // sent to the EPS Authentication service.
+  // If neither flag is true, then a local instance of subscriberdb receives the
+  // auth messages.
+  static bool get_s6a_relay_enabled();
+  static bool get_cloud_subscriberdb_enabled();
 
  private:
   S6aClient(bool enable_s6a_proxy_channel);
@@ -85,20 +96,10 @@ class S6aClient : public GRPCReceiver {
   static S6aClient& get_s6a_proxy_instance();
   static S6aClient& get_subscriberdb_instance();
   static S6aClient& get_client_based_on_fed_mode(const char* imsi);
+  static bool read_hss_relay_enabled();
+  static bool read_mme_cloud_subscriberdb_enabled();
   std::unique_ptr<feg::S6aProxy::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
 };
-
-// There are 3 services which can handle authentication:
-// 1) Local subscriberdb
-// 2) Subscriberdb in the cloud (EPS Authentication)
-// 3) S6a Proxy running in the FeG
-// When relay_enabled is true, then auth requests are sent to the S6a Proxy.
-// Otherwise, if cloud_subscriberdb_enabled is true, then auth requests are
-// sent to the EPS Authentication service.
-// If neither flag is true, then a local instance of subscriberdb receives the
-// auth messages.
-bool get_s6a_relay_enabled(void);
-bool get_cloud_subscriberdb_enabled(void);
 
 }  // namespace magma

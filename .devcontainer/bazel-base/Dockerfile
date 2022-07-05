@@ -128,6 +128,7 @@ RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/dow
 # Update shared library configuration
 RUN ldconfig -v
 
-RUN ln -s /workspaces/magma/bazel/bazelrcs/docker.bazelrc /etc/bazelrc
+RUN ln -s /workspaces/magma/.bazel-cache /var/cache/bazel-cache
+RUN ln -s /workspaces/magma/.bazel-cache-repo /var/cache/bazel-cache-repo
 
 WORKDIR /workspaces/magma

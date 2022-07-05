@@ -154,16 +154,19 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 	installationParam := data.GetInstallationParam()
 	b, _ := json.Marshal(preferences.GetFrequenciesMhz())
 	cbsd := &storage.DBCbsd{
-		UserId:                  db.MakeString(data.GetUserId()),
-		FccId:                   db.MakeString(data.GetFccId()),
-		CbsdSerialNumber:        db.MakeString(data.GetSerialNumber()),
-		MinPower:                db.MakeFloat(capabilities.GetMinPower()),
-		MaxPower:                db.MakeFloat(capabilities.GetMaxPower()),
-		NumberOfPorts:           db.MakeInt(capabilities.GetNumberOfAntennas()),
-		PreferredBandwidthMHz:   db.MakeInt(preferences.GetBandwidthMhz()),
-		PreferredFrequenciesMHz: db.MakeString(string(b)),
-		SingleStepEnabled:       db.MakeBool(data.GetSingleStepEnabled()),
-		CbsdCategory:            db.MakeString(data.GetCbsdCategory()),
+		UserId:                    db.MakeString(data.GetUserId()),
+		FccId:                     db.MakeString(data.GetFccId()),
+		CbsdSerialNumber:          db.MakeString(data.GetSerialNumber()),
+		MinPower:                  db.MakeFloat(capabilities.GetMinPower()),
+		MaxPower:                  db.MakeFloat(capabilities.GetMaxPower()),
+		NumberOfPorts:             db.MakeInt(capabilities.GetNumberOfAntennas()),
+		PreferredBandwidthMHz:     db.MakeInt(preferences.GetBandwidthMhz()),
+		PreferredFrequenciesMHz:   db.MakeString(string(b)),
+		SingleStepEnabled:         db.MakeBool(data.GetSingleStepEnabled()),
+		CbsdCategory:              db.MakeString(data.GetCbsdCategory()),
+		CarrierAggregationEnabled: db.MakeBool(data.GetCarrierAggregationEnabled()),
+		GrantRedundancy:           db.MakeBool(data.GetGrantRedundancy()),
+		MaxIbwMhx:                 db.MakeInt(data.Capabilities.GetMaxIbwMhz()),
 	}
 	setInstallationParam(cbsd, installationParam)
 	return cbsd
@@ -210,13 +213,16 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 				MinPower:         data.Cbsd.MinPower.Float64,
 				MaxPower:         data.Cbsd.MaxPower.Float64,
 				NumberOfAntennas: data.Cbsd.NumberOfPorts.Int64,
+				MaxIbwMhz:        data.Cbsd.MaxIbwMhx.Int64,
 			},
 			Preferences: &protos.FrequencyPreferences{
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
 				FrequenciesMhz: frequencies,
 			},
-			DesiredState:      data.DesiredState.Name.String,
-			InstallationParam: getInstallationParam(data.Cbsd),
+			DesiredState:              data.DesiredState.Name.String,
+			InstallationParam:         getInstallationParam(data.Cbsd),
+			CarrierAggregationEnabled: data.Cbsd.CarrierAggregationEnabled.Bool,
+			GrantRedundancy:           data.Cbsd.GrantRedundancy.Bool,
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,

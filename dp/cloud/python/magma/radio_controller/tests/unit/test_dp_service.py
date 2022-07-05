@@ -1,3 +1,15 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 from datetime import datetime, timedelta
 from typing import Any, List
 from unittest import mock
@@ -208,7 +220,7 @@ class DPTestCase(LocalDBTestCase):
         )
 
     def _get_cbsd_with_serial_count(self, serial_number: str) -> int:
-        return self.session.query(DBCbsd).\
+        return self.session.query(DBCbsd). \
             filter(DBCbsd.cbsd_serial_number == serial_number).count()
 
     def _get_active_cbsd_count(self, request: CBSDRequest) -> int:
@@ -232,11 +244,19 @@ class DPTestCase(LocalDBTestCase):
     def _build_expected_result(grant: DBGrant) -> CBSDStateResult:
         return CBSDStateResult(
             radio_enabled=True,
+            carrier_aggregation_enabled=False,
             channel=LteChannel(
                 low_frequency_hz=grant.low_frequency,
                 high_frequency_hz=grant.high_frequency,
                 max_eirp_dbm_mhz=grant.max_eirp,
             ),
+            channels=[
+                LteChannel(
+                    low_frequency_hz=grant.low_frequency,
+                    high_frequency_hz=grant.high_frequency,
+                    max_eirp_dbm_mhz=grant.max_eirp,
+                ),
+            ],
         )
 
     @staticmethod

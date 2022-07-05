@@ -11,10 +11,10 @@
   roles:
     - role: apt_cache
       vars:
-        distribution: "stretch"
+        distribution: "focal"
         oai_build: "{{ c_build }}/core/oai"
         repo: "dev"
-    - role: magma_test_registry
+    - role: pkgrepo
     - role: python_dev
     - role: dev_common
       vars:

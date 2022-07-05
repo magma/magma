@@ -21,11 +21,10 @@ import (
 )
 
 const (
-	GrantStateTable       = "grant_states"
-	GrantTable            = "grants"
-	CbsdStateTable        = "cbsd_states"
-	CbsdTable             = "cbsds"
-	ActiveModeConfigTable = "active_mode_configs"
+	GrantStateTable = "grant_states"
+	GrantTable      = "grants"
+	CbsdStateTable  = "cbsd_states"
+	CbsdTable       = "cbsds"
 )
 
 type EnumModel interface {
@@ -204,38 +203,41 @@ func (cs *DBCbsdState) GetName() string {
 }
 
 type DBCbsd struct {
-	Id                      sql.NullInt64
-	NetworkId               sql.NullString
-	StateId                 sql.NullInt64
-	DesiredStateId          sql.NullInt64
-	CbsdId                  sql.NullString
-	UserId                  sql.NullString
-	FccId                   sql.NullString
-	CbsdSerialNumber        sql.NullString
-	LastSeen                sql.NullTime
-	GrantAttempts           sql.NullInt64
-	PreferredBandwidthMHz   sql.NullInt64
-	PreferredFrequenciesMHz sql.NullString
-	MinPower                sql.NullFloat64
-	MaxPower                sql.NullFloat64
-	AntennaGain             sql.NullFloat64
-	NumberOfPorts           sql.NullInt64
-	IsDeleted               sql.NullBool
-	ShouldDeregister        sql.NullBool
-	SingleStepEnabled       sql.NullBool
-	CbsdCategory            sql.NullString
-	LatitudeDeg             sql.NullFloat64
-	LongitudeDeg            sql.NullFloat64
-	HeightM                 sql.NullFloat64
-	HeightType              sql.NullString
-	HorizontalAccuracyM     sql.NullFloat64
-	AntennaAzimuthDeg       sql.NullInt64
-	AntennaDowntiltDeg      sql.NullInt64
-	AntennaBeamwidthDeg     sql.NullInt64
-	AntennaModel            sql.NullString
-	EirpCapabilityDbmMhz    sql.NullInt64
-	IndoorDeployment        sql.NullBool
-	CpiDigitalSignature     sql.NullString
+	Id                        sql.NullInt64
+	NetworkId                 sql.NullString
+	StateId                   sql.NullInt64
+	DesiredStateId            sql.NullInt64
+	CbsdId                    sql.NullString
+	UserId                    sql.NullString
+	FccId                     sql.NullString
+	CbsdSerialNumber          sql.NullString
+	LastSeen                  sql.NullTime
+	GrantAttempts             sql.NullInt64
+	PreferredBandwidthMHz     sql.NullInt64
+	PreferredFrequenciesMHz   sql.NullString
+	MinPower                  sql.NullFloat64
+	MaxPower                  sql.NullFloat64
+	AntennaGain               sql.NullFloat64
+	NumberOfPorts             sql.NullInt64
+	IsDeleted                 sql.NullBool
+	ShouldDeregister          sql.NullBool
+	SingleStepEnabled         sql.NullBool
+	CbsdCategory              sql.NullString
+	LatitudeDeg               sql.NullFloat64
+	LongitudeDeg              sql.NullFloat64
+	HeightM                   sql.NullFloat64
+	HeightType                sql.NullString
+	HorizontalAccuracyM       sql.NullFloat64
+	AntennaAzimuthDeg         sql.NullInt64
+	AntennaDowntiltDeg        sql.NullInt64
+	AntennaBeamwidthDeg       sql.NullInt64
+	AntennaModel              sql.NullString
+	EirpCapabilityDbmMhz      sql.NullInt64
+	IndoorDeployment          sql.NullBool
+	CpiDigitalSignature       sql.NullString
+	CarrierAggregationEnabled sql.NullBool
+	GrantRedundancy           sql.NullBool
+	MaxIbwMhx                 sql.NullInt64
 }
 
 func (c *DBCbsd) Fields() []db.BaseType {
@@ -272,6 +274,9 @@ func (c *DBCbsd) Fields() []db.BaseType {
 		db.IntType{X: &c.EirpCapabilityDbmMhz},
 		db.BoolType{X: &c.IndoorDeployment},
 		db.StringType{X: &c.CpiDigitalSignature},
+		db.BoolType{X: &c.CarrierAggregationEnabled},
+		db.BoolType{X: &c.GrantRedundancy},
+		db.IntType{X: &c.MaxIbwMhx},
 	}
 }
 
@@ -441,6 +446,24 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 				Name:     "cpi_digital_signature",
 				SqlType:  sqorc.ColumnTypeText,
 				Nullable: true,
+			},
+			{
+				Name:         "carrier_aggregation_enabled",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
+			},
+			{
+				Name:         "grant_redundancy",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: true,
+			},
+			{
+				Name:         "max_ibw_mhz",
+				SqlType:      sqorc.ColumnTypeInt,
+				HasDefault:   true,
+				DefaultValue: 150,
 			},
 		},
 		CreateObject: func() db.Model {

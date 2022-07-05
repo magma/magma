@@ -732,15 +732,13 @@ static int registration_accept_t3550_handler(zloop_t* loop, int timer_id,
           "T3550: timer has expired retransmitting registration accept\n");
       amf_send_registration_accept(amf_ctx);
     } else {
-      /* Abort the registration procedure */
-      OAILOG_ERROR(
-          LOG_NAS_AMF,
-          "T3550: Maximum retires:%d, for registration accept done hence Abort "
-          "the registration "
-          "procedure\n",
-          registration_proc->retransmission_count);
-      // To abort the registration procedure
-      amf_proc_registration_abort(amf_ctx, ue_amf_context);
+      // ETSI TS 124 501 V16.5.1 - sec 5.5.1.2.8 abnormal case on network side
+      // at 5th expiry of timer, amf enters into REGISTERED state
+      OAILOG_INFO(LOG_AMF_APP,
+                  "on 5th expiry of timer AMF enters into REGISTERED state");
+      ue_state_handle_message_initial(
+          COMMON_PROCEDURE_INITIATED2, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
+          ue_amf_context, &ue_amf_context->amf_context);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);

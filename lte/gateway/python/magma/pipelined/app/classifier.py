@@ -14,7 +14,7 @@ import ipaddress
 import socket
 import subprocess
 from collections import namedtuple
-from typing import Optional
+from typing import Optional, Union
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -347,12 +347,12 @@ class Classifier(MagmaController):
 
     def add_tunnel_flows(
         self, precedence: int, i_teid: int,
-        o_teid: int, enodeb_ip_addr: str,
-        ue_ip_adr: IPAddress = None, sid: Optional[int] = None,
+        o_teid: int, enodeb_ip_addr: Union[str, IPAddress],
+        ue_ip_adr: Optional[IPAddress] = None, sid: Optional[int] = None,
         ng_flag: bool = True,
-        ue_ipv6_address: IPAddress = None,
-        unused_apn: str = None, unused_vlan: int = 0,
-        ip_flow_dl: IPFlowDL = None,
+        ue_ipv6_address: Optional[IPAddress] = None,
+        unused_apn: Optional[str] = None, unused_vlan: int = 0,
+        ip_flow_dl: Optional[IPFlowDL] = None,
     ) -> bool:
 
         priority = Utils.get_of_priority(precedence)
@@ -472,9 +472,10 @@ class Classifier(MagmaController):
         )
 
     def delete_tunnel_flows(
-        self, i_teid: int, ue_ip_adr: IPAddress = None,
-        enodeb_ip_addr: str = None,
-        ip_flow_dl: IPFlowDL = None, ue_ipv6_adr: IPAddress = None,
+        self, i_teid: int, ue_ip_adr: Optional[IPAddress] = None,
+        enodeb_ip_addr: Union[None, str, IPAddress] = None,
+        ip_flow_dl: Optional[IPFlowDL] = None,
+        ue_ipv6_adr: Optional[IPAddress] = None,
     ) -> bool:
 
         # Delete flow for gtp port

@@ -1,4 +1,17 @@
 {{/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+
+{{/*
 Expand the name of the chart.
 */}}
 {{- define "domain-proxy.name" -}}
@@ -99,6 +112,22 @@ fluentd labels
 */}}
 {{- define "domain-proxy.fluentd.labels" -}}
 {{ include "domain-proxy.fluentd.matchLabels" . }}
+{{ include "domain-proxy.common.metaLabels" . }}
+{{- end -}}
+
+{{/*
+grafana match labels
+*/}}
+{{- define "domain-proxy.grafana.matchLabels" -}}
+component: {{ .Values.dp.grafana.name | quote }}
+{{ include "domain-proxy.common.matchLabels" . }}
+{{- end -}}
+
+{{/*
+grafana labels
+*/}}
+{{- define "domain-proxy.grafana.labels" -}}
+{{ include "domain-proxy.grafana.matchLabels" . }}
 {{ include "domain-proxy.common.metaLabels" . }}
 {{- end -}}
 
@@ -212,6 +241,24 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
+Create a fully qualified grafana name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+
+{{- define "domain-proxy.grafana.fullname" -}}
+{{- if .Values.dp.grafana.fullnameOverride -}}
+{{- .Values.dp.grafana.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.dp.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- printf "%s-%s" .Release.Name .Values.dp.grafana.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s-%s" .Release.Name $name .Values.dp.grafana.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the appropriate apiVersion for deployment.
 */}}
 {{- define "domain-proxy.deployment.apiVersion" -}}
@@ -298,6 +345,17 @@ Create the name of the service account to use for fluentd
 {{- default (include "domain-proxy.fullname" .) .Values.dp.fluentd.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.dp.fluentd.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use for grafana
+*/}}
+{{- define "domain-proxy.grafana.serviceAccountName" -}}
+{{- if .Values.dp.grafana.serviceAccount.create }}
+{{- default (include "domain-proxy.fullname" .) .Values.dp.grafana.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.dp.grafana.serviceAccount.name }}
 {{- end }}
 {{- end }}
 

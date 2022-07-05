@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import textwrap
-from typing import Optional, Union
+from typing import Optional, Union, no_type_check
 
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger as logger
@@ -58,6 +58,7 @@ def gps_tr181(value: str) -> str:
         return value
 
 
+@no_type_check
 def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
     """
     Map bandwidth in number of RBs to MHz
@@ -65,7 +66,7 @@ def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
     BaiCells eNodeB uses 'n6'. Need to resolve this.
 
     Args:
-        bandwidth_rbs (str): Bandwidth in number of RBs
+        bandwidth_rbs (str, int, float): Bandwidth in number of RBs
     Returns:
         str: Bandwidth in MHz
     """

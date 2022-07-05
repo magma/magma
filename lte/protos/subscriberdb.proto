@@ -322,6 +322,6 @@ message M5GSUCIRegistrationAnswer {
 }
 
 service M5GSUCIRegistration {
-     rpc M5GDecryptImsiSUCIRegistration (M5GSUCIRegistrationRequest ) returns (M5GSUCIRegistrationAnswer ) {}
+     rpc M5GDecryptMsinSUCIRegistration (M5GSUCIRegistrationRequest ) returns (M5GSUCIRegistrationAnswer ) {}
 }
 

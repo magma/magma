@@ -158,6 +158,7 @@ int amf_handle_service_request(
           amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
           rc = amf_sap_send(&amf_sap);
         } else {
+          bool is_pdu_session_id_exist = false;
           ue_context->pending_service_response = true;
 
           IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
@@ -166,6 +167,7 @@ int amf_handle_service_request(
             if (smf_ctxt) {
               if (msg->uplink_data_status.uplinkDataStatus &
                   (1 << smf_ctxt->smf_proc_data.pdu_session_id)) {
+                is_pdu_session_id_exist = true;
                 OAILOG_DEBUG(
                     LOG_NAS_AMF,
                     "Sending session request to SMF on service request for"
@@ -178,6 +180,16 @@ int amf_handle_service_request(
                     smf_ctxt->smf_proc_data.pdu_session_id);
               }
             }
+          }
+          if (!is_pdu_session_id_exist) {
+            // Send prepare and send reject message.
+            OAILOG_INFO(LOG_NAS_AMF, "Sending service reject");
+            amf_sap.primitive = AMFAS_DATA_REQ;
+            amf_sap.u.amf_as.u.data.ue_id = ue_id;
+            amf_sap.u.amf_as.u.data.nas_info = AMF_AS_NAS_INFO_SR_REJ;
+            amf_sap.u.amf_as.u.data.amf_cause =
+                AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED;
+            rc = amf_sap_send(&amf_sap);
           }
         }
       }
@@ -370,6 +382,36 @@ int amf_handle_registration_request(
      * Extract the SUPI from SUCI directly as scheme is NULL */
     if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
         M5GSMobileIdentityMsg_SUCI_IMSI) {
+      bool is_plmn_present = false;
+      for (uint8_t i = 0; i < amf_config.guamfi.nb; i++) {
+        if ((msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2 ==
+             amf_config.guamfi.guamfi[i].plmn.mcc_digit2) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1 ==
+             amf_config.guamfi.guamfi[i].plmn.mcc_digit1) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3 ==
+             amf_config.guamfi.guamfi[i].plmn.mnc_digit3) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3 ==
+             amf_config.guamfi.guamfi[i].plmn.mcc_digit3) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2 ==
+             amf_config.guamfi.guamfi[i].plmn.mnc_digit2) &&
+            (msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1 ==
+             amf_config.guamfi.guamfi[i].plmn.mnc_digit1)) {
+          is_plmn_present = true;
+        }
+      }
+      if (!is_plmn_present) {
+        delete params;
+        amf_cause = AMF_CAUSE_INVALID_MANDATORY_INFO;
+        OAILOG_ERROR(LOG_NAS_AMF,
+                     "UE PLMN mismatch"
+                     "AMF rejecting the initial registration with "
+                     "cause : %d for UE "
+                     "ID: " AMF_UE_NGAP_ID_FMT,
+                     amf_cause, ue_id);
+        rc = amf_proc_registration_reject(ue_id, amf_cause);
+        amf_free_ue_context(ue_context);
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+      }
       // Only considering protection scheme as NULL else return error.
       if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
           MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
@@ -429,7 +471,8 @@ int amf_handle_registration_request(
         std::string empheral_public_key = reinterpret_cast<char*>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.empheral_public_key);
         std::string ciphertext = reinterpret_cast<char*>(
-            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
+            msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext->data);
+        bdestroy(msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
         std::string mac_tag = reinterpret_cast<char*>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.mac_tag);
 

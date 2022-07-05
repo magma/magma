@@ -16,9 +16,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
@@ -55,10 +56,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   enb_association->s1_state = S1AP_READY;
 
   // filling ue_id_coll
-  hashtable_uint64_ts_insert(&enb_association->ue_id_coll, (const hash_key_t)1,
-                             17);
-  hashtable_uint64_ts_insert(&enb_association->ue_id_coll, (const hash_key_t)2,
-                             25);
+  enb_association->ue_id_coll.insert(1, 17);
+  enb_association->ue_id_coll.insert(2, 25);
 
   // filling supported_tai_items
   supported_ta_list_t* enb_ta_list = &enb_association->supported_ta_list;

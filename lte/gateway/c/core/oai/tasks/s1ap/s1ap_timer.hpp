@@ -14,12 +14,11 @@ limitations under the License.
 
 #include <czmq.h>
 
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 
 typedef struct s1ap_timer_arg_s {
   mme_ue_s1ap_id_t ue_id;

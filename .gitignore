@@ -47,8 +47,6 @@ orc8r/cloud/swagger/specs
 
 # Node
 node_modules/
-orc8r/cloud/package.json
-orc8r/cloud/yarn.lock
 orc8r/cloud/openapitools.json
 
 # Docusaurus

@@ -105,6 +105,28 @@ helm template orc8r charts/secrets \
   kubectl apply -f -
 ```
 
+### Optional: fluentd secrets
+
+To use fluentd on the minikube deployment, create additional fluentd secrets
+
+```bash
+cd ${CERTS_DIR}
+openssl genrsa -out fluentd.key 2048
+openssl req -new -key fluentd.key -out fluentd.csr -subj "/C=US/CN=fluentd.$domain"
+openssl x509 -req -in fluentd.csr -CA certifier.pem -CAkey certifier.key -CAcreateserial -out fluentd.pem -days 3650 -sha256
+```
+
+Apply the secrets
+
+```bash
+cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
+helm template orc8r charts/secrets \
+  --namespace orc8r \
+  --set-file 'secret.certs.files.fluentd\.pem'=${CERTS_DIR}/fluentd.pem \
+  --set-file 'secret.certs.files.fluentd\.key'=${CERTS_DIR}/fluentd.key |
+  kubectl apply -f -
+```
+
 ### Create values file
 
 A minimal values file is at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube.values.yaml`
@@ -136,6 +158,55 @@ helm dep update
 helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm/lte.values.yaml lte .
 ```
 
+Optionally install the fluentd charts by editing the file at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/charts/logging/values.yaml`
+
+```yaml
+fluentd_daemon:
+  create: true
+
+  image:
+    repository: IMAGE_REGISTRY_URL
+    tag: IMAGE_TAG
+    pullPolicy: IfNotPresent
+
+  env:
+    elastic_host: "host.minikube.internal"
+    elastic_port: "9200"
+    elastic_scheme: "http"
+```
+
+```yaml
+fluentd_forward:
+  create: true
+
+  # Domain-proxy output
+  dp_output: true
+
+  replicas: 1
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  image:
+    repository: IMAGE_REPOSITORY
+    tag: IMAGE_TAG
+    pullPolicy: IfNotPresent
+
+  env:
+    elastic_host: "host.minikube.internal"
+    elastic_port: "9200"
+    elastic_scheme: "http"
+    elastic_flush_interval: 5s
+```
+
+Replace `IMAGE_REGISTRY_URL` with your registry and `IMAGE_TAG` with your tag.
+Then install the charts
+
+```bash
+helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml orc8r .
+```
+
 It may take a couple minutes before all pods are finished being created, but if successful, you should get something like this
 
 ```bash
@@ -155,6 +226,56 @@ orc8r-prometheus-configurer-6d6d987c88-pgm87     1/1     Running   0          2m
 orc8r-user-grafana-6498bb6959-rchx5              1/1     Running   0          2m58s
 postgresql-0                                     1/1     Running   4          6d23h
 ```
+
+If using fluentd, there should be the pods `orc8r-fluentd-forward` and `orc8r-fluentd-daemon` as well
+
+```bash
+$ kubectl --namespace orc8r get pods
+
+NAME                                             READY   STATUS    RESTARTS   AGE
+mysql-57955549d5-n69pd                           1/1     Running   0          6m14s
+nms-magmalte-7c84667c4c-pvtlj                    1/1     Running   0          2m58s
+nms-nginx-proxy-5b86f479f7-lvjpn                 1/1     Running   0          2m58s
+orc8r-alertmanager-57d5d6ccc4-ht4n4              1/1     Running   0          2m58s
+orc8r-alertmanager-configurer-76cf8f8f57-rmwjf   1/1     Running   0          2m58s
+orc8r-controller-fdf59f456-vvqr2                 1/1     Running   0          2m58s
+orc8r-fluentd-forward-54794d4d86-599lv           1/1     Running   0          2m58s
+orc8r-nginx-7d6c78647-n6d8z                      1/1     Running   0          2m58s
+orc8r-prometheus-77dccb799b-w9z6z                1/1     Running   0          2m58s
+orc8r-prometheus-cache-6d647df4d9-2wqkc          1/1     Running   0          2m58s
+orc8r-prometheus-configurer-6d6d987c88-pgm87     1/1     Running   0          2m58s
+orc8r-user-grafana-6498bb6959-rchx5              1/1     Running   0          2m58s
+postgresql-0                                     1/1     Running   4          6d23h
+```
+
+```bash
+$ kubectl --namespace kube-system get pods
+
+NAME                               READY   STATUS    RESTARTS   AGE
+coredns-74ff55c5b-xsz59            1/1     Running   0          3d
+etcd-minikube                      1/1     Running   0          3d
+kube-apiserver-minikube            1/1     Running   0          3d
+kube-controller-manager-minikube   1/1     Running   0          3d
+kube-proxy-cp6s5                   1/1     Running   0          3d
+kube-scheduler-minikube            1/1     Running   0          3d
+orc8r-fluentd-daemon-b7wpt         1/1     Running   0          4h
+registry-46g6n                     1/1     Running   0          3d
+registry-proxy-n6kml               1/1     Running   0          3d
+storage-provisioner                1/1     Running   0          3d
+```
+
+Optionally, start the elasticsearch and kibana containers which handle the logs aggregated by fluentd
+
+```bash
+cd ${MAGMA_ROOT}/cloud/docker
+./run.py
+```
+
+### Access logs through Kibana
+
+The Orchestrator logs aggregated by fluentd can be accessed via Kibana in the web browser under `http://localhost:5601/`.
+There should be two index patterns: `fluentd` (from fluentd-forward) and `logstash` (from fluentd-daemon).
+The `logstash` index pattern collects all logs from the Orchestrator, and `fluentd` the logs from connected gateways.
 
 ## Configure
 

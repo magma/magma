@@ -48,7 +48,7 @@ status_code_e mme_app_handle_nas_dl_req(const mme_ue_s1ap_id_t ue_id,
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP,

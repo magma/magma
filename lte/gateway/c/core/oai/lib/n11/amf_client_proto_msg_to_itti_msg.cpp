@@ -88,19 +88,19 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
   return;
 }
 
-void convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
+void convert_proto_msg_to_itti_amf_decrypted_msin_info_ans(
     M5GSUCIRegistrationAnswer response,
-    itti_amf_decrypted_imsi_info_ans_t* amf_app_decrypted_imsi_info_resp) {
+    itti_amf_decrypted_msin_info_ans_t* amf_app_decrypted_msin_info_resp) {
   if (response.ue_msin_recv().length() <= 0) {
-    OAILOG_ERROR(LOG_AMF_APP, "Decrypted IMSI response is invalid:%lu\n",
+    OAILOG_ERROR(LOG_AMF_APP, "Decrypted MSIN response is invalid:%lu\n",
                  response.ue_msin_recv().length());
     return;
   }
-  amf_app_decrypted_imsi_info_resp->imsi_length =
+  amf_app_decrypted_msin_info_resp->msin_length =
       response.ue_msin_recv().length();
-  memcpy(amf_app_decrypted_imsi_info_resp->imsi,
+  memcpy(amf_app_decrypted_msin_info_resp->msin,
          response.ue_msin_recv().c_str(),
-         amf_app_decrypted_imsi_info_resp->imsi_length);
+         amf_app_decrypted_msin_info_resp->msin_length);
 }
 
 }  // namespace magma5g

@@ -39,7 +39,7 @@
 
 status_code_e mme_app_handle_s6a_reset_req(
     const s6a_reset_req_t* const rsr_pP) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
   hash_node_t* node = NULL;
   unsigned int i = 0;

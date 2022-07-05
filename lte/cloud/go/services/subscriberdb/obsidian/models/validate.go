@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 
-	"magma/orc8r/cloud/go/obsidian/models"
+	"magma/orc8r/cloud/go/services/obsidian/models"
 )
 
 const (

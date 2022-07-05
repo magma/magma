@@ -240,7 +240,7 @@ status_code_e mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
   emm_cn_nw_initiated_detach.ue_id = ue_id;
   emm_cn_nw_initiated_detach.detach_type = detach_type;
 
-  int ret =
+  status_code_e ret =
       nas_proc_nw_initiated_detach_ue_request(&emm_cn_nw_initiated_detach);
   OAILOG_FUNC_RETURN(LOG_MME_APP, ret);
 }
