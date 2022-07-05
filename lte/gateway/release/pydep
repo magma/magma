@@ -296,7 +296,7 @@ def get_setup_deps(setup_file: str) -> List[str]:
 
     r = _get_requires(tmp_egg_path)
     if r:
-        dependencies = _parse_requires_txt(r, setup_file)
+        dependencies = _parse_requires_txt(r)
     else:
         dependencies = []
 
@@ -307,16 +307,12 @@ def get_setup_deps(setup_file: str) -> List[str]:
     return dependencies
 
 
-def _parse_requires_txt(requires_path: str,
-                        depender: Optional[str] = None,
-                        version: Optional[str] = None) -> List[str]:
+def _parse_requires_txt(requires_path: str) -> List[str]:
     """
     Given a path to a requires.txt file, return a listing of dependencies.
 
     Args:
         requires_path: Path to a requires.txt file
-        depender: Package (or file) that depends on this one (optional, debug)
-        version: Package version that depends on this one (optional, debug)
     """
     dependencies = []  # type: List[str]
     try:
@@ -389,12 +385,11 @@ def _format_dep(syspkg: str,
     if ver and '.*' in ver:
         # remove trailing '.*'
         ver = re.sub(r'\.\*$', '', ver)
-    epoch = None
     if ver and syspkg in DEB_EPOCH:
         log.debug("replacing epoch for %s" % (syspkg,))
         epoch = DEB_EPOCH[syspkg]
         ver = "%s:%s" % (epoch, ver)
-    return (syspkg, op, ver)
+    return syspkg, op, ver
 
 
 class Lockfile(object):
@@ -510,7 +505,6 @@ def py_to_deb(pkgname: str,
               pip_distributions: Dict[str, pkg_resources.Distribution] = None,
               build_output: Optional[str] = None,
               version: Optional[str] = None,
-              op: str = "==",
               more_args: Optional[str] = None,
               py2: bool = False) -> int:
     """
@@ -530,8 +524,6 @@ def py_to_deb(pkgname: str,
     Args:
         pkgname: The name of the Python package (on PyPI)
         version: (optional) The desired version (Default: most recent).
-        op: (optional) Operator for pulling package. (Default: >=, the
-            latest).
         more_args: (optional) Add raw arguments to the fpm call.
 
     Return:
@@ -652,7 +644,7 @@ def get_pkg_deps(pkgname: str,
     path = _unpack(get_package(pkgname, version, use_latest_if_needed))
     requires_txt = _get_requires(path)
     if requires_txt:
-        dependencies = _parse_requires_txt(requires_txt, pkgname, version)
+        dependencies = _parse_requires_txt(requires_txt)
     else:
         dependencies = []
 
@@ -720,8 +712,6 @@ def tmpvirtualenv():
 def gen_pip_distributions(
         root_requirements: List[pkg_resources.Requirement],
         existing_versions: Optional[Dict[str, str]] = None,
-        pypi_only: bool = True,
-        py2: bool = False,
         venv: Optional[callable] = None) -> Dict[str, pkg_resources.Distribution]:
     """
     Recursively get the dependency tree for a given package.
@@ -859,7 +849,6 @@ def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
         if p not in PIP_BLACKLIST and dep_source.get(p) == "pypi":
             py_to_deb(p, pip_distributions,
                       version=pip_distributions[p].version,
-                      op='==',
                       build_output=build_output)
 
 
@@ -955,8 +944,6 @@ def main(args):
     12. If "-l" or "--lockfile" is given, save the lockfile.
     13. If "-b" or "--build" is given, install the python dependencies.
     """
-
-
     # Building dependency packages with virtualenv enabled would cause packages
     # to be installed under
     # "/home/vagrant/build/python/lib/python3.4/site-packages/" instead of
@@ -986,7 +973,7 @@ def main(args):
             with open(args.lockfile, 'r') as r:
                 lf = Lockfile(data=r.read())
         except FileNotFoundError:
-            log.error("file not found: {}".format(args.lockfile));
+            log.error("file not found: {}".format(args.lockfile))
             pass
     else:
         lf = Lockfile()
@@ -1020,8 +1007,6 @@ def main(args):
     with tmpvirtualenv() as venv:
         pip_distributions = gen_pip_distributions(root_requirements,
                                                   existing_versions=existing_versions,
-                                                  pypi_only=args.force_pypi,
-                                                  py2=args.use_py2,
                                                   venv=venv)
 
         required_distributions = {}
