@@ -1032,7 +1032,7 @@ def main(args):
 
     dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
 
-    root_versions = {req.key: {'version': pip_distributions[k].version}
+    root_versions = {k: {'version': pip_distributions[k].version}
                      for k in [req.key for req in input_root_requirements]
                      if k not in [inst.key for inst in repo_installable]}
 
