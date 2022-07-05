@@ -19,6 +19,8 @@ import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';
 import ApnEditDialog from './ApnEdit';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+import EmptyState from '../../components/EmptyState';
+import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';
@@ -46,6 +48,10 @@ const DEFAULT_APN_CONFIG = {
   },
   apn_name: '',
 };
+const EMPTY_STATE_OVERVIEW =
+  'APN is an access point name. APN is used to identify the packet data network(PDN), the UE wants to be connected to.' +
+  ' From Magma’s perspective, APN configuration consists of two main entities: The APN id and the QoS profile being applied to it.';
+
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -141,94 +147,126 @@ function ApnOverview(props: WithAlert) {
         };
       })
     : [];
+  const cardActions = {
+    buttonText: 'Add APN',
+    onClick: () => setOpen(true),
+    linkText: 'Learn more about APN',
+    link:
+      'https://docs.magmacore.org/docs/lte/deploy_config_apn#define-apn-configurations',
+  };
   return (
     <div className={classes.dashboardRoot}>
       <>
-        <CardTitleRow key="title" icon={RssFeedIcon} label={APN_TITLE} />
         <ApnEditDialog
           open={open}
           onClose={() => setOpen(false)}
           apn={Object.keys(currRow).length ? apns[currRow.apnID] : undefined}
         />
-        <ActionTable
-          data={apnRows}
-          columns={[
-            {
-              title: 'Apn ID',
-              field: 'apnID',
-              render: currRow => (
-                <Link
-                  variant="body2"
-                  component="button"
-                  onClick={() => {
-                    setCurrRow(currRow);
+        {Object.keys(ctx.state).length > 0 ? (
+          <>
+            <CardTitleRow key="title" icon={RssFeedIcon} label={APN_TITLE} />
+            <ActionTable
+              data={apnRows}
+              columns={[
+                {
+                  title: 'Apn ID',
+                  field: 'apnID',
+                  render: currRow => (
+                    <Link
+                      variant="body2"
+                      component="button"
+                      onClick={() => {
+                        setCurrRow(currRow);
+                        setOpen(true);
+                      }}>
+                      {currRow.apnID}
+                    </Link>
+                  ),
+                },
+                {title: 'Class ID', field: 'classID', type: 'numeric'},
+                {
+                  title: 'Priority Level',
+                  field: 'arpPriorityLevel',
+                  type: 'numeric',
+                },
+                {
+                  title: 'Max Reqd UL Bw',
+                  field: 'maxReqdULBw',
+                  type: 'numeric',
+                },
+                {title: 'Max Reqd DL Bw', field: 'maxReqDLBw', type: 'numeric'},
+                {
+                  title: 'Pre-emption Capability',
+                  field: 'arpPreEmptionCapability',
+                  type: 'numeric',
+                },
+                {
+                  title: 'Pre-emption Vulnerability',
+                  field: 'arpPreEmptionVulnerability',
+                  type: 'numeric',
+                },
+              ]}
+              handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
+              menuItems={[
+                {
+                  name: 'Edit',
+                  handleFunc: () => {
                     setOpen(true);
-                  }}>
-                  {currRow.apnID}
-                </Link>
-              ),
-            },
-            {title: 'Class ID', field: 'classID', type: 'numeric'},
-            {
-              title: 'Priority Level',
-              field: 'arpPriorityLevel',
-              type: 'numeric',
-            },
-            {title: 'Max Reqd UL Bw', field: 'maxReqdULBw', type: 'numeric'},
-            {title: 'Max Reqd DL Bw', field: 'maxReqDLBw', type: 'numeric'},
-            {
-              title: 'Pre-emption Capability',
-              field: 'arpPreEmptionCapability',
-              type: 'numeric',
-            },
-            {
-              title: 'Pre-emption Vulnerability',
-              field: 'arpPreEmptionVulnerability',
-              type: 'numeric',
-            },
-          ]}
-          handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
-          menuItems={[
-            {
-              name: 'Edit',
-              handleFunc: () => {
-                setOpen(true);
-              },
-            },
-            {
-              name: 'Edit JSON',
-              handleFunc: () => {
-                navigate(currRow.apnID + '/json');
-              },
-            },
-            {name: 'Deactivate'},
-            {
-              name: 'Remove',
-              handleFunc: () => {
-                props
-                  .confirm(`Are you sure you want to delete ${currRow.apnID}?`)
-                  .then(async confirmed => {
-                    if (!confirmed) {
-                      return;
-                    }
+                  },
+                },
+                {
+                  name: 'Edit JSON',
+                  handleFunc: () => {
+                    navigate(currRow.apnID + '/json');
+                  },
+                },
+                {name: 'Deactivate'},
+                {
+                  name: 'Remove',
+                  handleFunc: () => {
+                    props
+                      .confirm(
+                        `Are you sure you want to delete ${currRow.apnID}?`,
+                      )
+                      .then(async confirmed => {
+                        if (!confirmed) {
+                          return;
+                        }
 
-                    try {
-                      // trigger deletion
-                      ctx.setState(currRow.apnID);
-                    } catch (e) {
-                      enqueueSnackbar('failed deleting APN ' + currRow.apnID, {
-                        variant: 'error',
+                        try {
+                          // trigger deletion
+                          ctx.setState(currRow.apnID);
+                        } catch (e) {
+                          enqueueSnackbar(
+                            'failed deleting APN ' + currRow.apnID,
+                            {
+                              variant: 'error',
+                            },
+                          );
+                        }
                       });
-                    }
-                  });
-              },
-            },
-          ]}
-          options={{
-            actionsColumnIndex: -1,
-            pageSizeOptions: [5, 10],
-          }}
-        />
+                  },
+                },
+              ]}
+              options={{
+                actionsColumnIndex: -1,
+                pageSizeOptions: [5, 10],
+              }}
+            />
+          </>
+        ) : (
+          <Grid container justify="space-between" spacing={3}>
+            <EmptyState
+              title={'Set up an APN'}
+              instructions={
+                'Add an APN to the NMS. The APNs can then be assigned to subscriber profiles.'
+              }
+              cardActions={cardActions}
+              overviewTitle={'APN Overview'}
+              overviewDescription={EMPTY_STATE_OVERVIEW}
+            />
+          </Grid>
+        )}
       </>
     </div>
   );

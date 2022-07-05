@@ -181,7 +181,7 @@ export default function AddEditGatewayButton(props: ButtonProps) {
   );
 }
 
-function GatewayEditDialog(props: DialogProps) {
+export function GatewayEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
   const params = useParams();

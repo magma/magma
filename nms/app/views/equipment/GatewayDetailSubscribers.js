@@ -51,7 +51,6 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
     // $FlowIgnore
     subscriberCtx.gwSubscriberMap[props.gwInfo?.device?.hardware_id] || [];
 
-  console.log('gwSubscriberMap: ', gwSubscriberMap);
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {
       // $FlowIgnore
