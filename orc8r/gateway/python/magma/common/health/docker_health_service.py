@@ -17,8 +17,8 @@ from datetime import datetime
 
 import dateutil.parser
 import docker
-from scripts.orc8r_health_entities import Errors, ServiceHealth, Version
-from scripts.orc8r_health_service import GenericHealthChecker
+from magma.common.health.entities import Errors, ServiceHealth, Version
+from magma.common.health.health_service import GenericHealthChecker
 
 
 class DockerHealthChecker(GenericHealthChecker):
