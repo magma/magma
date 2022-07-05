@@ -369,6 +369,9 @@
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "orc8r/deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju (Beta)"
+      },
       "orc8r/dev_aws_stack": {
         "title": "AWS Stack"
       },
