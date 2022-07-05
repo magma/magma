@@ -350,37 +350,6 @@ def _parse_requires_txt(requires_path: str,
 
 
 @lru_cache(maxsize=128)
-def _get_pypi_metadata(pkgname: str) -> Any:
-    """
-    Get package info from pypi.
-    """
-    pkg_info_url = PYPI_API_BASE % pkgname
-
-    resp = requests.get(pkg_info_url)
-    if resp.status_code != 200:
-        raise ValueError("couldn't get package info for %s (%d)" %
-                         (pkgname, resp.status_code))
-
-    return resp.json()
-
-
-def get_pypi_avail_releases(pkgname: str) -> Any:
-    """
-    Get the releases available from PyPI for a package.
-    """
-    metadata = _get_pypi_metadata(pkgname)
-    return metadata['releases']
-
-
-def get_latest_pkg_version(pkgname: str) -> Any:
-    """
-    Get the latest version of a package available on PyPI
-    """
-    metadata = _get_pypi_metadata(pkgname)
-    return metadata['info']['version']
-
-
-@lru_cache(maxsize=128)
 def get_latest_apt_pkg_version(pkgname: str, py2: bool = False) -> Optional[str]:
     """
     Check what's available in our apt repo and use that if available.
@@ -988,13 +957,13 @@ def main(args):
         return -1
 
     input_root_requirements = expand_deps(args.deps)
-    root_requirements = []
     if args.dump_root_deps:
         print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
         sys.exit(0)
 
     existing_versions = {}  # type: Dict[str, str]
 
+    root_requirements = []  # type: List[pkg_resources.Requirement]
     repo_installable = []  # type: List[pkg_resources.Requirement]
     for req in input_root_requirements:
         repo_version = get_latest_apt_pkg_version(req.key, args.use_py2)
