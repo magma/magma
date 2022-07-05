@@ -22,7 +22,7 @@ import threading
 import time
 from enum import Enum
 from queue import Empty, Queue
-from typing import Optional
+from typing import List, Optional
 
 import grpc
 import s1ap_types
@@ -89,9 +89,9 @@ class S1ApUtil(object):
     lib_name = "libtfw.so"
 
     _cond = threading.Condition()
-    _msg = Queue()
-    # Default maximum wait time is 60 sec (1 min)
-    MAX_RESP_WAIT_TIME = 60
+    _msg: Queue = Queue()
+    # Default maximum wait time is 180 sec (3 min)
+    MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
@@ -203,13 +203,11 @@ class S1ApUtil(object):
     def get_response(
         self,
         timeout: int = None,
-        assert_on_timeout: bool = True,
     ) -> Msg:
         """Return the response message invoked by S1APTester TFW callback
 
         Args:
             timeout: Timeout value
-            assert_on_timeout: Trigger assert on timeout
 
         Returns:
             Response Message or None
@@ -224,12 +222,11 @@ class S1ApUtil(object):
         try:
             return self._msg.get(True, timeout)
         except Empty:
-            if assert_on_timeout:
-                raise AssertionError(
-                    "Timeout ("
-                    + str(timeout)
-                    + " sec) occurred while waiting for response message",
-                ) from None
+            raise AssertionError(
+                "Timeout ("
+                + str(timeout)
+                + " sec) occurred while waiting for response message",
+            ) from None
 
     def populate_pco(
         self,
@@ -2257,6 +2254,7 @@ class GTPBridgeUtils(object):
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
+        return None
 
     def get_proxy_port_no(self) -> Optional[int]:
         """Fetch the proxy port number"""
@@ -2267,10 +2265,11 @@ class GTPBridgeUtils(object):
             if self.proxy_port in line:
                 port_info = line.split()
                 return port_info[1]
+        return None
 
     # RYU rest API is not able dump flows from non zero table.
     # this adds similar API using `ovs-ofctl` cmd
-    def get_flows(self, table_id) -> []:
+    def get_flows(self, table_id) -> List[str]:
         """Fetch the OVS flow rules"""
         output = self.magma_utils.exec_command_output(
             f"sudo ovs-ofctl dump-flows gtp_br0 table={table_id}",
