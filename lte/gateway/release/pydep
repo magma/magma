@@ -946,6 +946,39 @@ def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
 
 
 def main(args):
+    """
+    This script resolves and installs python dependencies.
+
+    In general: Dependencies are either installed via apt or pip. Installation
+    via apt is preferred over pip.
+
+    Steps:
+    1. Exit if we are using a virtualenv.
+    2. Expand and consolidate all dependencies given as input (either explicit or in setup.py files) into
+       `input_root_requirements`.
+    3. Sort dependencies into apt-installable (`repo_installable`) and pip-installable (`root_requirements`).
+    4. Open a lockfile if "-l" or "--lockfile" argument is given and write lockfile dependencies into `deps`.
+    5. Write all lockfile pypi dependencies into `existing_versions`.
+    6. Infer the repo name of apt-installable packages, e.g. for the dependency "jinja2" we infer the name
+       "python3-jinja2".
+    7. If "--install-from-repo" is given, install apt-installable dependencies. Run a "pip3 uninstall" command before
+       to ensure the package was not pip-installed before.
+    8. Start a temporary virtual environment.
+        8.1 Generate a dict `pip_distributions` with all pip dependencies with `gen_pip_distributions`.
+        8.2 Create a dict `to_traverse` which has the same entries as `pip_distributions`, except for what is already in
+            `repo_installable`.
+        8.3 Traverse `to_traverse` and add upstream dependencies if they are already in `pip_distributions`.
+        8.4 Close temporary virtual environment.
+    9. Write set of dependencies with exact versions into `dep_set`.
+    10. Check where we can get the dependencies in `dep_set` from. If not available on apt, fall back to pypi.
+    11. Generate `root_versions` dict which contains all root requirement and versions which are installed via pip and
+        not apt. This is different from `root_requirements` because it contains the exact version, rather than a version
+        requirement.
+    12. If "-l" or "--lockfile" is given, save the lockfile.
+    13. If "-b" or "--build" is given, install the python dependencies.
+    """
+
+
     # Building dependency packages with virtualenv enabled would cause packages
     # to be installed under
     # "/home/vagrant/build/python/lib/python3.4/site-packages/" instead of
