@@ -7,4 +7,5 @@ dist/**/*.js
 flow-typed/npm/**/*.js
 config/webpack.*.js
 generated/*.js
+generated-ts/*.ts
 **/__generated__/**

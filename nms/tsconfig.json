@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    // Target latest version of ECMAScript.
+    "target": "esnext",
+    // Transpile jsx to React.createElement
+    "jsx": "react",
+    // Search under node_modules for non-relative imports.
+    "moduleResolution": "node",
+    // Don't emit; allow Babel to transform files.
+    "noEmit": true,
+    // Enable strictest settings like strictNullChecks & noImplicitAny.
+    "strict": true,
+    // Disallow features that require cross-file information for emit.
+    "isolatedModules": true,
+    // Import non-ES modules as default imports.
+    "esModuleInterop": true,
+    // Skip type checking of declaration files to speed up the type checking
+    "skipLibCheck": true,
+    // Catch variables should be any
+    "useUnknownInCatchVariables": false
+  },
+  "exclude": ["node_modules", "**/*.js"]
+}
