@@ -9,12 +9,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @flow strict-local
- * @format
  */
 import * as React from 'react';
-
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -23,10 +19,10 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import Text from './../theme/design-system/Text';
-
+import {Theme} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles<Theme>(theme => ({
   card: {
     padding: '10px',
     paddingBottom: '40px',
@@ -59,22 +55,22 @@ const useStyles = makeStyles(theme => ({
 
 type CardActionsType = {
   // Add Button text in empty state instructions
-  buttonText: string,
+  buttonText: string;
   // Action executed on Add Button click
-  onClick: () => void,
+  onClick: () => void;
   // Link text to magma documentation
-  linkText: string,
+  linkText: string;
   // Link to magma documentation
-  link: string,
+  link: string;
 };
 
 export type emptyStateProps = {
-  title: string,
-  customIntructions?: React.Node,
-  instructions: string,
-  overviewTitle: string,
-  overviewDescription: string,
-  cardActions?: CardActionsType,
+  title: string;
+  customIntructions?: React.ReactNode;
+  instructions: string;
+  overviewTitle: string;
+  overviewDescription: string;
+  cardActions?: CardActionsType;
 };
 
 /**

@@ -19,7 +19,13 @@ import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {
+  SyntheticEvent,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
@@ -51,6 +57,7 @@ import {
   FetchSubscribers,
   handleSubscriberQuery,
 } from '../../state/lte/SubscriberState';
+import {MenuProps} from '@material-ui/core/Menu/Menu';
 import {Theme} from '@material-ui/core/styles';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {getErrorMessage} from '../../util/ErrorUtils';
@@ -184,7 +191,7 @@ const StyledMenu = withStyles({
   paper: {
     border: '1px solid #d3d4d5',
   },
-})(props => (
+})((props: MenuProps) => (
   <Menu
     elevation={0}
     getContentAnchorEl={null}
@@ -201,13 +208,13 @@ const StyledMenu = withStyles({
 ));
 
 function SubscriberActionsMenu(props: {
-  onClose: () => void,
+  onClose: () => void;
   // used for empty state to only show add subscriber dialog
-  addDialog: boolean,
+  addDialog: boolean;
   // hide manage button
-  hideButton: boolean,
+  hideButton: boolean;
 }) {
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState<Element | null>(null);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -216,7 +223,7 @@ function SubscriberActionsMenu(props: {
   const [subscriberAction, setSubscriberAction] = useState<
     SubscriberActionType
   >('add');
-  const handleClick = event => {
+  const handleClick = (event: SyntheticEvent<Element>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -561,7 +568,8 @@ function SubscribersTable(props: WithAlert) {
                   name: 'Remove',
                   handleFunc: () => {
                     void props
-                  .confirm(`Are you sure you want to delete ${currRow.imsi}?`,
+                      .confirm(
+                        `Are you sure you want to delete ${currRow.imsi}?`,
                       )
                       .then(async confirmed => {
                         if (!confirmed) {

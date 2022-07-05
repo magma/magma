@@ -223,7 +223,8 @@ function ApnOverview(props: WithAlert) {
                   name: 'Remove',
                   handleFunc: () => {
                     void props
-                  .confirm(`Are you sure you want to delete ${currRow.apnID}?`,
+                      .confirm(
+                        `Are you sure you want to delete ${currRow.apnID}?`,
                       )
                       .then(async confirmed => {
                         if (!confirmed) {
@@ -233,8 +234,9 @@ function ApnOverview(props: WithAlert) {
                         try {
                           // trigger deletion
                           await ctx.setState(currRow.apnID);
-                    } catch (e) {
-                      enqueueSnackbar('failed deleting APN ' + currRow.apnID,
+                        } catch (e) {
+                          enqueueSnackbar(
+                            'failed deleting APN ' + currRow.apnID,
                             {
                               variant: 'error',
                             },

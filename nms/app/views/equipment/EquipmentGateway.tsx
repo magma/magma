@@ -38,8 +38,8 @@ import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
-import {GatewayId} from '../../../shared/types/network';
 import {FetchGateways} from '../../state/lte/EquipmentState';
+import {GatewayId} from '../../../shared/types/network';
 import {useInterval} from '../../hooks';
 
 import {GatewayEditDialog} from './GatewayDetailConfigEdit';
@@ -209,7 +209,7 @@ function InstallGatewayList() {
 }
 
 type GatewayInstructionsProps = {
-  setOpen: () => void,
+  setOpen: () => void;
 };
 function AddGatewayInstructions(props: GatewayInstructionsProps) {
   const classes = useStyles();
@@ -465,9 +465,9 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const REFRESH_INTERVAL = 3000;
   useInterval(
     () => {
-      FetchGateways({networkId, enqueueSnackbar}).then(gateways => {
+      void FetchGateways({networkId, enqueueSnackbar}).then(gateways => {
         if (gateways) {
-          gwCtx.setState('', undefined, gateways);
+          void gwCtx.setState('', undefined, gateways);
         }
       });
     },

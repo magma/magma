@@ -249,9 +249,9 @@ function EnodebTableRaw(props: WithAlert) {
   const REFRESH_INTERVAL = 30000;
   useInterval(
     () => {
-      FetchEnodebs({networkId, enqueueSnackbar}).then(enodebs => {
+      void FetchEnodebs({networkId, enqueueSnackbar}).then(enodebs => {
         if (enodebs) {
-          ctx.setState('', undefined, {enbInfo: enodebs});
+          void ctx.setState('', undefined, {enbInfo: enodebs});
         }
       });
     },
