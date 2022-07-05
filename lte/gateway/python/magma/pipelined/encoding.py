@@ -15,7 +15,7 @@ import codecs
 import gzip
 import hashlib
 import logging
-from typing import Union
+from typing import Optional
 
 from Crypto.Cipher import AES, ARC4
 from Crypto.Hash import HMAC
@@ -27,94 +27,79 @@ def pad(m):
     return m + ' ' * (16 - len(m) % 16)
 
 
-def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
-    ret: Union[str, bytes]
+def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: Optional[bytes] = None):
     if encryption_algorithm == PipelineD.HEConfig.RC4:
         cipher = ARC4.new(key)
-        ret = cipher.encrypt(s.encode('utf-8')).hex()
-    elif encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
-        iv = get_random_bytes(16)
+        return cipher.encrypt(s.encode('utf-8')).hex()
+
+    if mac is not None:
         key_val = key
         key_mac = mac
-
-        cipher = AES.new(key_val, AES.MODE_CBC, iv)
-        enc = cipher.encrypt(pad(s).encode('utf-8'))
-
         hmac = HMAC.new(key_mac)
-        hmac.update(iv + enc)
 
-        ret = hmac.hexdigest() + iv.hex() + enc.hex()
-    elif encryption_algorithm == PipelineD.HEConfig.AES256_ECB_HMAC_MD5:
-        key_val = key
-        key_mac = mac
+        if encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
+            iv = get_random_bytes(16)
+            aes_cipher = AES.new(key_val, AES.MODE_CBC, iv)
+            enc = aes_cipher.encrypt(pad(s).encode('utf-8'))
+            hmac.update(iv + enc)
+            return hmac.hexdigest() + iv.hex() + enc.hex()
+        elif encryption_algorithm == PipelineD.HEConfig.AES256_ECB_HMAC_MD5:
+            aes_cipher = AES.new(key_val, AES.MODE_ECB)
+            enc = aes_cipher.encrypt(pad(s).encode('utf-8'))
+            hmac.update(enc)
+            return hmac.hexdigest() + enc.hex()
+        elif encryption_algorithm == PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1:
+            aes_cipher = AES.new(key_val, AES.MODE_ECB)
+            enc = aes_cipher.encrypt(pad(s).encode('utf-8'))
+            hmac.update(enc)
+            return gzip.compress(hmac.digest() + enc)
 
-        cipher = AES.new(key_val, AES.MODE_ECB)
-        enc = cipher.encrypt(pad(s).encode('utf-8'))
-
-        hmac = HMAC.new(key_mac)
-        hmac.update(enc)
-
-        ret = hmac.hexdigest() + enc.hex()
-    elif encryption_algorithm == PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1:
-        key_val = key
-        key_mac = mac
-
-        cipher = AES.new(key_val, AES.MODE_ECB)
-        enc = cipher.encrypt(pad(s).encode('utf-8'))
-
-        hmac = HMAC.new(key_mac)
-        hmac.update(enc)
-        ret = gzip.compress(hmac.digest() + enc)
-    else:
-        logging.error("Unsupported encryption algorithm")
-    return ret
+    raise ValueError("Unsupported encryption algorithm")
 
 
 def decrypt_str(data, key: bytes, encryption_algorithm, mac) -> str:
-    ret = ""
     if encryption_algorithm == PipelineD.HEConfig.RC4:
         cipher = ARC4.new(key)
-        ret = cipher.decrypt(data).hex()
-    elif encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
+        return cipher.decrypt(data).hex()
+
+    hmac = HMAC.new(mac)
+
+    if encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
         verify = data[0:32]
-        hmac = HMAC.new(mac)
         hmac.update(codecs.decode(data[32:], 'hex_codec'))
 
         if hmac.hexdigest() != verify:
             return ""
 
         iv = codecs.decode(data[32:64], 'hex_codec')
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        decrypted = cipher.decrypt(codecs.decode(data[64:], 'hex_codec'))
-        ret = decrypted.decode("utf-8").strip()
+        aes_cipher = AES.new(key, AES.MODE_CBC, iv)
+        decrypted = aes_cipher.decrypt(codecs.decode(data[64:], 'hex_codec'))
+        return decrypted.decode("utf-8").strip()
+
     elif encryption_algorithm == PipelineD.HEConfig.AES256_ECB_HMAC_MD5:
         verify = data[0:32]
-        hmac = HMAC.new(mac)
         hmac.update(codecs.decode(data[32:], 'hex_codec'))
 
         if hmac.hexdigest() != verify:
             return ""
 
-        cipher = AES.new(key, AES.MODE_ECB)
-        decrypted = cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
-        ret = decrypted.decode("utf-8").strip()
+        aes_cipher = AES.new(key, AES.MODE_ECB)
+        decrypted = aes_cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
+        return decrypted.decode("utf-8").strip()
+
     elif encryption_algorithm == PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1:
         # Convert to hex str
         data = gzip.decompress(data).hex()
-
         verify = data[0:32]
-        hmac = HMAC.new(mac)
         hmac.update(codecs.decode(data[32:], 'hex_codec'))
 
         if hmac.hexdigest() != verify:
             return ""
 
-        cipher = AES.new(key, AES.MODE_ECB)
-        decrypted = cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
-        ret = decrypted.decode("utf-8").strip()
-    else:
-        logging.error("Unsupported encryption algorithm")
-    return ret
+        aes_cipher = AES.new(key, AES.MODE_ECB)
+        decrypted = aes_cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
+        return decrypted.decode("utf-8").strip()
+    raise ValueError("Unsupported encryption algorithm")
 
 
 def get_hash(s, hash_function) -> bytes:

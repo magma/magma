@@ -14,7 +14,7 @@ limitations under the License.
 import logging
 
 from grpc import StatusCode
-from lte.protos import (
+from lte.protos import (  # type: ignore[attr-defined]
     diam_errors_pb2,
     subscriberauth_pb2,
     subscriberauth_pb2_grpc,
