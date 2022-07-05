@@ -64,9 +64,16 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 	return &protos.UpdateCbsdResponse{}, nil
 }
 func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
-	cbsd := requestToDbCbsd(request)
+	data := requestToDbCbsd(request)
+	cbsd, err := c.store.EnodebdUpdateCbsd(data)
+	if err != nil {
+		return nil, makeErr(err, "update cbsd")
+	}
+	if cbsd == nil {
+		glog.Warningf("Cbsd %s not updated", data.CbsdSerialNumber.String)
+		return &protos.UpdateCbsdResponse{}, nil
+	}
 	msg, _ := json.Marshal(request)
-	c.store.FetchCbsd()
 	log := &logs_pusher.DPLog{
 		EventTimestamp:   clock.Now().Unix(),
 		LogFrom:          "CBSD",
@@ -78,10 +85,6 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	}
 	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
 		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)
-	}
-
-	if err := c.store.EnodebdUpdateCbsd(cbsd); err != nil {
-		return nil, makeErr(err, "update cbsd")
 	}
 
 	return &protos.UpdateCbsdResponse{}, nil

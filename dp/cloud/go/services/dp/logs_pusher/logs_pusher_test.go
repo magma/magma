@@ -38,5 +38,6 @@ func TestLogsPusher(t *testing.T) {
 		CbsdSerialNumber: "cbsdId1234",
 		NetworkId:        "someNetwork",
 	}
-	_ = PushDPLog(context.Background(), log, fmt.Sprintf("%s/%s", testServer.URL, "dp"))
+	err := PushDPLog(context.Background(), log, fmt.Sprintf("%s/%s", testServer.URL, "dp"))
+	assert.NoError(t, err)
 }

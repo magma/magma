@@ -18,21 +18,20 @@ import (
 	"testing"
 	"time"
 
+	"magma/dp/cloud/go/protos"
+	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
+	"magma/dp/cloud/go/services/dp/servicers"
+	"magma/dp/cloud/go/services/dp/storage"
+	"magma/dp/cloud/go/services/dp/storage/db"
+	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/lib/go/merrors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-
-	"magma/dp/cloud/go/protos"
-	b "magma/dp/cloud/go/services/dp/builders"
-	"magma/dp/cloud/go/services/dp/servicers"
-	"magma/dp/cloud/go/services/dp/storage"
-	"magma/dp/cloud/go/services/dp/storage/db"
-	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/lib/go/merrors"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -49,7 +48,6 @@ type CbsdManagerTestSuite struct {
 type LogPusher struct {
 	expectedLog            logs_pusher.DPLog
 	expectedLogConsumerUrl string
-	expectedLogPusherError error
 	t                      *testing.T
 }
 
@@ -167,18 +165,21 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			WithFullInstallationParam().Payload,
 		expectedDBCbsd: b.NewDBCbsdBuilder().
 			WithFullInstallationParam().Cbsd,
+		expectedLog:         b.NewDPLogBuilder().WithLogMessage("{\"serial_number\":\"some_serial_number\",\"installation_param\":{\"latitude_deg\":{\"value\":10.5},\"longitude_deg\":{\"value\":11.5},\"indoor_deployment\":{\"value\":true},\"height_m\":{\"value\":12.5},\"height_type\":{\"value\":\"agl\"},\"antenna_gain\":{\"value\":4.5}},\"cbsd_category\":\"b\"}").Log,
+		expectedConsumerUrl: someUrl,
 	}, {
 		name: "update cbsd with incomplete installation param",
 		payload: b.NewCbsdProtoPayloadBuilder().
 			WithIncompleteInstallationParam().Payload,
 		expectedDBCbsd: b.NewDBCbsdBuilder().
 			WithIncompleteInstallationParam().Cbsd,
+		expectedLog:         b.NewDPLogBuilder().WithLogMessage("{\"serial_number\":\"some_serial_number\",\"installation_param\":{\"latitude_deg\":{\"value\":10.5},\"longitude_deg\":{\"value\":11.5},\"indoor_deployment\":{\"value\":true}},\"cbsd_category\":\"b\"}").Log,
+		expectedConsumerUrl: someUrl,
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.logPusher.expectedLog = *tc.expectedLog
 			s.logPusher.expectedLogConsumerUrl = tc.expectedConsumerUrl
-			s.logPusher.expectedLogPusherError = tc.expectedLogPusherError
 			request := &protos.EnodebdUpdateCbsdRequest{
 				SerialNumber: tc.payload.SerialNumber,
 				InstallationParam: &protos.InstallationParam{
@@ -523,6 +524,7 @@ type stubCbsdManager struct {
 	list        *storage.DetailedCbsdList
 	pagination  *storage.Pagination
 	filter      *storage.CbsdFilter
+	cbsd        *storage.DBCbsd
 	err         error
 }
 
@@ -539,7 +541,7 @@ func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.M
 	return s.err
 }
 
-func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) error {
+func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) (*storage.DBCbsd, error) {
 	s.data.CbsdCategory = data.CbsdCategory
 	s.data.AntennaGain = data.AntennaGain
 	s.data.LatitudeDeg = data.LatitudeDeg
@@ -547,7 +549,9 @@ func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) error {
 	s.data.HeightType = data.HeightType
 	s.data.HeightM = data.HeightM
 	s.data.IndoorDeployment = data.IndoorDeployment
-	return s.err
+	s.data.CbsdSerialNumber = data.CbsdSerialNumber
+	s.data.NetworkId = db.MakeString(networkId)
+	return s.data, s.err
 }
 
 func (s *stubCbsdManager) DeleteCbsd(networkId string, id int64) error {
@@ -577,6 +581,6 @@ func (s *stubCbsdManager) DeregisterCbsd(networkId string, id int64) error {
 
 func (p *LogPusher) pushLogs(_ context.Context, log *logs_pusher.DPLog, consumerUrl string) error {
 	assert.Equal(p.t, consumerUrl, p.expectedLogConsumerUrl)
-	assert.Equal(p.t, log, p.expectedLog)
-	return p.expectedLogPusherError
+	assert.Equal(p.t, p.expectedLog, *log)
+	return nil
 }

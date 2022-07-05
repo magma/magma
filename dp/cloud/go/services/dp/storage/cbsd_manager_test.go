@@ -17,15 +17,15 @@ import (
 	"fmt"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
-	"github.com/stretchr/testify/suite"
-
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/dp/cloud/go/services/dp/storage/dbtest"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/merrors"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -327,6 +327,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
+			WithNetworkId(someNetwork).
 			WithSerialNumber(differentSerialNumber).
 			WithCbsdCategory("a").
 			WithIncompleteInstallationParam().
@@ -344,7 +345,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 		s.Run(tc.name, func() {
 			s.givenResourcesInserted(tc.input)
 
-			err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
+			_, err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
 			s.Require().NoError(err)
 
 			err = s.resourceManager.InTransaction(func() {

@@ -21,7 +21,7 @@ type LogPusher func(ctx context.Context, log *DPLog, consumerUrl string) error
 
 func PushDPLog(ctx context.Context, log *DPLog, consumerUrl string) error {
 	client := http.Client{}
-	body, _ := json.Marshal(*log)
+	body, _ := json.Marshal(log)
 	req, _ := http.NewRequest(http.MethodPost, consumerUrl, strings.NewReader(string(body)))
 	req.Header.Set("contentType", "application/json")
 	_, err := client.Do(req.WithContext(ctx))

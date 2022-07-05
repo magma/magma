@@ -16,15 +16,15 @@ package builders
 import (
 	"time"
 
-	"magma/dp/cloud/go/services/dp/logs_pusher"
-
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
 	"magma/dp/cloud/go/protos"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
+	"magma/orc8r/cloud/go/clock"
+
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -655,13 +655,13 @@ type DPLogBuilder struct {
 
 func NewDPLogBuilder() *DPLogBuilder {
 	return &DPLogBuilder{Log: &logs_pusher.DPLog{
-		EventTimestamp:   1234,
+		EventTimestamp:   clock.Now().Unix(),
 		LogFrom:          "CBSD",
 		LogTo:            "DP",
 		LogName:          "EnodebdUpdateCbsd",
 		LogMessage:       "some log message",
-		CbsdSerialNumber: "someCbsdSerialNumber",
-		NetworkId:        "someNetworkId",
+		CbsdSerialNumber: "some_serial_number",
+		NetworkId:        "some_network",
 	}}
 }
 

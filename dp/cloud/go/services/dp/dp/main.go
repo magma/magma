@@ -15,13 +15,10 @@ package main
 import (
 	"time"
 
-	"magma/dp/cloud/go/services/dp/logs_pusher"
-
-	"github.com/golang/glog"
-
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	dp_log "magma/dp/cloud/go/services/dp/obsidian/log"
 	"magma/dp/cloud/go/services/dp/servicers"
@@ -33,6 +30,8 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/service/config"
+
+	"github.com/golang/glog"
 )
 
 func main() {
