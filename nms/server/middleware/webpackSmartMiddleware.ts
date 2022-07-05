@@ -12,7 +12,7 @@
  *
  */
 
-import express from 'express';
+import express, {Router} from 'express';
 import logging from '../../shared/logging';
 import webpack from 'webpack';
 import webpackHotMiddleware, {MiddlewareOptions} from 'webpack-hot-middleware';
@@ -50,7 +50,7 @@ function webpackDevMiddleware(
     },
   });
 
-  const router = express.Router();
+  const router = Router();
   router.use(middleware);
   router.use(
     webpackHotMiddleware(compiler, ({
@@ -65,7 +65,7 @@ export default function webpackSmartMiddleware(
 ): RequestHandler {
   const {devMode, devWebpackConfig, distPath} = options;
 
-  const router = express.Router();
+  const router = Router();
   if (process.env.NODE_ENV === 'test') {
     // Do nothing
   } else if (devMode) {

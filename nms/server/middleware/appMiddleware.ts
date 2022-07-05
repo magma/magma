@@ -15,11 +15,9 @@
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import express from 'express';
 import helmet from 'helmet';
 import logging from '../../shared/logging';
-
-import {RequestHandler} from 'express';
+import {RequestHandler, Router} from 'express';
 
 /**
  * General middleware that every application should use, and it should be the
@@ -27,7 +25,7 @@ import {RequestHandler} from 'express';
  * it should just introduce additional functionality
  */
 export default function appMiddleware(): RequestHandler {
-  const router = express.Router();
+  const router = Router();
   [
     helmet({
       contentSecurityPolicy: false,

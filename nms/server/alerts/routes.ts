@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-import express from 'express';
 import syncAlerts from './sync';
+import {Router} from 'express';
 
-const router = express.Router();
+const router = Router();
 
 router.post('/:networkID', syncAlerts);
 

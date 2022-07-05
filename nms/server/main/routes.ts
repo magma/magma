@@ -10,14 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {EmbeddedData} from '../../shared/types/embeddedData';
-import type {Request} from 'express';
-
 import OrchestratorAPI from '../api/OrchestratorAPI';
 import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
 import asyncHandler from '../util/asyncHandler';
-import express from 'express';
+import express, {Request, Router} from 'express';
 import hostRoutes from '../host/routes';
 import loggerRoutes from '../logger/routes';
 import networkRoutes from '../network/routes';
@@ -29,8 +26,9 @@ import {AccessRoles} from '../../shared/roles';
 import {access} from '../auth/access';
 import {getEnabledFeatures} from '../features';
 import {hostOrgMiddleware} from '../host/middleware';
+import type {EmbeddedData} from '../../shared/types/embeddedData';
 
-const router = express.Router();
+const router = Router();
 
 const handleReact = () =>
   asyncHandler(async function (req: Request, res) {

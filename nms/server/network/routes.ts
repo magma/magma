@@ -11,27 +11,24 @@
  * limitations under the License.
  */
 
+import OrchestratorAPI from '../api/OrchestratorAPI';
+import asyncHandler from '../util/asyncHandler';
+import logging from '../../shared/logging';
+import {AccessRoles} from '../../shared/roles';
+import {AxiosError} from 'axios';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
+import {Request, Router} from 'express';
+import {access} from '../auth/access';
+import {difference} from 'lodash';
 import type {
   NetworkCellularConfigs,
   NetworkDnsConfig,
   Tier,
 } from '../../generated-ts';
-import type {Request} from 'express';
-
-import asyncHandler from '../util/asyncHandler';
-import express from 'express';
-
-import OrchestratorAPI from '../api/OrchestratorAPI';
-import logging from '../../shared/logging';
-import {AccessRoles} from '../../shared/roles';
-import {AxiosError} from 'axios';
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
-import {access} from '../auth/access';
-import {difference} from 'lodash';
 
 const logger = logging.getLogger(module);
 
-const router: express.Router = express.Router();
+const router = Router();
 
 const DEFAULT_CELLULAR_CONFIG: NetworkCellularConfigs = {
   epc: {

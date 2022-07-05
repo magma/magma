@@ -12,13 +12,13 @@
  */
 
 import bcrypt from 'bcryptjs';
-import express, {RequestHandler} from 'express';
 import expressOnboarding from './expressOnboarding';
 import logging from '../../shared/logging';
 import passport, {AuthenticateOptions} from 'passport';
 import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
 import {AuditLogEntry, User} from '../../shared/sequelize_models';
+import {RequestHandler, Router} from 'express';
 import {access} from './access';
 import {
   addQueryParamsToUrl,
@@ -56,7 +56,7 @@ function accessRoleToString(role: number): string {
 }
 
 export function unprotectedUserRoutes() {
-  const router = express.Router();
+  const router = Router();
   router.post(
     '/login/saml/callback',
     passport.authenticate('saml', {
@@ -71,7 +71,7 @@ export function unprotectedUserRoutes() {
 }
 
 function userMiddleware(options: Options) {
-  const router = express.Router();
+  const router = Router();
 
   // Login / Logout Routes
   router.post(

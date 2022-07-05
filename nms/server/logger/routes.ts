@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import express from 'express';
 import proxy from 'express-http-proxy';
 import {LOGGER_HOST} from '../../config/config';
+import {Router} from 'express';
 
-const router = express.Router();
+const router = Router();
 
 router.use('/', proxy(LOGGER_HOST));
 

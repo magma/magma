@@ -350,7 +350,6 @@ describe('<TrafficDashboard />', () => {
           priority: 1,
           qos_profile: undefined,
           rating_group: 0,
-          redirect: {},
         },
       }),
     );
@@ -369,7 +368,6 @@ describe('<TrafficDashboard />', () => {
           priority: 1,
           qos_profile: undefined,
           rating_group: 0,
-          redirect: {},
         },
       }),
     );
@@ -477,7 +475,6 @@ describe('<TrafficDashboard />', () => {
           priority: 1,
           qos_profile: undefined,
           rating_group: 0,
-          redirect: {},
         },
       }),
     );
@@ -558,7 +555,6 @@ describe('<TrafficDashboard />', () => {
       priority: 1,
       qos_profile: undefined,
       rating_group: 0,
-      redirect: {} as RedirectInformation,
     };
 
     await waitFor(() =>
@@ -669,8 +665,10 @@ describe('<TrafficDashboard />', () => {
       throw 'invalid type';
     }
     newRule['redirect'] = {
+      address_type: 'IPv4',
+      support: 'DISABLED',
       server_address: '192.168.1.1',
-    } as RedirectInformation;
+    };
     networksNetworkIdPoliciesRulesRuleIdGet.mockResolvedValue(newRule);
     fireEvent.click(getByText('Save And Continue'));
 

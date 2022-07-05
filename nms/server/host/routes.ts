@@ -11,24 +11,22 @@
  * limitations under the License.
  */
 
-import type {FeatureID} from '../../shared/types/features';
-import type {Request} from 'express';
-
 import Sequelize from 'sequelize';
 import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
-import express from 'express';
 import featureConfigs, {FeatureConfig} from '../features';
 import logging from '../../shared/logging';
 import {FeatureFlag, Organization} from '../../shared/sequelize_models';
 import {FeatureFlagModel} from '../../shared/sequelize_models/models/featureflag';
+import {Request, Router} from 'express';
 import {User} from '../../shared/sequelize_models';
 import {UserRawType} from '../../shared/sequelize_models/models/user';
 import {getPropsToUpdate} from '../auth/util';
+import type {FeatureID} from '../../shared/types/features';
 
 const logger = logging.getLogger(module);
 
-const router: express.Router = express.Router();
+const router = Router();
 
 router.get(
   '/organization/async',

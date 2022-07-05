@@ -10,10 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import express from 'express';
-import type {Request, Response} from 'express';
+import {Request, Response, Router} from 'express';
 
-const router = express.Router();
+const router = Router();
 
 router.get('/', (req: Request, res: Response) => {
   res.status(200).end('Success');

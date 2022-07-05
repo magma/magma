@@ -15,8 +15,9 @@ import Client from '../../grafana/GrafanaAPI';
 import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import express from 'express';
+import asyncHandler from '../util/asyncHandler';
 import proxy from 'express-http-proxy';
+import {NextFunction, Request, Response, Router} from 'express';
 import {
   makeGrafanaUsername,
   syncDashboards,
@@ -24,10 +25,7 @@ import {
   syncGrafanaUser,
   syncTenants,
 } from '../../grafana/handlers';
-
-import asyncHandler from '../util/asyncHandler';
 import type {GrafanaClient} from '../../grafana/GrafanaAPI';
-import type {NextFunction, Request, Response} from 'express';
 import type {Task} from '../../grafana/handlers';
 
 const GRAFANA_PROTOCOL = 'http';
@@ -36,7 +34,7 @@ const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_ADDRESS}`;
 
 const AUTH_PROXY_HEADER = 'X-WEBAUTH-USER';
 
-const router = express.Router();
+const router = Router();
 
 const grafanaAdminClient = Client(GRAFANA_URL, {
   [AUTH_PROXY_HEADER]: 'admin',

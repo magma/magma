@@ -17,7 +17,6 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../../theme/default';
 
 import useMagmaAPI from '../../../../api/useMagmaAPI';
-import {MagmaAlarmsApiUtil} from '../../../../state/AlarmsApiUtil';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
@@ -35,7 +34,7 @@ const Wrapper = (props: {route: string; children: React.ReactNode}) => (
   </MemoryRouter>
 );
 
-const AlarmsWrapper = () => <Alarms apiUtil={MagmaAlarmsApiUtil} />;
+const AlarmsWrapper = () => <Alarms />;
 
 describe('react router tests', () => {
   test('/alerts renders the no alerts icon', () => {

@@ -11,11 +11,9 @@
  * limitations under the License.
  */
 
-import type {NextFunction, Request, RequestHandler, Response} from 'express';
-
-import express from 'express';
 import staticDist from '../../config/staticDist';
 import {AccessRoles} from '../../shared/roles';
+import {NextFunction, Request, RequestHandler, Response, Router} from 'express';
 import {Organization, User} from '../../shared/sequelize_models';
 import {UserRawType} from '../../shared/sequelize_models/models/user';
 import {getPropsToUpdate} from './util';
@@ -38,7 +36,7 @@ export default function () {
     void asyncOnboardingMiddleware(req, res, next);
   };
 
-  const router = express.Router();
+  const router = Router();
 
   router.get('/onboarding', onboardingMiddleware, (req: Request, res) => {
     res.render('onboarding', {

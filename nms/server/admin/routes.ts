@@ -12,12 +12,11 @@
  */
 
 import asyncHandler from '../util/asyncHandler';
-import express from 'express';
-
 import {AuditLogEntry, User} from '../../shared/sequelize_models';
+import {Router} from 'express';
 
 const MAX_AUDITLOG_ROWS = 5000;
-const router = express.Router();
+const router = Router();
 router.get(
   '/auditlog/async',
   asyncHandler(async (req, res) => {

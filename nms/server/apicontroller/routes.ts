@@ -11,19 +11,17 @@
  * limitations under the License.
  */
 
-import type {Request} from 'express';
-
 import HttpsProxyAgent, {HttpsProxyAgentOptions} from 'https-proxy-agent';
 import auditLoggingDecorator from './auditLoggingDecorator';
-import express, {NextFunction, Response} from 'express';
 import proxy from 'express-http-proxy';
 import url from 'url';
 import {API_HOST, apiCredentials} from '../../config/config';
 import {AxiosError} from 'axios';
 import {IncomingMessage, RequestOptions} from 'http';
+import {NextFunction, Request, Response, Router} from 'express';
 import {intersection} from 'lodash';
 
-const router = express.Router();
+const router = Router();
 
 const PROXY_TIMEOUT_MS = 30000;
 const MUTATORS = ['POST', 'PUT', 'DELETE'];
