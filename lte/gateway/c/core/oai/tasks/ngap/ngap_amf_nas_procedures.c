@@ -1232,7 +1232,9 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     asn_fprint(stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
                &pduSessionResourceSetupRequestTransferIEs);
 
-    // trim unused buffer length
+    /* Aligned PER encoder of any ASN.1 type. aper_encode function returns the
+    number of encoded bits in the .encoded field of the return value. Use the
+    following formula to convert to bytes: bytes = ((.encoded + 7) / 8) */
     bstring transfer = blk2bstr(buffer, ((er.encoded + 7) >> 3));
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf =
         (uint8_t*)calloc(((er.encoded + 7) >> 3), sizeof(uint8_t));
