@@ -148,13 +148,8 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool = False) -> str:
     else:
         prefix = "python3"
 
-    if py_pkgname.lower() in PYPI_TO_DEB:
-        suffix = PYPI_TO_DEB[py_pkgname.lower()]
-    else:
-        suffix = py_pkgname
-
-    sysdep_name = "%s-%s" % (prefix, suffix)
-    return sysdep_name.lower()  # deb likes lowercase
+    suffix = PYPI_TO_DEB.get(py_pkgname.lower(), py_pkgname)
+    return "{}-{}".format(prefix, suffix).lower()  # deb likes lowercase
 
 
 @lru_cache(maxsize=128)
