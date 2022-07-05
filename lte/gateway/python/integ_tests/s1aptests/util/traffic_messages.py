@@ -66,10 +66,12 @@ class TrafficServerInstance(object):
 
     def __repr__(self):
         ''' String representation of this test server instance '''
-        return (
-            f'{type(self).__name__}: {self.ip.exploded}:{self.port} '
-            f'on device {self.mac}'
-        )
+        return ' '.join((
+            '%s:' % type(self).__name__,
+            '%s:%d' % (self.ip.exploded, self.port),
+            'on device',
+            self.mac,
+        ))
 
 
 class TrafficTestInstance(object):
@@ -94,13 +96,15 @@ class TrafficTestInstance(object):
 
     def __repr__(self):
         ''' String representation of this test instance '''
-        return (
-            f'{type(self).__name__}: '
-            f'{"UPLINK" if self.is_uplink else "DOWNLINK"} '
-            f'{"UDP" if self.is_udp else "TCP"} test, '
-            f'{self.duration} seconds '
-            f'for test device at {self.ip.exploded}:{self.port}'
-        )
+        return ' '.join((
+            '%s:' % type(self).__name__,
+            'UPLINK' if self.is_uplink else 'DOWNLINK',
+            'UDP' if self.is_udp else 'TCP',
+            'test,',
+            '%d seconds' % self.duration,
+            'for test device at',
+            '%s:%d' % (self.ip.exploded, self.port),
+        ))
 
 
 class TrafficMessage(object):
@@ -122,10 +126,12 @@ class TrafficMessage(object):
 
     def __repr__(self):
         ''' String representation of this message '''
-        return (
-            f'{type(self).__name__} ({self.message.name}, '
-            f'id {self.id}): {repr(self.payload)}'
-        )
+        payload_str = repr(self.payload)
+        return ' '.join((
+            '%s' % type(self).__name__,
+            '(%s, id %s):' % (self.message.name, str(self.id)),
+            payload_str,
+        ))
 
     @staticmethod
     def recv(stream):
