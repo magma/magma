@@ -29,7 +29,7 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 
 // $FlowFixMe Upgrade react-testing-library
-import {render, waitFor} from '@testing-library/react';
+import {render, wait, waitFor} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../../generated/MagmaAPIBindings.js');
@@ -177,5 +177,6 @@ describe('<Enodeb />', () => {
         new Date(currTime).toLocaleDateString(),
       );
     });
+    await wait(undefined, {timeout: 200});
   });
 });

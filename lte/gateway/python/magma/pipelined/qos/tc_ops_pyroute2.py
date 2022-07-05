@@ -14,6 +14,7 @@ limitations under the License.
 
 import logging
 import pprint
+from typing import Union
 
 from pyroute2 import IPRoute, NetlinkError
 
@@ -57,19 +58,17 @@ class TcOpsPyRoute2(TcOpsBase):
         LOG.debug("Create HTB iface %s qid %s max_bw %s rate %s", iface, qid, max_bw, rate)
         try:
             # API needs ceiling in bytes per sec.
-            max_bw = max_bw / 8
+            max_bw_bytes = max_bw / 8
             if_index = self._get_if_index(iface)
             htb_queue = QUEUE_PREFIX + qid
             ret = self._ipr.tc(
                 "add-class", "htb", if_index,
                 htb_queue, parent=parent_qid,
-                rate=str(rate).lower(), ceil=max_bw, prio=1,
+                rate=str(rate).lower(), ceil=max_bw_bytes, prio=1,
             )
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
-            LOG.error("create-htb error : %s", ex.code)
-            LOG.debug(ex, exc_info=True)
-            return ex.code
+            return log_error_and_get_code(ex, "create-htb")
         return 0
 
     def del_htb(self, iface: str, qid: str) -> int:
@@ -91,9 +90,7 @@ class TcOpsPyRoute2(TcOpsBase):
             ret = self._ipr.tc("del-class", "htb", if_index, htb_queue)
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
-            LOG.error("del-htb  error error : %s", ex.code)
-            LOG.debug(ex, exc_info=True)
-            return ex.code
+            return log_error_and_get_code(ex, "del-htb")
         return 0
 
     def create_filter(self, iface: str, mark: str, qid: str, proto: int = PROTOCOL) -> int:
@@ -116,9 +113,7 @@ class TcOpsPyRoute2(TcOpsBase):
             LOG.debug("Return: %s", ret)
 
         except (ValueError, NetlinkError) as ex:
-            LOG.error("create-filter error : %s", ex.code)
-            LOG.debug(ex, exc_info=True)
-            return ex.code
+            return log_error_and_get_code(ex, "create-filter")
         return 0
 
     def del_filter(self, iface: str, mark: str, qid: str, proto: int = PROTOCOL) -> int:
@@ -141,9 +136,7 @@ class TcOpsPyRoute2(TcOpsBase):
             )
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
-            LOG.error("del-filter error : %s", ex.code)
-            LOG.debug(ex, exc_info=True)
-            return ex.code
+            return log_error_and_get_code(ex, "del-filter")
         return 0
 
     def create(
@@ -186,3 +179,13 @@ class TcOpsPyRoute2(TcOpsBase):
         if_index = self._get_if_index(iface)
 
         pprint.pprint(self._ipr.get_filters(if_index))
+
+
+def log_error_and_get_code(
+        ex: Union[ValueError, NetlinkError],
+        error_type: str,
+) -> int:
+    code = getattr(ex, 'code', -1)
+    LOG.error("%s error : %s", error_type, code)
+    LOG.debug(ex, exc_info=True)
+    return code

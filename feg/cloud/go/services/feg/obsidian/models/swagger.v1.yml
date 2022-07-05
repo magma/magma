@@ -872,12 +872,12 @@ definitions:
       local_address:
         type: string
         pattern: '[^\:]+(:[0-9]{1,5})?'
-        example: "foo.bar.com:5555"
+        example: "0.0.0.0:0"
         x-nullable: false
       pgw_address:
         type: string
         pattern: '[^\:]+(:[0-9]{1,5})?'
-        example: "foo.bar.com:5555"
+        example: "0.0.0.0:0"
         x-nullable: false
       apn_operator_suffix:
         type: string

@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -33,8 +33,8 @@ import (
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 	"magma/dp/cloud/go/services/dp/storage/db"
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/services/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian/tests"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
@@ -132,7 +132,16 @@ func (s *HandlersTestSuite) TestBoolQuery() {
 				NetworkId: "someNetworkId",
 				Filter:    &LogsFilter{},
 			},
-			expectedPayload: []byte(`{}`),
+			expectedPayload: []byte(`{
+   "must":
+      {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
+            }
+         }
+      }
+   }`),
 		},
 		{
 			name: "test query with some params",
@@ -155,6 +164,13 @@ func (s *HandlersTestSuite) TestBoolQuery() {
                "include_lower":true,
                "include_upper":true,
                "to":1000
+            }
+         }
+      },
+      {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
             }
          }
       },
@@ -207,6 +223,13 @@ func (s *HandlersTestSuite) TestBoolQuery() {
                "include_lower":true,
                "include_upper":true,
                "to":1000
+            }
+         }
+      },
+	  {
+         "match":{
+            "network_id":{
+               "query":"someNetworkId"
             }
          }
       },
@@ -343,7 +366,13 @@ func (s *HandlersTestSuite) TestListLogs() {
 			expectedPayload: `{
    "query":{
       "bool":{
-
+         "must":{
+		    "match":{
+			   "network_id":{
+				  "query":"n1"
+			   }
+		    }
+		 }
       }
    },
    "sort":[
@@ -367,7 +396,13 @@ func (s *HandlersTestSuite) TestListLogs() {
    "from":3,
    "query":{
       "bool":{
-
+         "must":{
+            "match":{
+               "network_id":{
+                  "query":"n1"
+               }
+            }
+         }
       }
    },
    "size":4,
@@ -411,6 +446,13 @@ func (s *HandlersTestSuite) TestListLogs() {
                      "include_lower":true,
                      "include_upper":true,
                      "to":null
+                  }
+               }
+            },
+            {
+               "match":{
+                  "network_id":{
+                     "query":"n1"
                   }
                }
             },

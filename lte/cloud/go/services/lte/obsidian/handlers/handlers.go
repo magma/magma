@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/thoas/go-funk"
 
 	"magma/lte/cloud/go/lte"
@@ -26,9 +26,9 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"

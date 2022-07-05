@@ -18,13 +18,13 @@ import type {FBCNMSMiddleWareRequest} from '../../server/middleware';
 import type {UserRawType} from '../../shared/sequelize_models/models/user';
 import type {UserType} from '../../shared/sequelize_models/models/user.js';
 
-import EmailValidator from 'email-validator';
 import bcrypt from 'bcryptjs';
 import querystring from 'querystring';
 import {AccessRoles} from '../../shared/roles';
 import {User} from '../../shared/sequelize_models';
 import {format, parse} from 'url';
 import {injectOrganizationParams} from './organization';
+import {validate as validateEmail} from 'email-validator';
 
 const SALT_GEN_ROUNDS = 10;
 const MIN_PASSWORD_LENGTH = 10;
@@ -77,10 +77,7 @@ export async function getPropsToUpdate(
       switch (prop) {
         case 'email':
           const emailUnsafe = body[prop];
-          if (
-            typeof emailUnsafe !== 'string' ||
-            !EmailValidator.validate(body.email)
-          ) {
+          if (typeof emailUnsafe !== 'string' || !validateEmail(body.email)) {
             throw new Error('Please enter a valid email');
           }
           const email = emailUnsafe.toLowerCase();

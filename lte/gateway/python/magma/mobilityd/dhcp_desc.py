@@ -15,6 +15,7 @@ from enum import IntEnum
 from typing import Optional
 
 from .mac import MacAddress
+from .utils import IPAddress
 
 
 # map the enum to actual protocol values.
@@ -38,9 +39,9 @@ class DHCPDescriptor:
         self, mac: MacAddress, ip: str,
         state_requested: DHCPState, vlan: int,
         state: DHCPState = DHCPState.UNKNOWN,
-        subnet: str = None, server_ip: str = None,
-        router_ip: str = None, lease_expiration_time: int = 0,
-        xid: str = None,
+        subnet: Optional[str] = None, server_ip: Optional[IPAddress] = None,
+        router_ip: Optional[IPAddress] = None, lease_expiration_time: int = 0,
+        xid: Optional[str] = None,
     ):
         """
         DHCP descriptor. This object maintains all information for

@@ -52,6 +52,10 @@ message CreateOrUpdateControlProxyRequest {
 message CreateOrUpdateControlProxyResponse {
 }
 
+message GetControlProxyFromNetworkIDRequest {
+  string networkID = 1;
+}
+
 service TenantsService {
     rpc GetAllTenants (Void) returns (TenantList) {}
     rpc GetTenant (GetTenantRequest) returns (Tenant) {}
@@ -59,5 +63,6 @@ service TenantsService {
     rpc SetTenant (IDAndTenant) returns (Void) {}
     rpc DeleteTenant (GetTenantRequest) returns (Void) {}
     rpc GetControlProxy (GetControlProxyRequest) returns (GetControlProxyResponse) {}
+    rpc GetControlProxyFromNetworkID (GetControlProxyFromNetworkIDRequest) returns (GetControlProxyResponse) {}
     rpc CreateOrUpdateControlProxy (CreateOrUpdateControlProxyRequest) returns (CreateOrUpdateControlProxyResponse) {}
 }

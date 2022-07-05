@@ -21,6 +21,7 @@ service ActiveModeController {
   rpc GetState(GetStateRequest) returns (State) {}
   rpc DeleteCbsd(DeleteCbsdRequest) returns (google.protobuf.Empty) {}
   rpc AcknowledgeCbsdUpdate(AcknowledgeCbsdUpdateRequest) returns (google.protobuf.Empty) {}
+  rpc StoreAvailableFrequencies(StoreAvailableFrequenciesRequest) returns (google.protobuf.Empty) {}
 }
 
 message GetStateRequest {}
@@ -42,6 +43,7 @@ message Cbsd {
   EirpCapabilities eirp_capabilities = 10;
   DatabaseCbsd db_data = 11;
   FrequencyPreferences preferences = 12;
+  GrantSettings grant_settings = 13;
 }
 
 message SasSettings {
@@ -71,6 +73,8 @@ message Grant {
   GrantState state = 2;
   int64 heartbeat_interval_sec = 3;
   int64 last_heartbeat_timestamp = 4;
+  int64 low_frequency_hz = 5;
+  int64 high_frequency_hz = 6;
 }
 
 enum GrantState {
@@ -102,10 +106,22 @@ message FrequencyPreferences {
   repeated int32 frequencies_mhz = 2;
 }
 
+message GrantSettings {
+  bool grant_redundancy_enabled = 1;
+  bool carrier_aggregation_enabled = 2;
+  int32 max_ibw_mhz = 3;
+  repeated uint32 available_frequencies = 4;
+}
+
 message DeleteCbsdRequest {
   int64 id = 1;
 }
 
 message AcknowledgeCbsdUpdateRequest {
   int64 id = 1;
+}
+
+message StoreAvailableFrequenciesRequest {
+  int64 id = 1;
+  repeated uint32 available_frequencies = 2;
 }

@@ -19,7 +19,7 @@ import {useEffect, useRef} from 'react';
 type TFunction = () => void | Promise<void>;
 
 // from https://overreacted.io/making-setinterval-declarative-with-react-hooks/
-export default function useInterval(callback: TFunction, delay: number) {
+export default function useInterval(callback: TFunction, delay: number | null) {
   const savedCallback = useRef<?TFunction>();
 
   // Remember the latest callback.

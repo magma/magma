@@ -1,7 +1,7 @@
 ---
 
 - name: collect all elb info
-  ec2_elb_info:
+  community.aws.elb_classic_lb_info:
   register: valElb
 
 - name: delete all elbs, because this is a clean deployment

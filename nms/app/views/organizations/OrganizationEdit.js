@@ -173,11 +173,7 @@ function OrganizationEdit(props: WithAlert & Props) {
     url: '/host/networks/async',
   });
 
-  if (
-    orgRequest.isLoading ||
-    networksRequest.isLoading ||
-    !orgRequest.response
-  ) {
+  if (orgRequest.isLoading || networksRequest.isLoading) {
     return <LoadingFiller />;
   }
 
@@ -288,7 +284,10 @@ function OrganizationEdit(props: WithAlert & Props) {
                   </IconButton>
                 </Grid>
                 <Grid>
-                  <Text className={classes.header} variant="h4">
+                  <Text
+                    className={classes.header}
+                    data-testid="organizationEditTitle"
+                    variant="h4">
                     {organization?.name}
                   </Text>
                 </Grid>

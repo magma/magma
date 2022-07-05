@@ -124,14 +124,14 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       exec "$SHELL"
       ```
 
-   5. Create python virtual environment version 3.7.3.
+   5. Create python virtual environment version 3.8.10.
 
       ```bash
-      pyenv install 3.7.3
-      pyenv global 3.7.3
+      pyenv install 3.8.10
+      pyenv global 3.8.10
       ```
 
-        **Note**: The `pyenv` installation [might fail with a segmentation fault](https://github.com/pyenv/pyenv/issues/2046). Try using `CFLAGS="-O2" pyenv install 3.7.3` in that case.
+        **Note**: The `pyenv` installation [might fail with a segmentation fault](https://github.com/pyenv/pyenv/issues/2046). Try using `CFLAGS="-O2" pyenv install 3.8.10` in that case.
 
 4. Install `pip3` and its dependencies.
 

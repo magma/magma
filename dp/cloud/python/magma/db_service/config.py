@@ -48,7 +48,7 @@ class TestConfig(Config):
     Configuration class for db service
     """
     SQLALCHEMY_DB_URI = os.environ.get(
-        'SQLALCHEMY_DB_URI', 'postgresql+psycopg2://postgres:postgres@db:5433/dp_test',
+        'SQLALCHEMY_DB_URI', 'postgresql+psycopg2://postgres:postgres@db:5432/dp_test',
     )
 
 

@@ -44,16 +44,19 @@ type DBCbsdBuilder struct {
 func NewDBCbsdBuilder() *DBCbsdBuilder {
 	return &DBCbsdBuilder{
 		Cbsd: &storage.DBCbsd{
-			UserId:                  db.MakeString(someUserId),
-			FccId:                   db.MakeString(someFccId),
-			CbsdSerialNumber:        db.MakeString(someSerialNumber),
-			PreferredBandwidthMHz:   db.MakeInt(20),
-			PreferredFrequenciesMHz: db.MakeString("[3600]"),
-			MinPower:                db.MakeFloat(10),
-			MaxPower:                db.MakeFloat(20),
-			NumberOfPorts:           db.MakeInt(2),
-			CbsdCategory:            db.MakeString(catB),
-			SingleStepEnabled:       db.MakeBool(false),
+			UserId:                    db.MakeString(someUserId),
+			FccId:                     db.MakeString(someFccId),
+			CbsdSerialNumber:          db.MakeString(someSerialNumber),
+			PreferredBandwidthMHz:     db.MakeInt(20),
+			PreferredFrequenciesMHz:   db.MakeString("[3600]"),
+			MinPower:                  db.MakeFloat(10),
+			MaxPower:                  db.MakeFloat(20),
+			NumberOfPorts:             db.MakeInt(2),
+			CbsdCategory:              db.MakeString(catB),
+			SingleStepEnabled:         db.MakeBool(false),
+			CarrierAggregationEnabled: db.MakeBool(false),
+			GrantRedundancy:           db.MakeBool(true),
+			MaxIbwMhx:                 db.MakeInt(150),
 		},
 	}
 }
@@ -165,6 +168,21 @@ func (b *DBCbsdBuilder) WithSingleStepEnabled(enabled bool) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithCarrierAggregationEnabled(enabled bool) *DBCbsdBuilder {
+	b.Cbsd.CarrierAggregationEnabled = db.MakeBool(enabled)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithGrantRedundancy(enabled bool) *DBCbsdBuilder {
+	b.Cbsd.GrantRedundancy = db.MakeBool(enabled)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithMaxIbwMhx(ibw int64) *DBCbsdBuilder {
+	b.Cbsd.MaxIbwMhx = db.MakeInt(ibw)
+	return b
+}
+
 func (b *DBCbsdBuilder) WithShouldDeregister(should bool) *DBCbsdBuilder {
 	b.Cbsd.ShouldDeregister = db.MakeBool(should)
 	return b
@@ -185,9 +203,14 @@ func (b *DBCbsdBuilder) WithCbsdCategory(cat string) *DBCbsdBuilder {
 	return b
 }
 
-func (b *DBCbsdBuilder) WithDefaulValues() *DBCbsdBuilder {
-	return b.WithCbsdCategory(catB).WithSingleStepEnabled(false).WithIndoorDeployment(false)
-}
+// func (b *DBCbsdBuilder) WithDefaulValues() *DBCbsdBuilder {
+// 	return b.WithCbsdCategory(catB).
+// 		WithSingleStepEnabled(false).
+// 		WithIndoorDeployment(false).
+// 		WithGrantRedundancy(true).
+// 		WithCarrierAggregationEnabled(false).
+// 		WithMaxIbwMhx(150)
+// }
 
 type DBGrantBuilder struct {
 	Grant *storage.DBGrant
@@ -244,11 +267,14 @@ func NewCbsdProtoPayloadBuilder() *CbsdProtoPayloadBuilder {
 				MinPower:         10,
 				MaxPower:         20,
 				NumberOfAntennas: 2,
+				MaxIbwMhz:        150,
 			},
-			DesiredState:      registered,
-			CbsdCategory:      catB,
-			SingleStepEnabled: false,
-			InstallationParam: &protos.InstallationParam{},
+			DesiredState:              registered,
+			CbsdCategory:              catB,
+			SingleStepEnabled:         false,
+			InstallationParam:         &protos.InstallationParam{},
+			CarrierAggregationEnabled: false,
+			GrantRedundancy:           true,
 		},
 	}
 }
@@ -446,6 +472,7 @@ func NewCbsdModelPayloadBuilder() *CbsdModelPayloadBuilder {
 			MaxPower:         to_pointer.Float(20),
 			MinPower:         to_pointer.Float(10),
 			NumberOfAntennas: 2,
+			MaxIbwMhz:        150,
 		},
 		SingleStepEnabled: false,
 		CbsdCategory:      catB,
@@ -454,11 +481,13 @@ func NewCbsdModelPayloadBuilder() *CbsdModelPayloadBuilder {
 			BandwidthMhz:   20,
 			FrequenciesMhz: []int64{3600},
 		},
-		FccID:        someFccId,
-		SerialNumber: someSerialNumber,
-		UserID:       someUserId,
-		CbsdID:       someCbsdId,
-		State:        registered,
+		FccID:                     someFccId,
+		SerialNumber:              someSerialNumber,
+		UserID:                    someUserId,
+		CbsdID:                    someCbsdId,
+		State:                     registered,
+		CarrierAggregationEnabled: false,
+		GrantRedundancy:           true,
 	}}
 }
 
@@ -501,10 +530,13 @@ func NewMutableCbsdModelPayloadBuilder() *MutableCbsdModelBuilder {
 			MaxPower:         to_pointer.Float(20),
 			MinPower:         to_pointer.Float(10),
 			NumberOfAntennas: 2,
+			MaxIbwMhz:        150,
 		},
-		DesiredState:      registered,
-		SingleStepEnabled: to_pointer.Bool(false),
-		CbsdCategory:      catB,
+		DesiredState:              registered,
+		SingleStepEnabled:         to_pointer.Bool(false),
+		CarrierAggregationEnabled: to_pointer.Bool(false),
+		GrantRedundancy:           to_pointer.Bool(true),
+		CbsdCategory:              catB,
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   20,
 			FrequenciesMhz: []int64{3600},
@@ -560,11 +592,34 @@ func (b *MutableCbsdModelBuilder) WithNumberOfAntennas(number int64) *MutableCbs
 	return b
 }
 
+func (b *MutableCbsdModelBuilder) WithMaxIbwMhz(number int64) *MutableCbsdModelBuilder {
+	b.Payload.Capabilities.MaxIbwMhz = number
+	return b
+}
+
 func (b *MutableCbsdModelBuilder) WithSingleStepEnabled(enabled *bool) *MutableCbsdModelBuilder {
 	if enabled == nil {
 		b.Payload.SingleStepEnabled = nil
 	} else {
 		b.Payload.SingleStepEnabled = to_pointer.Bool(*enabled)
+	}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithCarrierAggregationEnabled(enabled *bool) *MutableCbsdModelBuilder {
+	if enabled == nil {
+		b.Payload.CarrierAggregationEnabled = nil
+	} else {
+		b.Payload.CarrierAggregationEnabled = to_pointer.Bool(*enabled)
+	}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithGrantRedundancy(enabled *bool) *MutableCbsdModelBuilder {
+	if enabled == nil {
+		b.Payload.GrantRedundancy = nil
+	} else {
+		b.Payload.GrantRedundancy = to_pointer.Bool(*enabled)
 	}
 	return b
 }

@@ -278,6 +278,4 @@ RUN for SWAGGER_SRC in lte orc8r; \
     rm -r ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/test; \
     done
 
-RUN ln -fs $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
-
 WORKDIR $MAGMA_ROOT

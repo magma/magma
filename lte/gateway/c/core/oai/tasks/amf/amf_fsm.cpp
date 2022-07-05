@@ -161,6 +161,8 @@ void create_state_matrix() {
   Update_ue_state_matrix(REGISTERED_CONNECTED,
                          STATE_PDU_SESSION_RELEASE_COMPLETE, INACTIVE,
                          REGISTERED_CONNECTED, RELEASED, "PDU_Release");
+  Update_ue_state_matrix(REGISTERED_IDLE, STATE_PDU_SESSION_RELEASE_COMPLETE,
+                         INACTIVE, REGISTERED_IDLE, RELEASED, "PDU_Release");
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 

@@ -53,6 +53,10 @@ spec:
               value: {{.Values.dp.fluentd.env.output_port | quote }}
             - name: FLUENTD_OUTPUT_FLUSH_INTERVAL
               value: {{.Values.dp.fluentd.env.output_flush_interval | quote }}
+            - name: SERVICE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           volumeMounts:
             - name: config-volume
               mountPath: /fluentd/etc

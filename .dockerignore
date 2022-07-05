@@ -57,6 +57,8 @@
 !dp/protos/
 !dp/Makefile
 
+!build/gen
+
 !protos/
 
 !xwf/gateway/

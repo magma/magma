@@ -31,7 +31,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
+	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -188,7 +188,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 
 	resultBytes, err := result.Encode()
 	if err != nil {
-		return &cwfprotos.AuthenticateResponse{}, errors.Wrap(err, "Error encoding Radius packet")
+		return &cwfprotos.AuthenticateResponse{}, fmt.Errorf("Error encoding Radius packet: %w", err)
 	}
 	radiusPacket := &cwfprotos.AuthenticateResponse{RadiusPacket: resultBytes}
 
@@ -198,15 +198,15 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 func (srv *UESimServer) Disconnect(ctx context.Context, id *cwfprotos.DisconnectRequest) (*cwfprotos.DisconnectResponse, error) {
 	radiusP, err := srv.MakeAccountingStopRequest(id.GetCalledStationID())
 	if err != nil {
-		return nil, errors.Wrap(err, "Error making Accounting Stop Radius message")
+		return nil, fmt.Errorf("Error making Accounting Stop Radius message: %w", err)
 	}
 	response, err := radius.Exchange(context.Background(), radiusP, srv.cfg.radiusAcctAddress)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error exchanging Radius message")
+		return nil, fmt.Errorf("Error exchanging Radius message: %w", err)
 	}
 	encoded, err := response.Encode()
 	if err != nil {
-		return nil, errors.Wrap(err, "Error encoding Radius packet")
+		return nil, fmt.Errorf("Error encoding Radius packet: %w", err)
 	}
 	return &cwfprotos.DisconnectResponse{RadiusPacket: encoded}, nil
 }
@@ -263,25 +263,26 @@ func blobToUE(blob blobstore.Blob) (*cwfprotos.UEConfig, error) {
 func getUE(blobStoreFactory blobstore.StoreFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
 	store, err := blobStoreFactory.StartTransaction(nil)
 	if err != nil {
-		err = errors.Wrap(err, "Error while starting transaction")
+		err = fmt.Errorf("Error while starting transaction: %w", err)
 		return
 	}
 	defer func() {
-		switch err {
-		case nil:
+		if err == nil {
 			if commitErr := store.Commit(); commitErr != nil {
-				err = errors.Wrap(err, "Error while committing transaction")
+				err = fmt.Errorf("Error while committing transaction: %w", commitErr)
 			}
-		default:
+		} else {
 			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				glog.Errorf("Error while rolling back transaction: %s", err)
+				glog.Errorf("Error while rolling back transaction: %s", rollbackErr)
+				errs := multierror.Append(err, fmt.Errorf("Error while rolling back transaction: %w", rollbackErr))
+				err = errs.ErrorOrNil()
 			}
 		}
 	}()
 
 	blob, err := store.Get(networkIDPlaceholder, storage.TK{Type: blobTypePlaceholder, Key: imsi})
 	if err != nil {
-		err = errors.Wrap(err, "Error getting UE with specified IMSI")
+		err = fmt.Errorf("Error getting UE with specified IMSI: %w", err)
 		return
 	}
 	ue, err = blobToUE(blob)
@@ -397,9 +398,9 @@ func executeCommand(command string, argList []string) (*IperfResponse, error) {
 	rawOutput, err := cmd.Output()
 	output, _ := (&IperfResponse{}).FromBytes(rawOutput)
 	if err != nil {
-		newError := errors.Wrap(err, fmt.Sprintf(
+		newError := fmt.Errorf(fmt.Sprintf(
 			"error while executing \"%s %s\"\n output:\n%v",
-			command, strings.Join(argList, " "), string(rawOutput)))
+			command, strings.Join(argList, " "), string(rawOutput))+": %w", err)
 		glog.Error(newError)
 		return output, newError
 	}

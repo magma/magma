@@ -35,11 +35,12 @@ any production hardware on hand to test an end-to-end setup.
 We'll be setting up the LTE AGW VM in this tab.
 
 You need to make sure that your local network setup is correct for the VM to
-start properly. Especially the entry `* 192.168.0.0/16` must exist in your
+start properly. Especially the entries `* 192.168.0.0/16` and `* 3001::/64` must exist in your
 `/etc/vbox/networks.conf`.
 
 ```bash
 HOST [magma]$ echo "* 192.168.0.0/16" | sudo tee -a /etc/vbox/networks.conf
+HOST [magma]$ echo "* 3001::/64" | sudo tee -a /etc/vbox/networks.conf
 HOST [magma]$ cd lte/gateway
 HOST [magma/lte/gateway]$ vagrant up magma
 ```
@@ -143,15 +144,15 @@ admin_operator.pem      certifier.key           controller.csr          rootCA.p
 admin_operator.pfx      certifier.pem           controller.key          rootCA.srl
 ```
 
-The owner and group of `admin_cert.key.pem` and `admin_cert.pfx` in `/magma/.cache/test_certs/` are `root`.
+The owner and group of `admin_operator.key.pem` and `admin_operator.pfx` in `/magma/.cache/test_certs/` are `root`.
 You need to change ownership of these files to your user with `chown`, e.g.
 
 ```bash
-HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.key.pem
-HOST [magma/orc8r/cloud/docker] sudo chown username:username ../../../.cache/test_certs/admin_cert.pfx
+HOST [magma/orc8r/cloud/docker] sudo chown ${USER}:${USER} ../../../.cache/test_certs/admin_operator.key.pem
+HOST [magma/orc8r/cloud/docker] sudo chown ${USER}:${USER} ../../../.cache/test_certs/admin_operator.pfx
 ```
 
-Replace `username` with your username, then:
+then:
 
 ```bash
 HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs

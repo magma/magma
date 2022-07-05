@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+      width: 70%;
+    }
+
+    td,
+    th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Test Cases Run Summary</h2>
+  <h3>Test Run <a href="http://automation.fbmagma.ninja/">Dashboard</a>
+  </h3>
+  <h3>Magma build {{ sw }}</h3>
+  <h3>Test Run SUT Log <a href="https://ens-spirent-test-summary.com.s3.amazonaws.com/logs/{{ log_file }}"
+      download="Magma_log">Magma_log</a>
+  </h3>
+  <h4>Test Run SUT Cores <a
+      href="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/index.html?prefix=cores/">Check cores</a>
+    </h3>
+    <table>
+      <tr>
+        <th> Test Case Name </th>
+        <th> SUT </th>
+        <th> Test Run Results </th>
+        <th> Test Results Analytics </th>
+        <th> Test Result File </th>
+      </tr>
+      {% for key, value in result.items() %}
+      <tr>
+        <td> {{ key }} </td>
+        <td> {{ value['tc_run_sut'] }} </td>
+        <td> {{ value['result'] }} </td>
+        <td> {{ value['fail_procs'] }} </td>
+        <td><a
+            href="https://ens-spirent-test-summary.com.s3.amazonaws.com/{{ value['test_suite'] }}/{{ value['test_results_file'] }}">test_result_file</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>

@@ -161,7 +161,7 @@ as follows:
 From within the gdb shell, `bt` command will display the backtrace for the
 segmentation fault.
 
-TODO: add steps to read coredumps from python services
+<!-- TODO: add steps to read coredumps from python services -->
 
 ### Running MME with gdb
 If you need to debug MME with gdb, make sure all the services that it is

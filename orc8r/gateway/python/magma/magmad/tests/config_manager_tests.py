@@ -14,7 +14,7 @@ import asyncio
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
-from google.protobuf.any_pb2 import Any
+from google.protobuf.any_pb2 import Any  # pylint: disable=no-name-in-module
 from google.protobuf.json_format import MessageToJson
 from magma.configuration.mconfig_managers import MconfigManagerImpl
 from magma.magmad.config_manager import CONFIG_STREAM_NAME, ConfigManager

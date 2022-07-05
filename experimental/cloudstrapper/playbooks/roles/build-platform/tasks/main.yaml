@@ -1,14 +1,14 @@
 ---
 
-- include: py-packages.yaml
+- include_tasks: py-packages.yaml
   tags: py
-- include: build-tools-packages.yaml
+- include_tasks: build-tools-packages.yaml
   tags: tools
-- include: magma-repo.yaml
+- include_tasks: magma-repo.yaml
   tags: setupMagma
-- include: build-magma.yaml
+- include_tasks: build-magma.yaml
   tags: buildMagma
-- include: publish-magma.yaml
+- include_tasks: publish-magma.yaml
   tags: pubMagma
-- include: publish-helm.yaml
+- include_tasks: publish-helm.yaml
   tags: pubHelm
