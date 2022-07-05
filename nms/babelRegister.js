@@ -14,4 +14,8 @@
  * @format
  */
 
-require('@babel/register')({rootMode: 'upward', ignore: []});
+require('@babel/register')({
+  rootMode: 'upward',
+  ignore: [],
+  extensions: ['.ts', '.js'],
+});
