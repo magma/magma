@@ -871,6 +871,15 @@ def save_lockfile(lockfilename: str, lockfilecontent: str) -> None:
 
 
 def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
+    """
+    Puts all input dependencies into a single list, consolidates repeated dependencies, and sorts output.
+
+    Args:
+        input_deps: List of dependencies. Can be paths to setup.py files or explicit dependencies.
+
+    Returns:
+        List of pkg_resources.Requirement objects.
+    """
     dependencies = []  # type: List[pkg_resources.Requirement]
     explicit = []  # type: List[str]
     setup_py = []  # type: List[str]
