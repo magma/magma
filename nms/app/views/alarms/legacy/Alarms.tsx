@@ -14,15 +14,11 @@
 import * as React from 'react';
 import AppContext from '../../../components/context/AppContext';
 import FBCAlarms from '../components/Alarms';
-import type {ApiUtil} from '../components/AlarmsApi';
+import {MagmaAlarmsApiUtil} from '../../../state/AlarmsApiUtil';
 import type {Labels} from '../components/AlarmAPIType';
 
-type Props = {
-  apiUtil: ApiUtil;
-};
-
-export default function Alarms(props: Props) {
-  const {apiUtil} = props;
+export default function Alarms() {
+  const apiUtil = MagmaAlarmsApiUtil;
   const {isFeatureEnabled} = React.useContext(AppContext);
   const disabledTabs = React.useMemo(
     () =>
