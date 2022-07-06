@@ -893,7 +893,7 @@ def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
     return sorted(dependencies, key=lambda d: str(d))
 
 
-def _consolidate_dependencies(dependencies):
+def _consolidate_dependencies(dependencies: List[pkg_resources.Requirement]) -> List[pkg_resources.Requirement]:
     """
     Consolidates dependencies to remove repeated entries.
     """
@@ -913,9 +913,9 @@ def _consolidate_dependencies(dependencies):
     return dependencies
 
 
-def split_input_root_requirements(input_root_requirements: List[pkg_resources.Requirement], use_py2: bool):
+def split_input_root_requirements(input_root_requirements: List[pkg_resources.Requirement],
+                                  use_py2: bool) -> Tuple[List[pkg_resources.Requirement], List[pkg_resources.Requirement]]:
     """
-
     Args:
         input_root_requirements: List of dependencies. Can be paths to setup.py files or explicit dependencies.
 
