@@ -19,16 +19,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/merrors"
-
-	"github.com/golang/glog"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type cbsdManager struct {
@@ -69,10 +69,6 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
 	}
-	if cbsd == nil {
-		glog.Warningf("Cbsd %s not updated", data.CbsdSerialNumber.String)
-		return &protos.UpdateCbsdResponse{}, nil
-	}
 	msg, _ := json.Marshal(request)
 	log := &logs_pusher.DPLog{
 		EventTimestamp:   clock.Now().Unix(),
@@ -82,6 +78,7 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 		LogMessage:       string(msg),
 		CbsdSerialNumber: cbsd.CbsdSerialNumber.String,
 		NetworkId:        cbsd.NetworkId.String,
+		FccId:            cbsd.FccId.String,
 	}
 	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
 		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)

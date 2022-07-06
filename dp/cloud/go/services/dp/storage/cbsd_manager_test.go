@@ -17,15 +17,15 @@ import (
 	"fmt"
 	"testing"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/stretchr/testify/suite"
+
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/dp/cloud/go/services/dp/storage/dbtest"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/merrors"
-
-	sq "github.com/Masterminds/squirrel"
-	"github.com/stretchr/testify/suite"
 )
 
 const (

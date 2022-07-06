@@ -15,6 +15,7 @@ type DPLog struct {
 	LogMessage       string `json:"log_message"`
 	CbsdSerialNumber string `json:"cbsd_serial_number"`
 	NetworkId        string `json:"network_id"`
+	FccId            string `json:"fcc_id"`
 }
 
 type LogPusher func(ctx context.Context, log *DPLog, consumerUrl string) error

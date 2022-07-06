@@ -16,11 +16,11 @@ package storage
 import (
 	"database/sql"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/merrors"
-
-	sq "github.com/Masterminds/squirrel"
 )
 
 type CbsdManager interface {
@@ -89,8 +89,8 @@ func (c *cbsdManager) CreateCbsd(networkId string, data *MutableCbsd) error {
 func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *MutableCbsd) error {
 	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
-		cbsd, err := runner.updateCbsd(networkId, id, data)
-		return cbsd, err
+		_, err := runner.updateCbsd(networkId, id, data)
+		return nil, err
 	})
 	return makeError(err, c.errorChecker)
 }
@@ -232,12 +232,13 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 	data.Cbsd.DesiredStateId = db.MakeInt(desiredState)
 	data.Cbsd.ShouldDeregister = db.MakeBool(true)
 	columns := append(getCbsdWriteFields(), "should_deregister")
+	mask = db.NewIncludeMask(columns...)
 	models, err := db.NewQuery().
 		WithBuilder(c.builder).
 		From(data.Cbsd).
-		Select(db.NewIncludeMask(columns...)).
+		Select(mask).
 		Where(sq.Eq{"id": id}).
-		Update(db.NewIncludeMask(columns...))
+		Update(mask)
 	cbsd := models[0].(*DBCbsd)
 	return cbsd, err
 }
@@ -246,8 +247,11 @@ func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) (*DBCbsd, err
 	mask := db.NewIncludeMask(getEnodebdWritableFields()...)
 	filters := sq.Eq{"cbsd_serial_number": data.CbsdSerialNumber}
 	cbsd, err := c.selectForUpdateIfCbsdExists(mask, filters)
+	if err != nil {
+		return nil, err
+	}
 	if !ShouldENodeBDUpdate(cbsd, data) {
-		return nil, nil
+		return cbsd, nil
 	}
 	data.ShouldDeregister = db.MakeBool(true)
 	columns := append(getEnodebdWritableFields(), "should_deregister")

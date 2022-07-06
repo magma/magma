@@ -25,7 +25,7 @@ func (s *stubFluentdServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestLogsPusher(t *testing.T) {
 	testServer := httptest.NewServer(&stubFluentdServer{
-		expectedPayload: `{"cbsd_serial_number":"cbsdId1234", "event_timestamp":12345, "log_from":"SAS", "log_message":"some log message", "log_name":"someLogName", "log_to":"DP", "network_id":"someNetwork"}`,
+		expectedPayload: `{"cbsd_serial_number":"cbsdId1234", "event_timestamp":12345, "fcc_id":"someFccId", "log_from":"SAS", "log_message":"some log message", "log_name":"someLogName", "log_to":"DP", "network_id":"someNetwork"}`,
 		t:               t,
 	})
 	defer testServer.Close()
@@ -37,6 +37,7 @@ func TestLogsPusher(t *testing.T) {
 		LogMessage:       "some log message",
 		CbsdSerialNumber: "cbsdId1234",
 		NetworkId:        "someNetwork",
+		FccId:            "someFccId",
 	}
 	err := PushDPLog(context.Background(), log, fmt.Sprintf("%s/%s", testServer.URL, "dp"))
 	assert.NoError(t, err)

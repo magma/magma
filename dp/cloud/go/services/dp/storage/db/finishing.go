@@ -36,13 +36,20 @@ func (q *Query) Insert(mask FieldMask) (int64, error) {
 
 func (q *Query) Update(mask FieldMask) ([]Model, error) {
 	q.arg.inputMask = mask
-	c := collectColumns(q)
-	models, pointers := c.getPointers()
-	suffix := getSuffix(c.getColumnNames())
-	err := q.builder.
+	baseQuery := q.builder.
 		Update(buildFrom(q.arg)).
 		SetMap(filterValues(q.arg)).
-		Where(q.arg.filter).
+		Where(q.arg.filter)
+
+	c := collectColumns(q)
+	cols := c.getColumnNames()
+	if cols == nil {
+		_, err := baseQuery.Exec()
+		return nil, err
+	}
+	models, pointers := c.getPointers()
+	suffix := getSuffix(cols)
+	err := baseQuery.
 		Suffix(suffix).
 		QueryRow().
 		Scan(pointers...)
@@ -50,9 +57,6 @@ func (q *Query) Update(mask FieldMask) ([]Model, error) {
 }
 
 func getSuffix(columns []string) string {
-	if len(columns) == 0 {
-		return ""
-	}
 	return "RETURNING " + strings.Join(columns, ", ")
 }
 

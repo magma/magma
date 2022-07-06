@@ -16,6 +16,8 @@ package builders
 import (
 	"time"
 
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
@@ -23,8 +25,6 @@ import (
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
-
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -662,6 +662,7 @@ func NewDPLogBuilder() *DPLogBuilder {
 		LogMessage:       "some log message",
 		CbsdSerialNumber: "some_serial_number",
 		NetworkId:        "some_network",
+		FccId:            "some_fcc_id",
 	}}
 }
 

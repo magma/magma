@@ -18,6 +18,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/protos"
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
@@ -26,12 +32,6 @@ import (
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/merrors"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -580,7 +580,7 @@ func (s *stubCbsdManager) DeregisterCbsd(networkId string, id int64) error {
 }
 
 func (p *LogPusher) pushLogs(_ context.Context, log *logs_pusher.DPLog, consumerUrl string) error {
-	assert.Equal(p.t, consumerUrl, p.expectedLogConsumerUrl)
+	assert.Equal(p.t, p.expectedLogConsumerUrl, consumerUrl)
 	assert.Equal(p.t, p.expectedLog, *log)
 	return nil
 }
