@@ -19,6 +19,8 @@
 
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -33,10 +35,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
 }
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 namespace magma {
 namespace lte {
