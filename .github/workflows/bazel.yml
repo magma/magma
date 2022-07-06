@@ -1,6 +1,7 @@
 ---
 name: "Bazel Build & Test"
-on:  # yamllint disable-line rule:truthy
+on:
+  # yamllint disable-line rule:truthy
   workflow_dispatch:
   pull_request:
     types:
@@ -19,7 +20,6 @@ env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   CACHE_KEY: bazel-base-image
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
@@ -31,7 +31,7 @@ jobs:
       files_changed: ${{ steps.changes.outputs.files_changed }}
     steps:
       # Need to get git on push event
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         if: github.event_name == 'pull_request'
         id: changes
         with:
@@ -71,9 +71,9 @@ jobs:
           df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           options: --pull always
@@ -81,7 +81,7 @@ jobs:
           run: |
             echo "Pulled the bazel base image!"
       - name: Run bazel build, test, starlark format check & python import check
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -119,13 +119,13 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2 &&
             bazel/scripts/test_python_service_imports.sh
       - name: Publish bazel build profile
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel build all profile
           path: Bazel_build_all_profile
       - name: Publish bazel test profile
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel test all profile
@@ -137,7 +137,7 @@ jobs:
           df -h
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
           SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...`"
@@ -170,9 +170,9 @@ jobs:
           df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Setup Bazel Base Image
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           options: --pull always
@@ -180,7 +180,7 @@ jobs:
           run: |
             echo "Pulled the bazel base image!"
       - name: Build .deb Packages
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
@@ -192,7 +192,7 @@ jobs:
               --config=production \
               --profile=Bazel_build_package_profile
       - name: Publish bazel profile
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel build package profile
@@ -204,7 +204,7 @@ jobs:
           df -h
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
           SLACK_TITLE: "Bazel Package Job"
@@ -219,14 +219,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Execute check
         shell: bash
         run: |
           ./bazel/scripts/check_py_bazel.sh
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
           SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
@@ -241,14 +241,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Execute check
         shell: bash
         run: |
           ./bazel/scripts/check_c_cpp_bazel.sh
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
           SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"

@@ -1,7 +1,7 @@
 ---
 name: nms-workflow
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -26,9 +26,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
         with:
           filters: |
@@ -39,7 +39,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -53,19 +53,19 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: install flow
         run: |
-            cd ${MAGMA_ROOT}/nms
-            # Extract the specified flow version from the .flowconfig
-            yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
-      - uses: borales/actions-yarn@v3.0.0
+          cd ${MAGMA_ROOT}/nms
+          # Extract the specified flow version from the .flowconfig
+          yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+      - uses: borales/actions-yarn@d8ce577a6f5d99a459fc7fdf2a86844617e353e4 # pin@v3.0.0
         with:
-          cmd: install  # will run `yarn install` command
+          cmd: install # will run `yarn install` command
       - name: flow typecheck
         run: |
-            cd ${MAGMA_ROOT}/nms
-            yarn run flow
+          cd ${MAGMA_ROOT}/nms
+          yarn run flow
       - name: Extract commit title
         id: commit
         if: failure() && github.event_name == 'push'
@@ -76,7 +76,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS flow tests failed"
@@ -131,8 +131,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/setup-node@1f8c6b94b26d0feae1e387ca63ccbdc44d27b561 # pin@v2
         with:
           node-version: 16
       - name: apt install yarn
@@ -161,7 +161,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS eslint tests failed"
@@ -178,10 +178,10 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: borales/actions-yarn@v3.0.0
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: borales/actions-yarn@d8ce577a6f5d99a459fc7fdf2a86844617e353e4 # pin@v3.0.0
         with:
-          cmd: install  # will run `yarn install` command
+          cmd: install # will run `yarn install` command
       - name: run yarn test
         run: |
           cd ${MAGMA_ROOT}/nms
@@ -197,7 +197,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS yarn tests failed"
@@ -217,39 +217,39 @@ jobs:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: apt install yarn
         run: |
-            cd ${MAGMA_ROOT}/nms
-            sudo apt-get install -y apt-transport-https
-            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-            sudo apt-get update -y
-            sudo apt-get install -y yarn
-            yarn add jest@^26.4.2 -W --dev
+          cd ${MAGMA_ROOT}/nms
+          sudo apt-get install -y apt-transport-https
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt-get update -y
+          sudo apt-get install -y yarn
+          yarn add jest@^26.4.2 -W --dev
       - name: apt install chrome
         run: |
-            cd ${MAGMA_ROOT}/nms
-            # Install latest chrome dev package
-            # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
-            # installs, work.
-            curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
-            sudo apt-get update -y
-            sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
-            sudo rm -rf /var/lib/apt/lists/*
-      - uses: borales/actions-yarn@v3.0.0
+          cd ${MAGMA_ROOT}/nms
+          # Install latest chrome dev package
+          # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
+          # installs, work.
+          curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+          sudo apt-get update -y
+          sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
+          sudo rm -rf /var/lib/apt/lists/*
+      - uses: borales/actions-yarn@d8ce577a6f5d99a459fc7fdf2a86844617e353e4 # pin@v3.0.0
         with:
-          cmd: install  # will run `yarn install` command
+          cmd: install # will run `yarn install` command
       - name: run e2e_test_setup.sh
         run: |
-            source $NVM_DIR/nvm.sh
-            nvm install stable
-            cd ${MAGMA_ROOT}/nms
-            ./e2e_test_setup.sh
+          source $NVM_DIR/nvm.sh
+          nvm install stable
+          cd ${MAGMA_ROOT}/nms
+          ./e2e_test_setup.sh
       - name: Publish Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: NMS Test Results
           path: "/tmp/nms_artifacts/*"
@@ -263,7 +263,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS e2e tests failed"

@@ -1,7 +1,7 @@
 ---
 name: dp-workflow
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -10,7 +10,7 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
       - 'v1.*'
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -27,9 +27,9 @@ jobs:
       helm: ${{ steps.filter.outputs.helm }}
       integration_tests: ${{ steps.filter.outputs.integration_tests }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: filter
         with:
           filters: |
@@ -77,7 +77,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.filter.outputs.integration_tests  == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -96,12 +96,12 @@ jobs:
         working-directory: dp/cloud/python/magma/configuration_controller
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -126,7 +126,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
@@ -150,15 +150,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         with:
           go-version: ${{ matrix.go-version }}
 
       - name: Run Go linter
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # pin@v2
         with:
           version: v1.45.0
           working-directory: dp/cloud/go/active_mode_controller
@@ -169,13 +169,12 @@ jobs:
           go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         with:
           flags: unittests,active-mode-controller
           name: codecov-active-mode-controller
           fail_ci_if_error: false
           verbose: true
-
 
   radio_controller_unit_tests:
     needs: path_filter
@@ -194,13 +193,13 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -251,7 +250,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         with:
           flags: unittests,radio-controller
           name: codecov-radio-controller
@@ -272,7 +271,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}/dp/cloud/python
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
     services:
       postgres:
         image: postgres:13.3
@@ -283,10 +282,10 @@ jobs:
           POSTGRES_PASSWORD: postgres
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -321,13 +320,13 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -352,7 +351,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         with:
           flags: unittests,db-service
           name: codecov-db-service
@@ -377,12 +376,12 @@ jobs:
           - _ci_integration_tests_orc8r
           - _ci_integration_tests_no_orc8r
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Set env
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
       - name: Install Minikube
-        uses: manusa/actions-setup-minikube@v2.4.1
+        uses: manusa/actions-setup-minikube@cdef63c020a1c7b3d4787f30b3787ca1095ed9a7 # pin@v2.4.1
         with:
           minikube version: 'v1.21.0'
           kubernetes version: 'v1.20.7'
@@ -408,21 +407,17 @@ jobs:
       - name: Collect Pods logs
         if: always()
         run: >-
-          mkdir ${TEST_DIR}/k8s-pods-logs;
-          for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers);
-          do
+          mkdir ${TEST_DIR}/k8s-pods-logs; for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers); do
             kubectl logs --timestamps=true $pod > ${TEST_DIR}/k8s-pods-logs/${pod}.log;
           done
       - name: Collect Elasticsearch data
         if: always()
         run: >
-          kubectl exec
-          $(kubectl get pods -o custom-columns=NAME:.metadata.name | grep elasticsearch)
-          -- curl localhost:9200/dp-*/_search?size=200 > ${TEST_DIR}/elasticsearch-data.json
+          kubectl exec $(kubectl get pods -o custom-columns=NAME:.metadata.name | grep elasticsearch) -- curl localhost:9200/dp-*/_search?size=200 > ${TEST_DIR}/elasticsearch-data.json
 
       - name: Upload integration test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: ${{ matrix.test_type }}-results
           path: ${{ env.TEST_DIR }}
@@ -436,12 +431,12 @@ jobs:
       run:
         working-directory: dp
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Set env
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
       - name: Install Minikube
-        uses: manusa/actions-setup-minikube@v2.4.1
+        uses: manusa/actions-setup-minikube@cdef63c020a1c7b3d4787f30b3787ca1095ed9a7 # pin@v2.4.1
         with:
           minikube version: 'v1.21.0'
           kubernetes version: 'v1.20.7'

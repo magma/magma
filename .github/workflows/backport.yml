@@ -1,7 +1,7 @@
 ---
 name: backport
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -13,18 +13,18 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.7'
       - run: |
-            mkdir ~/.magma
-            echo ${{ secrets.GITHUB_TOKEN }} > ~/.magma/github_access_token
+          mkdir ~/.magma
+          echo ${{ secrets.GITHUB_TOKEN }} > ~/.magma/github_access_token
       - name: Install python prerequisites
         run: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
       - run: |
-            cd ${MAGMA_ROOT}/.github/workflows/scripts
-            fab find_release_commits
+          cd ${MAGMA_ROOT}/.github/workflows/scripts
+          fab find_release_commits
       - name: Extract commit title
         if: failure()
         id: commit
@@ -33,7 +33,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure()
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Failure of backport on master"

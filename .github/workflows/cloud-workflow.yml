@@ -1,7 +1,7 @@
 ---
 name: cloud-workflow
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -10,7 +10,7 @@ on:  # yamllint disable-line rule:truthy
     branches:
       - master
       - 'v1.*'
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -23,9 +23,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
         with:
           filters: |
@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -52,8 +52,8 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       GO111MODULE: 'on'
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.7'
       - name: deploy-sync-checkin
@@ -74,7 +74,7 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         if: always() && steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
@@ -90,11 +90,11 @@ jobs:
         timeout-minutes: 15
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         if: always()
         id: gateway_test_init
         with:
@@ -120,7 +120,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack for deploy-sync-checkin
         if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
@@ -131,7 +131,7 @@ jobs:
           SLACK_FOOTER: ' '
       - name: Notify failure to Slack for cloud-test
         if: steps.cloud-test.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-test failed"
@@ -142,7 +142,7 @@ jobs:
           SLACK_FOOTER: ' '
       - name: Notify failure to Slack for cloud-lint
         if: ( steps.cloud-lint.outcome=='failure' || steps.cloud-lint-codecov.outcome=='failure' || steps.cloud-lint-cov.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-test failed"
@@ -153,7 +153,7 @@ jobs:
           SLACK_FOOTER: ' '
       - name: Notify failure to Slack for orc8r-gateway-test
         if: ( steps.gateway_test_init.outcome=='failure' || steps.gateway_test_dep.outcome=='failure' || steps.gateway_test.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action orc8r-gateway-test failed"
