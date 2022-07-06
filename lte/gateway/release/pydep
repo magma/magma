@@ -944,6 +944,30 @@ def get_lockfile(lockfile_path: str) -> Lockfile:
     return lf
 
 
+def get_required_distributions(root_requirements: List[pkg_resources.Requirement],
+                               pip_distributions: Dict[str, pkg_resources.Distribution]) \
+        -> Dict[str, pkg_resources.Distribution]:
+    """
+    Finds the `required_distributions` dict for the main function.
+    The function iterates with a breadth-first search over the dependency tree to
+    add all items of `root_requirements`, i.e. the packages we did not find an apt
+    dependency via `apt.Cache`. During iteration it adds all further upstream dependencies.
+    """
+    required_distributions = {}
+    to_traverse = [pip_distributions[k] for k in [req.key for req in root_requirements]]
+    while to_traverse:
+        dist = to_traverse.pop()
+        required_distributions[dist.key] = dist
+        requires = dist.requires()
+        for req in requires:
+            prereq_dist = pip_distributions.get(req.key)
+            if prereq_dist:
+                to_traverse.append(prereq_dist)
+            else:
+                log.error('{} required but not detected'.format(prereq_dist))
+    return required_distributions
+
+
 def main(args):
     """
     This script resolves and installs python dependencies.
@@ -1025,20 +1049,8 @@ def main(args):
         pip_distributions = gen_pip_distributions(root_requirements,
                                                   existing_versions=existing_versions,
                                                   venv=venv)
-
-        required_distributions = {}
-        to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]
-                       if k not in [inst.key for inst in repo_installable]]
-        while to_traverse:
-            dist = to_traverse.pop()
-            required_distributions[dist.key] = dist
-            requires = dist.requires()
-            for req in requires:
-                prereq_dist = pip_distributions.get(req.key)
-                if prereq_dist:
-                    to_traverse.append(prereq_dist)
-                else:
-                    log.error('{} required but not detected'.format(prereq_dist))
+        required_distributions = get_required_distributions(root_requirements=root_requirements,
+                                                            pip_distributions=pip_distributions)
 
     dep_set = {p.key: p.version for p in required_distributions.values()
                if p.key not in PIP_BLACKLIST}
