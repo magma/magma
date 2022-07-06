@@ -89,7 +89,7 @@ func (c *cbsdManager) CreateCbsd(networkId string, data *MutableCbsd) error {
 func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *MutableCbsd) error {
 	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
-		_, err := runner.updateCbsd(networkId, id, data)
+		err := runner.updateCbsd(networkId, id, data)
 		return nil, err
 	})
 	return makeError(err, c.errorChecker)
@@ -175,7 +175,6 @@ func (c *cbsdManagerInTransaction) createCbsd(networkId string, data *MutableCbs
 	_, err = db.NewQuery().
 		WithBuilder(c.builder).
 		From(data.Cbsd).
-		Select(mask).
 		Insert(mask)
 	return err
 }
@@ -220,27 +219,26 @@ func getEnodebdWritableFields() []string {
 	}
 }
 
-func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *MutableCbsd) (*DBCbsd, error) {
+func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *MutableCbsd) error {
 	mask := db.NewIncludeMask("id")
 	if _, err := c.selectForUpdateIfCbsdExists(mask, getCbsdFiltersWithId(networkId, id)); err != nil {
-		return nil, err
+		return err
 	}
 	desiredState, err := c.cache.getValue(c.builder, &DBCbsdState{}, data.DesiredState.Name.String)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	data.Cbsd.DesiredStateId = db.MakeInt(desiredState)
 	data.Cbsd.ShouldDeregister = db.MakeBool(true)
 	columns := append(getCbsdWriteFields(), "should_deregister")
 	mask = db.NewIncludeMask(columns...)
-	models, err := db.NewQuery().
+	_, err = db.NewQuery().
 		WithBuilder(c.builder).
 		From(data.Cbsd).
-		Select(mask).
+		Select(db.NewIncludeMask()).
 		Where(sq.Eq{"id": id}).
 		Update(mask)
-	cbsd := models[0].(*DBCbsd)
-	return cbsd, err
+	return err
 }
 
 func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) (*DBCbsd, error) {
@@ -288,7 +286,7 @@ func (c *cbsdManagerInTransaction) markCbsdAsDeleted(networkId string, id int64)
 	_, err := db.NewQuery().
 		WithBuilder(c.builder).
 		From(&DBCbsd{IsDeleted: db.MakeBool(true)}).
-		Select(mask).
+		Select(db.NewIncludeMask()).
 		Where(sq.Eq{"id": id}).
 		Update(mask)
 	if err != nil {
