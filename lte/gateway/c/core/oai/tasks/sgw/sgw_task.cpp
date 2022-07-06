@@ -228,8 +228,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* spgw_app_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_SPGW_APP);
   const task_id_t peer_task_id[] = {TASK_MME_APP};
-  init_task_context(TASK_SPGW_APP, peer_task_id, 1,
-                    handle_message, &spgw_app_task_zmq_ctx);
+  init_task_context(TASK_SPGW_APP, peer_task_id, 1, handle_message,
+                    &spgw_app_task_zmq_ctx);
 
   zloop_start(spgw_app_task_zmq_ctx.event_loop);
   AssertFatal(0,

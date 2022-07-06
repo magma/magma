@@ -990,10 +990,10 @@ status_code_e sgw_handle_modify_bearer_request(
             // This is best effort, ignore return code.
             gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
             // delete GTPv1-U tunnel
-            if(gtp_tunnel_ops->del_tunnel(
-                enb, enb_ipv6, ue_ipv4, ue_ipv6,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-                eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
+            if (gtp_tunnel_ops->del_tunnel(
+                    enb, enb_ipv6, ue_ipv4, ue_ipv6,
+                    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                    eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
               OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                               "ERROR in deleting TUNNEL " TEID_FMT
                               " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -1121,10 +1121,10 @@ status_code_e sgw_handle_delete_session_request(
             }
 
 #if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
-            if(gtp_tunnel_ops->del_tunnel(
-                enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-                eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
+            if (gtp_tunnel_ops->del_tunnel(
+                    enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                    eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
               OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                               "ERROR in deleting TUNNEL " TEID_FMT
                               " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -1320,8 +1320,8 @@ void handle_s5_create_session_response(
   sgi_create_endpoint_resp.context_teid = session_resp.context_teid;
   sgi_create_endpoint_resp.eps_bearer_id = session_resp.eps_bearer_id;
   sgi_create_endpoint_resp.paa.pdn_type =
-      (pdn_type_value_t) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-          .pdn_type;
+      (pdn_type_value_t)new_bearer_ctxt_info_p
+          ->sgw_eps_bearer_context_information.saved_message.pdn_type;
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
@@ -1486,8 +1486,9 @@ status_code_e sgw_handle_suspend_notification(
         ue_ipv6 = &eps_bearer_entry_p->paa.ipv6_address;
       }
 #if !MME_UNIT_TEST
-      if(gtp_tunnel_ops->discard_data_on_tunnel(
-          ue_ipv4, ue_ipv6, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL) < 0) {
+      if (gtp_tunnel_ops->discard_data_on_tunnel(
+              ue_ipv4, ue_ipv6, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up,
+              NULL) < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                         "ERROR in Disabling DL data on TUNNEL\n");
       }
@@ -1711,10 +1712,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
             ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
           }
 #if !MME_UNIT_TEST
-          if(gtp_tunnel_ops->del_tunnel(
-              enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
+          if (gtp_tunnel_ops->del_tunnel(
+                  enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                  eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                  eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
             OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                             "ERROR in deleting TUNNEL " TEID_FMT
                             " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -1791,10 +1792,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
                 &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
           }
 #if !MME_UNIT_TEST
-          if(gtp_tunnel_ops->del_tunnel(
-              enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->enb_teid_S1u, &dlflow) < 0) {
+          if (gtp_tunnel_ops->del_tunnel(
+                  enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                  eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                  eps_bearer_ctxt_p->enb_teid_S1u, &dlflow) < 0) {
             OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                             "ERROR in deleting TUNNEL " TEID_FMT
                             " (eNB) <-> (SGW) " TEID_FMT "\n",

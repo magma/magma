@@ -129,7 +129,6 @@ void generate_dl_flow(packet_filter_contents_t* packet_filter,
                       in_addr_t ipv4_s_addr, struct in6_addr* ue_ipv6,
                       struct ip_flow_dl* dlflow);
 
-
 void sgw_handle_delete_bearer_cmd(
     itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
     imsi64_t imsi64);
