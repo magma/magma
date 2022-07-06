@@ -913,6 +913,26 @@ def _consolidate_dependencies(dependencies):
     return dependencies
 
 
+def split_input_root_requirements(input_root_requirements: List[pkg_resources.Requirement], use_py2: bool):
+    """
+
+    Args:
+        input_root_requirements: List of dependencies. Can be paths to setup.py files or explicit dependencies.
+
+    Returns:
+        List of pkg_resources.Requirement objects.
+    """
+    root_requirements = []  # type: List[pkg_resources.Requirement]
+    repo_installable = []  # type: List[pkg_resources.Requirement]
+    for req in input_root_requirements:
+        repo_version = get_latest_apt_pkg_version(req.key, use_py2)
+        if repo_version and repo_version in req:
+            repo_installable.append(req)
+        else:
+            root_requirements.append(req)
+    return repo_installable, root_requirements
+
+
 def main(args):
     """
     This script resolves and installs python dependencies.
@@ -960,14 +980,7 @@ def main(args):
 
     existing_versions = {}  # type: Dict[str, str]
 
-    root_requirements = []  # type: List[pkg_resources.Requirement]
-    repo_installable = []  # type: List[pkg_resources.Requirement]
-    for req in input_root_requirements:
-        repo_version = get_latest_apt_pkg_version(req.key, args.use_py2)
-        if repo_version and repo_version in req:
-            repo_installable.append(req)
-        else:
-            root_requirements.append(req)
+    repo_installable, root_requirements = split_input_root_requirements(input_root_requirements, args.use_py2)
 
     try:
         with open(args.lockfile, 'r') as r:
