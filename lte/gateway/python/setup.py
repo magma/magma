@@ -119,7 +119,7 @@ setup(
         'idna==2.8',
         'python-dateutil==2.8.1',
         'six>=1.12.0',
-        'eventlet==0.30.2',
+        'eventlet==0.33.1',
         'h2>=3.2.0',
         'hpack>=3.0',
         'freezegun>=0.3.15',
