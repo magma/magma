@@ -25,7 +25,7 @@ bash /home/vagrant/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/dev.sh build_t
 ```
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
-
+```
 S.No | OVS      |          Artifact   | Artifact  |   Commit ID                            | Used patches    | uploaded by     | PR Num | Date
      | upstream |                     |  Hash     |                                        |                 |                 |        |    
      | version  |                     |           |                                        |                 |                 |        |
@@ -33,3 +33,4 @@ S.No | OVS      |          Artifact   | Artifact  |   Commit ID                 
 |
 |1   | 2.15     | openvswitch-common  | 74ec3df   |d6025236f7d518629d412346bd9ee82ffa07a907| 0024-QFI-support| prabinakpattnaik| 10556  | 2022-07-05 
                   _2.15.4-9_amd64.deb |           |                                        | -in-OVS.patch
+```
