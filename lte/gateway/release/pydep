@@ -933,6 +933,17 @@ def split_input_root_requirements(input_root_requirements: List[pkg_resources.Re
     return repo_installable, root_requirements
 
 
+def get_lockfile(lockfile_path: str) -> Lockfile:
+    try:
+        with open(lockfile_path, 'r') as r:
+            lf = Lockfile(data=r.read())
+    except FileNotFoundError:
+        log.error("Lockfile not found: {}".format(args.lockfile))
+        log.info("Use default reference lockfile instead.")
+        lf = Lockfile()
+    return lf
+
+
 def main(args):
     """
     This script resolves and installs python dependencies.
@@ -982,13 +993,7 @@ def main(args):
 
     repo_installable, root_requirements = split_input_root_requirements(input_root_requirements, args.use_py2)
 
-    try:
-        with open(args.lockfile, 'r') as r:
-            lf = Lockfile(data=r.read())
-    except FileNotFoundError:
-        log.error("Lockfile not found: {}".format(args.lockfile))
-        log.info("Use default reference lockfile instead.")
-        lf = Lockfile()
+    lf = get_lockfile(lockfile_path=args.lockfile)
 
     deps = lf.dependencies()
     for key in deps:
