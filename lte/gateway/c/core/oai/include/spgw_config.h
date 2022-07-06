@@ -56,5 +56,4 @@ void free_spgw_config(spgw_config_t* spgw_config_p);
 }
 #endif
 
-
 #endif /* FILE_SPGW_CONFIG_SEEN */

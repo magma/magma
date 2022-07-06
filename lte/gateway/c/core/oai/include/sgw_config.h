@@ -135,7 +135,8 @@ status_code_e sgw_config_parse_file(sgw_config_t* config_pP);
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e sgw_config_parse_string(const char* config_string, sgw_config_t* config_pP);
+status_code_e sgw_config_parse_string(const char* config_string,
+                                      sgw_config_t* config_pP);
 void free_sgw_config(sgw_config_t* sgw_config);
 void sgw_config_display(sgw_config_t* config_p);
 #ifdef __cplusplus

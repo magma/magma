@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_ue_ip_address_alloc.h
+/*! \file pgw_ue_ip_address_alloc.hpp
  * \brief
  * \author
  * \company

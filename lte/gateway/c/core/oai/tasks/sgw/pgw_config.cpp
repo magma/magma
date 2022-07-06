@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file spgw_config.c
+/*! \file pgw_config.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -449,7 +449,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
                         "Bad SDF identifier value %d for dedicated bearer",
                         sdf_id);
             config_pP->pcef.automatic_push_dedicated_bearer_sdf_identifier =
-               (sdf_id_t)sdf_id;
+                (sdf_id_t)sdf_id;
           }
 
           if (config_setting_lookup_int(

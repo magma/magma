@@ -39,7 +39,7 @@ void spgw_handle_pcef_create_session_response(
     imsi64_t imsi64);
 
 status_code_e spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
-                                                   ebi_t lbi);
+                                                        ebi_t lbi);
 
 status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     spgw_state_t* state,

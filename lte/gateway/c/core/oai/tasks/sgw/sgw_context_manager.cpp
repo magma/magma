@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_context_manager.c
+/*! \file sgw_context_manager.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -140,7 +140,8 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
       NULL;
   new_bearer_context_information =
-      (s_plus_p_gw_eps_bearer_context_information_t*)calloc(1, sizeof(s_plus_p_gw_eps_bearer_context_information_t));
+      (s_plus_p_gw_eps_bearer_context_information_t*)calloc(
+          1, sizeof(s_plus_p_gw_eps_bearer_context_information_t));
 
   if (new_bearer_context_information == NULL) {
     /*
@@ -194,7 +195,7 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
 
 //-----------------------------------------------------------------------------
 hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
-                                                       imsi64_t imsi64) {
+                                                        imsi64_t imsi64) {
   hashtable_rc_t temp = HASH_TABLE_OK;
 
   hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
@@ -245,7 +246,8 @@ sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
 
   if (!sgw_pdn_connection
            ->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)]) {
-    new_eps_bearer_entry = (sgw_eps_bearer_ctxt_t*) calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+    new_eps_bearer_entry =
+        (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
 
     if (new_eps_bearer_entry == NULL) {
       /*

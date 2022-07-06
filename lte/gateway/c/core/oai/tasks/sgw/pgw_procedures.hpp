@@ -17,7 +17,7 @@
 #ifndef FILE_PGW_PROCEDURES_SEEN
 #define FILE_PGW_PROCEDURES_SEEN
 
-/*! \file pgw_procedures.h
+/*! \file pgw_procedures.hpp
   \brief  Just a workaround waiting for PCEF implementation
   \author Lionel Gauthier
   \company Eurecom

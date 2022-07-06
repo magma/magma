@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_handlers.h
+/*! \file sgw_handlers.hpp
  * \brief
  * \author Lionel Gauthier
  * \company Eurecom

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_handlers.c
+/*! \file pgw_handlers.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -524,7 +524,7 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
 
 //------------------------------------------------------------------------------
 status_code_e spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
-                                                   ebi_t lbi) {
+                                                        ebi_t lbi) {
   status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
@@ -550,8 +550,8 @@ status_code_e sgw_build_and_send_s11_create_bearer_request(
   MessageDef* message_p = NULL;
   status_code_e rc = RETURNerror;
 
-  message_p =
-      itti_alloc_new_message(TASK_SPGW_APP, S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
+  message_p = itti_alloc_new_message(TASK_SPGW_APP,
+                                     S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
   if (!message_p) {
     OAILOG_ERROR_UE(module, sgw_eps_bearer_context_information->imsi64,
                     "Failed to allocate message_p for"
@@ -613,7 +613,7 @@ status_code_e create_temporary_dedicated_bearer_context(
     uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
-      (sgw_eps_bearer_ctxt_t*) calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+      (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
 
   if (!eps_bearer_ctxt_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
@@ -676,7 +676,8 @@ status_code_e create_temporary_dedicated_bearer_context(
     }
   }
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
-      (sgw_eps_bearer_entry_wrapper_s*) calloc(1, sizeof(*sgw_eps_bearer_entry_p));
+      (sgw_eps_bearer_entry_wrapper_s*)calloc(1,
+                                              sizeof(*sgw_eps_bearer_entry_p));
   if (!sgw_eps_bearer_entry_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
                     "Failed to allocate memory for sgw_eps_bearer_entry_p\n");

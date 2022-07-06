@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_causes.c
+/*! \file s11_causes.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
@@ -32,19 +32,21 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 
 static const SGWCauseMapping_t causes[] = {
-    {LOCAL_DETACH, (char*) "Local detach", 0, 0, 0, 0},
-    {COMPLETE_DETACH, (char*) "Complete detach", 0, 0, 0, 0},
-    {RAT_CHANGE_3GPP_TO_NON_3GPP, (char*)"From 3GPP to non 3GPP RAT change", 0, 0, 0,
-     0},
+    {LOCAL_DETACH, (char*)"Local detach", 0, 0, 0, 0},
+    {COMPLETE_DETACH, (char*)"Complete detach", 0, 0, 0, 0},
+    {RAT_CHANGE_3GPP_TO_NON_3GPP, (char*)"From 3GPP to non 3GPP RAT change", 0,
+     0, 0, 0},
     {ISR_DEACTIVATION, (char*)"ISR deactivation", 0, 0, 0, 0},
-    {ERROR_IND_FROM_RNC_ENB_SGSN, (char*)"Error ind received from RNC/eNB/SGSN", 0, 0,
-     0, 0},
+    {ERROR_IND_FROM_RNC_ENB_SGSN, (char*)"Error ind received from RNC/eNB/SGSN",
+     0, 0, 0, 0},
     {IMSI_DETACH_ONLY, (char*)"IMSI detach only", 0, 0, 0, 0},
     {REQUEST_ACCEPTED, (char*)"Request accepted", 1, 1, 1, 1},
-    {REQUEST_ACCEPTED_PARTIALLY, (char*)"Request accepted partially", 1, 1, 1, 0},
-    {NEW_PDN_TYPE_NW_PREF, (char*)"New PDN type network preference", 1, 0, 0, 0},
-    {NEW_PDN_TYPE_SAB_ONLY, (char*)"New PDN type single address bearer only", 1, 0, 0,
+    {REQUEST_ACCEPTED_PARTIALLY, (char*)"Request accepted partially", 1, 1, 1,
      0},
+    {NEW_PDN_TYPE_NW_PREF, (char*)"New PDN type network preference", 1, 0, 0,
+     0},
+    {NEW_PDN_TYPE_SAB_ONLY, (char*)"New PDN type single address bearer only", 1,
+     0, 0, 0},
     {CONTEXT_NOT_FOUND, (char*)"Context not found", 0, 1, 1, 1},
     {INVALID_MESSAGE_FORMAT, (char*)"Invalid message format", 1, 1, 1, 1},
     {INVALID_LENGTH, (char*)"Invalid length", 1, 1, 1, 0},
@@ -60,10 +62,10 @@ static const SGWCauseMapping_t causes[] = {
     {NO_MEMORY_AVAILABLE, (char*)"No memory available", 1, 1, 1, 0},
     {REQUEST_REJECTED, (char*)"Request rejected", 1, 1, 1, 0},
     {INVALID_PEER, (char*)"Invalid peer", 0, 0, 0, 1},
-    {TEMP_REJECT_HO_IN_PROGRESS, (char*)"Temporarily rejected due to HO in progress",
-     0, 0, 0, 0},
-    {M_PDN_APN_NOT_ALLOWED, (char*)"Multiple PDN for a given APN not allowed", 1, 0, 0,
-     0},
+    {TEMP_REJECT_HO_IN_PROGRESS,
+     (char*)"Temporarily rejected due to HO in progress", 0, 0, 0, 0},
+    {M_PDN_APN_NOT_ALLOWED, (char*)"Multiple PDN for a given APN not allowed",
+     1, 0, 0, 0},
     {0, NULL, 0, 0, 0, 0},
 };
 
@@ -78,8 +80,9 @@ char* sgw_cause_2_string(uint8_t cause_value) {
   SGWCauseMapping_t *res, key;
 
   key.value = cause_value;
-  res = (SGWCauseMapping_t *)bsearch((const void*)&key, causes, sizeof(causes), sizeof(SGWCauseMapping_t),
-                compare_cause_id);
+  res =
+      (SGWCauseMapping_t*)bsearch((const void*)&key, causes, sizeof(causes),
+                                  sizeof(SGWCauseMapping_t), compare_cause_id);
 
   if (res == NULL) {
     return (char*)"Unknown cause";

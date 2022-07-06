@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_pco.c
+/*! \file pgw_pco.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -188,7 +188,7 @@ status_code_e pgw_process_pco_request_ipcp(
         idp[5] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 24) & 0x000000FF);
         ipcp_out_length += 6;
         bcatblk(poc_id_resp.contents, idp, 6);
-        } break;
+      } break;
 
       case IPCP_OPTION_SECONDARY_DNS_SERVER_IP_ADDRESS: {
         /* RFC 1877
@@ -246,7 +246,7 @@ status_code_e pgw_process_pco_request_ipcp(
         ids[5] = (uint8_t)((ipcp_out_dns_sec_ipv4_addr >> 24) & 0x000000FF);
         ipcp_out_length += 6;
         bcatblk(poc_id_resp.contents, ids, 6);
-        } break;
+      } break;
 
       default:
         OAILOG_WARNING(LOG_SPGW_APP,

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_causes.h
+/*! \file s11_causes.hpp
  * \brief
  * \author Sebastien ROUX, Lionel Gauthier
  * \company Eurecom

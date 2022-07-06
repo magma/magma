@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file spgw_config.c
+/*! \file spgw_config.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
