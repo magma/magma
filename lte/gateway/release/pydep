@@ -524,8 +524,11 @@ def py_to_deb(pkgname: str,
 
     Args:
         pkgname: The name of the Python package (on PyPI)
+        pip_distributions: List of the pip dependencies.
+        build_output: Output directory for the package. Default is the current directory
         version: (optional) The desired version (Default: most recent).
         more_args: (optional) Add raw arguments to the fpm call.
+        py2: Whether to use python 2 package names
 
     Return:
         Exit code of fpm call (0 is success)
@@ -778,17 +781,30 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
                     pypi_only: bool = True,
                     py2: bool = False) -> Dict[str, str]:
     """
-    Given a populated dep_sources, figure out where we can get
-    them from. We'll actually check if the versions are satisfiable.
+    Given a populated `dep_set`, figure out where we can get
+    the dependencies from. This function returns a dictionary that contains the
+    dependency name and the source, e.g. {"urllib": "pypi"}.
+
+    1. Check if `pypi_only` is set to True. Set "pypi" for all dependencies then.
+    2. For each package in `dep_set`, try to get the latest apt version.
+    3. If the latest apt version is the same as the one specified in `dep_set`,
+       then just use the latest.
+    4. Else check if apt can satisfy with a newer version.
+    5. If apt can not satisfy, fall back to pypi.
+
+    the specific version is available on apt. If yes, use that.
+    Else e
+
+    Args:
+        dep_set: The dict of dependencies and versions.
+        pypi_only: If given, always write "pypi" as source for every dependency.
+        py2: Whether to use python2 package names for apt.
     """
+    if pypi_only:
+        return {k: "pypi" for k in dep_set}
+
     dep_source = {}  # type: Dict[str, str]
-    for pkg in dep_set:
-        ver = dep_set[pkg]
-
-        if pypi_only:
-            dep_source[pkg] = "pypi"
-            continue
-
+    for pkg, ver in dep_set.items():
         # check if apt can satisfy the version
         apt_ver = get_latest_apt_pkg_version(pkg, py2)
         if apt_ver:
