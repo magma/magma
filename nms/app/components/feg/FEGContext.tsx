@@ -22,7 +22,7 @@ import type {
   FederationGateway,
   FegNetwork,
   SubscriberState,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
 import MagmaAPI from '../../api/MagmaAPI';

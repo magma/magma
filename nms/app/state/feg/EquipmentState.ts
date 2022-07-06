@@ -14,7 +14,7 @@
 import type {
   FederationGateway,
   MutableFederationGateway,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
 import type {OptionsObject} from 'notistack';
 

@@ -21,7 +21,7 @@ import Link from '@material-ui/core/Link';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import withAlert from '../../components/Alert/withAlert';
-import {Apn} from '../../../generated-ts';
+import {Apn} from '../../../generated';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';

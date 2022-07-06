@@ -25,7 +25,7 @@ import {
 } from '../../components/context/RefreshContext';
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
-import type {FederationGateway, Subscriber} from '../../../generated-ts';
+import type {FederationGateway, Subscriber} from '../../../generated';
 
 /**
  * @property {FederationGateway} gwInfo The Federation gateway being looked at

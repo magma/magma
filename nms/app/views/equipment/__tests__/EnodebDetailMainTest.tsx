@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {PromqlReturnObject} from '../../../../generated-ts';
+import type {PromqlReturnObject} from '../../../../generated';
 
 import * as hooks from '../../../components/context/RefreshContext';
 import EnodebContext from '../../../components/context/EnodebContext';
@@ -170,10 +170,6 @@ describe('<Enodeb />', () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
 
-    // TODO - commenting this out till we have per enodeb metric support
-    // expect(
-    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    // ).toHaveBeenCalledTimes(2);
     expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial0',
     );
@@ -215,10 +211,6 @@ describe('<Enodeb />', () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
 
-    // TODO - commenting this out till we have per enodeb metric support
-    // expect(
-    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    // ).toHaveBeenCalledTimes(2);
     expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial1',
     );

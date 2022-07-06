@@ -13,7 +13,7 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {EditProps} from './GatewayDetailConfigEdit';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {LteGateway} from '../../../generated-ts';
+import type {LteGateway} from '../../../generated';
 
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';

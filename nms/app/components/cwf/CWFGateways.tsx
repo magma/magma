@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {CwfGateway, CwfHaPair} from '../../../generated-ts';
+import type {CwfGateway, CwfHaPair} from '../../../generated';
 import type {WithAlert} from '../Alert/withAlert';
 
 import AddGatewayDialog from '../AddGatewayDialog';

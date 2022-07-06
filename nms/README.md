@@ -11,7 +11,7 @@ The Magma NMS provides an enterprise grade GUI for provisioning and operating ma
 
 The NMS application lives in [`nms/`](../nms/).
 Here, `package.json` specifies the necessary dependencies and development scripts.
-Triggering unit tests, e2e tests, eslint, and flow tests is done from this directory.
+Triggering unit tests, e2e tests, eslint, and TypeScript checks is done from this directory.
 
 ---
 ## Running Local Dev NMS
@@ -116,7 +116,7 @@ If this is the case, you should be able to see the relevant error logs through y
 ## Testing
 
 ### Install Dependencies
-Running eslint and flow tests requires installing dependencies.
+Running eslint and TypeScript checks requires installing dependencies.
 
 Install node and npm if you haven't already
 
@@ -137,11 +137,11 @@ Version `7.3.2` of `eslint` is used currently.
 yarn run eslint ./
 ```
 
-### Flow
+### TypeScript
 Run from [`nms/`](../nms/).
-Version `0.132.0` of `flow` is used currently.
+Version `4.7.4` of `TypeScript` is used currently.
 ```
-flow
+yarn run tsc
 ```
 
 ### Unit Tests
@@ -171,17 +171,10 @@ Run `yarn test --coverage`
 ---
 ## Updating NMS for API Changes
 
-### How to re-generate MagmaAPIBindings.js
+### How to re-generate TypeScript API bindings
 Run `./build.py --generate` in `${MAGMA_ROOT}/orc8r/cloud/docker`
 
-This re-generates various files, including `MagmaAPIBindings.js` for NMS.
-
-### How to re-generate MagmaAPIBindings.js (old)
-1. Place an up-to-date `swagger.yml` in [`nms/`](../nms/)
-   You can get the full `swagger.yml` at `{orc8r domain}/swagger/v1/spec`
-   (e.g. `https://localhost:9443/swagger/v1/spec`)
-2. Run `scripts/generateAPIFromSwagger.sh` from [`nms/`](../nms/)
-3. Delete `swagger.yml` afterwards
+This re-generates various files, including the TypeScript API bindings for NMS.
 
 ---
 ## Accessing Local Dev NMS

@@ -13,12 +13,12 @@
 
 import {isEqual, sortBy} from 'lodash';
 
-import OrchestartorAPI from '../server/api/OrchestratorAPI';
+import OrchestartorAPI from '../api/OrchestratorAPI';
 import Sequelize from 'sequelize';
-import logging from '../shared/logging';
+import logging from '../../shared/logging';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
 import {AxiosError} from 'axios';
-import {CWF, NetworkType} from '../shared/types/network';
+import {CWF, NetworkType} from '../../shared/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
@@ -32,19 +32,19 @@ import {
   SubscriberDBData,
   createDashboard,
 } from './dashboards/Dashboards';
-import {Organization} from '../shared/sequelize_models';
+import {Organization} from '../../shared/sequelize_models';
 import {Request} from 'express';
 import {XWFMDBData} from './dashboards/XWFMDashboards';
-import {apiCredentials} from '../config/config';
+import {apiCredentials} from '../../config/config';
 import type {
   CreateDashboardResponse,
   Datasource,
   PostDatasource,
 } from './GrafanaAPIType';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
-import type {OrganizationModel} from '../shared/sequelize_models/models/organization';
-import type {Tenant} from '../generated-ts';
-import type {UserModel} from '../shared/sequelize_models/models/user';
+import type {OrganizationModel} from '../../shared/sequelize_models/models/organization';
+import type {Tenant} from '../../generated';
+import type {UserModel} from '../../shared/sequelize_models/models/user';
 
 const logger = logging.getLogger(module);
 

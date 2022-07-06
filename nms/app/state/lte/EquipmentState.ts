@@ -25,7 +25,7 @@ import type {
   MutableLteGateway,
   PingRequest,
   Tier,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {
   EnodebSerial,

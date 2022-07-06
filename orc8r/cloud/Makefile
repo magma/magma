@@ -36,8 +36,7 @@ SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
 SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
 SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
-SWAGGER_NMS_OUT := $(MAGMA_ROOT)/nms/generated/MagmaAPIBindings.js
-SWAGGER_NMS_OUT_TS := $(MAGMA_ROOT)/nms/generated-ts/
+SWAGGER_NMS_OUT := $(MAGMA_ROOT)/nms/generated/
 
 OS_NAME := $(shell uname)
 
@@ -206,5 +205,4 @@ nms_prereqs_osx:
 
 nms_gen:
 	# generate Swagger API bindings for NMS
-	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwagger.sh $(SWAGGER_V1_YML) $(SWAGGER_NMS_OUT)
-	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwaggerForTypeScript.sh -f -i $(SWAGGER_V1_YML) -o $(SWAGGER_NMS_OUT_TS)
+	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwagger.sh -f -i $(SWAGGER_V1_YML) -o $(SWAGGER_NMS_OUT)

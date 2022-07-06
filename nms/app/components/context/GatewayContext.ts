@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {GatewayId} from '../../../shared/types/network';
-import type {LteGateway, MutableLteGateway} from '../../../generated-ts';
+import type {LteGateway, MutableLteGateway} from '../../../generated';
 import type {UpdateGatewayProps} from '../../state/lte/EquipmentState';
 
 import React from 'react';

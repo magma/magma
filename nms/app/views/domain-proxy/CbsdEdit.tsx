@@ -36,7 +36,7 @@ import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage, isAxiosErrorResponse} from '../../util/ErrorUtils';
-import type {Cbsd, MutableCbsd} from '../../../generated-ts';
+import type {Cbsd, MutableCbsd} from '../../../generated';
 
 const useStyles = makeStyles<Theme>(theme => ({
   appBarBtn: {

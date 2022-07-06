@@ -40,7 +40,7 @@ import {makeStyles} from '@material-ui/styles';
 import {Theme} from '@material-ui/core/styles';
 import type {ApiUtil} from './AlarmsApi';
 import type {Labels} from './AlarmAPIType';
-import type {PromFiringAlert} from '../../../../generated-ts';
+import type {PromFiringAlert} from '../../../../generated';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 const useTabStyles = makeStyles<Theme>(theme => ({

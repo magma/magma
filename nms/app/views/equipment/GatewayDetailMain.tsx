@@ -57,7 +57,7 @@ import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import type {LteGateway} from '../../../generated-ts';
+import type {LteGateway} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 const useStyles = makeStyles<Theme>(theme => ({

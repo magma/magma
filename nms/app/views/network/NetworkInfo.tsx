@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {FegLteNetwork, LteNetwork} from '../../../generated-ts';
+import type {FegLteNetwork, LteNetwork} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';

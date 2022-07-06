@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {BaseNameRecord} from '../../../generated-ts';
+import type {BaseNameRecord} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';

@@ -49,7 +49,7 @@ import MagmaAPI from '../../../api/MagmaAPI';
 import axios from 'axios';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated-ts';
+import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');

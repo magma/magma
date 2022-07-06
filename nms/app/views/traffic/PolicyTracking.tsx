@@ -20,7 +20,7 @@ import {AltFormField} from '../../components/FormField';
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
-import type {PolicyRule} from '../../../generated-ts';
+import type {PolicyRule} from '../../../generated';
 
 const useStyles = makeStyles(() => policyStyles);
 

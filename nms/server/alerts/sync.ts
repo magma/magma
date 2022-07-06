@@ -18,7 +18,7 @@ import getLteAlerts from './lteAlerts';
 
 import asyncHandler from '../util/asyncHandler';
 import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
-import type {PromAlertConfig} from '../../generated-ts';
+import type {PromAlertConfig} from '../../generated';
 import type {Request} from 'express';
 
 async function syncAlertsForNetwork(

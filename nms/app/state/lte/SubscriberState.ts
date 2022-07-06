@@ -17,7 +17,7 @@ import type {
   PaginatedSubscribers,
   Subscriber,
   SubscriberState,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {OptionsObject} from 'notistack';
 import type {SubscriberContextType} from '../../components/context/SubscriberContext';
 

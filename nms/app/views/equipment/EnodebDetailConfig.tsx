@@ -23,7 +23,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '../../../shared/util/nullthrows';
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
-import {NetworkRanConfigs} from '../../../generated-ts';
+import {NetworkRanConfigs} from '../../../generated';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';

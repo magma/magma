@@ -16,7 +16,7 @@ import type {
   NetworkEpcConfigs,
   NetworkRanConfigs,
   NetworkSubscriberConfig,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {NetworkId} from '../../../shared/types/network';
 
 import MagmaAPI from '../../api/MagmaAPI';
