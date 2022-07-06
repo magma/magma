@@ -9,14 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @format
  */
 
 // enforces copyright header to be present in every file
-// eslint-disable-next-line max-len
 const openSourcePattern = /\*\n \* Copyright \d{4} The Magma Authors\.\n \*\n \* This source code is licensed under the BSD-style license found in the\n \* LICENSE file in the root directory of this source tree\.\n \*\n \* Unless required by applicable law or agreed to in writing, software\n \* distributed under the License is distributed on an "AS IS" BASIS,\n \* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied\.\n \* See the License for the specific language governing permissions and\n \* limitations under the License\.\n \*\n/;
-// eslint-disable-next-line max-len
 const newOpenSourcePattern = /Copyright \d{4} The Magma Authors\./;
 const combinedOpenSourcePattern = new RegExp(
   '(' + newOpenSourcePattern.source + ')|(' + openSourcePattern.source + ')',
@@ -95,7 +91,7 @@ module.exports = {
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
-    'no-warning-comments': [1, {terms: ['$FlowFixMe'], location: 'anywhere'}],
+    'no-warning-comments': 'off',
     strict: 'off',
 
     // Import Plugin
@@ -179,6 +175,7 @@ module.exports = {
   overrides: [
     {
       files: ['**/*.js'],
+      excludedFiles: '**/sequelize_models/migrations/*.js',
       plugins: ['flowtype'],
       rules: {
         'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
@@ -191,7 +188,7 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.ts', '**/*.tsx'],
+      files: ['**/*.ts', '**/*.tsx', '**/sequelize_models/migrations/*.js'],
       extends: [
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
@@ -216,6 +213,10 @@ module.exports = {
         '@typescript-eslint/array-type': [2, {default: 'generic'}],
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/unbound-method': 'off',
+        '@typescript-eslint/no-unused-vars': [2, {ignoreRestSiblings: true}],
       },
     },
     {
@@ -228,11 +229,11 @@ module.exports = {
         'babelRegister.js',
         'jest.config.js',
         'jest.*.config.js',
-        'config/*.js',
-        'scripts/**/*.js',
-        'server/**/*.js',
-        'shared/**/*.js',
-        'grafana/**/*.js',
+        'config/*',
+        'scripts/**/*',
+        'server/**/*',
+        'shared/**/*',
+        'grafana/**/*',
       ],
       rules: {
         'no-console': 'off',
@@ -243,6 +244,7 @@ module.exports = {
         '**/*eslint*/*.js',
         '.eslintrc.js',
         'babel.config.js',
+        'babelRegister.js',
         'jest.config.js',
         '**/flow-typed/**/*.js',
         './babel.config.js',

@@ -9,8 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @format
  */
 
 module.exports = {
@@ -42,7 +40,7 @@ module.exports = {
       transform: {
         '^.+\\.(js|ts|tsx)$': 'babel-jest',
       },
-      setupFilesAfterEnv: ['./jest.setup.app.js'],
+      setupFilesAfterEnv: ['./jest.setup.app.ts'],
       resetMocks: true,
       restoreMocks: true,
     },

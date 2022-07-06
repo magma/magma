@@ -16,8 +16,14 @@
     "esModuleInterop": true,
     // Skip type checking of declaration files to speed up the type checking
     "skipLibCheck": true,
-    // Catch variables should be any
-    "useUnknownInCatchVariables": false
+    // Also check JS files - only used for old migrations
+    "allowJs": true,
+    "checkJs": true
   },
-  "exclude": ["node_modules", "**/*.js"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "shared/sequelize_models/migrations/*.js",
+  ],
+  "exclude": ["node_modules/**/*"]
 }
