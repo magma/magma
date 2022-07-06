@@ -70,7 +70,7 @@ jobs:
       - name: Propagate names for AWS essential components
         run: |
             sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' ${{ env.VARS_DIR }}/defaults.yaml
-            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket2/' ${{ env.VARS_DIR }}/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket3/' ${{ env.VARS_DIR }}/defaults.yaml
             sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' ${{ env.VARS_DIR }}/defaults.yaml
             sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' ${{ env.VARS_DIR }}/defaults.yaml
             sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' ${{ env.VARS_DIR }}/defaults.yaml
