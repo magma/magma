@@ -19,36 +19,55 @@ import type {
   lte_gateway,
 } from '../../../generated/MagmaAPIBindings';
 
+import * as React from 'react';
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import EmptyState from '../../components/EmptyState';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemText from '@material-ui/core/ListItemText';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
-import React, {useContext, useEffect, useState} from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
+import {FetchGateways} from '../../state/lte/EquipmentState';
+import {useInterval} from '../../hooks';
 
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {GatewayEditDialog} from './GatewayDetailConfigEdit';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
+  avatar: {
+    backgroundColor: colors.primary.comet,
+    color: colors.primary.white,
+    width: '24px',
+    height: '24px',
+    fontSize: '12px',
+    fontWeight: 'bold',
+  },
+  bulletList: {
+    padding: '8px',
+    listStyleType: 'disc',
+  },
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
@@ -79,6 +98,13 @@ const useStyles = makeStyles(theme => ({
   contentPlaceholder: {
     padding: '50px 0',
   },
+  emptyState: {
+    margin: '0',
+  },
+  emptyStateLink: {
+    marginLeft: '0px',
+    fontSize: '14px',
+  },
   paper: {
     height: 100,
     padding: theme.spacing(10),
@@ -91,29 +117,166 @@ const useStyles = makeStyles(theme => ({
   viewLabelText: {
     color: colors.primary.comet,
   },
+  listItemText: {
+    marginTop: '0px',
+  },
+  listItemPrimary: {
+    fontSize: '16px',
+    color: colors.primary.mirage,
+    marginBottom: '18px',
+  },
+  listItemSecondary: {
+    fontSize: '14px',
+    color: colors.primary.mirage,
+  },
+  listItem: {
+    alignItems: 'flex-start',
+  },
 }));
 
 const UPGRADE_VIEW = 'UPGRADE';
+const EMPTY_STATE_OVERVIEW =
+  'The Access Gateway (AGW) provides network services and policy enforcement. In an LTE network,' +
+  ' the AGW implements an evolved packet core (EPC). It works with existing, unmodified commercial radio hardware.';
+const EMPTY_STATE_INSTRUCTIONS_STEP_2 =
+  'The Access Gateway (AGW) is configured and managed via the orchestrator and is part of a specific organization.' +
+  'This configuration is made through the NMS as part of adding a new gateway to the system. ';
+const VIEW_DOCUMENTATION_LINK =
+  'https://docs.magmacore.org/docs/next/lte/deploy_install';
+const LEARN_MORE_LINK =
+  'https://docs.magmacore.org/docs/next/lte/deploy_config_agw';
 
 export default function Gateway() {
   const classes = useStyles();
+  const ctx = useContext(GatewayContext);
+  const [open, setOpen] = useState(false);
 
   return (
     <div className={classes.dashboardRoot}>
       <Grid container justifyContent="space-between" spacing={3}>
-        <Grid item xs={12}>
-          <GatewayCheckinChart />
-        </Grid>
-        <Grid item xs={12}>
-          <Paper elevation={0}>
-            <EquipmentGatewayKPIs />
-          </Paper>
-        </Grid>
-        <Grid item xs={12}>
-          <GatewayTable />
-        </Grid>
+        <GatewayEditDialog open={open} onClose={() => setOpen(false)} />
+        {Object.keys(ctx.state).length === 0 ? (
+          <EmptyState
+            title={'Set up a Gateway'}
+            customIntructions={
+              <GatewayEmptyStateList setOpen={() => setOpen(true)} />
+            }
+            instructions={''}
+            overviewTitle={'Access Gateway Overview'}
+            overviewDescription={EMPTY_STATE_OVERVIEW}
+          />
+        ) : (
+          <>
+            <Grid item xs={12}>
+              <GatewayCheckinChart />
+            </Grid>
+            <Grid item xs={12}>
+              <Paper elevation={0}>
+                <EquipmentGatewayKPIs />
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <GatewayTable />
+            </Grid>
+          </>
+        )}
       </Grid>
     </div>
+  );
+}
+
+function InstallGatewayList() {
+  const classes = useStyles();
+  return (
+    <ul className={classes.bulletList}>
+      <li>
+        Create bootable USB with OS (Ubuntu).
+        <Link href={VIEW_DOCUMENTATION_LINK} target="_blank">
+          View documentation
+        </Link>
+      </li>
+      <li>Install Magma service</li>
+      <li>
+        Download <Link href={''}>rootca.pem</Link> and{' '}
+        <Link href={''}>control_proxy.yml</Link> and install in
+        <code>/var/opt/magma/tmp/certs</code> and{' '}
+        <code>/var/opt/magma/configs</code> respectively. The rootCA.pem
+        validates server credentials and the control_proxy.yml file provides
+        orchestrator information to the gateway.
+      </li>
+      <li>Restart Magma services</li>
+      <li>
+        Gather hardware ID and challenge key to add to the NMS
+        <code>(show_gateway_info.py</code>)
+      </li>
+    </ul>
+  );
+}
+type GatewayInstructionsProps = {
+  setOpen: () => void,
+};
+function AddGatewayInstructions(props: GatewayInstructionsProps) {
+  const classes = useStyles();
+  return (
+    <Grid container direction="column" spacing={2}>
+      <Grid item>{EMPTY_STATE_INSTRUCTIONS_STEP_2}</Grid>
+      <Grid item>
+        <Grid container direction="column" spacing={3}>
+          <Grid item xs={3}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => props.setOpen()}>
+              Add Gateway
+            </Button>
+          </Grid>
+          <Grid item>
+            <Link
+              className={classes.emptyStateLink}
+              href={LEARN_MORE_LINK}
+              target="_blank">
+              Learn more about Access Gateway Configuration
+            </Link>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+  );
+}
+
+function GatewayEmptyStateList(props: GatewayInstructionsProps) {
+  const classes = useStyles();
+  return (
+    <List dense disablePadding>
+      <ListItem classes={{root: classes.listItem}} disableGutters>
+        <ListItemAvatar>
+          <Avatar classes={{root: classes.avatar}}>1</Avatar>
+        </ListItemAvatar>
+        <ListItemText
+          classes={{
+            root: classes.listItemText,
+            secondary: classes.listItemSecondary,
+            primary: classes.listItemPrimary,
+          }}
+          primary="Install and configure an Access Gateway"
+          secondary={<InstallGatewayList />}
+        />
+      </ListItem>
+      <ListItem classes={{root: classes.listItem}} disableGutters>
+        <ListItemAvatar>
+          <Avatar classes={{root: classes.avatar}}>2</Avatar>
+        </ListItemAvatar>
+        <ListItemText
+          classes={{
+            root: classes.listItemText,
+            secondary: classes.listItemSecondary,
+            primary: classes.listItemPrimary,
+          }}
+          primary="Add an Access Gateway"
+          secondary={<AddGatewayInstructions setOpen={() => props.setOpen()} />}
+        />
+      </ListItem>
+    </List>
   );
 }
 
@@ -198,13 +361,12 @@ function GatewayTable() {
 function UpgradeTable() {
   const ctx = useContext(GatewayTierContext);
   const gwCtx = useContext(GatewayContext);
-  const lteGateways = gwCtx.state;
   const navigate = useNavigate();
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const lteGatewayRows: Array<EquipmentGatewayUpgradeType> = [];
-  Object.keys(lteGateways)
-    .map((gwId: string) => lteGateways[gwId])
+  Object.keys(gwCtx.state)
+    .map((gwId: string) => gwCtx.state[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map((gateway: lte_gateway) => {
       const packages = gateway.status?.platform_info?.packages || [];
@@ -299,33 +461,24 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const networkId: string = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const gwCtx = useContext(GatewayContext);
-  const [lastRefreshTime, setLastRefreshTime] = useState(
-    new Date().toLocaleString(),
-  );
-  // Auto refresh gateways every 30 seconds
-  const state = useRefreshingContext({
-    context: GatewayContext,
-    networkId: networkId,
-    type: 'gateway',
-    interval: REFRESH_INTERVAL,
-    enqueueSnackbar,
-    refresh: props.refresh,
-    lastRefreshTime: lastRefreshTime,
-  });
-  const ctxValues = [...Object.values(gwCtx.state)];
-  useEffect(() => {
-    setLastRefreshTime(new Date().toLocaleString());
-  }, [ctxValues.length]);
-
   const subscriberCtx = useContext(SubscriberContext);
   const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
-
-  const lteGateways = state;
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
   const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
+  const REFRESH_INTERVAL = 3000;
+  useInterval(
+    () => {
+      FetchGateways({networkId, enqueueSnackbar}).then(gateways => {
+        if (gateways) {
+          gwCtx.setState('', undefined, gateways);
+        }
+      });
+    },
+    props.refresh ? REFRESH_INTERVAL : null,
+  );
 
-  Object.keys(lteGateways)
-    .map((gwId: string) => lteGateways[gwId])
+  Object.keys(gwCtx.state)
+    .map((gwId: string) => gwCtx.state[gwId])
     .filter((g: lte_gateway) => g.cellular && g.id)
     .map((gateway: lte_gateway) => {
       let numEnodeBs = 0;

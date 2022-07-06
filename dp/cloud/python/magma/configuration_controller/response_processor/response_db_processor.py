@@ -17,6 +17,7 @@ from typing import Callable, List
 import requests
 from magma.configuration_controller.config import get_config
 from magma.configuration_controller.custom_types.custom_types import DBResponse
+from magma.configuration_controller.metrics import SAS_RESPONSE_PROCESSING_TIME
 from magma.db_service.models import DBGrantState, DBRequest
 from magma.db_service.session_manager import Session
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
@@ -45,6 +46,7 @@ class ResponseDBProcessor(object):
         self.request_states_map = {}
         self.fluentd_client = fluentd_client
 
+    @SAS_RESPONSE_PROCESSING_TIME.time()
     def process_response(self, db_requests: List[DBRequest], response: requests.Response, session: Session) -> None:
         """
         Process SAS response.

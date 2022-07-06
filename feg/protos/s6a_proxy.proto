@@ -204,6 +204,9 @@ message UpdateLocationAnswer {
         PDNType pdn = 5;
 
         string charging_characteristics = 6;
+        // Values from Served-Party-IP-Address AVP
+        // See: https://www.etsi.org/deliver/etsi_ts/129200_129299/129272/17.02.00_60/ts_129272v170200p.pdf#page=124
+        repeated string served_party_ip_address = 7;
 
     // For details about values see 29.212
     message QoSProfile {

@@ -90,9 +90,11 @@ message CbsdData {
   string cbsd_category = 4;
   bool single_step_enabled = 5;
   string desired_state = 6;
-  Capabilities capabilities = 7;
-  FrequencyPreferences preferences = 8;
-  InstallationParam installation_param = 9;
+  bool carrier_aggregation_enabled = 7;
+  bool grant_redundancy = 8;
+  Capabilities capabilities = 9;
+  FrequencyPreferences preferences = 10;
+  InstallationParam installation_param = 11;
 }
 
 message InstallationParam {
@@ -108,6 +110,7 @@ message Capabilities {
   double min_power = 1;
   double max_power = 2;
   int64 number_of_antennas = 3;
+  int64 max_ibw_mhz = 4;
 }
 
 message FrequencyPreferences {

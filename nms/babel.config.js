@@ -10,9 +10,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-
  * @format
  */
+
+const sharedPresets = [
+  [
+    '@babel/preset-env',
+    {
+      targets: {
+        node: 'current',
+        chrome: '58',
+      },
+      corejs: 3,
+      useBuiltIns: 'entry',
+    },
+  ],
+  '@babel/preset-react',
+];
 
 module.exports = {
   ignore: [
@@ -25,21 +39,7 @@ module.exports = {
       return false;
     },
   ],
-  presets: [
-    [
-      '@babel/preset-env',
-      {
-        targets: {
-          node: 'current',
-          chrome: '58',
-        },
-        corejs: 3,
-        useBuiltIns: 'entry',
-      },
-    ],
-    '@babel/preset-flow',
-    '@babel/preset-react',
-  ],
+  presets: [...sharedPresets, '@babel/preset-flow'],
   plugins: [
     'babel-plugin-lodash',
     '@babel/plugin-proposal-class-properties',
@@ -52,4 +52,10 @@ module.exports = {
       sourceMaps: 'both',
     },
   },
+  overrides: [
+    {
+      test: /\.tsx?$/,
+      presets: [...sharedPresets, '@babel/preset-typescript'],
+    },
+  ],
 };

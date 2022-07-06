@@ -65,12 +65,24 @@ export default function NetworkInfo(props: Props) {
     ],
   ];
   if (networkCtx.networkType === FEG_LTE) {
-    kpiData.push([
-      {
-        category: 'Federation',
-        value: props.lteNetwork?.federation?.feg_network_id || '-',
-      },
-    ]);
+    kpiData.push(
+      [
+        {
+          category: 'Federation',
+          value: props.lteNetwork?.federation?.feg_network_id || '-',
+        },
+      ],
+      [
+        {
+          category: 'Federated Mapping Mode',
+          value:
+            props.lteNetwork?.federation?.federated_modes_mapping?.enabled ===
+            true
+              ? 'On'
+              : 'Off',
+        },
+      ],
+    );
   }
   return <DataGrid data={kpiData} testID="info" />;
 }
@@ -86,7 +98,6 @@ export function NetworkInfoEdit(props: EditProps) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
-  const networkCtx = useContext(NetworkContext);
   const [lteNetwork, setLteNetwork] = useState<
     $Shape<lte_network & feg_lte_network>,
   >(props.lteNetwork);
@@ -162,22 +173,6 @@ export function NetworkInfoEdit(props: EditProps) {
               }
             />
           </AltFormField>
-          {networkCtx.networkType === FEG_LTE && (
-            <AltFormField label={'Federation'}>
-              <OutlinedInput
-                data-testid="federation"
-                placeholder="Enter Federation Network ID"
-                fullWidth={true}
-                value={lteNetwork.federation?.feg_network_id ?? ''}
-                onChange={({target}) =>
-                  setLteNetwork({
-                    ...lteNetwork,
-                    federation: {feg_network_id: target.value},
-                  })
-                }
-              />
-            </AltFormField>
-          )}
           <AltFormField label={'Add Description'}>
             <OutlinedInput
               data-testid="networkDescription"

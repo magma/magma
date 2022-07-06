@@ -102,7 +102,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
 		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithDefaulValues().Cbsd)
+	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
@@ -454,9 +454,9 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 
 	expected := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithEmptyGrant().
 		WithEmptyGrantState().
 		WithCbsdState(registered).
@@ -489,9 +489,9 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
 
 	expected := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithCbsdState(registered).
 		WithDesiredState(registered).
 		WithEmptyGrant().
@@ -523,9 +523,9 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 
 	expected := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithCbsdState(registered).
 		WithDesiredState(registered).
 		WithGrant().
@@ -587,7 +587,7 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	for i := range expected.Cbsds {
 		cbsdBuilder := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1 + offset)).
-			WithDefaulValues().
+			WithIndoorDeployment(false).
 			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1+offset))
 		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
 			WithCbsdState(unregistered).
@@ -627,7 +627,7 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 	for i := range expected.Cbsds {
 		cbsdBuilder := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1)).
-			WithDefaulValues().
+			WithIndoorDeployment(false).
 			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1))
 		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
 			WithCbsdState(unregistered).
@@ -667,9 +667,9 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 
 	builder := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithEmptyGrant().
 		WithEmptyGrantState().
 		WithCbsdState(registered).

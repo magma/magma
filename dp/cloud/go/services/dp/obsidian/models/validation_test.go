@@ -71,6 +71,18 @@ func TestMutableCbsd_Validate(t *testing.T) {
 		name:          "Should validate cbsd category value",
 		data:          b.NewMutableCbsdModelPayloadBuilder().WithCbsdCategory("c").Payload,
 		expectedError: "cbsd_category in body should be one of [a b]",
+	}, {
+		name:          "Should validate carrier aggregation enabled",
+		data:          b.NewMutableCbsdModelPayloadBuilder().WithCarrierAggregationEnabled(nil).Payload,
+		expectedError: "carrier_aggregation_enabled in body is required",
+	}, {
+		name:          "Should validate grant redundancy",
+		data:          b.NewMutableCbsdModelPayloadBuilder().WithGrantRedundancy(nil).Payload,
+		expectedError: "grant_redundancy in body is required",
+	}, {
+		name:          "Should validate max ibw mhz",
+		data:          b.NewMutableCbsdModelPayloadBuilder().WithMaxIbwMhz(0).Payload,
+		expectedError: "max_ibw_mhz in body is required",
 	}}
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {

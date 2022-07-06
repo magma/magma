@@ -44,7 +44,7 @@ describe('Admin component', () => {
     const page = await browser.newPage();
     await page.setViewport({width: 1280, height: 1024});
     try {
-      await page.goto('https://magma-test.localhost/nms');
+      await page.goto('https://magma-test.localhost/nms/test');
       await page.waitForXPath(`//span[text()='Dashboard']`, {
         timeout: 15000,
       });
@@ -92,7 +92,7 @@ describe('NMS', () => {
     const page = await browser.newPage();
     try {
       // test_feg_lte_network is mocked out
-      await page.goto('https://magma-test.localhost/nms');
+      await page.goto('https://magma-test.localhost/nms/test');
       await page.waitForXPath(`//span[text()='Dashboard']`, {
         timeout: 15000,
       });
@@ -194,6 +194,10 @@ describe('NMS', () => {
       const editSelector = '[data-testid="infoEditButton"]';
       await page.waitForSelector(editSelector);
       await page.click(editSelector);
+
+      const fedationTabSelector = '[data-testid="federationTab"]';
+      await page.waitForSelector(fedationTabSelector);
+      await page.click(fedationTabSelector);
 
       const fegPlaceholder = '[placeholder="Enter Federation Network ID"]';
       await page.waitForSelector(fegPlaceholder);

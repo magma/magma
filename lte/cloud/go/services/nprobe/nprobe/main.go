@@ -25,10 +25,10 @@ import (
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 	np_storage "magma/lte/cloud/go/services/nprobe/storage"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/swagger/protos"
-	servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 )

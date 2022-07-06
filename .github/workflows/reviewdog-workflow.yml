@@ -136,6 +136,24 @@ jobs:
           reporter: github-pr-review
           workdir: 'nms/'
 
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: markdownlint
+        uses: reviewdog/action-markdownlint@v0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          filter_mode: added
+          reporter: github-pr-review
+          fail_on_error: false
+
   misspell:
     name: misspell
     runs-on: ubuntu-latest

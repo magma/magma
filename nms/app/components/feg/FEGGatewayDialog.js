@@ -20,6 +20,7 @@ import type {
   federation_gateway,
   gateway_federation_configs,
   gx,
+  s8,
   virtual_apn_rule,
 } from '../../../generated/MagmaAPIBindings';
 
@@ -91,6 +92,24 @@ function getInitialSCTPConfigs(cfg: ?csfb): SCTPValues {
   };
 }
 
+type S8Values = {
+  local_address: string,
+  pgw_address: string,
+  apn_operator_suffix: string,
+};
+
+function getS8Configs(cfg: S8Values): s8 {
+  return {...cfg};
+}
+
+function getInitialS8Configs(cfg: ?s8): S8Values {
+  return {
+    local_address: cfg?.local_address || '',
+    pgw_address: cfg?.pgw_address || '',
+    apn_operator_suffix: cfg?.apn_operator_suffix || '',
+  };
+}
+
 type DiameterValues = {
   address: string,
   dest_host: string,
@@ -109,6 +128,7 @@ export const TAB_OPTIONS = Object.freeze({
   GY: 'gy',
   SWX: 'swx',
   S6A: 's6a',
+  S8: 's8',
   CSFB: 'csfb',
 });
 
@@ -177,6 +197,9 @@ export default function FEGGatewayDialog(props: Props) {
   const [s6a, setS6A] = useState<DiameterValues>(
     getDiameterServerConfig(editingGateway?.federation?.s6a?.server),
   );
+  const [s8, setS8] = useState<S8Values>(
+    getInitialS8Configs(editingGateway?.federation?.s8),
+  );
 
   const [csfb, setCSFB] = useState<SCTPValues>(
     getInitialSCTPConfigs(editingGateway?.federation?.csfb),
@@ -217,6 +240,7 @@ export default function FEGGatewayDialog(props: Props) {
     health: {},
     hss: {},
     s6a: {...getDiameterConfigs(s6a), plmn_ids: []},
+    s8: {...getS8Configs(s8)},
     served_network_ids: [],
     swx: {...getDiameterConfigs(swx)},
     csfb: {...getSCTPConfigs(csfb)},
@@ -333,6 +357,9 @@ export default function FEGGatewayDialog(props: Props) {
         />
       );
       break;
+    case TAB_OPTIONS.S8:
+      content = <S8Fields onChange={setS8} values={s8} />;
+      break;
     case TAB_OPTIONS.CSFB:
       content = <SCTPFields onChange={setCSFB} values={csfb} />;
       break;
@@ -351,6 +378,7 @@ export default function FEGGatewayDialog(props: Props) {
           <Tab label="Gy" value="gy" />
           <Tab label="SWx" value="swx" />
           <Tab label="S6A" value="s6a" />
+          <Tab label="S8" value="s8" />
           <Tab label="CSFB" value="csfb" />
         </Tabs>
       </AppBar>
@@ -367,6 +395,43 @@ export default function FEGGatewayDialog(props: Props) {
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+function S8Fields(props: {values: S8Values, onChange: S8Values => void}) {
+  const classes = useStyles();
+  const {values} = props;
+  const onChange = field => event =>
+    // $FlowFixMe Set state for each field
+    props.onChange({...values, [field]: event.target.value});
+
+  return (
+    <>
+      <TextField
+        label="Local Address"
+        className={classes.input}
+        value={values.local_address}
+        onChange={onChange('local_address')}
+        placeholder="example.magma.com:5555"
+        inputProps={{'data-testid': 'localAddress'}}
+      />
+      <TextField
+        label="PGW Address"
+        className={classes.input}
+        value={values.pgw_address}
+        onChange={onChange('pgw_address')}
+        placeholder="pgw.magma.com:5555"
+        inputProps={{'data-testid': 'pgwAddress'}}
+      />
+      <TextField
+        label="APN Operator Suffix"
+        className={classes.input}
+        value={values.apn_operator_suffix}
+        onChange={onChange('apn_operator_suffix')}
+        placeholder=".operator.com"
+        inputProps={{'data-testid': 'apnOperatorSuffix'}}
+      />
+    </>
   );
 }
 

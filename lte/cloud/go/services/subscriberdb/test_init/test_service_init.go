@@ -33,7 +33,7 @@ import (
 	"magma/orc8r/cloud/go/test_utils"
 )
 
-func StartTestService(t *testing.T) {
+func StartTestService(t *testing.T) storage.SubscriberStorage {
 	// Create service
 	labels := map[string]string{
 		orc8r.StateIndexerLabel: "true",
@@ -56,6 +56,8 @@ func StartTestService(t *testing.T) {
 	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
 	assert.NoError(t, err)
 	assert.NoError(t, subscriberStore.Initialize())
+	subscriberStateStore := storage.NewSubscriberStorage(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, subscriberStateStore.Initialize())
 
 	// Sane default service configs
 	serviceConfig := subscriberdb.Config{
@@ -67,9 +69,11 @@ func StartTestService(t *testing.T) {
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.ProtectedGrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
-	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer())
+	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer(subscriberStateStore))
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, subscriberdbcloud_servicer.NewSubscriberdbServicer(serviceConfig, subscriberStore))
 
 	// Run service
 	go srv.RunTest(lis, plis)
+
+	return subscriberStateStore
 }

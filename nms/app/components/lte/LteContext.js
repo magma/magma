@@ -15,6 +15,7 @@
  */
 import * as React from 'react';
 import ApnContext from '../context/ApnContext';
+import CbsdContext from '../context/CbsdContext';
 import EnodebContext from '../context/EnodebContext';
 import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
@@ -40,11 +41,13 @@ import type {
   lte_gateway,
   lte_network,
   mutable_call_trace,
+  mutable_cbsd,
   mutable_subscriber,
   mutable_subscribers,
   network_id,
   network_ran_configs,
   network_type,
+  paginated_cbsds,
   policy_qos_profile,
   policy_rule,
   rating_group,
@@ -53,6 +56,7 @@ import type {
 } from '../../../generated/MagmaAPIBindings';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
+import * as cbsdState from '../../state/lte/CbsdState';
 import {FEG_LTE, LTE} from '../../../shared/types/network';
 import {
   InitEnodeState,
@@ -80,7 +84,7 @@ import {
   getGatewaySubscriberMap,
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
-import {useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 
 type Props = {
@@ -135,6 +139,135 @@ export function GatewayContextProvider(props: Props) {
       }}>
       {props.children}
     </GatewayContext.Provider>
+  );
+}
+
+export function CbsdContextProvider({networkId, children}: Props) {
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchResponse, setFetchResponse] = useState<paginated_cbsds>({
+    cbsds: [],
+    total_count: 0,
+  });
+  const [paginationOptions, setPaginationOptions] = useState<{
+    page: number,
+    pageSize: number,
+  }>({
+    page: 0,
+    pageSize: 10,
+  });
+
+  const refetch = useCallback(() => {
+    return cbsdState.fetch({
+      networkId,
+      page: paginationOptions.page,
+      pageSize: paginationOptions.pageSize,
+      setIsLoading,
+      setFetchResponse,
+      enqueueSnackbar,
+    });
+  }, [
+    networkId,
+    paginationOptions.page,
+    paginationOptions.pageSize,
+    setIsLoading,
+    setFetchResponse,
+    enqueueSnackbar,
+  ]);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch, paginationOptions.page, paginationOptions.pageSize]);
+
+  const state = useMemo(() => {
+    return {
+      isLoading,
+      cbsds: fetchResponse.cbsds,
+      totalCount: fetchResponse.total_count,
+      page: paginationOptions.page,
+      pageSize: paginationOptions.pageSize,
+    };
+  }, [
+    isLoading,
+    fetchResponse.cbsds,
+    fetchResponse.total_count,
+    paginationOptions.page,
+    paginationOptions.pageSize,
+  ]);
+
+  return (
+    <CbsdContext.Provider
+      value={{
+        state,
+        setPaginationOptions,
+        refetch,
+        create: (newCbsd: mutable_cbsd) => {
+          return cbsdState
+            .create({
+              networkId,
+              newCbsd,
+            })
+            .catch(e => {
+              enqueueSnackbar?.('failed to create CBSD', {
+                variant: 'error',
+              });
+              throw e;
+            })
+            .then(() => {
+              refetch();
+            });
+        },
+        update: (id: number, cbsd: mutable_cbsd) => {
+          return cbsdState
+            .update({
+              networkId,
+              id,
+              cbsd,
+            })
+            .catch(e => {
+              enqueueSnackbar?.('failed to update CBSD', {
+                variant: 'error',
+              });
+              throw e;
+            })
+            .then(() => {
+              refetch();
+            });
+        },
+        deregister: (id: number) => {
+          return cbsdState
+            .deregister({
+              networkId,
+              id,
+            })
+            .catch(() => {
+              enqueueSnackbar?.('failed to deregister CBSD', {
+                variant: 'error',
+              });
+            })
+            .then(() => {
+              refetch();
+            });
+        },
+        remove: (id: number) => {
+          return cbsdState
+            .remove({
+              networkId,
+              cbsdId: id,
+            })
+            .catch(() => {
+              enqueueSnackbar?.('failed to remove CBSD', {
+                variant: 'error',
+              });
+            })
+            .then(() => {
+              refetch();
+            });
+        },
+      }}>
+      {children}
+    </CbsdContext.Provider>
   );
 }
 
@@ -800,7 +933,9 @@ export function LteContextProvider(props: Props) {
                 <GatewayContextProvider {...{networkId, networkType}}>
                   <GatewayPoolsContextProvider {...{networkId, networkType}}>
                     <TraceContextProvider {...{networkId, networkType}}>
-                      {props.children}
+                      <CbsdContextProvider {...{networkId, networkType}}>
+                        {props.children}
+                      </CbsdContextProvider>
                     </TraceContextProvider>
                   </GatewayPoolsContextProvider>
                 </GatewayContextProvider>

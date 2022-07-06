@@ -21,6 +21,7 @@ import type {
 
 import ActionTable from '../../components/ActionTable';
 import BaseNameEditDialog from './BaseNameEdit';
+import EmptyState from '../../components/EmptyState';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
@@ -45,6 +46,9 @@ import {useEnqueueSnackbar} from '../../../app/hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
+const EMPTY_STATE_OVERVIEW =
+  'A policy controls the behavior of a packet flow and determines if the flow needs to be allowed/blocked or have ' +
+  'its QoS restricted. Policies may also redirect traffic, perform header enrichment, include tracking/monitoring and other advanced configurations.';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -162,27 +166,56 @@ const MagmaTab = withStyles({
 export default function PolicyOverview() {
   const classes = useStyles();
   const [currTabIndex, setCurrTabIndex] = useState<number>(0);
+  const [open, setOpen] = useState(false);
   const policyTabList: Array<string> = [
     'Policies',
     'Base Names',
     'Profiles',
     'Rating Groups',
   ];
+  const ctx = useContext(PolicyContext);
+  const cardActions = {
+    buttonText: 'Add Policy',
+    onClick: () => setOpen(true),
+    linkText: 'Learn more about Policy',
+    link: 'https://docs.magmacore.org/docs/nms/traffic#policy-configuration',
+  };
 
   return (
     <div className={classes.dashboardRoot}>
-      <MagmaTabs
-        value={currTabIndex}
-        onChange={(_, newIndex: number) => setCurrTabIndex(newIndex)}
-        variant="fullWidth">
-        {policyTabList.map((k: string, idx: number) => {
-          return <MagmaTab key={idx} label={k} className={classes.tab} />;
-        })}
-      </MagmaTabs>
-      {currTabIndex === 0 && <PolicyTable />}
-      {currTabIndex === 1 && <BaseNameTable />}
-      {currTabIndex === 2 && <ProfileTable />}
-      {currTabIndex === 3 && <RatingGroupTable />}
+      <PolicyRuleEditDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        rule={undefined}
+      />
+      {Object.keys(ctx.state || {}).length > 0 ? (
+        <>
+          <MagmaTabs
+            value={currTabIndex}
+            onChange={(_, newIndex: number) => setCurrTabIndex(newIndex)}
+            variant="fullWidth">
+            {policyTabList.map((k: string, idx: number) => {
+              return <MagmaTab key={idx} label={k} className={classes.tab} />;
+            })}
+          </MagmaTabs>
+          {currTabIndex === 0 && <PolicyTable />}
+          {currTabIndex === 1 && <BaseNameTable />}
+          {currTabIndex === 2 && <ProfileTable />}
+          {currTabIndex === 3 && <RatingGroupTable />}
+        </>
+      ) : (
+        <Grid container justify="space-between" spacing={3}>
+          <EmptyState
+            title={'Set up a Policy'}
+            instructions={
+              'Add a policy to the NMS by filling out the required fields.'
+            }
+            cardActions={cardActions}
+            overviewTitle={'Policy Overview'}
+            overviewDescription={EMPTY_STATE_OVERVIEW}
+          />
+        </Grid>
+      )}
     </div>
   );
 }
