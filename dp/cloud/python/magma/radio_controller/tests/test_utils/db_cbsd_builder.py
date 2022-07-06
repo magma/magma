@@ -108,8 +108,12 @@ class DBCbsdBuilder:
 
     def with_grant(
         self,
-        grant_id: str, state_id: int,
-        hb_interval_sec: int, last_hb_timestamp: int = None,
+        grant_id: str,
+        state_id: int,
+        hb_interval_sec: int,
+        last_hb_timestamp: int = None,
+        low_frequency: int = 3500,
+        high_frequency: int = 3700,
     ) -> DBCbsdBuilder:
         last_hb_time = datetime.fromtimestamp(
             last_hb_timestamp,
@@ -119,8 +123,8 @@ class DBCbsdBuilder:
             state_id=state_id,
             heartbeat_interval=hb_interval_sec,
             last_heartbeat_request_time=last_hb_time,
-            low_frequency=0,
-            high_frequency=0,
+            low_frequency=low_frequency,
+            high_frequency=high_frequency,
             max_eirp=0,
         )
         self.cbsd.grants.append(grant)

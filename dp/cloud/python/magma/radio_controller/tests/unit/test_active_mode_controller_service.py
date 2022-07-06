@@ -23,6 +23,7 @@ from dp.protos.active_mode_pb2 import (
     Granted,
     Registered,
     State,
+    StoreAvailableFrequenciesRequest,
     Unregistered,
 )
 from dp.protos.active_mode_pb2_grpc import (
@@ -91,7 +92,7 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_desired_state(self.registered)
 
     @staticmethod
-    def _prepare_base_active_mode_config() -> ActiveModeCbsdBuilder:
+    def _prepare_base_active_mode_cbsd() -> ActiveModeCbsdBuilder:
         return ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
             with_category('a'). \
@@ -99,7 +100,8 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_registration('some'). \
             with_eirp_capabilities(0, 10, 1). \
             with_antenna_gain(20). \
-            with_desired_state(Registered)
+            with_desired_state(Registered). \
+            with_grant_settings(True, 150)
 
 
 class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
@@ -163,6 +165,19 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
 
         self.assertFalse(cbsd.should_deregister)
 
+    def test_store_available_frequencies(self):
+        cbsd = self._prepare_base_cbsd().build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        available_frequencies = [3500, 3700, 4000]
+
+        self.stub.StoreAvailableFrequencies(
+            StoreAvailableFrequenciesRequest(id=SOME_ID, available_frequencies=available_frequencies),
+        )
+
+        self.assertListEqual(cbsd.available_frequencies, available_frequencies)
+
     def test_acknowledge_non_existent_cbsd_update(self):
         with self.assertRaises(grpc.RpcError) as err:
             self.stub.AcknowledgeCbsdUpdate(
@@ -178,8 +193,8 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config().build()
-        expected = State(cbsds=[config])
+        am_cbsd = self._prepare_base_active_mode_cbsd().build()
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -191,11 +206,11 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_preferences(15, [3600, 3580, 3620]). \
             build()
 
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(actual, expected)
 
@@ -208,12 +223,12 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_grant("granted_grant", Granted, 3, 0). \
             with_grant("authorized_grant", Authorized, 5, 6). \
             build()
 
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(actual, expected)
 
@@ -225,11 +240,11 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_channel(1, 2, 3). \
             with_channel(5, 6). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(actual, expected)
@@ -241,10 +256,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             deleted(). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -256,10 +271,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             updated(). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -271,10 +286,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_last_seen(1). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -286,10 +301,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_grant_attempts(1). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -318,15 +333,15 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add_all([some_cbsd, other_cbsd])
         self.session.commit()
 
-        some_config = self._prepare_base_active_mode_config(). \
+        some_am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_id(SOME_ID). \
             with_registration('some'). \
             build()
-        other_config = self._prepare_base_active_mode_config(). \
+        other_am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_id(OTHER_ID). \
             with_registration('other'). \
             build()
-        expected = State(cbsds=[some_config, other_config])
+        expected = State(cbsds=[some_am_cbsd, other_am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -339,11 +354,11 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_single_step_enabled(). \
             with_installation_params(1, 2, 3, 'AGL', True). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -359,15 +374,16 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = ActiveModeCbsdBuilder(). \
+        am_cbsd = ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
             with_state(Registered). \
             with_desired_state(Registered). \
             with_registration('some'). \
             updated(). \
             with_category('b'). \
+            with_grant_settings(True, 150). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -383,15 +399,16 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = ActiveModeCbsdBuilder(). \
+        am_cbsd = ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
             with_state(Registered). \
             with_desired_state(Registered). \
             with_registration('some'). \
             deleted(). \
             with_category('b'). \
+            with_grant_settings(True, 150). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)

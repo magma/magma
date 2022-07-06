@@ -13,7 +13,7 @@ limitations under the License.
 
 import logging
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import grpc
 from dp.protos.active_mode_pb2 import (
@@ -26,12 +26,15 @@ from dp.protos.active_mode_pb2 import (
     FrequencyPreferences,
     GetStateRequest,
     Grant,
+    GrantSettings,
     InstallationParams,
     SasSettings,
     State,
+    StoreAvailableFrequenciesRequest,
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from google.protobuf.empty_pb2 import Empty
+from google.protobuf.json_format import MessageToJson
 from google.protobuf.wrappers_pb2 import FloatValue
 from magma.db_service.models import (
     DBCbsd,
@@ -47,6 +50,7 @@ from magma.radio_controller.metrics import (
     ACKNOWLEDGE_UPDATE_PROCESSING_TIME,
     DELETE_CBSD_PROCESSING_TIME,
     GET_DB_STATE_PROCESSING_TIME,
+    STORE_AVAILABLE_FREQUENCIES_PROCESSING_TIME,
 )
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import contains_eager, joinedload
@@ -119,16 +123,13 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         """
         db_id = request.id
         logger.info(f"Acknowledging CBSD update {db_id}")
-        with self.session_manager.session_scope() as session:
-            updated = session.query(DBCbsd).filter(
-                DBCbsd.id == db_id,
-            ).update({'should_deregister': False})
-            session.commit()
-            if not updated:
-                context.set_code(grpc.StatusCode.NOT_FOUND)
+        updated = self._update_cbsd(db_id, {'should_deregister': False})
+        if not updated:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
         return Empty()
 
-    def StoreAvailableFrequencies(self, request, context) -> Empty:
+    @STORE_AVAILABLE_FREQUENCIES_PROCESSING_TIME.time()
+    def StoreAvailableFrequencies(self, request: StoreAvailableFrequenciesRequest, context) -> Empty:
         """
         Store available frequencies in the database
 
@@ -139,9 +140,18 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         Returns:
             Empty: an empty gRPC message
         """
-        # Not implemented yet
-        pass
+        db_id = request.id
+        logger.info(f"Storing available frequencies for {db_id}")
+        updated = self._update_cbsd(db_id, {"available_frequencies": list(request.available_frequencies)})
+        if not updated:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+        return Empty()
 
+    def _update_cbsd(self, db_id: int, to_update: Dict) -> DBCbsd:
+        with self.session_manager.session_scope() as session:
+            updated = session.query(DBCbsd).filter(DBCbsd.id == db_id).update(to_update)
+            session.commit()
+        return updated
 
 def _list_cbsds(session: Session) -> State:
     # It might be possible to use join instead of nested queries
@@ -229,6 +239,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
     sas_settings = _build_sas_settings(cbsd)
     installation_params = _build_installation_params(cbsd)
     db_data = _build_db_data(cbsd)
+    grant_settings = _build_grant_settings(cbsd)
     return Cbsd(
         cbsd_id=cbsd.cbsd_id,
         state=cbsd_state_mapping[cbsd.state.name],
@@ -242,6 +253,7 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
         preferences=preferences,
         sas_settings=sas_settings,
         installation_params=installation_params,
+        grant_settings=grant_settings,
     )
 
 
@@ -252,6 +264,8 @@ def _build_grant(grant: DBGrant) -> Grant:
         state=grant_state_mapping[grant.state.name],
         heartbeat_interval_sec=grant.heartbeat_interval,
         last_heartbeat_timestamp=last_heartbeat,
+        low_frequency_hz=grant.low_frequency,
+        high_frequency_hz=grant.high_frequency,
     )
 
 
@@ -305,6 +319,15 @@ def _build_installation_params(cbsd: DBCbsd) -> InstallationParams:
         height_type=cbsd.height_type,
         indoor_deployment=cbsd.indoor_deployment,
         antenna_gain_dbi=cbsd.antenna_gain,
+    )
+
+
+def _build_grant_settings(cbsd: DBCbsd) -> GrantSettings:
+    return GrantSettings(
+        grant_redundancy_enabled=cbsd.grant_redundancy,
+        carrier_aggregation_enabled=cbsd.carrier_aggregation_enabled,
+        max_ibw_mhz=cbsd.max_ibw_mhz,
+        available_frequencies=cbsd.available_frequencies,
     )
 
 
