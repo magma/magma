@@ -242,7 +242,9 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 }
 
 func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) (*DBCbsd, error) {
-	mask := db.NewIncludeMask(getEnodebdWritableFields()...)
+	identifiers := []string{"cbsd_serial_number", "network_id"}
+	maskFields := append(identifiers, getEnodebdWritableFields()...)
+	mask := db.NewIncludeMask(maskFields...)
 	filters := sq.Eq{"cbsd_serial_number": data.CbsdSerialNumber}
 	cbsd, err := c.selectForUpdateIfCbsdExists(mask, filters)
 	if err != nil {
@@ -256,7 +258,7 @@ func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) (*DBCbsd, err
 	models, err := db.NewQuery().
 		WithBuilder(c.builder).
 		From(data).
-		Select(db.NewIncludeMask("cbsd_serial_number", "network_id")).
+		Select(db.NewIncludeMask(identifiers...)).
 		Where(filters).
 		Update(db.NewIncludeMask(columns...))
 	updated := models[0].(*DBCbsd)
