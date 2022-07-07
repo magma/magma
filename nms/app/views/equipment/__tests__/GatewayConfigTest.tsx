@@ -216,6 +216,7 @@ describe('<AddEditGatewayButton />', () => {
                         setLteGateways,
                         ...props,
                       } as UpdateGatewayProps),
+                    refetch: () => {},
                   }}>
                   <Routes>
                     <Route
@@ -257,6 +258,7 @@ describe('<AddEditGatewayButton />', () => {
                     setLteGateways: setLteGateways,
                     ...props,
                   } as UpdateGatewayProps),
+                refetch: () => {},
               }}>
               <Routes>
                 <Route

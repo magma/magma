@@ -18,12 +18,9 @@ import React from 'react';
 
 export type GatewayContextType = {
   state: Record<string, LteGateway>;
-  setState: (
-    key: GatewayId,
-    val?: MutableLteGateway,
-    newState?: Record<string, LteGateway>,
-  ) => Promise<void>;
+  setState: (key: GatewayId, val?: MutableLteGateway) => Promise<void>;
   updateGateway: (props: Partial<UpdateGatewayProps>) => Promise<void>;
+  refetch: (id?: string) => void;
 };
 
 export default React.createContext<GatewayContextType>(
