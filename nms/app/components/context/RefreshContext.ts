@@ -11,12 +11,10 @@
  * limitations under the License.
  */
 
-import EnodebContext, {EnodebContextType} from './EnodebContext';
 import FEGSubscriberContext, {
   FEGSubscriberContextType,
 } from './FEGSubscriberContext';
 import SubscriberContext, {SubscriberContextType} from './SubscriberContext';
-import {FetchEnodebs} from '../../state/lte/EquipmentState';
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
@@ -27,13 +25,11 @@ export const REFRESH_INTERVAL = 30000;
 export const RefreshTypeEnum = {
   SUBSCRIBER: 'subscriber',
   FEG_SUBSCRIBER: 'feg_subscriber',
-  ENODEB: 'enodeb',
 } as const;
 
 type ContextMap = {
   [RefreshTypeEnum.SUBSCRIBER]: typeof SubscriberContext;
   [RefreshTypeEnum.FEG_SUBSCRIBER]: typeof FEGSubscriberContext;
-  [RefreshTypeEnum.ENODEB]: typeof EnodebContext;
 };
 
 type StateMap = {
@@ -43,7 +39,6 @@ type StateMap = {
   [RefreshTypeEnum.FEG_SUBSCRIBER]: {
     sessionState: FEGSubscriberContextType['sessionState'];
   };
-  [RefreshTypeEnum.ENODEB]: EnodebContextType['state'];
 };
 
 type RefreshType = keyof ContextMap;
@@ -113,8 +108,6 @@ export function useRefreshingContext<T extends keyof ContextMap>(
               }
             : {},
         };
-      } else if (props.type === 'enodeb') {
-        newState = {...ctx.state, [id]: state.enbInfo?.[id]};
       } else if (props.type === RefreshTypeEnum.FEG_SUBSCRIBER) {
         newState = {...ctx.sessionState};
       } else {
@@ -201,13 +194,5 @@ async function fetchRefreshState(props: FetchProps) {
       enqueueSnackbar,
     });
     return {sessionState: sessions};
-  } else {
-    const enodebs = await FetchEnodebs({
-      id: id,
-      networkId,
-      enqueueSnackbar,
-    });
-
-    return {enbInfo: enodebs};
   }
 }

@@ -203,6 +203,7 @@ describe('<EnodebKPIs />', () => {
   const enodebCtx: EnodebContextType = {
     state: {enbInfo},
     setState: async () => {},
+    refetch: () => {},
   };
 
   const Wrapper = () => {

@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import type {EnodebInfo} from '../lte/EnodebUtils';
 import type {NetworkRanConfigs} from '../../../generated';
 
@@ -22,11 +23,8 @@ export type EnodebState = {
 export type EnodebContextType = {
   state: EnodebState;
   lteRanConfigs?: NetworkRanConfigs;
-  setState: (
-    key: string,
-    val?: EnodebInfo,
-    newState?: EnodebState,
-  ) => Promise<void>;
+  setState: (key: string, val?: EnodebInfo) => Promise<void>;
+  refetch: (id?: string) => void;
 };
 
 export default React.createContext<EnodebContextType>({} as EnodebContextType);

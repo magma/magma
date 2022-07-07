@@ -17,13 +17,10 @@ import EnodebContext from '../../components/context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '../../../shared/util/nullthrows';
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 import type {DataRows} from '../../components/DataGrid';
 
@@ -51,21 +48,14 @@ export function EnodebSummary() {
 export function EnodebStatus({refresh}: {refresh: boolean}) {
   const params = useParams();
   const enodebSerial: string = nullthrows(params.enodebSerial);
-  const networkId: string = nullthrows(params.networkId);
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const enodebContext = useContext(EnodebContext);
 
-  // Auto refresh enodeb every 30 seconds
-  const state = useRefreshingContext({
-    context: EnodebContext,
-    networkId: networkId,
-    type: 'enodeb',
-    interval: REFRESH_INTERVAL,
-    id: enodebSerial,
-    enqueueSnackbar,
-    refresh: refresh,
-  });
+  useInterval(
+    () => enodebContext.refetch(enodebSerial),
+    refresh ? REFRESH_INTERVAL : null,
+  );
 
-  const enbInfo = state.enbInfo?.[enodebSerial];
+  const enbInfo = enodebContext.state.enbInfo?.[enodebSerial];
   const isEnbHealthy = enbInfo ? isEnodebHealthy(enbInfo) : false;
   const isEnbManaged = enbInfo?.enb?.enodeb_config?.config_type === 'MANAGED';
 
