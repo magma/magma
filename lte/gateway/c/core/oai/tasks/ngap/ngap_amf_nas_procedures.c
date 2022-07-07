@@ -680,10 +680,8 @@ void ngap_handle_conn_est_cnf(
       session_context->s_NSSAI.sST.buf = (uint8_t*)calloc(1, sizeof(uint8_t));
       session_context->s_NSSAI.sST.buf[0] = 0x11;
 
-      Ngap_PDUSessionResourceSetupRequestTransfer_t*
-          pduSessionResourceSetupRequestTransferIEs =
-              (Ngap_PDUSessionResourceSetupRequestTransfer_t*)calloc(
-                  1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
+      Ngap_PDUSessionResourceSetupRequestTransfer_t
+          pduSessionResourceSetupRequestTransferIEs = {0};
 
       // filling PDU TX Structure
       pdu_session_resource_setup_request_transfer_t*
@@ -692,14 +690,14 @@ void ngap_handle_conn_est_cnf(
 
       ngap_fill_pdu_session_resource_setup_request_transfer(
           amf_pdu_ses_setup_transfer_req,
-          pduSessionResourceSetupRequestTransferIEs);
+          &pduSessionResourceSetupRequestTransferIEs);
 
       uint32_t buffer_size = 1024;
       char* buffer = (char*)calloc(1, buffer_size);
 
       asn_enc_rval_t er = aper_encode_to_buffer(
           &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL,
-          pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
+          &pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
 
       if (er.encoded <= 0) {
         OAILOG_ERROR(LOG_NGAP,
@@ -708,14 +706,15 @@ void ngap_handle_conn_est_cnf(
       }
 
       asn_fprint(stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-                 pduSessionResourceSetupRequestTransferIEs);
+                 &pduSessionResourceSetupRequestTransferIEs);
+      uint32_t encoded_bytes = NGAP_ASN_ENCODED_BYTES(er.encoded);
 
-      bstring transfer = blk2bstr(buffer, er.encoded);
+      bstring transfer = blk2bstr(buffer, encoded_bytes);
       session_context->pDUSessionResourceSetupRequestTransfer.buf =
-          (uint8_t*)calloc(er.encoded, sizeof(uint8_t));
+          (uint8_t*)calloc(encoded_bytes, sizeof(uint8_t));
 
       memcpy((void*)session_context->pDUSessionResourceSetupRequestTransfer.buf,
-             (void*)transfer->data, er.encoded);
+             (void*)transfer->data, blength(transfer));
 
       session_context->pDUSessionResourceSetupRequestTransfer.size =
           blength(transfer);
@@ -728,8 +727,7 @@ void ngap_handle_conn_est_cnf(
 
       ASN_STRUCT_FREE_CONTENTS_ONLY(
           asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-          pduSessionResourceSetupRequestTransferIEs);
-      free(pduSessionResourceSetupRequestTransferIEs);
+          &pduSessionResourceSetupRequestTransferIEs);
 
     } /*for loop*/
   }
@@ -1211,20 +1209,18 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
         &(session_item->PDU_Session_Resource_Setup_Request_Transfer);
 
     /*tx_out*/
-    Ngap_PDUSessionResourceSetupRequestTransfer_t*
-        pduSessionResourceSetupRequestTransferIEs =
-            (Ngap_PDUSessionResourceSetupRequestTransfer_t*)calloc(
-                1, sizeof(Ngap_PDUSessionResourceSetupRequestTransfer_t));
+    Ngap_PDUSessionResourceSetupRequestTransfer_t
+        pduSessionResourceSetupRequestTransferIEs = {0};
 
     ngap_fill_pdu_session_resource_setup_request_transfer(
         amf_pdu_ses_setup_transfer_req,
-        pduSessionResourceSetupRequestTransferIEs);
+        &pduSessionResourceSetupRequestTransferIEs);
     uint32_t buffer_size = 1024;
     char* buffer = (char*)calloc(1, buffer_size);
 
     asn_enc_rval_t er = aper_encode_to_buffer(
         &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL,
-        pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
+        &pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
 
     if (er.encoded <= 0) {
       OAILOG_ERROR(LOG_NGAP, "PDU Session Resource Request IE encode error \n");
@@ -1232,15 +1228,19 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
     }
 
     asn_fprint(stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-               pduSessionResourceSetupRequestTransferIEs);
+               &pduSessionResourceSetupRequestTransferIEs);
+    uint32_t encoded_bytes = NGAP_ASN_ENCODED_BYTES(er.encoded);
 
-    bstring transfer = blk2bstr(buffer, er.encoded);
+    /* Aligned PER encoder of any ASN.1 type. aper_encode function returns the
+    number of encoded bits in the .encoded field of the return value. Use the
+    following formula to convert to bytes: bytes = ((.encoded + 7) / 8) */
+    bstring transfer = blk2bstr(buffer, encoded_bytes);
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf =
-        (uint8_t*)calloc(er.encoded, sizeof(uint8_t));
+        (uint8_t*)calloc(encoded_bytes, sizeof(uint8_t));
 
     memcpy((void*)ngap_pdusession_setup_item_ies
                ->pDUSessionResourceSetupRequestTransfer.buf,
-           (void*)transfer->data, er.encoded);
+           (void*)transfer->data, blength(transfer));
 
     ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer
         .size = blength(transfer);
@@ -1253,8 +1253,7 @@ int ngap_amf_nas_pdusession_resource_setup_stream(
 
     ASN_STRUCT_FREE_CONTENTS_ONLY(
         asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-        pduSessionResourceSetupRequestTransferIEs);
-    free(pduSessionResourceSetupRequestTransferIEs);
+        &pduSessionResourceSetupRequestTransferIEs);
 
   } /*for loop*/
 
