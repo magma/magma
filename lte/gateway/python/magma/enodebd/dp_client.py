@@ -19,6 +19,7 @@ from dp.protos.cbsd_pb2 import (
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
 from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
+from google.protobuf.json_format import MessageToJson
 from google.protobuf.wrappers_pb2 import (  # pylint: disable=no-name-in-module
     BoolValue,
     DoubleValue,
@@ -48,7 +49,11 @@ def get_cbsd_state(request: CBSDRequest) -> CBSDStateResult:
         return CBSDStateResult(radio_enabled=False)
     client = DPServiceStub(chan)
     try:
+        msg_json = MessageToJson(request, including_default_value_fields=True, preserving_proto_field_name=True)
+        logger.debug(f"Sending GetCBSDState request: {msg_json}")
         res = client.GetCBSDState(request, DEFAULT_GRPC_TIMEOUT)
+        msg_json = MessageToJson(res, including_default_value_fields=True, preserving_proto_field_name=True)
+        logger.debug(f"Received GetCBSDState reply: {msg_json}")
     except grpc.RpcError as err:
         logger.warning(
             "GetCBSDState error: [%s] %s",
@@ -116,7 +121,11 @@ def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse
         return UpdateCbsdResponse()
     client = CbsdManagementStub(chan)
     try:
+        msg_json = MessageToJson(request, including_default_value_fields=True, preserving_proto_field_name=True)
+        logger.debug(f"Sending EnodebdUpdateCbsd request: {msg_json}")
         res = client.EnodebdUpdateCbsd(request, DEFAULT_GRPC_TIMEOUT)
+        msg_json = MessageToJson(res, including_default_value_fields=True, preserving_proto_field_name=True)
+        logger.debug(f"Received EnodebdUpdateCbsd reply: {msg_json}")
     except grpc.RpcError as err:
         logger.warning(
             "EnodebdUpdateCbsd error: [%s] %s",

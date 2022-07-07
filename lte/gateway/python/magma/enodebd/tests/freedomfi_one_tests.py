@@ -18,16 +18,22 @@ from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
 from dp.protos.cbsd_pb2 import UpdateCbsdResponse
-from dp.protos.enodebd_dp_pb2 import CBSDStateResult, LteChannel
+from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.cbrs_consts import BAND
 from magma.enodebd.device_config.configuration_init import build_desired_config
+from magma.enodebd.device_config.configuration_util import (
+    calc_bandwidth_mhz,
+    calc_bandwidth_rbs,
+    calc_earfcn,
+)
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.devices.freedomfi_one import (
     SAS_KEY,
+    CarrierAggregationParameters,
     FreedomFiOneConfigurationInitializer,
     FreedomFiOneEndSessionState,
     FreedomFiOneGetInitState,
@@ -38,6 +44,7 @@ from magma.enodebd.devices.freedomfi_one import (
     StatusParameters,
     ff_one_update_desired_config_from_cbsd_state,
 )
+from magma.enodebd.dp_client import build_enodebd_update_cbsd_request
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.acs_state_utils import (
     get_firmware_upgrade_download_config,
@@ -62,13 +69,16 @@ if magma_root:
         'lte/gateway/configs',
     )
 
+MOCK_CHANNEL = LteChannel(
+    low_frequency_hz=3550000000,
+    high_frequency_hz=3570000000,
+    max_eirp_dbm_mhz=15,
+)
 MOCK_CBSD_STATE = CBSDStateResult(
     radio_enabled=True,
-    channel=LteChannel(
-        low_frequency_hz=3550000000,
-        high_frequency_hz=3570000000,
-        max_eirp_dbm_mhz=15,
-    ),
+    channel=MOCK_CHANNEL,
+    channels=[MOCK_CHANNEL],
+    carrier_aggregation_enabled=False,
 )
 MOCK_ENODEBD_CBSD_UPDATE = UpdateCbsdResponse()
 
@@ -184,13 +194,6 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         param_val_list.append(
             Tr069MessageBuilder.get_parameter_value_struct(
-                name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_RRMConfig.X_000E8F_Cell_Number',
-                val_type='int',
-                data='2',
-            ),
-        )
-        param_val_list.append(
-            Tr069MessageBuilder.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.CellConfig.LTE.EPC.TAC',
                 val_type='int',
                 data='1',
@@ -254,6 +257,13 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         param_val_list.append(
             Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_SAS.AntennaGain',
+                val_type='int',
+                data='5',
+            ),
+        )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
                 name='Device.FAP.GPS.ScanStatus',
                 val_type='string',
                 data='Success',
@@ -305,6 +315,13 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             Tr069MessageBuilder.get_parameter_value_struct(
                 name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_RRMConfig.X_000E8F_CA_Enable',
                 val_type='boolean',
+                data='0',
+            ),
+        )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_RRMConfig.X_000E8F_Cell_Number',
+                val_type='int',
                 data='1',
             ),
         )
@@ -448,6 +465,13 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
                 data='36412',
             ),
         )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.FAPControl.LTE.X_000E8F_SAS.MaxEirpMHz_Carrier1',
+                val_type='int',
+                data='24',
+            ),
+        )
         return msg
 
     @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
@@ -463,8 +487,10 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
 
         Args:
             mock_get_state (Any): mocking get_cbsd_state method
+            mock_enodebd_update_cbsd (Any): mocking enodebd_update_cbsd method
         """
-
+        self.maxDiff = None
+        test_serial_number = "2006CW5000023"
         mock_get_state.return_value = MOCK_CBSD_STATE
         mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
 
@@ -484,7 +510,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         inform = Tr069MessageBuilder.get_inform(
             oui="000E8F",
             sw_version="TEST3920@210901",
-            enb_serial="2006CW5000023",
+            enb_serial=test_serial_number,
         )
         resp = acs_state_machine.handle_tr069_message(inform)
         self.assertTrue(
@@ -536,6 +562,63 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             isinstance(resp, models.DummyInput),
             'Provisioning completed with Dummy response',
         )
+
+        mock_get_state.assert_called_with(
+            CBSDRequest(serial_number=test_serial_number),
+        )
+
+        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+            serial_number=acs_state_machine.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            latitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LAT),
+            longitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LONG),
+            indoor_deployment=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
+            antenna_height='0',
+            antenna_height_type=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
+            antenna_gain=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_ANTENNA_GAIN),
+            cbsd_category=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
+        )
+
+        mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)
+
+    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
+    @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+        """
+        Test enodebd does not call Domain Proxy API for parameter update when
+        not all parameters are yet available from the eNB
+        """
+        self.maxDiff = None
+        test_serial_number = "2006CW5000023"
+        mock_get_state.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
+
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.FREEDOMFI_ONE,
+        )
+        acs_state_machine._service.config = _get_service_config()
+        acs_state_machine.desired_cfg = build_desired_config(
+            acs_state_machine.mconfig,
+            acs_state_machine.service_config,
+            acs_state_machine.device_cfg,
+            acs_state_machine.data_model,
+            acs_state_machine.config_postprocessor,
+        )
+
+        inform = Tr069MessageBuilder.get_inform(
+            oui="000E8F",
+            sw_version="TEST3920@210901",
+            enb_serial=test_serial_number,
+        )
+        resp = acs_state_machine.handle_tr069_message(inform)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
+
+        # No GPS locked means LAT and LONG are not available yet
+        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, False)
+        acs_state_machine.transition('notify_dp')
+        mock_enodebd_update_cbsd.assert_not_called()
 
 
 class FreedomFiOneStatesTests(EnodebHandlerTestCase):
@@ -600,6 +683,12 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         )
         acs_state_machine.device_cfg.set_parameter(
             SASParameters.SAS_LOCATION, 'indoor',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            SASParameters.SAS_ANTENNA_GAIN, '5',
+        )
+        acs_state_machine.device_cfg.set_parameter(
+            ParameterName.GPS_STATUS, 'True',
         )
         acs_state_machine.transition('check_wait_get_params')
 
@@ -699,12 +788,6 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 value='Device.IP.Interface.1.IPv4Address.1.',
             ),
             call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
-            ),
-            call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
-            ),
-            call.set_parameter(
                 param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
             ),
             call.set_parameter(
@@ -715,6 +798,12 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             ),
             call.set_parameter(
                 param_name=SASParameters.SAS_METHOD, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_CARRIER_NUMBER, value=1,
             ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
@@ -737,12 +826,6 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
                 value='Device.IP.Interface.1.IPv4Address.1.',
             ),
             call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
-            ),
-            call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
-            ),
-            call.set_parameter(
                 param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
             ),
             call.set_parameter(
@@ -753,6 +836,12 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             ),
             call.set_parameter(
                 param_name=SASParameters.SAS_METHOD, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_CARRIER_NUMBER, value=1,
             ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
@@ -791,18 +880,13 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             "s1_interface": "eth1",
         }
         expected = [
+            call.delete_parameter(ParameterName.BAND),
             call.delete_parameter(ParameterName.EARFCNDL),
             call.delete_parameter(ParameterName.DL_BANDWIDTH),
             call.delete_parameter(ParameterName.UL_BANDWIDTH),
             call.set_parameter(
                 param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
                 value='Device.IP.Interface.1.IPv4Address.1.',
-            ),
-            call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
-            ),
-            call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
             ),
             call.set_parameter(
                 param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
@@ -815,6 +899,12 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             ),
             call.set_parameter(
                 param_name=SASParameters.SAS_METHOD, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_CARRIER_NUMBER, value=1,
             ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
@@ -842,18 +932,13 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         }
 
         expected = [
+            call.delete_parameter(ParameterName.BAND),
             call.delete_parameter(ParameterName.EARFCNDL),
             call.delete_parameter(ParameterName.DL_BANDWIDTH),
             call.delete_parameter(ParameterName.UL_BANDWIDTH),
             call.set_parameter(
                 param_name=FreedomFiOneMiscParameters.TUNNEL_REF,
                 value='Device.IP.Interface.1.IPv4Address.1.',
-            ),
-            call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_AGG_ENABLE, value=True,
-            ),
-            call.set_parameter(
-                param_name=FreedomFiOneMiscParameters.CARRIER_NUMBER, value=2,
             ),
             call.set_parameter(
                 param_name=FreedomFiOneMiscParameters.CONTIGUOUS_CC, value=0,
@@ -866,6 +951,12 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             ),
             call.set_parameter(
                 param_name=SASParameters.SAS_METHOD, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_ENABLE, value=False,
+            ),
+            call.set_parameter(
+                param_name=CarrierAggregationParameters.CA_CARRIER_NUMBER, value=1,
             ),
             call.set_parameter_for_object(
                 param_name='PLMN 1 cell reserved',
@@ -1324,21 +1415,19 @@ class FreedomFiOneFirmwareUpgradeDownloadTests(EnodebHandlerTestCase):
 class TXParamsTests(TestCase):
     """Testing TX parameters calculations"""
     @parameterized.expand([
-        (3550000000, 3560000000, 19, '50', 55290, 24),
-        (3555000000, 3570000000, 17, '75', 55365, 23),
-        (3600000000, 3605000000, 19, '25', 55765, 20),
+        (3550000000, 3560000000, 19, '50', 55290),
+        (3555000000, 3570000000, 17, '75', 55365),
+        (3600000000, 3605000000, 19, '25', 55765),
     ])
-    def test_tx_parameters_with_eirp_within_range(
+    def test_max_eirp_with_eirp_within_range(
             self,
             low_frequency_hz,
             high_frequency_hz,
             max_eirp_dbm_mhz,
             expected_bw_rbs,
             expected_earfcn,
-            expected_tx_power,
     ) -> None:
-        """Test that tx parameters of the enodeb are calculated correctly when eirp received from SAS
-        is within acceptable range for the given bandwidth
+        """Test that max erip parameters of the enodeb are set correctly when Domain Proxy returns CBSD sate
 
         Args:
             low_frequency_hz (Any): low frequency in hz
@@ -1346,7 +1435,6 @@ class TXParamsTests(TestCase):
             max_eirp_dbm_mhz (Any): max eirp
             expected_bw_rbs (Any): expected bandwidth
             expected_earfcn (Any): expected earfcn
-            expected_tx_power (Any): expected tx power
         """
         desired_config = EnodebConfiguration(FreedomFiOneTrDataModel())
         channel = LteChannel(
@@ -1357,6 +1445,8 @@ class TXParamsTests(TestCase):
         state = CBSDStateResult(
             radio_enabled=True,
             channel=channel,
+            channels=[channel],
+            carrier_aggregation_enabled=False,
         )
 
         ff_one_update_desired_config_from_cbsd_state(state, desired_config)
@@ -1364,17 +1454,16 @@ class TXParamsTests(TestCase):
             config=desired_config,
             bandwidth=expected_bw_rbs,
             earfcn=expected_earfcn,
-            tx_power=expected_tx_power,
+            max_eirp=max_eirp_dbm_mhz,
             radio_enabled=True,
         )
 
     @parameterized.expand([
-        (30,),
-        (-10,),
+        (-138,),
+        (38,),
     ])
-    def test_tx_parameters_with_eirp_out_of_range(self, max_eirp_dbm_mhz) -> None:
-        """Test that tx parameters calculations raise an exception when eirp received from SAS
-        is outside of acceptable range for the given bandwidth
+    def test_max_eirp_with_eirp_out_of_range(self, max_eirp_dbm_mhz) -> None:
+        """Test setting max eirp to out of range values raises an exception
 
         Args:
             max_eirp_dbm_mhz (Any): max eirp
@@ -1388,6 +1477,8 @@ class TXParamsTests(TestCase):
         state = CBSDStateResult(
             radio_enabled=True,
             channel=channel,
+            channels=[channel],
+            carrier_aggregation_enabled=False,
         )
         with self.assertRaises(ConfigurationError):
             ff_one_update_desired_config_from_cbsd_state(state, desired_config)
@@ -1407,6 +1498,8 @@ class TXParamsTests(TestCase):
         state = CBSDStateResult(
             radio_enabled=True,
             channel=channel,
+            channels=[channel],
+            carrier_aggregation_enabled=False,
         )
         with self.assertRaises(ConfigurationError):
             ff_one_update_desired_config_from_cbsd_state(state, desired_config)
@@ -1422,6 +1515,8 @@ class TXParamsTests(TestCase):
         state = CBSDStateResult(
             radio_enabled=False,
             channel=channel,
+            channels=[channel],
+            carrier_aggregation_enabled=False,
         )
 
         ff_one_update_desired_config_from_cbsd_state(state, desired_config)
@@ -1433,7 +1528,7 @@ class TXParamsTests(TestCase):
         )
 
     def _assert_config_updated(
-            self, config: EnodebConfiguration, bandwidth: str, earfcn: int, tx_power: int, radio_enabled: bool,
+            self, config: EnodebConfiguration, bandwidth: str, earfcn: int, max_eirp: int, radio_enabled: bool,
     ) -> None:
         expected_values = {
             ParameterName.ADMIN_STATE: radio_enabled,
@@ -1441,12 +1536,137 @@ class TXParamsTests(TestCase):
             ParameterName.UL_BANDWIDTH: bandwidth,
             ParameterName.EARFCNDL: earfcn,
             ParameterName.EARFCNUL: earfcn,
-            SASParameters.TX_POWER_CONFIG: tx_power,
-            SASParameters.FREQ_BAND1: BAND,
-            SASParameters.FREQ_BAND2: BAND,
+            SASParameters.SAS_MAX_EIRP: max_eirp,
+            ParameterName.BAND: BAND,
         }
         for key, value in expected_values.items():
             self.assertEqual(config.get_parameter(key), value)
+
+
+class FreedomFiOneCarrierAggregationTests(EnodebHandlerTestCase):
+    channel_20_1 = LteChannel(low_frequency_hz=3550_000_000, high_frequency_hz=3570_000_000, max_eirp_dbm_mhz=20)
+    channel_20_2 = LteChannel(low_frequency_hz=3570_000_000, high_frequency_hz=3590_000_000, max_eirp_dbm_mhz=20)
+    channel_15_1 = LteChannel(low_frequency_hz=3570_000_000, high_frequency_hz=3585_000_000, max_eirp_dbm_mhz=20)
+    channel_15_2 = LteChannel(low_frequency_hz=3585_000_000, high_frequency_hz=3600_000_000, max_eirp_dbm_mhz=20)
+    channel_10_1 = LteChannel(low_frequency_hz=3570_000_000, high_frequency_hz=3580_000_000, max_eirp_dbm_mhz=20)
+    channel_10_2 = LteChannel(low_frequency_hz=3580_000_000, high_frequency_hz=3590_000_000, max_eirp_dbm_mhz=20)
+    channel_5_1 = LteChannel(low_frequency_hz=3550_000_000, high_frequency_hz=3555_000_000, max_eirp_dbm_mhz=20)
+    channel_5_2 = LteChannel(low_frequency_hz=3555_000_000, high_frequency_hz=3560_000_000, max_eirp_dbm_mhz=20)
+
+    # Domain Proxy state results, which should be supported and accepted by FreedomFi One. Carrier Aggregation should be set on eNB.
+    state_ca_enabled_2_channels_20 = CBSDStateResult(channels=[channel_20_1, channel_20_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_10 = CBSDStateResult(channels=[channel_10_1, channel_10_2], radio_enabled=True, carrier_aggregation_enabled=True)
+
+    # Domain Proxy state results, which result in disabling the radio.
+    state_ca_enabled_0_channels = CBSDStateResult(channels=[], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_disabled_0_channels = CBSDStateResult(channels=[], radio_enabled=True, carrier_aggregation_enabled=False)
+
+    # Domain Proxy state results, with just 1 channel or 2 channels but CA disabled. Should result in eNB switching to Single Carrier
+    state_ca_enabled_1_channel_20 = CBSDStateResult(channels=[channel_20_1], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_disabled_2_channels_20 = CBSDStateResult(channels=[channel_20_1, channel_20_2], radio_enabled=True, carrier_aggregation_enabled=False)
+    state_ca_disabled_1_channel_20 = CBSDStateResult(channels=[channel_20_1], radio_enabled=True, carrier_aggregation_enabled=False)
+
+    # Domain Proxy state results, with 2 channels that are not in supported bandwidth configurations. Should result in eNB switching to Single Carrier
+    state_ca_enabled_2_channels_20_15 = CBSDStateResult(channels=[channel_20_1, channel_15_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_20_10 = CBSDStateResult(channels=[channel_20_1, channel_10_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_20_5 = CBSDStateResult(channels=[channel_20_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_15 = CBSDStateResult(channels=[channel_15_1, channel_15_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_15_10 = CBSDStateResult(channels=[channel_15_1, channel_10_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_15_5 = CBSDStateResult(channels=[channel_15_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_10_5 = CBSDStateResult(channels=[channel_10_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+
+    @parameterized.expand([
+        (state_ca_enabled_2_channels_20,),
+        (state_ca_enabled_2_channels_10,),
+    ])
+    def test_ca_enabled_based_on_domain_proxy_state(self, state) -> None:
+        """
+        Test eNB configuration set to Carrier Aggregation when Domain Proxy
+        state response contains applicable channels
+        """
+        config = EnodebConfiguration(FreedomFiOneTrDataModel())
+
+        # Set required params in device configuration
+        _pci = 260
+        _cell_id = 138777000
+        _tac = 1
+        config.set_parameter(ParameterName.TAC, _tac)
+        config.set_parameter(ParameterName.PCI, _pci)
+        config.set_parameter(ParameterName.CELL_ID, 138777000)
+        config.set_parameter(ParameterName.GPS_STATUS, True)
+
+        # Update eNB configuration based on Domain Proxy state response
+        ff_one_update_desired_config_from_cbsd_state(state, config)
+
+        # Check eNB set to Carrier Aggregation
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_ENABLE), True)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_CARRIER_NUMBER), 2)
+
+        # Check second carrier set to parameters derived from second channel
+        ca_channel_low_freq = state.channels[1].low_frequency_hz
+        ca_channel_high_freq = state.channels[1].high_frequency_hz
+        ca_earfcn = calc_earfcn(ca_channel_low_freq, ca_channel_high_freq)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_EARFCNDL), ca_earfcn)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_EARFCNDL), ca_earfcn)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_BAND), 48)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_TAC), _tac)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_CELL_ID), _cell_id + 1)
+        self.assertEqual(config.get_parameter(ParameterName.ADMIN_STATE), True)
+
+    @parameterized.expand([
+        (state_ca_enabled_0_channels,),
+        (state_ca_disabled_0_channels,),
+    ])
+    def test_radio_disabled_based_on_domain_proxy_state(self, state) -> None:
+        """
+        Test eNB configuration set to disable radio tranmission and not touch
+        any eNB parameters, when Domain Proxy state response contains no channels
+        """
+        config = EnodebConfiguration(FreedomFiOneTrDataModel())
+        ff_one_update_desired_config_from_cbsd_state(state, config)
+        self.assertEqual(config.get_parameter(ParameterName.ADMIN_STATE), False)
+
+    @parameterized.expand([
+        (state_ca_enabled_1_channel_20,),
+        (state_ca_disabled_2_channels_20,),
+        (state_ca_disabled_1_channel_20,),
+        (state_ca_enabled_2_channels_20_15,),
+        (state_ca_enabled_2_channels_20_10,),
+        (state_ca_enabled_2_channels_20_5,),
+        (state_ca_enabled_2_channels_15,),
+        (state_ca_enabled_2_channels_15_10,),
+        (state_ca_enabled_2_channels_15_5,),
+        (state_ca_enabled_2_channels_10_5,),
+    ])
+    def test_single_carrier_enabled_based_on_domain_proxy_state(self, state) -> None:
+        """
+        Test eNB configuration set to Single Carrier when Domain Proxy
+        state response contains one channel or 2 channels with incompatible
+        channel configuration
+        """
+        config = EnodebConfiguration(FreedomFiOneTrDataModel())
+
+        # Set required params in device configuration
+        config.set_parameter(ParameterName.GPS_STATUS, True)
+
+        # Update eNB configuration based on Domain Proxy state response
+        ff_one_update_desired_config_from_cbsd_state(state, config)
+
+        # Check eNB set to Single Carrier
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_ENABLE), False)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_CARRIER_NUMBER), 1)
+
+        # Check eNB first carrier set to parameters derived from first channel
+        sc_channel_low_freq = state.channels[0].low_frequency_hz
+        sc_channel_high_freq = state.channels[0].high_frequency_hz
+        sc_bw_mhz = calc_bandwidth_mhz(sc_channel_low_freq, sc_channel_high_freq)
+        sc_bw_rbs = calc_bandwidth_rbs(sc_bw_mhz)
+        sc_earfcn = calc_earfcn(sc_channel_low_freq, sc_channel_high_freq)
+        self.assertEqual(config.get_parameter(ParameterName.DL_BANDWIDTH), sc_bw_rbs)
+        self.assertEqual(config.get_parameter(ParameterName.UL_BANDWIDTH), sc_bw_rbs)
+        self.assertEqual(config.get_parameter(ParameterName.EARFCNDL), sc_earfcn)
+        self.assertEqual(config.get_parameter(ParameterName.EARFCNDL), sc_earfcn)
+        self.assertEqual(config.get_parameter(ParameterName.ADMIN_STATE), True)
 
 
 def _get_service_config(dp_mode: bool = True, prim_src: str = "GNSS"):
