@@ -19,6 +19,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check_go_version:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run golang_check_version.sh script
+        run: ./.github/workflows/scripts/golang_check_version.sh
+
   pre_job_src_go_determinator:
     runs-on: ubuntu-latest
     outputs:
