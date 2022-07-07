@@ -34,7 +34,6 @@ from dp.protos.active_mode_pb2 import (
 )
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from google.protobuf.empty_pb2 import Empty
-from google.protobuf.json_format import MessageToJson
 from google.protobuf.wrappers_pb2 import FloatValue
 from magma.db_service.models import (
     DBCbsd,
@@ -133,7 +132,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         """
         Store available frequencies in the database
 
-        Parameters
+        Parameters:
             request: StoreAvailableFrequencies gRPC Message
             context: gRPC context
 
@@ -152,6 +151,7 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             updated = session.query(DBCbsd).filter(DBCbsd.id == db_id).update(to_update)
             session.commit()
         return updated
+
 
 def _list_cbsds(session: Session) -> State:
     # It might be possible to use join instead of nested queries
@@ -216,6 +216,15 @@ def _build_filter():
 
 
 def not_null(fields: List[Any]):
+    """
+    Check that the fields are not null
+
+    Parameters:
+        fields (List[Any]): db fields
+
+    Returns:
+        None
+    """
     return and_(*[field != None for field in fields])  # noqa: E711
 
 
