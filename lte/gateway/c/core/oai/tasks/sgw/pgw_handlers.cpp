@@ -613,7 +613,8 @@ status_code_e create_temporary_dedicated_bearer_context(
     uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
-      (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+      reinterpret_cast<sgw_eps_bearer_ctxt_t*>(
+          calloc(1, sizeof(sgw_eps_bearer_ctxt_t)));
 
   if (!eps_bearer_ctxt_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
@@ -676,8 +677,8 @@ status_code_e create_temporary_dedicated_bearer_context(
     }
   }
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
-      (sgw_eps_bearer_entry_wrapper_s*)calloc(1,
-                                              sizeof(*sgw_eps_bearer_entry_p));
+      reinterpret_cast<sgw_eps_bearer_entry_wrapper_s*>(
+          calloc(1, sizeof(*sgw_eps_bearer_entry_p)));
   if (!sgw_eps_bearer_entry_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
                     "Failed to allocate memory for sgw_eps_bearer_entry_p\n");

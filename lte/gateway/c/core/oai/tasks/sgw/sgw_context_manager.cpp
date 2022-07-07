@@ -116,7 +116,8 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
 {
   mme_sgw_tunnel_t* new_tunnel = NULL;
 
-  new_tunnel = (mme_sgw_tunnel_t*)calloc(1, sizeof(mme_sgw_tunnel_t));
+  new_tunnel =
+      reinterpret_cast<mme_sgw_tunnel_t*>(calloc(1, sizeof(mme_sgw_tunnel_t)));
 
   if (new_tunnel == NULL) {
     /*
@@ -140,8 +141,8 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
       NULL;
   new_bearer_context_information =
-      (s_plus_p_gw_eps_bearer_context_information_t*)calloc(
-          1, sizeof(s_plus_p_gw_eps_bearer_context_information_t));
+      reinterpret_cast<s_plus_p_gw_eps_bearer_context_information_t*>(
+          calloc(1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
 
   if (new_bearer_context_information == NULL) {
     /*
@@ -246,8 +247,8 @@ sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
 
   if (!sgw_pdn_connection
            ->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)]) {
-    new_eps_bearer_entry =
-        (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+    new_eps_bearer_entry = reinterpret_cast<sgw_eps_bearer_ctxt_t*>(
+        calloc(1, sizeof(sgw_eps_bearer_ctxt_t)));
 
     if (new_eps_bearer_entry == NULL) {
       /*
