@@ -30,8 +30,8 @@
         override_nameserver: 8.8.8.8
     - role: golang
       vars:
-        golang_tar: go1.18.linux-amd64.tar.gz
-        golang_tar_checksum: 'sha256:e85278e98f57cdb150fe8409e6e5df5343ecb13cebf03a5d5ff12bd55a80264f'
+        golang_tar: go1.18.3.linux-amd64.tar.gz
+        golang_tar_checksum: 'sha256:956f8507b302ab0bb747613695cdae10af99bbd39a90cae522b7c0302cc27245'
     - role: cwag_test
   tasks:
     - name: Set build environment variables
