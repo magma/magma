@@ -1,6 +1,6 @@
 ---
 name: Golang Build & Test
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -25,9 +25,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
         with:
           filters: |
@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -49,16 +49,16 @@ jobs:
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.18.x]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: [ 1.18.x ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Test
         run: |
           cd src/go/
@@ -71,7 +71,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "build_src_go tests failed"
@@ -86,26 +86,26 @@ jobs:
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.18.x]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: [ 1.18.x ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Setup gotestsum
-        uses: autero1/action-gotestsum@v1.0.0
+        uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # pin@v1.0.0
         with:
           gotestsum_version: 1.7.0
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Test
         run: |
           cd src/go/
           gotestsum --format=testname --junitfile test_src_go.xml -- -race ./...
       - name: Upload Test Results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: Unit Test Results
           path: "${{ github.workspace }}/src/go/test_src_go.xml"
@@ -117,7 +117,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "test_src_go tests failed"
@@ -132,31 +132,31 @@ jobs:
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.18.x]
-        arch: [386, arm, arm64]
+        go-version: [ 1.18.x ]
+        arch: [ 386, arm, arm64 ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Install QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480 # pin@v1
       - name: Setup gotestsum
-        uses: autero1/action-gotestsum@v1.0.0
+        uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # pin@v1.0.0
         with:
           gotestsum_version: 1.7.0
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Run tests via qemu/binfmt
         run: |
           cd src/go/
           gotestsum --format=testname --junitfile test_src_go.xml -- ./...
         env:
           GOARCH: ${{ matrix.arch }}
-        # TODO: Upload this test result as a comment on PR
+          # TODO: Upload this test result as a comment on PR
       - name: Upload Test Results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: Unit Test Results arm64
           path: "${{ github.workspace }}/src/go/test_src_go.xml"
@@ -168,7 +168,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "test_src_go_qemu tests failed"
@@ -178,27 +178,26 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
 
-
   codecov_src_go:
     needs: pre_job_src_go_determinator
     if: ${{ needs.pre_job_src_go_determinator.outputs.should_not_skip == 'true' }}
     strategy:
       matrix:
-        go-version: [1.18.x]
+        go-version: [ 1.18.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Test
         run: |
           cd src/go/
           go test -race -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Codecov.io Upload
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         with:
           flags: src_go
           fail_ci_if_error: true
@@ -211,7 +210,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "codecov_src_go tests failed"

@@ -1,7 +1,6 @@
 ---
 name: feg-workflow
 
-# yamllint disable-line rule:truthy
 on:
   push:
     branches:
@@ -11,7 +10,7 @@ on:
     branches:
       - master
       - 'v1.*'
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -24,9 +23,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
         with:
           filters: |
@@ -37,7 +36,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -49,18 +48,18 @@ jobs:
     name: feg lint and precommit
     runs-on: ubuntu-latest
     env:
-      GO111MODULE: on  # yamllint disable-line rule:truthy
+      GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
         with:
           go-version: '1.18'
       - run: go version
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5 # pin@v2
         if: always()
         id: feg-lint-init
         with:
@@ -70,15 +69,15 @@ jobs:
         if: always() && steps.feg-lint-init.outcome=='success'
         id: feg-lint
         run: |
-              cd ${MAGMA_ROOT}/feg/gateway
-              make -C ${MAGMA_ROOT}/feg/gateway lint
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway lint
       - name: Generate test coverage
         if: always() && steps.feg-lint.outcome=='success'
         id: feg-lint-cov
         run: |
-              cd ${MAGMA_ROOT}/feg/gateway
-              make -C ${MAGMA_ROOT}/feg/gateway cover
-      - uses: codecov/codecov-action@v2
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway cover
+      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         if: always()
         id: feg-lint-codecov
         with:
@@ -94,7 +93,7 @@ jobs:
       - name: Upload Test Results
         id: feg-precommit-upload
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
@@ -107,8 +106,9 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name ==
+          'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -121,7 +121,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "FeG-precommit tests failed"
