@@ -21,6 +21,7 @@ from dp.protos.active_mode_pb2 import (
     DeleteCbsdRequest,
     GetStateRequest,
     Granted,
+    GrantSettings,
     Registered,
     State,
     StoreAvailableFrequenciesRequest,
@@ -89,7 +90,10 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_registration('some'). \
             with_eirp_capabilities(0, 10, 1). \
             with_antenna_gain(20). \
-            with_desired_state(self.registered)
+            with_desired_state(self.registered). \
+            with_max_ibw(1000). \
+            with_carrier_aggregation(True). \
+            with_available_frequencies([3500, 3750])
 
     @staticmethod
     def _prepare_base_active_mode_cbsd() -> ActiveModeCbsdBuilder:
@@ -101,7 +105,14 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_eirp_capabilities(0, 10, 1). \
             with_antenna_gain(20). \
             with_desired_state(Registered). \
-            with_grant_settings(True, 150)
+            with_grant_settings(
+            GrantSettings(
+                grant_redundancy_enabled=True,
+                carrier_aggregation_enabled=True,
+                max_ibw_mhz=1000,
+                available_frequencies=[3500, 3750],
+            ),
+        )
 
 
 class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
@@ -124,13 +135,13 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
 
     def test_delete_cbsd(self):
         # Given
-        cbsd1 = self._prepare_base_cbsd().\
-            with_id(SOME_ID).\
-            with_registration("some").\
+        cbsd1 = self._prepare_base_cbsd(). \
+            with_id(SOME_ID). \
+            with_registration("some"). \
             build()
         cbsd2 = self._prepare_base_cbsd(). \
             with_id(OTHER_ID). \
-            with_registration("some_other").\
+            with_registration("some_other"). \
             build()
         self.session.add_all([cbsd1, cbsd2])
         self.session.commit()
@@ -369,8 +380,12 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_state(self.registered). \
             with_desired_state(self.registered). \
             with_registration('some'). \
+            with_max_ibw(1000). \
+            with_carrier_aggregation(True). \
+            with_available_frequencies([3500, 3750]). \
             updated(). \
             build()
+
         self.session.add(cbsd)
         self.session.commit()
 
@@ -381,8 +396,13 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_registration('some'). \
             updated(). \
             with_category('b'). \
-            with_grant_settings(True, 150). \
-            build()
+            with_grant_settings(
+            GrantSettings(
+                grant_redundancy_enabled=True,
+                carrier_aggregation_enabled=True,
+                max_ibw_mhz=1000,
+                available_frequencies=[3500, 3750],
+            )).build()
         expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
@@ -394,6 +414,9 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_state(self.registered). \
             with_desired_state(self.registered). \
             with_registration('some'). \
+            with_max_ibw(1000). \
+            with_carrier_aggregation(True). \
+            with_available_frequencies([3500, 3750]). \
             deleted(). \
             build()
         self.session.add(cbsd)
@@ -406,8 +429,13 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_registration('some'). \
             deleted(). \
             with_category('b'). \
-            with_grant_settings(True, 150). \
-            build()
+            with_grant_settings(
+            GrantSettings(
+                grant_redundancy_enabled=True,
+                carrier_aggregation_enabled=True,
+                max_ibw_mhz=1000,
+                available_frequencies=[3500, 3750],
+            )).build()
         expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)

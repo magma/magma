@@ -22,6 +22,7 @@ from dp.protos.active_mode_pb2 import (
     EirpCapabilities,
     FrequencyPreferences,
     Grant,
+    GrantSettings,
     GrantState,
     InstallationParams,
     SasSettings,
@@ -43,7 +44,7 @@ class ActiveModeCbsdBuilder:
         self.preferences = FrequencyPreferences()
         self.installation = InstallationParams()
         self.db_data = DatabaseCbsd()
-        self.grant_settings = {}
+        self.grant_settings = GrantSettings()
 
     def build(self) -> Cbsd:
         return Cbsd(
@@ -90,9 +91,8 @@ class ActiveModeCbsdBuilder:
         self.state = state
         return self
 
-    def with_grant_settings(self, grant_redundancy_enabled: bool, max_ibw_mhz: int):
-        self.grant_settings["grant_redundancy_enabled"] = grant_redundancy_enabled
-        self.grant_settings["max_ibw_mhz"] = max_ibw_mhz
+    def with_grant_settings(self, grant_settings: GrantSettings):
+        self.grant_settings = grant_settings
         return self
 
     def with_registration(self, prefix: str) -> ActiveModeCbsdBuilder:

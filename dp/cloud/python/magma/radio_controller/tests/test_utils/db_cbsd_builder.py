@@ -106,6 +106,22 @@ class DBCbsdBuilder:
         self.cbsd.preferred_frequencies_mhz = frequencies_mhz
         return self
 
+    def with_available_frequencies(self, frequencies: List[int]):
+        self.cbsd.available_frequencies = frequencies
+        return self
+
+    def with_carrier_aggregation(self, enabled: bool) -> DBCbsdBuilder:
+        self.cbsd.carrier_aggregation_enabled = enabled
+        return self
+
+    def with_max_ibw(self, max_ibw_mhz: int) -> DBCbsdBuilder:
+        self.cbsd.max_ibw_mhz = max_ibw_mhz
+        return self
+
+    def with_grant_redundancy(self, enabled: bool) -> DBCbsdBuilder:
+        self.cbsd.grant_redundancy = enabled
+        return self
+
     def with_grant(
         self,
         grant_id: str,
