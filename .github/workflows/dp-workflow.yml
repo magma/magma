@@ -96,7 +96,7 @@ jobs:
         working-directory: dp/cloud/python/magma/configuration_controller
     strategy:
       matrix:
-        python-version: [ 3.8 ]
+        python-version: [ 3.8.10 ]
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
@@ -193,7 +193,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ 3.8 ]
+        python-version: [ 3.8.10 ]
     steps:
 
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -271,7 +271,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}/dp/cloud/python
     strategy:
       matrix:
-        python-version: [ 3.8 ]
+        python-version: [ 3.8.10 ]
     services:
       postgres:
         image: postgres:13.3
@@ -320,7 +320,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ 3.8 ]
+        python-version: [ 3.8.10 ]
     steps:
 
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2

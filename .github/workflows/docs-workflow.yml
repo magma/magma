@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8.10'
       - name: Run docs precommit
         run: |
           cd ${MAGMA_ROOT}/docs
@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8.10'
       - name: Run docs `make`
         run: |
           cd ${MAGMA_ROOT}/docs

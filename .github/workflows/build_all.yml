@@ -119,7 +119,7 @@ jobs:
           default: 3.8.5
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
-          python-version: '3.8.5'
+          python-version: '3.8.10'
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
@@ -279,7 +279,7 @@ jobs:
         run: sudo apt-get update
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8.10'
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
@@ -736,7 +736,7 @@ jobs:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8.10'
       - name: generate test certs and snowflake
         run: |
           # TODO add rootCA.pem and snowflake files in the ubuntu-1604:201903-01 image
@@ -923,7 +923,7 @@ jobs:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8.10'
       - name: Publish to
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
