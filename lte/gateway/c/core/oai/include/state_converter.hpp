@@ -149,7 +149,7 @@ class StateConverter {
         conversion_callable(reinterpret_cast<NodeType*>(node), &proto);
         (*proto_map)[itr->first] = proto;
       } else {
-        OAILOG_ERROR(log_task_level, "Key %lu not found on %s hashtable",
+        OAILOG_ERROR(log_task_level, "Key %lu without value in %s map",
                      itr->first, state_map.get_name());
       }
     }
@@ -182,7 +182,7 @@ class StateConverter {
         failed_to_write = false;
       }
       if (failed_to_write) {
-        OAILOG_ERROR(log_task_level, "Failed to insert node on hashtable %s",
+        OAILOG_ERROR(log_task_level, "Failed to insert key in map %s",
                      state_map.get_name());
       }
     }

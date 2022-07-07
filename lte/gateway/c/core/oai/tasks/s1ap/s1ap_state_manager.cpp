@@ -23,7 +23,7 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
-char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
+constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
 constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 }  // namespace

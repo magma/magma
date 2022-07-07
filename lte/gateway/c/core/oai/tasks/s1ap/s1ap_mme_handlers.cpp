@@ -3775,7 +3775,7 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
     enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
     magma::proto_map_rc_t rc =
         state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
-    if (magma::PROTO_MAP_OK != rc) {
+    if (rc != magma::PROTO_MAP_OK) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   } else if ((enb_association->s1_state == S1AP_SHUTDOWN) ||
@@ -4558,7 +4558,7 @@ status_code_e s1ap_handle_paging_request(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   if (!(state->enbs.size())) {
-    OAILOG_ERROR(LOG_S1AP, "Could not find eNB hashlist!\n");
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB map!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
