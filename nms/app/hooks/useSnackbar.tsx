@@ -22,6 +22,8 @@ type AllowedConfig = {
   variant?: VariantType;
 } & OptionsObject;
 
+export type EnqueueSnackbar = (msg: string, cfg: OptionsObject) => SnackbarKey;
+
 export default function useSnackbar(
   message: string,
   config: AllowedConfig,
@@ -64,7 +66,7 @@ export default function useSnackbar(
   /*eslint-enable react-hooks/exhaustive-deps*/
 }
 
-export function useEnqueueSnackbar() {
+export function useEnqueueSnackbar(): EnqueueSnackbar {
   const {enqueueSnackbar} = useNotistackSnackbar();
   return useCallback(
     (message: string, config: OptionsObject) =>

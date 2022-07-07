@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 
-import * as hooks from '../../../components/context/RefreshContext';
 import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
 import MagmaAPI from '../../../api/MagmaAPI';
@@ -118,13 +117,6 @@ const mockCPUUsage: PromqlReturnObject = {
 };
 
 describe('<FEGGatewayDetailStatus />', () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  jest.spyOn(hooks, 'useRefreshingContext').mockImplementation((() => ({
-    fegGateways: fegGateways,
-    health: fegGatewaysHealth,
-    activeFegGatewayId: mockGw0.id,
-  })) as any);
-
   beforeEach(() => {
     // called when getting the CPU Usage
     mockAPI(
@@ -146,6 +138,7 @@ describe('<FEGGatewayDetailStatus />', () => {
             value={{
               state: fegGateways,
               setState: async () => {},
+              refetch: () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>

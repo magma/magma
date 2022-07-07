@@ -26,12 +26,14 @@ import type {
 import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
 import MagmaAPI from '../../api/MagmaAPI';
-import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
-import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
 import {
+  FetchFegGateway,
+  FetchFegGateways,
   InitGatewayState,
   SetGatewayState,
 } from '../../state/feg/EquipmentState';
+import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
+import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -129,7 +131,7 @@ export function FEGGatewayContextProvider(props: Props) {
     <FEGGatewayContext.Provider
       value={{
         state: fegGateways,
-        setState: (key, value?, newState?) => {
+        setState: (key, value?) => {
           return SetGatewayState({
             networkId,
             fegGateways,
@@ -139,9 +141,36 @@ export function FEGGatewayContextProvider(props: Props) {
             setActiveFegGatewayId,
             key,
             value,
-            newState,
             enqueueSnackbar,
           });
+        },
+        refetch: (id?: GatewayId) => {
+          if (id) {
+            void FetchFegGateway({id, networkId, enqueueSnackbar}).then(
+              response => {
+                if (response) {
+                  setFegGateways(gateways => ({
+                    ...gateways,
+                    [id]: response.fegGateway,
+                  }));
+                  setFegGatewaysHealthStatus(healthStatus => ({
+                    ...healthStatus,
+                    [id]: response.healthStatus,
+                  }));
+                }
+              },
+            );
+          } else {
+            void FetchFegGateways({networkId, enqueueSnackbar}).then(
+              response => {
+                if (response) {
+                  setFegGateways(response.fegGateways);
+                  setFegGatewaysHealthStatus(response.fegGatewaysHealthStatus);
+                  setActiveFegGatewayId(response.activeFegGatewayId);
+                }
+              },
+            );
+          }
         },
         health: fegGatewaysHealthStatus,
         activeFegGatewayId,

@@ -19,8 +19,10 @@ import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils'
 import type {OptionsObject} from 'notistack';
 
 import MagmaAPI from '../../api/MagmaAPI';
+import {EnqueueSnackbar} from '../../hooks/useSnackbar';
 import {GatewayId, NetworkId} from '../../../shared/types/network';
 import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
+
 type InitGatewayStateProps = {
   networkId: NetworkId;
   setFegGateways: (fegGateways: Record<string, FederationGateway>) => void;
@@ -28,10 +30,7 @@ type InitGatewayStateProps = {
     gatewayHealthStatuses: Record<string, FederationGatewayHealthStatus>,
   ) => void;
   setActiveFegGatewayId: (gatewayId: GatewayId) => void;
-  enqueueSnackbar: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
+  enqueueSnackbar: EnqueueSnackbar;
 };
 
 /**
@@ -52,23 +51,11 @@ export async function InitGatewayState(props: InitGatewayStateProps) {
     setActiveFegGatewayId,
     enqueueSnackbar,
   } = props;
-  try {
-    const fegGateways = (
-      await MagmaAPI.federationGateways.fegNetworkIdGatewaysGet({
-        networkId: networkId,
-      })
-    ).data;
-    const [fegGatewaysHealthStatus, activeFegGatewayId] = await Promise.all([
-      getFegGatewaysHealthStatus(networkId, fegGateways, enqueueSnackbar),
-      getActiveFegGatewayId(networkId, fegGateways, enqueueSnackbar),
-    ]);
-    setFegGateways(fegGateways);
-    setFegGatewaysHealthStatus(fegGatewaysHealthStatus);
-    setActiveFegGatewayId(activeFegGatewayId);
-  } catch (e) {
-    enqueueSnackbar?.('failed fetching federation gateway information', {
-      variant: 'error',
-    });
+  const result = await FetchFegGateways({networkId, enqueueSnackbar});
+  if (result) {
+    setFegGateways(result.fegGateways);
+    setFegGatewaysHealthStatus(result.fegGatewaysHealthStatus);
+    setActiveFegGatewayId(result.activeFegGatewayId);
   }
 }
 
@@ -97,7 +84,6 @@ type GatewayStateProps = {
   setActiveFegGatewayId: (activeGwId: GatewayId) => void;
   key: GatewayId;
   value?: MutableFederationGateway;
-  newState?: Record<GatewayId, FederationGateway>;
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
@@ -121,19 +107,8 @@ export async function SetGatewayState(props: GatewayStateProps) {
     setActiveFegGatewayId,
     key,
     value,
-    newState,
     enqueueSnackbar,
   } = props;
-  if (newState) {
-    setFegGateways(newState);
-    setFegGatewaysHealthStatus(
-      await getFegGatewaysHealthStatus(networkId, newState, enqueueSnackbar),
-    );
-    setActiveFegGatewayId(
-      await getActiveFegGatewayId(networkId, newState, enqueueSnackbar),
-    );
-    return;
-  }
   if (value) {
     if (!(key in fegGateways)) {
       await MagmaAPI.federationGateways.fegNetworkIdGatewaysPost({
@@ -183,7 +158,7 @@ export async function SetGatewayState(props: GatewayStateProps) {
  * @param {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error
  * @returns an object containing the IDs of the federation gateways mapped to their health status.
  */
-export async function getFegGatewaysHealthStatus(
+async function getFegGatewaysHealthStatus(
   networkId: NetworkId,
   fegGateways: Record<GatewayId, FederationGateway>,
   enqueueSnackbar?: (
@@ -216,7 +191,7 @@ export async function getFegGatewaysHealthStatus(
  * @param {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error
  * @returns returns the active federation gateway id or an empty string.
  */
-export async function getActiveFegGatewayId(
+async function getActiveFegGatewayId(
   networkId: NetworkId,
   fegGateways: Record<GatewayId, FederationGateway>,
   enqueueSnackbar?: (
@@ -240,14 +215,11 @@ export async function getActiveFegGatewayId(
     return '';
   }
 }
-type FetchProps = {
+
+interface FetchAllGatewaysProps {
   networkId: NetworkId;
-  id?: GatewayId;
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
-};
+  enqueueSnackbar: EnqueueSnackbar;
+}
 
 /**
  * Fetches and returns the list of gateways under the federation network or
@@ -260,41 +232,52 @@ type FetchProps = {
  *   gateways in the network or the federation gateway with the given id. It returns an empty
  *   object and displays any error encountered on the snackbar when it fails to fetch the gateways.
  */
-export async function FetchFegGateways(props: FetchProps) {
-  const {networkId, id, enqueueSnackbar} = props;
-  if (id !== undefined && id !== null && id !== '') {
-    try {
-      const gateway = (
-        await MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdGet({
-          networkId: networkId,
-          gatewayId: id,
-        })
-      ).data;
-      if (gateway) {
-        return {
-          [id]: gateway,
-        };
-      }
-    } catch (e) {
-      enqueueSnackbar?.(
-        `Failed fetching gateway information for the gateway with id: ${id}`,
-        {
-          variant: 'error',
-        },
-      );
-    }
-  } else {
-    try {
-      return (
-        await MagmaAPI.federationGateways.fegNetworkIdGatewaysGet({
-          networkId: networkId,
-        })
-      ).data;
-    } catch (e) {
-      enqueueSnackbar?.('Failed fetching gateway information', {
-        variant: 'error',
-      });
-    }
+export async function FetchFegGateways(props: FetchAllGatewaysProps) {
+  const {networkId, enqueueSnackbar} = props;
+  try {
+    const fegGateways = (
+      await MagmaAPI.federationGateways.fegNetworkIdGatewaysGet({
+        networkId: networkId,
+      })
+    ).data;
+
+    const [fegGatewaysHealthStatus, activeFegGatewayId] = await Promise.all([
+      getFegGatewaysHealthStatus(networkId, fegGateways, enqueueSnackbar),
+      getActiveFegGatewayId(networkId, fegGateways, enqueueSnackbar),
+    ]);
+
+    return {fegGateways, fegGatewaysHealthStatus, activeFegGatewayId};
+  } catch (e) {
+    enqueueSnackbar?.('Failed fetching gateway information', {
+      variant: 'error',
+    });
   }
-  return {};
+}
+
+interface FetchSingleGatewayProps {
+  networkId: NetworkId;
+  enqueueSnackbar: EnqueueSnackbar;
+  id: GatewayId;
+}
+
+export async function FetchFegGateway(props: FetchSingleGatewayProps) {
+  const {networkId, enqueueSnackbar, id} = props;
+
+  try {
+    const [gatewayResponse, healthStatus] = await Promise.all([
+      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdGet({
+        networkId: networkId,
+        gatewayId: id,
+      }),
+      getFederationGatewayHealthStatus(networkId, id, enqueueSnackbar),
+    ]);
+    if (gatewayResponse) {
+      return {fegGateway: gatewayResponse.data, healthStatus};
+    }
+  } catch (e) {
+    enqueueSnackbar(
+      `Failed fetching gateway information for the gateway with id: ${id}`,
+      {variant: 'error'},
+    );
+  }
 }
