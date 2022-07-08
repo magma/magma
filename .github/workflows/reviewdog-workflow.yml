@@ -152,7 +152,7 @@ jobs:
           filter_mode: added
           reporter: github-pr-review
           fail_on_error: false
-          markdownlint_flags: "--config ./docs/readmes/.markdownlint.yaml"
+          markdownlint_flags: "--config ./docs/readmes/.markdownlint.yaml ."
 
   misspell:
     name: misspell
