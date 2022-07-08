@@ -93,7 +93,7 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_desired_state(self.registered). \
             with_max_ibw(1000). \
             with_carrier_aggregation(True). \
-            with_available_frequencies([3500, 3750])
+            with_available_frequencies([3500000, 3750000])
 
     @staticmethod
     def _prepare_base_active_mode_cbsd() -> ActiveModeCbsdBuilder:
@@ -110,9 +110,9 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
                 grant_redundancy_enabled=True,
                 carrier_aggregation_enabled=True,
                 max_ibw_mhz=1000,
-                available_frequencies=[3500, 3750],
+                available_frequencies=[3500000, 3750000],
             ),
-        )
+            )  # noqa: E123
 
 
 class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
@@ -181,7 +181,7 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        available_frequencies = [3500, 3700, 4000]
+        available_frequencies = [3500000, 3700000, 4000000]
 
         self.stub.StoreAvailableFrequencies(
             StoreAvailableFrequenciesRequest(id=SOME_ID, available_frequencies=available_frequencies),
@@ -382,7 +382,7 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_registration('some'). \
             with_max_ibw(1000). \
             with_carrier_aggregation(True). \
-            with_available_frequencies([3500, 3750]). \
+            with_available_frequencies([3500000, 3750000]). \
             updated(). \
             build()
 
@@ -401,8 +401,9 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
                 grant_redundancy_enabled=True,
                 carrier_aggregation_enabled=True,
                 max_ibw_mhz=1000,
-                available_frequencies=[3500, 3750],
-            )).build()
+                available_frequencies=[3500000, 3750000],
+            ),
+            ).build()  # noqa: E123
         expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
@@ -416,7 +417,7 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_registration('some'). \
             with_max_ibw(1000). \
             with_carrier_aggregation(True). \
-            with_available_frequencies([3500, 3750]). \
+            with_available_frequencies([3500000, 3750000]). \
             deleted(). \
             build()
         self.session.add(cbsd)
@@ -434,8 +435,9 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
                 grant_redundancy_enabled=True,
                 carrier_aggregation_enabled=True,
                 max_ibw_mhz=1000,
-                available_frequencies=[3500, 3750],
-            )).build()
+                available_frequencies=[3500000, 3750000],
+            ),
+            ).build()  # noqa: E123
         expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
