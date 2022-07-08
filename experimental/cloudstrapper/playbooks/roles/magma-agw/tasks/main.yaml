@@ -1,17 +1,27 @@
 ---
 
-- include: ansible-setup.yaml
-  become: yes
-  tags: setupPackages
-- include: resolver-setup.yaml
-  become: yes
-  tags: setupResolver
-- include: magma-setup.yaml
-  become: yes
-  tags: setupMagma
-- include: agw-setup.yaml
-  become: yes
-  tags: setupAgw
-- include: magma-cleanup.yaml
-  become: yes
-  tags: cleanupMagmaAgw
+- include_tasks:
+    file: ansible-setup.yaml
+    apply:
+      become: yes
+      tags: [setupPackages]
+- include_tasks:
+    file: resolver-setup.yaml
+    apply:
+      become: yes
+      tags: [setupResolver]
+- include_tasks:
+    file: magma-setup.yaml
+    apply:
+      become: yes
+      tags: [setupMagma]
+- include_tasks:
+    file: agw-setup.yaml
+    apply:
+      become: yes
+      tags: [setupAgw]
+- include_tasks:
+    file: magma-cleanup.yaml
+    apply:
+      become: yes
+      tags: [cleanupMagmaAgw]

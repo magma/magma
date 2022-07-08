@@ -38,6 +38,7 @@ extern "C" {
 #include <google/protobuf/map.h>
 #include <functional>
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/protos/oai/common_types.pb.h"
 
 namespace magma {

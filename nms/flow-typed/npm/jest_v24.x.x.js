@@ -55,7 +55,7 @@ type JestMockFn<TArguments: $ReadOnlyArray<*>, TReturn> = {
   * will also be executed when the mock is called.
   */
  mockImplementation(
-   fn: (...args: TArguments) => TReturn
+   fn?: (...args: TArguments) => TReturn
  ): JestMockFn<TArguments, TReturn>,
  /**
   * Accepts a function that will be used as an implementation of the mock for

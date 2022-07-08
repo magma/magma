@@ -13,11 +13,13 @@ limitations under the License.
 
 import subprocess
 import sys
+import time
 from distutils.util import strtobool
 
 from fabric.api import cd, run
 
 sys.path.append('../../../../../orc8r')
+import tools.fab.dev_utils as dev_utils
 from tools.fab.hosts import vagrant_setup
 
 magma_path = "../../../../../"
@@ -26,8 +28,10 @@ agw_path = magma_path + "lte/gateway/"
 feg_path = magma_path + "feg/gateway/"
 feg_docker_path = feg_path + "docker/"
 feg_docker_integ_test_path = agw_path + "python/integ_tests/federated_tests/docker/"
-agw_path_vagrant_path = "magma/lte/gateway/"
-feg_docker_integ_test_path_vagrant = agw_path_vagrant_path + "python/integ_tests/federated_tests/docker/"
+agw_vagrant_path = "magma/lte/gateway/"
+feg_docker_integ_test_path_vagrant = agw_vagrant_path + "python/integ_tests/federated_tests/docker/"
+feg_vagrant_path = "magma/feg/gateway/"
+orc8r_vagrant_path = "magma/orc8r/cloud/docker/"
 
 vagrant_agw_path = "~/lte/gateway"
 
@@ -44,20 +48,18 @@ def build_all_and_configure(clear_orc8r='False', provision_vm='False'):
     configure_orc8r()
 
 
-def build_all(clear_orc8r='False', provision_vm='False'):
+def build_all(clear_orc8r='False', provision_vm='False', orc8r_on_vagrant='False'):
     """
     Build AGW, FEG and Orc8r
     Args:
         clear_orc8r: removes all contents from orc8r database like gw configs
         provision_vm: forces the reprovision of the magma VM
     """
-    clear_orc8r = bool(strtobool(clear_orc8r))
-
     # build all components
-    build_orc8r()
+    build_orc8r(on_vagrant=orc8r_on_vagrant)
     print("#### Starting Orc8r (to generate certificates) ####")
     # need to start orc8r to generate certificates
-    start_orc8r()
+    start_orc8r(on_vagrant=orc8r_on_vagrant)
     build_feg()
     build_agw(provision_vm=provision_vm)
 
@@ -69,42 +71,65 @@ def build_all(clear_orc8r='False', provision_vm='False'):
     build_magma_trf(provision_vm=provision_vm)
 
 
-def build_orc8r():
+def build_orc8r(on_vagrant='False'):
     """
     Build orc8r locally on the host VM
     """
-    subprocess.check_call('./build.py -a', shell=True, cwd=orc8_docker_path)
+    on_vagrant = bool(strtobool(on_vagrant))
+    command = './build.py -a'
+    if not on_vagrant:
+        subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
+    else:
+        vagrant_setup('magma', destroy_vm=False)
+        with cd(orc8r_vagrant_path):
+            run(command)
 
 
-def start_orc8r():
+def start_orc8r(on_vagrant='False'):
     """
     Start orc8r locally on Docker
     """
-    subprocess.check_call(['./run.py'], shell=True, cwd=orc8_docker_path)
+    on_vagrant = bool(strtobool(on_vagrant))
+    command = './run.py'
+    if not on_vagrant:
+        subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
+    else:
+        vagrant_setup('magma', destroy_vm=False)
+        with cd(orc8r_vagrant_path):
+            run(command)
 
 
-def stop_orc8r():
+def stop_orc8r(on_vagrant='False'):
     """
     Start orc8r locally on Docker
     """
-    subprocess.check_call(
-        ['./run.py --down'], shell=True,
-        cwd=orc8_docker_path,
-    )
+    on_vagrant = bool(strtobool(on_vagrant))
+    command = './run.py --down'
+    if not on_vagrant:
+        subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
+    else:
+        vagrant_setup('magma', destroy_vm=False)
+        with cd(orc8r_vagrant_path):
+            run(command)
 
 
-def configure_orc8r():
+def configure_orc8r(on_vagrant='False'):
     """
     Configure orc8r with a federated AGW and FEG
     """
+    on_vagrant = bool(strtobool(on_vagrant))
     print('#### Configuring orc8r ####')
-    subprocess.check_call(
-        'fab --fabfile=dev_tools.py register_federated_vm',
-        shell=True, cwd=agw_path,
-    )
-    subprocess.check_call(
-        'fab register_feg_gw', shell=True, cwd=feg_path,
-    )
+    command_agw = 'fab --fabfile=dev_tools.py register_federated_vm'
+    command_feg = 'fab register_feg_gw'
+    if not on_vagrant:
+        subprocess.check_call(command_agw, shell=True, cwd=agw_path)
+        subprocess.check_call(command_feg, shell=True, cwd=feg_path)
+    else:
+        vagrant_setup('magma', destroy_vm=False)
+        with cd(agw_vagrant_path):
+            run(command_agw)
+        with cd(feg_vagrant_path):
+            run(command_feg)
 
 
 def clear_gateways():
@@ -254,22 +279,22 @@ def build_magma_trf(provision_vm='False'):
     )
 
 
-def start_all(provision_vm='False'):
+def start_all(provision_vm='False', orc8r_on_vagrant='False'):
     """
     start AGW, FEG and Orc8r
     Args:
         provision_vm: forces the provision of the magma VM
     """
-    start_orc8r()
+    start_orc8r(on_vagrant=orc8r_on_vagrant)
     start_agw(provision_vm)
     start_feg()
 
 
-def stop_all():
+def stop_all(orc8r_on_vagrant='False'):
     """
     stop AGW, FEG and Orc8r
     """
-    stop_orc8r()
+    stop_orc8r(on_vagrant=orc8r_on_vagrant)
     stop_agw()
     stop_feg()
 
@@ -292,7 +317,9 @@ def test_connectivity(timeout=10):
     print("\n### Checking FEG-Cloud connectivity ###")
     vagrant_setup('magma', destroy_vm=False)
     with cd(feg_docker_integ_test_path_vagrant):
-        run('docker-compose exec magmad checkin_cli.py')
+        dev_utils.run_remote_command_with_repetition(
+            'docker-compose exec magmad checkin_cli.py', timeout,
+        )
 
     # check AGW-FEG connectivity
     print("\n### Checking AGW-FEG connectivity ###")
@@ -303,7 +330,10 @@ def test_connectivity(timeout=10):
     )
 
 
-def build_and_test_all(clear_orc8r='False', provision_vm='False', timeout=10):
+def build_and_test_all(
+    clear_orc8r='False', provision_vm='False', timeout=10,
+    orc8r_on_vagrant='False',
+):
     """
     Build, start and test connectivity of all elements
     Args:
@@ -311,7 +341,8 @@ def build_and_test_all(clear_orc8r='False', provision_vm='False', timeout=10):
         provision_vm: forces the re-provision of the magma VM
         timeout: amount of time the command will retry
     """
-    build_all(clear_orc8r, provision_vm)
-    start_all()
+    orc8r_on_vagrant = bool(strtobool(orc8r_on_vagrant))
+    build_all(clear_orc8r, provision_vm, orc8r_on_vagrant=orc8r_on_vagrant)
+    start_all(orc8r_on_vagrant=orc8r_on_vagrant)
     configure_orc8r()
     test_connectivity(timeout=timeout)

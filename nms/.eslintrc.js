@@ -9,14 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @format
  */
 
 // enforces copyright header to be present in every file
-// eslint-disable-next-line max-len
 const openSourcePattern = /\*\n \* Copyright \d{4} The Magma Authors\.\n \*\n \* This source code is licensed under the BSD-style license found in the\n \* LICENSE file in the root directory of this source tree\.\n \*\n \* Unless required by applicable law or agreed to in writing, software\n \* distributed under the License is distributed on an "AS IS" BASIS,\n \* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied\.\n \* See the License for the specific language governing permissions and\n \* limitations under the License\.\n \*\n/;
-// eslint-disable-next-line max-len
 const newOpenSourcePattern = /Copyright \d{4} The Magma Authors\./;
 const combinedOpenSourcePattern = new RegExp(
   '(' + newOpenSourcePattern.source + ')|(' + openSourcePattern.source + ')',
@@ -35,6 +31,7 @@ const restrictedImportsRule = [
 ];
 
 module.exports = {
+  extends: ['plugin:import/typescript'],
   env: {
     browser: true,
     es6: true,
@@ -60,7 +57,6 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: [
-    'flowtype',
     'header',
     'import',
     'jest',
@@ -75,6 +71,7 @@ module.exports = {
     react: {
       version: 'detect',
     },
+    'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
   },
   rules: {
     'no-alert': 'off',
@@ -94,7 +91,7 @@ module.exports = {
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
-    'no-warning-comments': [1, {terms: ['$FlowFixMe'], location: 'anywhere'}],
+    'no-warning-comments': 'off',
     strict: 'off',
 
     // Import Plugin
@@ -115,14 +112,6 @@ module.exports = {
     'lint/sort-keys-fixable': 'off',
     'lint/strictly-null': 'off',
     'lint/test-only-props': 'off',
-
-    // Flow Plugin
-    // The following rules are made available via `eslint-plugin-flowtype`
-    'flowtype/define-flow-type': 1,
-    'flowtype/no-weak-types': [1],
-    'flowtype/use-flow-type': 1,
-    // The following is disabled for many file types in overrides
-    'flowtype/require-valid-file-annotation': [2, 'always'],
 
     // Node Plugin
     // https://github.com/mysticatea/eslint-plugin-node
@@ -185,10 +174,77 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['**/*.js'],
+      excludedFiles: '**/sequelize_models/migrations/*.js',
+      plugins: ['flowtype'],
+      rules: {
+        'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
+
+        'flowtype/define-flow-type': 1,
+        'flowtype/no-weak-types': [1],
+        'flowtype/use-flow-type': 1,
+        // The following is disabled for many file types below
+        'flowtype/require-valid-file-annotation': [2, 'always'],
+      },
+    },
+    {
+      files: ['**/*.ts', '**/*.tsx', '**/sequelize_models/migrations/*.js'],
+      extends: [
+        'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
+      ],
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+      rules: {
+        'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
+        'prettier/prettier': [
+          2,
+          {
+            singleQuote: true,
+            trailingComma: 'all',
+            bracketSpacing: false,
+            jsxBracketSameLine: true,
+            parser: 'typescript',
+          },
+        ],
+        '@typescript-eslint/array-type': [2, {default: 'generic'}],
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/unbound-method': 'off',
+        '@typescript-eslint/no-unused-vars': [2, {ignoreRestSiblings: true}],
+      },
+    },
+    {
+      env: {
+        node: true,
+      },
+      files: [
+        '.eslintrc.js',
+        'babel.config.js',
+        'babelRegister.js',
+        'jest.config.js',
+        'jest.*.config.js',
+        'config/*',
+        'scripts/**/*',
+        'server/**/*',
+        'shared/**/*',
+        'grafana/**/*',
+      ],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
       files: [
         '**/*eslint*/*.js',
         '.eslintrc.js',
         'babel.config.js',
+        'babelRegister.js',
         'jest.config.js',
         '**/flow-typed/**/*.js',
         './babel.config.js',
@@ -241,32 +297,6 @@ module.exports = {
         'testHelpers.js',
         'testData.js',
       ],
-    },
-    {
-      files: ['**/*.js'],
-      rules: {
-        'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
-      },
-    },
-    {
-      env: {
-        node: true,
-      },
-      files: [
-        '.eslintrc.js',
-        'babel.config.js',
-        'babelRegister.js',
-        'jest.config.js',
-        'jest.*.config.js',
-        'config/*.js',
-        'scripts/**/*.js',
-        'server/**/*.js',
-        'shared/**/*.js',
-        'grafana/**/*.js',
-      ],
-      rules: {
-        'no-console': 'off',
-      },
     },
   ],
 };
