@@ -175,17 +175,18 @@ export function useAlertRuleReceiver({
       };
     } else {
       // update existing route
+      const _updatedRoutes = (response?.routes || []).map(route => {
+        if (
+          initialReceiver === route.receiver &&
+          route.match.alertname === ruleName
+        ) {
+          route.receiver = receiver;
+        }
+        return route;
+      });
       updatedRoutes = {
         ...updatedRoutes,
-        routes: (response?.routes || []).map(route => {
-          if (route.receiver !== initialReceiver) {
-            return route;
-          }
-          return {
-            ...route,
-            receiver: receiver || '',
-          };
-        }),
+        routes: _updatedRoutes,
       };
     }
     await apiUtil.editRouteTree({
