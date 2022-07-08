@@ -51,10 +51,6 @@ git clone https://github.com/liblfds/liblfds.git
 # maybe want to edit a persistent copy...
 # rsync -ravP --delete "${SCRIPT_DIR}/liblfds/" liblfds/
 
-pushd liblfds
-git apply --verbose "${PATCH_DIR}"/*.patch
-popd
-
 cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake
 make so_vanilla
 LIB_DIR=/usr/local/lib

@@ -25,6 +25,7 @@
 // TODO - fix flow error in core packages
 .*/view/alarms/legacy/Alarms/AlarmApi.js
 .*/babelRegister.js
+.*/sequelize_models/migrations/.*
 
 [options]
 esproposal.optional_chaining=enable

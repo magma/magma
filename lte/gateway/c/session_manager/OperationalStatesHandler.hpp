@@ -12,7 +12,7 @@
  */
 #pragma once
 
-#include <folly/dynamic.h>
+#include <nlohmann/json.hpp>
 #include <list>
 #include <map>
 #include <string>
@@ -45,10 +45,10 @@ using OpState = std::list<std::map<std::string, std::string>>;
 
 OpState get_operational_states(magma::lte::SessionStore* session_store);
 
-folly::dynamic get_dynamic_session_state(
+nlohmann::json get_dynamic_session_state(
     const std::unique_ptr<SessionState>& session);
 
-folly::dynamic get_dynamic_active_policies(
+nlohmann::json get_dynamic_active_policies(
     const std::unique_ptr<SessionState>& session);
 
 std::string get_gateway_hw_id();

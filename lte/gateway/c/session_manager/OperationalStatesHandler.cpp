@@ -12,8 +12,7 @@
  */
 #include "lte/gateway/c/session_manager/OperationalStatesHandler.hpp"
 
-#include <folly/dynamic.h>
-#include <folly/json.h>
+#include <nlohmann/json.hpp>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>
 #include <google/protobuf/stubs/stringpiece.h>
@@ -42,39 +41,39 @@ namespace magma {
 OpState get_operational_states(magma::lte::SessionStore* session_store) {
   std::list<std::map<std::string, std::string>> states;
   auto session_map = session_store->read_all_sessions();
-  folly::dynamic subscribers = folly::dynamic::object;
+  nlohmann::json subscribers = nlohmann::json::object();
 
   for (auto& it : session_map) {
     std::map<std::string, std::string> state;
     state[TYPE] = SUBSCRIBER_STATE_TYPE;
     state[DEVICE_ID] = it.first;
-    subscribers[state[DEVICE_ID]] = folly::dynamic::array;
-    folly::dynamic sessions_by_apn = folly::dynamic::object;
+    subscribers[state[DEVICE_ID]] = nlohmann::json::array();
+    nlohmann::json sessions_by_apn = nlohmann::json::object();
 
     for (auto& session : it.second) {
       const auto apn = session->get_config().common_context.apn();
       if (sessions_by_apn[apn].empty()) {
-        sessions_by_apn[apn] = folly::dynamic::array;
+        sessions_by_apn[apn] = nlohmann::json::array();
       }
       sessions_by_apn[apn].push_back(get_dynamic_session_state(session));
     }
-    state[VALUE] = folly::toJson(sessions_by_apn);
+    state[VALUE] = sessions_by_apn.dump();
     states.push_back(state);
     subscribers[state[DEVICE_ID]].push_back(sessions_by_apn);
   }
   std::map<std::string, std::string> gateway_subscriber_state;
   gateway_subscriber_state[TYPE] = GATEWAY_SUBSCRIBER_STATE_TYPE;
   gateway_subscriber_state[DEVICE_ID] = get_gateway_hw_id();
-  folly::dynamic subscribers_container = folly::dynamic::object;
+  nlohmann::json subscribers_container = nlohmann::json::object();
   subscribers_container[SUBSCRIBERS] = subscribers;
-  gateway_subscriber_state[VALUE] = folly::toJson(subscribers_container);
+  gateway_subscriber_state[VALUE] = subscribers_container.dump();
   states.push_back(gateway_subscriber_state);
   return states;
 }
 
-folly::dynamic get_dynamic_session_state(
+nlohmann::json get_dynamic_session_state(
     const std::unique_ptr<SessionState>& session) {
-  folly::dynamic state = folly::dynamic::object;
+  nlohmann::json state = nlohmann::json::object();
   const auto config = session->get_config().common_context;
   state[SESSION_ID] = session->get_session_id();
   state[MSISDN] = config.msisdn();
@@ -87,12 +86,12 @@ folly::dynamic get_dynamic_session_state(
   return state;
 }
 
-folly::dynamic get_dynamic_active_policies(
+nlohmann::json get_dynamic_active_policies(
     const std::unique_ptr<SessionState>& session) {
   google::protobuf::util::JsonPrintOptions options;
   options.add_whitespace = false;
 
-  folly::dynamic policies = folly::dynamic::array;
+  nlohmann::json policies = nlohmann::json::array();
   auto active_policies = session->get_all_active_policies();
   for (auto& policy : active_policies) {
     std::string json_policy;
