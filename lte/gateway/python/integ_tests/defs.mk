@@ -261,6 +261,10 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
 #---------------
 
+# Add the s1aptester integration tests with federation gateway
+FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \
+federated_tests/s1aptests/test_attach_detach_multi_ue.py
+
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
 cloud_tests/config_test.py

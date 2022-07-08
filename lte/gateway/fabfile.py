@@ -303,8 +303,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(run_integ_tests, "federated_tests/s1aptests/test_attach_detach.py")
-
+    execute(run_integ_tests, federated_mode=True)
 
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
@@ -381,7 +380,7 @@ def integ_test(
         env.hosts = [gateway_host]
 
 
-def run_integ_tests(tests=None):
+def run_integ_tests(tests=None, federated_mode=False):
     """
     Function is required to run tests only in pre-configured Jenkins env.
 
@@ -394,17 +393,19 @@ def run_integ_tests(tests=None):
 
     In case of selecting specific test like follows:
     $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
+    $ fab run_integ_tests:tests=federated_tests/s1aptests/test_attach_detach.py,federated_mode=True
 
     The specific test will be executed as a result of the execution of following
     command in test machine:
     $ make integ_test TESTS=s1aptests/test_attach_detach.py
+    $ make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
     """
     test_host = vagrant_setup("magma_test", destroy_vm=False)
     gateway_ip = '192.168.60.142'
     if tests:
         tests = "TESTS=" + tests
 
-    execute(_run_integ_tests, gateway_ip, tests)
+    execute(_run_integ_tests, gateway_ip, tests, federated_mode)
 
 
 def get_test_summaries(
@@ -718,7 +719,7 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
+def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=False):
     """ Run the integration tests
 
     For now, just run a single basic test
@@ -728,6 +729,10 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
     tests = tests or ''
+    test_mode = 'integ_test'
+    if federated_mode:
+        test_mode = 'fed_integ_test'
+
     """
     NOTE: the s1aptester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
@@ -750,8 +755,8 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
         ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
         ' source ~/build/python/bin/activate;'
         ' export GATEWAY_IP=%s;'
-        ' make -i integ_test enable-flaky-retry=true %s\''
-        % (key, host, port, gateway_ip, tests),
+        ' make -i %s enable-flaky-retry=true %s\''
+        % (key, host, port, gateway_ip, test_mode, tests),
     )
 
 
