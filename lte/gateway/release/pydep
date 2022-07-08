@@ -358,6 +358,9 @@ def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
     python3-bar>=4.2').
 
     We always do >= deps to make upgrades easier.
+
+    Args:
+        lockfile_str: Path to the lockfile
     """
     lockfile = Lockfile(data=lockfile_str)
     deps = []
@@ -372,9 +375,22 @@ def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
     return " ".join(deps)
 
 
-def _format_dep(syspkg: str,
-                op: Optional[str],
-                ver: Optional[str]) -> Tuple[str, Optional[str], Optional[str]]:
+def _format_dep(syspkg: str, op: Optional[str], ver: Optional[str]) \
+        -> Tuple[str, Optional[str], Optional[str]]:
+    """
+    Formats the dependency for the command line.
+
+    - Any given "=="-operator is overwritten with ">=".
+    - Removes any trailing ".*" strings from the version number
+
+    Args:
+        syspkg: A package name, e.g. "python3-urllib"
+        op: The version operator, e.g. "==" or ">="
+        ver: The version number, e.g. "1.2.3"
+    Returns:
+        A tuple containing syspkg (unaltered), the modified operator,
+        and the modified version string.
+    """
     if op and '<' not in op:
         # TODO: might have issues with '~=' ops using this method
         op = '>='
@@ -390,8 +406,14 @@ def _format_dep(syspkg: str,
 
 class Lockfile(object):
     """
-    Add-only copy of a lockfile
-    To remove a root package or derived dependency, manually remove it from the source lockfile
+    Add-only copy of a lockfile. To remove a root package or derived
+    dependency, manually remove it from the source lockfile.
+
+    Args:
+        data: The lockfile data formatted as json string.
+        reference_lockfile: The reference lockfile as lockfile object.
+            If no data and reference lockfile are given try to use a
+            default lockfile.
     """
     _default_release = 'stretch'
 
@@ -410,7 +432,8 @@ class Lockfile(object):
                     reference_lockfile = Lockfile(data=rf.read())
             except FileNotFoundError as e:
                 log.error(e)
-                log.info("Default lockfile {} not found. Using empty reference lockfile instead.".format(default_reference_lockfile))
+                log.info("Default lockfile {} not found. Using empty reference lockfile instead."
+                         .format(default_reference_lockfile))
 
         def lower_keys(d: Dict[str, Any]):
             return {k.lower(): v for k, v in d.items()}
@@ -479,6 +502,9 @@ class Lockfile(object):
 
 @contextlib.contextmanager
 def lcd(path):
+    """
+    Creates a context to temporary change to a different directory.
+    """
     oldcwd = os.getcwd()
     try:
         os.chdir(os.path.expanduser(path))
@@ -606,6 +632,17 @@ def py_to_deb(pkgname: str,
 
 
 def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
+    """
+    Checks if the desired version already exists in candidates.
+
+    Args:
+        version: The desired version.
+        candidates: A list of paths to different build versions.
+        These would be formatted like this
+        "{build_output}/{syspkg_name}_{version}.deb".
+    Returns:
+        Whether the version already exists.
+    """
     already_built = False
     if version:
         parsed_version = pkg_resources.parse_version(version)
@@ -660,6 +697,9 @@ def get_pkg_deps(pkgname: str,
 
 @contextlib.contextmanager
 def tmpvirtualenv():
+    """
+    Creates a context with a temporary virtual environment.
+    """
     load_virtualenvwrapper = 'source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'
 
     initcmd = [load_virtualenvwrapper,
@@ -792,9 +832,6 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
     4. Else check if apt can satisfy with a newer version.
     5. If apt can not satisfy, fall back to pypi.
 
-    the specific version is available on apt. If yes, use that.
-    Else e
-
     Args:
         dep_set: The dict of dependencies and versions.
         pypi_only: If given, always write "pypi" as source for every dependency.
@@ -861,6 +898,9 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
 def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
               dep_source: Dict[str, str],
               build_output: Optional[str] = None) -> None:
+    """
+    Build all pip distributions into debian packages.
+    """
     for p in pip_distributions:
         # contents of PIP_BLACKLIST were excluded from dep_source
         if p not in PIP_BLACKLIST and dep_source.get(p) == "pypi":
@@ -870,6 +910,9 @@ def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
 
 
 def save_lockfile(lockfilename: str, lockfilecontent: str) -> None:
+    """
+    Save a lockfile string into a file.
+    """
     with open(lockfilename, "w") as f:
         f.write(lockfilecontent)
         if lockfilecontent[-1] != "\n":
@@ -935,6 +978,7 @@ def split_input_root_requirements(
     """
     Args:
         input_root_requirements: List of dependencies. Can be paths to setup.py files or explicit dependencies.
+        use_py2: Whether we are using Python 2.x
 
     Returns:
         List of pkg_resources.Requirement objects.
@@ -951,6 +995,9 @@ def split_input_root_requirements(
 
 
 def get_lockfile(lockfile_path: str) -> Lockfile:
+    """
+    Safely tries to read in lockfile from a given path.
+    """
     try:
         with open(lockfile_path, 'r') as r:
             lf = Lockfile(data=r.read())
@@ -968,7 +1015,7 @@ def get_required_distributions(root_requirements: List[pkg_resources.Requirement
     Finds the `required_distributions` dict for the main function.
     The function iterates with a breadth-first search over the dependency tree to
     add all items of `root_requirements`, i.e. the packages we did not find an apt
-    dependency via `apt.Cache`. During iteration it adds all further upstream dependencies.
+    dependency via `apt.Cache`. During iteration, it adds all further upstream dependencies.
     """
     required_distributions = {}
     to_traverse = [pip_distributions[k] for k in [req.key for req in root_requirements]]
