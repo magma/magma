@@ -17,7 +17,7 @@
 #ifndef FILE_PGW_PROCEDURES_SEEN
 #define FILE_PGW_PROCEDURES_SEEN
 
-/*! \file pgw_procedures.h
+/*! \file pgw_procedures.hpp
   \brief  Just a workaround waiting for PCEF implementation
   \author Lionel Gauthier
   \company Eurecom
@@ -27,7 +27,7 @@
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 
 typedef enum {
@@ -56,13 +56,19 @@ typedef struct pgw_ni_cbr_proc_s {
       pending_eps_bearers;
 } pgw_ni_cbr_proc_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void delete_pending_procedures(sgw_eps_bearer_context_information_t* ctx_p);
-pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
-    sgw_eps_bearer_context_information_t* const ctx_p);
+void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc);
 pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
+    sgw_eps_bearer_context_information_t* const ctx_p);
+#ifdef __cplusplus
+}
+#endif
+pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* const ctx_p);
 void pgw_delete_procedure_create_bearer(
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
-void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc);
 
 #endif

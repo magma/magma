@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_context_manager.c
+/*! \file sgw_context_manager.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -29,10 +29,16 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
@@ -110,7 +116,8 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
 {
   mme_sgw_tunnel_t* new_tunnel = NULL;
 
-  new_tunnel = calloc(1, sizeof(mme_sgw_tunnel_t));
+  new_tunnel =
+      reinterpret_cast<mme_sgw_tunnel_t*>(calloc(1, sizeof(mme_sgw_tunnel_t)));
 
   if (new_tunnel == NULL) {
     /*
@@ -134,7 +141,8 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
       NULL;
   new_bearer_context_information =
-      calloc(1, sizeof(s_plus_p_gw_eps_bearer_context_information_t));
+      reinterpret_cast<s_plus_p_gw_eps_bearer_context_information_t*>(
+          calloc(1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
 
   if (new_bearer_context_information == NULL) {
     /*
@@ -187,9 +195,9 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
 }
 
 //-----------------------------------------------------------------------------
-status_code_e sgw_cm_remove_bearer_context_information(teid_t teid,
-                                                       imsi64_t imsi64) {
-  int temp = 0;
+hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
+                                                        imsi64_t imsi64) {
+  hashtable_rc_t temp = HASH_TABLE_OK;
 
   hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
   temp = hashtable_ts_free(state_teid_ht, teid);
@@ -239,7 +247,8 @@ sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
 
   if (!sgw_pdn_connection
            ->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)]) {
-    new_eps_bearer_entry = calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+    new_eps_bearer_entry = reinterpret_cast<sgw_eps_bearer_ctxt_t*>(
+        calloc(1, sizeof(sgw_eps_bearer_ctxt_t)));
 
     if (new_eps_bearer_entry == NULL) {
       /*

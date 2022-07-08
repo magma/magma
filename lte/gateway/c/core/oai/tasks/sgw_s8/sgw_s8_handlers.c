@@ -25,8 +25,8 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 

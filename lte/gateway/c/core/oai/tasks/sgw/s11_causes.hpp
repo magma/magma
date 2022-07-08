@@ -15,22 +15,28 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_defs.h
+/*! \file s11_causes.hpp
  * \brief
- * \author Lionel Gauthier
+ * \author Sebastien ROUX, Lionel Gauthier
  * \company Eurecom
  * \email: lionel.gauthier@eurecom.fr
  */
+#ifndef FILE_S11_CAUSES_SEEN
+#define FILE_S11_CAUSES_SEEN
 
-#ifndef FILE_SGW_DEFS_SEEN
-#define FILE_SGW_DEFS_SEEN
+#include <stdint.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/spgw_config.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+typedef struct SGWCauseMapping_e {
+  uint8_t value;
+  /* Displayable cause name */
+  char* name;
+  /* Possible cause in message? */
+  unsigned create_session_response : 1;
+  unsigned create_bearer_response : 1;
+  unsigned modify_bearer_response : 1;
+  unsigned delete_session_response : 1;
+} SGWCauseMapping_t;
 
-extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
+char* sgw_cause_2_string(uint8_t cause_value);
 
-status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state);
-
-#endif /* FILE_SGW_DEFS_SEEN */
+#endif /* FILE_S11_CAUSES_SEEN */
