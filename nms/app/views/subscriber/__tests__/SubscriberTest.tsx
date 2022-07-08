@@ -20,7 +20,7 @@ import defaultTheme from '../../../theme/default';
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {Subscriber} from '../../../../generated-ts';
+import {Subscriber} from '../../../../generated';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';

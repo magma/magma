@@ -12,7 +12,7 @@
  */
 
 import React from 'react';
-import type {Tier} from '../../../generated-ts';
+import type {Tier} from '../../../generated';
 
 type GatewayTierState = {
   tiers: Record<string, Tier>;

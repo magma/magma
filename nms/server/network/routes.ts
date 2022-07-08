@@ -24,7 +24,7 @@ import type {
   NetworkCellularConfigs,
   NetworkDnsConfig,
   Tier,
-} from '../../generated-ts';
+} from '../../generated';
 
 const logger = logging.getLogger(module);
 

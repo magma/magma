@@ -26,7 +26,7 @@ import {render, wait} from '@testing-library/react';
 import type {
   FederationGateway,
   PromqlReturnObject,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 
 jest.mock('../../../../app/hooks/useSnackbar');
 

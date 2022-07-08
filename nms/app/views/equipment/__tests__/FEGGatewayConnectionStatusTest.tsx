@@ -20,7 +20,7 @@ import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render, wait} from '@testing-library/react';
-import type {FederationGateway} from '../../../../generated-ts';
+import type {FederationGateway} from '../../../../generated';
 
 const mockGw0: FederationGateway = {
   id: 'test_feg_gw0',

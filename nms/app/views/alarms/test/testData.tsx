@@ -12,7 +12,7 @@
  */
 
 import React from 'react';
-import {PromFiringAlert} from '../../../../generated-ts';
+import {PromFiringAlert} from '../../../../generated';
 import type {AlertConfig, Labels} from '../components/AlarmAPIType';
 import type {
   GenericRule,

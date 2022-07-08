@@ -17,7 +17,7 @@ import FEGSubscriberContext, {
 } from './FEGSubscriberContext';
 import GatewayContext, {GatewayContextType} from './GatewayContext';
 import SubscriberContext, {SubscriberContextType} from './SubscriberContext';
-import {FederationGateway} from '../../../generated-ts';
+import {FederationGateway} from '../../../generated';
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
 import {
   FetchFegGateways,

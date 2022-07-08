@@ -20,7 +20,7 @@ import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render, wait} from '@testing-library/react';
-import type {FederationGateway} from '../../../../generated-ts';
+import type {FederationGateway} from '../../../../generated';
 
 const mockHardwareId = 'c9439d30-61ef-46c7-93f2-e01fc131244d';
 const mockKeyType = 'SOFTWARE_ECDSA_SHA256';

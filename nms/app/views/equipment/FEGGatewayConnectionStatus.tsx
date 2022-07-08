@@ -23,7 +23,7 @@ import {
   HEALTHY_STATUS,
   ServiceTypeEnum,
 } from '../../components/GatewayUtils';
-import {ServiceStatusHealth} from '../../../generated-ts';
+import {ServiceStatusHealth} from '../../../generated';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 

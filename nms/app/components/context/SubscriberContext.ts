@@ -15,11 +15,11 @@ import type {
   MutableSubscriber,
   Subscriber,
   SubscriberState,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 import React from 'react';
 import {GatewayId, SubscriberId} from '../../../shared/types/network';
-import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated-ts';
+import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated';
 
 export type Metrics = {
   currentUsage: string;

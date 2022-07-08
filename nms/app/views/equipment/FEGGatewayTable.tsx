@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {FederationGateway} from '../../../generated-ts';
+import type {FederationGateway} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';

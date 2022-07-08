@@ -22,7 +22,7 @@ import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
-import type {PolicyQosProfile, PolicyRule} from '../../../generated-ts';
+import type {PolicyQosProfile, PolicyRule} from '../../../generated';
 
 const useStyles = makeStyles(() => policyStyles);
 

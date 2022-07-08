@@ -45,7 +45,7 @@ import type {
   EnodebConfiguration,
   NetworkRanConfigs,
   UnmanagedEnodebConfiguration,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 const CONFIG_TITLE = 'Config';
 const RAN_TITLE = 'Ran';

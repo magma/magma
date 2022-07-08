@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {FegLteNetwork, LteNetwork} from '../../../generated-ts';
+import type {FegLteNetwork, LteNetwork} from '../../../generated';
 import type {UpdateNetworkProps as FegLteUpdateNetworkProps} from '../../state/feg_lte/NetworkState';
 import type {UpdateNetworkProps as LteUpdateNetworkProps} from '../../state/lte/NetworkState';
 

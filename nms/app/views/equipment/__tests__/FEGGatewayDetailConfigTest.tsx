@@ -32,7 +32,7 @@ import type {
   Gy,
   S6a,
   Swx,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 
 jest.mock('../../../../app/hooks/useSnackbar');
 

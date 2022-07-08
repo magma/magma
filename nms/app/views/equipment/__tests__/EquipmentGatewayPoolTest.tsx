@@ -23,7 +23,7 @@ import defaultTheme from '../../../theme/default';
 import {GatewayPoolId} from '../../../../shared/types/network';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {MutableCellularGatewayPool} from '../../../../generated-ts';
+import {MutableCellularGatewayPool} from '../../../../generated';
 import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
@@ -32,7 +32,7 @@ import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
-import type {LteGateway} from '../../../../generated-ts';
+import type {LteGateway} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');

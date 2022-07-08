@@ -32,7 +32,7 @@ import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
-import type {Apn, LteGateway, LteNetwork} from '../../../../generated-ts';
+import type {Apn, LteGateway, LteNetwork} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
