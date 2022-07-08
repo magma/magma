@@ -24,6 +24,7 @@ export type FEGGatewayContextType = {
     val?: MutableFederationGateway,
     newState?: Record<string, FederationGateway>,
   ) => Promise<void>;
+  refetch: (id?: GatewayId) => void;
   health: Record<GatewayId, FederationGatewayHealthStatus>;
   activeFegGatewayId: GatewayId;
 };

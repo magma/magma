@@ -89,6 +89,7 @@ describe('<FEGGatewayConnectionStatus />', () => {
             value={{
               state: fegGateways,
               setState: async () => {},
+              refetch: () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>

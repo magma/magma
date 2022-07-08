@@ -23,18 +23,14 @@ import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
-import React, {useContext, useEffect, useState} from 'react';
-import nullthrows from '../../../shared/util/nullthrows';
+import React, {useContext, useState} from 'react';
 import withAlert from '../../components/Alert/withAlert';
 import {GatewayId} from '../../../shared/types/network';
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
-import {
-  REFRESH_INTERVAL,
-  RefreshTypeEnum,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useInterval} from '../../hooks';
+import {useNavigate} from 'react-router-dom';
 
 type EquipmentFegGatewayRowType = {
   name: string;
@@ -90,45 +86,26 @@ export default function GatewayTable() {
  */
 function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const navigate = useNavigate();
-  const params = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const networkId: string = nullthrows(params.networkId);
   const gwCtx = useContext(FEGGatewayContext);
-  const [lastRefreshTime, setLastRefreshTime] = useState(
-    new Date().toLocaleString(),
-  );
+
   // Auto refresh gateways every 30 seconds
-  const state = useRefreshingContext({
-    context: FEGGatewayContext,
-    networkId: networkId,
-    type: RefreshTypeEnum.FEG_GATEWAY,
-    interval: REFRESH_INTERVAL,
-    enqueueSnackbar,
-    refresh: props.refresh,
-    lastRefreshTime: lastRefreshTime,
-  });
-  const fegGateways = state?.fegGateways || {};
-  const health = state?.health || {};
-  const activeFegGatewayId = state?.activeFegGatewayId || '';
-  const ctxValues = [...Object.values(gwCtx.state)];
-  useEffect(() => {
-    setLastRefreshTime(new Date().toLocaleString());
-  }, [ctxValues.length]);
+  useInterval(() => gwCtx.refetch(), props.refresh ? REFRESH_INTERVAL : null);
 
   const [currRow, setCurrRow] = useState<EquipmentFegGatewayRowType>(
     {} as EquipmentFegGatewayRowType,
   );
   const fegGatewayRows: Array<EquipmentFegGatewayRowType> = [];
-  Object?.keys(fegGateways)
-    .map((gwId: string) => fegGateways[gwId])
+  Object?.keys(gwCtx.state)
+    .map((gwId: string) => gwCtx.state[gwId])
     .filter((g: FederationGateway) => g.federation && g.id)
     .map((gateway: FederationGateway) => {
       fegGatewayRows.push({
         name: gateway.name,
         id: gateway.id,
-        is_primary: activeFegGatewayId === gateway.id,
-        health: health[gateway.id].status
-          ? health[gateway.id]?.status === HEALTHY_STATUS
+        is_primary: gwCtx.activeFegGatewayId === gateway.id,
+        health: gwCtx.health[gateway.id]?.status
+          ? gwCtx.health[gateway.id]?.status === HEALTHY_STATUS
             ? GatewayTypeEnum.HEALTHY_GATEWAY
             : GatewayTypeEnum.UNHEALTHY_GATEWAY
           : GatewayTypeEnum.UNKNOWN,

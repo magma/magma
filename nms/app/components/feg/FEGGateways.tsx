@@ -103,7 +103,7 @@ function EditDialog(props: {
   );
 }
 
-function CWFGateways(props: WithAlert) {
+function FEGGateways(props: WithAlert) {
   const ctx = useContext(FEGGatewayContext);
   const [gateways, setGateways] = useState<Array<FederationGateway>>(
     Object.keys(ctx.state).map(gatewayId => ctx.state[gatewayId]),
@@ -218,4 +218,4 @@ function GatewayRow(props: {
   );
 }
 
-export default withAlert(CWFGateways);
+export default withAlert(FEGGateways);
