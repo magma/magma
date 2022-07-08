@@ -34,14 +34,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 #ifdef __cplusplus
 }
@@ -449,7 +449,8 @@ status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
     teid_t mme_teid_S11, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   MessageDef* message_p = itti_alloc_new_message(
-      TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
+      (module == LOG_SPGW_APP ? TASK_SPGW_APP : TASK_SGW_S8),
+      S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
         module, imsi64,
