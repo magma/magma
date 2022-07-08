@@ -551,8 +551,9 @@ status_code_e sgw_build_and_send_s11_create_bearer_request(
   MessageDef* message_p = NULL;
   status_code_e rc = RETURNerror;
 
-  message_p = itti_alloc_new_message(TASK_SPGW_APP,
-                                     S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
+  message_p = itti_alloc_new_message(
+      (module == LOG_SPGW_APP ? TASK_SPGW_APP : TASK_SGW_S8),
+      S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
   if (!message_p) {
     OAILOG_ERROR_UE(module, sgw_eps_bearer_context_information->imsi64,
                     "Failed to allocate message_p for"

@@ -81,9 +81,6 @@ void sgw_populate_mbr_bearer_contexts_removed(
     const itti_sgi_update_end_point_response_t* const resp_pP, imsi64_t imsi64,
     sgw_eps_bearer_context_information_t* sgw_context_p,
     itti_s11_modify_bearer_response_t* modify_response_p);
-void sgw_process_release_access_bearer_request(
-    log_proto_t module, imsi64_t imsi64,
-    sgw_eps_bearer_context_information_t* sgw_context);
 void sgw_populate_mbr_bearer_contexts_not_found(
     log_proto_t module,
     const itti_sgi_update_end_point_response_t* const resp_pP,
@@ -94,6 +91,9 @@ void populate_sgi_end_point_update(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     itti_sgi_update_end_point_response_t* sgi_update_end_point_resp);
 bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u);
+void sgw_process_release_access_bearer_request(
+    log_proto_t module, imsi64_t imsi64,
+    sgw_eps_bearer_context_information_t* sgw_context);
 void sgw_send_release_access_bearer_response(
     log_proto_t module, task_id_t origin_task_id, imsi64_t imsi64,
     gtpv2c_cause_value_t cause,
