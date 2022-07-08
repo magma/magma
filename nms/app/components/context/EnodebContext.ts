@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {EnodebInfo} from '../lte/EnodebUtils';
-import type {NetworkRanConfigs} from '../../../generated-ts';
+import type {NetworkRanConfigs} from '../../../generated';
 
 import React from 'react';
 

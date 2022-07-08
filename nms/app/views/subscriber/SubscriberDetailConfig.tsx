@@ -27,7 +27,7 @@ import {
   MutableSubscriber,
   Subscriber,
   SubscriberForbiddenNetworkTypesEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';

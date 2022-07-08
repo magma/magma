@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {PromqlReturnObject} from '../../../../generated-ts';
+import type {PromqlReturnObject} from '../../../../generated';
 
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../components/context/EnodebContext';
@@ -26,7 +26,7 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
-import {PaginatedEnodebs} from '../../../../generated-ts';
+import {PaginatedEnodebs} from '../../../../generated';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, wait, waitFor} from '@testing-library/react';
 

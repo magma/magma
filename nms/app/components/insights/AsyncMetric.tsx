@@ -19,7 +19,7 @@ import {Line} from 'react-chartjs-2';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import {PositionType, TimeUnit} from 'chart.js';
-import {PromqlMetric, PromqlMetricValue} from '../../../generated-ts';
+import {PromqlMetric, PromqlMetricValue} from '../../../generated';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

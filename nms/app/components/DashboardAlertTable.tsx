@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {PromFiringAlert} from '../../generated-ts';
+import type {PromFiringAlert} from '../../generated';
 
 import ActionTable from './ActionTable';
 import CardTitleRow from './layout/CardTitleRow';

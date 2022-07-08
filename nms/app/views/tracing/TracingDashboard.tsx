@@ -26,7 +26,7 @@ import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {CallTrace} from '../../../generated-ts';
+import type {CallTrace} from '../../../generated';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {

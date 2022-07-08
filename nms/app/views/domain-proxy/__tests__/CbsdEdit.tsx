@@ -21,7 +21,7 @@ import {CbsdContextProvider} from '../../../components/lte/LteContext';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {mockAPI, mockAPIError} from '../../../util/TestUtils';
-import type {Cbsd, MutableCbsd} from '../../../../generated-ts';
+import type {Cbsd, MutableCbsd} from '../../../../generated';
 
 const mockEnqueueSnackbar = jest.fn();
 jest.mock('../../../hooks/useSnackbar', () => ({

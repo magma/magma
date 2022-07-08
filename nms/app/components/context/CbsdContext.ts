@@ -12,7 +12,7 @@
  */
 import React from 'react';
 
-import type {Cbsd, MutableCbsd} from '../../../generated-ts';
+import type {Cbsd, MutableCbsd} from '../../../generated';
 
 export type CbsdContextType = {
   state: {

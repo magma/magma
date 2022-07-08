@@ -20,7 +20,7 @@ import type {
   MutableFederationGateway,
   S8,
   VirtualApnRule,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {LteGateway, PromqlReturnObject} from '../../../generated-ts';
+import type {LteGateway, PromqlReturnObject} from '../../../generated';
 
 import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';

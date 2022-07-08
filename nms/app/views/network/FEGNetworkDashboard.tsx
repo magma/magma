@@ -21,7 +21,7 @@ import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
-import {FegNetwork} from '../../../generated-ts';
+import {FegNetwork} from '../../../generated';
 import {
   Navigate,
   Route,

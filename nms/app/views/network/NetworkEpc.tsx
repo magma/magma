@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {NetworkEpcConfigs} from '../../../generated-ts';
+import type {NetworkEpcConfigs} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';
@@ -35,7 +35,7 @@ import {AltFormField} from '../../components/FormField';
 import {
   NetworkEpcConfigsMobility,
   NetworkEpcConfigsMobilityIpAllocationModeEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

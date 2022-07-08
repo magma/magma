@@ -42,7 +42,7 @@ import type {
   PolicyRule,
   RatingGroup,
   Tier,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {EnodebInfo} from './EnodebUtils';
 import type {EnodebState} from '../context/EnodebContext';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';

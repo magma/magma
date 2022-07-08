@@ -29,7 +29,7 @@ import type {
   FederationGateway,
   S8,
   SctpClientConfigs,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 
 const useStyles = makeStyles<Theme>(theme => ({

@@ -39,7 +39,7 @@ import {
   LTENetworksApiLteNetworkIdSubscriberConfigRuleNamesRuleIdPostRequest,
   PolicyQosProfile,
   PolicyRule,
-} from '../../../generated-ts';
+} from '../../../generated';
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {coalesceNetworkType} from '../../../shared/types/network';
 import {makeStyles} from '@material-ui/styles';

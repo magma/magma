@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {RatingGroup} from '../../../generated-ts';
+import type {RatingGroup} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

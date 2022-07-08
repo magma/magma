@@ -32,7 +32,7 @@ import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {Apn, ApnConfiguration} from '../../../generated-ts';
+import type {Apn, ApnConfiguration} from '../../../generated';
 
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
