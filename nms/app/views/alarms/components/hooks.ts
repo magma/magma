@@ -78,6 +78,31 @@ export function useLoadRules<TRuleUnion>({
 }
 
 /**
+ * Filter a route from routes for a especific ruleName and receiver
+ * @param {*} response from apiUtil.useAlarmsApi
+ * @param {*} initialReceiver string
+ * @param {*} ruleName string
+ * @returns
+ */
+export function filterRouteByRuleName(response, initialReceiver, ruleName) {
+  if (!response || typeof response === 'undefined') {
+    throw new Error('apiUtil Response is null or undefined');
+  }
+  if (!ruleName || typeof ruleName === 'undefined') {
+    return response.routes || [];
+  }
+  if (!initialReceiver || typeof initialReceiver === 'undefined') {
+    return response.routes || [];
+  }
+  const {routes} = response;
+  const filteredRoutes = (routes || []).filter(route => {
+    const filterToDelete =
+      route.receiver === initialReceiver && route.match.alertname === ruleName;
+    return route.receiver !== initialReceiver || !filterToDelete;
+  });
+  return filteredRoutes || [];
+}
+/**
  * An alert rule can have a 1:N mapping from rule name to receivers. This
  * mapping is configured via the route tree. This hook loads the route tree
  * and returns all routes which contain a matcher for exactly this alertname.
@@ -134,9 +159,7 @@ export function useAlertRuleReceiver({
       // remove the route
       updatedRoutes = {
         ...updatedRoutes,
-        routes: (response?.routes || []).filter(
-          route => route.receiver !== initialReceiver,
-        ),
+        routes: filterRouteByRuleName(response, initialReceiver, ruleName),
       };
     } else if (receiver != null && initialReceiver == null) {
       // creating a new route
