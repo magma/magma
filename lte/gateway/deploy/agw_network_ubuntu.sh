@@ -41,23 +41,6 @@ if ! grep -q 'Ubuntu' /etc/issue; then
   exit 1
 fi
 
-if [ "$SKIP_PRECHECK" != "$SUCCESS_MESSAGE" ]; then
-  wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_pre_check_ubuntu.sh
-  if [[ -f ./agw_pre_check_ubuntu.sh ]]; then
-    bash agw_pre_check_ubuntu.sh
-    while true; do
-        read -p "Do you accept those modifications and want to proceed with magma installation?(y/n)" yn
-        case $yn in
-            [Yy]* ) break;;
-            [Nn]* ) exit;;
-            * ) echo "Please answer yes or no.";;
-        esac
-    done
-  else
-    echo "agw_pre_check_ubuntu.sh is not available in your version"
-  fi
-fi
-
 apt-get update
 
 echo "Need to check if both interfaces are named eth0 and eth1"
@@ -142,72 +125,4 @@ if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
   adduser --disabled-password --gecos "" $MAGMA_USER
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-fi
-
-if [ $NEED_REBOOT = 1 ]; then
-  echo "Will reboot in a few seconds, loading a boot script in order to install magma"
-  if [ ! -f "$AGW_SCRIPT_PATH" ]; then
-      cp "$(realpath $0)" "${AGW_SCRIPT_PATH}"
-  fi
-  cat <<EOF > $AGW_INSTALL_CONFIG
-[Unit]
-Description=AGW Installation
-After=network-online.target
-Wants=network-online.target
-[Service]
-Environment=MAGMA_VERSION=${MAGMA_VERSION}
-Environment=GIT_URL=${GIT_URL}
-Environment=REPO_PROTO=${REPO_PROTO}
-Environment=REPO_HOST=${REPO_HOST}
-Environment=REPO_DIST=${REPO_DIST}
-Environment=REPO_COMPONENT=${REPO_COMPONENT}
-Environment=REPO_KEY=${REPO_KEY}
-Environment=REPO_KEY_FINGERPRINT=${REPO_KEY_FINGERPRINT}
-Environment=SKIP_PRECHECK=${SUCCESS_MESSAGE}
-Type=oneshot
-ExecStart=/bin/bash ${AGW_SCRIPT_PATH}
-TimeoutStartSec=3800
-TimeoutSec=3600
-User=root
-Group=root
-[Install]
-WantedBy=multi-user.target
-EOF
-  chmod 644 $AGW_INSTALL_CONFIG
-  ln -sf $AGW_INSTALL_CONFIG $AGW_INSTALL_CONFIG_LINK
-  reboot
-fi
-
-echo "Checking if magma has been installed"
-MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
-if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
-  echo "Magma not installed, processing installation"
-  apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
-
-  alias python=python3
-  pip3 install ansible==5.10.0
-
-  #git clone "${GIT_URL}" /home/$MAGMA_USER/magma
-  #cd /home/$MAGMA_USER/magma || exit
-  #git checkout "$MAGMA_VERSION"
-
-  echo "Generating localhost hostfile for Ansible"
-  echo "[magma_deploy]
-  127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
-
-  # install magma and its dependencies including OVS.
-  su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
-
-  echo "Cleanup temp files"
-  cd /root || exit
-  rm -rf $AGW_INSTALL_CONFIG
-  rm -rf /home/$MAGMA_USER/build
-  #rm -rf /home/$MAGMA_USER/magma
-
-  echo "AGW installation is done, Run agw_post_install_ubuntu.sh install script after reboot to finish installation"
-  #wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_post_install_ubuntu.sh -P /root/
-
-  #reboot
-else
-  echo "Magma already installed, skipping.."
 fi
