@@ -1031,10 +1031,11 @@ def get_required_distributions(root_requirements: List[pkg_resources.Requirement
 
 def main(args):
     """
-    This script resolves and installs python dependencies.
+    This script resolves and packages python dependencies.
 
-    In general: Dependencies are either installed via apt or pip. Installation
-    via apt is preferred over pip.
+    In general: Dependencies are either obtained via apt (magma artifactory) or pypi.
+    Packages that are not on the magma artifactory obtained via pypi and then built as .deb packages.
+
 
     Steps:
     1. Exit if we are using a virtualenv.
@@ -1118,7 +1119,6 @@ def main(args):
 
     root_versions = {k: {'version': pip_distributions[k].version}
                      for k in [rr.key for rr in root_requirements]}
-
     log.debug(root_versions)
 
     save_lockfile(args.lockfile, lockfile(root_versions, dep_set,
