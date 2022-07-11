@@ -84,7 +84,11 @@ export function useLoadRules<TRuleUnion>({
  * @param {*} ruleName string
  * @returns
  */
-export function filterRouteByRuleName(response, initialReceiver, ruleName) {
+export function filterRouteByRuleName(
+  response: AlertRoutingTree | null | undefined,
+  initialReceiver: string | null | undefined,
+  ruleName: string | null | undefined,
+) {
   if (!response || typeof response === 'undefined') {
     throw new Error('apiUtil Response is null or undefined');
   }
@@ -95,13 +99,35 @@ export function filterRouteByRuleName(response, initialReceiver, ruleName) {
     return response.routes || [];
   }
   const {routes} = response;
-  const filteredRoutes = (routes || []).filter(route => {
+  const filteredRoutes = (routes || []).filter((route: AlertRoutingTree) => {
     const filterToDelete =
-      route.receiver === initialReceiver && route.match.alertname === ruleName;
+      route.receiver === initialReceiver && route.match?.alertname === ruleName;
     return route.receiver !== initialReceiver || !filterToDelete;
   });
   return filteredRoutes || [];
 }
+
+export function filterUpdatedFilterRoutes(
+  response: AlertRoutingTree | null | undefined,
+  initialReceiver: string | null | undefined,
+  ruleName: string,
+  receiver: string | null | undefined,
+) {
+  if (!initialReceiver || !receiver || !ruleName) return response?.routes;
+  if (!response) throw new Error("Response can't be null.");
+  return (response?.routes || []).map((route: AlertRoutingTree) => {
+    if (
+      initialReceiver === route.receiver &&
+      route.match?.alertname === ruleName
+    ) {
+      if (!!receiver) {
+        route.receiver = receiver;
+      }
+    }
+    return route;
+  });
+}
+
 /**
  * An alert rule can have a 1:N mapping from rule name to receivers. This
  * mapping is configured via the route tree. This hook loads the route tree
@@ -157,10 +183,11 @@ export function useAlertRuleReceiver({
       initialReceiver != null
     ) {
       // remove the route
-      updatedRoutes = {
-        ...updatedRoutes,
-        routes: filterRouteByRuleName(response, initialReceiver, ruleName),
-      };
+      if (response)
+        updatedRoutes = {
+          ...updatedRoutes,
+          routes: filterRouteByRuleName(response, initialReceiver, ruleName),
+        };
     } else if (receiver != null && initialReceiver == null) {
       // creating a new route
       const newRoute: AlertRoutingTree = {
@@ -175,15 +202,12 @@ export function useAlertRuleReceiver({
       };
     } else {
       // update existing route
-      const _updatedRoutes = (response?.routes || []).map(route => {
-        if (
-          initialReceiver === route.receiver &&
-          route.match.alertname === ruleName
-        ) {
-          route.receiver = receiver;
-        }
-        return route;
-      });
+      const _updatedRoutes = filterUpdatedFilterRoutes(
+        response,
+        initialReceiver,
+        ruleName,
+        receiver,
+      );
       updatedRoutes = {
         ...updatedRoutes,
         routes: _updatedRoutes,

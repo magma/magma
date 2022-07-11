@@ -1,7 +1,8 @@
 import * as React from 'react';
-import {filterRouteByRuleName} from '../hooks';
+import {AlertRoutingTree} from '../AlarmAPIType';
+import {filterRouteByRuleName, filterUpdatedFilterRoutes} from '../hooks';
 
-describe('Testing routes', () => {
+describe('Testing filterRouteByRuleName', () => {
   const response = {
     receiver: 'test_tenant_base_route',
     match: {networkID: 'test'},
@@ -64,7 +65,7 @@ describe('Testing routes', () => {
   });
 
   test('return all routes if ruleName and  initialReceiver is undefined', () => {
-    const routes = filterRouteByRuleName(response);
+    const routes = filterRouteByRuleName(response, undefined, undefined);
     expect(routes.length).toBe(4);
   });
 
@@ -77,6 +78,144 @@ describe('Testing routes', () => {
         _response,
         initialReceiver,
         ruleName,
+      );
+    };
+    expect(error).toThrow();
+  });
+});
+
+describe('Testint filterUpdatedFilterRoutes', () => {
+  const response = {
+    receiver: 'test_tenant_base_route',
+    match: {networkID: 'test'},
+    routes: [
+      {receiver: 'User1', match: {alertname: 'High Disk Usage Alert'}},
+      {
+        receiver: 'User1',
+        match: {alertname: 'Certificate Expiring Soon'},
+      },
+      {
+        receiver: 'User1',
+        match: {alertname: 'Bootstrap Exception Alert'},
+      },
+      {
+        receiver: 'User2',
+        match: {alertname: 'Gateway Checkin Failure'},
+      },
+    ],
+  };
+  test('update only  High Disk Usage Alert from User1 to User2', () => {
+    const ruleName = 'High Disk Usage Alert';
+    const initialReceiver = 'User1';
+    const receiver = 'User2';
+    const initialState = response.routes.filter(
+      route =>
+        route.match?.alertname === ruleName && route.receiver == receiver,
+    );
+    const routes: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+      response,
+      initialReceiver,
+      ruleName,
+      receiver,
+    );
+    if (!!routes) {
+      const endState = routes.filter(
+        route =>
+          route.match?.alertname === ruleName && route.receiver == receiver,
+      );
+
+      expect(endState.length).toBeGreaterThan(initialState.length);
+      expect(response.routes).not.toBe(routes);
+    } else {
+      expect(routes).not.toBe(undefined);
+    }
+  });
+
+  test('return exact routes if initial receiver undefined', () => {
+    const ruleName = 'High Disk Usage Alert';
+    const initialReceiver = undefined;
+    const receiver = 'User2';
+
+    const routes: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+      response,
+      initialReceiver,
+      ruleName,
+      receiver,
+    );
+    if (routes) {
+      expect(response.routes).toBe(routes);
+    }
+
+    const routes2: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+      response,
+      null,
+      ruleName,
+      receiver,
+    );
+    if (routes2) {
+      expect(response.routes).toBe(routes2);
+    }
+
+    const routes3: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+      response,
+      '',
+      ruleName,
+      receiver,
+    );
+    if (routes3) {
+      expect(response.routes).toBe(routes3);
+    }
+  });
+  test('return exact routes if receiver undefined', () => {
+    const ruleName = 'High Disk Usage Alert';
+    const initialReceiver = 'User1';
+    const receiverUndefined = undefined;
+    const receiverNull = null;
+    const receiverEmpty = '';
+
+    const routesUndefined:
+      | AlertRoutingTree[]
+      | undefined = filterUpdatedFilterRoutes(
+      response,
+      initialReceiver,
+      ruleName,
+      receiverUndefined,
+    );
+    const routesNull:
+      | AlertRoutingTree[]
+      | undefined = filterUpdatedFilterRoutes(
+      response,
+      initialReceiver,
+      ruleName,
+      receiverNull,
+    );
+    const routesEmpty:
+      | AlertRoutingTree[]
+      | undefined = filterUpdatedFilterRoutes(
+      response,
+      initialReceiver,
+      ruleName,
+      receiverEmpty,
+    );
+
+    expect(response.routes).toBe(routesEmpty);
+    expect(response.routes).toBe(routesNull);
+    expect(response.routes).toBe(routesUndefined);
+  });
+
+  test('throws if response is undefined', () => {
+    const _response = undefined;
+    const ruleName = 'High Disk Usage Alert';
+    const initialReceiver = 'User1';
+    const receiver = 'User2';
+    const error = () => {
+      const routesUndefined:
+        | AlertRoutingTree[]
+        | undefined = filterUpdatedFilterRoutes(
+        _response,
+        initialReceiver,
+        ruleName,
+        receiver,
       );
     };
     expect(error).toThrow();
