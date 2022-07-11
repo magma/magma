@@ -305,6 +305,7 @@ def federated_integ_test(
     sleep(20)
     execute(run_integ_tests, federated_mode=True)
 
+
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
     destroy_vm='True', provision_vm='True',
