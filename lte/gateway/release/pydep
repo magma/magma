@@ -1077,22 +1077,7 @@ def main(args):
         print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
         sys.exit(0)
 
-    existing_versions = {}  # type: Dict[str, str]
-
     repo_installable, root_requirements = split_input_root_requirements(input_root_requirements, args.use_py2)
-
-    lf = get_lockfile(lockfile_path=args.lockfile)
-
-    deps = lf.dependencies()
-    for key in deps:
-        if deps[key]['source'] == 'pypi':
-            try:
-                ver = cast(str, deps[key]['version'])
-                existing_versions[key] = ver
-            except KeyError as e:
-                log.error('{} missing key: {}'.format(key, e))
-
-    log.debug(deps)
 
     repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
     if args.install_from_repo:
@@ -1108,6 +1093,19 @@ def main(args):
         except Exception:
             log.error('error trying to install repo packages')
             raise
+
+    lf = get_lockfile(lockfile_path=args.lockfile)
+    deps = lf.dependencies()
+    existing_versions = {}  # type: Dict[str, str]
+    for key in deps:
+        if deps[key]['source'] == 'pypi':
+            try:
+                ver = cast(str, deps[key]['version'])
+                existing_versions[key] = ver
+            except KeyError as e:
+                log.error('{} missing key: {}'.format(key, e))
+
+    log.debug(deps)
 
     with tmpvirtualenv() as venv:
         pip_distributions = gen_pip_distributions(root_requirements,
