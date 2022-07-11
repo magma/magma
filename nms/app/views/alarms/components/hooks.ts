@@ -78,6 +78,48 @@ export function useLoadRules<TRuleUnion>({
 }
 
 /**
+ * Filter a route from routes for a especific ruleName and receiver
+ * @param {*} response from apiUtil.useAlarmsApi
+ * @param {*} initialReceiver string
+ * @param {*} ruleName string
+ * @returns
+ */
+export function filterRouteByRuleName(
+  response: AlertRoutingTree | null | undefined,
+  initialReceiver: string,
+  ruleName: string,
+): Array<AlertRoutingTree> {
+  if (!initialReceiver || !ruleName) {
+    return response!.routes || [];
+  }
+  const {routes} = response!;
+  const filteredRoutes = (routes || []).filter((route: AlertRoutingTree) => {
+    return (
+      route.receiver !== initialReceiver || route.match?.alertname !== ruleName
+    );
+  });
+  return filteredRoutes;
+}
+
+export function filterUpdatedFilterRoutes(
+  response: AlertRoutingTree | null | undefined,
+  initialReceiver: string,
+  ruleName: string,
+  receiver: string,
+): Array<AlertRoutingTree> {
+  if (!initialReceiver || !receiver || !ruleName) return response?.routes || [];
+  return (response?.routes || []).map((route: AlertRoutingTree) => {
+    if (
+      initialReceiver === route.receiver &&
+      route.match?.alertname === ruleName
+    ) {
+      route.receiver = receiver;
+    }
+    return route;
+  });
+}
+
+/**
  * An alert rule can have a 1:N mapping from rule name to receivers. This
  * mapping is configured via the route tree. This hook loads the route tree
  * and returns all routes which contain a matcher for exactly this alertname.
@@ -134,9 +176,7 @@ export function useAlertRuleReceiver({
       // remove the route
       updatedRoutes = {
         ...updatedRoutes,
-        routes: (response?.routes || []).filter(
-          route => route.receiver !== initialReceiver,
-        ),
+        routes: filterRouteByRuleName(response, initialReceiver, ruleName),
       };
     } else if (receiver != null && initialReceiver == null) {
       // creating a new route
@@ -152,17 +192,15 @@ export function useAlertRuleReceiver({
       };
     } else {
       // update existing route
+      const _updatedRoutes = filterUpdatedFilterRoutes(
+        response,
+        initialReceiver!,
+        ruleName,
+        receiver!,
+      );
       updatedRoutes = {
         ...updatedRoutes,
-        routes: (response?.routes || []).map(route => {
-          if (route.receiver !== initialReceiver) {
-            return route;
-          }
-          return {
-            ...route,
-            receiver: receiver || '',
-          };
-        }),
+        routes: _updatedRoutes,
       };
     }
     await apiUtil.editRouteTree({
