@@ -31,9 +31,7 @@ export default function TimeRangeSelector(props: Props) {
       <Select
         inputProps={{id: 'time_range'}}
         value={props.value}
-        // TODO[ts-migration]: this was migrated from fbcnms-ui and types are broken
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        onChange={event => props.onChange(event.target.value as any)}>
+        onChange={event => props.onChange(event.target.value as TimeRange)}>
         <MenuItem value="3_hours">Last 3 hours</MenuItem>
         <MenuItem value="6_hours">Last 6 hours</MenuItem>
         <MenuItem value="12_hours">Last 12 hours</MenuItem>
