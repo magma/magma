@@ -18,7 +18,7 @@ These are the set of tests that you should run before opening a pull request.
 
 #### Eslint
 
-Run `yarn run eslint .` to test that there are no linter errors. You can also run `yarn run eslint --fix .` to fix automatically fixable linter errors.
+Run `yarn run eslint .` to test that there are no linter errors. You can also run `yarn run eslint --fix .` to fix automatically-fixable linter errors.
 
 #### TypeScript
 
