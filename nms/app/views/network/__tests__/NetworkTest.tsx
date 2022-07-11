@@ -297,6 +297,7 @@ describe('<NetworkDashboard />', () => {
     const enodebCtx = {
       state: {enbInfo},
       setState: async () => {},
+      refetch: () => {},
     } as EnodebContextType;
 
     const gatewayCtx = {

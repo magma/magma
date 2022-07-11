@@ -33,7 +33,6 @@ import type {
   GatewayPoolId,
   NetworkId,
 } from '../../../shared/types/network';
-import type {EnodebState} from '../../components/context/EnodebContext';
 import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
@@ -244,16 +243,10 @@ type EnodebStateProps = {
   setEnbInfo: (enodebInfo: Record<string, EnodebInfo>) => void;
   key: string;
   value?: EnodebInfo;
-  newState?: EnodebState;
 };
 
 export async function SetEnodebState(props: EnodebStateProps) {
-  const {networkId, enbInfo, setEnbInfo, key, value, newState} = props;
-
-  if (newState) {
-    setEnbInfo(newState.enbInfo);
-    return;
-  }
+  const {networkId, enbInfo, setEnbInfo, key, value} = props;
 
   if (value != null) {
     // remove attached gateway id read only property
