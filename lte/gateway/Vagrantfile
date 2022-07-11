@@ -198,4 +198,37 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   end
 
+  config.vm.define :magma_prod, autostart: false do |magma_prod|
+
+    magma_prod.vm.box = "ubuntu/focal64"
+    magma_prod.vm.box_version = "20220627.1.0 "
+    magma_prod.vm.hostname = "magma-prod"
+    magma_prod.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_prod.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    magma_prod.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
+    magma_prod.vm.network "private_network", ip: "3001::10", nic_type: "82540EM"
+
+    magma_prod.vm.provider "virtualbox" do |vb|
+      vb.name = "magma_prod"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", ENV.fetch("MAGMA_DEV_MEMORY_MB", "8192")]
+      vb.customize ["modifyvm", :id, "--cpus", ENV.fetch("MAGMA_DEV_CPUS", "4")]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
+    end
+    
+    magma_prod.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_prod.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
 end
