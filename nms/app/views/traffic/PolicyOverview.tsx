@@ -175,6 +175,12 @@ export default function PolicyOverview() {
     link: 'https://docs.magmacore.org/docs/nms/traffic#policy-configuration',
   };
 
+  const isEmpty =
+    Object.keys(ctx.state || {}).length === 0 &&
+    Object.keys(ctx.ratingGroups || {}).length === 0 &&
+    Object.keys(ctx.qosProfiles || {}).length === 0 &&
+    Object.keys(ctx.baseNames || {}).length === 0;
+
   return (
     <div className={classes.dashboardRoot}>
       <PolicyRuleEditDialog
@@ -182,7 +188,19 @@ export default function PolicyOverview() {
         onClose={() => setOpen(false)}
         rule={undefined}
       />
-      {Object.keys(ctx.state || {}).length > 0 ? (
+      {isEmpty ? (
+        <Grid container justify="space-between" spacing={3}>
+          <EmptyState
+            title={'Set up a Policy'}
+            instructions={
+              'Add a policy to the NMS by filling out the required fields.'
+            }
+            cardActions={cardActions}
+            overviewTitle={'Policy Overview'}
+            overviewDescription={EMPTY_STATE_OVERVIEW}
+          />
+        </Grid>
+      ) : (
         <>
           <MagmaTabs
             value={currTabIndex}
@@ -197,18 +215,6 @@ export default function PolicyOverview() {
           {currTabIndex === 2 && <ProfileTable />}
           {currTabIndex === 3 && <RatingGroupTable />}
         </>
-      ) : (
-        <Grid container justify="space-between" spacing={3}>
-          <EmptyState
-            title={'Set up a Policy'}
-            instructions={
-              'Add a policy to the NMS by filling out the required fields.'
-            }
-            cardActions={cardActions}
-            overviewTitle={'Policy Overview'}
-            overviewDescription={EMPTY_STATE_OVERVIEW}
-          />
-        </Grid>
       )}
     </div>
   );
