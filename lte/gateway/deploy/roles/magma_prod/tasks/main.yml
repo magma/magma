@@ -1,0 +1,62 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#- name: Adapt install script
+#  ansible.builtin.shell: sudo sed -i '19 c MAGMA_USER="vagrant"' agw_install_ubuntu.sh
+    
+#- name: Execute install script
+#  ansible.builtin.shell: sudo bash ./home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu.sh
+
+- name: Enable IP forwarding
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+
+- name: Set a convenience function for disabling TCP checksumming for traffic test
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
+
+- name: Seting magma environment variables
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - MAGMA_ROOT=/home/vagrant/magma/
+    - MAGMA_DEV_MODE=1
+
+
+- name: Set MAGMA_ROOT environment variable
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: MAGMA_ROOT=/home/vagrant/magma/
+
+- name: Copy preferences file for backports
+  copy: src=magma-preferences dest=/etc/apt/preferences.d/magma-preferences
+
+- name: Change network settings
+  ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/agw_network_ubuntu.sh
+
+- name: Reboot the machine (Wait for 180s)
+  ansible.builtin.reboot:
+    reboot_timeout: 180
+
+- name: Install magma
+  ansible.builtin.shell: sudo env "SKIP_PRECHECK={{ skip_precheck }}" bash /home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu.sh
+
+- name: Reboot the machine (Wait for 180s)
+  ansible.builtin.reboot:
+    reboot_timeout: 180
+
+- name: Post install changes
+  ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/roles/magma_prod/files/post_install_changes.sh
