@@ -86,7 +86,7 @@ jobs:
             sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' ${{ env.VARS_DIR }}/defaults.yaml
             sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' ${{ env.VARS_DIR }}/build.yaml
             sed -i -e '/^buildAgwVersion: /s/:.*$/: '"$GIT_REF"'/' ${{ env.VARS_DIR }}/build.yaml
-            sed -i -e '/^buildAgwPackage: /s/:.*$/: '"$PACKAGE_VERSION"'/' ${{ env.VARS_DIR }}/build.yaml
+            # sed -i -e '/^buildAgwPackage: /s/:.*$/: '"$PACKAGE_VERSION"'/' ${{ env.VARS_DIR }}/build.yaml
             sed -i -e '/^taggedVersion: /s/:.*$/: '"$VERSION"'/' ${{ env.VARS_DIR }}/build.yaml
       - name: Generate Cloudstrapper AMI
         timeout-minutes: 120
