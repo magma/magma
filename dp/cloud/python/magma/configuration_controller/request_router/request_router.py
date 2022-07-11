@@ -14,6 +14,7 @@ limitations under the License.
 from typing import Dict, List
 
 import requests
+from magma.configuration_controller.metrics import SAS_REQUEST_PROCESSING_TIME
 from magma.configuration_controller.request_router.exceptions import (
     RequestRouterError,
 )
@@ -40,6 +41,7 @@ class RequestRouter(object):
         self.ssl_verify = ssl_verify
         self.request_mapping = request_mapping
 
+    @SAS_REQUEST_PROCESSING_TIME.time()
     def post_to_sas(self, request_dict: Dict[str, List[Dict]]) -> requests.Response:
         """
         Parse JSON request and send it to the appropriate SAS endpoint.

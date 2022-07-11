@@ -17,6 +17,10 @@ basePath: /magma/v1
 definitions:
   capabilities:
     properties:
+      max_ibw_mhz:
+        description: this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
+        type: integer
+        x-nullable: false
       min_power:
         description: min tx power available on cbsd
         type: number
@@ -33,6 +37,7 @@ definitions:
       - min_power
       - max_power
       - number_of_antennas
+      - max_ibw_mhz
     type: object
     x-nullable: false
   cbsd:
@@ -40,9 +45,20 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      carrier_aggregation_enabled:
+        description: this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+        type: boolean
+        x-nullable: false
       cbsd_id:
         description: id of cbsd in SAS
         example: some_cbsd_id
+        type: string
+        x-nullable: false
+      cbsd_category:
+        description: is the radio type A (only) or B (also applies to A/B type radios)
+        enum:
+          - a
+          - b
         type: string
         x-nullable: false
       desired_state:
@@ -62,9 +78,16 @@ definitions:
       grant:
         $ref: '#/definitions/grant'
         x-nullable: false
+      grant_redundancy:
+        description: tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+        type: boolean
+        x-nullable: false
       id:
         description: database id of cbsd
         type: integer
+        x-nullable: false
+      installation_param:
+        $ref: '#/definitions/installation_param'
         x-nullable: false
       is_active:
         description: false if cbsd have not contacted DP for certain amount of time
@@ -74,6 +97,10 @@ definitions:
         example: some_serial_number
         minLength: 1
         type: string
+        x-nullable: false
+      single_step_enabled:
+        description: should the CBSD be registered in a single-step mode
+        type: boolean
         x-nullable: false
       state:
         description: state of cbsd in SAS
@@ -86,20 +113,6 @@ definitions:
         example: some_user_id
         minLength: 1
         type: string
-        x-nullable: false
-      single_step_enabled:
-        description: should the CBSD be registered in a single-step mode
-        type: boolean
-        x-nullable: false
-      cbsd_category:
-        description: is the radio type A (only) or B (also applies to A/B type radios)
-        enum:
-          - a
-          - b
-        type: string
-        x-nullable: false
-      installation_param:
-        $ref: '#/definitions/installation_param'
         x-nullable: false
     required:
       - capabilities
@@ -114,6 +127,8 @@ definitions:
       - single_step_enabled
       - cbsd_category
       - installation_param
+      - carrier_aggregation_enabled
+      - grant_redundancy
   frequency_preferences:
     properties:
       bandwidth_mhz:
@@ -259,6 +274,17 @@ definitions:
     properties:
       capabilities:
         $ref: '#/definitions/capabilities'
+      carrier_aggregation_enabled:
+        description: this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+        type: boolean
+      cbsd_category:
+        description: is the radio type A (only) or B (also applies to A/B type radios)
+        enum:
+          - a
+          - b
+        type: string
+        default: b
+        x-nullable: false
       desired_state:
         description: desired state of cbsd in SAS
         enum:
@@ -273,6 +299,11 @@ definitions:
         x-nullable: false
       frequency_preferences:
         $ref: '#/definitions/frequency_preferences'
+      grant_redundancy:
+        description: Tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+        type: boolean
+      installation_param:
+        $ref: '#/definitions/mutable_installation_param'
       serial_number:
         example: some_serial_number
         minLength: 1
@@ -286,16 +317,6 @@ definitions:
       single_step_enabled:
         description: should the CBSD be registered in a single-step mode
         type: boolean
-      cbsd_category:
-        description: is the radio type A (only) or B (also applies to A/B type radios)
-        enum:
-          - a
-          - b
-        type: string
-        default: b
-        x-nullable: false
-      installation_param:
-        $ref: '#/definitions/mutable_installation_param'
     required:
       - capabilities
       - desired_state
@@ -305,6 +326,8 @@ definitions:
       - user_id
       - single_step_enabled
       - cbsd_category
+      - carrier_aggregation_enabled
+      - grant_redundancy
   mutable_installation_param:
     properties:
       antenna_gain:

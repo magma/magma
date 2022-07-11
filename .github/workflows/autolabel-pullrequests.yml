@@ -1,10 +1,10 @@
 ---
 name: AutoLabel PR
-on:  # yamllint disable-line rule:truthy
+on:
   # Use pull_request_target to gain write permissions.
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
   pull_request_target:
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
     paths:
       - '.github/**'
       - 'ci-scripts/**'
@@ -34,10 +34,9 @@ jobs:
   AutoLabelPR:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v3
+      - uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:
           script: |
-
             let newCompLbls = new Set(); // Set of new label strings
 
             // Fetch files modified in the PR

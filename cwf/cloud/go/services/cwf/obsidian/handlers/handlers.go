@@ -19,8 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/serdes"
@@ -29,10 +28,10 @@ import (
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -151,7 +150,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load cwf gateway"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load cwf gateway: %w", err))
 	}
 
 	ret := &cwfModels.CwfGateway{
@@ -417,7 +416,7 @@ func updateHAPairHandler(c echo.Context) error {
 	// 404 if pair doesn't exist
 	exists, err := configurator.DoesEntityExist(reqCtx, networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to check if ha pair exists"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to check if ha pair exists: %w", err))
 	}
 	if !exists {
 		return echo.ErrNotFound

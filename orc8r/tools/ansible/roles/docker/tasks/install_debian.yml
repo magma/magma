@@ -29,14 +29,14 @@
       - software-properties-common
       - python3-pip
 
+- name: Copy docker gpg key from codebase
+  copy:
+    src: docker.key
+    dest: /tmp/docker.key
+
 - name: Add Docker’s official GPG key
   apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-
-- name: Verify that you now have the key with the fingerprint
-  apt_key:
-    id: 0EBFCD88
+    file: /tmp/docker.key
     state: present
 
 - name: Add the stable repository for Docker

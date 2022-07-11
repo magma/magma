@@ -35,7 +35,7 @@ const siteConfig = {
     {label: ' | '},
     {href: 'https://github.com/magma', label: 'Code'},
     {label: ' | '},
-    {href: 'https://magmacore.org/community', label: 'Community'},
+    {href: 'https://magmacore.org/join-the-open-source-community', label: 'Community'},
   ],
 
   // Path to images for header/footer

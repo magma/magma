@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/olivere/elastic/v7"
 
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/service/config"
 )
 
@@ -134,13 +134,14 @@ type ListLogsRequest struct {
 }
 
 func (r *ListLogsRequest) toElasticSearchQuery() *elastic.BoolQuery {
-	var matchQueries []elastic.Query
 	logFrom := r.Filter.LogFrom
 	logTo := r.Filter.LogTo
 	logName := r.Filter.Name
 	serialNumber := r.Filter.SerialNumber
 	fccId := r.Filter.FccId
+	networkId := r.NetworkId
 	responseCode := r.Filter.ResponseCode
+	matchQueries := []elastic.Query{elastic.NewMatchQuery("network_id", networkId)}
 
 	if logFrom != "" {
 		matchQueries = append(matchQueries, elastic.NewMatchQuery("log_from", logFrom))

@@ -16,8 +16,8 @@ import os
 import subprocess
 
 import fire as fire
-from scripts.docker_health_service import DockerHealthChecker
-from scripts.orc8r_health_service import GenericHealthChecker
+from magma.common.health.docker_health_service import DockerHealthChecker
+from magma.common.health.health_service import GenericHealthChecker
 from termcolor import colored
 
 

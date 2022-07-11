@@ -63,7 +63,7 @@ set_prerequisites() {
 #Downloading and Running AGW install on Bare Metal VM
 agw_install() {
 	echo  "*****Downloading and Running AGW install on Bare Metal VM*****"
-	wget https://raw.githubusercontent.com/facebookincubator/magma/v1.3/lte/gateway/deploy/agw_install.sh
+	wget https://raw.githubusercontent.com/magma/magma/v1.3/lte/gateway/deploy/agw_install.sh
 	bash agw_install.sh
 }
 

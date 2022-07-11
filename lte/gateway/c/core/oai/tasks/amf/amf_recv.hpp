@@ -76,6 +76,7 @@ int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
                                     const std::string& ue_pubkey,
                                     const std::string& ciphertext,
                                     const std::string& mac_tag);
+int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia);
 void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
                            supi_as_imsi_t& supi_imsi);
 int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,

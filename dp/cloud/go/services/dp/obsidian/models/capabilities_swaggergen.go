@@ -19,6 +19,10 @@ import (
 // swagger:model capabilities
 type Capabilities struct {
 
+	// this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
+	// Required: true
+	MaxIbwMhz int64 `json:"max_ibw_mhz"`
+
 	// max tx power available on cbsd
 	// Example: 30
 	// Required: true
@@ -39,6 +43,10 @@ type Capabilities struct {
 func (m *Capabilities) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateMaxIbwMhz(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateMaxPower(formats); err != nil {
 		res = append(res, err)
 	}
@@ -54,6 +62,15 @@ func (m *Capabilities) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *Capabilities) validateMaxIbwMhz(formats strfmt.Registry) error {
+
+	if err := validate.Required("max_ibw_mhz", "body", int64(m.MaxIbwMhz)); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -12,6 +12,16 @@
     factSecGroup: "{{ regSecGroup.security_groups[0].group_id }}" 
   tags: infra
 
+- name: Find out Ubuntu 20.04 AMI ID
+  ec2_ami_facts:
+    filters:
+      - name: "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220610"
+  register: ubuntuAmiSearchResult
+
+- name: Set Ubuntu AMI fact
+  set_fact:
+    factUbuntuAmi: "{{ ubuntuAmiSearchResult.images[0].image_id }}"
+
 - name: launch build node
   cloudformation:
     stack_name: "stackBuildOrc8r"
@@ -21,7 +31,7 @@
       paramSecGroup: "{{ factSecGroup }}"
       paramAvlZone: "{{ buildAwsAz }}"
       paramKeyHost: "{{ keyHost }}"
-      paramImageId: "{{ buildUbuntuAmi }}"
+      paramImageId: "{{ factUbuntuAmi }}"
       paramInstanceType: "{{ buildInstanceType }}"
       paramTagName: "{{ buildTagName }}"
   tags:

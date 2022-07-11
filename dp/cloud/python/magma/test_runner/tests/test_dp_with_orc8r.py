@@ -53,6 +53,8 @@ MAGMA_CLIENT_CERT_SERIAL_VALUE = '7ZZXAF7CAETF241KL22B8YRR7B5UF401'
 class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationTestCase):
     def setUp(self) -> None:
         self.serial_number = self._testMethodName + '_' + str(uuid4())
+        self.prometheus_url = f'http://{config.PROMETHEUS_SERVICE_HOST}:{config.PROMETHEUS_SERVICE_PORT}'
+        requests.post(f"{self.prometheus_url}/api/v1/admin/tsdb/delete_series")
 
     def test_cbsd_sas_flow(self):
         builder = CbsdAPIDataBuilder() \
@@ -66,6 +68,8 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
         with self.while_cbsd_is_active():
             self.then_provision_logs_are_sent()
+
+        self.then_metrics_are_in_prometheus()
 
         self.delete_cbsd(cbsd_id)
 
@@ -267,7 +271,7 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
             .with_serial_number(self.serial_number) \
             .with_frequency_preferences(5, [3625]) \
             .with_expected_grant(5, 3625, 31)
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
+        self.given_multi_step_cbsd_provisioned(builder)
 
     def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
         builder = CbsdAPIDataBuilder() \
@@ -432,6 +436,29 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
         return cbsd['id']
 
+    def then_metrics_are_in_prometheus(self):
+        metrics = [
+            'dp_rc_grpc_request_processing_seconds_bucket',
+            'dp_rc_grpc_request_processing_seconds_count',
+            'dp_rc_grpc_request_processing_seconds_sum',
+            'dp_cc_pending_requests_fetching_seconds_bucket',
+            'dp_cc_pending_requests_fetching_seconds_count',
+            'dp_cc_pending_requests_fetching_seconds_sum',
+            'dp_cc_request_processing_seconds_bucket',
+            'dp_cc_request_processing_seconds_count',
+            'dp_cc_request_processing_seconds_sum',
+            'dp_cc_response_processing_seconds_bucket',
+            'dp_cc_response_processing_seconds_count',
+            'dp_cc_response_processing_seconds_sum',
+        ]
+        for m in metrics:
+            resp = requests.get(self.prometheus_url + '/api/v1/query', params={'query': m})
+            data = resp.json().get('data')
+            self.assertIsNotNone(data)
+            result = data.get('result')
+            self.assertIsNotNone(result)
+            self.assertGreater(len(result), 0)
+
     def given_multi_step_cbsd_provisioned(self, builder: CbsdAPIDataBuilder) -> int:
         self.when_cbsd_is_created(builder.payload)
         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
@@ -473,13 +500,14 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         return cbsd
 
     def then_provision_logs_are_sent(self):
-        self.then_logs_are(
-            get_current_sas_filters(self.serial_number),
-            self.get_sas_provision_messages(),
-        )
+        self.then_logs_are_in_only_one_network()
 
         filters = get_filters_for_request_type('heartbeat', self.serial_number)
         self.then_message_is_eventually_sent(filters)
+
+    def then_logs_are_in_only_one_network(self):
+        self.then_logs_are(get_current_sas_filters(self.serial_number), self.get_sas_provision_messages())
+        self.then_logs_are(get_current_sas_filters(self.serial_number), [], network="someOtherNetworkId")
 
     def when_cbsd_is_created(self, data: Dict[str, Any], expected_status: int = HTTPStatus.CREATED):
         r = send_request_to_backend('post', 'cbsds', json=data)
@@ -488,8 +516,8 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
     def when_cbsd_is_fetched(self, serial_number: str = None) -> Dict[str, Any]:
         return self._check_for_cbsd(serial_number=serial_number)
 
-    def when_logs_are_fetched(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        r = send_request_to_backend('get', 'logs', params=params)
+    def when_logs_are_fetched(self, params: Dict[str, Any], network: Optional[str] = None) -> Dict[str, Any]:
+        r = send_request_to_backend('get', 'logs', params=params, network=network)
         self.assertEqual(r.status_code, HTTPStatus.OK)
         data = r.json()
         return data
@@ -567,8 +595,8 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         self.then_state_is(actual, expected)
 
     @retry(stop_max_attempt_number=30, wait_fixed=1000)
-    def then_logs_are(self, filters: Dict[str, Any], expected: List[str]):
-        actual = self.when_logs_are_fetched(filters)
+    def then_logs_are(self, filters: Dict[str, Any], expected: List[str], network: Optional[str] = None):
+        actual = self.when_logs_are_fetched(filters, network)
         actual = [x['type'] for x in actual['logs']]
         self.assertEqual(actual, expected)
 
@@ -653,10 +681,11 @@ def now() -> str:
 def send_request_to_backend(
         method: str, url_suffix: str, params: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
+        network: Optional[str] = None,
 ) -> requests.Response:
     return requests.request(
         method,
-        f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{NETWORK}/{url_suffix}',
+        f'{config.HTTP_SERVER}/{DP_HTTP_PREFIX}/{network or NETWORK}/{url_suffix}',
         cert=(config.DP_CERT_PATH, config.DP_SSL_KEY_PATH),
         verify=False,  # noqa: S501
         params=params,
