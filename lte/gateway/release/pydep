@@ -773,19 +773,16 @@ def gen_pip_distributions(
     for req in root_requirements:
         log.info(req)
         pkg = req.key
-        if pkg in selected_versions:
-            existing = selected_versions[pkg]
-            if existing not in req:
-                # new version requirement not satisfied by existing version
-                # obeying specific instructions -- existing_versions may be
-                # inconsistent and need editing before this process succeeds
-                del selected_versions[pkg]
-                new_requirements.append(req)
-            else:
-                # existing version is fine
-                pass
-        else:
+        version = selected_versions.get(pkg)
+        if version and version not in req:
+            # new version requirement not satisfied by existing version
+            # obeying specific instructions -- existing_versions may be
+            # inconsistent and need editing before this process succeeds
+            del selected_versions[pkg]
             new_requirements.append(req)
+        elif not version:
+            new_requirements.append(req)
+        # else: existing version is fine, do nothing
 
     args = ([shlex.quote(str(r)) for r in sorted(new_requirements,
                                                  key=lambda r: str(r))]
