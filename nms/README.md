@@ -14,7 +14,9 @@ Here, `package.json` specifies the necessary dependencies and development script
 Triggering unit tests, e2e tests, eslint, and TypeScript checks is done from this directory.
 
 ---
+
 ## Running Local Dev NMS
+
 > NOTE: This guide is written for development directly using Docker.
 > You may need to make adjustments if using MiniKube.
 
@@ -113,9 +115,11 @@ This likely corresponds to React errors.
 If this is the case, you should be able to see the relevant error logs through your web browser's developer tools.
 
 ---
+
 ## Testing
 
 ### Install Dependencies
+
 Running eslint and TypeScript checks requires installing dependencies.
 
 Install node and npm if you haven't already
@@ -138,8 +142,10 @@ yarn run eslint ./
 ```
 
 ### TypeScript
+
 Run from [`nms/`](../nms/).
 Version `4.7.4` of `TypeScript` is used currently.
+
 ```
 yarn run tsc
 ```
@@ -169,14 +175,17 @@ yarn test:e2e
 Run `yarn test --coverage`
 
 ---
+
 ## Updating NMS for API Changes
 
 ### How to re-generate TypeScript API bindings
+
 Run `./build.py --generate` in `${MAGMA_ROOT}/orc8r/cloud/docker`
 
 This re-generates various files, including the TypeScript API bindings for NMS.
 
 ---
+
 ## Accessing Local Dev NMS
 
 ### Multitenancy and Organizations
