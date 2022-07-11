@@ -182,7 +182,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
          ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
       // Check if a UE reference exists for this comp_s1ap_id
       hashtable_ts_get(s1ap_ue_state, (const hash_key_t)ue_itr->second,
-                       (void**)&ue_ref_p);
+                       reinterpret_cast<void**>(&ue_ref_p));
       if (!ue_ref_p) {
         mme_ue_id_no_imsi_list.push_back(ue_itr->first);
         OAILOG_DEBUG(LOG_S1AP,
