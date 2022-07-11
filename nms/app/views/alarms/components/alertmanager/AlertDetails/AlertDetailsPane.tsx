@@ -31,7 +31,7 @@ import Paper from '@material-ui/core/Paper';
 import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
-import {PromFiringAlert} from '../../../../../../generated-ts';
+import {PromFiringAlert} from '../../../../../../generated';
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

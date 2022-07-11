@@ -929,7 +929,7 @@ message M5GSMSessionContext {
   TeidSet gnode_endpoint = 23;
   TeidSet upf_endpoint = 24;
   // Procedure transaction identity
-  bytes procedure_trans_identity = 25;
+  uint32 procedure_trans_identity = 25;
   M5GQosInformationRequest subscribed_qos = 26;
   repeated QosPolicy qos_policy = 27;
 }
@@ -990,7 +990,7 @@ message M5GSMSessionContextAccess{
     RedirectServer pdu_address = 14;
     TeidSet upf_endpoint = 15;
     // Procedure transaction identity One byte TS-24501 9.6
-    bytes procedure_trans_identity = 16;
+    uint32 procedure_trans_identity = 16;
     // Mutiple Qos policy support
     repeated QosPolicy qos_policy = 17;
 }

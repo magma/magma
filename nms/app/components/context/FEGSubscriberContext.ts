@@ -13,7 +13,7 @@
 
 import React from 'react';
 import {NetworkId, SubscriberId} from '../../../shared/types/network';
-import {SubscriberState} from '../../../generated-ts';
+import {SubscriberState} from '../../../generated';
 
 export type FEGSubscriberContextType = {
   sessionState: Record<NetworkId, Record<SubscriberId, SubscriberState>>;

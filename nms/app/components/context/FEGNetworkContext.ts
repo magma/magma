@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {UpdateNetworkProps as FEGUpdateNetworkProps} from '../../state/feg/NetworkState';
-import type {FegNetwork} from '../../../generated-ts';
+import type {FegNetwork} from '../../../generated';
 
 import React from 'react';
 

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {FlowDescription} from '../../../generated-ts';
+import type {FlowDescription} from '../../../generated';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -28,7 +28,7 @@ import TextField from '@material-ui/core/TextField';
 import TypedSelect from '../TypedSelect';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
-import {FlowDescriptionActionEnum, FlowMatch} from '../../../generated-ts';
+import {FlowDescriptionActionEnum, FlowMatch} from '../../../generated';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({

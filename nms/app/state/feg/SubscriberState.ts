@@ -14,7 +14,7 @@
 import {FetchSubscriberState} from '../lte/SubscriberState';
 import {NetworkId} from '../../../shared/types/network';
 import {OptionsObject} from 'notistack';
-import {SubscriberState} from '../../../generated-ts';
+import {SubscriberState} from '../../../generated';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 
 /**

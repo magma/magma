@@ -23,7 +23,7 @@ import type {
   GatewayRanConfigs,
   LteGateway,
   MagmadGatewayConfigs,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -69,7 +69,7 @@ import {
 import {
   GatewayHeConfigHeEncryptionAlgorithmEnum,
   GatewayHeConfigHeHashFunctionEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

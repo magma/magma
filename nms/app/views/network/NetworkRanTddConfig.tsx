@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {NetworkRanConfigs} from '../../../generated-ts';
+import type {NetworkRanConfigs} from '../../../generated';
 
 import Grid from '@material-ui/core/Grid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';

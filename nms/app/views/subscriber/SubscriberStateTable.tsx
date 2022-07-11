@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {Subscriber, SubscriberState} from '../../../generated-ts';
+import type {Subscriber, SubscriberState} from '../../../generated';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';

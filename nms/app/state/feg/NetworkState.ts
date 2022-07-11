@@ -12,7 +12,7 @@
  */
 
 import MagmaAPI from '../../api/MagmaAPI';
-import type {FegNetwork, NetworkSubscriberConfig} from '../../../generated-ts';
+import type {FegNetwork, NetworkSubscriberConfig} from '../../../generated';
 import type {NetworkId} from '../../../shared/types/network';
 
 export type UpdateNetworkProps = {

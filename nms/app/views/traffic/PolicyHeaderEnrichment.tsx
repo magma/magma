@@ -26,7 +26,7 @@ import Text from '../../theme/design-system/Text';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
 import {useEffect, useState} from 'react';
-import type {PolicyRule} from '../../../generated-ts';
+import type {PolicyRule} from '../../../generated';
 
 const useStyles = makeStyles(() => policyStyles);
 

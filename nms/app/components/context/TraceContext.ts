@@ -12,7 +12,7 @@
  */
 
 import React from 'react';
-import type {CallTrace, MutableCallTrace} from '../../../generated-ts';
+import type {CallTrace, MutableCallTrace} from '../../../generated';
 
 export type TraceContextType = {
   state: Record<string, CallTrace>;

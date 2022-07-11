@@ -19,7 +19,7 @@ import {Line} from 'react-chartjs-2';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import {PositionType, TimeUnit} from 'chart.js';
-import {PromqlMetric, PromqlMetricValue} from '../../../generated-ts';
+import {PromqlMetric, PromqlMetricValue} from '../../../generated';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -371,9 +371,6 @@ export default function AsyncMetric(props: Props) {
       height={props.height}
       options={{
         maintainAspectRatio: false,
-        // TODO[TS-migration is this a valid chart.js option?]
-        // @ts-ignore
-        scaleShowValues: true,
         scales: {
           xAxes: [
             {

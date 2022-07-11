@@ -29,7 +29,7 @@ import {
   PolicyRule,
   RatingGroup,
   RedirectInformation,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';

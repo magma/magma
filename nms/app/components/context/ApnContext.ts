@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {Apn} from '../../../generated-ts';
+import type {Apn} from '../../../generated';
 
 import React from 'react';
 

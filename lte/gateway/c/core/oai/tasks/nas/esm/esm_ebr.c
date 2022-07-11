@@ -112,12 +112,12 @@ void esm_ebr_initialize(void) {
  **      Others:    _esm_ebr_data                                          **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_ebr_assign(emm_context_t* emm_context) {
+ebi_t esm_ebr_assign(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t* ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
-  int i = esm_ebr_get_available_entry(emm_context);
+  ebi_t i = esm_ebr_get_available_entry(emm_context);
   if (i < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
   }

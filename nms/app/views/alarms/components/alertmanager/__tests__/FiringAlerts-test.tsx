@@ -16,7 +16,7 @@ import FiringAlerts from '../FiringAlerts';
 import {MockApiUtil, alarmTestUtil} from '../../../test/testHelpers';
 import {act, fireEvent, render} from '@testing-library/react';
 
-import {PromFiringAlert} from '../../../../../../generated-ts';
+import {PromFiringAlert} from '../../../../../../generated';
 import type {AlarmsWrapperProps} from '../../../test/testHelpers';
 
 describe('FiringAlerts', () => {

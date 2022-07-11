@@ -11,33 +11,23 @@
  * limitations under the License.
  */
 
-const sharedPresets = [
-  [
-    '@babel/preset-env',
-    {
-      targets: {
-        node: 'current',
-        chrome: '58',
-      },
-      corejs: 3,
-      useBuiltIns: 'entry',
-    },
-  ],
-  '@babel/preset-react',
-];
-
 module.exports = {
-  ignore: [
-    filename => {
-      if (filename.indexOf('fbcnms') >= 0) {
-        return false;
-      } else if (filename.indexOf('node_modules') >= 0) {
-        return true;
-      }
-      return false;
-    },
+  ignore: ['node_modules'],
+  presets: [
+    [
+      '@babel/preset-env',
+      {
+        targets: {
+          node: 'current',
+          chrome: '58',
+        },
+        corejs: 3,
+        useBuiltIns: 'entry',
+      },
+    ],
+    '@babel/preset-react',
+    '@babel/preset-typescript',
   ],
-  presets: [...sharedPresets, '@babel/preset-flow'],
   plugins: [
     'babel-plugin-lodash',
     '@babel/plugin-proposal-class-properties',
@@ -50,10 +40,4 @@ module.exports = {
       sourceMaps: 'both',
     },
   },
-  overrides: [
-    {
-      test: /\.tsx?$/,
-      presets: [...sharedPresets, '@babel/preset-typescript'],
-    },
-  ],
 };

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {PolicyRule, QosClassId} from '../../../generated-ts';
+import type {PolicyRule, QosClassId} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';

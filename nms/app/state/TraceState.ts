@@ -16,7 +16,7 @@ import type {
   CallTrace,
   CallTraceConfig,
   MutableCallTrace,
-} from '../../generated-ts';
+} from '../../generated';
 import type {NetworkId} from '../../shared/types/network';
 import type {OptionsObject} from 'notistack';
 

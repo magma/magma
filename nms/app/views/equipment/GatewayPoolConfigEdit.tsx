@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
-import type {MutableCellularGatewayPool} from '../../../generated-ts';
+import type {MutableCellularGatewayPool} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';

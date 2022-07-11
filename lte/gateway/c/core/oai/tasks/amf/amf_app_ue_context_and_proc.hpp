@@ -87,6 +87,8 @@ struct amf_procedures_t;
 #define REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS 6000
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 #define PDUE_SESSION_RELEASE_TIMER_MSECS 16000
+#define PDU_SESSION_MODIFICATION_TIMER_MSECS 16000
+#define PDU_SESSION_DEFAULT_QFI 0X09
 
 #define MAX_PAGING_RETRY_COUNT 4
 // Header length boundaries of 5GS Mobility Management messages
@@ -96,6 +98,7 @@ struct amf_procedures_t;
 #define AMBR_LEN 6
 #define PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN 30
 #define PDU_ESTAB_ACCEPT_NAS_PDU_LEN 41
+#define PDU_SESS_MOD_CMD_NAS_PDU_LEN 1024
 #define SSC_MODE_ONE 0x1
 #define PDU_ADDR_IPV4_LEN 0x4
 #define GNB_IPV4_ADDR_LEN 4
@@ -237,7 +240,12 @@ typedef struct teid_upf_gnb_s {
 // Data get communicated with SMF and stored for reference
 typedef struct smf_proc_data_s {
   uint8_t pdu_session_id;
+  // Store PTI related information
   uint8_t pti;
+
+  // Store ongoing qos for current pti
+  qos_flow_list_t qos_flow_list;
+
   M5GMessageType message_type;
   uint8_t max_uplink;
   uint8_t max_downlink;
@@ -270,13 +278,29 @@ typedef struct smf_context_s {
   ambr_t apn_ambr;
   smf_proc_data_t smf_proc_data;
   struct nas5g_timer_s T3592;  // PDU_SESSION_RELEASE command timer
+  struct nas5g_timer_s T3591;  // PDU_SESSION_MODIFICATION command timer
   int retransmission_count;
   protocol_configuration_options_t pco;
   uint32_t duplicate_pdu_session_est_req_count;
   std::string dnn;
+
+#define PDU_SESS_MODFICATION_COUNTER_MAX 5
+  bstring session_message;
   s_nssai_t requested_nssai;
 
-  qos_flow_request_list_t subscribed_qos_profile;
+  // get current pti
+  uint8_t get_pti() { return smf_proc_data.pti; }
+
+  // set current pti from sessiond
+  void set_pti(uint8_t procedure_trans_identity) {
+    smf_proc_data.pti = procedure_trans_identity;
+  }
+
+  // get proc flow list
+  qos_flow_list_t* get_proc_flow_list() {
+    return &(smf_proc_data.qos_flow_list);
+  }
+
 } smf_context_t;
 
 typedef struct paging_context_s {
@@ -510,6 +534,7 @@ union mobility_msg_u {
   DeRegistrationAcceptUEInitMsg deregistrationacceptmsg;
   ULNASTransportMsg uplinknas5gtransport;
   DLNASTransportMsg downlinknas5gtransport;
+  PDUSessionModificationCommand pdu_sess_mod_cmd;
   mobility_msg_u() {}
   ~mobility_msg_u() {}
 };
@@ -841,6 +866,8 @@ int pdu_session_resource_setup_request(
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
+void amf_app_handle_resource_modify_response(
+    itti_ngap_pdu_session_resource_modify_response_t session_mod_resp);
 int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
                                          amf_ue_ngap_id_t amf_ue_ngap_id,
                                          std::shared_ptr<smf_context_t> smf_ctx,
@@ -963,6 +990,15 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx);
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 int m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
                                    int* const amf_iaP, int* const amf_eaP);
+int create_session_grpc_req_on_gnb_setup_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version,
+    std::shared_ptr<smf_context_t> smf_ctx);
+int pdu_session_resource_modify_request(
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg);
+int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version,
+    std::shared_ptr<smf_context_t> smf_ctx);
 
 // Get the context release cause
 status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,

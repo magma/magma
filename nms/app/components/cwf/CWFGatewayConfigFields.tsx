@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {AllowedGrePeer, IpdrExportDst} from '../../../generated-ts';
+import type {AllowedGrePeer, IpdrExportDst} from '../../../generated';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Button from '@material-ui/core/Button';

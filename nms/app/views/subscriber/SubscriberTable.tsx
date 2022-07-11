@@ -47,7 +47,7 @@ import type {
   MutableSubscriber,
   PaginatedSubscribers,
   Subscriber,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {OptionsObject} from 'notistack';
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
 import type {WithAlert} from '../../components/Alert/withAlert';
