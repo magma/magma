@@ -371,9 +371,6 @@ export default function AsyncMetric(props: Props) {
       height={props.height}
       options={{
         maintainAspectRatio: false,
-        // TODO[TS-migration is this a valid chart.js option?]
-        // @ts-ignore
-        scaleShowValues: true,
         scales: {
           xAxes: [
             {
