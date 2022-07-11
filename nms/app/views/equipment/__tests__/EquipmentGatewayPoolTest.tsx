@@ -273,6 +273,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                 state: lteGateways,
                 setState: async () => {},
                 updateGateway: async () => {},
+                refetch: () => {},
               }}>
               <GatewayPoolsContext.Provider
                 value={{

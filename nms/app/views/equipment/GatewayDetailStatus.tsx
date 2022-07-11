@@ -10,36 +10,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
-import React from 'react';
+import React, {useContext} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {DynamicServices} from '../../components/GatewayUtils';
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 
 export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
   const gatewayId: string = nullthrows(params.gatewayId);
-  // Auto refresh gateways every 30 seconds
-  const state = useRefreshingContext({
-    context: GatewayContext,
-    networkId: networkId,
-    type: 'gateway',
-    interval: REFRESH_INTERVAL,
-    id: gatewayId,
-    refresh: refresh,
-  });
-  const gwInfo = state[gatewayId];
+  const gatewayContext = useContext(GatewayContext);
+
+  useInterval(
+    () => gatewayContext.refetch(gatewayId),
+    refresh ? REFRESH_INTERVAL : null,
+  );
+
+  const gwInfo = gatewayContext.state[gatewayId];
   let checkInTime;
   if (
     gwInfo.status &&

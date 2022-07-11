@@ -141,6 +141,7 @@ describe('<Gateway />', () => {
               state: lteGateways,
               setState: async () => {},
               updateGateway: async () => {},
+              refetch: () => {},
             }}>
             <Routes>
               <Route path="/nms/:networkId/gateway/" element={<Gateway />} />
