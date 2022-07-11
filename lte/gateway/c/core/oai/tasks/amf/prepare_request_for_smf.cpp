@@ -46,6 +46,7 @@ using grpc::Status;
 using magma::lte::AllocateIPAddressResponse;
 using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
+using magma::lte::QosPolicy;
 using magma::lte::SetSMSessionContext;
 using magma::lte::TeidSet;
 using magma5g::AsyncSmfServiceClient;
@@ -62,9 +63,9 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
-                                             char* imsi, uint32_t version) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+int create_session_grpc_req_on_gnb_setup_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version,
+    std::shared_ptr<smf_context_t> smf_ctx) {
   int rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
 
@@ -85,14 +86,91 @@ int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
   req_common->set_sm_session_version(version);
   req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_request_type(magma::lte::RequestType::INITIAL_REQUEST);
-
   TeidSet* gnode_endpoint = req_rat_specific->mutable_gnode_endpoint();
-
   gnode_endpoint->set_teid(message->gnb_gtp_teid);
-
   char ipv4_str[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
   req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
+
+#if 0 
+  for (int i = 0; i < smf_ctx->qos_flow_list.maxNumOfQosFlows; i++) {
+    QosPolicy* qosPolicy = req_rat_specific->add_qos_policy();
+    qosPolicy->set_version(
+        smf_ctx->qos_flow_list.item[i].qos_flow_req_item.qos_flow_version);
+    qosPolicy->set_policy_state(QosPolicy::INSTALL);
+    magma::lte::PolicyRule* rule = qosPolicy->mutable_qos();
+    rule->set_id(
+        (const char*)smf_ctx->qos_flow_list.item[i].qos_flow_req_item.rule_id);
+  }
+#endif
+
+  OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU session Setup Request to SMF");
+
+  OAILOG_INFO(LOG_AMF_APP, "Sending msg(grpc) to :[sessiond] for ue: [%s]\n",
+              imsi);
+
+  AMFClientServicer::getInstance().set_smf_session(req);
+
+  return rc;
+}
+/***************************************************************************
+**                                                                        **
+** Name:   amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp()                    **
+**                                                                        **
+** Description:                                                           **
+** Creating session grpc req upon receiving resource modify response      **
+** from gNB sends qos flow info to UPF through SMF                        **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version,
+    std::shared_ptr<smf_context_t> smf_ctx) {
+  int rc = RETURNerror;
+  magma::lte::SetSMSessionContext req;
+
+  auto* req_common = req.mutable_common_context();
+  auto* req_rat_specific =
+      req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
+  // IMSI retrieved from amf context
+  req_common->mutable_sid()->mutable_id()->assign(
+      imsi);  // string id
+              // IMSI retrieved from amf context
+  auto imsi_str = std::string(imsi);
+  req_common->mutable_sid()->set_type(
+      magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+  req_common->mutable_sid()->set_id("IMSI" + imsi_str);
+
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
+  // PDU session state to ACTIVE_2
+  req_common->set_sm_session_state(magma::lte::SMSessionFSMState::ACTIVE_2);
+  // Version Added
+  req_common->set_sm_session_version(version);
+  req_rat_specific->set_pdu_session_id((message->pdu_session_id));
+  req_rat_specific->set_request_type(
+      magma::lte::RequestType::EXISTING_PDU_SESSION);
+  TeidSet* gnode_endpoint = req_rat_specific->mutable_gnode_endpoint();
+  gnode_endpoint->set_teid(message->gnb_gtp_teid);
+  char ipv4_str[INET_ADDRSTRLEN] = {0};
+  inet_ntop(AF_INET, message->gnb_gtp_teid_ip_addr, ipv4_str, INET_ADDRSTRLEN);
+  req_rat_specific->mutable_gnode_endpoint()->set_end_ipv4_addr(ipv4_str);
+
+  qos_flow_list_t* pti_flow_list = smf_ctx->get_proc_flow_list();
+
+  for (int i = 0; i < pti_flow_list->maxNumOfQosFlows; i++) {
+    QosPolicy* qosPolicy = req_rat_specific->add_qos_policy();
+    qosPolicy->set_version(
+        pti_flow_list->item[i].qos_flow_req_item.qos_flow_version);
+    if (SMF_CAUSE_FAILURE == message->cause_value) {
+      qosPolicy->set_policy_state(QosPolicy::REJECT);
+    } else {
+      qosPolicy->set_policy_state(QosPolicy::INSTALL);
+    }
+    magma::lte::PolicyRule* rule = qosPolicy->mutable_qos();
+    rule->set_id((const char*)pti_flow_list->item[i].qos_flow_req_item.rule_id);
+  }
+
+  OAILOG_DEBUG(LOG_AMF_APP, "Sending PDU Session Modification Response to SMF");
 
   OAILOG_INFO(
       LOG_AMF_APP,
@@ -225,8 +303,7 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
-  req_rat_specific->set_procedure_trans_identity(
-      (const char*)(&(message->pti)));
+  req_rat_specific->set_procedure_trans_identity(message->pti);
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
 
   OAILOG_INFO(
@@ -238,5 +315,132 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   AMFClientServicer::getInstance().set_smf_session(req);
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
+}
+
+/***************************************************************************
+ * **                                                                        **
+ * ** Name:    amf_app_pdu_session_modification_complete()                   **
+ * **                                                                        **
+ * ** Description: Handle PDU Session Modification Complete Msg              **
+ * **                                                                        **
+ * **                                                                        **
+ * ***************************************************************************/
+int amf_app_pdu_session_modification_complete(amf_smf_establish_t* message,
+                                              char* imsi, uint32_t version) {
+  imsi64_t imsi64 = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p = NULL;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  std::shared_ptr<smf_context_t> smf_ctx;
+  amf_smf_establish_t amf_smf_grpc_ies;
+
+  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
+  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_mm_context,
+                                                  message->pdu_session_id);
+
+  if (ue_mm_context) {
+    amf_ctxt_p = &ue_mm_context->amf_context;
+  }
+
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  if (!smf_ctx) {
+    OAILOG_ERROR(LOG_NAS_AMF,
+                 "session context not found using session id [%u]\n",
+                 message->pdu_session_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  OAILOG_INFO(LOG_AMF_APP, "Received PDU Session Modification Complete [%s] \n",
+              imsi);
+
+  // Incrementing the  pdu session version
+  smf_ctx->pdu_session_version++;
+
+  amf_smf_grpc_ies.pdu_session_id = message->pdu_session_id;
+  amf_smf_grpc_ies.cause_value = SMF_CAUSE_SUCCESS;
+
+  // gnb tunnel info
+  memset(&amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
+         sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
+  memset(&amf_smf_grpc_ies.gnb_gtp_teid, '\0',
+         sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
+  memcpy(&amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
+         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
+  memcpy(&amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
+         4);
+
+  IMSI64_TO_STRING(ue_mm_context->amf_context.imsi64, imsi, 15);
+  // Prepare and send modify setup response message to SMF through gRPC
+  amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
+      &amf_smf_grpc_ies, imsi, smf_ctx->pdu_session_version, smf_ctx);
+
+  return (RETURNok);
+}
+
+/***************************************************************************
+ * **                                                                        **
+ * ** Name:    amf_app_pdu_session_modification_command_reject()             **
+ * **                                                                        **
+ * ** Description: Handle PDU Session Modification Command reject Msg        **
+ * **                                                                        **
+ * **                                                                        **
+ * ***************************************************************************/
+int amf_app_pdu_session_modification_command_reject(
+    amf_smf_establish_t* message, char* imsi, uint32_t version) {
+  imsi64_t imsi64 = INVALID_IMSI64;
+  amf_context_t* amf_ctxt_p = NULL;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  std::shared_ptr<smf_context_t> smf_ctx;
+  amf_smf_establish_t amf_smf_grpc_ies;
+
+  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
+  ue_mm_context = lookup_ue_ctxt_by_imsi(imsi64);
+  smf_ctx = amf_get_smf_context_by_pdu_session_id(ue_mm_context,
+                                                  message->pdu_session_id);
+
+  if (ue_mm_context) {
+    amf_ctxt_p = &ue_mm_context->amf_context;
+  }
+
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(LOG_NAS_AMF, "IMSI is invalid\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  if (!smf_ctx) {
+    OAILOG_ERROR(LOG_NAS_AMF,
+                 "session context not found using session id [%u]\n",
+                 message->pdu_session_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  OAILOG_INFO(LOG_AMF_APP,
+              "Received PDU Session Modification Command Reject [%s] \n", imsi);
+  // Incrementing the  pdu session version
+  smf_ctx->pdu_session_version++;
+
+  amf_smf_grpc_ies.pdu_session_id = message->pdu_session_id;
+  amf_smf_grpc_ies.cause_value = SMF_CAUSE_FAILURE;
+
+  // gnb tunnel info
+  memset(&amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
+         sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
+  memset(&amf_smf_grpc_ies.gnb_gtp_teid, '\0',
+         sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
+  memcpy(&amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
+         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
+  memcpy(&amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
+         4);
+
+  IMSI64_TO_STRING(ue_mm_context->amf_context.imsi64, imsi, 15);
+  // Prepare and send modify setup response message to SMF through gRPC
+  amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
+      &amf_smf_grpc_ies, imsi, smf_ctx->pdu_session_version, smf_ctx);
+
+  return (RETURNok);
 }
 }  // namespace magma5g
