@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
@@ -25,10 +26,9 @@ import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
-import {FetchEnodebs} from '../../state/lte/EquipmentState';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
@@ -36,7 +36,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useInterval} from '../../hooks';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 const CHART_TITLE = 'Total Throughput';
@@ -241,25 +241,15 @@ type EnodebRowType = {
 function EnodebTableRaw(props: WithAlert) {
   const navigate = useNavigate();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const ctx = useContext(EnodebContext);
+  const enodebContext = useContext(EnodebContext);
   const [refresh, setRefresh] = useState(true);
   const [currRow, setCurrRow] = useState<EnodebRowType>({} as EnodebRowType);
-  const params = useParams();
-  const networkId: string = nullthrows(params.networkId);
-  const REFRESH_INTERVAL = 30000;
-  useInterval(
-    () => {
-      void FetchEnodebs({networkId, enqueueSnackbar}).then(enodebs => {
-        if (enodebs) {
-          void ctx.setState('', undefined, {enbInfo: enodebs});
-        }
-      });
-    },
-    refresh ? REFRESH_INTERVAL : null,
-  );
-  const enbRows: Array<EnodebRowType> = ctx.state?.enbInfo
-    ? Object.keys(ctx.state?.enbInfo).map((serialNum: string) => {
-        const enbInf = ctx.state?.enbInfo[serialNum];
+
+  useInterval(() => enodebContext.refetch(), refresh ? REFRESH_INTERVAL : null);
+
+  const enbRows: Array<EnodebRowType> = enodebContext.state?.enbInfo
+    ? Object.keys(enodebContext.state?.enbInfo).map((serialNum: string) => {
+        const enbInf = enodebContext.state?.enbInfo[serialNum];
         const isEnbManaged =
           enbInf.enb?.enodeb_config?.config_type === 'MANAGED';
         return {
@@ -286,7 +276,9 @@ function EnodebTableRaw(props: WithAlert) {
       <CardTitleRow
         key="title"
         icon={SettingsInputAntennaIcon}
-        label={`Enodebs (${Object.keys(ctx.state?.enbInfo || {}).length})`}
+        label={`Enodebs (${
+          Object.keys(enodebContext.state?.enbInfo || {}).length
+        })`}
         filter={() => (
           <Grid
             container
@@ -351,7 +343,7 @@ function EnodebTableRaw(props: WithAlert) {
                   }
 
                   try {
-                    await ctx.setState(currRow.id);
+                    await enodebContext.setState(currRow.id);
                   } catch (e) {
                     enqueueSnackbar('failed deleting enodeb ' + currRow.id, {
                       variant: 'error',

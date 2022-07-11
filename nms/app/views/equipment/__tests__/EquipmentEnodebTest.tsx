@@ -14,18 +14,15 @@ import type {PromqlReturnObject} from '../../../../generated';
 
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../components/context/EnodebContext';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-
-import * as hooks from '../../../components/context/RefreshContext';
-import MagmaAPI from '../../../api/MagmaAPI';
+import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-
-import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {PaginatedEnodebs} from '../../../../generated';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, wait, waitFor} from '@testing-library/react';
@@ -129,11 +126,8 @@ describe('<Enodeb />', () => {
   const enbCtx = {
     state: {enbInfo: enbInfo},
     setState: async () => {},
+    refetch: () => {},
   };
-
-  jest
-    .spyOn(hooks, 'useRefreshingContext')
-    .mockImplementation(() => enbCtx.state);
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
