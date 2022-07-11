@@ -364,10 +364,8 @@ status_code_e mme_api_subscribe(bstring* apn,
                                 mme_api_ip_version_t mme_pdn_index,
                                 bstring* pdn_addr, int is_emergency,
                                 mme_api_qos_t* qos) {
-  int rc = RETURNok;
-
   OAILOG_FUNC_IN(LOG_NAS);
-  OAILOG_FUNC_RETURN(LOG_NAS, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
 }
 
 /****************************************************************************
@@ -388,13 +386,12 @@ status_code_e mme_api_subscribe(bstring* apn,
  ***************************************************************************/
 status_code_e mme_api_unsubscribe(bstring apn) {
   OAILOG_FUNC_IN(LOG_NAS);
-  int rc = RETURNok;
 
   /*
    * Decrement the total number of PDN connections
    */
   mme_api_pdn_id -= 1;
-  OAILOG_FUNC_RETURN(LOG_NAS, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
 }
 
 static tmsi_t generate_random_TMSI() {

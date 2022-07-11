@@ -72,7 +72,7 @@
 status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {0};
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_SUCCESS;
   emm_sap.u.emm_reg.ue_id = ue_id;
@@ -119,7 +119,7 @@ status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ue_id,
                                  STOLEN_REF bstring* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {0};
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_FAILURE;
   emm_sap.u.emm_reg.ue_id = ue_id;
@@ -165,7 +165,7 @@ status_code_e lowerlayer_non_delivery_indication(mme_ue_s1ap_id_t ue_id,
                                                  STOLEN_REF bstring* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {0};
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_NON_DELIVERY;
   emm_sap.u.emm_reg.ue_id = ue_id;
@@ -230,7 +230,7 @@ status_code_e lowerlayer_establish(void) {
 status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {0};
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_RELEASE;
   emm_sap.u.emm_reg.ue_id = 0;
@@ -263,7 +263,7 @@ status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause) {
  ***************************************************************************/
 status_code_e lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data) {
   esm_sap_t esm_sap = {0};
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
@@ -295,7 +295,7 @@ status_code_e lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data) {
  ***************************************************************************/
 status_code_e lowerlayer_data_req(mme_ue_s1ap_id_t ue_id, bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   emm_security_context_t* sctx = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
@@ -325,7 +325,7 @@ status_code_e lowerlayer_activate_bearer_req(
     const bitrate_t mbr_ul, const bitrate_t gbr_dl, const bitrate_t gbr_ul,
     bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   emm_security_context_t* sctx = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
@@ -357,7 +357,7 @@ status_code_e lowerlayer_activate_bearer_req(
 status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
                                                const ebi_t ebi, bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   emm_security_context_t* sctx = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);

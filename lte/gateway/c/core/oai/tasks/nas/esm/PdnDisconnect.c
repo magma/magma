@@ -88,9 +88,8 @@ static int pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_disconnect_request(emm_context_t* emm_context,
-                                              proc_tid_t pti,
-                                              esm_cause_t* esm_cause) {
+int esm_proc_pdn_disconnect_request(emm_context_t* emm_context, proc_tid_t pti,
+                                    esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   pdn_cid_t pid = RETURNerror;
   ue_mm_context_t* ue_context_p =
@@ -167,7 +166,7 @@ status_code_e esm_proc_pdn_disconnect_accept(emm_context_t* emm_context,
   /*
    * Release the connectivity with the requested PDN
    */
-  int rc = mme_api_unsubscribe(NULL);
+  status_code_e rc = mme_api_unsubscribe(NULL);
 
   if (rc != RETURNerror) {
     /*
@@ -214,7 +213,7 @@ status_code_e esm_proc_pdn_disconnect_reject(const bool is_standalone,
                                              ebi_t ebi, STOLEN_REF bstring* msg,
                                              const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
