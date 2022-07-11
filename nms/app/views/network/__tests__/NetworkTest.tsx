@@ -303,6 +303,7 @@ describe('<NetworkDashboard />', () => {
       state: gateways,
       setState: async () => {},
       updateGateway: async () => {},
+      refetch: () => {},
     } as GatewayContextType;
 
     const subscriberCtx = {

@@ -56,6 +56,7 @@ import {
   SubscriberId,
 } from '../../../shared/types/network';
 import {
+  FetchGateways,
   InitEnodeState,
   InitGatewayPoolState,
   InitTierState,
@@ -126,14 +127,13 @@ export function GatewayContextProvider(props: Props) {
     <GatewayContext.Provider
       value={{
         state: lteGateways,
-        setState: (key, value?, newState?) => {
+        setState: (key, value?) => {
           return SetGatewayState({
             lteGateways,
             setLteGateways,
             networkId,
             key,
             value,
-            newState,
           });
         },
         updateGateway: props =>
@@ -142,6 +142,19 @@ export function GatewayContextProvider(props: Props) {
             setLteGateways,
             ...props,
           } as UpdateGatewayProps),
+        refetch: id => {
+          void FetchGateways({
+            id: id,
+            networkId,
+            enqueueSnackbar,
+          }).then(gateways => {
+            if (gateways) {
+              setLteGateways(gatewayState =>
+                id ? {...gatewayState, ...gateways} : gateways,
+              );
+            }
+          });
+        },
       }}>
       {props.children}
     </GatewayContext.Provider>
