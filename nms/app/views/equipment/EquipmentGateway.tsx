@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import type {LteGateway} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
@@ -36,19 +37,17 @@ import React, {useContext, useState} from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
-import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
-import {FetchGateways} from '../../state/lte/EquipmentState';
-import {GatewayId} from '../../../shared/types/network';
-import {useInterval} from '../../hooks';
-
 import {GatewayEditDialog} from './GatewayDetailConfigEdit';
+import {GatewayId} from '../../../shared/types/network';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useInterval} from '../../hooks';
+import {useNavigate} from 'react-router-dom';
 
 const useStyles = makeStyles<Theme>(theme => ({
   avatar: {
@@ -452,30 +451,22 @@ function UpgradeTable() {
 
 function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   const navigate = useNavigate();
-  const params = useParams();
-  const networkId: string = nullthrows(params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
-  const gwCtx = useContext(GatewayContext);
+  const gatewayContext = useContext(GatewayContext);
   const subscriberCtx = useContext(SubscriberContext);
   const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>(
     {} as EquipmentGatewayRowType,
   );
   const lteGatewayRows: Array<EquipmentGatewayRowType> = [];
-  const REFRESH_INTERVAL = 3000;
+
   useInterval(
-    () => {
-      void FetchGateways({networkId, enqueueSnackbar}).then(gateways => {
-        if (gateways) {
-          void gwCtx.setState('', undefined, gateways);
-        }
-      });
-    },
+    () => gatewayContext.refetch(),
     props.refresh ? REFRESH_INTERVAL : null,
   );
 
-  Object.keys(gwCtx.state)
-    .map((gwId: string) => gwCtx.state[gwId])
+  Object.keys(gatewayContext.state)
+    .map((gwId: string) => gatewayContext.state[gwId])
     .filter((g: LteGateway) => g.cellular && g.id)
     .map((gateway: LteGateway) => {
       let numEnodeBs = 0;
@@ -554,7 +545,7 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
                   }
 
                   try {
-                    await gwCtx.setState(currRow.id);
+                    await gatewayContext.setState(currRow.id);
                   } catch (e) {
                     enqueueSnackbar('failed deleting gateway ' + currRow.id, {
                       variant: 'error',

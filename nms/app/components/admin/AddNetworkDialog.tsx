@@ -22,11 +22,12 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
+import React, {useContext} from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
+import AppContext from '../context/AppContext';
 import nullthrows from '../../../shared/util/nullthrows';
 import {
   AllNetworkTypes,
@@ -76,6 +77,7 @@ export default function NetworkDialog(props: Props) {
   const [fegNetworkID, setFegNetworkID] = useState('');
   const [servedNetworkIDs, setServedNetworkIDs] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const appContext = useContext(AppContext);
 
   const onSave = () => {
     const payload = {
@@ -93,6 +95,7 @@ export default function NetworkDialog(props: Props) {
       .then(response => {
         if (response.data.success) {
           props.onSave(nullthrows(networkID));
+          appContext.addNetworkId(networkID);
           if (payload.data.networkType === XWFM) {
             void triggerAlertSync(networkID, enqueueSnackbar);
           }

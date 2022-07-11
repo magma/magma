@@ -13,6 +13,7 @@ limitations under the License.
 #include <cstdint>
 #define SST_LENGTH 1
 #define SD_LENGTH 3
+#define NSSAI_MSG_IE_MIN_LEN 2
 namespace magma5g {
 class NSSAIMsg {
  public:

@@ -10,13 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import EnodebContext, {EnodebContextType} from './EnodebContext';
 import FEGSubscriberContext, {
   FEGSubscriberContextType,
 } from './FEGSubscriberContext';
-import GatewayContext, {GatewayContextType} from './GatewayContext';
 import SubscriberContext, {SubscriberContextType} from './SubscriberContext';
-import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
+import {FetchEnodebs} from '../../state/lte/EquipmentState';
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
@@ -26,14 +26,12 @@ export const REFRESH_INTERVAL = 30000;
 
 export const RefreshTypeEnum = {
   SUBSCRIBER: 'subscriber',
-  GATEWAY: 'gateway',
   FEG_SUBSCRIBER: 'feg_subscriber',
   ENODEB: 'enodeb',
 } as const;
 
 type ContextMap = {
   [RefreshTypeEnum.SUBSCRIBER]: typeof SubscriberContext;
-  [RefreshTypeEnum.GATEWAY]: typeof GatewayContext;
   [RefreshTypeEnum.FEG_SUBSCRIBER]: typeof FEGSubscriberContext;
   [RefreshTypeEnum.ENODEB]: typeof EnodebContext;
 };
@@ -42,7 +40,6 @@ type StateMap = {
   [RefreshTypeEnum.SUBSCRIBER]: {
     sessionState: SubscriberContextType['sessionState'];
   };
-  [RefreshTypeEnum.GATEWAY]: GatewayContextType['state'];
   [RefreshTypeEnum.FEG_SUBSCRIBER]: {
     sessionState: FEGSubscriberContextType['sessionState'];
   };
@@ -198,14 +195,6 @@ async function fetchRefreshState(props: FetchProps) {
       };
     }
     return {sessionState: sessions};
-  } else if (type === 'gateway') {
-    const gateways = await FetchGateways({
-      id: id,
-      networkId,
-      enqueueSnackbar,
-    });
-
-    return gateways;
   } else if (type === RefreshTypeEnum.FEG_SUBSCRIBER) {
     const sessions = await FetchFegSubscriberState({
       networkId,

@@ -11,22 +11,22 @@
  * limitations under the License.
  */
 
-import MagmaAPI from '../../api/MagmaAPI';
 import NetworkContext from '../context/NetworkContext';
 import NetworkSelector from '../NetworkSelector';
 import React from 'react';
 import {AppContextProvider} from '../context/AppContext';
-import {LTE} from '../../../shared/types/network';
+import {FEG, LTE, NetworkId, NetworkType} from '../../../shared/types/network';
 import {MemoryRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {fireEvent, render, waitFor} from '@testing-library/react';
-import {mockAPI} from '../../util/TestUtils';
 import type {EmbeddedData} from '../../../shared/types/embeddedData';
 
 const Wrapper = (props: {
-  currentNetworkId?: string;
+  currentNetworkId?: NetworkId;
+  currentNetworkType?: NetworkType;
   children: React.ReactNode;
   isSuperUser: boolean;
+  networkIDs: Array<NetworkId>;
 }) => {
   window.CONFIG = {
     appData: {
@@ -39,10 +39,11 @@ const Wrapper = (props: {
   return (
     <MemoryRouter initialEntries={['/nms']} initialIndex={0}>
       <SnackbarProvider>
-        <AppContextProvider>
+        <AppContextProvider networkIDs={props.networkIDs}>
           <NetworkContext.Provider
             value={{
               networkId: props.currentNetworkId,
+              networkType: props.currentNetworkType,
             }}>
             {props.children}
           </NetworkContext.Provider>
@@ -54,9 +55,8 @@ const Wrapper = (props: {
 
 describe('NetworkSelector', () => {
   it('renders nothing without network for regular user', () => {
-    mockAPI(MagmaAPI.networks, 'networksGet', []);
     const {container} = render(
-      <Wrapper isSuperUser={false}>
+      <Wrapper isSuperUser={false} networkIDs={[]}>
         <NetworkSelector />
       </Wrapper>,
     );
@@ -64,11 +64,12 @@ describe('NetworkSelector', () => {
   });
 
   it('renders text with single network for regular user', () => {
-    mockAPI(MagmaAPI.networks, 'networksGet', ['test']);
-    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', LTE);
-
     const {queryByRole, getByText} = render(
-      <Wrapper isSuperUser={false} currentNetworkId="test">
+      <Wrapper
+        isSuperUser={false}
+        currentNetworkId="test"
+        currentNetworkType={LTE}
+        networkIDs={['test']}>
         <NetworkSelector />
       </Wrapper>,
     );
@@ -77,11 +78,12 @@ describe('NetworkSelector', () => {
   });
 
   it('renders menu with network links for regular user', async () => {
-    mockAPI(MagmaAPI.networks, 'networksGet', ['test', 'other']);
-    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', LTE);
-
     const {getByRole, queryAllByRole} = render(
-      <Wrapper isSuperUser={false} currentNetworkId="test">
+      <Wrapper
+        isSuperUser={false}
+        currentNetworkId="test"
+        currentNetworkType={LTE}
+        networkIDs={['test', 'other']}>
         <NetworkSelector />
       </Wrapper>,
     );
@@ -100,11 +102,12 @@ describe('NetworkSelector', () => {
   });
 
   it('renders menu with network links and extra entries for super user', async () => {
-    mockAPI(MagmaAPI.networks, 'networksGet', ['test', 'other']);
-    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', LTE);
-
     const {getByRole, queryAllByRole} = render(
-      <Wrapper isSuperUser={true} currentNetworkId="test">
+      <Wrapper
+        isSuperUser={true}
+        currentNetworkId="test"
+        currentNetworkType={LTE}
+        networkIDs={['test', 'other']}>
         <NetworkSelector />
       </Wrapper>,
     );
@@ -116,6 +119,30 @@ describe('NetworkSelector', () => {
     await waitFor(() =>
       expect(queryAllByRole('menuitem').map(link => link.textContent)).toEqual([
         'Create Network',
+        'Manage Networks',
+        'test',
+        'other',
+      ]),
+    );
+  });
+
+  it('does not render create button for non-LTE network', async () => {
+    const {getByRole, queryAllByRole} = render(
+      <Wrapper
+        isSuperUser={true}
+        currentNetworkId="test"
+        currentNetworkType={FEG}
+        networkIDs={['test', 'other']}>
+        <NetworkSelector />
+      </Wrapper>,
+    );
+    await waitFor(() =>
+      expect(getByRole('button')).toHaveTextContent('Network: test'),
+    );
+    fireEvent.click(getByRole('button'));
+
+    await waitFor(() =>
+      expect(queryAllByRole('menuitem').map(link => link.textContent)).toEqual([
         'Manage Networks',
         'test',
         'other',

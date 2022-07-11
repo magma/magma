@@ -133,6 +133,7 @@ describe('<GatewaysKPIs />', () => {
       },
       setState: async () => {},
       updateGateway: async () => {},
+      refetch: () => {},
     };
 
     return (

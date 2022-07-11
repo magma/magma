@@ -337,15 +337,11 @@ type GatewayStateProps = {
   setLteGateways: (lteGateways: Record<string, LteGateway>) => void;
   key: GatewayId;
   value?: MutableLteGateway;
-  newState?: Record<string, LteGateway>;
 };
 
 export async function SetGatewayState(props: GatewayStateProps) {
-  const {networkId, lteGateways, setLteGateways, key, value, newState} = props;
-  if (newState) {
-    setLteGateways(newState);
-    return;
-  }
+  const {networkId, lteGateways, setLteGateways, key, value} = props;
+
   if (value != null) {
     if (!(key in lteGateways)) {
       await MagmaAPI.lteGateways.lteNetworkIdGatewaysPost({
