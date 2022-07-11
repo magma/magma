@@ -97,7 +97,7 @@ status_code_e emm_recv_status(mme_ue_s1ap_id_t ue_id, emm_status_msg* msg,
                               int* emm_cause,
                               const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received EMM Status message (cause=%d) for ue "
@@ -134,7 +134,7 @@ status_code_e emm_recv_status(mme_ue_s1ap_id_t ue_id, emm_status_msg* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e check_plmn_restriction(imsi_t imsi) {
+int check_plmn_restriction(imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   for (uint8_t itr = 0; itr < mme_config.restricted_plmn.num; itr++) {
     if ((imsi.u.num.digit1 ==
@@ -184,7 +184,7 @@ status_code_e emm_recv_attach_request(
     const bool is_initial, const bool is_mm_ctx_new, int* const emm_cause,
     const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Attach Request message for ue "
@@ -494,7 +494,7 @@ status_code_e emm_recv_attach_complete(
     mme_ue_s1ap_id_t ue_id, const attach_complete_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Attach Complete message for ue_id "
@@ -528,7 +528,7 @@ status_code_e emm_recv_detach_request(
     const bool is_initial, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Detach Request message for ue "
@@ -596,7 +596,7 @@ status_code_e emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, tracking_area_update_request_msg* const msg,
     const bool is_initial, const tai_t tai, int* const emm_cause,
     const nas_message_decode_status_t* decode_status) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
@@ -740,7 +740,7 @@ status_code_e emm_recv_service_request(
     const bool is_initial, int* emm_cause,
     const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
   csfb_service_type_t service_type;
   *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
@@ -832,7 +832,7 @@ status_code_e emm_recv_service_request(
 status_code_e emm_recv_ext_service_request(
     mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
     int* emm_cause, const nas_message_decode_status_t* decode_status) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
@@ -880,7 +880,7 @@ status_code_e emm_recv_identity_response(
     mme_ue_s1ap_id_t ue_id, identity_response_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Identity Response message for ue "
@@ -1002,7 +1002,7 @@ status_code_e emm_recv_authentication_response(
     mme_ue_s1ap_id_t ue_id, authentication_response_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Authentication Response message for ue "
@@ -1058,7 +1058,7 @@ status_code_e emm_recv_authentication_failure(
     mme_ue_s1ap_id_t ue_id, authentication_failure_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Received Authentication Failure message for ue "
@@ -1125,7 +1125,7 @@ status_code_e emm_recv_security_mode_complete(
               "EMMAS-SAP - Received Security Mode Complete message for ue "
               "id " MME_UE_S1AP_ID_FMT "\n",
               ue_id);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   // imeisv_t                                imeisv = {0};
 
   /*
@@ -1182,7 +1182,7 @@ status_code_e emm_recv_security_mode_reject(
     mme_ue_s1ap_id_t ue_id, security_mode_reject_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_WARNING(LOG_NAS_EMM,
                  "EMMAS-SAP - Received Security Mode Reject message "
@@ -1238,7 +1238,7 @@ status_code_e emm_recv_security_mode_reject(
  ***************************************************************************/
 status_code_e emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Detach Accept  message\n");
   rc = emm_proc_detach_accept(ue_id);
@@ -1294,7 +1294,7 @@ static int emm_initiate_default_bearer_re_establishment(
 status_code_e emm_recv_tau_complete(
     mme_ue_s1ap_id_t ue_id, const tracking_area_update_complete_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received TAU Complete message\n");
   /*
@@ -1321,7 +1321,7 @@ status_code_e emm_recv_tau_complete(
 status_code_e emm_recv_uplink_nas_transport(
     mme_ue_s1ap_id_t ue_id, uplink_nas_transport_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(

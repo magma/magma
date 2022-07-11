@@ -1,10 +1,10 @@
-FROM fluent/fluentd:v1.7.1-debian-1.0
+FROM fluent/fluentd:v1.14.6-debian-1.0
 
 USER root
 WORKDIR /home/fluent
-ENV PATH /fluentd/vendor/bundle/ruby/2.6.0/bin:$PATH
-ENV GEM_PATH /fluentd/vendor/bundle/ruby/2.6.0
-ENV GEM_HOME /fluentd/vendor/bundle/ruby/2.6.0
+ENV PATH /fluentd/vendor/bundle/ruby/2.7.0/bin:$PATH
+ENV GEM_PATH /fluentd/vendor/bundle/ruby/2.7.0
+ENV GEM_HOME /fluentd/vendor/bundle/ruby/2.7.0
 # skip runtime bundler installation
 ENV FLUENTD_DISABLE_BUNDLER_INJECTION 1
 

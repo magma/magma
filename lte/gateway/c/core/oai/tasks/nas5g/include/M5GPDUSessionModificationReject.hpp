@@ -16,6 +16,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
 
 namespace magma5g {
 // PDUSessionModificationReject Message Class
@@ -27,6 +28,7 @@ class PDUSessionModificationRejectMsg {
   PTIMsg pti;
   MessageTypeMsg message_type;
   M5GSMCauseMsg m5gsm_cause;
+  ProtocolConfigurationOptions extProtocolconfigurationoptions;
 
   PDUSessionModificationRejectMsg();
   ~PDUSessionModificationRejectMsg();

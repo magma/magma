@@ -11,4 +11,6 @@
  * limitations under the License.
  */
 
+require('../../babelRegister');
+
 module.exports = require('./shared/sequelize-models/sequelizerc');

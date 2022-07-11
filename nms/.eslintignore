@@ -1,10 +1,5 @@
 !.eslintrc.js
-**/*.min.js
 
 **/node_modules/**
-
-dist/**/*.js
-flow-typed/npm/**/*.js
-config/webpack.*.js
-generated/*.js
+generated/*.ts
 **/__generated__/**

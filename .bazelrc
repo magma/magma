@@ -9,7 +9,6 @@ build:production --config=lsan --strip=never --copt=-O3
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
-build --experimental_strict_action_env
 build --compilation_mode=dbg
 
 # DEFAULT TEST CONFIGURATION
@@ -33,13 +32,19 @@ common:disk_cache --repository_cache=/var/cache/bazel-cache-repo
 # REMOTE CACHING READ AND WRITE CONFIGS
 # The file bazel/bazelrcs/remote_caching_rw.bazelrc is templated in CI
 # The full config is then written to bazel/bazelrcs/cache.bazelrc
-build:remote_caching_rw --remote_download_toplevel
+build:remote_caching_rw --remote_download_minimal
+# --remote_download_toplevel instead of --remote_download_minimal is
+# needed for 'bazel run' due to https://github.com/bazelbuild/bazel/issues/11920
+run:remote_caching_rw --remote_download_toplevel
 
 # REMOTE CACHING READ-ONLY CONFIGS
 # The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
 # The full config is then written to bazel/bazelrcs/cache.bazelrc
-build:remote_caching_ro --remote_download_toplevel
 build:remote_caching_ro --remote_upload_local_results=false 
+build:remote_caching_ro --remote_download_minimal
+# --remote_download_toplevel instead of --remote_download_minimal is
+# needed for 'bazel run' due to https://github.com/bazelbuild/bazel/issues/11920
+run:remote_caching_ro --remote_download_toplevel
 
 # Import the bazel caching config, with default disk cache,
 # which in CI gets overwritten by the remote caching config. 

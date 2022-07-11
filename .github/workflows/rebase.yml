@@ -1,8 +1,8 @@
 ---
 name: Automatic Rebase
-on:  # yamllint disable-line rule:truthy
+on:
   issue_comment:
-    types: [created]
+    types: [ created ]
 jobs:
   # This job is based on https://github.com/marketplace/actions/automatic-rebase
   rebase:
@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the latest code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          fetch-depth: 0  # otherwise, you will fail to push refs to dest repo
+          fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
       - name: Automatic Rebase
-        uses: cirrus-actions/rebase@1.4
+        uses: cirrus-actions/rebase@7cea12ac34ab078fa37e87798d8986185afa7bf2 # pin@1.4
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}

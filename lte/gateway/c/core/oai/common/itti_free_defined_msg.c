@@ -30,6 +30,7 @@
 #include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
@@ -296,6 +297,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(&session_transfer->up_transport_layer_info.gtp_tnl
                             .endpoint_ip_address);
       bdestroy_wrapper(&pdusession_resource_setup_req->nas_pdu);
+      break;
+    }
+    case NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ: {
+      itti_ngap_pdu_session_resource_modify_request_t*
+          pdusession_resource_modify_req =
+              &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(message_p);
+      bdestroy_wrapper(
+          &pdusession_resource_modify_req->pduSessResourceModReqList.item[0]
+               .nas_pdu);
       break;
     }
 
