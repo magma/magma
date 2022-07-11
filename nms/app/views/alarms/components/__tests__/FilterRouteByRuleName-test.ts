@@ -112,7 +112,9 @@ describe('Testint filterUpdatedFilterRoutes', () => {
       route =>
         route.match?.alertname === ruleName && route.receiver == receiver,
     );
-    const routes: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+    const routes:
+      | Array<AlertRoutingTree>
+      | undefined = filterUpdatedFilterRoutes(
       response,
       initialReceiver,
       ruleName,
@@ -136,7 +138,9 @@ describe('Testint filterUpdatedFilterRoutes', () => {
     const initialReceiver = undefined;
     const receiver = 'User2';
 
-    const routes: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+    const routes:
+      | Array<AlertRoutingTree>
+      | undefined = filterUpdatedFilterRoutes(
       response,
       initialReceiver,
       ruleName,
@@ -146,7 +150,9 @@ describe('Testint filterUpdatedFilterRoutes', () => {
       expect(response.routes).toBe(routes);
     }
 
-    const routes2: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
+    const routes2:
+      | Array<AlertRoutingTree>
+      | undefined = filterUpdatedFilterRoutes(
       response,
       null,
       ruleName,
@@ -156,12 +162,9 @@ describe('Testint filterUpdatedFilterRoutes', () => {
       expect(response.routes).toBe(routes2);
     }
 
-    const routes3: AlertRoutingTree[] | undefined = filterUpdatedFilterRoutes(
-      response,
-      '',
-      ruleName,
-      receiver,
-    );
+    const routes3:
+      | Array<AlertRoutingTree>
+      | undefined = filterUpdatedFilterRoutes(response, '', ruleName, receiver);
     if (routes3) {
       expect(response.routes).toBe(routes3);
     }
@@ -174,7 +177,7 @@ describe('Testint filterUpdatedFilterRoutes', () => {
     const receiverEmpty = '';
 
     const routesUndefined:
-      | AlertRoutingTree[]
+      | Array<AlertRoutingTree>
       | undefined = filterUpdatedFilterRoutes(
       response,
       initialReceiver,
@@ -182,7 +185,7 @@ describe('Testint filterUpdatedFilterRoutes', () => {
       receiverUndefined,
     );
     const routesNull:
-      | AlertRoutingTree[]
+      | Array<AlertRoutingTree>
       | undefined = filterUpdatedFilterRoutes(
       response,
       initialReceiver,
@@ -190,7 +193,7 @@ describe('Testint filterUpdatedFilterRoutes', () => {
       receiverNull,
     );
     const routesEmpty:
-      | AlertRoutingTree[]
+      | Array<AlertRoutingTree>
       | undefined = filterUpdatedFilterRoutes(
       response,
       initialReceiver,
@@ -210,7 +213,7 @@ describe('Testint filterUpdatedFilterRoutes', () => {
     const receiver = 'User2';
     const error = () => {
       const routesUndefined:
-        | AlertRoutingTree[]
+        | Array<AlertRoutingTree>
         | undefined = filterUpdatedFilterRoutes(
         _response,
         initialReceiver,
