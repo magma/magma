@@ -22,6 +22,7 @@ from dp.protos.active_mode_pb2 import (
     EirpCapabilities,
     FrequencyPreferences,
     Grant,
+    GrantSettings,
     GrantState,
     InstallationParams,
     SasSettings,
@@ -43,6 +44,7 @@ class ActiveModeCbsdBuilder:
         self.preferences = FrequencyPreferences()
         self.installation = InstallationParams()
         self.db_data = DatabaseCbsd()
+        self.grant_settings = GrantSettings()
 
     def build(self) -> Cbsd:
         return Cbsd(
@@ -58,6 +60,7 @@ class ActiveModeCbsdBuilder:
             db_data=self.db_data,
             preferences=self.preferences,
             installation_params=self.installation,
+            grant_settings=self.grant_settings,
         )
 
     def with_single_step_enabled(self) -> ActiveModeCbsdBuilder:
@@ -88,6 +91,10 @@ class ActiveModeCbsdBuilder:
         self.state = state
         return self
 
+    def with_grant_settings(self, grant_settings: GrantSettings):
+        self.grant_settings = grant_settings
+        return self
+
     def with_registration(self, prefix: str) -> ActiveModeCbsdBuilder:
         self.cbsd_id = f'{prefix}_cbsd_id'
         self.sas_settings.fcc_id = f'{prefix}_fcc_id'
@@ -115,12 +122,16 @@ class ActiveModeCbsdBuilder:
         self,
         grant_id: str, state: GrantState,
         hb_interval_sec: int, last_hb_ts: int,
+        low_frequency_hz: int = 3500,
+        high_frequency_hz: int = 3700,
     ) -> ActiveModeCbsdBuilder:
         grant = Grant(
             id=grant_id,
             state=state,
             heartbeat_interval_sec=hb_interval_sec,
             last_heartbeat_timestamp=last_hb_ts,
+            low_frequency_hz=low_frequency_hz,
+            high_frequency_hz=high_frequency_hz,
         )
         self.grants.append(grant)
         return self
