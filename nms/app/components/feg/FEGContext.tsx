@@ -81,6 +81,13 @@ export function FEGSubscriberContextProvider(props: Props) {
   return (
     <FEGSubscriberContext.Provider
       value={{
+        refetch: () => {
+          void FetchFegSubscriberState({networkId}).then(fegSubscriberState => {
+            setSessionState(fegSubscriberState);
+            if (fegSubscriberState) {
+            }
+          });
+        },
         sessionState: sessionState,
         setSessionState: newSessionState => {
           return setSessionState(newSessionState);
