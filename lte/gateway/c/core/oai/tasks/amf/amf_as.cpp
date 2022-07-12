@@ -387,7 +387,8 @@ static int amf_as_encode(bstring* info, amf_nas_message_t* msg, size_t length,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
+int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
+                      amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
@@ -476,9 +477,9 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[0] = 0x00;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .tac[1] = 0x00;
+      .tac[1] = (tai->tac) >> 8;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .tac[2] = 0x01;
+      .tac[2] = tai->tac;
 
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
       .iei = ALLOWED_NSSAI;
@@ -687,7 +688,7 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
   if (amf_msg) {
     switch (msg->nas_info) {
       case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
-        size = amf_reg_acceptmsg(msg->guti, &nas_msg);
+        size = amf_reg_acceptmsg(msg->guti, &(msg->tai), &nas_msg);
 
         if (msg->guti) {
           delete (msg->guti);
@@ -1347,7 +1348,7 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
   amf_as_set_header(&nas_msg, &msg->sctx);
   switch (msg->nas_info) {
     case AMF_AS_NAS_INFO_REGISTERED:
-      size = amf_reg_acceptmsg(&(msg->guti), &nas_msg);
+      size = amf_reg_acceptmsg(&(msg->guti), &(msg->tai), &nas_msg);
       nas_msg.header.security_header_type =
           SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
       /* TODO amf_as_set_header() is incorrectly setting the security header
