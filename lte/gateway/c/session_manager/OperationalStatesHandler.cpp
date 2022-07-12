@@ -47,7 +47,6 @@ OpState get_operational_states(magma::lte::SessionStore* session_store) {
     std::map<std::string, std::string> state;
     state[TYPE] = SUBSCRIBER_STATE_TYPE;
     state[DEVICE_ID] = it.first;
-    subscribers[state[DEVICE_ID]] = nlohmann::json::array();
     nlohmann::json sessions_by_apn = nlohmann::json::object();
 
     for (auto& session : it.second) {
@@ -59,7 +58,7 @@ OpState get_operational_states(magma::lte::SessionStore* session_store) {
     }
     state[VALUE] = sessions_by_apn.dump();
     states.push_back(state);
-    subscribers[state[DEVICE_ID]].push_back(sessions_by_apn);
+    subscribers[state[DEVICE_ID]] = sessions_by_apn;
   }
   std::map<std::string, std::string> gateway_subscriber_state;
   gateway_subscriber_state[TYPE] = GATEWAY_SUBSCRIBER_STATE_TYPE;
