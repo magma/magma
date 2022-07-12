@@ -411,8 +411,7 @@ bool is_enb_state_valid(s1ap_state_t* state, sctp_assoc_id_t assoc_id,
                         mme_s1_enb_state_s expected_state,
                         uint32_t expected_num_ues) {
   enb_description_t* enb_associated = nullptr;
-  hashtable_ts_get(&state->enbs, (const hash_key_t)assoc_id,
-                   reinterpret_cast<void**>(&enb_associated));
+  state->enbs.get(assoc_id, &enb_associated);
   if (enb_associated->nb_ue_associated == expected_num_ues &&
       enb_associated->s1_state == expected_state) {
     return true;
@@ -421,7 +420,7 @@ bool is_enb_state_valid(s1ap_state_t* state, sctp_assoc_id_t assoc_id,
 }
 
 bool is_num_enbs_valid(s1ap_state_t* state, uint32_t expected_num_enbs) {
-  hash_size_t num_enb_elements = state->enbs.num_elements;
+  hash_size_t num_enb_elements = state->enbs.size();
   if ((num_enb_elements == expected_num_enbs) &&
       (state->num_enbs == expected_num_enbs)) {
     return true;

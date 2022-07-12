@@ -19,17 +19,17 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include <memory.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 }
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 using magma::lte::S1apStateManager;
@@ -53,7 +53,7 @@ enb_description_t* s1ap_state_get_enb(s1ap_state_t* state,
                                       sctp_assoc_id_t assoc_id) {
   enb_description_t* enb = nullptr;
 
-  hashtable_ts_get(&state->enbs, (const hash_key_t)assoc_id, (void**)&enb);
+  state->enbs.get(assoc_id, &enb);
 
   return enb;
 }
@@ -154,63 +154,46 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
   S1apStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
-bool get_mme_ue_ids_no_imsi(uint32_t keyP, uint64_t const dataP, void* argP,
-                            void** resultP) {
-  hash_key_t** mme_id_list = (hash_key_t**)resultP;
-  uint32_t* num_ues_checked = (uint32_t*)argP;
-  ue_description_t* ue_ref_p = NULL;
-
-  // Check if a UE reference exists for this comp_s1ap_id
-  hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
-  hashtable_ts_get(s1ap_ue_state, (const hash_key_t)dataP, (void**)&ue_ref_p);
-  if (!ue_ref_p) {
-    (*mme_id_list)[*num_ues_checked] = keyP;
-    ++(*num_ues_checked);
-    OAILOG_DEBUG(
-        LOG_S1AP,
-        "Adding mme_ue_s1ap_id %u to eNB clean up list with num_ues_checked "
-        "%u",
-        keyP, *num_ues_checked);
-  }
-  return false;  // always return false to make sure it runs on all elements
-}
-
 void remove_ues_without_imsi_from_ue_id_coll() {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
-  hashtable_key_array_t* ht_keys = hashtable_ts_get_keys(&s1ap_state_p->enbs);
-  if (ht_keys == nullptr) {
+  hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
+  std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
+  if (!s1ap_state_p || (s1ap_state_p->enbs.isEmpty())) {
     return;
   }
-
-  hashtable_rc_t ht_rc;
-  uint32_t* mme_ue_id_no_imsi_list;
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  uint32_t num_ues_checked;
+  ue_description_t* ue_ref_p = NULL;
 
   // get each eNB in s1ap_state
-  for (int i = 0; i < ht_keys->num_keys; i++) {
-    enb_description_t* enb_association_p = nullptr;
-    ht_rc = hashtable_ts_get(&s1ap_state_p->enbs, (hash_key_t)ht_keys->keys[i],
-                             (void**)&enb_association_p);
-    if (ht_rc != HASH_TABLE_OK) {
+  for (auto itr = s1ap_state_p->enbs.map->begin();
+       itr != s1ap_state_p->enbs.map->end(); itr++) {
+    struct enb_description_s* enb_association_p = itr->second;
+    if (!enb_association_p) {
       continue;
     }
 
-    if (enb_association_p->ue_id_coll.size() == 0) {
+    if (enb_association_p->ue_id_coll.isEmpty()) {
       continue;
     }
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
     // ue_context, if not delete it
-    num_ues_checked = 0;
-    mme_ue_id_no_imsi_list = (uint32_t*)calloc(
-        enb_association_p->ue_id_coll.size(), sizeof(uint32_t));
-    enb_association_p->ue_id_coll.map_apply_callback_on_all_elements(
-        get_mme_ue_ids_no_imsi, &num_ues_checked,
-        (void**)&mme_ue_id_no_imsi_list);
-
+    for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
+         ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
+      // Check if a UE reference exists for this comp_s1ap_id
+      hashtable_ts_get(s1ap_ue_state, (const hash_key_t)ue_itr->second,
+                       reinterpret_cast<void**>(&ue_ref_p));
+      if (!ue_ref_p) {
+        mme_ue_id_no_imsi_list.push_back(ue_itr->first);
+        OAILOG_DEBUG(LOG_S1AP,
+                     "Adding mme_ue_s1ap_id %u to eNB clean up list with "
+                     "num_ues_checked "
+                     "%u",
+                     ue_itr->first, mme_ue_id_no_imsi_list.size());
+      }
+    }
     // remove all the mme_ue_s1ap_ids
-    for (uint32_t i = 0; i < num_ues_checked; i++) {
+    for (uint32_t i = 0; i < mme_ue_id_no_imsi_list.size(); i++) {
       enb_association_p->ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
       hashtable_uint64_ts_remove(s1ap_imsi_map->mme_ue_id_imsi_htbl,
                                  mme_ue_id_no_imsi_list[i]);
@@ -221,10 +204,5 @@ void remove_ues_without_imsi_from_ue_id_coll() {
                    enb_association_p->nb_ue_associated,
                    enb_association_p->ue_id_coll.size());
     }
-
-    // free the list
-    free(mme_ue_id_no_imsi_list);
   }
-
-  FREE_HASHTABLE_KEY_ARRAY(ht_keys);
 }

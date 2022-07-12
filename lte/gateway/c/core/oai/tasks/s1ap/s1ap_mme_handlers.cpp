@@ -34,7 +34,6 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -43,6 +42,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_CNDomain.h"
@@ -381,8 +381,8 @@ status_code_e s1ap_mme_generate_s1_setup_failure(const sctp_assoc_id_t assoc_id,
 
 //------------------------------------------------------------------------------
 bool get_stale_enb_connection_with_enb_id(__attribute__((unused))
-                                          const hash_key_t keyP,
-                                          void* const elementP,
+                                          const uint32_t keyP,
+                                          enb_description_t* const elementP,
                                           void* parameterP, void** resultP) {
   enb_description_t* new_enb_association = (enb_description_t*)parameterP;
   enb_description_t* ht_enb_association = (enb_description_t*)elementP;
@@ -405,8 +405,9 @@ void clean_stale_enb_state(s1ap_state_t* state,
                            enb_description_t* new_enb_association) {
   enb_description_t* stale_enb_association = NULL;
 
-  hashtable_ts_apply_callback_on_elements(
-      &state->enbs, get_stale_enb_connection_with_enb_id, new_enb_association,
+  state->enbs.map_apply_callback_on_all_elements(
+      get_stale_enb_connection_with_enb_id,
+      reinterpret_cast<void*>(new_enb_association),
       (void**)&stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -2076,7 +2077,6 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   S1ap_HandoverRequestAcknowledgeIEs_t* ie = NULL;
   enb_description_t* source_enb = NULL;
   enb_description_t* target_enb = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t idx = 0;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -2172,15 +2172,17 @@ status_code_e s1ap_mme_handle_handover_request_ack(
                  mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      source_enb = (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      source_enb = itr->second;
+      if (!source_enb) {
+        continue;
+      }
       if (source_enb->sctp_assoc_id == ue_ref_p->sctp_assoc_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (source_enb->sctp_assoc_id != ue_ref_p->sctp_assoc_id) {
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "No source eNB found for UE\n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -2772,7 +2774,6 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
   bstring src_tgt_container = {0};
   uint8_t* enb_id_buf = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint32_t idx = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -2932,16 +2933,17 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
                           (const hash_key_t)mme_ue_s1ap_id, &imsi64);
 
   // retrieve enb_description using hash table and match target_enb_id
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      target_enb_association =
-          (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      target_enb_association = itr->second;
+      if (!target_enb_association) {
+        continue;
+      }
       if (target_enb_association->enb_id == target_enb_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (target_enb_association->enb_id != target_enb_id) {
       bdestroy_wrapper(&src_tgt_container);
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
@@ -3235,7 +3237,6 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
   S1ap_ENBStatusTransferIEs_t* ie = NULL;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* target_enb_association = NULL;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -3285,17 +3286,18 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
 
   // get the enb_description matching the target_enb_id
   // retrieve enb_description using hash table and match target_enb_id
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      target_enb_association =
-          (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      target_enb_association = itr->second;
+      if (!target_enb_association) {
+        continue;
+      }
       if (target_enb_association->enb_id ==
           ue_ref_p->s1ap_handover_state.target_enb_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (target_enb_association->enb_id !=
         ue_ref_p->s1ap_handover_state.target_enb_id) {
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n",
@@ -3771,10 +3773,9 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
     enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
-    hashtable_rc_t hash_rc = hashtable_ts_insert(
-        &state->enbs, (const hash_key_t)enb_association->sctp_assoc_id,
-        (void*)enb_association);
-    if (HASH_TABLE_OK != hash_rc) {
+    magma::proto_map_rc_t rc =
+        state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
+    if (rc != magma::PROTO_MAP_OK) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   } else if ((enb_association->s1_state == S1AP_SHUTDOWN) ||
@@ -4551,20 +4552,22 @@ status_code_e s1ap_handle_paging_request(
   }
 
   /*Fetching eNB list to send paging request message*/
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* enb_ref_p = NULL;
   if (state == NULL) {
     OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  enb_array = hashtable_ts_get_elements(&state->enbs);
-  if (enb_array == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "Could not find eNB hashlist!\n");
+  if (!(state->enbs.size())) {
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB map!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
-  for (idx = 0; idx < enb_array->num_elements; idx++) {
-    enb_ref_p = (enb_description_t*)enb_array->elements[idx];
+  for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+       itr++) {
+    enb_ref_p = reinterpret_cast<enb_description_t*>(itr->second);
+    if (!enb_ref_p) {
+      continue;
+    }
     if (enb_ref_p->s1_state == S1AP_READY) {
       supported_ta_list_t* enb_ta_list = &enb_ref_p->supported_ta_list;
 
@@ -4579,8 +4582,6 @@ status_code_e s1ap_handle_paging_request(
       }
     }
   }
-  free_wrapper((void**)&enb_array->elements);
-  free_wrapper((void**)&enb_array);
   free(buffer_p);
   if (rc != RETURNok) {
     OAILOG_ERROR(LOG_S1AP,
@@ -4863,7 +4864,6 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint8_t* enb_id_buf = NULL;
   enb_description_t* enb_association = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -4918,16 +4918,17 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   }
 
   // retrieve enb_description using hash table and match target_enb_id
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      target_enb_association =
-          (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      target_enb_association = itr->second;
+      if (!target_enb_association) {
+        continue;
+      }
       if (target_enb_association->enb_id == target_enb_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (target_enb_association->enb_id != target_enb_id) {
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
