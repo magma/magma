@@ -16,7 +16,7 @@ buildGwInstanceType: t2.medium
 #AMI IDs are different across regions
 buildUbuntuAmi: ami-0df99b3a8349462c6
 buildGwTagName: buildAgw
-buildAgwAmi: ami-0aac5cd08e351ff0f
+buildAgwAmi: ami-01de8ddb33de7a3d3
 buildAgwAmiName: imgMagmaAgw15Delta
 buildAgwVersion: v1.7
 buildAgwPackage: 1.7.0
