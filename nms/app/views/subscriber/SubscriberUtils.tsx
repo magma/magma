@@ -22,14 +22,14 @@ import {
   LteSubscription,
   MutableSubscriber,
   Subscriber,
-} from '../../../generated-ts';
+} from '../../../generated';
 import {SubscriberRowType} from '../../state/lte/SubscriberState';
 import {isValidHex} from '../../util/strings';
 import {useNavigate} from 'react-router-dom';
 import type {
   PromqlReturnObject,
   SubscriberForbiddenNetworkTypesEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 const mBIT = 1000000;
 const kBIT = 1000;

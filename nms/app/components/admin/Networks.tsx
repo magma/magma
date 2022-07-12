@@ -23,10 +23,9 @@ import EditNetworkDialog from './EditNetworkDialog';
 import EmptyState from '../EmptyState';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../LoadingFiller';
 import NestedRouteLink from '../NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -35,12 +34,10 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import MagmaAPI from '../../api/MagmaAPI';
+import AppContext from '../context/AppContext';
 import NetworkContext from '../context/NetworkContext';
-import useMagmaAPI from '../../api/useMagmaAPI';
 import {Route, Routes, useNavigate} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {sortBy} from 'lodash';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
@@ -105,24 +102,11 @@ function Networks() {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const navigate = useNavigate();
-  const [networks, setNetworks] = useState<Array<string> | null>(null);
   const [networkToDelete, setNetworkToDelete] = useState<string | null>(null);
   const {networkId: selectedNetworkId} = useContext(NetworkContext);
+  const appContext = useContext(AppContext);
 
-  const {error, isLoading} = useMagmaAPI(
-    MagmaAPI.networks.networksGet,
-    {},
-    useCallback(
-      (res: Array<string>) => setNetworks(sortBy(res, [n => n.toLowerCase()])),
-      [],
-    ),
-  );
-
-  if (error || isLoading || !networks) {
-    return <LoadingFiller />;
-  }
-
-  const rows = networks.map(network => (
+  const rows = appContext.networkIds.map(network => (
     <TableRow key={network}>
       <TableCell>{network}</TableCell>
       <TableCell>
@@ -205,7 +189,7 @@ function Networks() {
                     variant: 'error',
                   });
                 } else {
-                  setNetworks(networks.filter(n => n != networkToDelete));
+                  appContext.removeNetworkId(networkToDelete);
                   setNetworkToDelete(null);
                   if (selectedNetworkId === networkToDelete) {
                     window.location.replace('/nms');
@@ -227,7 +211,6 @@ function Networks() {
             <AddNetworkDialog
               onClose={closeDialog}
               onSave={networkID => {
-                setNetworks([...networks, networkID]);
                 enqueueSnackbar('Network created successfully', {
                   variant: 'success',
                 });

@@ -35,7 +35,7 @@ import TypedSelect from '../../components/TypedSelect';
 import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {CoreNetworkTypes, forbiddenNetworkTypes} from './SubscriberUtils';
-import {LteSubscription} from '../../../generated-ts';
+import {LteSubscription} from '../../../generated';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
@@ -51,7 +51,7 @@ import type {
 import type {
   Subscriber,
   SubscriberForbiddenNetworkTypesEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 const useStyles = makeStyles(() => ({
   tabBar: {

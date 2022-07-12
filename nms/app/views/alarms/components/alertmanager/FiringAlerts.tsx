@@ -31,7 +31,7 @@ import {useSnackbars} from '../../../../hooks/useSnackbar';
 
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../../../../util/ErrorUtils';
-import type {PromFiringAlert} from '../../../../../generated-ts';
+import type {PromFiringAlert} from '../../../../../generated';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {

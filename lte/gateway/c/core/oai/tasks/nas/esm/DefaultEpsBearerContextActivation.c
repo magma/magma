@@ -185,7 +185,7 @@ status_code_e esm_proc_default_eps_bearer_context_request(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -261,7 +261,7 @@ status_code_e esm_proc_default_eps_bearer_context_request(
 status_code_e esm_proc_default_eps_bearer_context_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
+  status_code_e rc;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -322,7 +322,7 @@ status_code_e esm_proc_default_eps_bearer_context_accept(
 status_code_e esm_proc_default_eps_bearer_context_reject(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
+  status_code_e rc;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -408,7 +408,7 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
 status_code_e esm_proc_default_eps_bearer_context_failure(
     emm_context_t* emm_context, pdn_cid_t* const pid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;

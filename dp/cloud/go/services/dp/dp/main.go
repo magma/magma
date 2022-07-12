@@ -20,6 +20,7 @@ import (
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	dp_log "magma/dp/cloud/go/services/dp/obsidian/log"
 	"magma/dp/cloud/go/services/dp/servicers"
@@ -52,7 +53,9 @@ func main() {
 	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker(), sqorc.GetSqlLocker())
 
 	interval := time.Second * time.Duration(serviceConfig.CbsdInactivityIntervalSec)
-	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval))
+	logConsumerUrl := serviceConfig.LogConsumerUrl
+
+	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
 
 	err = srv.Run()
 	if err != nil {

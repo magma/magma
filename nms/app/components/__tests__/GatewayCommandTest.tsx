@@ -15,14 +15,13 @@ import React from 'react';
 import defaultTheme from '../../theme/default';
 
 import MagmaAPI from '../../api/MagmaAPI';
-import {GenericCommandResponse} from '../../../generated-ts';
+import {GenericCommandResponse} from '../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {TroubleshootingControl} from '../GatewayCommandFields';
 import {mockAPI, mockAPIError} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 
-jest.mock('../../../generated/MagmaAPIBindings');
 jest.mock('../../../app/hooks/useSnackbar');
 
 const Wrapper = () => (

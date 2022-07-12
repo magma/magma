@@ -78,7 +78,7 @@
  ***************************************************************************/
 status_code_e EmmCommonProcedureInitiated(emm_reg_t* const evt) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   emm_context_t* emm_ctx = evt->ctx;
 
   assert(emm_fsm_get_state(emm_ctx) == EMM_COMMON_PROCEDURE_INITIATED);

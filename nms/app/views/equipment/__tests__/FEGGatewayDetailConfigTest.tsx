@@ -32,7 +32,7 @@ import type {
   Gy,
   S6a,
   Swx,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 
 jest.mock('../../../../app/hooks/useSnackbar');
 
@@ -175,6 +175,7 @@ describe('<FEGGatewayDetailConfig />', () => {
             value={{
               state: fegGateways,
               setState: async () => {},
+              refetch: () => {},
               health: fegGatewaysHealth,
               activeFegGatewayId: mockGw0.id,
             }}>
@@ -208,7 +209,7 @@ describe('<FEGGatewayDetailConfig />', () => {
             <FEGGatewayContext.Provider
               value={{
                 state: fegGateways,
-                setState: async (key, value?, newState?) => {
+                setState: async (key, value?) => {
                   return SetGatewayState({
                     networkId: 'mynetwork',
                     fegGateways,
@@ -218,10 +219,10 @@ describe('<FEGGatewayDetailConfig />', () => {
                     setActiveFegGatewayId,
                     key,
                     value,
-                    newState,
                     enqueueSnackbar,
                   });
                 },
+                refetch: () => {},
                 health: fegGatewaysHealthStatus,
                 activeFegGatewayId: activeFegGatewayId,
               }}>

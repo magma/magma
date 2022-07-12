@@ -24,8 +24,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSMCauseMsg::M5GSMCauseMsg(){};
-M5GSMCauseMsg::~M5GSMCauseMsg(){};
+M5GSMCauseMsg::M5GSMCauseMsg() {}
+M5GSMCauseMsg::~M5GSMCauseMsg() {}
 
 // Decode M5GSMCause IE
 int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
@@ -36,13 +36,14 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
     CHECK_IEI_DECODER(iei, (unsigned char)m5gsm_cause->iei);
+    decoded++;
   }
 
-  m5gsm_cause->cause_value = *buffer;
+  m5gsm_cause->cause_value = *(buffer + decoded);
   decoded++;
 
-  return (decoded);
-};
+  return decoded;
+}
 
 // Encode M5GSMCause IE
 int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
@@ -51,7 +52,7 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
 
   // CHECKING IEI
   if (iei > 0) {
-    m5gsm_cause->iei = *buffer;
+    *buffer = m5gsm_cause->iei;
     CHECK_IEI_DECODER(iei, (unsigned char)m5gsm_cause->iei);
     encoded++;
   }
@@ -59,6 +60,6 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
   *(buffer + encoded) = m5gsm_cause->cause_value;
   encoded++;
 
-  return (encoded);
-};
+  return encoded;
+}
 }  // namespace magma5g

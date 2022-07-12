@@ -13,7 +13,7 @@
 import type {OptionsObject} from 'notistack';
 
 import MagmaAPI from '../../api/MagmaAPI';
-import type {MutableCbsd, PaginatedCbsds} from '../../../generated-ts';
+import type {MutableCbsd, PaginatedCbsds} from '../../../generated';
 
 type FetchProps = {
   networkId: string;

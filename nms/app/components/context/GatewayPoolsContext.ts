@@ -16,7 +16,7 @@ import type {
   CellularGatewayPool,
   CellularGatewayPoolRecord,
   MutableCellularGatewayPool,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {GatewayPoolId} from '../../../shared/types/network';
 
 // add gateway ID to gateway pool records (gateway primary/secondary)

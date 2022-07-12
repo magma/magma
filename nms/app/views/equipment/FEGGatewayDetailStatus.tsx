@@ -16,7 +16,7 @@ import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
-import React from 'react';
+import React, {useContext} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {
@@ -24,29 +24,22 @@ import {
   GatewayTypeEnum,
   HEALTHY_STATUS,
 } from '../../components/GatewayUtils';
-import {
-  REFRESH_INTERVAL,
-  RefreshTypeEnum,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 
 export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
   const params = useParams();
   const networkId: string = nullthrows(params.networkId);
   const gatewayId: string = nullthrows(params.gatewayId);
+  const gwCtx = useContext(FEGGatewayContext);
+
   // Auto refresh gateways every 30 seconds
-  const refreshCtx = useRefreshingContext({
-    context: FEGGatewayContext,
-    networkId: networkId,
-    type: RefreshTypeEnum.FEG_GATEWAY,
-    interval: REFRESH_INTERVAL,
-    id: gatewayId,
-    refresh: refresh,
-  });
-  const fegGateways = refreshCtx.fegGateways || {};
-  const health = refreshCtx.health || {};
-  const gwInfo = fegGateways[gatewayId] || {};
+  useInterval(
+    () => gwCtx.refetch(gatewayId),
+    refresh ? REFRESH_INTERVAL : null,
+  );
+  const gwInfo = gwCtx.state[gatewayId] || {};
   let checkInTime;
 
   if (
@@ -79,8 +72,8 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
     !!gwInfo.magmad.dynamic_services &&
     gwInfo.magmad.dynamic_services.includes(DynamicServices.MONITORD);
 
-  const gwHealth = health[gwInfo?.id].status
-    ? health[gwInfo?.id].status === HEALTHY_STATUS
+  const gwHealth = gwCtx.health[gwInfo?.id].status
+    ? gwCtx.health[gwInfo?.id].status === HEALTHY_STATUS
       ? GatewayTypeEnum.HEALTHY_GATEWAY
       : GatewayTypeEnum.UNHEALTHY_GATEWAY
     : 'N/A';
@@ -96,7 +89,7 @@ export default function GatewayDetailStatus({refresh}: {refresh: boolean}) {
         value: gwHealth,
         statusCircle: true,
         // make kpi inactive if health status had error (health service not enabled)
-        statusInactive: health[gwInfo?.id]?.status ? false : true,
+        statusInactive: !gwCtx.health[gwInfo?.id]?.status,
         status: gwHealth === GatewayTypeEnum.HEALTHY_GATEWAY,
         tooltip:
           "Federation gateway's health as reported by the health service",

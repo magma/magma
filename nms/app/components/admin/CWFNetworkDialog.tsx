@@ -20,7 +20,7 @@ import TextField from '@material-ui/core/TextField';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import useMagmaAPI from '../../api/useMagmaAPI';
-import {CwfNetwork} from '../../../generated-ts';
+import {CwfNetwork} from '../../../generated';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';

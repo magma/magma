@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {Tier} from '../../../generated-ts';
+import type {Tier} from '../../../generated';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';

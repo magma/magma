@@ -74,20 +74,11 @@ module.exports = {
     'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
   },
   rules: {
-    'no-alert': 'off',
+    'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
+
     'no-console': ['warn', {allow: ['error', 'warn']}],
     'no-restricted-modules': restrictedImportsRule,
     'no-restricted-imports': restrictedImportsRule,
-    'no-undef': 'error',
-    'no-unused-vars': [
-      'error',
-      {
-        vars: 'all',
-        args: 'after-used',
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      },
-    ],
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
@@ -104,9 +95,6 @@ module.exports = {
 
     'lint/cs-intent-use-injected-props': 'off',
     'lint/duplicate-class-function': 'off',
-    'lint/flow-exact-props': 'off',
-    'lint/flow-exact-state': 'off',
-    'lint/flow-readonly-props': 'off',
     'lint/only-plain-ascii': 'off',
     'lint/react-avoid-set-state-with-potentially-stale-state': 'off',
     'lint/sort-keys-fixable': 'off',
@@ -126,7 +114,7 @@ module.exports = {
         trailingComma: 'all',
         bracketSpacing: false,
         jsxBracketSameLine: true,
-        parser: 'flow',
+        parser: 'typescript',
       },
     ],
 
@@ -164,52 +152,20 @@ module.exports = {
         memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
       },
     ],
-
-    // Jest Plugin
-    // The following rules are made available via `eslint-plugin-jest`.
-    // 'jest/no-disabled-tests': 1,
-    // 'jest/no-focused-tests': 1,
-    // 'jest/no-identical-title': 1,
-    // 'jest/valid-expect': 1,
   },
   overrides: [
-    {
-      files: ['**/*.js'],
-      excludedFiles: '**/sequelize_models/migrations/*.js',
-      plugins: ['flowtype'],
-      rules: {
-        'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
-
-        'flowtype/define-flow-type': 1,
-        'flowtype/no-weak-types': [1],
-        'flowtype/use-flow-type': 1,
-        // The following is disabled for many file types below
-        'flowtype/require-valid-file-annotation': [2, 'always'],
-      },
-    },
     {
       files: ['**/*.ts', '**/*.tsx', '**/sequelize_models/migrations/*.js'],
       extends: [
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
       ],
-      parser: '@typescript-eslint/parser',
       plugins: ['@typescript-eslint'],
+      parser: '@typescript-eslint/parser',
       parserOptions: {
         project: './tsconfig.json',
       },
       rules: {
-        'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
-        'prettier/prettier': [
-          2,
-          {
-            singleQuote: true,
-            trailingComma: 'all',
-            bracketSpacing: false,
-            jsxBracketSameLine: true,
-            parser: 'typescript',
-          },
-        ],
         '@typescript-eslint/array-type': [2, {default: 'generic'}],
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-empty-function': 'off',
@@ -220,83 +176,23 @@ module.exports = {
       },
     },
     {
-      env: {
-        node: true,
-      },
       files: [
         '.eslintrc.js',
         'babel.config.js',
         'babelRegister.js',
         'jest.config.js',
-        'jest.*.config.js',
         'config/*',
         'scripts/**/*',
         'server/**/*',
         'shared/**/*',
-        'grafana/**/*',
       ],
+      env: {
+        node: true,
+        browser: false,
+      },
       rules: {
         'no-console': 'off',
       },
-    },
-    {
-      files: [
-        '**/*eslint*/*.js',
-        '.eslintrc.js',
-        'babel.config.js',
-        'babelRegister.js',
-        'jest.config.js',
-        '**/flow-typed/**/*.js',
-        './babel.config.js',
-      ],
-      rules: {
-        'flowtype/require-valid-file-annotation': 'off',
-      },
-    },
-    {
-      files: ['**/__tests__/*.js'],
-      rules: {
-        'no-warning-comments': [0],
-      },
-    },
-    {
-      files: ['flow-typed/**/*.js'],
-      rules: {
-        'flowtype/no-weak-types': [0],
-      },
-    },
-    {
-      files: ['*.mdx'],
-      extends: ['plugin:mdx/overrides'],
-      rules: {
-        'flowtype/require-valid-file-annotation': 'off',
-        'prettier/prettier': [
-          2,
-          {
-            parser: 'mdx',
-          },
-        ],
-      },
-    },
-    {
-      files: ['.eslintrc.js'],
-      rules: {
-        quotes: ['warn', 'single'],
-      },
-    },
-    {
-      env: {
-        jest: true,
-        node: true,
-        'jest/globals': true,
-      },
-      files: [
-        '**/__mocks__/**/*.js',
-        '**/__tests__/**/*.js',
-        '**/tests/*.js',
-        'testHelpers.js',
-        'testData.js',
-      ],
     },
   ],
 };

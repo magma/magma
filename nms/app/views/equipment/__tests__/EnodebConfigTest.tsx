@@ -122,6 +122,7 @@ describe('<AddEditEnodeButton />', () => {
                     key: key,
                     value: value,
                   }),
+                refetch: () => {},
               }}>
               <Routes>
                 <Route
@@ -162,6 +163,7 @@ describe('<AddEditEnodeButton />', () => {
                     key: key,
                     value: value,
                   }),
+                refetch: () => {},
               }}>
               <Routes>
                 <Route
@@ -247,6 +249,7 @@ describe('<AddEditEnodeButton />', () => {
                     enbInfo: enbInf,
                   },
                   setState: async () => {},
+                  refetch: () => {},
                 }}>
                 <Routes>
                   <Route
