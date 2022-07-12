@@ -23,8 +23,8 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
-char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
-char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
+constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
+constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 }  // namespace
 
@@ -116,9 +116,9 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
   }
-  if (magma::PROTO_MAP_OK != state_cache_p->mmeid2associd.destroy_map()) {
+  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
+                 "An error occurred while destroying mmeid2associd map");
   }
   delete state_cache_p;
 }

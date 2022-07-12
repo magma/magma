@@ -41,15 +41,9 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
   if (state->mmeid2associd.isEmpty()) {
-    OAILOG_DEBUG(LOG_S1AP, "No entries in mmeid2associd hashtable");
+    OAILOG_DEBUG(LOG_S1AP, "No entries in mmeid2associd map");
   } else {
-    for (auto itr = state->mmeid2associd.map->begin();
-         itr != state->mmeid2associd.map->end(); itr++) {
-      mmeid = itr->first;
-      proto_map_rc_t rc = state->mmeid2associd.get(mmeid, &sctp_assoc_id);
-      AssertFatal(rc == PROTO_MAP_OK, "mmeid not in mmeid2associd");
-      (*mmeid2associd)[mmeid] = sctp_assoc_id;
-    }
+    *(proto->mutable_mmeid2associd()) = *(state->mmeid2associd.map);
   }
 
   uint32_t expected_enb_count = state->enbs.size();
@@ -68,15 +62,7 @@ void S1apStateConverter::proto_to_state(const S1apState& proto,
                      enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
                                         LOG_S1AP);
 
-  auto mmeid2associd = proto.mmeid2associd();
-  for (auto const& kv : mmeid2associd) {
-    mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t)kv.first;
-    sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
-
-    proto_map_rc_t rc = state->mmeid2associd.insert(mmeid, associd);
-    AssertFatal(rc == PROTO_MAP_OK, "failed to insert associd");
-  }
-
+  *(state->mmeid2associd.map) = proto.mmeid2associd();
   state->num_enbs = proto.num_enbs();
   uint32_t expected_enb_count = state->enbs.size();
   OAILOG_WARNING(LOG_S1AP, "expected_enb_count:%d state->num_enbs :%d \n",
