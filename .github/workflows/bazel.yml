@@ -105,7 +105,6 @@ jobs:
             printf '\r%s\r' 'Executing bazel test //...' 1>&2 &&
             printf '\r%s\r' '###############################' 1>&2 &&
             bazel test //... \
-              --cache_test_results=no \
               --test_output=errors \
               --profile=Bazel_test_all_profile &&
 
