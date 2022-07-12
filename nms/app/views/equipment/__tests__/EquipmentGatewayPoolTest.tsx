@@ -28,7 +28,7 @@ import {
   SetGatewayPoolsState,
   UpdateGatewayPoolRecords,
 } from '../../../state/lte/EquipmentState';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, wait, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useState} from 'react';
@@ -237,6 +237,53 @@ describe('<GatewayPools />', () => {
       gatewayPoolId: 'pool3',
     });
   });
+
+  it('verify gateway pool edit', async () => {
+    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGatewayPoolsGatewayPoolIdPut');
+
+    const {
+      queryByTestId,
+      getByTestId,
+      getByText,
+      findAllByTitle,
+      findByTestId,
+    } = render(<Wrapper />);
+
+    const actionList = await findAllByTitle('Actions');
+    fireEvent.click(actionList[2]);
+    await findByTestId('actions-menu');
+    fireEvent.click(getByText('Edit'));
+
+    // check if only first tab (config) is active
+    expect(queryByTestId('configEdit')).not.toBeNull();
+    expect(queryByTestId('PrimaryEdit')).toBeNull();
+    expect(queryByTestId('SecondaryEdit')).toBeNull();
+
+    const name = getByTestId('name').firstChild as HTMLInputElement;
+    const poolId = getByTestId('poolId').firstChild as HTMLInputElement;
+    const mmeGroupId = getByTestId('mmeGroupId').firstChild as HTMLInputElement;
+
+    expect(poolId).toBeDisabled();
+
+    fireEvent.change(name, {target: {value: 'foo'}});
+    fireEvent.change(mmeGroupId, {target: {value: '4'}});
+
+    fireEvent.click(getByText('Save And Continue'));
+
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGatewayPoolIdPut,
+      ).toHaveBeenCalledWith({
+        networkId,
+        gatewayPoolId: 'pool3',
+        hAGatewayPool: {
+          config: {mme_group_id: 4},
+          gateway_pool_id: 'pool3',
+          gateway_pool_name: 'foo',
+        },
+      });
+    });
+  });
 });
 
 describe('<AddEditGatewayPoolButton />', () => {
@@ -334,21 +381,13 @@ describe('<AddEditGatewayPoolButton />', () => {
     expect(queryByTestId('PrimaryEdit')).toBeNull();
     expect(queryByTestId('SecondaryEdit')).toBeNull();
 
-    const name = getByTestId('name').firstChild;
-    const poolId = getByTestId('poolId').firstChild;
-    const mmeGroupId = getByTestId('mmeGroupId').firstChild;
+    const name = getByTestId('name').firstChild as HTMLInputElement;
+    const poolId = getByTestId('poolId').firstChild as HTMLInputElement;
+    const mmeGroupId = getByTestId('mmeGroupId').firstChild as HTMLInputElement;
 
-    if (
-      name instanceof HTMLInputElement &&
-      poolId instanceof HTMLInputElement &&
-      mmeGroupId instanceof HTMLInputElement
-    ) {
-      fireEvent.change(name, {target: {value: 'pool_4'}});
-      fireEvent.change(poolId, {target: {value: 'pool4'}});
-      fireEvent.change(mmeGroupId, {target: {value: '4'}});
-    } else {
-      throw 'invalid type';
-    }
+    fireEvent.change(name, {target: {value: 'pool_4'}});
+    fireEvent.change(poolId, {target: {value: 'pool4'}});
+    fireEvent.change(mmeGroupId, {target: {value: '4'}});
 
     fireEvent.click(getByText('Save And Continue'));
     await wait();
@@ -383,20 +422,14 @@ describe('<AddEditGatewayPoolButton />', () => {
     expect(queryByTestId('PrimaryEdit')).not.toBeNull();
     expect(queryByTestId('SecondaryEdit')).toBeNull();
 
-    const mmeCode = getByTestId('mmeCode').firstChild;
-    const PrimaryId = getByTestId('gwIdPrimary').firstChild;
+    const mmeCode = getByTestId('mmeCode').firstChild as HTMLInputElement;
+    const PrimaryId = getByTestId('gwIdPrimary').firstChild as HTMLElement;
 
-    if (
-      mmeCode instanceof HTMLInputElement &&
-      PrimaryId instanceof HTMLElement
-    ) {
-      fireEvent.mouseDown(PrimaryId);
-      await wait();
-      fireEvent.click(getByText('testGatewayId0'));
-      fireEvent.change(mmeCode, {target: {value: '4'}});
-    } else {
-      throw 'invalid type';
-    }
+    fireEvent.mouseDown(PrimaryId);
+    await wait();
+    fireEvent.click(getByText('testGatewayId0'));
+    fireEvent.change(mmeCode, {target: {value: '4'}});
+
     fireEvent.click(getByText('Save And Continue'));
     await wait();
 
@@ -430,20 +463,15 @@ describe('<AddEditGatewayPoolButton />', () => {
     expect(queryByTestId('PrimaryEdit')).toBeNull();
     expect(queryByTestId('SecondaryEdit')).not.toBeNull();
 
-    const mmeCodeSecondary = getByTestId('mmeCode').firstChild;
-    const secondaryId = getByTestId('gwIdSecondary').firstChild;
+    const mmeCodeSecondary = getByTestId('mmeCode')
+      .firstChild as HTMLInputElement;
+    const secondaryId = getByTestId('gwIdSecondary').firstChild as HTMLElement;
 
-    if (
-      mmeCodeSecondary instanceof HTMLInputElement &&
-      secondaryId instanceof HTMLElement
-    ) {
-      fireEvent.mouseDown(secondaryId);
-      await wait();
-      fireEvent.click(getByText('testGatewayId1'));
-      fireEvent.change(mmeCodeSecondary, {target: {value: '5'}});
-    } else {
-      throw 'invalid type';
-    }
+    fireEvent.mouseDown(secondaryId);
+    await wait();
+    fireEvent.click(getByText('testGatewayId1'));
+    fireEvent.change(mmeCodeSecondary, {target: {value: '5'}});
+
     fireEvent.click(getByText('Save'));
     await wait();
 

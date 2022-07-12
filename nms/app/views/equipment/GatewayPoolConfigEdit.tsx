@@ -95,7 +95,7 @@ export default function ConfigEdit(props: GatewayPoolEditProps) {
               placeholder="Ex: pool1"
               fullWidth={true}
               value={gwPool.gateway_pool_id}
-              readOnly={Object.keys(props.gwPool).length > 0 ? false : true}
+              disabled={!!props.gwPool.gateway_pool_id}
               onChange={({target}) =>
                 setGwPool({...gwPool, gateway_pool_id: target.value})
               }
