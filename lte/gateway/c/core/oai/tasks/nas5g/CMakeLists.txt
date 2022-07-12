@@ -35,13 +35,15 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionReleaseRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionReleaseReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionReleaseCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionModificationCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionModificationComplete.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionModificationCommandReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SmfMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GULNASTransport.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GDLNASTransport.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceAccept.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceReject.cpp
-
     )
 
 set(libnas_ies_OBJS
@@ -87,7 +89,10 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GProtocolConfigurationOptions.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer2.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GRequestType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GMaxNumOfSupportedPacketFilters.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GQosFlowDescriptor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GQosFlowParam.cpp
     )
 
 add_library(LIB_NAS5G

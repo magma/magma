@@ -10,16 +10,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
+ * @typedef { import("sequelize").DataTypes } DataTypes
  */
-'use strict';
 
-import type {DataTypes, QueryInterface, Transaction} from 'sequelize';
-
-// Key: table name
-// Value: column name which denotes the organization name
-const TableOrgNameColumn: {[string]: string} = {
+/**
+ * Key: table name
+ * Value: column name which denotes the organization name
+ *
+ * @type {Record<string,string>}
+ */
+const TableOrgNameColumn = {
   AuditLogEntries: 'organization',
   FeatureFlags: 'organization',
   Organizations: 'name',
@@ -38,75 +45,87 @@ const TableOrgNameColumn: {[string]: string} = {
  * Postgres, and one for MySQL.
  */
 module.exports = {
-  up: (queryInterface: QueryInterface, _types: DataTypes) => {
-    return queryInterface.sequelize.transaction(
-      async (transaction: Transaction): Promise<void> => {
-        // Postgres needs capitalized table names surrounded by quotations
-        // This would cause an error in MySQL
-        const dialect = queryInterface.sequelize.getDialect();
-        let quote = '';
-        switch (dialect) {
-          case 'mysql':
-          case 'mariadb':
-            break;
-          case 'postgres':
-            quote = '"';
-            break;
-          default:
-            console.error(
-              `Unsupported DB dialect for migration: ${dialect}` +
-                'Supported dialects are [mysql, mariadb, postgres]',
-            );
-        }
-
-        // Check there won't be any duplicate organizations
-        let query = '';
-        let uniqueCount = 0;
-        let totalCount = 0;
-        try {
-          query = `SELECT COUNT(DISTINCT LOWER(name)) FROM ${quote}Organizations${quote};`;
-          let [results, _metadata] = await queryInterface.sequelize.query(
-            query,
-            {transaction},
+  /**
+   * @param {QueryInterface} queryInterface
+   */
+  up: queryInterface => {
+    return queryInterface.sequelize.transaction(async transaction => {
+      // Postgres needs capitalized table names surrounded by quotations
+      // This would cause an error in MySQL
+      const dialect = queryInterface.sequelize.getDialect();
+      let quote = '';
+      switch (dialect) {
+        case 'mysql':
+        case 'mariadb':
+          break;
+        case 'postgres':
+          quote = '"';
+          break;
+        default:
+          console.error(
+            `Unsupported DB dialect for migration: ${dialect}` +
+              'Supported dialects are [mysql, mariadb, postgres]',
           );
-          uniqueCount = results[0].count;
-          query = `SELECT COUNT(name) FROM ${quote}Organizations${quote};`;
-          [results, _metadata] = await queryInterface.sequelize.query(query, {
+      }
+
+      // Check there won't be any duplicate organizations
+      let query = '';
+      let uniqueCount = 0;
+      let totalCount = 0;
+      try {
+        query = `SELECT COUNT(DISTINCT LOWER(name)) FROM ${quote}Organizations${quote};`;
+        // prettier-ignore
+        let [
+          results,
+        ] = /** @type {[[{count: number}], unknown]} */ (await queryInterface.sequelize.query(
+          query,
+          {transaction},
+        ));
+        uniqueCount = results[0].count;
+        query = `SELECT COUNT(name) FROM ${quote}Organizations${quote};`;
+        // prettier-ignore
+        [
+          results,
+        ] = /** @type {[[{count: number}], unknown]} */ (await queryInterface.sequelize.query(
+          query,
+          {
             transaction,
-          });
-          totalCount = results[0].count;
-        } catch (err) {
-          console.error(
-            `Failed to run query for migration: ${query}, error: ${err}`,
-          );
-        }
-        if (uniqueCount < totalCount) {
-          console.error(
-            `There are ${totalCount} organizations and ${uniqueCount} unique organization names. ` +
-              'Make sure there are no matching organization names before trying migration again.',
-          );
-          throw 'Failed to complete migration';
-        }
+          },
+        ));
+        totalCount = results[0].count;
+      } catch (err) {
+        console.error(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          `Failed to run query for migration: ${query}, error: ${err}`,
+        );
+      }
+      if (uniqueCount < totalCount) {
+        console.error(
+          `There are ${totalCount} organizations and ${uniqueCount} unique organization names. ` +
+            'Make sure there are no matching organization names before trying migration again.',
+        );
+        throw 'Failed to complete migration';
+      }
 
-        // Update organizations to lower-case
-        try {
-          for (const tableName: string of Object.keys(TableOrgNameColumn)) {
-            const orgColName: string = TableOrgNameColumn[tableName];
-            query = `UPDATE ${quote}${tableName}${quote} SET ${orgColName}=lower(${orgColName})`;
-            await queryInterface.sequelize.query(query, {transaction});
-          }
-          return;
-        } catch (err) {
-          console.error(
-            `Failed to run query for migration: ${query}, error: ${err}`,
-          );
-          throw 'Failed to complete migration';
+      // Update organizations to lower-case
+      try {
+        for (const tableName of Object.keys(TableOrgNameColumn)) {
+          const orgColName = TableOrgNameColumn[tableName];
+          query = `UPDATE ${quote}${tableName}${quote} SET ${orgColName}=lower(${orgColName})`;
+          await queryInterface.sequelize.query(query, {transaction});
         }
-      },
-    );
+        return;
+      } catch (err) {
+        console.error(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          `Failed to run query for migration: ${query}, error: ${err}`,
+        );
+        throw 'Failed to complete migration';
+      }
+    });
   },
 
-  down: (_queryInterface: QueryInterface, _types: DataTypes) => {
+  down: () => {
     return Promise.resolve();
   },
 };

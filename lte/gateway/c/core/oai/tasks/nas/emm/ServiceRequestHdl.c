@@ -70,10 +70,8 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /****************************************************************************/
 status_code_e emm_proc_service_reject(const mme_ue_s1ap_id_t ue_id,
                                       const uint8_t emm_cause) {
-  int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  rc = emm_service_reject(ue_id, emm_cause);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, emm_service_reject(ue_id, emm_cause));
 }
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
@@ -141,7 +139,6 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
 status_code_e emm_proc_extended_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
 
   /*
@@ -186,7 +183,7 @@ status_code_e emm_proc_extended_service_request(
   if ((emm_ctx->attach_type != EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) ||
       !(_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED)) {
     /* send the service reject to UE */
-    rc = emm_proc_service_reject(ue_id, EMM_CAUSE_CONGESTION);
+    status_code_e rc = emm_proc_service_reject(ue_id, EMM_CAUSE_CONGESTION);
     increment_counter("extended_service_request", 1, 2, "result", "failure",
                       "cause", "emm_cause_congestion");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -194,7 +191,7 @@ status_code_e emm_proc_extended_service_request(
   // Handle extended service request received in ue connected mode
   mme_app_handle_nas_extended_service_req(ue_id, msg->servicetype,
                                           msg->csfbresponse);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 /****************************************************************************
@@ -211,7 +208,7 @@ status_code_e emm_recv_initial_ext_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
     int* emm_cause, const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
   emm_sap_t emm_sap = {0};
 
@@ -325,7 +322,7 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
 
 status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
                                                 const uint8_t emm_cause) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {0};
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
   OAILOG_FUNC_IN(LOG_NAS_EMM);

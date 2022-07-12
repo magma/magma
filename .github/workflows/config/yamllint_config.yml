@@ -12,18 +12,23 @@ ignore: |
   **/templates/**/*.yaml
 
 rules:
-  braces: enable
-  brackets: enable
+  braces: 
+    max-spaces-inside: 1
+    min-spaces-inside: 1
+  brackets:
+    max-spaces-inside: 1
   colons: enable
   commas: enable
   comments:
     level: warning
+    min-spaces-from-content: 1
   comments-indentation:
     level: warning
   document-end: disable
   document-start:
     level: warning
-  empty-lines: enable
+  empty-lines: 
+    max: 3
   empty-values: disable
   hyphens: enable
   indentation: enable
@@ -35,5 +40,4 @@ rules:
   octal-values: disable
   quoted-strings: disable
   trailing-spaces: enable
-  truthy:
-    level: warning
+  truthy: disable

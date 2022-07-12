@@ -62,8 +62,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref);
  * \param enb_ref eNB structure reference to remove
  **/
 void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
-
-void free_enb_description(void** ptr);
 #ifdef __cplusplus
 }
 #endif

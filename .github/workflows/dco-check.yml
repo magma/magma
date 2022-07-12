@@ -1,8 +1,8 @@
 ---
 name: DCO check
-on:  # yamllint disable-line rule:truthy
+on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check if PR is a Reverted PR
         id: reverted_pr_check
-        uses: actions/github-script@v3
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:
           script: |
             if( process.env.PR_TITLE.startsWith('Revert') ) {
@@ -35,7 +35,7 @@ jobs:
           mkdir -p ./pr
           echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
           echo -n "false" > ./pr/skipped
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -47,23 +47,23 @@ jobs:
     name: DCO Check
     runs-on: ubuntu-latest
     steps:
-    - name: Get PR Commits
-      id: 'get-pr-commits'
-      uses: tim-actions/get-pr-commits@master
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-    - name: DCO Check
-      uses: tim-actions/dco@master
-      with:
-        commits: ${{ steps.get-pr-commits.outputs.commits }}
-    # Need to save PR number as Github action does not propagate it with workflow_run event
-    - name: Save PR number
-      if: always()
-      run: |
-        mkdir -p ./pr
-        echo -n ${{ github.event.number }} > ./pr/pr_number
-    - uses: actions/upload-artifact@v2
-      if: always()
-      with:
-        name: pr
-        path: pr/
+      - name: Get PR Commits
+        id: 'get-pr-commits'
+        uses: tim-actions/get-pr-commits@c64db31d359214d244884dd68f971a110b29ab83 # pin@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: DCO Check
+        uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21 # pin@master
+        with:
+          commits: ${{ steps.get-pr-commits.outputs.commits }}
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/pr_number
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/

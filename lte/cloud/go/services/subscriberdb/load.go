@@ -237,16 +237,19 @@ func LoadSuciProtos(ctx context.Context, networkID string) ([]*lte_protos.SuciPr
 		return nil, fmt.Errorf("network loading failed: %w", err)
 	}
 
+	suciProtos := []*lte_protos.SuciProfile{}
+
 	ngcModel := &lte_models.NetworkNgcConfigs{}
-	ngcConfig := ngcModel.GetFromNetwork(network).(*lte_models.NetworkNgcConfigs)
+	ngcConfig := ngcModel.GetFromNetwork(network)
 	if ngcConfig == nil {
-		return nil, fmt.Errorf("ngcConfig is nil: %w", err)
+		return suciProtos, fmt.Errorf("ngcConfig is nil: %w", err)
 	}
 
-	suciProfiles := ngcConfig.SuciProfiles
-	suciProtos := []*lte_protos.SuciProfile{}
-	for _, suciProfile := range suciProfiles {
-		suciProtos = append(suciProtos, ngcModel.ConvertSuciEntsToProtos(suciProfile))
+	if ngcConfig.(*lte_models.NetworkNgcConfigs) != nil {
+		suciProfiles := ngcConfig.(*lte_models.NetworkNgcConfigs).SuciProfiles
+		for _, suciProfile := range suciProfiles {
+			suciProtos = append(suciProtos, ngcModel.ConvertSuciEntsToProtos(suciProfile))
+		}
 	}
 
 	return suciProtos, nil

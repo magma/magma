@@ -106,7 +106,7 @@ struct proto_map_s {
 
   proto_map_s() : free_callback_func(nullptr) {}
   void bind_callback(void (*freefun)(void**)) { free_callback_func = freefun; }
-  void set_name(char* umap_name) {
+  void set_name(const char* umap_name) {
     strncpy(name, umap_name, strlen(umap_name));
   }
   char* get_name() { return name; }

@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
-from math import log10
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
@@ -25,7 +24,11 @@ from magma.enodebd.data_models.data_model_parameters import (
     ParameterName,
     TrParameterType,
 )
-from magma.enodebd.device_config.cbrs_consts import BAND
+from magma.enodebd.device_config.cbrs_consts import (
+    BAND,
+    SAS_MAX_POWER_SPECTRAL_DENSITY,
+    SAS_MIN_POWER_SPECTRAL_DENSITY,
+)
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.device_config.configuration_util import (
     calc_bandwidth_mhz,
@@ -82,7 +85,6 @@ DP_MODE_KEY = 'dp_mode'
 
 RADIO_MIN_POWER = 0
 RADIO_MAX_POWER = 24
-ANTENNA_GAIN_DBI = 5
 ANTENNA_HEIGHT = 0
 
 
@@ -108,11 +110,10 @@ class SASParameters(object):
     SAS_CPI_IPE = "sas_cpi_ipe"  # Install param supplied enable
     SAS_USER_ID = "sas_uid"  # TODO this should be set to a constant value in config
     SAS_FCC_ID = "sas_fcc_id"
-    FREQ_BAND1 = "freq_band_1"
-    FREQ_BAND2 = "freq_band_2"
-    # For CBRS radios we set this to the limit and the SAS can reduce the
+    # For CBRS radios we set this to value returned by SAS, eNB can reduce the
     # power if needed.
-    TX_POWER_CONFIG = "tx_power_config"
+    SAS_MAX_EIRP = "sas_max_eirp"
+    SAS_ANTENNA_GAIN = "sas_antenna_gain"
 
     SAS_PARAMETERS = {
         SAS_ENABLE: TrParam(
@@ -128,65 +129,79 @@ class SASParameters(object):
             is_optional=False,
         ),
         SAS_SERVER_URL: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.Server', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.Server',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
         SAS_USER_ID: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.UserContactInformation', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.UserContactInformation',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         SAS_FCC_ID: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.FCCIdentificationNumber', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.FCCIdentificationNumber',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         SAS_CATEGORY: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.Category', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.Category',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
         SAS_CHANNEL_TYPE: TrParam(
             FAP_CONTROL + 'LTE.X_000E8F_SAS.ProtectionLevel',
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         SAS_CERT_SUBJECT: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.CertSubject', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.CertSubject',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         # SAS_IC_GROUP_ID: TrParam(
         #     FAP_CONTROL + 'LTE.X_000E8F_SAS.ICGGroupId', is_invasive=False,
         #     type=TrParameterType.STRING, False),
         SAS_LOCATION: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.Location', is_invasive=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.Location',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
         SAS_HEIGHT_TYPE: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.HeightType', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.HeightType',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         SAS_CPI_ENABLE: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_SAS.CPIEnable', is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.CPIEnable',
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         SAS_CPI_IPE: TrParam(
             FAP_CONTROL + 'LTE.X_000E8F_SAS.CPIInstallParamSuppliedEnable',
-            is_invasive=False, type=TrParameterType.BOOLEAN, is_optional=False,
-        ),
-        FREQ_BAND1: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.FreqBandIndicator',
-            is_invasive=False, type=TrParameterType.UNSIGNED_INT,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
             is_optional=False,
         ),
-        FREQ_BAND2: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_FreqBandIndicator2',
-            is_invasive=False, type=TrParameterType.UNSIGNED_INT,
+        SAS_MAX_EIRP: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.MaxEirpMHz_Carrier1',
+            is_invasive=False,
+            type=TrParameterType.INT,
             is_optional=False,
         ),
-        TX_POWER_CONFIG: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_TxPowerConfig',
-            is_invasive=True, type=TrParameterType.INT, is_optional=False,
+        SAS_ANTENNA_GAIN: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.AntennaGain',
+            is_invasive=True,
+            type=TrParameterType.INT,
+            is_optional=False,
         ),
     }
 
@@ -216,20 +231,28 @@ class StatusParameters(object):
     STATUS_PARAMETERS = {
         # Status nodes
         DEFAULT_GW: TrParam(
-            STATUS_PATH + 'X_000E8F_DEFGW_Status', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            STATUS_PATH + 'X_000E8F_DEFGW_Status',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         SYNC_STATUS: TrParam(
-            STATUS_PATH + 'X_000E8F_Sync_Status', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            STATUS_PATH + 'X_000E8F_Sync_Status',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         SAS_STATUS: TrParam(
-            STATUS_PATH + 'X_000E8F_SAS_Status', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            STATUS_PATH + 'X_000E8F_SAS_Status',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         ENB_STATUS: TrParam(
-            STATUS_PATH + 'X_000E8F_eNB_Status', is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            STATUS_PATH + 'X_000E8F_eNB_Status',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
 
         # GPS status, lat, long
@@ -250,24 +273,34 @@ class StatusParameters(object):
     # Derived status params that don't have tr69 representation.
     DERIVED_STATUS_PARAMETERS = {
         ParameterName.RF_TX_STATUS: TrParam(
-            InvalidTrParamPath, is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            InvalidTrParamPath,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.GPS_STATUS: TrParam(
-            InvalidTrParamPath, is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            InvalidTrParamPath,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.PTP_STATUS: TrParam(
-            InvalidTrParamPath, is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            InvalidTrParamPath,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.MME_STATUS: TrParam(
-            InvalidTrParamPath, is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            InvalidTrParamPath,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.OP_STATE: TrParam(
-            InvalidTrParamPath, is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            InvalidTrParamPath,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
     }
 
@@ -412,9 +445,6 @@ class FreedomFiOneMiscParameters(object):
     TUNNEL_REF = "tunnel_ref"
     PRIM_SOURCE = "prim_src"
 
-    # Carrier aggregation
-    CARRIER_AGG_ENABLE = "carrier_agg_enable"
-    CARRIER_NUMBER = "carrier_number"  # Carrier aggregation params
     CONTIGUOUS_CC = "contiguous_cc"
     WEB_UI_ENABLE = "web_ui_enable"  # Enable or disable local enb UI
 
@@ -422,33 +452,27 @@ class FreedomFiOneMiscParameters(object):
         WEB_UI_ENABLE: TrParam(
             'Device.X_000E8F_DeviceFeature.X_000E8F_WebServerEnable',
             is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
-        ),
-        CARRIER_AGG_ENABLE: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_CA_Enable',
-            is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
-        ),
-        CARRIER_NUMBER: TrParam(
-            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_Cell_Number',
-            is_invasive=False,
-            type=TrParameterType.INT, is_optional=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         CONTIGUOUS_CC: TrParam(
             FAP_CONTROL
             + 'LTE.X_000E8F_RRMConfig.X_000E8F_CELL_Freq_Contiguous',
             is_invasive=False,
-            type=TrParameterType.INT, is_optional=False,
+            type=TrParameterType.INT,
+            is_optional=False,
         ),
         TUNNEL_REF: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.Tunnel.1.TunnelRef',
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         PRIM_SOURCE: TrParam(
             FAPSERVICE_PATH + 'REM.X_000E8F_tfcsManagerConfig.primSrc',
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
     }
 
@@ -456,11 +480,82 @@ class FreedomFiOneMiscParameters(object):
     defaults = {
         # Use IPV4 only
         TUNNEL_REF: "Device.IP.Interface.1.IPv4Address.1.",
-        # Always enable carrier aggregation for the CBRS bands
-        CARRIER_AGG_ENABLE: True,
-        CARRIER_NUMBER: 2,  # CBRS has two carriers
         CONTIGUOUS_CC: 0,  # Its not contiguous carrier
         WEB_UI_ENABLE: False,  # Disable WebUI by default
+    }
+
+
+class CarrierAggregationParameters(object):
+    """
+    eNB parameters related to Carrier Aggregation
+    """
+    FAP_CONTROL = 'Device.Services.FAPService.1.FAPControl.'
+    FAPSERVICE_PATH = 'Device.Services.FAPService.1.'
+
+    CA_ENABLE = "CA Enable"
+    CA_CARRIER_NUMBER = "CA Carrier Number"
+    CA_EARFCNDL = "CA EARFCNDL"
+    CA_EARFCNUL = "CA EARFCNUL"
+    CA_CELL_ID = "CA Cell ID"
+    CA_TAC = "CA TAC"
+    CA_MAX_EIRP_MHZ = "CA Max EIRP"
+    CA_BAND = "CA Band"
+
+    CA_PARAMETERS = {
+        CA_ENABLE: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_CA_Enable',
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
+        ),
+        CA_CARRIER_NUMBER: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_RRMConfig.X_000E8F_Cell_Number',
+            is_invasive=False,
+            type=TrParameterType.INT,
+            is_optional=False,
+        ),
+        CA_EARFCNDL: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_EARFCNDL2',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
+        ),
+        CA_EARFCNUL: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_EARFCNUL2',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
+        ),
+        CA_CELL_ID: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.X_000E8F_CellIdentity2',
+            is_invasive=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
+        ),
+        CA_TAC: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.X_000E8F_TAC2',
+            is_invasive=False,
+            type=TrParameterType.INT,
+            is_optional=False,
+        ),
+        CA_MAX_EIRP_MHZ: TrParam(
+            FAP_CONTROL + 'LTE.X_000E8F_SAS.MaxEirpMHz_Carrier2',
+            is_invasive=False,
+            type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
+        ),
+        CA_BAND: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.X_000E8F_FreqBandIndicator2',
+            is_invasive=False,
+            type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
+        ),
+    }
+
+    # By default, disable Carrier Aggregation and switch to Single Carrier mode
+    defaults = {
+        CA_ENABLE: False,
+        CA_CARRIER_NUMBER: 1,
     }
 
 
@@ -675,12 +770,14 @@ class FreedomFiOneTrDataModel(DataModel):
 
         # Device info
         ParameterName.SW_VERSION: TrParam(
-            DEVICE_PATH + 'DeviceInfo.SoftwareVersion', is_invasive=False,
+            DEVICE_PATH + 'DeviceInfo.SoftwareVersion',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
         ParameterName.SERIAL_NUMBER: TrParam(
-            DEVICE_PATH + 'DeviceInfo.SerialNumber', is_invasive=False,
+            DEVICE_PATH + 'DeviceInfo.SerialNumber',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
@@ -693,19 +790,22 @@ class FreedomFiOneTrDataModel(DataModel):
             is_optional=False,
         ),
         ParameterName.EARFCNUL: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.EARFCNUL', is_invasive=False,
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.EARFCNUL',
+            is_invasive=False,
             type=TrParameterType.INT,
             is_optional=False,
         ),
         ParameterName.DL_BANDWIDTH: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.DLBandwidth',
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         ParameterName.UL_BANDWIDTH: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ULBandwidth',
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         ),
         ParameterName.PCI: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.PhyCellID',
@@ -715,68 +815,89 @@ class FreedomFiOneTrDataModel(DataModel):
         ),
         ParameterName.SUBFRAME_ASSIGNMENT: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.TDDFrame.SubFrameAssignment',
-            is_invasive=False, type=TrParameterType.BOOLEAN, is_optional=False,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns',
-            is_invasive=False, type=TrParameterType.INT,
+            is_invasive=False,
+            type=TrParameterType.INT,
             is_optional=False,
         ),
         ParameterName.CELL_ID: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity',
             is_invasive=False,
-            type=TrParameterType.UNSIGNED_INT, is_optional=False,
+            type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
+        ),
+        ParameterName.BAND: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.FreqBandIndicator',
+            is_invasive=False,
+            type=TrParameterType.UNSIGNED_INT,
+            is_optional=False,
         ),
 
         # Readonly LTE state
         ParameterName.ADMIN_STATE: TrParam(
             FAP_CONTROL + 'LTE.AdminState',
-            is_invasive=False, type=TrParameterType.BOOLEAN,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
             is_optional=False,
         ),
         ParameterName.GPS_ENABLE: TrParam(
             DEVICE_PATH + 'FAP.GPS.ScanOnBoot',
-            is_invasive=False, type=TrParameterType.BOOLEAN, is_optional=False,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
 
         # Core network parameters
         ParameterName.MME_IP: TrParam(
-            FAP_CONTROL + 'LTE.Gateway.S1SigLinkServerList', is_invasive=False,
+            FAP_CONTROL + 'LTE.Gateway.S1SigLinkServerList',
+            is_invasive=False,
             type=TrParameterType.STRING,
             is_optional=False,
         ),
         ParameterName.MME_PORT: TrParam(
-            FAP_CONTROL + 'LTE.Gateway.S1SigLinkPort', is_invasive=False,
-            type=TrParameterType.INT, is_optional=False,
+            FAP_CONTROL + 'LTE.Gateway.S1SigLinkPort',
+            is_invasive=False,
+            type=TrParameterType.INT,
+            is_optional=False,
         ),
 
         ParameterName.NUM_PLMNS: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries',
             is_invasive=False,
-            type=TrParameterType.INT, is_optional=False,
+            type=TrParameterType.INT,
+            is_optional=False,
         ),
 
         ParameterName.TAC: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.TAC', is_invasive=False,
-            type=TrParameterType.INT, is_optional=False,
+            type=TrParameterType.INT,
+            is_optional=False,
         ),
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
             DEVICE_PATH + 'ManagementServer.PeriodicInformEnable',
             is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.PERIODIC_INFORM_INTERVAL: TrParam(
             DEVICE_PATH + 'ManagementServer.PeriodicInformInterval',
             is_invasive=False,
-            type=TrParameterType.INT, is_optional=False,
+            type=TrParameterType.INT,
+            is_optional=False,
         ),
 
         # Performance management parameters
         ParameterName.PERF_MGMT_ENABLE: TrParam(
             DEVICE_PATH + 'FAP.PerfMgmt.Config.1.Enable',
             is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         ),
         ParameterName.PERF_MGMT_UPLOAD_INTERVAL: TrParam(
             DEVICE_PATH + 'FAP.PerfMgmt.Config.1.PeriodicUploadInterval',
@@ -797,27 +918,33 @@ class FreedomFiOneTrDataModel(DataModel):
         PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i,
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(
             FAPSERVICE_PATH
             + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i,
             is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i,
             is_invasive=False,
-            type=TrParameterType.BOOLEAN, is_optional=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i,
-            is_invasive=False, type=TrParameterType.BOOLEAN, is_optional=False,
+            is_invasive=False,
+            type=TrParameterType.BOOLEAN,
+            is_optional=False,
         )
         PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i,
             is_invasive=False,
-            type=TrParameterType.STRING, is_optional=False,
+            type=TrParameterType.STRING,
+            is_optional=False,
         )
 
     PARAMETERS.update(SASParameters.SAS_PARAMETERS)  # noqa: WPS604
@@ -825,6 +952,7 @@ class FreedomFiOneTrDataModel(DataModel):
     PARAMETERS.update(StatusParameters.STATUS_PARAMETERS)  # noqa: WPS604
     # These are stateful parameters that have no tr-69 representation
     PARAMETERS.update(StatusParameters.DERIVED_STATUS_PARAMETERS)  # noqa: WPS604
+    PARAMETERS.update(CarrierAggregationParameters.CA_PARAMETERS)  # noqa: WPS604
 
     TRANSFORMS_FOR_MAGMA = {
         # We don't set these parameters
@@ -955,6 +1083,7 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
             service_cfg (Any): service config
             desired_cfg (EnodebConfiguration): desired config
         """
+        desired_cfg.delete_parameter(ParameterName.BAND)
         desired_cfg.delete_parameter(ParameterName.EARFCNDL)
         desired_cfg.delete_parameter(ParameterName.DL_BANDWIDTH)
         desired_cfg.delete_parameter(ParameterName.UL_BANDWIDTH)
@@ -971,6 +1100,7 @@ class FreedomFiOneConfigurationInitializer(EnodebConfigurationPostProcessor):
         defaults = {
             **FreedomFiOneMiscParameters.defaults,
             **SASParameters.defaults,
+            **CarrierAggregationParameters.defaults,
         }
         for name, val in defaults.items():
             desired_cfg.set_parameter(param_name=name, value=val)
@@ -1433,20 +1563,60 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
             state, self.acs.desired_cfg,
         )
         # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
-        # antenna_gain: suggested by Sercomm to hardcode it
         # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
         #                 Hardcode it.
-        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
-            serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
-            latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
-            longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
-            indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
-            antenna_height=str(ANTENNA_HEIGHT),
-            antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
-            antenna_gain=str(ANTENNA_GAIN_DBI),
-            cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
-        )
-        enodebd_update_cbsd(enodebd_update_cbsd_request)
+        # NOTE: In case GPS scan is not completed, eNB reports LAT and LONG values as 0.
+        #       Only update CBSD in Domain Proxy when all params are available.
+        gps_status = self.acs.device_cfg.get_parameter(ParameterName.GPS_STATUS)
+        if gps_status:
+            enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+                serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+                latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
+                longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
+                indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
+                antenna_height=str(ANTENNA_HEIGHT),
+                antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
+                antenna_gain=self.acs.device_cfg.get_parameter(SASParameters.SAS_ANTENNA_GAIN),
+                cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
+            )
+            enodebd_update_cbsd(enodebd_update_cbsd_request)
+        else:
+            EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
+
+
+def _ff_one_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:
+    """
+    Check if state returned by Domain Proxy contains data that can be applied
+    to FreedomFi One BS in Carrier Aggregation Mode.
+    FreedomFi One can apply carrier aggregation if:
+    * 2 channels are available:
+      * with symmetric bandwidths: 10+10 or 20+20
+
+    Additionally, such channels may be available but Domain Proxy may explicitly disable CA
+
+    Only check the first 2 channels (Domain Proxy may return more)
+    """
+    _CA_SUPPORTED_BANDWIDTHS_MHZ = (
+        (10, 10),
+        (20, 20),
+    )
+    num_of_channels = len(state.channels)
+    # Check if CA explicitly disabled, or not enough channels
+    if num_of_channels < 2 or not state.carrier_aggregation_enabled:
+        EnodebdLogger.debug(f"Domain Proxy state {num_of_channels=}, {state.carrier_aggregation_enabled=}.")
+        return False
+
+    ch1 = state.channels[0]
+    ch2 = state.channels[1]
+
+    # Check supported bandwidths of the channels
+    bw1 = calc_bandwidth_mhz(low_freq_hz=ch1.low_frequency_hz, high_freq_hz=ch1.high_frequency_hz)
+    bw2 = calc_bandwidth_mhz(low_freq_hz=ch2.low_frequency_hz, high_freq_hz=ch2.high_frequency_hz)
+    if not (bw1, bw2) in _CA_SUPPORTED_BANDWIDTHS_MHZ:
+        EnodebdLogger.debug(f"Domain Proxy channel1 {ch1}, channel2 {ch2}, bandwidth configuration not in {_CA_SUPPORTED_BANDWIDTHS_MHZ}.")
+        return False
+
+    return True
 
 
 def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config: EnodebConfiguration) -> None:
@@ -1457,41 +1627,76 @@ def ff_one_update_desired_config_from_cbsd_state(state: CBSDStateResult, config:
         state (CBSDStateResult): state result as received from DP
         config (EnodebConfiguration): configuration to update
     """
-    EnodebdLogger.debug("Updating desired config based on sas grant")
-    config.set_parameter(ParameterName.ADMIN_STATE, state.radio_enabled)
-    if not state.radio_enabled:
+    EnodebdLogger.debug("Updating desired config based on Domain Proxy state.")
+    num_of_channels = len(state.channels)
+    radio_enabled = num_of_channels > 0 and state.radio_enabled
+
+    config.set_parameter(ParameterName.ADMIN_STATE, radio_enabled)
+    if not radio_enabled:
         return
 
-    earfcn = calc_earfcn(
-        state.channel.low_frequency_hz,
-        state.channel.high_frequency_hz,
-    )
-    bandwidth_mhz = calc_bandwidth_mhz(
-        state.channel.low_frequency_hz, state.channel.high_frequency_hz,
-    )
+    # Carrier1
+    channel = state.channels[0]
+    earfcn = calc_earfcn(channel.low_frequency_hz, channel.high_frequency_hz)
+    bandwidth_mhz = calc_bandwidth_mhz(channel.low_frequency_hz, channel.high_frequency_hz)
     bandwidth_rbs = calc_bandwidth_rbs(bandwidth_mhz)
-    tx_power = _calc_tx_power(state.channel.max_eirp_dbm_mhz, bandwidth_mhz)
+    max_eirp = _calc_max_eirp_for_carrier(channel.max_eirp_dbm_mhz)
+    EnodebdLogger.debug(f"Channel1: {earfcn=}, {bandwidth_rbs=}, {max_eirp=}")
 
+    can_enable_carrier_aggregation = _ff_one_check_state_compatibility_with_ca(state)
+    EnodebdLogger.debug(f"Should Carrier Aggregation be enabled on eNB: {can_enable_carrier_aggregation=}")
+
+    # Enabling Carrier Aggregation on FreedomFi One eNB means:
+    # 1. Set CA_ENABLED to True
+    # 2. Set CA_CARRIER_NUMBER to 2
+    # 3. Configure appropriate TR nodes for Carrier2 like EARFCNDL/UL etc
+    # Otherwise we need to disable Carrier Aggregation on eNB and switch to Single Carrier configuration
+    # 1. Set CA_ENABLED to False
+    # 2. Set CA_CARRIER_NUMBER to 1
+    # Those two nodes should handle everything else accordingly.
+    # (NOTE: carrier aggregation may still be enabled on Domain Proxy, but Domain Proxy may not have 2 channels granted by SAS.
+    #        In such case, we still have to switch eNB to Single Carrier)
+    ca_carrier_number = 2 if can_enable_carrier_aggregation else 1
+    ca_enable = True if can_enable_carrier_aggregation else False
     params_to_set = {
         ParameterName.DL_BANDWIDTH: bandwidth_rbs,
         ParameterName.UL_BANDWIDTH: bandwidth_rbs,
         ParameterName.EARFCNDL: earfcn,
         ParameterName.EARFCNUL: earfcn,
-        SASParameters.TX_POWER_CONFIG: tx_power,
-        SASParameters.FREQ_BAND1: BAND,
-        SASParameters.FREQ_BAND2: BAND,
+        SASParameters.SAS_MAX_EIRP: max_eirp,
+        ParameterName.BAND: BAND,
+        CarrierAggregationParameters.CA_ENABLE: ca_enable,
+        CarrierAggregationParameters.CA_CARRIER_NUMBER: ca_carrier_number,
+
+
     }
+
+    if can_enable_carrier_aggregation:
+        # Configure Carrier2
+        # NOTE: We set CELL_ID to the value of Carrier1 CELL_ID "+1"
+        channel = state.channels[1]
+        earfcn = calc_earfcn(channel.low_frequency_hz, channel.high_frequency_hz)
+        bandwidth_mhz = calc_bandwidth_mhz(channel.low_frequency_hz, channel.high_frequency_hz)
+        bandwidth_rbs = calc_bandwidth_rbs(bandwidth_mhz)
+        max_eirp = _calc_max_eirp_for_carrier(channel.max_eirp_dbm_mhz)
+        EnodebdLogger.debug(f"Channel2: {earfcn=}, {bandwidth_rbs=}, {max_eirp=}")
+        params_to_set.update({
+            CarrierAggregationParameters.CA_BAND: BAND,
+            CarrierAggregationParameters.CA_EARFCNDL: earfcn,
+            CarrierAggregationParameters.CA_EARFCNUL: earfcn,
+            CarrierAggregationParameters.CA_TAC: config.get_parameter(ParameterName.TAC),
+            CarrierAggregationParameters.CA_CELL_ID: config.get_parameter(ParameterName.CELL_ID) + 1,
+        })
 
     for param, value in params_to_set.items():
         config.set_parameter(param, value)
 
 
-def _calc_tx_power(max_eirp_dbm_mhz, bandwidth_mhz) -> int:
-    eirp = int(max_eirp_dbm_mhz)
-    tx_power = int(eirp + 10 * log10(bandwidth_mhz) - ANTENNA_GAIN_DBI)
-    if not RADIO_MIN_POWER <= tx_power <= RADIO_MAX_POWER:  # noqa: WPS508
+def _calc_max_eirp_for_carrier(max_eirp_dbm_mhz: float) -> int:
+    max_eirp = int(max_eirp_dbm_mhz)
+    if not SAS_MIN_POWER_SPECTRAL_DENSITY <= max_eirp <= SAS_MAX_POWER_SPECTRAL_DENSITY:  # noqa: WPS508
         raise ConfigurationError(
-            'TX power %d exceeds allowed range [%d, %d]' %
-            (tx_power, RADIO_MIN_POWER, RADIO_MAX_POWER),
+            'Max EIRP %d exceeds allowed range [%d, %d]' %
+            (max_eirp, SAS_MIN_POWER_SPECTRAL_DENSITY, SAS_MAX_POWER_SPECTRAL_DENSITY),
         )
-    return tx_power
+    return max_eirp
