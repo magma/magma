@@ -149,8 +149,10 @@ export function useAlertRuleReceiver({
     return matchingRoutes;
   }, [response, ruleName]);
 
-  const [initialReceiver, setInitialReceiver] = React.useState<string | null>();
-  const [receiver, setReceiver] = React.useState<string | null>();
+  const [initialReceiver, setInitialReceiver] = React.useState<string | null>(
+    null,
+  );
+  const [receiver, setReceiver] = React.useState<string | null>(null);
 
   /**
    * once the routes are loaded, set the initial receiver so we can determine
@@ -192,12 +194,15 @@ export function useAlertRuleReceiver({
       };
     } else {
       // update existing route
-      const _updatedRoutes = filterUpdatedFilterRoutes(
-        response,
-        initialReceiver!,
-        ruleName,
-        receiver!,
-      );
+      let _updatedRoutes = response?.routes || [];
+      if (initialReceiver !== null && receiver !== null) {
+        _updatedRoutes = filterUpdatedFilterRoutes(
+          response,
+          initialReceiver,
+          ruleName,
+          receiver,
+        );
+      }
       updatedRoutes = {
         ...updatedRoutes,
         routes: _updatedRoutes,
