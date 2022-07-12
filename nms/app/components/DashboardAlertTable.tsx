@@ -31,7 +31,7 @@ import WarningIcon from '@material-ui/icons/Warning';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
 import {Alarm} from '@material-ui/icons';
-import {REFRESH_INTERVAL} from './context/RefreshContext';
+import {REFRESH_INTERVAL} from './context/AppContext';
 import {Theme, withStyles} from '@material-ui/core/styles';
 import {colors, typography} from '../theme/default';
 import {intersection} from 'lodash';

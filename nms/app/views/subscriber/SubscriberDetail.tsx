@@ -30,17 +30,15 @@ import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
+
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useInterval} from '../../hooks';
 import type {DataRows} from '../../components/DataGrid';
 import type {Subscriber, SubscriberState} from '../../../generated';
 
@@ -185,21 +183,13 @@ export default function SubscriberDetail() {
 function StatusInfo() {
   const params = useParams();
   const subscriberId: string = nullthrows(params.subscriberId);
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [refresh, setRefresh] = useState(false);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo: Subscriber = ctx.state?.[subscriberId];
-  const networkId: string = nullthrows(params.networkId);
-  const refreshingSessionState = useRefreshingContext({
-    context: SubscriberContext,
-    networkId,
-    type: 'subscriber',
-    interval: REFRESH_INTERVAL,
-    enqueueSnackbar,
-    refresh,
-    id: subscriberId,
-  });
-  const sessions: SubscriberState = refreshingSessionState.sessionState;
+  useInterval(
+    () => ctx.refetchSessionState(subscriberId),
+    refresh ? REFRESH_INTERVAL : null,
+  );
 
   function refreshFilter() {
     return (
@@ -223,7 +213,10 @@ function StatusInfo() {
           filter={() => refreshFilter()}
         />
 
-        <Status sessionState={sessions} subscriberInfo={subscriberInfo} />
+        <Status
+          sessionState={ctx.sessionState}
+          subscriberInfo={subscriberInfo}
+        />
       </Grid>
     </Grid>
   );
@@ -234,9 +227,8 @@ function Overview() {
   const params = useParams();
   const subscriberId: string = nullthrows(params.subscriberId);
   const ctx = useContext(SubscriberContext);
-  const subscriberInfo = ctx.state?.[subscriberId];
 
-  if (!subscriberInfo) {
+  if (!ctx.state?.[subscriberId]) {
     return null;
   }
 
@@ -250,11 +242,7 @@ function Overview() {
           <SubscriberChart />
         </Grid>
         <Grid item xs={12}>
-          <EventsTable
-            eventStream="SUBSCRIBER"
-            tags={subscriberInfo.id}
-            sz="md"
-          />
+          <EventsTable eventStream="SUBSCRIBER" tags={subscriberId} sz="md" />
         </Grid>
       </Grid>
     </div>

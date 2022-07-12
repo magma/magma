@@ -17,7 +17,7 @@ import EnodebContext from '../../components/context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '../../../shared/util/nullthrows';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useContext} from 'react';
 import {useInterval} from '../../hooks';

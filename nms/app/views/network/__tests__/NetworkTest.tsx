@@ -314,6 +314,7 @@ describe('<NetworkDashboard />', () => {
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
+      refetchSessionState: () => {},
     } as SubscriberContextType;
 
     const networkCtx = {

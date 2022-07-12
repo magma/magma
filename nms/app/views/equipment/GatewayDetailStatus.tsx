@@ -21,7 +21,7 @@ import React, {useContext} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {DynamicServices} from '../../components/GatewayUtils';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 
