@@ -1181,7 +1181,7 @@ cc_binary(
     name = "agw_of",
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=1"],
-    linkstatic = False,
+    linkstatic = True,
     deps = [":lib_agw_of"],
 )
 
@@ -1189,7 +1189,7 @@ cc_binary(
     name = "mme_oai",
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=0"],
-    linkstatic = False,
+    linkstatic = True,
     deps = [":lib_mme_oai"],
 )
 
