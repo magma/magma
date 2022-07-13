@@ -69,7 +69,7 @@ function  build_test() {
   sync
   depmod -a
 
-  make check-kmod TESTSUITEFLAGS="144-157"
+  make check-kmod TESTSUITEFLAGS="144-155"
   RET=$?
   exit $RET
 }
