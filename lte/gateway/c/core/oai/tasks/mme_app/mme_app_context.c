@@ -242,6 +242,20 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   }
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
 
+  // Delete pending dedicated bearer request
+  for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
+    if (ue_context_p->pending_ded_ber_req[idx]) {
+      if (ue_context_p->pending_ded_ber_req[idx]->tft) {
+        free_traffic_flow_template(
+            &ue_context_p->pending_ded_ber_req[idx]->tft);
+      }
+      if (ue_context_p->pending_ded_ber_req[idx]->pco) {
+        free_protocol_configuration_options(
+            &ue_context_p->pending_ded_ber_req[idx]->pco);
+      }
+      free_wrapper((void**)&ue_context_p->pending_ded_ber_req[idx]);
+    }
+  }
   ue_context_p->send_ue_purge_request = false;
   ue_context_p->hss_initiated_detach = false;
   for (int i = 0; i < MAX_APN_PER_UE; i++) {
