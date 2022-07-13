@@ -204,10 +204,6 @@ function SubscriberConfigTrafficPolicy({
 }
 
 function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: Subscriber}) {
-  const [authKey] = useState(subscriberInfo.lte.auth_key);
-  const [authOPC] = useState(subscriberInfo.lte.auth_opc);
-  const [dataPlan] = useState(subscriberInfo.lte.sub_profile);
-
   function CollapseItems(props: {
     key: SubscriberForbiddenNetworkTypesEnum;
     data: SubscriberForbiddenNetworkTypesEnum;
@@ -242,23 +238,23 @@ function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: Subscriber}) {
     [
       {
         category: 'Data plan',
-        value: dataPlan,
+        value: subscriberInfo.lte.sub_profile,
       },
     ],
     [
       {
         category: 'Auth Key',
-        value: authKey,
+        value: subscriberInfo.lte.auth_key,
         obscure: true,
       },
     ],
   ];
 
-  if (authOPC) {
+  if (subscriberInfo.lte.auth_opc) {
     kpiData.push([
       {
         category: 'Auth OPC',
-        value: authOPC,
+        value: subscriberInfo.lte.auth_opc,
       },
     ]);
   }
