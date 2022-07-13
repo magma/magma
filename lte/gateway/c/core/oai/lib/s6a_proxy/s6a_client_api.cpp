@@ -145,7 +145,7 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
       itti_msg->result.choice.base = DIAMETER_SUCCESS;
       magma::convert_proto_msg_to_itti_s6a_update_location_ans(response,
                                                                itti_msg);
-      //write to subscriberdb
+      // write to subscriberdb
 
     } else {
       itti_msg->result.present = S6A_RESULT_EXPERIMENTAL;
