@@ -327,6 +327,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
+			WithNetworkId(someNetwork).
 			WithSerialNumber(differentSerialNumber).
 			WithCbsdCategory("a").
 			WithIncompleteInstallationParam().
@@ -344,8 +345,10 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 		s.Run(tc.name, func() {
 			s.givenResourcesInserted(tc.input)
 
-			err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
+			cbsd, err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
 			s.Require().NoError(err)
+			s.Assert().Equal(tc.input.CbsdSerialNumber, cbsd.CbsdSerialNumber)
+			s.Assert().Equal(tc.input.NetworkId, cbsd.NetworkId)
 
 			err = s.resourceManager.InTransaction(func() {
 				actual, err := db.NewQuery().

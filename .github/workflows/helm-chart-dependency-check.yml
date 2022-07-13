@@ -2,7 +2,7 @@
 
 name: "Check dependencies of helm charts"
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -14,7 +14,7 @@ on:  # yamllint disable-line rule:truthy
     types:
       - opened
       - reopened
-      - synchronize  # yamllint disable-line rule:truthy
+      - synchronize
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check dependency of helm chart ${{ matrix.charts[0] }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Check Orc8r
         run: |
           echo "DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
@@ -71,7 +71,7 @@ jobs:
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "check_helm_chart_dependencies tests failed"

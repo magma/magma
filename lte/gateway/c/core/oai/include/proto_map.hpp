@@ -32,6 +32,7 @@ typedef enum proto_map_return_code_e {
   PROTO_MAP_BAD_PARAMETER_KEY,
   PROTO_MAP_BAD_PARAMETER_VALUE,
   PROTO_MAP_EMPTY,
+  PROTO_MAP_NOT_CREATED,
   PROTO_MAP_DUMP_FAIL
 } proto_map_rc_t;
 
@@ -101,8 +102,11 @@ struct proto_map_s {
   /* TODO (rsarwad): on final conversion to cpp,
    replace char array with std::string */
   char name[1024];
+  void (*free_callback_func)(void**);
 
-  void set_name(char* umap_name) {
+  proto_map_s() : free_callback_func(nullptr) {}
+  void bind_callback(void (*freefun)(void**)) { free_callback_func = freefun; }
+  void set_name(const char* umap_name) {
     strncpy(name, umap_name, strlen(umap_name));
   }
   char* get_name() { return name; }
@@ -117,6 +121,9 @@ struct proto_map_s {
   ***************************************************************************/
 
   proto_map_rc_t get(const keyT key, valueT* valueP) {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
     if (map->empty()) {
       return PROTO_MAP_EMPTY;
     }
@@ -142,6 +149,9 @@ struct proto_map_s {
   **                                                                        **
   ***************************************************************************/
   proto_map_rc_t insert(const keyT key, const valueT value) {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
     typedef typename google::protobuf::Map<keyT, valueT>::iterator itr;
     std::pair<itr, bool> insert_response =
         map->insert(google::protobuf::MapPair<keyT, valueT>(key, value));
@@ -161,8 +171,20 @@ struct proto_map_s {
   **                                                                        **
   ***************************************************************************/
   proto_map_rc_t remove(const keyT key) {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
     if (map->empty()) {
       return PROTO_MAP_EMPTY;
+    }
+
+    if (free_callback_func) {
+      valueT value;
+      if (get(key, &value) == PROTO_MAP_OK) {
+        free_callback_func(reinterpret_cast<void**>(&value));
+      } else {
+        return PROTO_MAP_KEY_NOT_EXISTS;
+      }
     }
 
     if (map->erase(key)) {
@@ -179,7 +201,12 @@ struct proto_map_s {
   ** Description: Returns true if map is empty, else returns false          **
   **                                                                        **
   ***************************************************************************/
-  bool isEmpty() { return map->empty(); }
+  bool isEmpty() {
+    if (!map) {
+      return true;
+    }
+    return map->empty();
+  }
 
   /***************************************************************************
   **                                                                        **
@@ -188,10 +215,14 @@ struct proto_map_s {
   ** Description: Clears the contents of the map                            **
   **                                                                        **
   ***************************************************************************/
-  void clear() {
+  proto_map_rc_t clear() {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
     if (!(map->empty())) {
       map->clear();
     }
+    return PROTO_MAP_OK;
   }
   /***************************************************************************
   **                                                                        **
@@ -200,7 +231,12 @@ struct proto_map_s {
   ** Description: size the contents of the map                              **
   **                                                                        **
   ***************************************************************************/
-  size_t size() { return map->size(); }
+  size_t size() {
+    if (!map) {
+      return 0;
+    }
+    return map->size();
+  }
 
   /***************************************************************************
   **                                                                        **
@@ -209,9 +245,21 @@ struct proto_map_s {
   ** Description: Clears the contents of the map and also delete map        **
   **                                                                        **
   ***************************************************************************/
-  void destroy_map() {
+  proto_map_rc_t destroy_map() {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
+    if (!(map->empty())) {
+      for (auto itr = map->begin(); itr != map->end(); itr++) {
+        if (free_callback_func) {
+          valueT value = itr->second;
+          free_callback_func(reinterpret_cast<void**>(&value));
+        }
+      }
+    }
     map->clear();
     delete map;
+    return PROTO_MAP_OK;
   }
 
   /***************************************************************************
@@ -226,6 +274,9 @@ struct proto_map_s {
       bool funct_cb(const keyT key, const valueT value, void* parameterP,
                     void** resultP),
       void* parameterP, void** resultP) {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
     if (map->empty()) {
       return PROTO_MAP_EMPTY;
     }

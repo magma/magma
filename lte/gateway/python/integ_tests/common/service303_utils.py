@@ -21,13 +21,13 @@ from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceInfo
 from orc8r.protos.service303_pb2_grpc import Service303Stub
 
-
 # Container for storing metric values
-class MetricValue(NamedTuple):
-    service: str
-    name: str
-    labels: List
-    value: Any
+MetricValue = NamedTuple(
+    'MetricValue', [
+        ('service', str), ('name', str),
+        ('labels', List), ('value', Any),
+    ],
+)
 
 
 class MetricNotFoundException(Exception):
@@ -144,7 +144,8 @@ class Service303Util(object):
                 return default
             else:
                 raise MetricNotFoundException(
-                    f"No {metric_name} metric found.",
+                    "No {metric_name} metric found."
+                    .format(metric_name=metric_name),
                 )
         metric_type = metric.type
         if not self._is_metric_type_supported(metric_type):
@@ -161,8 +162,9 @@ class Service303Util(object):
             return default
         else:
             raise MetricNotFoundException(
-                f"No metric under {metric_name} "
-                "has all of the label_values specified",
+                "No metric under {metric_name} "
+                "has all  of the label_values specified"
+                .format(metric_name=metric_name),
             )
 
     def get_start_time(self):
@@ -245,11 +247,11 @@ class Service303Util(object):
                 if self._service_started_after(started_after_time):
                     return True
                 else:
-                    print(f"{self._service_name} hasn't restarted yet")
+                    print("%s hasn't restarted yet" % (self._service_name))
             else:
-                print(f"{self._service_name} not healthy, waiting...")
+                print("%s not healthy, waiting..." % (self._service_name))
             time.sleep(self.SLEEP_TIME)
-        print(f"max iterations hit, {self._service_name} not healthy")
+        print("max iterations hit, %s not healthy" % (self._service_name))
         return False
 
 
@@ -327,9 +329,11 @@ def _verify_metric_differences(
         diff = final_vals[i].value - initial_vals[i].value
         expected = expected_vals[i].value
         logging.debug(
-            f'Metric {expected_vals[i].name} '
-            f'{str(expected_vals[i].labels)} increased by {diff}, '
-            f'expected {expected}',
+            'Metric %s %s increased by %d, expected %d',
+            expected_vals[i].name,
+            str(expected_vals[i].labels),
+            diff,
+            expected,
         )
         test_class.assertEqual(diff, expected)
     return

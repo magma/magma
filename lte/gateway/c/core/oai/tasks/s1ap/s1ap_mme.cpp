@@ -37,11 +37,11 @@ extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_TimeToWait.h"
@@ -377,14 +377,18 @@ void s1ap_mme_exit(void) {
 enb_description_t* s1ap_new_enb(void) {
   enb_description_t* enb_ref = NULL;
 
-  enb_ref = reinterpret_cast<enb_description_t*>(
-      calloc(1, sizeof(enb_description_t)));
+  enb_ref = new enb_description_t();
   /*
-   * Something bad happened during malloc...
+   * Something bad happened during new
    * * * * May be we are running out of memory.
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
-  DevAssert(enb_ref != NULL);
+  if (enb_ref == NULL) {
+    OAILOG_CRITICAL(
+        LOG_S1AP,
+        "Failed to allocate memory for structure, enb_description_t \n");
+    return enb_ref;
+  }
   enb_ref->ue_id_coll.map = new google::protobuf::Map<uint32_t, uint64_t>();
   enb_ref->ue_id_coll.set_name("s1ap_ue_coll");
   enb_ref->nb_ue_associated = 0;
@@ -490,7 +494,9 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
   }
   enb_ref->s1_state = S1AP_INIT;
   enb_ref->ue_id_coll.destroy_map();
-  hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
+  OAILOG_INFO(LOG_S1AP, "Deleting eNB on assoc_id :%u\n",
+              enb_ref->sctp_assoc_id);
+  state->enbs.remove(enb_ref->sctp_assoc_id);
   state->num_enbs--;
 }
 

@@ -10,14 +10,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
+ * @typedef { import("sequelize").DataTypes } DataTypes
+ * @typedef { import("sequelize").WhereOptions } WhereOptions
  */
 
-import type {DataTypes, QueryInterface} from 'sequelize';
-
 module.exports = {
-  up: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
+  /**
+   * @param {QueryInterface} queryInterface
+   */
+  up: queryInterface => {
     return queryInterface.bulkInsert(
       'Organizations',
       [
@@ -53,7 +61,11 @@ module.exports = {
     );
   },
 
-  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
+  /**
+   * @param {QueryInterface} queryInterface
+   */
+  down: queryInterface => {
+    // @ts-ignore
     return queryInterface.bulkDelete('Organizations', null, {});
   },
 };
