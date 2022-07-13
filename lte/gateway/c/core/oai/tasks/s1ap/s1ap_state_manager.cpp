@@ -15,10 +15,12 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 #include "lte/gateway/c/core/oai/include/proto_map.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
 constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
@@ -65,11 +67,10 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
   bstring ht_name;
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
-
-  ht_name = bfromcstr(S1AP_ENB_COLL);
-  hashtable_ts_init(&state_cache_p->enbs, max_enbs, nullptr, free_wrapper,
-                    ht_name);
-  bdestroy(ht_name);
+  state_cache_p->enbs.map =
+      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
+  state_cache_p->enbs.set_name(S1AP_ENB_COLL);
+  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
 
   ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
   hashtable_ts_init(&state_cache_p->mmeid2associd, max_ues, nullptr,
@@ -100,25 +101,21 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   sctp_assoc_id_t assoc_id;
   enb_description_t* enb;
 
-  keys = hashtable_ts_get_keys(&state_cache_p->enbs);
-  if (!keys) {
+  if (state_cache_p->enbs.isEmpty()) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
   } else {
-    for (i = 0; i < keys->num_keys; i++) {
-      assoc_id = (sctp_assoc_id_t)keys->keys[i];
-      ht_rc = hashtable_ts_get(&state_cache_p->enbs, (hash_key_t)assoc_id,
-                               (void**)&enb);
-      if (ht_rc != HASH_TABLE_OK) {
+    for (auto itr = state_cache_p->enbs.map->begin();
+         itr != state_cache_p->enbs.map->end(); itr++) {
+      enb = itr->second;
+      if (!enb) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
         enb->ue_id_coll.destroy_map();
       }
     }
-    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  if (hashtable_ts_destroy(&state_cache_p->enbs) != HASH_TABLE_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying s1 eNB hash table");
+  if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
   }
   if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
     OAILOG_ERROR(LOG_S1AP,

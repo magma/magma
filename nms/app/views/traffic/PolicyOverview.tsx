@@ -111,7 +111,7 @@ const useStyles = makeStyles<Theme>(theme => ({
 }));
 
 type PolicyRowType = {
-  policyID: string;
+  id: string;
   numFlows: number;
   priority: number;
   numSubscribers: number;
@@ -122,20 +122,20 @@ type PolicyRowType = {
 };
 
 type BaseNameRowType = {
-  baseNameID: string;
+  id: string;
   ruleNames: Array<string>;
   numSubscribers: number;
 };
 
 type ProfileRowType = {
   classID: QosClassId;
-  profileID: string;
+  id: string;
   uplinkBandwidth: number;
   downlinkBandwidth: number;
 };
 
 type RatingGroupRowType = {
-  ratingGroupID: string;
+  id: string;
   limitType: string;
 };
 
@@ -175,6 +175,12 @@ export default function PolicyOverview() {
     link: 'https://docs.magmacore.org/docs/nms/traffic#policy-configuration',
   };
 
+  const isEmpty =
+    Object.keys(ctx.state || {}).length === 0 &&
+    Object.keys(ctx.ratingGroups || {}).length === 0 &&
+    Object.keys(ctx.qosProfiles || {}).length === 0 &&
+    Object.keys(ctx.baseNames || {}).length === 0;
+
   return (
     <div className={classes.dashboardRoot}>
       <PolicyRuleEditDialog
@@ -182,7 +188,19 @@ export default function PolicyOverview() {
         onClose={() => setOpen(false)}
         rule={undefined}
       />
-      {Object.keys(ctx.state || {}).length > 0 ? (
+      {isEmpty ? (
+        <Grid container justify="space-between" spacing={3}>
+          <EmptyState
+            title={'Set up a Policy'}
+            instructions={
+              'Add a policy to the NMS by filling out the required fields.'
+            }
+            cardActions={cardActions}
+            overviewTitle={'Policy Overview'}
+            overviewDescription={EMPTY_STATE_OVERVIEW}
+          />
+        </Grid>
+      ) : (
         <>
           <MagmaTabs
             value={currTabIndex}
@@ -197,18 +215,6 @@ export default function PolicyOverview() {
           {currTabIndex === 2 && <ProfileTable />}
           {currTabIndex === 3 && <RatingGroupTable />}
         </>
-      ) : (
-        <Grid container justify="space-between" spacing={3}>
-          <EmptyState
-            title={'Set up a Policy'}
-            instructions={
-              'Add a policy to the NMS by filling out the required fields.'
-            }
-            cardActions={cardActions}
-            overviewTitle={'Policy Overview'}
-            overviewDescription={EMPTY_STATE_OVERVIEW}
-          />
-        </Grid>
       )}
     </div>
   );
@@ -230,7 +236,7 @@ export function PolicyTableRaw(props: WithAlert) {
     ? Object.keys(policies).map((policyID: string) => {
         const policyRule = policies[policyID];
         return {
-          policyID: policyRule.id,
+          id: policyRule.id,
           numFlows: policyRule.flow_list?.length ?? 0,
           priority: policyRule.priority,
           numSubscribers: policyRule.assigned_subscribers?.length ?? 0,
@@ -247,16 +253,14 @@ export function PolicyTableRaw(props: WithAlert) {
       <PolicyRuleEditDialog
         open={open}
         onClose={() => setOpen(false)}
-        rule={
-          Object.keys(currRow).length ? policies[currRow.policyID] : undefined
-        }
+        rule={Object.keys(currRow).length ? policies[currRow.id] : undefined}
       />
       <ActionTable
         data={policyRows}
         columns={[
           {
             title: 'Policy ID',
-            field: 'policyID',
+            field: 'id',
             render: currRow => (
               <Link
                 variant="body2"
@@ -265,7 +269,7 @@ export function PolicyTableRaw(props: WithAlert) {
                   setCurrRow(currRow);
                   setOpen(true);
                 }}>
-                {currRow.policyID}
+                {currRow.id}
               </Link>
             ),
           },
@@ -303,7 +307,7 @@ export function PolicyTableRaw(props: WithAlert) {
           {
             name: 'Edit JSON',
             handleFunc: () => {
-              navigate(currRow.policyID + '/json');
+              navigate(currRow.id + '/json');
             },
           },
           {name: 'Deactivate'},
@@ -311,7 +315,7 @@ export function PolicyTableRaw(props: WithAlert) {
             name: 'Remove',
             handleFunc: () => {
               void props
-                .confirm(`Are you sure you want to delete ${currRow.policyID}?`)
+                .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
                     return;
@@ -319,14 +323,11 @@ export function PolicyTableRaw(props: WithAlert) {
 
                   try {
                     // trigger deletion
-                    await ctx.setState(currRow.policyID);
+                    await ctx.setState(currRow.id);
                   } catch (e) {
-                    enqueueSnackbar(
-                      'failed deleting policy ' + currRow.policyID,
-                      {
-                        variant: 'error',
-                      },
-                    );
+                    enqueueSnackbar('failed deleting policy ' + currRow.id, {
+                      variant: 'error',
+                    });
                   }
                 });
             },
@@ -353,7 +354,7 @@ export function BaseNameTableRaw(props: WithAlert) {
     ? Object.keys(baseNames).map((baseNameID: string) => {
         const baseNameRecord = baseNames[baseNameID];
         return {
-          baseNameID: baseNameID,
+          id: baseNameID,
           ruleNames: baseNameRecord.rule_names,
           numSubscribers: baseNameRecord?.assigned_subscribers?.length || 0,
         };
@@ -365,14 +366,14 @@ export function BaseNameTableRaw(props: WithAlert) {
       <BaseNameEditDialog
         open={open}
         onClose={() => setOpen(false)}
-        baseNameId={currRow?.baseNameID}
+        baseNameId={currRow?.id}
       />
       <ActionTable
         data={baseNameRows}
         columns={[
           {
             title: 'Base Name ID',
-            field: 'baseNameID',
+            field: 'id',
             render: currRow => (
               <Link
                 variant="body2"
@@ -381,7 +382,7 @@ export function BaseNameTableRaw(props: WithAlert) {
                   setCurrRow(currRow);
                   setOpen(true);
                 }}>
-                {currRow.baseNameID}
+                {currRow.id}
               </Link>
             ),
           },
@@ -418,9 +419,7 @@ export function BaseNameTableRaw(props: WithAlert) {
             name: 'Remove',
             handleFunc: () => {
               void props
-                .confirm(
-                  `Are you sure you want to delete ${currRow.baseNameID}?`,
-                )
+                .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
                     return;
@@ -428,14 +427,11 @@ export function BaseNameTableRaw(props: WithAlert) {
 
                   try {
                     // trigger deletion
-                    await ctx.setBaseNames(currRow.baseNameID);
+                    await ctx.setBaseNames(currRow.id);
                   } catch (e) {
-                    enqueueSnackbar(
-                      'failed deleting base name ' + currRow.baseNameID,
-                      {
-                        variant: 'error',
-                      },
-                    );
+                    enqueueSnackbar('failed deleting base name ' + currRow.id, {
+                      variant: 'error',
+                    });
                   }
                 });
             },
@@ -460,7 +456,7 @@ export function ProfileTableRaw(props: WithAlert) {
     ? Object.keys(profiles).map((profileID: string) => {
         const profile = profiles[profileID];
         return {
-          profileID: profile.id,
+          id: profile.id,
           classID: profile.class_id,
           uplinkBandwidth: profile.max_req_bw_ul,
           downlinkBandwidth: profile.max_req_bw_dl,
@@ -473,16 +469,14 @@ export function ProfileTableRaw(props: WithAlert) {
       <ProfileEditDialog
         open={open}
         onClose={() => setOpen(false)}
-        profile={
-          Object.keys(currRow).length ? profiles[currRow.profileID] : undefined
-        }
+        profile={Object.keys(currRow).length ? profiles[currRow.id] : undefined}
       />
       <ActionTable
         data={profileRows}
         columns={[
           {
             title: 'Profile ID',
-            field: 'profileID',
+            field: 'id',
             render: currRow => (
               <Link
                 variant="body2"
@@ -491,7 +485,7 @@ export function ProfileTableRaw(props: WithAlert) {
                   setCurrRow(currRow);
                   setOpen(true);
                 }}>
-                {currRow.profileID}
+                {currRow.id}
               </Link>
             ),
           },
@@ -519,9 +513,7 @@ export function ProfileTableRaw(props: WithAlert) {
             name: 'Remove',
             handleFunc: () => {
               void props
-                .confirm(
-                  `Are you sure you want to delete ${currRow.profileID}?`,
-                )
+                .confirm(`Are you sure you want to delete ${currRow.id}?`)
                 .then(async confirmed => {
                   if (!confirmed) {
                     return;
@@ -529,14 +521,11 @@ export function ProfileTableRaw(props: WithAlert) {
 
                   try {
                     // trigger deletion
-                    await ctx.setQosProfiles(currRow.profileID);
+                    await ctx.setQosProfiles(currRow.id);
                   } catch (e) {
-                    enqueueSnackbar(
-                      'failed deleting profile ' + currRow.profileID,
-                      {
-                        variant: 'error',
-                      },
-                    );
+                    enqueueSnackbar('failed deleting profile ' + currRow.id, {
+                      variant: 'error',
+                    });
                   }
                 });
             },
@@ -563,7 +552,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
     ? Object.keys(ratingGroups).map((ratingGroupID: string) => {
         const ratingGroup = ratingGroups[ratingGroupID];
         return {
-          ratingGroupID: ratingGroup.id.toString(),
+          id: ratingGroup.id.toString(),
           limitType: ratingGroup.limit_type,
         };
       })
@@ -574,9 +563,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
         open={open}
         onClose={() => setOpen(false)}
         ratingGroup={
-          Object.keys(currRow).length
-            ? ratingGroups[currRow.ratingGroupID]
-            : undefined
+          Object.keys(currRow).length ? ratingGroups[currRow.id] : undefined
         }
       />
       <ActionTable
@@ -584,7 +571,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
         columns={[
           {
             title: 'Rating Group ID',
-            field: 'ratingGroupID',
+            field: 'id',
             render: currRow => (
               <Link
                 variant="body2"
@@ -593,7 +580,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
                   setCurrRow(currRow);
                   setOpen(true);
                 }}>
-                {currRow.ratingGroupID}
+                {currRow.id}
               </Link>
             ),
           },
@@ -612,7 +599,7 @@ export function RatingGroupTableRaw(props: WithAlert) {
             handleFunc: () => {
               void props
                 .confirm(
-                  `Are you sure you want to delete Rating Group ${currRow.ratingGroupID}?`,
+                  `Are you sure you want to delete Rating Group ${currRow.id}?`,
                 )
                 .then(async confirmed => {
                   if (!confirmed) {
@@ -620,10 +607,10 @@ export function RatingGroupTableRaw(props: WithAlert) {
                   }
 
                   try {
-                    await ctx.setRatingGroups(currRow.ratingGroupID.toString());
+                    await ctx.setRatingGroups(currRow.id.toString());
                   } catch (e) {
                     enqueueSnackbar(
-                      'failed deleting rating group ' + currRow.ratingGroupID,
+                      'failed deleting rating group ' + currRow.id,
                       {
                         variant: 'error',
                       },

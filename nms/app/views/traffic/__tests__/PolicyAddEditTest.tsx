@@ -233,7 +233,6 @@ describe('<TrafficDashboard />', () => {
               networkId={'test'}
               networkType={networkType}>
               <PolicyProvider networkId={'test'} networkType={networkType}>
-                \
                 <Routes>
                   <Route
                     path="/nms/:networkId/traffic/policy/*"
@@ -247,6 +246,38 @@ describe('<TrafficDashboard />', () => {
       </MuiThemeProvider>
     </MemoryRouter>
   );
+
+  it('shows placeholder', async () => {
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesviewfullGet', {});
+    const {findByText} = render(<PolicyWrapper networkType={LTE} />);
+
+    expect(
+      await findByText(
+        'Add a policy to the NMS by filling out the required fields.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('does not show placeholder if there is some data', async () => {
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesviewfullGet', {});
+    mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', {
+      foo: {
+        class_id: 1,
+        id: 'foo',
+        max_req_bw_dl: 5,
+        max_req_bw_ul: 6,
+      },
+    });
+    const {queryByText} = render(<PolicyWrapper networkType={LTE} />);
+
+    await waitFor(() => {
+      expect(
+        queryByText(
+          'Add a policy to the NMS by filling out the required fields.',
+        ),
+      ).not.toBeInTheDocument();
+    });
+  });
 
   // verify feg_lte network wide policy add
   // verify lte network wide policy add

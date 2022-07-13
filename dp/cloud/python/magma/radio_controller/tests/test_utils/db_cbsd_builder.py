@@ -106,10 +106,30 @@ class DBCbsdBuilder:
         self.cbsd.preferred_frequencies_mhz = frequencies_mhz
         return self
 
+    def with_available_frequencies(self, frequencies: List[int]):
+        self.cbsd.available_frequencies = frequencies
+        return self
+
+    def with_carrier_aggregation(self, enabled: bool) -> DBCbsdBuilder:
+        self.cbsd.carrier_aggregation_enabled = enabled
+        return self
+
+    def with_max_ibw(self, max_ibw_mhz: int) -> DBCbsdBuilder:
+        self.cbsd.max_ibw_mhz = max_ibw_mhz
+        return self
+
+    def with_grant_redundancy(self, enabled: bool) -> DBCbsdBuilder:
+        self.cbsd.grant_redundancy = enabled
+        return self
+
     def with_grant(
         self,
-        grant_id: str, state_id: int,
-        hb_interval_sec: int, last_hb_timestamp: int = None,
+        grant_id: str,
+        state_id: int,
+        hb_interval_sec: int,
+        last_hb_timestamp: int = None,
+        low_frequency: int = 3500,
+        high_frequency: int = 3700,
     ) -> DBCbsdBuilder:
         last_hb_time = datetime.fromtimestamp(
             last_hb_timestamp,
@@ -119,8 +139,8 @@ class DBCbsdBuilder:
             state_id=state_id,
             heartbeat_interval=hb_interval_sec,
             last_heartbeat_request_time=last_hb_time,
-            low_frequency=0,
-            high_frequency=0,
+            low_frequency=low_frequency,
+            high_frequency=high_frequency,
             max_eirp=0,
         )
         self.cbsd.grants.append(grant)
