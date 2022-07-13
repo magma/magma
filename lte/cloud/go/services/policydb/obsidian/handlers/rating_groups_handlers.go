@@ -14,17 +14,17 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/merrors"
 )
 
@@ -122,7 +122,7 @@ func UpdateRatingGroup(c echo.Context) error {
 	// 404 if rating group doesn't exist
 	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "Failed to check if rating group exists"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to check if rating group exists: %w", err))
 	}
 	if !exists {
 		return echo.ErrNotFound

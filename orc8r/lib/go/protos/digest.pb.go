@@ -19,7 +19,7 @@
 package protos
 
 import (
-	any "github.com/golang/protobuf/ptypes/any"
+	any1 "github.com/golang/protobuf/ptypes/any"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -256,7 +256,7 @@ type Changeset struct {
 	unknownFields protoimpl.UnknownFields
 
 	// to_renew contains all objects which were added or updated, sorted by ID.
-	ToRenew []*any.Any `protobuf:"bytes,1,rep,name=to_renew,json=toRenew,proto3" json:"to_renew,omitempty"`
+	ToRenew []*any1.Any `protobuf:"bytes,1,rep,name=to_renew,json=toRenew,proto3" json:"to_renew,omitempty"`
 	// deleted lists the IDs for all objects which were deleted.
 	Deleted []string `protobuf:"bytes,2,rep,name=deleted,proto3" json:"deleted,omitempty"`
 }
@@ -293,7 +293,7 @@ func (*Changeset) Descriptor() ([]byte, []int) {
 	return file_orc8r_protos_digest_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Changeset) GetToRenew() []*any.Any {
+func (x *Changeset) GetToRenew() []*any1.Any {
 	if x != nil {
 		return x.ToRenew
 	}
@@ -364,7 +364,7 @@ var file_orc8r_protos_digest_proto_goTypes = []interface{}{
 	(*LeafDigest)(nil),  // 2: magma.orc8r.LeafDigest
 	(*LeafDigests)(nil), // 3: magma.orc8r.LeafDigests
 	(*Changeset)(nil),   // 4: magma.orc8r.Changeset
-	(*any.Any)(nil),     // 5: google.protobuf.Any
+	(*any1.Any)(nil),    // 5: google.protobuf.Any
 }
 var file_orc8r_protos_digest_proto_depIdxs = []int32{
 	1, // 0: magma.orc8r.DigestTree.root_digest:type_name -> magma.orc8r.Digest

@@ -12,6 +12,7 @@ limitations under the License.
 #pragma once
 #include <sstream>
 #include <cstdint>
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 namespace magma5g {
 // 5GS mobile identity information element for type of identity "5G-GUTI" SPEC :
@@ -109,8 +110,8 @@ class ImsiM5GSMobileIdentity {
 #define PROFILE_B 2
 #define PROFILE_B_LEN 1
   uint8_t empheral_public_key[EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN + 1];
-#define CIPHERTEXT_LENGTH 5
-  uint8_t ciphertext[CIPHERTEXT_LENGTH + 1];
+#define CIPHERTEXT_LENGTH 10
+  bstring ciphertext;
 #define MAC_TAG_LENGTH 8
   uint8_t mac_tag[MAC_TAG_LENGTH + 1];
 };

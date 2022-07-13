@@ -145,6 +145,11 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
 	assert.Equal(t, fmt.Sprintf("controlProxy %d not found", sampleTenantID), status.Convert(err).Message())
 
+	// Get control_proxy not set
+	_, err = srv.GetControlProxyFromNetworkID(context.Background(), &tenant_protos.GetControlProxyFromNetworkIDRequest{NetworkID: sampleTenant.Networks[0]})
+	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
+	assert.Equal(t, fmt.Sprintf("no control-proxy found for tenant %d", sampleTenantID), status.Convert(err).Message())
+
 	// Create control_proxy
 	_, err = srv.CreateOrUpdateControlProxy(context.Background(), &sampleCreateControlProxyReq)
 	assert.NoError(t, err)
@@ -160,6 +165,16 @@ func TestControlProxyTenantsServicer(t *testing.T) {
 	controlProxy, err = srv.GetControlProxy(context.Background(), &tenant_protos.GetControlProxyRequest{Id: sampleTenantID})
 	assert.NoError(t, err)
 	test_utils.AssertMessagesEqual(t, controlProxy, &sampleGetControlProxyRes2)
+
+	// get control_proxy from network ID
+	controlProxy, err = srv.GetControlProxyFromNetworkID(context.Background(), &tenant_protos.GetControlProxyFromNetworkIDRequest{NetworkID: sampleTenant.Networks[0]})
+	assert.NoError(t, err)
+	test_utils.AssertMessagesEqual(t, controlProxy, &sampleGetControlProxyRes2)
+
+	// get control_proxy from network ID, no tenant
+	_, err = srv.GetControlProxyFromNetworkID(context.Background(), &tenant_protos.GetControlProxyFromNetworkIDRequest{NetworkID: "network_nonexistent"})
+	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
+	assert.Equal(t, "tenantID for current NetworkID network_nonexistent not found", status.Convert(err).Message())
 
 	// Get control_proxy not set
 	_, err = srv.GetControlProxy(context.Background(), &tenant_protos.GetControlProxyRequest{Id: sampleTenantID + 1})

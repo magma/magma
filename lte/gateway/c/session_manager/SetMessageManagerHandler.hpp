@@ -128,6 +128,11 @@ class SetMessageManagerHandler : public SetMessageManager {
   void initiate_release_session(SessionMap& session_map, const uint32_t& pdu_id,
                                 const std::string& imsi);
 
+  void request_modification_session(
+      SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
+      uint32_t& pdu_id,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
  private:
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;

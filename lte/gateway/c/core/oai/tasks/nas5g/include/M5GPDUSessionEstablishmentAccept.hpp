@@ -36,7 +36,13 @@ class PDUSessionEstablishmentAcceptMsg {
   MessageTypeMsg message_type;
   PDUSessionTypeMsg pdu_session_type;
   SSCModeMsg ssc_mode;
-  QOSRulesMsg qos_rules;
+
+  // Qos Rules
+  bstring authorized_qosrules;
+
+  // Flow Descriptors
+  bstring authorized_qosflowdescriptors;
+
   SessionAMBRMsg session_ambr;
   PDUAddressMsg pdu_address;
   ProtocolConfigurationOptions protocolconfigurationoptions;

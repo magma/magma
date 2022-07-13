@@ -15,9 +15,9 @@ package southbound
 
 import (
 	"context"
+	"errors"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	prom_proto "github.com/prometheus/client_model/go"
 
 	"magma/orc8r/cloud/go/serdes"
@@ -91,7 +91,7 @@ func metricsContainerToMetricAndContexts(
 	ret := make([]exporters.MetricAndContext, 0, len(in.Family))
 	for _, fam := range in.Family {
 		ctx := exporters.MetricContext{
-			MetricName: protos.GetDecodedName(fam),
+			MetricName: fam.GetName(),
 			AdditionalContext: &exporters.GatewayMetricContext{
 				NetworkID: networkID,
 				GatewayID: gatewayID,

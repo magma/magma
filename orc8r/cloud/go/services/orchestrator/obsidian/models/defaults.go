@@ -96,7 +96,7 @@ func NewDefaultGatewayStatus(hardwareID string) *GatewayStatus {
 		},
 		PlatformInfo: &PlatformInfo{
 			VpnIP: "facebook.com",
-			Packages: []*Package{
+			Packages: []*DistributionPackage{
 				{
 					Name:    "magma",
 					Version: "0.0.0.0",

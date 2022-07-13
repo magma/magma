@@ -74,24 +74,12 @@ client/server implementation. Tightly coupled with protobuf.
 
 Considered alternatives: Thrift, Swagger, JSON-RPC
 
-### github.com/pkg/errors
-
-BSD-2 license.
-
-Very lightweight library, does not have any transitive dependencies. A well-
-reasoned extension to built-in errors, this package provides stack tracing and
-error wrap/unwrapping. Some of this functionality was added to the built-in
-errors package as of Golang 1.13 (and this package influenced part of that
-design), but the built-in is lacking easy stack trace support.
-
-Considered alternatives: built-in errors, github.com/cockroachdb/errors
-
 ### Uber Zap
 
 MIT license.
 
 Medium weight, pulls in a few transitive dependencies, but has a large overlap
-with dependencies we also use (github.com/pkg/errors, testify). Provides
+with testify. Provides
 scoped/named loggers and parameterized logging while achieving better
 performance than other libraries proven via benchmarks.
 

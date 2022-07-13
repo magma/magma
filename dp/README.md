@@ -24,11 +24,21 @@ make orc8r
 ## Running integration tests.
 
 ```
-CI=true make
+make integration_tests
 ```
 
 ## Running integration tests with orc8r deployed.
 
 ```
 make orc8r_integration_tests
+```
+
+## Enabling metrics
+
+Make targets `orc8r` and `orc8r_integration_tests` can be run with metrics.
+In this case prometheus and grafana PODS will be included in deployment.
+To enable it evironment variable `DP_METRICS` have to be set e.g:
+
+```bash
+DP_METRICS=true make orc8r
 ```

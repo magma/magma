@@ -12,13 +12,13 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/proto"
@@ -258,7 +258,7 @@ func TestNewConfigManager_DefaultNotFound(t *testing.T) {
 
 	cm := NewConfigManager()
 	err := LoadConfigFile(cm, filepath.Join("testdata", "doesnotexist.json"))
-	assert.True(t, os.IsNotExist(errors.Cause(err)))
+	assert.True(t, os.IsNotExist(errors.Unwrap(err)))
 	assert.True(t, proto.Equal(newDefaultConfig(), cm.Config()))
 }
 

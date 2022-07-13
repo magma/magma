@@ -521,5 +521,5 @@ func main() {
 	}
 	args := os.Args[2:]
 	cmd.Flags().Parse(args)
-	os.Exit(cmd.Handle(args))
+	cmd.Handle(args)
 }

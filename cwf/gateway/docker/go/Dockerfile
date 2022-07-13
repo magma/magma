@@ -1,4 +1,4 @@
-ARG baseImage="ubuntu:bionic"
+ARG baseImage="ubuntu:focal"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
@@ -36,11 +36,14 @@ RUN apt-get update && apt-get install -y \
     vim \
     virtualenv
 
-# Install Golang 1.13.
+# Golang 1.18
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
-    tar xf go1.13.4.linux-amd64.tar.gz && \
-    cp -r go/bin/* /usr/local/bin/
+ARG GOLANG_VERSION="1.18.3"
+RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+ && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && tar -xzf ${GO_TARBALL} \
+ && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+ && rm ${GO_TARBALL}
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -79,13 +82,18 @@ COPY orc8r/lib/go/protos/go.* $MAGMA_ROOT/orc8r/lib/go/protos/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/cwf/gateway
-RUN go mod download; exit 0
+RUN go mod download
 # Install protoc-gen-go
-RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
+RUN go install github.com/golang/protobuf/protoc-gen-go
 
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
 RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
+
+# -----------------------------------------------------------------------------
+# Builder image with binary
+# -----------------------------------------------------------------------------
+FROM base as builder
 
 # Build the code.
 COPY cwf $MAGMA_ROOT/cwf
@@ -95,10 +103,6 @@ COPY orc8r/lib/go $MAGMA_ROOT/orc8r/lib/go
 COPY orc8r/cloud $MAGMA_ROOT/orc8r/cloud
 COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 
-# -----------------------------------------------------------------------------
-# Builder image with binary
-# -----------------------------------------------------------------------------
-FROM base as builder
 # Enable make gen if proto gen is required
 # RUN make -C $MAGMA_ROOT/cwf/gateway gen
 RUN make -C $MAGMA_ROOT/cwf/gateway build
@@ -106,7 +110,7 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS cwag_go
+FROM ${baseImage} AS cwag_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools curl arping

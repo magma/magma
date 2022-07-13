@@ -22,7 +22,6 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
 	_ "magma/orc8r/lib/go/initflag"
@@ -46,15 +45,6 @@ func GetServiceConfig(moduleName string, serviceName string) (*Map, error) {
 	return getServiceConfigImpl(moduleName, serviceName, main, legacy, overwrite)
 }
 
-// MustGetServiceConfig is same as GetServiceConfig but fails on errors.
-func MustGetServiceConfig(moduleName string, serviceName string) *Map {
-	cfg, err := GetServiceConfig(moduleName, serviceName)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	return cfg
-}
-
 // GetServiceConfigs returns module-keyed configs for the named service
 // from all known modules.
 // The list of known modules is determined by listing all non-directory files
@@ -69,7 +59,7 @@ func GetServiceConfigs(serviceName string) (map[string]*Map, error) {
 	for _, moduleName := range modules {
 		cfg, err := GetServiceConfig(moduleName, serviceName)
 		if err != nil {
-			return nil, errors.Wrapf(err, "get service config for %v.%v", moduleName, serviceName)
+			return nil, fmt.Errorf("get service config for %v.%v: %w", moduleName, serviceName, err)
 		}
 		ret[moduleName] = cfg
 	}
@@ -152,13 +142,6 @@ func GetStructuredServiceConfigExt(
 	return ymlFilePath, ymlQWFilePath, oerr
 }
 
-// GetCurrentConfigDirectories returns currently used service YML configuration locations
-func GetCurrentConfigDirectories() (main, legacy, overwrite string) {
-	cfgDirMu.RLock()
-	defer cfgDirMu.RUnlock()
-	return configDir, oldConfigDir, configOverrideDir
-}
-
 // SetConfigDirectories sets main, legacy, overwrite config directories to be used
 func SetConfigDirectories(main, legacy, overwrite string) {
 	cfgDirMu.Lock()
@@ -222,7 +205,7 @@ func updateMap(baseMap, overrides *Map) *Map {
 func getModules() ([]string, error) {
 	moduleFiles, err := ioutil.ReadDir(configDir)
 	if err != nil {
-		return nil, errors.Wrap(err, "read modules from config directory")
+		return nil, fmt.Errorf("read modules from config directory: %w", err)
 	}
 	var modules []string
 	for _, m := range moduleFiles {

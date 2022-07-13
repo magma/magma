@@ -6,14 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // MsisdnAssignment msisdn assignment
+//
 // swagger:model msisdn_assignment
 type MsisdnAssignment struct {
 
@@ -46,9 +49,15 @@ func (m *MsisdnAssignment) Validate(formats strfmt.Registry) error {
 
 func (m *MsisdnAssignment) validateID(formats strfmt.Registry) error {
 
+	if err := validate.Required("id", "body", models1.SubscriberID(m.ID)); err != nil {
+		return err
+	}
+
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
 		}
 		return err
 	}
@@ -58,9 +67,61 @@ func (m *MsisdnAssignment) validateID(formats strfmt.Registry) error {
 
 func (m *MsisdnAssignment) validateMsisdn(formats strfmt.Registry) error {
 
+	if err := validate.Required("msisdn", "body", Msisdn(m.Msisdn)); err != nil {
+		return err
+	}
+
 	if err := m.Msisdn.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("msisdn")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("msisdn")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this msisdn assignment based on the context it is used
+func (m *MsisdnAssignment) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateID(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMsisdn(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MsisdnAssignment) contextValidateID(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.ID.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MsisdnAssignment) contextValidateMsisdn(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Msisdn.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("msisdn")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("msisdn")
 		}
 		return err
 	}

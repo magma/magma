@@ -82,8 +82,8 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   EXPECT_EQ(magma::lte::PduSessionType::IPV4, rat_req->pdu_session_type());
   EXPECT_EQ(1, rat_req->mutable_gnode_endpoint()->teid());
   EXPECT_EQ(gnb_ip_addr, rat_req->mutable_gnode_endpoint()->end_ipv4_addr());
-  uint8_t* pti_decoded = (uint8_t*)rat_req->procedure_trans_identity().c_str();
-  EXPECT_EQ(pti, *pti_decoded);
+  uint8_t pti_decoded = (uint8_t)rat_req->procedure_trans_identity();
+  EXPECT_EQ(pti, pti_decoded);
   EXPECT_EQ(ue_ipv4_addr, req_cmn->ue_ipv4());
 }
 }  // namespace lte

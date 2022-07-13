@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"magma/feg/cloud/go/feg"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
@@ -175,7 +174,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 func getFegConfig(gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFederationConfigs, error) {
 	fegGW, err := graph.GetEntity(feg.FegGatewayType, gatewayID)
 	if err != nil && err != merrors.ErrNotFound {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	// err can only be merrors.ErrNotFound at this point - if it's nil, we'll
 	// just return the feg gateway config if it exists

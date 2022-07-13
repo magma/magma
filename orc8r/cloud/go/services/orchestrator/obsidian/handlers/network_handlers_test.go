@@ -20,16 +20,16 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
 	models1 "magma/orc8r/cloud/go/models"
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian/tests"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 )
@@ -257,8 +257,8 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
-			"description in body should be at least 1 chars long\n" +
-			"name in body should be at least 1 chars long",
+			"description in body is required\n" +
+			"name in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -300,7 +300,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"validation failure list:\n" +
-			"domain in body is required",
+			"dns.records.0.domain in body is required",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -316,7 +316,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"validation failure list:\n" +
-			"a_record.0 in body must be of type ipv4: \"not ipv4\"",
+			"dns.records.0.a_record.0 in body must be of type ipv4: \"not ipv4\"",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -332,7 +332,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"validation failure list:\n" +
-			"aaaa_record.0 in body must be of type ipv6: \"not ipv6\"",
+			"dns.records.0.aaaa_record.0 in body must be of type ipv6: \"not ipv6\"",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -880,7 +880,7 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
-			"a_record.0 in body must be of type ipv4: \"192-88-99-142\"",
+			"records.0.a_record.0 in body must be of type ipv4: \"192-88-99-142\"",
 	}
 	tests.RunUnitTest(t, e, tc)
 

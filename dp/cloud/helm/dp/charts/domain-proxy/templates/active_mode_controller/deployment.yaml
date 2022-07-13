@@ -52,6 +52,10 @@ spec:
             - name: {{ $key }}
               value: {{ $value }}
             {{- end }}
+            - name: SERVICE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           envFrom:
           - configMapRef:
               name: {{ include "domain-proxy.configuration_controller.fullname" . }}-common

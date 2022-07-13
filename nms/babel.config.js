@@ -9,22 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
-
- * @format
  */
 
 module.exports = {
-  ignore: [
-    filename => {
-      if (filename.indexOf('fbcnms') >= 0) {
-        return false;
-      } else if (filename.indexOf('node_modules') >= 0) {
-        return true;
-      }
-      return false;
-    },
-  ],
+  ignore: ['node_modules'],
   presets: [
     [
       '@babel/preset-env',
@@ -37,8 +25,8 @@ module.exports = {
         useBuiltIns: 'entry',
       },
     ],
-    '@babel/preset-flow',
     '@babel/preset-react',
+    '@babel/preset-typescript',
   ],
   plugins: [
     'babel-plugin-lodash',
@@ -46,8 +34,6 @@ module.exports = {
     '@babel/plugin-proposal-nullish-coalescing-operator',
     '@babel/plugin-proposal-optional-chaining',
     '@babel/plugin-transform-react-jsx',
-    'babel-plugin-fbt',
-    'babel-plugin-fbt-runtime',
   ],
   env: {
     test: {

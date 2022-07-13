@@ -115,6 +115,7 @@
     remote_src: yes
   with_items:
     - config_stateless_agw.py
+    - config_iface_for_ipv6.py
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
@@ -329,19 +330,28 @@
     - gmock
   when: preburn
 
+- name: Remove existing golang installation
+  # TODO: make golang installation preburn and delete this step
+  # it is necessary because the old golang installation has to be removed
+  # before installing the new one (https://go.dev/doc/install)
+  shell: rm -rf /usr/local/go
+  when: full_provision
+
 - name: Download golang tar
+  # TODO: make this preburn again
   get_url:
-    url: "https://storage.googleapis.com/golang/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    url: "https://artifactory.magmacore.org/artifactory/generic/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
-  when: preburn
+  when: full_provision
 
 - name: Extract Go tarball
+  # TODO: make this preburn again
   unarchive:
     src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: /usr/local
     copy: no
-  when: preburn
+  when: full_provision
 
 - name: Set Go environment vars in profile
   lineinfile:
@@ -350,6 +360,7 @@
     line: "{{ item }}"
   with_items:
     - export PATH=$PATH:/usr/local/bin/go/
+    - export PATH=$PATH:$(go env GOPATH)/bin/
   when: full_provision
 
 - name: Install dnsmasq
@@ -414,6 +425,20 @@
   when: full_provision
   ignore_errors: true
 
+- name: Copy ryu qfi patch1 for 3.8
+  copy:
+    src: patches/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch
+    dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nicira_ext.py
+  when: full_provision
+  ignore_errors: true
+
+- name: Copy ryu qfi patch2 for 3.8
+  copy:
+    src: patches/0003-QFI-value-set-in-Openflow-controller-using-RYU.patch
+    dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nx_match.py
+  when: full_provision
+  ignore_errors: true
+
 - name: Change build folder ownership
   ansible.builtin.file:
     path: /home/vagrant/build
@@ -461,6 +486,20 @@
   file:
     src: '/home/vagrant/magma/bazel/bazelrcs/vm.bazelrc'
     path: '/etc/bazelrc'
+    state: link
+    force: yes
+
+- name: Symlink bazel disk cache configuration into the VM
+  file:
+    src: '/home/vagrant/magma/.bazel-cache'
+    path: '/var/cache/bazel-cache'
+    state: link
+    force: yes
+
+- name: Symlink bazel disk repository cache configuration into the VM
+  file:
+    src: '/home/vagrant/magma/.bazel-cache-repo'
+    path: '/var/cache/bazel-cache-repo'
     state: link
     force: yes
 

@@ -15,11 +15,12 @@ package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
 
 cc_test(
     name = "lib_3gpp_test",
+    size = "small",
     srcs = [
         "test_3gpp.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/common:common_defs",
         "@com_google_googletest//:gtest_main",
     ],
@@ -27,11 +28,12 @@ cc_test(
 
 cc_test(
     name = "lib_bstr_test",
+    size = "small",
     srcs = [
         "test_bstr.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )

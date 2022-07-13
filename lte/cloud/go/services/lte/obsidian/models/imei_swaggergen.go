@@ -6,22 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Imei IMEI (type allocation code and serial number)
+//
 // swagger:model imei
 type Imei struct {
 
 	// snr
+	// Example: 176148
 	// Pattern: ^(\d{6})$
 	Snr string `json:"snr,omitempty"`
 
 	// tac
+	// Example: 01300600
 	// Required: true
 	// Pattern: ^(\d{8})$
 	Tac string `json:"tac"`
@@ -46,12 +50,11 @@ func (m *Imei) Validate(formats strfmt.Registry) error {
 }
 
 func (m *Imei) validateSnr(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Snr) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("snr", "body", string(m.Snr), `^(\d{6})$`); err != nil {
+	if err := validate.Pattern("snr", "body", m.Snr, `^(\d{6})$`); err != nil {
 		return err
 	}
 
@@ -60,14 +63,19 @@ func (m *Imei) validateSnr(formats strfmt.Registry) error {
 
 func (m *Imei) validateTac(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("tac", "body", string(m.Tac)); err != nil {
+	if err := validate.RequiredString("tac", "body", m.Tac); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("tac", "body", string(m.Tac), `^(\d{8})$`); err != nil {
+	if err := validate.Pattern("tac", "body", m.Tac, `^(\d{8})$`); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this imei based on context it is used
+func (m *Imei) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -17,13 +17,13 @@
 
 #pragma once
 
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s1ap_types.h"
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
 
@@ -76,9 +76,6 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) hash_key_t keyP,
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) hash_key_t keyP,
                              void* elementP, void* parameterP, void** resultP);
-
-bool get_mme_ue_ids_no_imsi(const hash_key_t keyP, uint64_t const dataP,
-                            __attribute__((unused)) void* argP, void** resultP);
 
 void remove_ues_without_imsi_from_ue_id_coll(void);
 

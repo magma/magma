@@ -19,6 +19,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseCommand.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommand.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationComplete.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommandReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 
 namespace magma5g {
@@ -55,6 +58,9 @@ union SMsg_u {
   PDUSessionReleaseCommandMsg pdu_session_release_command;
   PDUSessionModificationRequestMsg pdu_session_modif_request;
   PDUSessionModificationRejectMsg pdu_session_modif_reject;
+  PDUSessionModificationCommand pdu_sess_mod_cmd;
+  PDUSessionModificationComplete pdu_sess_mod_com;
+  PDUSessionModificationCommandReject pdu_sess_mod_cmd_rej;
   SMsg_u();
   ~SMsg_u();
 };

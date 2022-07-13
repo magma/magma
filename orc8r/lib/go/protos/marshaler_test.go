@@ -26,11 +26,7 @@ import (
 
 var marshaledSrc = `{
  "configsByKey": {
-  "aaa_server": {
-   "@type": "type.googleapis.com/magma.mconfig.AAAConfig",
-   "IdleSessionTimeoutMs": 21600000,
-   "logLevel": "INFO"
-  },
+  "aaa_server": {"@type":"type.googleapis.com/magma.mconfig.AAAConfig","IdleSessionTimeoutMs":21600000,"logLevel":"INFO"},
   "control_proxy": {
    "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
    "logLevel": "INFO"
@@ -39,24 +35,8 @@ var marshaledSrc = `{
    "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
    "logLevel": "INFO"
   },
-  "dnsd": {
-   "@type": "type.googleapis.com/magma.mconfig.DnsD",
-   "dhcpServerEnabled": true,
-   "enableCaching": false,
-   "localTTL": 0,
-   "logLevel": "INFO",
-   "records": []
-  },
-  "eap_aka": {
-   "@type": "type.googleapis.com/magma.mconfig.EapAkaConfig",
-   "logLevel": "INFO",
-   "timeout": {
-    "ChallengeMs": 20000,
-    "ErrorNotificationMs": 10000,
-    "SessionMs": 43200000,
-    "SessionAuthenticatedMs": 5000
-   }
-  },
+  "dnsd": {"@type":"type.googleapis.com/magma.mconfig.DnsD","dhcpServerEnabled":true,"enableCaching":false,"localTTL":0,"logLevel":"INFO","records":[]},
+  "eap_aka": {"@type":"type.googleapis.com/magma.mconfig.EapAkaConfig","logLevel":"INFO","timeout":{"ChallengeMs":20000,"ErrorNotificationMs":10000,"SessionMs":43200000,"SessionAuthenticatedMs":5000}},
   "magmad": {
    "@type": "type.googleapis.com/magma.mconfig.MagmaD",
    "logLevel": "INFO",
@@ -82,25 +62,9 @@ var marshaledSrc = `{
    "@type": "type.googleapis.com/magma.mconfig.MetricsD",
    "logLevel": "INFO"
   },
-  "pipelined": {
-   "@type": "type.googleapis.com/magma.mconfig.PipelineD",
-   "defaultRuleId": "default_rule_1",
-   "logLevel": "INFO",
-   "relayEnabled": true,
-   "services": [
-    "ENFORCEMENT"
-   ],
-   "ueIpBlock": "192.168.128.0/24"
-  },
-  "redirectd": {
-   "@type": "type.googleapis.com/magma.mconfig.RedirectD",
-   "logLevel": "INFO"
-  },
-  "sessiond": {
-   "@type": "type.googleapis.com/magma.mconfig.SessionD",
-   "logLevel": "INFO",
-   "relayEnabled": true
-  },
+  "pipelined": {"@type":"type.googleapis.com/magma.mconfig.PipelineD","defaultRuleId":"default_rule_1","logLevel":"INFO","relayEnabled":true,"services":["ENFORCEMENT"],"ueIpBlock":"192.168.128.0/24"},
+  "redirectd": {"@type":"type.googleapis.com/magma.mconfig.RedirectD","logLevel":"INFO"},
+  "sessiond": {"@type":"type.googleapis.com/magma.mconfig.SessionD","logLevel":"INFO","relayEnabled":true},
   "td-agent-bit": {
    "@type": "type.googleapis.com/magma.mconfig.FluentBit",
    "extraTags": {
@@ -122,16 +86,7 @@ var marshaledSrc = `{
  }
 }`
 
-var pipelinedExpectedVal = `{
- "@type": "type.googleapis.com/magma.mconfig.PipelineD",
- "defaultRuleId": "default_rule_1",
- "logLevel": "INFO",
- "relayEnabled": true,
- "services": [
-  "ENFORCEMENT"
- ],
- "ueIpBlock": "192.168.128.0/24"
-}`
+var pipelinedExpectedVal = `{"@type":"type.googleapis.com/magma.mconfig.PipelineD","defaultRuleId":"default_rule_1","logLevel":"INFO","relayEnabled":true,"services":["ENFORCEMENT"],"ueIpBlock":"192.168.128.0/24"}`
 
 func TestMconfigMarshal(t *testing.T) {
 	cfg := &protos.GatewayConfigs{}

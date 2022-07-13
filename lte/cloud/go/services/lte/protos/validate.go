@@ -14,7 +14,7 @@
 package protos
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 )
 
 func (m *GetEnodebStateRequest) Validate() error {

@@ -47,11 +47,13 @@ set(AMF_APP_TEST_SRC
     util_s6a_update_location.hpp
     test_amf_map.cpp
     test_amf_stateless.cpp
+    test_amf.cpp
     )
 
 add_executable(amf_app_test ${AMF_APP_TEST_SRC})
 
 target_link_libraries(amf_app_test
+    COMMON
     TASK_AMF_APP LIB_N11 LIB_NAS5G LIB_SECU ${CHECK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
     LIB_BSTR LIB_ITTI MOCK_TASKS gtest gtest_main crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES}

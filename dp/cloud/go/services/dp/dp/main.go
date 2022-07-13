@@ -20,14 +20,15 @@ import (
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	dp_log "magma/dp/cloud/go/services/dp/obsidian/log"
 	"magma/dp/cloud/go/services/dp/servicers"
 	dp_storage "magma/dp/cloud/go/services/dp/storage"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/service/config"
@@ -49,10 +50,12 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %s", err)
 	}
-	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker())
+	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker(), sqorc.GetSqlLocker())
 
 	interval := time.Second * time.Duration(serviceConfig.CbsdInactivityIntervalSec)
-	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval))
+	logConsumerUrl := serviceConfig.LogConsumerUrl
+
+	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
 
 	err = srv.Run()
 	if err != nil {

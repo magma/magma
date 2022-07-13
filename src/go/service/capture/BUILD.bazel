@@ -17,6 +17,7 @@ go_library(
 
 go_test(
     name = "capture_test",
+    size = "small",
     srcs = ["capture_server_integ_test.go"],
     embed = [":capture"],
     deps = [

@@ -7,5 +7,6 @@
     "grafana/",
     "alerts/"
   ],
-  "exec": "node -r './fbc_js_core/babel_register/index.js'"
+  "ext": "ts,tsx,json,js",
+  "exec": "node -r './babelRegister.js'"
 }

@@ -21,12 +21,10 @@ from magma.enodebd.device_config.cbrs_consts import (
 )
 from magma.enodebd.exceptions import ConfigurationError
 
-EnodebConfig = NamedTuple(
-    'EnodebConfig', [
-        ('serial_num', str),
-        ('config', EnodebD.EnodebConfig),
-    ],
-)
+
+class EnodebConfig(NamedTuple):
+    serial_num: str
+    config: EnodebD.EnodebConfig
 
 
 def get_enb_rf_tx_desired(mconfig: EnodebD, enb_serial: str) -> bool:

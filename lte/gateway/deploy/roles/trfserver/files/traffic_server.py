@@ -24,6 +24,7 @@ import socketserver
 import subprocess
 import sys
 import threading
+import time
 import traceback
 
 import iperf3
@@ -516,14 +517,22 @@ class TrafficTestDriver(object):
         self._server = server
         self._instances = instances
         self._results = None
+        self._trfserver_ipv6 = '3001::2'
+        self._trfserver_ipv4 = '192.168.129.42'
+        self._agw_ipv6 = '3001::10'
+        self._agw_ip_sub = 64
 
         self._setup_iperf3()
 
-    def _get_macs(self):
+    def _get_macs(self, version=4):
         ''' Retrieves the MAC addresses of the associated test servers, based
         on the information of the instances '''
         ip = pyroute2.IPRoute()
-        mac = ip.link('get', index=ip.link_lookup(ifname='eth2')[0])[0] \
+        if version == 4:
+            intf = 'eth2'
+        else:
+            intf = 'eth3'
+        mac = ip.link('get', index=ip.link_lookup(ifname=intf)[0])[0] \
             .get_attr('IFLA_ADDRESS')
 
         return (mac,) * len(self._instances)
@@ -559,9 +568,15 @@ class TrafficTestDriver(object):
         '''
         # Constructing the subprocess call
         params = ('-B', iperf.bind_address, '-p', str(iperf.port), '-J')
+        if ipaddress.ip_address(iperf.bind_address).version == 6:
+            params += ('-6',)
         if 'c' == iperf.role:
             params = ('-c', iperf.server_hostname) + params
             params += ('-b', str(iperf.bandwidth), '-t', str(iperf.duration))
+            # For ipv6 there is delay in configuring ipv6 address on eth3
+            # interface of test vm, so sleep for 5 secs
+            if ipaddress.ip_address(iperf.bind_address).version == 6:
+                time.sleep(5)
             if 'udp' == iperf.protocol:
                 params += ('-u',)
         else:
@@ -583,12 +598,26 @@ class TrafficTestDriver(object):
         for instance in self._instances:
             if instance.is_uplink:
                 iperf = iperf3.Server()
-                iperf.bind_address = '192.168.129.42'
+                ip_str = ipaddress.ip_address(instance.ip)
+                if ip_str.version == 4:
+                    print("Running ipv4")
+                    iperf.bind_address = self._trfserver_ipv4
+                else:
+                    print("Running ipv6")
+                    iperf.bind_address = self._trfserver_ipv6
+                    os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' % (self._agw_ipv6, self._agw_ip_sub))
+                    os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' % (instance.ip.exploded, self._agw_ipv6))
                 iperf.port = TrafficTestDriver._get_port()
             else:
                 iperf = iperf3.Client()
                 iperf.bandwidth = 10 ** 7  # 10 Mbps
-                iperf.bind_address = '192.168.129.42'
+                ip_str = ipaddress.ip_address(instance.ip)
+                if ip_str.version == 4:
+                    iperf.bind_address = self._trfserver_ipv4
+                else:
+                    iperf.bind_address = self._trfserver_ipv6
+                    os.system('sudo /sbin/ip -6 route add %s/%d dev eth3' % (self._agw_ipv6, self._agw_ip_sub))
+                    os.system('sudo /sbin/ip -6 route add %s via %s dev eth3' % (instance.ip.exploded, self._agw_ipv6))
                 iperf.duration = instance.duration
                 iperf.port = instance.port
                 iperf.protocol = 'udp' if instance.is_udp else 'tcp'
@@ -612,7 +641,14 @@ class TrafficTestDriver(object):
         ports = (
             iperf.port if 's' == iperf.role else 0 for iperf in self._iperfs
         )
-        macs = self._get_macs()
+        # For now multiple UEs with mixed ip addresses is not supported
+        # so check the version of the first ip address
+        # TODO: Add support for handling multiple UE with mixed ipv4 and ipv6
+        # addresses
+        for iperf in self._iperfs:
+            ip_version = ipaddress.ip_address(iperf.bind_address).version
+            break
+        macs = self._get_macs(ip_version)
 
         # Reshape into argument tuples
         tuples = zip(ips, ports, macs)

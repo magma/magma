@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/imdario/mergo"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
@@ -209,7 +209,7 @@ func TestGetPrometheusQueryRangeHandler(t *testing.T) {
 		{
 			Name:          "invalid step",
 			RequestURL:    "http://url.com?query=up&start=0&step=abc",
-			ExpectedError: `code=400, message=unable to parse step parameter: time: invalid duration abc`,
+			ExpectedError: `code=400, message=unable to parse step parameter: time: invalid duration "abc"`,
 		},
 		{
 			Name:              "prometheus error",

@@ -19,7 +19,6 @@
           "howtos/ipv6_agw",
           "howtos/he_api",
           "howtos/inbound_roaming",
-          "howtos/pcap",
           "howtos/l3_transport",
           "howtos/network_probe"
         ]
@@ -112,6 +111,7 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_install",
+          "orc8r/deploy_using_juju",
           "orc8r/deploy_terraform_options",
           "orc8r/deploy_faq"
         ]
@@ -307,7 +307,8 @@
           "lte/eventd",
           "lte/access_service_restrictions",
           "lte/dev_teid_allocation",
-          "lte/integrated_5G_sa"
+          "lte/integrated_5G_sa",
+          "lte/suci_extensions"
         ]
       },
       {
@@ -342,7 +343,7 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/dev_testing",
-          "feg/s1ap_federated_tests"
+          "feg/s1ap_federated_test"
         ]
       },
       {

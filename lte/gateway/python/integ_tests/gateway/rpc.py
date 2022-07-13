@@ -13,7 +13,7 @@ limitations under the License.
 import os
 from typing import Any, Dict, List
 
-from magma.common.service_registry import create_grpc_channel, get_ssl_creds
+from magma.common.service_registry import create_grpc_channel
 from magma.configuration.mconfigs import unpack_mconfig_any
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.magmad_pb2_grpc import MagmadStub

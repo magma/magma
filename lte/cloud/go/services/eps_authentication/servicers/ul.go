@@ -17,25 +17,33 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/emakeev/milenage"
 	"github.com/golang/glog"
+	"github.com/magma/milenage"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/lte/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/identity"
 )
 
 const (
-	serviceSelection                  = "oai.ipv4"
+	serviceSelection                  = "magma.ipv4"
 	qosProfileClassID                 = 9
 	qosProfilePriorityLevel           = 15
 	qosProfilePreemptionCapability    = true
 	qosProfilePreemptionVulnerability = false
+
+	defaultMaxUlBitRate uint64 = 2000000000
+	defaultMaxDlBitRate uint64 = 4000000000
 )
+
+var defaultSubscriberProfile = models.NetworkEpcConfigsSubProfilesAnon{
+	MaxDlBitRate: defaultMaxUlBitRate,
+	MaxUlBitRate: defaultMaxDlBitRate,
+}
 
 func (srv *EPSAuthServer) UpdateLocation(
 	ctx context.Context, ulr *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error) {
@@ -104,7 +112,6 @@ func (srv *EPSAuthServer) UpdateLocation(
 
 // getSubProfile looks up the subscription profile to be used for a subscriber.
 func getSubProfile(profileName string, config *EpsAuthConfig) *models.NetworkEpcConfigsSubProfilesAnon {
-
 	profile, ok := config.SubProfiles[profileName]
 	if ok {
 		return &profile
@@ -113,11 +120,12 @@ func getSubProfile(profileName string, config *EpsAuthConfig) *models.NetworkEpc
 
 	profile, ok = config.SubProfiles["default"]
 	if ok {
-		glog.V(2).Infof("Subscriber profile '%s' not found, using default profile instead", profileName)
+		glog.V(2).Infof("Subscriber profile '%s' not found, using 'default' network profile instead", profileName)
 		return &profile
 	}
-
-	return nil
+	glog.V(2).Info("Network subscriber profile 'default' is not configured, using defaults")
+	profile = defaultSubscriberProfile
+	return &profile
 }
 
 // validateULR returns an error iff the ULR is invalid.

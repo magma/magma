@@ -19,5 +19,5 @@ cc_library(
         "magma_logging.hpp",
         "magma_logging_init.hpp",
     ],
-    deps = ["@com_github_google_glog//:glog"],
+    deps = ["@system_libraries//:libglog"],
 )

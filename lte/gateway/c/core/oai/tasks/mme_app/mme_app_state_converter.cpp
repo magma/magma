@@ -97,17 +97,6 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
   }
 }
 
-char* MmeNasStateConverter::mme_app_convert_guti_to_string(guti_t* guti_p) {
-#define GUTI_STRING_LEN 21
-  char* str = (char*)calloc(1, sizeof(char) * GUTI_STRING_LEN);
-  snprintf(str, GUTI_STRING_LEN, "%x%x%x%x%x%x%04x%02x%08x",
-           guti_p->gummei.plmn.mcc_digit1, guti_p->gummei.plmn.mcc_digit2,
-           guti_p->gummei.plmn.mcc_digit3, guti_p->gummei.plmn.mnc_digit1,
-           guti_p->gummei.plmn.mnc_digit2, guti_p->gummei.plmn.mnc_digit3,
-           guti_p->gummei.mme_gid, guti_p->gummei.mme_code, guti_p->m_tmsi);
-  return (str);
-}
-
 void MmeNasStateConverter::guti_table_to_proto(
     const obj_hash_table_uint64_t* guti_htbl,
     google::protobuf::Map<std::string, unsigned long>* proto_map) {
@@ -123,13 +112,12 @@ void MmeNasStateConverter::guti_table_to_proto(
   for (unsigned int i = 0; i < size; i++) {
     uint64_t mme_ue_id;
 
-    char* str = mme_app_convert_guti_to_string((guti_t*)(*key_array_p)[i]);
-    std::string guti_str(str);
-    free(str);
-    OAILOG_TRACE(LOG_MME_APP, "Looking for key %p with value %u\n",
-                 (*key_array_p)[i], *((*key_list)[i]));
-    hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_get(
-        guti_htbl, (const void*)(*key_array_p)[i], sizeof(guti_t), &mme_ue_id);
+    std::string guti_str((char*)(*key_array_p)[i], (GUTI_STRING_LEN - 1));
+    OAILOG_INFO(LOG_MME_APP, "Looking for key %p with value %s strlen:%ld\n",
+                (*key_array_p)[i], guti_str.c_str(), strlen(guti_str.c_str()));
+    hashtable_rc_t ht_rc =
+        obj_hashtable_uint64_ts_get(guti_htbl, (const void*)(*key_array_p)[i],
+                                    (GUTI_STRING_LEN - 1), &mme_ue_id);
     if (ht_rc == HASH_TABLE_OK) {
       (*proto_map)[guti_str] = mme_ue_id;
     } else {
@@ -140,38 +128,6 @@ void MmeNasStateConverter::guti_table_to_proto(
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
 
-void MmeNasStateConverter::mme_app_convert_string_to_guti(
-    guti_t* guti_p, const std::string& guti_str) {
-  int idx = 0;
-  std::size_t chars_to_read = 1;
-#define HEX_BASE_VAL 16
-  guti_p->gummei.plmn.mcc_digit1 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_p->gummei.plmn.mcc_digit2 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_p->gummei.plmn.mcc_digit3 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_p->gummei.plmn.mnc_digit1 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_p->gummei.plmn.mnc_digit2 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  guti_p->gummei.plmn.mnc_digit3 = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
-  chars_to_read = 4;
-  guti_p->gummei.mme_gid = std::stoul(guti_str.substr(idx, chars_to_read),
-                                      &chars_to_read, HEX_BASE_VAL);
-  idx += chars_to_read;
-  chars_to_read = 2;
-  guti_p->gummei.mme_code = std::stoul(guti_str.substr(idx, chars_to_read),
-                                       &chars_to_read, HEX_BASE_VAL);
-  idx += chars_to_read;
-  chars_to_read = 8;
-  guti_p->m_tmsi =
-      std::stoul(guti_str.substr(idx, chars_to_read), 0, HEX_BASE_VAL);
-
-  OAILOG_DEBUG_GUTI(guti_p);
-}
-
 void MmeNasStateConverter::proto_to_guti_table(
     const google::protobuf::Map<std::string, unsigned long>& proto_map,
     obj_hash_table_uint64_t* guti_htbl) {
@@ -180,9 +136,11 @@ void MmeNasStateConverter::proto_to_guti_table(
     std::unique_ptr<guti_t> guti = std::make_unique<guti_t>();
     memset(guti.get(), 0, sizeof(guti_t));
 
-    mme_app_convert_string_to_guti(guti.get(), kv.first);
+    char guti_str[GUTI_STRING_LEN] = {};
+    snprintf(guti_str, GUTI_STRING_LEN, "%s",
+             reinterpret_cast<const char*>(kv.first.c_str()));
     hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
-        guti_htbl, guti.get(), sizeof(guti_t), mme_ue_id);
+        guti_htbl, guti_str, strlen(guti_str), mme_ue_id);
     if (ht_rc != HASH_TABLE_OK) {
       OAILOG_ERROR(
           LOG_MME_APP,

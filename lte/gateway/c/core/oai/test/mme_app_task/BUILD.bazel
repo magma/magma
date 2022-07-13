@@ -22,40 +22,43 @@ cc_library(
         "mme_app_test_util.h",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest",
     ],
 )
 
 cc_test(
     name = "sgw_config_test",
+    size = "small",
     srcs = [
         "test_sgw_config.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "mme_app_config_test",
+    size = "small",
     srcs = [
         "test_mme_app_config.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "mme_app_esm_encode_decode_test",
+    size = "small",
     srcs = [
         "test_mme_app_esm_encode_decode.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/common:common_defs",
         "@com_google_googletest//:gtest_main",
     ],
@@ -63,34 +66,37 @@ cc_test(
 
 cc_test(
     name = "mme_app_emm_encode_decode_test",
+    size = "small",
     srcs = [
         "test_mme_app_emm_encode_decode.cpp",
     ],
     deps = [
         ":mme_app_test_core",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "apn_aggregate_maximum_bit_rate_test",
+    size = "small",
     srcs = [
         "test_ApnAggregateMaximumBitRate.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "eps_quality_of_service_test",
+    size = "small",
     srcs = [
         "test_EPSQualityOfService.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/common:common_defs",
         "@com_google_googletest//:gtest_main",
     ],
@@ -98,11 +104,12 @@ cc_test(
 
 cc_test(
     name = "mme_app_nas_encode_decode_test",
+    size = "small",
     srcs = [
         "test_mme_app_nas_encode_decode.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -120,6 +127,7 @@ cc_library(
 
 cc_test(
     name = "mme_procedures_test",
+    size = "medium",
     srcs = [
         "test_mme_procedures.cpp",
     ],
@@ -127,7 +135,7 @@ cc_test(
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],
@@ -144,7 +152,7 @@ cc_test(
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest",
     ],
 )
@@ -160,7 +168,7 @@ cc_test(
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest",
     ],
 )
@@ -176,7 +184,7 @@ cc_test(
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest",
     ],
 )
@@ -192,7 +200,7 @@ cc_test(
     deps = [
         ":mme_app_test_core",
         ":mme_procedure_test_fixture",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest",
     ],
 )
@@ -204,7 +212,7 @@ cc_test(
         "test_mme_app_ue_context.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )

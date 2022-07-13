@@ -18,14 +18,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/pkg/errors"
-
 	"magma/orc8r/cloud/go/parallel"
 )
 
 var clusterConfig = flag.String("cluster-config", "", "Location of the cluster config file")
 
-//Gateway gateway specific configuration of the cluster
+// Gateway gateway specific configuration of the cluster
 type Gateway struct {
 	ID         string `json:"gateway_id"`
 	HardwareID string `json:"hardware_id"`
@@ -42,12 +40,12 @@ func (g Gateways) Hostnames() []string {
 	return hh
 }
 
-//ClusterInternalConfig cluster's internal configuration
+// ClusterInternalConfig cluster's internal configuration
 type ClusterInternalConfig struct {
 	BastionIP string `json:"bastion_ip"`
 }
 
-//Cluster configuration of the cluster
+// Cluster configuration of the cluster
 type Cluster struct {
 	UUID           string                 `json:"uuid"`
 	ClusterType    int                    `json:"cluster_type"`
@@ -61,7 +59,7 @@ func (c *Cluster) RunCmdOnGateways(cmd string) ([]string, error) {
 		hostname := in.(string)
 		out, err := runRemoteCommand(hostname, c.InternalConfig.BastionIP, []string{cmd})
 		if err != nil {
-			return nil, errors.Wrapf(err, "run remote commands on gateway '%s'; out: %+v", hostname, out)
+			return nil, fmt.Errorf("run remote commands on gateway '%s'; out: %+v: %w", hostname, out, err)
 		}
 		return out, nil
 	})

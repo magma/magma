@@ -80,6 +80,7 @@
       - python-babel
       - python-dev
       - pkg-config
+      - sshpass
       # Packaging dependencies
       - build-essential
       # Building and shipping client release
@@ -94,6 +95,8 @@
       - protobuf-compiler
       - python-protobuf
       - libsystemd-dev
+      - mypy
+      - python3-testresources
 
 - name: install the package, force reinstall to the latest version
   pip:
@@ -109,5 +112,11 @@
 - name: Install mypy-protobuf
   pip:
     name: mypy-protobuf
+    executable: pip3
+  when: preburn
+
+- name: Install grpcio-tools
+  pip:
+    name: grpcio-tools
     executable: pip3
   when: preburn

@@ -27,6 +27,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 using ::testing::Test;
 
@@ -439,15 +440,20 @@ TEST(TestAMFStateConverter, TestSMFContextToProto) {
   smf_context1.requested_nssai.sst = 1;
 
   // Qos
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_identifier = 9;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .qos_characteristic.non_dynamic_5QI_desc.fiveQI = 9;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.priority_level = 1;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
-  smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_level_qos_param
-      .alloc_reten_priority.pre_emption_vul = NOT_PREEMPTABLE;
+  smf_context1.smf_proc_data.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_identifier = 9;
+  smf_context1.smf_proc_data.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
+      .non_dynamic_5QI_desc.fiveQI = 9;
+  smf_context1.smf_proc_data.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .priority_level = 1;
+  smf_context1.smf_proc_data.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_cap = SHALL_NOT_TRIGGER_PRE_EMPTION;
+  smf_context1.smf_proc_data.qos_flow_list.item[0]
+      .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+      .pre_emption_vul = NOT_PREEMPTABLE;
 
   AmfNasStateConverter::smf_context_to_proto(&smf_context1, &state_smf_proto);
   AmfNasStateConverter::proto_to_smf_context(state_smf_proto, &smf_context2);
@@ -551,31 +557,37 @@ TEST(TestAMFStateConverter, TestSMFContextToProto) {
             smf_context2.requested_nssai.sd[2]);
   EXPECT_EQ(smf_context1.requested_nssai.sst, smf_context2.requested_nssai.sst);
 
-  EXPECT_EQ(
-      smf_context1.subscribed_qos_profile.qos_flow_req_item.qos_flow_identifier,
-      smf_context2.subscribed_qos_profile.qos_flow_req_item
-          .qos_flow_identifier);
-  EXPECT_EQ(smf_context1.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.qos_characteristic
+  EXPECT_EQ(smf_context1.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_identifier,
+            smf_context2.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_identifier);
+  EXPECT_EQ(smf_context1.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
                 .non_dynamic_5QI_desc.fiveQI,
-            smf_context2.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.qos_characteristic
+            smf_context2.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
                 .non_dynamic_5QI_desc.fiveQI);
 
-  EXPECT_EQ(smf_context1.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.alloc_reten_priority.priority_level,
-            smf_context2.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.alloc_reten_priority.priority_level);
+  EXPECT_EQ(smf_context1.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+                .priority_level,
+            smf_context2.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+                .priority_level);
 
-  EXPECT_EQ(smf_context1.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap,
-            smf_context2.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_cap);
+  EXPECT_EQ(smf_context1.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+                .pre_emption_cap,
+            smf_context2.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+                .pre_emption_cap);
 
-  EXPECT_EQ(smf_context1.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul,
-            smf_context2.subscribed_qos_profile.qos_flow_req_item
-                .qos_flow_level_qos_param.alloc_reten_priority.pre_emption_vul);
+  EXPECT_EQ(smf_context1.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+                .pre_emption_vul,
+            smf_context2.smf_proc_data.qos_flow_list.item[0]
+                .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+                .pre_emption_vul);
 
   bdestroy(smf_context2.pco.protocol_or_container_ids[0].contents);
   bdestroy(smf_context2.pco.protocol_or_container_ids[1].contents);
@@ -594,6 +606,13 @@ class AMFAppStatelessTest : public ::testing::Test {
     amf_config.use_stateless = true;
     amf_nas_state_init(&amf_config);
     create_state_matrix();
+    amf_config.guamfi.nb = 1;
+    amf_config.guamfi.guamfi[0].plmn = {.mcc_digit2 = 2,
+                                        .mcc_digit1 = 2,
+                                        .mnc_digit3 = 6,
+                                        .mcc_digit3 = 2,
+                                        .mnc_digit2 = 5,
+                                        .mnc_digit1 = 4};
 
     init_task_context(TASK_MAIN, nullptr, 0, NULL, &amf_app_task_zmq_ctx);
 
@@ -698,6 +717,10 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
   rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
                                                ue_smc_response_hexbuf,
                                                sizeof(ue_smc_response_hexbuf));
+  EXPECT_EQ(rc, RETURNok);
+
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);
@@ -834,6 +857,10 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
                                                sizeof(ue_smc_response_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
+  EXPECT_EQ(rc, RETURNok);
+
   send_initial_context_response(amf_app_desc_p, ue_id);
 
   /* Send uplink nas message for registration complete response from UE */
@@ -966,6 +993,10 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
                                                ue_smc_response_hexbuf,
                                                sizeof(ue_smc_response_hexbuf));
+  EXPECT_EQ(rc, RETURNok);
+
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_EQ(rc, RETURNok);
 
   send_initial_context_response(amf_app_desc_p, ue_id);

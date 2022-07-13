@@ -35,11 +35,12 @@ any production hardware on hand to test an end-to-end setup.
 We'll be setting up the LTE AGW VM in this tab.
 
 You need to make sure that your local network setup is correct for the VM to
-start properly. Especially the entry `* 192.168.0.0/16` must exist in your
+start properly. Especially the entries `* 192.168.0.0/16` and `* 3001::/64` must exist in your
 `/etc/vbox/networks.conf`.
 
 ```bash
 HOST [magma]$ echo "* 192.168.0.0/16" | sudo tee -a /etc/vbox/networks.conf
+HOST [magma]$ echo "* 3001::/64" | sudo tee -a /etc/vbox/networks.conf
 HOST [magma]$ cd lte/gateway
 HOST [magma/lte/gateway]$ vagrant up magma
 ```
@@ -133,7 +134,7 @@ Creating orc8r_controller_1       ... done
 
 The Orchestrator application containers will bootstrap certificates on startup
 which are cached for future runs. Watch the directory `magma/.cache/test_certs`
-for a file `admin_operator.pfx` to show up (this may take a minute or 2), then:
+for a file `admin_operator.pfx` to show up (this may take a minute or two).
 
 ```bash
 HOST [magma/orc8r/cloud/docker]$ ls ../../../.cache/test_certs
@@ -141,7 +142,19 @@ HOST [magma/orc8r/cloud/docker]$ ls ../../../.cache/test_certs
 admin_operator.key.pem  bootstrapper.key        controller.crt          rootCA.key
 admin_operator.pem      certifier.key           controller.csr          rootCA.pem
 admin_operator.pfx      certifier.pem           controller.key          rootCA.srl
+```
 
+The owner and group of `admin_operator.key.pem` and `admin_operator.pfx` in `/magma/.cache/test_certs/` are `root`.
+You need to change ownership of these files to your user with `chown`, e.g.
+
+```bash
+HOST [magma/orc8r/cloud/docker] sudo chown ${USER}:${USER} ../../../.cache/test_certs/admin_operator.key.pem
+HOST [magma/orc8r/cloud/docker] sudo chown ${USER}:${USER} ../../../.cache/test_certs/admin_operator.pfx
+```
+
+then:
+
+```bash
 HOST [magma/orc8r/cloud/docker]$ open ../../../.cache/test_certs
 ```
 
@@ -210,11 +223,11 @@ After this, you will be able to access the UI by visiting
 [https://magma-test.localhost](https://magma-test.localhost), and using the email `admin@magma.test`
 and password `password1234`. We recommend Firefox or Chrome. If you see Gateway Error 502, don't worry, the
 NMS can take upto 60 seconds to finish starting up.
+Note that you will only see a network if you connected your local LTE gateway as described above.
 
-You will probably want to enable this organization (magma-test) to access all networks,
-so go to [host.localhost](https://host.localhost) and login with the same credentials.
-Once there, you can click on the "Organizations" tab on the left sidebar, choose
-`magma-test`, and then check "Enable all networks" in the subsequent pop-up window.
+`magma-test` is the default organization.
+Organizations are managed at [host.localhost](https://host.localhost)
+where you can log in with the same credentials.
 
 **Note**: If you want to test the access gateway VM with a physical eNB and UE,
 refer to

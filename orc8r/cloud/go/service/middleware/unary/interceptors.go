@@ -44,8 +44,8 @@ var interceptor = grpc.ChainUnaryInterceptor(
 	errlogInterceptor,
 	recoveryInterceptor,
 	grpc_prometheus.UnaryServerInterceptor,
-	setIdentityInterceptor,
-	blockUnregisteredGatewaysInterceptor,
+	makeInterceptorFromTemplate(SetIdentityFromContext),
+	makeInterceptorFromTemplate(BlockUnregisteredGateways),
 )
 
 func GetInterceptorOpt() grpc.ServerOption {
@@ -76,29 +76,17 @@ func errlogInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySer
 	return res, err
 }
 
-// setIdentityInterceptor sets the caller's identity from certificate metadata
-// in the caller's context.
-// TODO(hcgatewood): remove this wrapper and just use SetIdentityFromContext directly
-func setIdentityInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	newCtx, _, res, err := SetIdentityFromContext(ctx, req, info)
-	if err != nil {
-		return res, err
-	}
-	if newCtx != nil {
-		ctx = newCtx
-	}
-	return handler(ctx, req)
-}
+type interceptorTemplate func(context.Context, interface{}, *grpc.UnaryServerInfo) (context.Context, interface{}, interface{}, error)
 
-// BlockUnregisteredGateways blocks requests from unregistered gateways.
-// TODO(hcgatewood): remove this wrapper and just use BlockUnregisteredGateways directly
-func blockUnregisteredGatewaysInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	newCtx, _, res, err := BlockUnregisteredGateways(ctx, req, info)
-	if err != nil {
-		return res, err
+func makeInterceptorFromTemplate(fn interceptorTemplate) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		newCtx, _, res, err := fn(ctx, req, info)
+		if err != nil {
+			return res, err
+		}
+		if newCtx != nil {
+			ctx = newCtx
+		}
+		return handler(ctx, req)
 	}
-	if newCtx != nil {
-		ctx = newCtx
-	}
-	return handler(ctx, req)
 }

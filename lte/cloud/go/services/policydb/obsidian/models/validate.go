@@ -15,9 +15,9 @@ package models
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/pkg/errors"
 )
 
 func (m BaseNames) ValidateModel(context.Context) error {

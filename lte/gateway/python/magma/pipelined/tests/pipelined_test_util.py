@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import List, Optional
+from typing import List, NamedTuple, Optional, Tuple
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -42,6 +42,8 @@ from magma.pipelined.tests.app.exceptions import (
 )
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator
 from ryu.lib import hub
 
 """
@@ -49,8 +51,7 @@ Pipelined test util functions can be used for testing pipelined, the usage of
 these functions can be seen in pipelined/tests/test_*.py files
 """
 
-SubTest = namedtuple('SubTest', ['context', 'isolator', 'flowtest_list'])
-PktsToSend = namedtuple('PacketToSend', ['pkt', 'num'])
+PktsToSend = namedtuple('PktsToSend', ['pkt', 'num'])
 QueryMatch = namedtuple('QueryMatch', ['pkts', 'flow_count'])
 
 SNAPSHOT_DIR = 'snapshots/'
@@ -59,10 +60,18 @@ SNAPSHOT_EXTENSION = '.snapshot'
 
 # Tuple for FlowVerifier, class wrapper needed becuse of optional flow_count
 class FlowTest(namedtuple('FlowTest', ['query', 'match_num', 'flow_count'])):
+    __test__ = False
     __slots__ = ()
 
     def __new__(cls, query, match_num, flow_count=None):
         return super(FlowTest, cls).__new__(cls, query, match_num, flow_count)
+
+
+class SubTest(NamedTuple):
+    __test__ = False
+    context: RyuDirectSubscriberContext
+    isolator: RyuDirectTableIsolator
+    flowtest_list: FlowTest
 
 
 class WaitTimeExceeded(Exception):
@@ -473,6 +482,7 @@ def fail(
         stdout=subprocess.PIPE,
         shell=True,
     )
+    assert p.stdout is not None
     ofctl_dump = p.stdout.read().decode("utf-8", 'ignore').strip()
     logging.error("cmd ofctl_dump: %s", ofctl_dump)
 
@@ -491,7 +501,7 @@ def expected_snapshot(
     bridge_name: str,
     current_snapshot,
     snapshot_name: Optional[str] = None,
-) -> bool:
+) -> Tuple[str, List[str]]:
     if snapshot_name is not None:
         combined_name = '{}.{}{}'.format(
             test_case.id(), snapshot_name,
@@ -676,7 +686,7 @@ class SnapshotVerifier:
                 include_stats=self._include_stats,
             )
         except WaitTimeExceeded as e:
-            ofctl_cmd = "sudo ovs-ofctl dump-flows %s".format(self._bridge_name)
+            ofctl_cmd = f"sudo ovs-ofctl dump-flows {self._bridge_name}"
             p = subprocess.Popen(
                 [ofctl_cmd],
                 stdout=subprocess.PIPE,
@@ -693,11 +703,12 @@ class SnapshotVerifier:
         )
 
 
-def get_ovsdb_port_tag(port_name: str) -> str:
+def get_ovsdb_port_tag(port_name: str) -> Optional[str]:
     dump1 = subprocess.Popen(
         ["ovsdb-client", "dump", "Port", "name", "tag"],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for port in dump1.stdout.readlines():
         if port_name not in str(port):
             continue
@@ -706,6 +717,7 @@ def get_ovsdb_port_tag(port_name: str) -> str:
             return tokens[1]
         except ValueError:
             pass
+    return None
 
 
 def get_iface_ipv4(iface: str) -> List[str]:

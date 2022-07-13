@@ -6,24 +6,27 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // ChallengeKey challenge key
+//
 // swagger:model challenge_key
 type ChallengeKey struct {
 
 	// key
+	// Example: MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC
 	// Format: byte
 	Key *strfmt.Base64 `json:"key,omitempty"`
 
 	// key type
+	// Example: SOFTWARE_ECDSA_SHA256
 	// Required: true
 	// Enum: [ECHO SOFTWARE_ECDSA_SHA256]
 	KeyType string `json:"key_type"`
@@ -33,10 +36,6 @@ type ChallengeKey struct {
 func (m *ChallengeKey) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateKey(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateKeyType(formats); err != nil {
 		res = append(res, err)
 	}
@@ -44,17 +43,6 @@ func (m *ChallengeKey) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *ChallengeKey) validateKey(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Key) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
 	return nil
 }
 
@@ -81,7 +69,7 @@ const (
 
 // prop value enum
 func (m *ChallengeKey) validateKeyTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, challengeKeyTypeKeyTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, challengeKeyTypeKeyTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -89,7 +77,7 @@ func (m *ChallengeKey) validateKeyTypeEnum(path, location string, value string) 
 
 func (m *ChallengeKey) validateKeyType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("key_type", "body", string(m.KeyType)); err != nil {
+	if err := validate.RequiredString("key_type", "body", m.KeyType); err != nil {
 		return err
 	}
 
@@ -98,6 +86,11 @@ func (m *ChallengeKey) validateKeyType(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this challenge key based on context it is used
+func (m *ChallengeKey) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

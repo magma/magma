@@ -1,4 +1,4 @@
 ---
 
-- include: key.yaml
-- include: provision-instance.yaml
+- include_tasks: key.yaml
+- include_tasks: provision-instance.yaml

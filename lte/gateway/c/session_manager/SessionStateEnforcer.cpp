@@ -667,9 +667,11 @@ void SessionStateEnforcer::prepare_response_to_access(
     if (val.rule.has_qos()) {
       MLOG(MDEBUG) << "value set for pending_activation"
                    << val.rule.qos().max_req_bw_ul();
-      rsp->mutable_qos()->CopyFrom(val.rule.qos());
+      rsp->mutable_qos_policy()->Add()->mutable_qos()->mutable_qos()->CopyFrom(
+          val.rule.qos());
     }
   }
+
   /* AMF fetches the mandatory subscriberd_qos information from subscriberdb
    * and send to sessiond. If there are any subscriberd_qos information sessiond
    * will send back to AMF, Otherwise sessiond will set default AMBR info.
@@ -678,11 +680,15 @@ void SessionStateEnforcer::prepare_response_to_access(
           .has_subscribed_qos()) {
     set_subscribed_qos(session_state, &response);
   } else {
-    auto* convg_subscribed_qos = rsp->mutable_subscribed_qos();
-    convg_subscribed_qos->set_qos_class_id(QCI_9);
-    convg_subscribed_qos->set_preemption_vulnerability(PRE_EMPTABLE);
-    convg_subscribed_qos->set_preemption_capability(MAY_TRIGGER_PRE_EMPTION);
-    convg_subscribed_qos->set_priority_level(DEFAULT_PRIORITY_LEVEL);
+    for (auto& qos_policy : rsp->qos_policy()) {
+      magma::FlowQos convg_qos = qos_policy.qos().qos();
+      convg_qos.set_qci(FlowQos_Qci_QCI_9);
+      convg_qos.mutable_arp()->set_pre_vulnerability(
+          QosArp_PreVul_PRE_VUL_ENABLED);
+      convg_qos.mutable_arp()->set_pre_capability(
+          QosArp_PreCap_PRE_CAP_ENABLED);
+      convg_qos.mutable_arp()->set_priority_level(DEFAULT_PRIORITY_LEVEL);
+    }
   }
   rsp->mutable_upf_endpoint()->set_teid(
       config.rat_specific_context.m5gsm_session_context()
@@ -960,6 +966,221 @@ void SessionStateEnforcer::update_session_with_policy(
   prepare_response_to_access(*session,
                              magma::lte::M5GSMCause::OPERATION_SUCCESS,
                              get_upf_n3_addr(), session->get_upf_local_teid());
+}
+
+void SessionStateEnforcer::init_policy_reauth(const std::string& imsi,
+                                              SessionMap& session_map,
+                                              PolicyReAuthRequest request,
+                                              PolicyReAuthAnswer& answer_out,
+                                              SessionUpdate& session_update) {
+  const std::string& session_id = request.session_id();
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    MLOG(MERROR) << "Could not find subscriber " << imsi
+                 << " during policy ReAuth";
+    answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+    return;
+  }
+  // For empty session_id, apply changes to all sessions of subscriber
+  // Changes are applied on a best-effort basis, so failures for one session
+  // won't stop changes from being applied for subsequent sessions.
+  if (session_id == "") {
+    for (const auto& session : it->second) {
+      init_policy_reauth_for_session(imsi, request, session, session_update);
+    }
+    answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+    return;
+  }
+
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session " << session_id
+                 << " during policy ReAuth";
+    answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+    return;
+  }
+  auto& session = **session_it;
+  // Policy ReAuth should happen only when session is ACTIVE state.
+  if (session->get_state() == SESSION_ACTIVE) {
+    init_policy_reauth_for_session(imsi, request, session, session_update);
+    answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+  } else {
+    MLOG(MERROR) << "Could not initiate policy ReAuth for session id: "
+                 << session_id << " As session state is "
+                 << session->get_state();
+    answer_out.set_result(ReAuthResult::OTHER_FAILURE);
+  }
+}
+
+void SessionStateEnforcer::init_policy_reauth_for_session(
+    const std::string& imsi, const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session,
+    SessionUpdate& session_update) {
+  SessionStateUpdateCriteria& uc =
+      session_update[imsi][session->get_session_id()];
+
+  m5g_receive_monitoring_credit_from_rar(request, session, &uc);
+
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
+
+  session->process_rules_to_remove(request.rules_to_remove(),
+                                   &pending_deactivation, &uc);
+  session->process_rules_to_install(
+      to_vec(request.rules_to_install()),
+      to_vec(request.dynamic_rules_to_install()), &pending_activation,
+      &pending_deactivation, &pending_bearer_setup, &pending_scheduling, &uc);
+
+  magma::SetSMSessionContextAccess response;
+  const auto& config = session->get_config();
+
+  /* Filing response proto message*/
+  auto* rsp = response.mutable_rat_specific_context()
+                  ->mutable_m5g_session_context_rsp();
+  auto* rsp_cmn = response.mutable_common_context();
+
+  rsp->set_pdu_session_id(
+      config.rat_specific_context.m5gsm_session_context().pdu_session_id());
+  rsp->set_pdu_session_type(
+      config.rat_specific_context.m5gsm_session_context().pdu_session_type());
+  rsp->set_selected_ssc_mode(
+      config.rat_specific_context.m5gsm_session_context().ssc_mode());
+  rsp->set_allowed_ssc_mode(
+      config.rat_specific_context.m5gsm_session_context().ssc_mode());
+  rsp->set_m5gsm_cause(magma::lte::M5GSMCause::OPERATION_SUCCESS);
+  rsp->set_always_on_pdu_session_indication(
+      config.rat_specific_context.m5gsm_session_context()
+          .pdu_session_req_always_on());
+  rsp->set_m5g_sm_congestion_reattempt_indicator(true);
+  rsp->set_procedure_trans_identity(
+      config.rat_specific_context.m5gsm_session_context()
+          .procedure_trans_identity());
+  // For now its default QOS, AMBR has default values
+  rsp->mutable_subscribed_qos()->set_br_unit(
+      config.rat_specific_context.m5gsm_session_context()
+          .subscribed_qos()
+          .br_unit());
+  rsp->mutable_subscribed_qos()->set_apn_ambr_ul(
+      config.rat_specific_context.m5gsm_session_context()
+          .subscribed_qos()
+          .apn_ambr_ul());
+  rsp->mutable_subscribed_qos()->set_apn_ambr_dl(
+      config.rat_specific_context.m5gsm_session_context()
+          .subscribed_qos()
+          .apn_ambr_dl());
+
+  for (auto& val : pending_activation) {
+    magma::QosPolicy qos_policy;
+    qos_policy.set_policy_state(QosPolicy::PENDING);
+    qos_policy.set_version(val.version);
+    qos_policy.set_policy_action(QosPolicy::ADD);
+    qos_policy.mutable_qos()->CopyFrom(val.rule);
+    MLOG(MDEBUG) << "pending_activation with policy_action : "
+                 << qos_policy.policy_action();
+    rsp->mutable_qos_policy()->Add()->CopyFrom(qos_policy);
+  }
+
+  for (auto& val : pending_deactivation) {
+    magma::QosPolicy qos_policy;
+    qos_policy.set_policy_state(QosPolicy::PENDING);
+    qos_policy.set_version(val.version);
+    qos_policy.set_policy_action(QosPolicy::DEL);
+    qos_policy.mutable_qos()->CopyFrom(val.rule);
+    MLOG(MDEBUG) << "pending_deactivation with policy_action : "
+                 << qos_policy.policy_action();
+    rsp->mutable_qos_policy()->Add()->CopyFrom(qos_policy);
+  }
+
+  rsp->mutable_upf_endpoint()->set_teid(
+      config.rat_specific_context.m5gsm_session_context()
+          .upf_endpoint()
+          .teid());
+
+  rsp->mutable_upf_endpoint()->set_end_ipv4_addr(
+      config.rat_specific_context.m5gsm_session_context()
+          .upf_endpoint()
+          .end_ipv4_addr());
+
+  rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  if (!config.common_context.ue_ipv4().empty()) {
+    rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
+  }
+  if (!config.common_context.ue_ipv6().empty()) {
+    rsp_cmn->set_ue_ipv6(config.common_context.ue_ipv6());
+  }
+  rsp_cmn->set_apn(config.common_context.apn());
+  rsp_cmn->set_sm_session_state(ACTIVE_2);
+  rsp_cmn->set_sm_session_version(config.common_context.sm_session_version());
+
+  // Send message to AMF gRPC client handler.
+  amf_srv_client_->handle_response_to_access(response);
+}
+
+void SessionStateEnforcer::m5g_receive_monitoring_credit_from_rar(
+    const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session,
+    SessionStateUpdateCriteria* uc) {
+  UsageMonitoringUpdateResponse monitoring_credit;
+  monitoring_credit.set_session_id(request.session_id());
+  monitoring_credit.set_sid(request.session_id());
+  monitoring_credit.set_success(true);
+  UsageMonitoringCredit* credit = monitoring_credit.mutable_credit();
+
+  for (const auto& usage_monitoring_credit :
+       request.usage_monitoring_credits()) {
+    credit->CopyFrom(usage_monitoring_credit);
+    session->receive_monitor(monitoring_credit, uc);
+  }
+}
+
+bool SessionStateEnforcer::m5g_modification_session(
+    SessionMap& session_map, const std::string& imsi,
+    std::unique_ptr<SessionState>& session_state, SessionConfig& new_cfg,
+    SessionUpdate& session_update) {
+  uint32_t upf_teid;
+  RulesToProcess pending_activation, pending_deactivation;
+
+  auto session_id = session_state->get_session_id();
+  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  upf_teid = update_session_rules(session_state, true, false, &session_uc);
+  if (!upf_teid) {
+    return false;
+  }
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
+                 << " with session_id " << session_id;
+  }
+  auto& session = **session_it;
+  auto& rsp = new_cfg.rat_specific_context.m5gsm_session_context();
+
+  std::vector<QosPolicy> qospolicy;
+  for (const auto& qos : rsp.qos_policy()) {
+    if (qos.policy_state() == QosPolicy::REJECT) {
+      MLOG(MERROR) << "UE/gNB rejected session modification for IMSI " << imsi
+                   << " with session_id " << session_id;
+      return false;
+    } else {
+      qospolicy.push_back(qos);
+    }
+  }
+  session->process_get_mod_rule_installs(qospolicy, &pending_activation,
+                                         &pending_deactivation);
+
+  MLOG(MDEBUG) << "pending_activation : " << pending_activation[0].rule;
+  MLOG(MDEBUG) << "pending_deactivation : " << pending_deactivation[0].rule;
+  uint32_t cur_version = session->get_current_version();
+  session->set_current_version(++cur_version, &session_uc);
+  session->set_all_pdrs(PdrState::MODI);
+
+  m5g_send_session_request_to_upf(session, pending_activation,
+                                  pending_deactivation);
+  if (!pending_deactivation.empty()) {
+    session->m5g_remove_dynamic_rule(qospolicy);
+  }
+  return true;
 }
 
 }  // end namespace magma

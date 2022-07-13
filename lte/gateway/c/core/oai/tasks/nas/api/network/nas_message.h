@@ -107,21 +107,20 @@ typedef struct nas_message_decode_status_s {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-status_code_e nas_message_header_decode(
-    const unsigned char* const buffer,
-    nas_message_security_header_t* const header, const size_t length,
-    nas_message_decode_status_t* const status, bool* const is_sr);
+int nas_message_header_decode(const unsigned char* const buffer,
+                              nas_message_security_header_t* const header,
+                              const size_t length,
+                              nas_message_decode_status_t* const status,
+                              bool* const is_sr);
 
-status_code_e nas_message_encrypt(const unsigned char* inbuf,
-                                  unsigned char* outbuf,
-                                  const nas_message_security_header_t* header,
-                                  size_t length, void* security);
+int nas_message_encrypt(const unsigned char* inbuf, unsigned char* outbuf,
+                        const nas_message_security_header_t* header,
+                        size_t length, void* security);
 
-status_code_e nas_message_decrypt(const unsigned char* const inbuf,
-                                  unsigned char* const outbuf,
-                                  nas_message_security_header_t* header,
-                                  size_t length, void* security,
-                                  nas_message_decode_status_t* status);
+int nas_message_decrypt(const unsigned char* const inbuf,
+                        unsigned char* const outbuf,
+                        nas_message_security_header_t* header, size_t length,
+                        void* security, nas_message_decode_status_t* status);
 
 int nas_message_decode(const unsigned char* const buffer, nas_message_t* msg,
                        size_t length, void* security,

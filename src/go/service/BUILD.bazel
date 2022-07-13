@@ -10,6 +10,7 @@ go_library(
 
 go_test(
     name = "service_test",
+    size = "small",
     srcs = ["router_test.go"],
     embed = [":service"],
     deps = [

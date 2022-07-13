@@ -244,6 +244,10 @@ message S8Config {
     string local_address = 2;
     string pgw_address = 3;
     string apn_operator_suffix = 4;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 5;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 6;
 }
 
 message SbiServerConfig {

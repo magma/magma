@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import ipaddress
+from typing import Dict
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import FlowMatch
@@ -219,7 +220,7 @@ def ipv4_address_to_str(ipaddr: IPAddress):
 
 
 def get_ue_ip_match_args(ip_addr: IPAddress, direction: Direction):
-    ip_match = {}
+    ip_match: Dict = {}
 
     if ip_addr:
         if ip_addr.version == ip_addr.IPV4:

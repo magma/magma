@@ -9,8 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @format
  */
 
 module.exports = {
@@ -20,40 +18,32 @@ module.exports = {
     '!**/__tests__/**',
     '!**/node_modules/**',
   ],
-
   coverageReporters: ['json', 'html'],
-  modulePathIgnorePatterns: [],
   projects: [
     {
       name: 'server',
       testEnvironment: 'node',
       testMatch: [
-        '<rootDir>/__tests__/*.js',
-        '<rootDir>/server/**/__tests__/*.js',
+        '<rootDir>/server/**/__tests__/*.[jt]s?(x)',
+        '<rootDir>/shared/**/__tests__/*.[jt]s?(x)',
       ],
       transform: {
-        '^.+\\.js$': 'babel-jest',
+        '^.+\\.(js|ts|tsx)$': 'babel-jest',
       },
-      transformIgnorePatterns: ['/node_modules/'],
+      resetMocks: true,
+      restoreMocks: true,
     },
     {
-      moduleNameMapper: {
-        '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-          '<rootDir>/__mocks__/fileMock.js',
-        '\\.(css|less)$': 'identity-obj-proxy',
-      },
       name: 'app',
       testEnvironment: 'jsdom',
-      testMatch: [
-        '<rootDir>/app/**/__tests__/*.js',
-        '<rootDir>/fbc_js_core/**/__tests__/*.js',
-      ],
+      testMatch: ['<rootDir>/app/**/__tests__/*.[jt]s?(x)'],
       transform: {
-        '^.+\\.js$': 'babel-jest',
+        '^.+\\.(js|ts|tsx)$': 'babel-jest',
       },
-      transformIgnorePatterns: ['/node_modules/'],
+      setupFilesAfterEnv: ['./jest.setup.app.ts'],
+      resetMocks: true,
+      restoreMocks: true,
     },
   ],
   testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['/node_modules/'],
 };

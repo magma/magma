@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -103,12 +102,12 @@ func setEnodebState(ctx context.Context, networkID string, states state_types.St
 		}
 		gwEnt, err := configurator.LoadEntityForPhysicalID(ctx, st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
 		if err != nil {
-			stateErrors[id] = errors.Wrap(err, "error loading gatewayID")
+			stateErrors[id] = fmt.Errorf("error loading gatewayID: %w", err)
 			continue
 		}
 		err = lte_api.SetEnodebState(ctx, networkID, gwEnt.Key, id.DeviceID, serializedState)
 		if err != nil {
-			stateErrors[id] = errors.Wrap(err, "error setting enodeb state")
+			stateErrors[id] = fmt.Errorf("error setting enodeb state: %w", err)
 			continue
 		}
 		glog.V(2).Infof("successfully stored ENB state for eNB SN: %s, gatewayID: %s:w", id.DeviceID, gwEnt.Key)

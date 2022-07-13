@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -25,8 +26,7 @@ import (
 
 	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -90,7 +90,7 @@ func NewOrchestratorService(moduleName string, serviceName string, serverOptions
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	serverOptions = append(serverOptions, unary.GetInterceptorOpt())
 
-	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceName, serverOptions...)
 	if err != nil {
 		return nil, err
 	}

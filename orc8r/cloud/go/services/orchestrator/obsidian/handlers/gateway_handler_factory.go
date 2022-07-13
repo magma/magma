@@ -15,16 +15,16 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/cloud/go/storage"
@@ -277,11 +277,11 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			}
 			devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs, deviceSerdes)
 			if err != nil {
-				return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(fmt.Errorf("failed to load devices: %w", err), http.StatusInternalServerError)
 			}
 			statusesByID, err := wrappers.GetGatewayStatuses(reqCtx, nid, deviceIDs)
 			if err != nil {
-				return obsidian.MakeHTTPError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
+				return obsidian.MakeHTTPError(fmt.Errorf("failed to load statuses: %w", err), http.StatusInternalServerError)
 			}
 
 			gateways := makeTypedGateways(entsByTK, devicesByID, statusesByID)

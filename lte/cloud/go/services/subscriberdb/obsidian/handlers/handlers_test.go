@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/swag"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
 	"magma/lte/cloud/go/lte"
@@ -30,24 +30,35 @@ import (
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	subscriberstorage "magma/lte/cloud/go/services/subscriberdb/storage"
 	subscriberdbTestInit "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	testUtilConfigurator "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
+	"magma/orc8r/cloud/go/services/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian/tests"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	stateTypes "magma/orc8r/cloud/go/services/state/types"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	orc_test_utils "magma/orc8r/cloud/go/test_utils"
 )
+
+var subProfileEmpty = subscriberModels.SubProfile("")
+var subProfileFoo = subscriberModels.SubProfile("foo")
+var subProfileBar = subscriberModels.SubProfile("bar")
+var subProfileMissing = subscriberModels.SubProfile("missing-profile")
+var subProfilePresent = subscriberModels.SubProfile("present-profile")
+var subProfileDefault = subscriberModels.SubProfile("default")
+
+var emptyPageToken = subscriberModels.PageToken("")
 
 func TestCreateSubscribers(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
@@ -61,9 +72,11 @@ func TestCreateSubscribers(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Configs: networkConfigs}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -91,7 +104,7 @@ func TestCreateSubscribers(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    2,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			"IMSI0000000000": sub0.ToSubscriber(),
 			"IMSI0000000001": sub1.ToSubscriber(),
@@ -142,7 +155,7 @@ func TestCreateSubscribers(t *testing.T) {
 
 	// Fail: create sub with non-default sub profile that's missing from network config
 	sub6 := newMutableSubscriber("IMSI0000000006")
-	sub6.Lte.SubProfile = "missing-profile"
+	sub6.Lte.SubProfile = &subProfileMissing
 	payload = subscriberModels.MutableSubscribers{sub6}
 	tc = tests.Test{
 		Method:                 "POST",
@@ -159,8 +172,8 @@ func TestCreateSubscribers(t *testing.T) {
 	// Pass: create sub with non-default sub profile that's present in network config
 	sub7 := newMutableSubscriber("IMSI0000000007")
 	sub8 := newMutableSubscriber("IMSI0000000008")
-	sub7.Lte.SubProfile = "present-profile"
-	sub8.Lte.SubProfile = "present-profile"
+	sub7.Lte.SubProfile = &subProfilePresent
+	sub8.Lte.SubProfile = &subProfilePresent
 	payload = subscriberModels.MutableSubscribers{sub7, sub8}
 	tc = tests.Test{
 		Method:         "POST",
@@ -182,9 +195,11 @@ func TestListSubscribers(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	// preseed 2 apns
@@ -196,7 +211,7 @@ func TestListSubscribers(t *testing.T) {
 	assert.NoError(t, err)
 	expectedResult := subscriberModels.PaginatedSubscribers{
 		TotalCount:    int64(0),
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers:   map[string]*subscriberModels.Subscriber{},
 	}
 	tc := tests.Test{
@@ -235,7 +250,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
@@ -249,7 +264,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
@@ -297,7 +312,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				State:      "ACTIVE",
-				SubProfile: "foo",
+				SubProfile: &subProfileFoo,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -306,7 +321,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
@@ -319,7 +334,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				State:      "ACTIVE",
-				SubProfile: "foo",
+				SubProfile: &subProfileFoo,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -328,14 +343,15 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
-					SubProfile: "foo",
+					SubProfile: &subProfileFoo,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"EPC"},
 			},
 			ActiveApns: subscriberModels.ApnList{apn2},
 		},
 	}
-	expectedResult.NextPageToken = "Cg5JTVNJMDk4NzY1NDMyMg=="
+	expectedPageToken := subscriberModels.PageToken("Cg5JTVNJMDk4NzY1NDMyMg==")
+	expectedResult.NextPageToken = &expectedPageToken
 
 	// Test paginated requests
 	tc = tests.Test{
@@ -381,7 +397,7 @@ func TestListSubscribers(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -390,7 +406,7 @@ func TestListSubscribers(t *testing.T) {
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
-					SubProfile: "default",
+					SubProfile: &subProfileDefault,
 				},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
@@ -423,7 +439,7 @@ func TestListSubscribers(t *testing.T) {
 			},
 		},
 	}
-	expectedResult.NextPageToken = ""
+	expectedResult.NextPageToken = &emptyPageToken
 	// Get last page of subscribers
 	tc = tests.Test{
 		Method:         "GET",
@@ -468,12 +484,14 @@ func TestGetSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -525,7 +543,7 @@ func TestGetSubscriber(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -534,7 +552,7 @@ func TestGetSubscriber(t *testing.T) {
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
-					SubProfile: "default",
+					SubProfile: &subProfileDefault,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -591,7 +609,7 @@ func TestGetSubscriber(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 			Config: &subscriberModels.SubscriberConfig{
@@ -600,7 +618,7 @@ func TestGetSubscriber(t *testing.T) {
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
-					SubProfile: "default",
+					SubProfile: &subProfileDefault,
 				},
 				ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 				StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -645,10 +663,12 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	getSubscriberURL := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
 	createSubscribersURL := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, getSubscriberURL, obsidian.GET).HandlerFunc
 	createSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, createSubscribersURL, obsidian.POST).HandlerFunc
 
@@ -721,12 +741,13 @@ func TestListSubscriberStates(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+	s := subscriberdbTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscriber_state"
-	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(), testURLRoot, obsidian.GET).HandlerFunc
+	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(s), testURLRoot, obsidian.GET).HandlerFunc
 
 	// Initially no state
 	tc := tests.Test{
@@ -782,7 +803,6 @@ func TestListSubscriberStates(t *testing.T) {
 			"ipv4": "168.212.226.204",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI1234567890", &subState0, serdes.State)
 	subState1 := state.ArbitraryJSON{
 		"subscriber_state": state.ArbitraryJSON{
 			"imsi":     "IMSI0987654321",
@@ -793,7 +813,13 @@ func TestListSubscriberStates(t *testing.T) {
 			"ipv4": "168.212.226.203",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI0987654321", &subState1, serdes.State)
+	gwSubState := subscriberstorage.GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{
+		"IMSI1234567890": subState0,
+		"IMSI0987654321": subState1,
+	},
+	}
+	test_utils.ReportState(t, ctx, lte.GatewaySubscriberStateType, "hw0", &gwSubState, serdes.State)
+	assert.NoError(t, err)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -834,12 +860,13 @@ func TestGetSubscriberState(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+	s := subscriberdbTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscriber_state/:subscriber_id"
-	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(), testURLRoot, obsidian.GET).HandlerFunc
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(s), testURLRoot, obsidian.GET).HandlerFunc
 
 	// Initially no state
 	tc := tests.Test{
@@ -893,7 +920,11 @@ func TestGetSubscriberState(t *testing.T) {
 			"ipv4": "168.212.226.204",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI1234567890", &subState, serdes.State)
+	gwSubState := subscriberstorage.GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{
+		"IMSI1234567890": subState,
+	},
+	}
+	test_utils.ReportState(t, ctx, lte.GatewaySubscriberStateType, "hw0", &gwSubState, serdes.State)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -933,8 +964,10 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 
 	subURLBase := "/magma/v1/lte/:network_id/subscribers"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
@@ -961,7 +994,7 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	// List all => empty
 	emptyPaginatedSub := subscriberModels.PaginatedSubscribers{
 		TotalCount:    int64(0),
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers:   map[string]*subscriberModels.Subscriber{},
 	}
 	tc = tests.Test{
@@ -1092,8 +1125,10 @@ func TestGetSubscriberByIP(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 
 	subURLBase := "/magma/v1/lte/:network_id/subscribers"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
@@ -1223,12 +1258,14 @@ func TestUpdateSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1244,7 +1281,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
-			SubProfile: "default",
+			SubProfile: &subProfileDefault,
 		},
 		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		ActiveApns:            subscriberModels.ApnList{apn2, apn1},
@@ -1280,7 +1317,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		},
@@ -1296,7 +1333,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			State:      "INACTIVE",
-			SubProfile: "foo",
+			SubProfile: &subProfileFoo,
 		},
 		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{},
 		StaticIps:             subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
@@ -1328,7 +1365,7 @@ func TestUpdateSubscriber(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	// No profile matching
-	payload.Lte.SubProfile = "bar"
+	payload.Lte.SubProfile = &subProfileBar
 	tc = tests.Test{
 		Method:                 "PUT",
 		URL:                    testURLRoot,
@@ -1348,12 +1385,14 @@ func TestDeleteSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1395,13 +1434,15 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
 	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1476,6 +1517,8 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	err = configurator.UpdateNetworkConfig(context.Background(), "n1", lte.CellularNetworkConfigType, &lteModels.NetworkCellularConfigs{
@@ -1490,7 +1533,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}, serdes.Network)
 	assert.NoError(t, err)
 
-	//preseed 2 apns
+	// preseed 2 apns
 	apn1, apn2 := "foo", "bar"
 	_, err = configurator.CreateEntities(context.Background(), "n1", []configurator.NetworkEntity{
 		{Type: lte.APNEntityType, Key: apn1},
@@ -1505,7 +1548,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
@@ -1515,7 +1558,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id/lte/sub_profile"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	updateProfile := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	// 404
@@ -1568,7 +1611,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "foo",
+				SubProfile: &subProfileFoo,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
@@ -1600,7 +1643,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
-				SubProfile: "default",
+				SubProfile: &subProfileDefault,
 			},
 			ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC"},
 		},
@@ -1614,6 +1657,9 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 func TestSubscriberBasename(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
@@ -1627,7 +1673,7 @@ func TestSubscriberBasename(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
 	urlManage := urlBase + "/:subscriber_id"
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
 	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
@@ -1665,7 +1711,7 @@ func TestSubscriberBasename(t *testing.T) {
 	// Get all, posted subscriber found
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -1711,7 +1757,7 @@ func TestSubscriberBasename(t *testing.T) {
 	// Get all, updated subscriber matches the expected value
 	expected = subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -1731,6 +1777,9 @@ func TestSubscriberBasename(t *testing.T) {
 func TestSubscriberPolicy(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
@@ -1745,7 +1794,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
 	urlManage := urlBase + "/:subscriber_id"
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
 	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
@@ -1783,7 +1832,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	// Get all, posted subscriber found
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -1829,7 +1878,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	// Get all, updated subscriber matches the expected value
 	expected = subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		}}
@@ -1848,6 +1897,9 @@ func TestSubscriberPolicy(t *testing.T) {
 func TestAPNPolicyProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
@@ -1862,7 +1914,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
 	urlManage := urlBase + "/:subscriber_id"
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
 	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
@@ -1893,7 +1945,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		tests.RunUnitTest(t, e, tc)
 
 		// Post, sub with same policy both static and for specific APN
-		mutableSub.ActivePolicies = policydbModels.PolicyIds{policy.ID}
+		mutableSub.ActivePolicies = policydbModels.PolicyIds{*policy.ID}
 		mutableSub.ActivePoliciesByApn = policydbModels.PolicyIdsByApn{
 			"apn0": policydbModels.PolicyIds{"ruleXXX"},
 		}
@@ -1971,7 +2023,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	// Get all, initially empty
 	emptySub := subscriberModels.PaginatedSubscribers{
 		TotalCount:    0,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers:   map[string]*subscriberModels.Subscriber{},
 	}
 	tc := tests.Test{
@@ -2036,7 +2088,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	// Get all, posted subscriber found
 	expected := subscriberModels.PaginatedSubscribers{
 		TotalCount:    1,
-		NextPageToken: "",
+		NextPageToken: &emptyPageToken,
 		Subscribers: map[string]*subscriberModels.Subscriber{
 			imsi: mutableSub.ToSubscriber(),
 		},
@@ -2278,7 +2330,7 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
-			SubProfile: "default",
+			SubProfile: &subProfileDefault,
 		},
 		ForbiddenNetworkTypes: subscriberModels.CoreNetworkTypes{"5GC", "EPC"},
 		StaticIps: subscriberModels.SubscriberStaticIps{
@@ -2290,8 +2342,9 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 }
 
 func newPolicy(id string) *policydbModels.PolicyRule {
+	policyID := policydbModels.PolicyID(id)
 	policy := &policydbModels.PolicyRule{
-		ID: policydbModels.PolicyID(id),
+		ID: &policyID,
 		FlowList: []*policydbModels.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),
@@ -2304,4 +2357,14 @@ func newPolicy(id string) *policydbModels.PolicyRule {
 		Priority: swag.Uint32(1),
 	}
 	return policy
+}
+
+// newTestSubscriberStorage sets up the gateway_subscriber_states table, without
+// spinning up the entire subscriberdb Test Service.
+func newTestSubscriberStorage(t *testing.T) subscriberstorage.SubscriberStorage {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	s := subscriberstorage.NewSubscriberStorage(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, s.Initialize())
+	return s
 }

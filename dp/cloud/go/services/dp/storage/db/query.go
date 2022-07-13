@@ -33,13 +33,15 @@ type Query struct {
 }
 
 type arg struct {
-	alias    string
-	model    Model
-	metadata *ModelMetadata
-	mask     FieldMask
-	nullable bool
-	filter   sq.Sqlizer
-	on       sq.Sqlizer
+	alias      string
+	model      Model
+	metadata   *ModelMetadata
+	inputMask  FieldMask
+	outputMask FieldMask
+	nullable   bool
+	filter     sq.Sqlizer
+	on         sq.Sqlizer
+	lock       string
 }
 
 func (q *Query) WithBuilder(builder sq.StatementBuilderType) *Query {
@@ -48,7 +50,7 @@ func (q *Query) WithBuilder(builder sq.StatementBuilderType) *Query {
 }
 
 func (q *Query) Select(mask FieldMask) *Query {
-	q.arg.mask = mask
+	q.arg.outputMask = mask
 	return q
 }
 
@@ -65,6 +67,11 @@ func (q *Query) As(alias string) *Query {
 
 func (q *Query) Where(filter sq.Sqlizer) *Query {
 	q.arg.filter = filter
+	return q
+}
+
+func (q *Query) Lock(lock string) *Query {
+	q.arg.lock = lock
 	return q
 }
 

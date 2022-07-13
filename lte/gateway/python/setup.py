@@ -40,7 +40,6 @@ setup(
         'magma.pipelined.openflow',
         'magma.pipelined.qos',
         'magma.pipelined.ebpf',
-        'magma.pkt_tester',
         'magma.policydb',
         'magma.policydb.servicers',
         'magma.redirectd',
@@ -143,6 +142,8 @@ setup(
             'coverage',
             'iperf3',
             'parameterized==0.8.1',
+            'pytest==7.1.2',
+            'pytest-cov==3.0.0',
         ],
     },
 )

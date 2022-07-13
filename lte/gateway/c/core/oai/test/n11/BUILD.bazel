@@ -15,22 +15,24 @@ package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
 
 cc_test(
     name = "n11_auth_service_client_test",
+    size = "small",
     srcs = [
         "test_auth_service_client.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "n11_smf_service_client_test",
+    size = "small",
     srcs = [
         "test_smf_service_client.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )

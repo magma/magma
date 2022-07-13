@@ -34,9 +34,9 @@ py_library(
     srcs = [
         "events.py",
         "mconfig_managers.py",
-        "mconfigs.py",
     ],
     deps = [
+        ":mconfigs",
         "//orc8r/gateway/python/magma/common:serialization_utils",
         "//orc8r/gateway/python/magma/eventd:eventd_client",
         "//orc8r/protos:mconfig_python_proto",
@@ -47,4 +47,13 @@ py_library(
 py_library(
     name = "environment",
     srcs = ["environment.py"],
+)
+
+py_library(
+    name = "mconfigs",
+    srcs = ["mconfigs.py"],
+    deps = [
+        ":service_configs",
+        requirement("protobuf"),
+    ],
 )

@@ -22,12 +22,13 @@ cc_library(
 
 cc_test(
     name = "gtp_app_test",
+    size = "small",
     srcs = [
         "test_gtp_app.cpp",
     ],
     deps = [
         ":openflow_mocks",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],
@@ -35,23 +36,25 @@ cc_test(
 
 cc_test(
     name = "imsi_encoder_test",
+    size = "small",
     srcs = [
         "test_imsi_encoder.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_test(
     name = "openflow_controller_test",
+    size = "small",
     srcs = [
         "test_openflow_controller.cpp",
     ],
     deps = [
         ":openflow_mocks",
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],

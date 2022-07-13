@@ -6,17 +6,18 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FrequencyPreferences frequency preferences
+//
 // swagger:model frequency_preferences
 type FrequencyPreferences struct {
 
@@ -62,7 +63,7 @@ func init() {
 
 // prop value enum
 func (m *FrequencyPreferences) validateBandwidthMhzEnum(path, location string, value int64) error {
-	if err := validate.Enum(path, location, value, frequencyPreferencesTypeBandwidthMhzPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, frequencyPreferencesTypeBandwidthMhzPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -90,20 +91,25 @@ func (m *FrequencyPreferences) validateFrequenciesMhz(formats strfmt.Registry) e
 
 	for i := 0; i < len(m.FrequenciesMhz); i++ {
 
-		if err := validate.MinimumInt("frequencies_mhz"+"."+strconv.Itoa(i), "body", int64(m.FrequenciesMhz[i]), 3555, false); err != nil {
+		if err := validate.MinimumInt("frequencies_mhz"+"."+strconv.Itoa(i), "body", m.FrequenciesMhz[i], 3555, false); err != nil {
 			return err
 		}
 
-		if err := validate.MaximumInt("frequencies_mhz"+"."+strconv.Itoa(i), "body", int64(m.FrequenciesMhz[i]), 3695, false); err != nil {
+		if err := validate.MaximumInt("frequencies_mhz"+"."+strconv.Itoa(i), "body", m.FrequenciesMhz[i], 3695, false); err != nil {
 			return err
 		}
 
-		if err := validate.MultipleOf("frequencies_mhz"+"."+strconv.Itoa(i), "body", float64(m.FrequenciesMhz[i]), 5); err != nil {
+		if err := validate.MultipleOfInt("frequencies_mhz"+"."+strconv.Itoa(i), "body", m.FrequenciesMhz[i], 5); err != nil {
 			return err
 		}
 
 	}
 
+	return nil
+}
+
+// ContextValidate validates this frequency preferences based on context it is used
+func (m *FrequencyPreferences) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

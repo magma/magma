@@ -6,22 +6,25 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Capabilities capabilities
+//
 // swagger:model capabilities
 type Capabilities struct {
 
-	// antenna gain
+	// this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
 	// Required: true
-	AntennaGain *float64 `json:"antenna_gain"`
+	MaxIbwMhz int64 `json:"max_ibw_mhz"`
 
 	// max tx power available on cbsd
+	// Example: 30
 	// Required: true
 	MaxPower *float64 `json:"max_power"`
 
@@ -30,6 +33,7 @@ type Capabilities struct {
 	MinPower *float64 `json:"min_power"`
 
 	// number of antennas
+	// Example: 2
 	// Required: true
 	// Minimum: 1
 	NumberOfAntennas int64 `json:"number_of_antennas"`
@@ -39,7 +43,7 @@ type Capabilities struct {
 func (m *Capabilities) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAntennaGain(formats); err != nil {
+	if err := m.validateMaxIbwMhz(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -61,9 +65,9 @@ func (m *Capabilities) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Capabilities) validateAntennaGain(formats strfmt.Registry) error {
+func (m *Capabilities) validateMaxIbwMhz(formats strfmt.Registry) error {
 
-	if err := validate.Required("antenna_gain", "body", m.AntennaGain); err != nil {
+	if err := validate.Required("max_ibw_mhz", "body", int64(m.MaxIbwMhz)); err != nil {
 		return err
 	}
 
@@ -94,10 +98,15 @@ func (m *Capabilities) validateNumberOfAntennas(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinimumInt("number_of_antennas", "body", int64(m.NumberOfAntennas), 1, false); err != nil {
+	if err := validate.MinimumInt("number_of_antennas", "body", m.NumberOfAntennas, 1, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this capabilities based on context it is used
+func (m *Capabilities) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

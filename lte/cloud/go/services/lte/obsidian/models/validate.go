@@ -15,6 +15,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
-	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -83,10 +83,10 @@ func (m FegNetworkID) ValidateModel(ctx context.Context) error {
 	if !swag.IsZero(m) {
 		exists, err := configurator.DoesNetworkExist(ctx, string(m))
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Failed to search for network %s", string(m)))
+			return fmt.Errorf("Failed to search for network %s: %w", string(m), err)
 		}
 		if !exists {
-			return errors.New(fmt.Sprintf("Network: %s does not exist", string(m)))
+			return fmt.Errorf("Network: %s does not exist", string(m))
 		}
 	}
 	return nil
@@ -151,14 +151,14 @@ func (m *NetworkRanConfigs) ValidateModel(context.Context) error {
 	}
 
 	if tddConfigSet && band.Mode != lte.TDDMode {
-		return errors.Errorf("band %d not a TDD band", band.ID)
+		return fmt.Errorf("band %d not a TDD band", band.ID)
 	}
 	if fddConfigSet {
 		if band.Mode != lte.FDDMode {
-			return errors.Errorf("band %d not a FDD band", band.ID)
+			return fmt.Errorf("band %d not a FDD band", band.ID)
 		}
 		if !band.EarfcnULInRange(m.FddConfig.Earfcnul) {
-			return errors.Errorf("EARFCNUL=%d invalid for band %d (%d, %d)", m.FddConfig.Earfcnul, band.ID, band.StartEarfcnUl, band.StartEarfcnDl)
+			return fmt.Errorf("EARFCNUL=%d invalid for band %d (%d, %d)", m.FddConfig.Earfcnul, band.ID, band.StartEarfcnUl, band.StartEarfcnDl)
 		}
 	}
 

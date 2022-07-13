@@ -19,18 +19,19 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.h"
+#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 }
 
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 extern bool hss_associated;
+extern task_zmq_ctx_t task_zmq_ctx_mme;
 
 namespace magma {
 namespace lte {
@@ -89,6 +90,8 @@ class S1apMmeHandlersTest : public ::testing::Test {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     send_terminate_message_fatal(&task_zmq_ctx_main_s1ap);
+    send_terminate_message_fatal(&task_zmq_ctx_mme);
+
     destroy_task_context(&task_zmq_ctx_main_s1ap);
     itti_free_desc_threads();
 
@@ -132,8 +135,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
 
   enb_description_t* enb_associated = NULL;
-  hashtable_ts_get(&state->enbs, (const hash_key_t)assoc_id,
-                   reinterpret_cast<void**>(&enb_associated));
+  state->enbs.get(assoc_id, &enb_associated);
   enb_associated->s1_state = S1AP_RESETING;
 
   S1ap_S1AP_PDU_t pdu_s1;

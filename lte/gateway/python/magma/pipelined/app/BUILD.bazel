@@ -190,6 +190,7 @@ py_library(
     deps = [
         ":base",
         ":restart_mixin",
+        "//lte/gateway/python/magma/pipelined:gw_mac_address",
         "//lte/gateway/python/magma/pipelined:imsi",
         "//lte/gateway/python/magma/pipelined:mobilityd_client",
         "//lte/gateway/python/magma/pipelined:utils",
@@ -203,6 +204,7 @@ py_library(
 py_library(
     name = "restart_mixin",
     srcs = ["restart_mixin.py"],
+    deps = [":startup_flows"],
 )
 
 py_library(

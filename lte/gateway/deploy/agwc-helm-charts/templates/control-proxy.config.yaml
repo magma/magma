@@ -22,8 +22,8 @@ metadata:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "-5"
 data:
-  # Configuration is in Json format. No matter what configure change you make,
-  # please keep the Json blob valid.
+  gw_challenge.b64: |
+    {{ print .Values.config.gwChallenge | trim | nospace }}
   control_proxy.yml: |
     # Cloud address for reaching out to the cloud.
     cloud_address: controller.{{ .Values.config.domainName }}

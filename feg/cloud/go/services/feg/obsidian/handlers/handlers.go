@@ -17,8 +17,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/pkg/errors"
+	"github.com/labstack/echo/v4"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
@@ -26,9 +25,9 @@ import (
 	"magma/feg/cloud/go/services/health"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
@@ -128,7 +127,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(err, "failed to load federation gateway"))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load federation gateway: %w", err))
 	}
 
 	ret := &fegModels.FederationGateway{

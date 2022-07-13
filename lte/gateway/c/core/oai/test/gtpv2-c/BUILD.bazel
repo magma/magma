@@ -15,11 +15,12 @@ package(default_visibility = ["//visibility:private"])
 
 cc_test(
     name = "gtpv2_fteid_test",
+    size = "small",
     srcs = [
         "test_fteid.cpp",
     ],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_mme_oai",
         "@com_google_googletest//:gtest_main",
     ],
 )
