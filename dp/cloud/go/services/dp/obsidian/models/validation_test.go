@@ -83,6 +83,18 @@ func TestMutableCbsd_Validate(t *testing.T) {
 		name:          "Should validate max ibw mhz",
 		data:          b.NewMutableCbsdModelPayloadBuilder().WithMaxIbwMhz(0).Payload,
 		expectedError: "max_ibw_mhz in body is required",
+	}, {
+		name:          "Should validate max ibw mhz too high",
+		data:          b.NewMutableCbsdModelPayloadBuilder().WithMaxIbwMhz(151).Payload,
+		expectedError: "max_ibw_mhz in body should be less than or equal to 150",
+	}, {
+		name:          "Should validate max ibw mhz too low",
+		data:          b.NewMutableCbsdModelPayloadBuilder().WithMaxIbwMhz(4).Payload,
+		expectedError: "max_ibw_mhz in body should be greater than or equal to 5",
+	}, {
+		name:          "Should validate max ibw mhz not multiple of 5",
+		data:          b.NewMutableCbsdModelPayloadBuilder().WithMaxIbwMhz(7).Payload,
+		expectedError: "max_ibw_mhz in body should be a multiple of 5",
 	}}
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {
