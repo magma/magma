@@ -109,3 +109,14 @@ jobs:
         with:
           files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
+      - name: Notify failure to slack
+        if: failure() && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_TITLE: "Bazel LTE integ tests"
+          SLACK_USERNAME: "Bazel LTE integ tests"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
