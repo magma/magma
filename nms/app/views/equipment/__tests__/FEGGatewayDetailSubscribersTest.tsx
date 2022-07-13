@@ -142,6 +142,7 @@ describe('<FEGGatewayDetailSubscribers />', () => {
         <MuiStylesThemeProvider theme={defaultTheme}>
           <FEGSubscriberContext.Provider
             value={{
+              refetch: () => {},
               sessionState: {
                 feg_lte_network1: mockSubscriberSessionState0,
                 feg_lte_network2: mockSubscriberSessionState1,

@@ -16,15 +16,11 @@ import FEGSubscriberContext from '../../components/context/FEGSubscriberContext'
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
-import nullthrows from '../../../shared/util/nullthrows';
 import {FetchSubscribers} from '../../state/lte/SubscriberState';
-import {
-  REFRESH_INTERVAL,
-  RefreshTypeEnum,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
-import {useEffect, useState} from 'react';
-import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {useContext, useEffect, useState} from 'react';
+import {useInterval} from '../../hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
 import type {FederationGateway, Subscriber} from '../../../generated';
 
 /**
@@ -55,20 +51,14 @@ type SubscriberRowType = {
 export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
   const resolvedPath = useResolvedPath('');
   const navigate = useNavigate();
-  const params = useParams();
-  const networkId: string = nullthrows(params.networkId);
   const [subscriberRows, setSubscriberRows] = useState<
     Array<SubscriberRowType>
   >([]);
+  const ctx = useContext(FEGSubscriberContext);
   const [isLoading, setIsLoading] = useState(true);
   // Auto refresh every REFRESH_INTERVAL seconds
-  const ctx = useRefreshingContext({
-    context: FEGSubscriberContext,
-    networkId: networkId,
-    type: RefreshTypeEnum.FEG_SUBSCRIBER,
-    interval: REFRESH_INTERVAL,
-    refresh: props.refresh,
-  });
+  useInterval(() => ctx.refetch(), props.refresh ? REFRESH_INTERVAL : null);
+
   const sessionState = ctx?.sessionState || {};
   const subscriberToNetworkIdMap: Record<string, string> = {};
 

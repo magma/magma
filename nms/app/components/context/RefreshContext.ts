@@ -11,11 +11,7 @@
  * limitations under the License.
  */
 
-import FEGSubscriberContext, {
-  FEGSubscriberContextType,
-} from './FEGSubscriberContext';
 import SubscriberContext, {SubscriberContextType} from './SubscriberContext';
-import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
 import type {OptionsObject} from 'notistack';
@@ -29,15 +25,11 @@ export const RefreshTypeEnum = {
 
 type ContextMap = {
   [RefreshTypeEnum.SUBSCRIBER]: typeof SubscriberContext;
-  [RefreshTypeEnum.FEG_SUBSCRIBER]: typeof FEGSubscriberContext;
 };
 
 type StateMap = {
   [RefreshTypeEnum.SUBSCRIBER]: {
     sessionState: SubscriberContextType['sessionState'];
-  };
-  [RefreshTypeEnum.FEG_SUBSCRIBER]: {
-    sessionState: FEGSubscriberContextType['sessionState'];
   };
 };
 
@@ -65,10 +57,7 @@ export function useRefreshingContext<T extends keyof ContextMap>(
 ): StateMap[T] {
   const ctx: any = useContext(props.context as any);
   const initState = () => {
-    if (
-      props.type === RefreshTypeEnum.SUBSCRIBER ||
-      props.type === RefreshTypeEnum.FEG_SUBSCRIBER
-    ) {
+    if (props.type === RefreshTypeEnum.SUBSCRIBER) {
       return {sessionState: ctx.sessionState};
     }
     return ctx.state;
@@ -108,8 +97,6 @@ export function useRefreshingContext<T extends keyof ContextMap>(
               }
             : {},
         };
-      } else if (props.type === RefreshTypeEnum.FEG_SUBSCRIBER) {
-        newState = {...ctx.sessionState};
       } else {
         newState = {...ctx.state, [id]: state?.[id]};
       }
@@ -117,8 +104,6 @@ export function useRefreshingContext<T extends keyof ContextMap>(
     if (props.type === 'subscriber') {
       // update subscriber session state
       return ctx.setState(null, null, null, newState);
-    } else if (props.type === RefreshTypeEnum.FEG_SUBSCRIBER) {
-      return ctx.setSessionState(newState);
     }
     return ctx.setState(null, null, newState);
   }
@@ -187,12 +172,6 @@ async function fetchRefreshState(props: FetchProps) {
         sessionState: {[id]: sessions || {}},
       };
     }
-    return {sessionState: sessions};
-  } else if (type === RefreshTypeEnum.FEG_SUBSCRIBER) {
-    const sessions = await FetchFegSubscriberState({
-      networkId,
-      enqueueSnackbar,
-    });
     return {sessionState: sessions};
   }
 }
