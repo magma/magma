@@ -737,7 +737,8 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
   if ((ue_context_p->m5_implicit_deregistration_timer.id = amf_app_start_timer(
            ue_context_p->m5_implicit_deregistration_timer.sec * 1000,
            TIMER_REPEAT_ONCE,
-           amf_app_handle_implicit_deregistration_timer_expiry, ue_id)) == -1) {
+           amf_app_handle_implicit_deregistration_timer_expiry, ue_id)) ==
+      RETURNerror) {
     OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                     "Failed to start Implicit Deregistration timer for UE "
                     "id: " AMF_UE_NGAP_ID_FMT "\n",
@@ -799,7 +800,7 @@ void amf_ue_context_update_ue_sig_connection_state(
         ue_context_p->m5_mobile_reachability_timer.id ==
             AMF_APP_TIMER_INACTIVE_ID) {
       ue_context_p->m5_mobile_reachability_timer.sec =
-          (amf_config.nas_config.t3512_min + 4 * 60);
+          (amf_config.nas_config.t3512_min + (4 * 60));
       ue_context_p->m5_implicit_deregistration_timer.sec =
           ue_context_p->m5_mobile_reachability_timer.sec;
 
@@ -808,7 +809,7 @@ void amf_ue_context_update_ue_sig_connection_state(
                ue_context_p->m5_mobile_reachability_timer.sec * 1000,
                TIMER_REPEAT_ONCE,
                amf_app_handle_mobile_reachability_timer_expiry,
-               ue_context_p->amf_ue_ngap_id)) == -1) {
+               ue_context_p->amf_ue_ngap_id)) == RETURNerror) {
         OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                         "Failed to start Mobile Reachability timer for UE id "
                         " " AMF_UE_NGAP_ID_FMT "\n",
