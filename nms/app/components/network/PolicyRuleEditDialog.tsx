@@ -52,6 +52,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   onCancel: () => void;
+  onSave: (ruleId: string) => void;
   qosProfiles: Record<string, PolicyQosProfile>;
   rule?: PolicyRule;
   mirrorNetwork?: string;
@@ -166,7 +167,7 @@ export default function PolicyRuleEditDialog(props: Props) {
       },
     ];
 
-    if (mirrorNetwork != null) {
+    if (mirrorNetwork) {
       ruleData.push({
         networkId: mirrorNetwork,
         ruleId: rule.id,
@@ -194,17 +195,19 @@ export default function PolicyRuleEditDialog(props: Props) {
     };
     if (isNetworkWide) {
       await postNetworkWideRuleID(networkWideRuleData, networkType!);
-      if (mirrorNetwork != null) {
+      if (mirrorNetwork) {
         networkWideRuleData.networkId = mirrorNetwork;
         await postNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
       }
     } else {
       await deleteNetworkWideRuleID(networkWideRuleData, networkType!);
-      if (mirrorNetwork != null) {
+      if (mirrorNetwork) {
         networkWideRuleData.networkId = mirrorNetwork;
         await deleteNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
       }
     }
+
+    props.onSave(rule.id);
   };
 
   return (
