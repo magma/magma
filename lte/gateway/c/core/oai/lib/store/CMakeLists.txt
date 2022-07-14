@@ -11,11 +11,29 @@
 
 cmake_minimum_required(VERSION 3.7.2)
 
-add_library(store sqlite.cpp)
-target_link_libraries(store MAGMA_CONFIG COMMON tacopie protobuf) #not sure of this.
+
+set(CMAKE_CXX_FLAGS "-Wno-write-strings -Wno-literal-suffix")
 
 
-target_include_directories(store PUBLIC
+#compile the required protos
+set(SUB_CPP_PROTOS subscriberdb)
+
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+create_proto_dir("lte" LTE_OUT_DIR)
+
+
+generate_cpp_protos("${SUB_CPP_PROTOS}" "${PROTO_SRCS}"
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
+
+
+add_library(LIB_STORE sqlite.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(LIB_STORE MAGMA_CONFIG COMMON  protobuf)
+
+
+target_include_directories(LIB_STORE PUBLIC
     $ENV{MAGMA_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${MAGMA_COMMON_DIR}
