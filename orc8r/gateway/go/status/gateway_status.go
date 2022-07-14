@@ -24,6 +24,7 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/vishvananda/netlink"
 
 	"magma/gateway/config"
 	"magma/gateway/mconfig"
@@ -114,7 +115,7 @@ func GetPlatformInfo() *PlatformInfo {
 // GetNetworkInfo
 func GetNetworkInfo() *NetworkInfo {
 	interfaces := make([]*NetworkInterface, len(netInterfaces))
-	routes := make([]*Route, len(hostRoutes))
+	// routes := make([]*Route, len(hostRoutes))
 	for i, ni := range netInterfaces {
 		// dumb down, interface status
 		status := "UNKNOWN"
@@ -147,14 +148,85 @@ func GetNetworkInfo() *NetworkInfo {
 		}
 		interfaces[i] = netIface
 	}
-	for i, rt := range hostRoutes {
-		dest := rt.Destination.IP.To4()
-		if dest == nil {
-			dest = rt.Destination.IP
+	// for i, rt := range hostRoutes {
+	// 	dest := rt.Destination.IP.To4()
+	// 	if dest == nil {
+	// 		dest = rt.Destination.IP
+	// 	}
+	// 	gw := rt.Gateway.To4()
+	// 	if gw == nil {
+	// 		gw = rt.Gateway
+	// 		if len(gw) == 0 {
+	// 			if len(dest) == net.IPv4len {
+	// 				gw = []byte{0, 0, 0, 0}
+	// 			} else {
+	// 				gw = net.IP([]byte{0, 0, 0, 0}).To16()
+	// 			}
+	// 		}
+	// 	}
+	// 	maskStr := rt.Destination.Mask.String()
+	// 	if len(dest) == net.IPv4len {
+	// 		maskV4 := net.IP(rt.Destination.Mask).To4()
+	// 		if maskV4 != nil {
+	// 			maskStr = maskV4.String()
+	// 		}
+	// 	}
+	// 	route := &Route{
+	// 		DestinationIp: dest.String(),
+	// 		GatewayIp:     gw.String(),
+	// 		Genmask:       maskStr,
+	// 	}
+	// 	if rt.Interface != nil {
+	// 		route.NetworkInterfaceId = rt.Interface.Name
+	// 	}
+	// 	routes[i] = route
+	// }
+
+	ipNameMapNI := getIPInterfaceNameMap()
+	linkList, _ := netlink.LinkList()
+	linkNameMap := make(map[int]string)
+
+	for i, l := range linkList {
+		linkNameMap[i+1] = l.Attrs().Name
+	}
+
+	routes, ipToInterface, unlinkedHostRoutes := getRoutes(ipNameMapNI, hostRoutes)
+	for i, uhr := range unlinkedHostRoutes {
+		unlinkedHostRoutes[i].Src = net.ParseIP(ipToInterface[linkNameMap[uhr.LinkIndex]])
+	}
+	additionalRoutes, _, _ := getRoutes(ipNameMapNI, unlinkedHostRoutes)
+	routes = append(routes, additionalRoutes...)
+	return &NetworkInfo{
+		NetworkInterfaces: interfaces,
+		RoutingTable:      routes,
+	}
+}
+
+func getRoutes(ipNameMapNI map[string]int, hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.Route) {
+	ipToInterface := make(map[string]string)
+	var unlinkedHostRoutes []netlink.Route
+	var routes []*Route
+
+	for _, r := range hRoutes {
+		src := getSourceIP(r)
+
+		if src == "" {
+			unlinkedHostRoutes = append(unlinkedHostRoutes, r)
+			continue
 		}
-		gw := rt.Gateway.To4()
+
+		index, exists := ipNameMapNI[src]
+		if !exists {
+			continue
+		}
+		dest := getDestinationIP(r).IP.To4()
+		if dest == nil {
+			continue
+			// dest = r.Dst.IP
+		}
+		gw := r.Gw.To4()
 		if gw == nil {
-			gw = rt.Gateway
+			gw = r.Gw
 			if len(gw) == 0 {
 				if len(dest) == net.IPv4len {
 					gw = []byte{0, 0, 0, 0}
@@ -163,27 +235,25 @@ func GetNetworkInfo() *NetworkInfo {
 				}
 			}
 		}
-		maskStr := rt.Destination.Mask.String()
+
+		maskStr := getDestinationIP(r).Mask.String()
 		if len(dest) == net.IPv4len {
-			maskV4 := net.IP(rt.Destination.Mask).To4()
+			maskV4 := net.IP(getDestinationIP(r).Mask).To4()
 			if maskV4 != nil {
 				maskStr = maskV4.String()
 			}
 		}
+		convertedIface := getNetInterface(index)
 		route := &Route{
-			DestinationIp: dest.String(),
-			GatewayIp:     gw.String(),
-			Genmask:       maskStr,
+			DestinationIp:      dest.String(),
+			GatewayIp:          gw.String(),
+			Genmask:            maskStr,
+			NetworkInterfaceId: convertedIface.Name,
 		}
-		if rt.Interface != nil {
-			route.NetworkInterfaceId = rt.Interface.Name
-		}
-		routes[i] = route
+		routes = append(routes, route)
+		ipToInterface[convertedIface.Name] = src
 	}
-	return &NetworkInfo{
-		NetworkInterfaces: interfaces,
-		RoutingTable:      routes,
-	}
+	return routes, ipToInterface, unlinkedHostRoutes
 }
 
 // GetMachineInfo
@@ -248,4 +318,50 @@ func GetGatewayStatus() *GatewayStatus {
 // UnixMs returns Unix time in milliseconds
 func UnixMs(t time.Time) int64 {
 	return t.Unix() + int64(t.Nanosecond())/int64(time.Millisecond)
+}
+
+func getIPInterfaceNameMap() map[string]int {
+	ipNameMapNI := make(map[string]int)
+	for i, nf := range netInterfaces {
+		nfIP, _, _ := net.ParseCIDR(nf.Addrs[0].Addr)
+		ipNameMapNI[nfIP.To4().String()] = i
+	}
+	return ipNameMapNI
+}
+
+func getNetInterface(index int) net.Interface {
+	iface := netInterfaces[index]
+	parsedAddr, _ := net.ParseMAC(iface.HardwareAddr)
+	// hex.DecodeString(iface.HardwareAddr)
+	convertedIface := net.Interface{
+		Index:        iface.Index,
+		MTU:          iface.MTU,
+		Name:         iface.Name,
+		HardwareAddr: parsedAddr,
+		Flags:        0,
+	}
+	return convertedIface
+}
+
+func getSourceIP(r netlink.Route) string {
+	var src string
+	if r.Src == nil {
+		return ""
+		// src = "10.7.0.52" // probably won't work in general
+		// src = "127.0.0.1"
+	} else {
+		src = r.Src.To4().String()
+	}
+	return src
+}
+
+func getDestinationIP(r netlink.Route) net.IPNet {
+	var dst net.IPNet
+	if r.Dst == nil {
+		dstIP, dstIPNet, _ := net.ParseCIDR("0.0.0.0/0")
+		dst = net.IPNet{IP: dstIP, Mask: dstIPNet.Mask}
+	} else {
+		dst = *r.Dst
+	}
+	return dst
 }

@@ -18,6 +18,7 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/stretchr/testify v1.7.0
+	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	google.golang.org/grpc v1.43.0
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
@@ -41,6 +42,7 @@ require (
 	github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1 // indirect
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	github.com/tklauser/numcpus v0.2.1 // indirect
+	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/text v0.3.7 // indirect

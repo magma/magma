@@ -14,6 +14,7 @@ limitations under the License.
 package status
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/emakeev/snowflake"
@@ -22,6 +23,7 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	gopsutil_net "github.com/shirou/gopsutil/v3/net"
+	"github.com/vishvananda/netlink"
 )
 
 var (
@@ -31,11 +33,13 @@ var (
 	hostInfo      *host.InfoStat
 	netInterfaces []gopsutil_net.InterfaceStat
 	disksInfo     []disk.PartitionStat
-	hostRoutes    []routewrapper.Route
-	bootTime      uint64
-	vpnIp         string
-	machineInfo   *MachineInfo
-	platformInfo  *PlatformInfo
+	// hostRoutes    []routewrapper.Route
+	hostRoutes []netlink.Route
+	// hostRoutesNew []
+	bootTime     uint64
+	vpnIp        string
+	machineInfo  *MachineInfo
+	platformInfo *PlatformInfo
 )
 
 func init() {
@@ -78,10 +82,42 @@ func init() {
 	}
 	disksInfo, _ = disk.Partitions(true)
 
+	var oldHostRoutes []routewrapper.Route
 	w, err := routewrapper.NewRouteWrapper()
 	if err == nil {
-		hostRoutes, _ = w.Routes()
+		oldHostRoutes, _ = w.Routes()
 	}
+	fmt.Print(oldHostRoutes)
+
+	hostRoutes, _ = netlink.RouteList(nil, 0)
+	addr, _ := netlink.AddrList(nil, 0)
+	print(addr)
+	// var hostRoutesNew []routewrapper.Route
+	//
+	// for _, r := range routeList {
+	// 	src := getSourceIP(r)
+	//
+	// 	index, exists := ipNameMapNI[src]
+	// 	if !exists {
+	// 		continue
+	// 	}
+	// 	convertedIface := getNetInterface(index)
+	//
+	// 	dst := getDestinationIP(r)
+	// 	if dst.IP.To4() == nil {
+	// 		continue
+	// 	}
+	//
+	// 	hostRoute := routewrapper.Route{
+	// 		Destination: dst,
+	// 		Gateway:     r.Gw,
+	// 		Interface:   &convertedIface,
+	// 		Flags:       nil,
+	// 		Expire:      0,
+	// 		Metric:      r.Priority} // Expire was always set to zero before
+	// 	hostRoutesNew = append(hostRoutesNew, hostRoute)
+	// }
+
 	machineInfo = GetMachineInfo()
 	platformInfo = GetPlatformInfo()
 }
