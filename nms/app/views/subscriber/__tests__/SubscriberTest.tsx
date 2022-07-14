@@ -155,4 +155,36 @@ describe('<SubscriberDashboard />', () => {
       expect(getByTestId('actions-menu')).toBeVisible();
     });
   });
+
+  it('subscribers can be searched by IMSI', async () => {
+    const geSubscribersBySubscriberId = mockAPI(
+      MagmaAPI.subscribers,
+      'lteNetworkIdSubscribersSubscriberIdGet',
+      subscribers['IMSI0000000001'],
+    );
+
+    const {findByPlaceholderText, findAllByRole} = render(<Wrapper />);
+
+    const searchInput = await findByPlaceholderText(
+      'Search IMSI001011234560000',
+    );
+
+    fireEvent.change(searchInput, {
+      target: {value: 'IMSI0000000001'},
+    });
+
+    await waitFor(() =>
+      expect(geSubscribersBySubscriberId).toBeCalledWith({
+        networkId: 'test',
+        subscriberId: 'IMSI0000000001',
+      }),
+    );
+
+    const rowItems = await findAllByRole('row');
+
+    expect(rowItems[1]).toHaveTextContent('subscriber1');
+    expect(rowItems[1]).toHaveTextContent('IMSI0000000001');
+    expect(rowItems[1]).toHaveTextContent('INACTIVE');
+    expect(rowItems[1]).toHaveTextContent('0');
+  });
 });
