@@ -30,6 +30,7 @@ import (
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	subscriberstorage "magma/lte/cloud/go/services/subscriberdb/storage"
 	subscriberdbTestInit "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
@@ -45,6 +46,7 @@ import (
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	stateTypes "magma/orc8r/cloud/go/services/state/types"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	orc_test_utils "magma/orc8r/cloud/go/test_utils"
 )
@@ -70,9 +72,11 @@ func TestCreateSubscribers(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1", Configs: networkConfigs}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
@@ -191,9 +195,11 @@ func TestListSubscribers(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	// preseed 2 apns
@@ -478,9 +484,11 @@ func TestGetSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	// preseed 2 apns
@@ -655,10 +663,12 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	getSubscriberURL := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
 	createSubscribersURL := "/magma/v1/lte/:network_id/subscribers"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, getSubscriberURL, obsidian.GET).HandlerFunc
 	createSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, createSubscribersURL, obsidian.POST).HandlerFunc
 
@@ -731,12 +741,13 @@ func TestListSubscriberStates(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+	s := subscriberdbTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscriber_state"
-	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(), testURLRoot, obsidian.GET).HandlerFunc
+	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(s), testURLRoot, obsidian.GET).HandlerFunc
 
 	// Initially no state
 	tc := tests.Test{
@@ -792,7 +803,6 @@ func TestListSubscriberStates(t *testing.T) {
 			"ipv4": "168.212.226.204",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI1234567890", &subState0, serdes.State)
 	subState1 := state.ArbitraryJSON{
 		"subscriber_state": state.ArbitraryJSON{
 			"imsi":     "IMSI0987654321",
@@ -803,7 +813,13 @@ func TestListSubscriberStates(t *testing.T) {
 			"ipv4": "168.212.226.203",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI0987654321", &subState1, serdes.State)
+	gwSubState := subscriberstorage.GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{
+		"IMSI1234567890": subState0,
+		"IMSI0987654321": subState1,
+	},
+	}
+	test_utils.ReportState(t, ctx, lte.GatewaySubscriberStateType, "hw0", &gwSubState, serdes.State)
+	assert.NoError(t, err)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -844,12 +860,13 @@ func TestGetSubscriberState(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+	s := subscriberdbTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscriber_state/:subscriber_id"
-	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(), testURLRoot, obsidian.GET).HandlerFunc
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(s), testURLRoot, obsidian.GET).HandlerFunc
 
 	// Initially no state
 	tc := tests.Test{
@@ -903,7 +920,11 @@ func TestGetSubscriberState(t *testing.T) {
 			"ipv4": "168.212.226.204",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI1234567890", &subState, serdes.State)
+	gwSubState := subscriberstorage.GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{
+		"IMSI1234567890": subState,
+	},
+	}
+	test_utils.ReportState(t, ctx, lte.GatewaySubscriberStateType, "hw0", &gwSubState, serdes.State)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -943,8 +964,10 @@ func TestGetSubscriberByMSISDN(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 
 	subURLBase := "/magma/v1/lte/:network_id/subscribers"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
@@ -1102,8 +1125,10 @@ func TestGetSubscriberByIP(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 
 	subURLBase := "/magma/v1/lte/:network_id/subscribers"
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
@@ -1233,9 +1258,11 @@ func TestUpdateSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	// preseed 2 apns
@@ -1358,9 +1385,11 @@ func TestDeleteSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
 	// preseed 2 apns
@@ -1405,9 +1434,11 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
+	s := newTestSubscriberStorage(t)
+
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
 	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
 
@@ -1486,6 +1517,8 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	err = configurator.UpdateNetworkConfig(context.Background(), "n1", lte.CellularNetworkConfigType, &lteModels.NetworkCellularConfigs{
@@ -1525,7 +1558,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id/lte/sub_profile"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(s)
 	updateProfile := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	// 404
@@ -1624,6 +1657,9 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 func TestSubscriberBasename(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
@@ -1637,7 +1673,7 @@ func TestSubscriberBasename(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
 	urlManage := urlBase + "/:subscriber_id"
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
 	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
@@ -1741,6 +1777,9 @@ func TestSubscriberBasename(t *testing.T) {
 func TestSubscriberPolicy(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
@@ -1755,7 +1794,7 @@ func TestSubscriberPolicy(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
 	urlManage := urlBase + "/:subscriber_id"
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
 	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
@@ -1858,6 +1897,9 @@ func TestSubscriberPolicy(t *testing.T) {
 func TestAPNPolicyProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+
+	s := newTestSubscriberStorage(t)
+
 	err := configurator.CreateNetwork(context.Background(), configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(context.Background(), "n0", []configurator.NetworkEntity{
@@ -1872,7 +1914,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/subscribers"
 	urlManage := urlBase + "/:subscriber_id"
-	subscriberdbHandlers := handlers.GetHandlers()
+	subscriberdbHandlers := handlers.GetHandlers(s)
 	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.GET).HandlerFunc
 	postSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlBase, obsidian.POST).HandlerFunc
 	putSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.PUT).HandlerFunc
@@ -2315,4 +2357,14 @@ func newPolicy(id string) *policydbModels.PolicyRule {
 		Priority: swag.Uint32(1),
 	}
 	return policy
+}
+
+// newTestSubscriberStorage sets up the gateway_subscriber_states table, without
+// spinning up the entire subscriberdb Test Service.
+func newTestSubscriberStorage(t *testing.T) subscriberstorage.SubscriberStorage {
+	db, err := sqorc.Open("sqlite3", ":memory:")
+	assert.NoError(t, err)
+	s := subscriberstorage.NewSubscriberStorage(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, s.Initialize())
+	return s
 }

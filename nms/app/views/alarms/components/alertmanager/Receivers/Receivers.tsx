@@ -44,6 +44,21 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
 }));
 
+const receiverColumns = [
+  {
+    title: 'Name',
+    field: 'name',
+  },
+  {
+    title: 'Notifications',
+    field: 'labels',
+    render: (row: AlertReceiver) => {
+      const labels = getNotificationsSummary(row);
+      return <LabelsCell value={labels} />;
+    },
+  },
+];
+
 export default function Receivers() {
   const {apiUtil, alertManagerGlobalConfigEnabled} = useAlarmContext();
   const [isAddEditReceiver, setIsAddEditReceiver] = React.useState(false);
@@ -159,20 +174,7 @@ export default function Receivers() {
         <>
           <SimpleTable
             onRowClick={row => setSelectedRow(row)}
-            columnStruct={[
-              {
-                title: 'Name',
-                field: 'name',
-              },
-              {
-                title: 'Notifications',
-                field: 'labels',
-                render: row => {
-                  const labels = getNotificationsSummary(row);
-                  return <LabelsCell value={labels} />;
-                },
-              },
-            ]}
+            columnStruct={receiverColumns}
             tableData={receiversData}
             dataTestId="receiver"
             menuItems={[

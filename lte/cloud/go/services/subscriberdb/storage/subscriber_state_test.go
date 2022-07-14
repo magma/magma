@@ -14,8 +14,11 @@
 package storage
 
 import (
+	"database/sql"
+	"fmt"
 	"testing"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 
@@ -101,4 +104,89 @@ func TestSubscriberStorage(t *testing.T) {
 		err = s.DeleteSubscribersForGateway(nid1, gwid2)
 		assert.NoError(t, err)
 	})
+
+	t.Run("Test getting subscriber states by imsi and getting all subscribers", func(t *testing.T) {
+		imsisGw1 := []string{"IMSI001010000000123", "IMSI001010000000456"}
+		imsisGw2 := []string{"IMSI002020000000123", "IMSI002020000000456"}
+		subscriberStatesGw1 := CreateTestGatewaySubscriberState(imsisGw1...)
+		subscriberStatesGw2 := CreateTestGatewaySubscriberState(imsisGw2...)
+
+		var frozenTime int64 = 100000
+		err = s.(*subscriberStorage).setTestGatewaySubscriberState(t, nid1, gwid1, &subscriberStatesGw1, frozenTime)
+		assert.NoError(t, err)
+		err = s.(*subscriberStorage).setTestGatewaySubscriberState(t, nid1, gwid2, &subscriberStatesGw2, frozenTime)
+		assert.NoError(t, err)
+		err = s.(*subscriberStorage).setTestGatewaySubscriberState(t, nid2, gwid1, &subscriberStatesGw1, frozenTime)
+		assert.NoError(t, err)
+
+		// get all IMSIs for network
+
+		foundStates, err := s.GetSubscribersForIMSIs(nid1, nil)
+		assert.NoError(t, err)
+		var expectedStates = map[string]state.ArbitraryJSON{}
+		copyMap(expectedStates, subscriberStatesGw1.Subscribers)
+		copyMap(expectedStates, subscriberStatesGw2.Subscribers)
+		assert.True(t, cmp.Equal(foundStates, expectedStates))
+
+		// get selected IMSIs for network (from two gateways)
+
+		selectedIMSIs := []string{"IMSI001010000000123", "IMSI002020000000456"}
+		expectedStates = map[string]state.ArbitraryJSON{
+			"IMSI001010000000123": subscriberStatesGw1.Subscribers["IMSI001010000000123"],
+			"IMSI002020000000456": subscriberStatesGw2.Subscribers["IMSI002020000000456"],
+		}
+		foundStates, err = s.GetSubscribersForIMSIs(nid1, selectedIMSIs)
+		assert.NoError(t, err)
+		assert.True(t, cmp.Equal(foundStates, expectedStates))
+
+		// get latest entry for duplicate IMSI, appearing in two gateways
+
+		imsisGw2 = []string{"IMSI001010000000123", "IMSI002020000000456"}
+		subscriberStatesGw2 = CreateTestGatewaySubscriberState(imsisGw2...)
+		subscriberStatesGw2.Subscribers["IMSI001010000000123"]["magma.ipv4"].([]interface{})[0].(map[string]interface{})["active_duration_sec"] = float64(40)
+		subscriberStatesGw2.Subscribers["IMSI001010000000123"]["magma.ipv4"].([]interface{})[0].(map[string]interface{})["ipv4"] = "10.2.1.12"
+
+		frozenTime = 200000
+		err = s.(*subscriberStorage).setTestGatewaySubscriberState(t, nid1, gwid2, &subscriberStatesGw2, frozenTime)
+		assert.NoError(t, err)
+		foundStates, err = s.GetSubscribersForIMSIs(nid1, selectedIMSIs)
+		assert.NoError(t, err)
+		assert.True(t, cmp.Equal(foundStates, subscriberStatesGw2.Subscribers))
+	})
+}
+
+func (ss *subscriberStorage) setTestGatewaySubscriberState(t *testing.T, networkID string, gatewayID string, subscriberStates *GatewaySubscriberState, frozenTime int64) error {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		sc := squirrel.NewStmtCache(tx)
+		defer sqorc.ClearStatementCacheLogOnError(sc, "setTestGatewaySubscriberState")
+
+		err := ss.deleteAllSubscribers(sc, networkID, gatewayID)
+		if err != nil {
+			return nil, fmt.Errorf("error deleting subscribers before update: %w", err)
+		}
+
+		for imsi, blob := range subscriberStates.Subscribers {
+			value, err := blob.MarshalBinary()
+			if err != nil {
+				return nil, fmt.Errorf("convert subscriber value %+v: %w", blob, err)
+			}
+
+			err = ss.insertSubscriber(sc, networkID, gatewayID, imsi, frozenTime, value)
+			if err != nil {
+				return nil, fmt.Errorf("insert subscriber %+v: %w", blob, err)
+			}
+		}
+		return nil, nil
+	}
+
+	_, err := sqorc.ExecInTx(ss.db, nil, nil, txFn)
+	return err
+}
+
+// copyMap copies contents of src to dst, overwriting
+// values to already existing keys with the value from src
+func copyMap(dst, src map[string]state.ArbitraryJSON) {
+	for k, v := range src {
+		dst[k] = v
+	}
 }
