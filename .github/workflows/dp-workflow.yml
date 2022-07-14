@@ -162,7 +162,7 @@ jobs:
       - name: Run Go linter
         uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # pin@v2
         with:
-          version: v1.45.0
+          version: v1.46.2
           working-directory: dp/cloud/go/active_mode_controller
           skip-go-installation: true
 
