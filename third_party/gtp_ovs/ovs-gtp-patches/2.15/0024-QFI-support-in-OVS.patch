@@ -1,6 +1,6 @@
-From 7c39cb16a7e39c37d6a1a0e7be42f26cbe0eb0d0 Mon Sep 17 00:00:00 2001
+From a92b39e7031fdf856e7d29bd8eeb301d307930ea Mon Sep 17 00:00:00 2001
 From: prabina pattnaik <prabinak@wavelabs.ai>
-Date: Wed, 13 Jul 2022 13:18:23 +0000
+Date: Thu, 14 Jul 2022 12:21:35 +0000
 Subject: [PATCH 24/24] QFI support in OVS
 
 Signed-off-by: prabina pattnaik <prabinak@wavelabs.ai>
@@ -257,12 +257,12 @@ index 57d7a128e..04e26ef55 100644
  
  enum {
 diff --git a/debian/changelog b/debian/changelog
-index 78fe2ab32..431f401ec 100644
+index 78fe2ab32..327e5e019 100644
 --- a/debian/changelog
 +++ b/debian/changelog
 @@ -1,4 +1,4 @@
 -openvswitch (2.15.4-8) unstable; urgency=low
-+openvswitch (2.15.4-9) unstable; urgency=low
++openvswitch (2.15.4-9-magma) unstable; urgency=low
     [ Open vSwitch team ]
     * New upstream version
  
