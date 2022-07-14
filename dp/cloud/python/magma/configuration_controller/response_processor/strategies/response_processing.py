@@ -279,6 +279,7 @@ def process_deregistration_response(obj: ResponseDBProcessor, response: DBRespon
 def unset_frequency(grant: DBGrant):
     """
     Unset available frequency on the nth position of available frequencies for the given frequency
+
     Args:
         grant (DBGrant): Grant whose low and high frequencies are the base for the calculation
 
@@ -297,7 +298,7 @@ def unset_frequency(grant: DBGrant):
     bit_to_unset = (mid - int(3550 * 1e6)) // int(5 * 1e6)
     bw_index = bw_hz // int(5 * 1e6) - 1
 
-    frequencies[bw_index] = frequencies[bw_index] & ~(1 << int(bit_to_unset))
+    frequencies[bw_index] = frequencies[bw_index] & ~(1 << int(bit_to_unset))  # noqa: WPS465
 
 
 def _get_or_create_grant_from_response(

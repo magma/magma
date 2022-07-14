@@ -17,7 +17,9 @@ import responses
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.configuration_controller.response_processor.strategies.response_processing import unset_frequency
+from magma.configuration_controller.response_processor.strategies.response_processing import (
+    unset_frequency,
+)
 from magma.configuration_controller.response_processor.strategies.strategies_mapping import (
     processor_strategies,
 )
@@ -338,6 +340,20 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(0, len(cbsd.channels))
 
     @responses.activate
+    def test_available_frequencies_deleted_after_spectrum_inquiry_response(self):
+        # Given
+        db_requests = self._create_db_requests(SPECTRUM_INQ_REQ, spectrum_inquiry_requests)
+        cbsd = self.session.query(DBCbsd).filter(DBCbsd.cbsd_id == "foo").first()
+
+        response = self._prepare_response_from_payload(zero_channels_for_one_cbsd)
+
+        # When
+        self._process_response(SPECTRUM_INQ_REQ, response, db_requests)
+
+        # Then
+        self.assertIsNone(cbsd.available_frequencies)
+
+    @responses.activate
     def test_channel_params_set_on_grant_response(self):
         # Given
         cbsd_id = "foo"
@@ -421,7 +437,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             user_id="some_user_id",
             state_id=1,
             desired_state_id=1,
-            available_frequencies=orig_avail_freqs
+            available_frequencies=orig_avail_freqs,
         )
 
         grant = DBGrant(
@@ -520,7 +536,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             user_id=user_id,
             state=cbsd_state,
             desired_state=cbsd_state,
-            available_frequencies=[0b11111100, 0b11110111, 0b11001111, 0b11110001]
+            available_frequencies=[0b11111100, 0b11110111, 0b11001111, 0b11110001],
         )
 
         self.session.add(cbsd)
