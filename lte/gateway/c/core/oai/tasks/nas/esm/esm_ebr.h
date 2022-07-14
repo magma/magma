@@ -70,7 +70,7 @@ const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state);
 bool esm_ebr_is_reserved(ebi_t ebi);
 
 void esm_ebr_initialize(void);
-status_code_e esm_ebr_assign(emm_context_t* emm_context);
+ebi_t esm_ebr_assign(emm_context_t* emm_context);
 status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi);
 
 status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,

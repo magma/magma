@@ -77,6 +77,8 @@ class StateConverter {
    * @param conversion_callable conversion function for each entry of hashtable
    * @param log_task_level log level for task (LOG_MME_APP, LOG_SPGW_APP)
    */
+  // TODO(rsarwad): Shall be removed once all modules are converted to cpp and
+  // use protobuf map instead of hash table
   template <typename NodeType, typename ProtoMessage>
   static void hashtable_ts_to_proto(
       hash_table_ts_t* state_ht,
@@ -125,6 +127,63 @@ class StateConverter {
           OAILOG_ERROR(log_task_level, "Failed to insert node on hashtable %s",
                        state_ht->name->data);
         }
+      }
+    }
+  }
+
+  template <typename state_map_t, typename NodeType, typename ProtoMessage>
+  static void state_map_to_proto(
+      state_map_t state_map,
+      google::protobuf::Map<unsigned int, ProtoMessage>* proto_map,
+      std::function<void(NodeType*, ProtoMessage*)> conversion_callable,
+      log_proto_t log_task_level) {
+    if (!(state_map.size())) {
+      return;
+    }
+
+    for (auto itr = state_map.map->begin(); itr != state_map.map->end();
+         itr++) {
+      NodeType* node = itr->second;
+      if (node) {
+        ProtoMessage proto;
+        conversion_callable(reinterpret_cast<NodeType*>(node), &proto);
+        (*proto_map)[itr->first] = proto;
+      } else {
+        OAILOG_ERROR(log_task_level, "Key %lu without value in %s map",
+                     itr->first, state_map.get_name());
+      }
+    }
+  }
+
+  template <typename state_map_t, typename ProtoMessage, typename NodeType>
+  static void proto_to_state_map(
+      const google::protobuf::Map<unsigned int, ProtoMessage>& proto_map,
+      state_map_t state_map,
+      std::function<void(const ProtoMessage&, NodeType*)> conversion_callable,
+      log_proto_t log_task_level) {
+    for (const auto& entry : proto_map) {
+      bool failed_to_write = true;
+      auto proto = entry.second;
+      NodeType* node_type;
+      node_type = reinterpret_cast<NodeType*>(new NodeType());
+      conversion_callable(proto, node_type);
+      proto_map_rc_t rc = state_map.insert(entry.first, node_type);
+      if (rc != PROTO_MAP_OK) {
+        if (rc == PROTO_MAP_KEY_ALREADY_EXISTS) {
+          if ((state_map.remove(entry.first)) == PROTO_MAP_OK) {
+            if ((state_map.insert(entry.first, node_type)) == PROTO_MAP_OK) {
+              OAILOG_INFO(LOG_SPGW_APP, "Overwriting data on key: %i",
+                          entry.first);
+              failed_to_write = false;
+            }
+          }
+        }
+      } else {
+        failed_to_write = false;
+      }
+      if (failed_to_write) {
+        OAILOG_ERROR(log_task_level, "Failed to insert key in map %s",
+                     state_map.get_name());
       }
     }
   }

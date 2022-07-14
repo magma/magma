@@ -118,7 +118,7 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
                                       success_cb_t success,
                                       failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   if ((emm_context) && ((EMM_DEREGISTERED == emm_context->_emm_fsm_state) ||
                         (EMM_REGISTERED == emm_context->_emm_fsm_state))) {
@@ -209,7 +209,7 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
                                                imeisv_t* const imeisv,
                                                uint32_t* const tmsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {0};
   emm_context_t* emm_ctx = NULL;
   bool notify = true;

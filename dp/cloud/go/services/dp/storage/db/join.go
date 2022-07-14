@@ -82,7 +82,7 @@ func (c *columnNamesCollector) getPointers() ([]Model, []interface{}) {
 
 func (c *columnNamesCollector) preVisit(q *Query) {
 	c.args = append(c.args, q.arg)
-	c.masks = append(c.masks, makeIndexMask(q.arg.metadata, q.arg.mask))
+	c.masks = append(c.masks, makeIndexMask(q.arg.metadata, q.arg.outputMask))
 }
 
 func (*columnNamesCollector) postVisit(_ *Query) {}

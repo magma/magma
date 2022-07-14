@@ -1,7 +1,7 @@
 ---
 
 name: Deploy PR build
-on:  # yamllint disable-line rule:truthy
+on:
   workflow_run:
     workflows:
       - build-all
@@ -17,13 +17,13 @@ jobs:
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"
     steps:
-      - uses: hmarr/debug-action@v2
+      - uses: hmarr/debug-action@1201a20fc9d278ddddd5f0f46922d06513892491 # pin@v2
       # Could be improved, only need the tag push docker and helm rotation script here
       - name: checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       # Retrieve Generated artifacts and delete them to keep cache usage low
       - name: Download builds
-        uses: actions/github-script@v3.1.0
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:
           script: |
             var artifacts = await github.actions.listWorkflowRunArtifacts({
@@ -63,7 +63,7 @@ jobs:
           done
       - name: Save metadata
         id: save_metadata
-        uses: actions/github-script@v3.1.0
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:
           script: |
             var fs = require('fs');

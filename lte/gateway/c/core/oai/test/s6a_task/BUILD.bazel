@@ -18,7 +18,7 @@ cc_test(
     size = "small",
     srcs = ["s6a_recv_async_grpc_messages.cpp"],
     deps = [
-        "//lte/gateway/c/core",
+        "//lte/gateway/c/core:lib_agw_of",
         "//lte/gateway/c/core/oai/test/mock_tasks",
         "@com_google_googletest//:gtest_main",
     ],

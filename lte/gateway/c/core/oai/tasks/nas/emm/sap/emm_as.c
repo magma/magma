@@ -164,7 +164,7 @@ void emm_as_initialize(void) {
  ***************************************************************************/
 status_code_e emm_as_send(emm_as_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   int emm_cause = EMM_CAUSE_SUCCESS;
   emm_as_primitive_t primitive = msg->primitive;
   mme_ue_s1ap_id_t ue_id = 0;

@@ -391,6 +391,7 @@ class TestWrapper(object):
         Raises:
             ValueError: If no valid IP is found
         """
+        time.sleep(1)
         # Configure downlink route in TRF server
         assert self._trf_util.update_dl_route(self.TEST_IP_BLOCK)
 
@@ -425,6 +426,7 @@ class TestWrapper(object):
         Raises:
             ValueError: If no valid IP is found
         """
+        time.sleep(1)
         ips = self._getAddresses(*ues)
         for ip, ue in zip(ips, ues):
             if not ip:

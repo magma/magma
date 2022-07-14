@@ -93,7 +93,7 @@ class TestTauPeriodicActive(unittest.TestCase):
             response = self._s1ap_wrapper.s1_util.get_response()
             if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
                 response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEquals(
+                self.assertEqual(
                     response.msg_type,
                     s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
                 )
@@ -115,7 +115,7 @@ class TestTauPeriodicActive(unittest.TestCase):
                 )
 
             else:
-                self.assertEquals(
+                self.assertEqual(
                     response.msg_type,
                     s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value,
                 )
