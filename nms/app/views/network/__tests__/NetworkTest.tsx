@@ -293,6 +293,7 @@ describe('<NetworkDashboard />', () => {
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
+      refetch: () => {},
     } as PolicyContextType;
     const enodebCtx = {
       state: {enbInfo},

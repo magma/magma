@@ -69,7 +69,10 @@ export default function EditSubscriberTrafficPolicy(
               id="activeApnTestId"
               value={props.subscriberState.active_apns ?? []}
               onChange={({target}) => {
-                props.onSubscriberChange('active_apns', target.value as string);
+                props.onSubscriberChange(
+                  'active_apns',
+                  target.value as Array<string>,
+                );
               }}
               renderValue={selected => (selected as Array<string>).join(', ')}
               input={<OutlinedInput />}>
@@ -97,7 +100,7 @@ export default function EditSubscriberTrafficPolicy(
               onChange={({target}) => {
                 props.onSubscriberChange(
                   'active_base_names',
-                  target.value as string,
+                  target.value as Array<string>,
                 );
               }}
               renderValue={selected => (selected as Array<string>).join(', ')}
@@ -127,7 +130,7 @@ export default function EditSubscriberTrafficPolicy(
               onChange={({target}) => {
                 props.onSubscriberChange(
                   'active_policies',
-                  target.value as string,
+                  target.value as Array<string>,
                 );
               }}
               renderValue={selected => (selected as Array<string>).join(', ')}

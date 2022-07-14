@@ -26,6 +26,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
+import PolicyContext from '../../components/context/PolicyContext';
 import React, {useContext, useEffect, useState} from 'react';
 import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
@@ -119,13 +120,14 @@ export function SubscriberEditDialog(props: DialogProps) {
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
-  const ctx = useContext(SubscriberContext);
+  const subscriberContext = useContext(SubscriberContext);
+  const policyContext = useContext(PolicyContext);
   const lteCtx = useContext(LteNetworkContext);
   const classes = useStyles();
   const params = useParams();
   const subscriberId = nullthrows(params.subscriberId);
   const [subscriberState, setSubscriberState] = useState<Subscriber>(
-    ctx.state[subscriberId],
+    subscriberContext.state[subscriberId],
   );
 
   const [authKey, setAuthKey] = useState(
@@ -141,14 +143,15 @@ export function SubscriberEditDialog(props: DialogProps) {
   const [subscriberStaticIPRows, setSubscriberStaticIPRows] = useState<
     Array<subscriberStaticIpsRowType>
   >(
-    Object.keys(ctx.state[subscriberId].config.static_ips || {}).map(
-      (apn: string) => {
-        return {
-          apnName: apn,
-          staticIp: ctx.state[subscriberId].config.static_ips?.[apn] || '',
-        };
-      },
-    ),
+    Object.keys(
+      subscriberContext.state[subscriberId].config.static_ips || {},
+    ).map((apn: string) => {
+      return {
+        apnName: apn,
+        staticIp:
+          subscriberContext.state[subscriberId].config.static_ips?.[apn] || '',
+      };
+    }),
   );
 
   const subscriberCoreNetwork = Object.keys(CoreNetworkTypes).map(
@@ -183,7 +186,7 @@ export function SubscriberEditDialog(props: DialogProps) {
 
   const subscriberProps: EditSubscriberProps = {
     subscriberState: subscriberState,
-    onSubscriberChange: (key: string, val) => {
+    onSubscriberChange: (key, val) => {
       setSubscriberState({...subscriberState, [key]: val});
     },
     onTrafficPolicyChange: (key, val, index) => {
@@ -239,10 +242,12 @@ export function SubscriberEditDialog(props: DialogProps) {
       subscriberStaticIPRows.forEach(
         apn => (staticIps[apn.apnName] = apn.staticIp),
       );
-      await ctx.setState?.(subscriberState.id, {
+      await subscriberContext.setState?.(subscriberState.id, {
         ...mutableSubscriber,
         static_ips: staticIps,
       });
+      policyContext.refetch();
+
       enqueueSnackbar('Subscriber saved successfully', {
         variant: 'success',
       });
@@ -378,7 +383,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
               onChange={({target}) => {
                 props.onSubscriberChange(
                   'forbidden_network_types',
-                  target.value as string,
+                  target.value as Array<SubscriberForbiddenNetworkTypesEnum>,
                 );
               }}
               renderValue={selected =>
