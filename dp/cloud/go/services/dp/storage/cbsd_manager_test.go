@@ -105,6 +105,20 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
 }
 
+func (s *CbsdManagerTestSuite) TestCreateCbsdWithCarrierAggregationFields() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
+		b.NewDBCbsdBuilder().
+			WithCarrierAggregationEnabled(true).
+			WithGrantRedundancy(true).
+			WithMaxIbwMhx(140).Cbsd, registered))
+	s.Require().NoError(err)
+	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
+		WithIndoorDeployment(false).
+		WithCarrierAggregationEnabled(true).
+		WithGrantRedundancy(true).
+		WithMaxIbwMhx(140).Cbsd)
+}
+
 func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
 		b.NewDBCbsdBuilder().
@@ -205,6 +219,9 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		WithNumberOfPorts(cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
 		WithSingleStepEnabled(true).
 		WithIndoorDeployment(true).
+		WithCarrierAggregationEnabled(true).
+		WithMaxIbwMhx(140).
+		WithGrantRedundancy(true).
 		WithCbsdCategory("a").
 		WithNetworkId(someNetwork).
 		Cbsd,
