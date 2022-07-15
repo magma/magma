@@ -18,14 +18,18 @@ import s1ap_wrapper
 
 
 class TestDuplicateAttach(unittest.TestCase):
+    """Integration Test: TestDuplicateAttach"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_duplicate_attach(self):
-        """ Start the attach procedure for an UE, proceed until attach accept is
+        """Start the attach procedure for an UE, proceed until attach accept is
         recvd. from the network. Without sending an attach accept, resend an
         attach request.
         """
@@ -41,30 +45,36 @@ class TestDuplicateAttach(unittest.TestCase):
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
-        sqnRecvd = s1ap_types.ueSqnRcvd_t()
-        sqnRecvd.pres = False
-        auth_res.sqnRcvd = sqnRecvd
+        sqn_recvd = s1ap_types.ueSqnRcvd_t()
+        sqn_recvd.pres = False
+        auth_res.sqnRcvd = sqn_recvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "************************ Dropping received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
 
         while True:
@@ -73,11 +83,19 @@ class TestDuplicateAttach(unittest.TestCase):
                 response.msg_type
                 == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
             ):
-                print("Recvd an Attach accept message ignoring")
+                attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+                print(
+                    "************************ Dropping received attach accept for UE Id:",
+                    attach_acc.ue_Id,
+                )
                 continue
 
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            )
+            print(
+                "************************ Received UE context release indication",
             )
             break
 
@@ -94,7 +112,8 @@ class TestDuplicateAttach(unittest.TestCase):
         print("************************* Running UE detach")
         # Now detach the UE
         self._s1ap_wrapper._s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            req.ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
 
 

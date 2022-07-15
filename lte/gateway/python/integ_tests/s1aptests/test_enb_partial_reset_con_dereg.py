@@ -99,30 +99,15 @@ class TestEnbPartialResetConDereg(unittest.TestCase):
                 sec_mode_complete,
             )
 
-            # The MME actually sends INT_CTX_SETUP_IND and UE_ATTACH_ACCEPT_IND
-            # in one message, but the S1APTester splits it and sends the tests 2
-            # messages. Usually initial context setup comes before attach accept
-            # but it's possible it may happen the other way
-            response = self._s1ap_wrapper.s1_util.get_response()
-            if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
-                response = self._s1ap_wrapper.s1_util.get_response()
-            elif (
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
-                == response.msg_type
-            ):
-                context_setup = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEqual(
-                    s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
-                    == context_setup.msg_type,
-                )
-
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+            # Receive initial context setup and attach accept indication
+            response = (
+                self._s1ap_wrapper._s1_util
+                    .receive_initial_ctxt_setup_and_attach_accept()
             )
+            attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
             print(
-                "************************* Received Attach Accept message "
-                "indication",
+                "********************** Received attach accept for UE Id:",
+                attach_acc.ue_Id,
             )
             ue_ids.append(req.ue_id)
 
