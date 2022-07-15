@@ -74,11 +74,11 @@ status_code_e amf_registration_success_security_cb(amf_context_t* amf_context);
 status_code_e amf_proc_registration_reject(const amf_ue_ngap_id_t ue_id,
                                            amf_cause_t amf_cause);
 
-int get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
-                                    uint8_t ue_pubkey_identifier,
-                                    const std::string& ue_pubkey,
-                                    const std::string& ciphertext,
-                                    const std::string& mac_tag);
+status_code_e get_decrypt_imsi_suci_extension(amf_context_t* amf_context,
+                                              uint8_t ue_pubkey_identifier,
+                                              const std::string& ue_pubkey,
+                                              const std::string& ciphertext,
+                                              const std::string& mac_tag);
 int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia);
 void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
                            supi_as_imsi_t& supi_imsi);

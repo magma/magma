@@ -275,11 +275,11 @@ int pdu_session_resource_release_complete(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-int pdu_session_resource_modification_complete(
+status_code_e pdu_session_resource_modification_complete(
     ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
     std::shared_ptr<smf_context_t> smf_ctx) {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  int rc = 1;
+  status_code_e rc = RETURNok;
 
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
 

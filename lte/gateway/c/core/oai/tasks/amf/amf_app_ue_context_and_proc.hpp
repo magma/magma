@@ -994,7 +994,7 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p);
 status_code_e m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
                                              int* const amf_iaP,
                                              int* const amf_eaP);
-int create_session_grpc_req_on_gnb_setup_rsp(
+status_code_e create_session_grpc_req_on_gnb_setup_rsp(
     amf_smf_establish_t* message, char* imsi, uint32_t version,
     std::shared_ptr<smf_context_t> smf_ctx);
 int pdu_session_resource_modify_request(
