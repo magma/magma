@@ -20,13 +20,17 @@ from s1ap_utils import MagmadUtil
 
 
 class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
+    """Integration Test: TestNoAttachCompleteWithMmeRestart"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self.gateway_services = self._s1ap_wrapper.get_gateway_services_util()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_no_attach_complete_with_mme_restart(self):
@@ -59,43 +63,52 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
-        sqnRecvd = s1ap_types.ueSqnRcvd_t()
-        sqnRecvd.pres = 0
-        auth_res.sqnRcvd = sqnRecvd
+        sqn_recvd = s1ap_types.ueSqnRcvd_t()
+        sqn_recvd.pres = 0
+        auth_res.sqnRcvd = sqn_recvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
 
         print(
-            "************************* Restarting MME service on", "gateway",
+            "************************* Restarting MME service on",
+            "gateway",
         )
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
@@ -149,13 +162,15 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
         detach_accept.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept,
+            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT,
+            detach_accept,
         )
 
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("****** Received Ue context release command *********")
 
@@ -173,7 +188,7 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
-            False,
+            wait_for_s1_ctxt_release=False,
         )
 
 

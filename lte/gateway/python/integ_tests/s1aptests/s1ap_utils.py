@@ -409,6 +409,46 @@ class S1ApUtil(object):
                 print("IPv4v6 PDN type received")
         return msg
 
+    def receive_initial_ctxt_setup_and_attach_accept(self) -> Msg:
+        """Receive initial cntxt setup and attach accept indication from TFW"""
+        # The MME actually sends INT_CTX_SETUP_IND and UE_ATTACH_ACCEPT_IND
+        # in one message, but the S1APTester splits it and sends the tests 2
+        # messages. Usually initial context setup comes before attach accept,
+        # but it's possible that it may happen the other way
+        response = self.get_response()
+        if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
+            response = self.get_response()
+        elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
+            context_setup = self.get_response()
+            assert (
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
+        assert s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type
+
+        # Return attach accept response for parsing ue details wherever needed
+        return response
+
+    def receive_initial_ctxt_setup_and_tau_accept(self) -> Msg:
+        """Receive initial context setup and TAU accept indication from TFW"""
+        # The MME actually sends INT_CTX_SETUP_IND and UE_TAU_ACCEPT_IND
+        # in one message, but the S1APTester splits it and sends the tests 2
+        # messages. Usually initial context setup comes before TAU accept,
+        # but it's possible that it may happen the other way
+        response = self.get_response()
+        if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
+            response = self.get_response()
+        elif s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value == response.msg_type:
+            context_setup = self.get_response()
+            assert (
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
+        assert s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value == response.msg_type
+
+        # Return TAU accept response for parsing ue details wherever needed
+        return response
+
     def receive_emm_info(self):
         """Receive EMM Info message from TFW"""
         response = self.get_response()
