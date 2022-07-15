@@ -65,7 +65,10 @@ void SqliteStore::_create_store() {
         "CREATE TABLE IF NOT EXISTS subscriberdb"
         "(subscriber_id text PRIMARY KEY, data text)";
     char* zErrMsg;
-    rc = sqlite3_exec(db, sql, NULL, 0, &zErrMsg);
+
+    rc = sqlite3_exec(db, sql, NULL, 0,
+                      &zErrMsg);
+
 
     if (rc != SQLITE_OK) {
       std::cout << "SQL Error " << zErrMsg << std::endl;
@@ -81,11 +84,16 @@ void SqliteStore::_create_store() {
 void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   std::string sid_s = _to_str(subscriber_data);
   const char* sid = sid_s.c_str();
+<<<<<<< HEAD
   std::string data_str_s;
   subscriber_data.SerializeToString(&data_str_s);
   std::cout << "Serialized subscriber data: " << data_str_s << std::endl;
   const char* data_str = data_str_s.c_str();
 
+=======
+  std::string data_str;
+  subscriber_data.SerializeToString(&data_str);  // TODO: serialize to string
+>>>>>>> d3eda56765 (fixing formatting issues)
   std::string db_location_s = _db_locations[_sid2bucket(sid)];
   const char* db_location = db_location_s.c_str();
   sqlite3* db;
@@ -101,6 +109,7 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
       "VALUES (?, ?)";
   sqlite3_stmt* stmt;
   const char* pzTail;
+<<<<<<< HEAD
   int rc_prep = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
   if (rc_prep == SQLITE_OK) {
     sqlite3_bind_text(stmt, 1, sid, strlen(sid), NULL);
@@ -109,11 +118,25 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     std::cout << "Finalized the sqlite write operation" << std::endl;
+=======
+  int rc2 = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
+  if (rc2 == SQLITE_OK) {
+    sqlite3_bind_text(
+        stmt, 1, sid, 4 * strlen(sid),
+        SQLITE_STATIC);  // REVIEW THAT THE PARAMETERS HERE ARE CORRECT
+    std::cout << "Successful data binding" << std::endl;
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+>>>>>>> d3eda56765 (fixing formatting issues)
   } else {
     std::cout << "SQL Error " << std::endl;
   }
 }
 
+<<<<<<< HEAD
+=======
+// function is hardcoded for now, will fix
+>>>>>>> d3eda56765 (fixing formatting issues)
 std::string SqliteStore::_to_str(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
     std::cout << "Valid sid " << std::endl;

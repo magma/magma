@@ -129,10 +129,11 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
                                            feg::UpdateLocationAnswer response) {
   MessageDef* message_p = NULL;
   s6a_update_location_ans_t* itti_msg = NULL;
-  magma::lte::SubscriberData sub_data =  magma::lte::SubscriberData();
-  magma::lte::SubscriberID sub_id =  magma::lte::SubscriberID();
+  magma::lte::SubscriberData sub_data = magma::lte::SubscriberData();
+  magma::lte::SubscriberID sub_id = magma::lte::SubscriberID();
   sub_id.set_id(imsi);
-  // sub_id.set_type(IMSI); //hardcoded here, should I be getting the IDType from somewhere?
+  // sub_id.set_type(IMSI); //hardcoded here, should I be getting the IDType
+  // from somewhere?
 
   message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   itti_msg = &message_p->ittiMsg.s6a_update_location_ans;
@@ -150,8 +151,10 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
       itti_msg->result.choice.base = DIAMETER_SUCCESS;
       magma::convert_proto_msg_to_itti_s6a_update_location_ans(response,
                                                                itti_msg);
-      //write to subscriberdb, should write only if there is data.
-      sub_data.set_allocated_sid(&sub_id); //populating the IMSI here, since this info is not received from ULA.
+      // write to subscriberdb, should write only if there is data.
+      sub_data.set_allocated_sid(
+          &sub_id);  // populating the IMSI here, since this info is not
+                     // received from ULA.
       convert_ula_to_subscriber_data(response, &sub_data);
 
       magma::lte::SqliteStore::add_subscriber(sub_data);
@@ -198,49 +201,42 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
   return true;
 }
 
-void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response, const SubscriberData& sub_data){
-  if (response.apn_size() < 1){
+void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
+                                    const SubscriberData& sub_data) {
+  if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
-  }
-  else{
-    for (int i =0 ;i < response.apn_size(); i++){
+  } else {
+    for (int i = 0; i < response.apn_size(); i++) {
       auto apn = response.apn(i);
       auto sub_apn_config = sub_data.non_3gpp().add_apn_config();
-      if(apn.context_id()!=0){
+      if (apn.context_id() != 0) {
         sub_apn_config.set_context_id(apn.context_id());
       }
 
-      if (apn.service_selection().size()>0){
+      if (apn.service_selection().size() > 0) {
         sub_apn_config.set_service_selection(apn.service_selection());
       }
 
-      if (apn.has_qos_profile()){
+      if (apn.has_qos_profile()) {
         sub_apn_config.set_allocated_qos_profile(apn.mutable_qos_profile());
       }
 
-      if (apn.has_ambr()){
+      if (apn.has_ambr()) {
         sub_apn_config.set_allocated_ambr(apn.mutable_ambr());
       }
 
-      if (apn.pdn()!=0){
+      if (apn.pdn() != 0) {
         sub_apn_config.set_pdn(apn.pdn());
       }
 
-      if (apn.served_party_ip_address_size()>0){
-        sub_apn_config.set_assigned_static_ip(apn.served_party_ip_address_size(0));
+      if (apn.served_party_ip_address_size() > 0) {
+        sub_apn_config.set_assigned_static_ip(
+            apn.served_party_ip_address_size(0));
       }
 
-      if (apn.has_resource()){
+      if (apn.has_resource()) {
         sub_apn_config.set_allocated_resource(apn.mutable_resource());
       }
-
-
-
-
-
-
-
-
     }
   }
 }

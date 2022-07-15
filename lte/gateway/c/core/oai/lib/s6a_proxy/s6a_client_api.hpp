@@ -21,7 +21,6 @@
 #include <string.h>
 #include "feg/protos/s6a_proxy.pb.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -30,7 +29,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 
 // #include "../../store/lte/protos/subscriberdb.pb.h"
-
 
 /**
  * s6a_purge is an asynchronous call that forwards S6a PU to Federation Gateway
@@ -50,10 +48,8 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* air_p);
  */
 bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p);
 
-
-
-
 #ifdef __cplusplus
 }
-void convert_ula_to_subscriber_data(magma::feg::UpdateLocationAnswer response, const SubscriberData& sub_data);
+void convert_ula_to_subscriber_data(magma::feg::UpdateLocationAnswer response,
+                                    const SubscriberData& sub_data);
 #endif
