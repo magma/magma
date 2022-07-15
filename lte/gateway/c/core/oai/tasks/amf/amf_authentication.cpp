@@ -44,7 +44,7 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 amf_as_data_t amf_data_sec_auth;
 static int authenthication_t3560_handler(zloop_t* loop, int timer_id,
-                                         void* output);
+                                         void* arg);
 
 nas_amf_smc_proc_t* get_nas5g_common_procedure_smc(const amf_context_t* ctxt) {
   return (nas_amf_smc_proc_t*)get_nas5g_common_procedure(ctxt,
@@ -180,7 +180,7 @@ status_code_e amf_authentication_request_sent(amf_ue_ngap_id_t ue_id) {
                 imsi_str);
     AMFClientServicer::getInstance().get_subs_auth_info(
         imsi_str, IMSI_LENGTH, reinterpret_cast<const char*>(snni), ue_id);
-  } else if (auth_proc->auts.data) {
+  } else {
     OAILOG_INFO(
         LOG_AMF_APP,
         "Sending msg(grpc) to :[subscriberdb] for ue: [%s] auth-info-resync\n",
@@ -932,8 +932,6 @@ int amf_send_authentication_request(amf_context_t* amf_ctx,
       auth_proc->T3560.id = amf_app_start_timer(
           AUTHENTICATION_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
           authenthication_t3560_handler, auth_proc->ue_id);
-    }
-    if (rc != RETURNerror) {
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

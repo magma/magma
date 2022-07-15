@@ -844,3 +844,14 @@ pytest_test(
         requirement("grpcio"),
     ],
 )
+
+pytest_test(
+    name = "test_gtp_stats_collector",
+    size = "small",
+    srcs = ["test_gtp_stats_collector.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = ["//lte/gateway/python/magma/pipelined:gtp_stats_collector"],
+)

@@ -57,7 +57,7 @@ static int amf_as_security_req(const amf_as_security_t* msg,
 static int amf_as_security_rej(const amf_as_security_t* msg,
                                m5g_dl_info_transfer_req_t* as_msg);
 static int amf_as_establish_rej(const amf_as_establish_t* msg,
-                                nas5g_establish_rsp_t* amf_msg);
+                                nas5g_establish_rsp_t* as_msg);
 // Setup the security header of the given NAS message
 static AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
                                  const amf_as_security_data_t* security);
@@ -387,7 +387,8 @@ static int amf_as_encode(bstring* info, amf_nas_message_t* msg, size_t length,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
+int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
+                      amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
@@ -476,9 +477,9 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[0] = 0x00;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .tac[1] = 0x00;
+      .tac[1] = (tai->tac) >> 8;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .tac[2] = 0x01;
+      .tac[2] = tai->tac;
 
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.allowed_nssai
       .iei = ALLOWED_NSSAI;
@@ -671,7 +672,6 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
   amf_nas_message_t nas_msg = {0};
   nas_msg.security_protected.header = {0};
   nas_msg.security_protected.plain.amf.header = {0};
-  nas_msg.security_protected.plain.amf.header = {0};
 
   // Setup the AS message
   as_msg->ue_id = msg->ue_id;
@@ -687,7 +687,7 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
   if (amf_msg) {
     switch (msg->nas_info) {
       case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
-        size = amf_reg_acceptmsg(msg->guti, &nas_msg);
+        size = amf_reg_acceptmsg(msg->guti, &(msg->tai), &nas_msg);
 
         if (msg->guti) {
           delete (msg->guti);
@@ -1267,10 +1267,11 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
           &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
 
       // qos flow list
+      qos_flow_list_t* pti_flow_list = smf_context->get_proc_flow_list();
+
       memcpy(&item->PDU_Session_Resource_Setup_Request_Transfer
-                  .qos_flow_setup_request_list.qos_flow_req_item,
-             &smf_context->subscribed_qos_profile.qos_flow_req_item,
-             sizeof(qos_flow_setup_request_item));
+                  .qos_flow_add_or_mod_request_list,
+             pti_flow_list, sizeof(qos_flow_list_t));
     }
   }
 
@@ -1346,7 +1347,7 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
   amf_as_set_header(&nas_msg, &msg->sctx);
   switch (msg->nas_info) {
     case AMF_AS_NAS_INFO_REGISTERED:
-      size = amf_reg_acceptmsg(&(msg->guti), &nas_msg);
+      size = amf_reg_acceptmsg(&(msg->guti), &(msg->tai), &nas_msg);
       nas_msg.header.security_header_type =
           SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
       /* TODO amf_as_set_header() is incorrectly setting the security header

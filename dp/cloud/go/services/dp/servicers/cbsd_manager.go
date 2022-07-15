@@ -19,10 +19,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"magma/dp/cloud/go/protos"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
@@ -33,12 +35,16 @@ type cbsdManager struct {
 	protos.UnimplementedCbsdManagementServer
 	store                  storage.CbsdManager
 	cbsdInactivityInterval time.Duration
+	logConsumerUrl         string
+	logPusher              logs_pusher.LogPusher
 }
 
-func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration) protos.CbsdManagementServer {
+func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration, logConsumerUrl string, logPusher logs_pusher.LogPusher) protos.CbsdManagementServer {
 	return &cbsdManager{
 		store:                  store,
 		cbsdInactivityInterval: cbsdInactivityInterval,
+		logConsumerUrl:         logConsumerUrl,
+		logPusher:              logPusher,
 	}
 }
 
@@ -57,13 +63,27 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 	}
 	return &protos.UpdateCbsdResponse{}, nil
 }
-
-func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
-	cbsd := requestToDbCbsd(request)
-	err := c.store.EnodebdUpdateCbsd(cbsd)
+func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+	data := requestToDbCbsd(request)
+	cbsd, err := c.store.EnodebdUpdateCbsd(data)
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
 	}
+	msg, _ := json.Marshal(request)
+	log := &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().Unix(),
+		LogFrom:          "CBSD",
+		LogTo:            "DP",
+		LogName:          "EnodebdUpdateCbsd",
+		LogMessage:       string(msg),
+		CbsdSerialNumber: cbsd.CbsdSerialNumber.String,
+		NetworkId:        cbsd.NetworkId.String,
+		FccId:            cbsd.FccId.String,
+	}
+	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
+		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)
+	}
+
 	return &protos.UpdateCbsdResponse{}, nil
 }
 

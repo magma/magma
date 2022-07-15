@@ -232,7 +232,8 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
         )
 
         response = (
-            self._s1ap_wrapper._s1_util.receive_initial_ctxt_setup_and_tau_accept()
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_tau_accept()
         )
         tau_acc = response.cast(s1ap_types.ueTauAccept_t)
         print(

@@ -9,8 +9,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * @format
  */
 
 module.exports = {
@@ -26,11 +24,11 @@ module.exports = {
       name: 'server',
       testEnvironment: 'node',
       testMatch: [
-        '<rootDir>/server/**/__tests__/*.js',
-        '<rootDir>/shared/**/__tests__/*.js',
+        '<rootDir>/server/**/__tests__/*.[jt]s?(x)',
+        '<rootDir>/shared/**/__tests__/*.[jt]s?(x)',
       ],
       transform: {
-        '^.+\\.js$': 'babel-jest',
+        '^.+\\.(js|ts|tsx)$': 'babel-jest',
       },
       resetMocks: true,
       restoreMocks: true,
@@ -38,11 +36,11 @@ module.exports = {
     {
       name: 'app',
       testEnvironment: 'jsdom',
-      testMatch: ['<rootDir>/app/**/__tests__/*.js'],
+      testMatch: ['<rootDir>/app/**/__tests__/*.[jt]s?(x)'],
       transform: {
-        '^.+\\.js$': 'babel-jest',
+        '^.+\\.(js|ts|tsx)$': 'babel-jest',
       },
-      setupFilesAfterEnv: ['./jest.setup.app.js'],
+      setupFilesAfterEnv: ['./jest.setup.app.ts'],
       resetMocks: true,
       restoreMocks: true,
     },

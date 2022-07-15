@@ -111,6 +111,7 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_install",
+          "orc8r/deploy_using_juju",
           "orc8r/deploy_terraform_options",
           "orc8r/deploy_faq"
         ]

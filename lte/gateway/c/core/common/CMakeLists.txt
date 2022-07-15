@@ -21,7 +21,7 @@ set(LTE_GATEWAY_C_COMMON_SRC
     assertions.h
     backtrace.c
     common_defs.h
-    dynamic_memory_check.c
+    dynamic_memory_check.cpp
     dynamic_memory_check.h
     )
 

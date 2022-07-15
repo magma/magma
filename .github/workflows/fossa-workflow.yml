@@ -1,7 +1,7 @@
 ---
 name: fossa-workflow
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -21,22 +21,22 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Download fossa analyze script
         # yamllint disable rule:line-length
         run: |
-            echo "Downloading CLI"
-            mkdir -p /tmp/magma && cd /tmp/magma
-            wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
-            bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
-            rm -f /tmp/magma/fossa
-            tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
-            sudo cp /tmp/magma/fossa /usr/local/bin/
+          echo "Downloading CLI"
+          mkdir -p /tmp/magma && cd /tmp/magma
+          wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
+          bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
+          rm -f /tmp/magma/fossa
+          tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
+          sudo cp /tmp/magma/fossa /usr/local/bin/
         # yamllint enable
       - name: Run fossa analyze script
         run: |
-            echo "Running fossa-analyze-go.sh"
-            sudo ${MAGMA_ROOT}/.github/workflows/scripts/fossa-analyze-go.sh
+          echo "Running fossa-analyze-go.sh"
+          sudo ${MAGMA_ROOT}/.github/workflows/scripts/fossa-analyze-go.sh
       - name: Extract commit title
         id: commit
         if: failure() && github.event_name == 'push'
@@ -47,7 +47,7 @@ jobs:
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action fossa-analyze update failed"

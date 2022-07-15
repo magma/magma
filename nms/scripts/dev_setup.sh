@@ -17,6 +17,8 @@ set -e
 docker-compose exec magmalte yarn migrate
 docker-compose exec magmalte yarn setAdminPassword magma-test admin@magma.test password1234
 docker-compose exec magmalte yarn setAdminPassword host admin@magma.test password1234
+# Make sure that magma-test has access to the test network
+docker-compose exec magmalte yarn createOrganization magma-test test
 
 # Docker run in a Linux host doesn't resolve host.docker.internal to the host IP.
 # See https://github.com/docker/for-linux/issues/264

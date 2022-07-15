@@ -117,7 +117,6 @@ int amf_proc_identification_complete(const amf_ue_ngap_id_t ue_id,
                                      guti_m5_t* amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNok;
-  amf_sap_t amf_sap = {};
   amf_context_t* amf_ctx = NULL;
 
   OAILOG_DEBUG(LOG_NAS_AMF,

@@ -396,7 +396,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
       } else {
         // force identification, even if not necessary
         rc = amf_proc_identification(
-            amf_context, (nas_amf_proc_t*)registration_proc,
+            amf_context, reinterpret_cast<nas_amf_proc_t*>(registration_proc),
             IDENTITY_TYPE_2_IMSI,
 
             amf_registration_success_identification_cb,
@@ -417,7 +417,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
       } else {
         /* If its first time GUTI Identify the IMSI */
         rc = amf_proc_identification(
-            amf_context, (nas_amf_proc_t*)registration_proc,
+            amf_context, reinterpret_cast<nas_amf_proc_t*>(registration_proc),
             IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
             amf_registration_failure_identification_cb);
       }
@@ -620,6 +620,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
     ue_m5gmm_context_s* ue_m5gmm_context_p =
         PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
+    amf_sap.u.amf_as.u.establish.tai.tac = amf_context->originating_tai.tac;
+    amf_sap.u.amf_as.u.data.tai.tac = amf_sap.u.amf_as.u.establish.tai.tac;
 
     if (registration_proc) {
       registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;

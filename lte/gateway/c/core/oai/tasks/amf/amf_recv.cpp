@@ -90,8 +90,6 @@ int amf_handle_service_request(
       OAILOG_DEBUG(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
     }
 
-    imsi64_t imsi64 = ue_context->amf_context.imsi64;
-
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
       if (ue_context->amf_context._security.eksi != KSI_NO_KEY_AVAILABLE) {
@@ -456,7 +454,6 @@ int amf_handle_registration_request(
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
         ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-        imsi64_t imsi64 = amf_imsi_to_imsi64(params->imsi);
       } else {
         /*
          * Call subscriberdb to decode the SUPI or IMSI from SUCI as scheme
@@ -529,8 +526,6 @@ int amf_handle_registration_request(
 
       amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
-
-      imsi64_t imsi64 = ue_context->amf_context.imsi64;
 
       params->guti = new (guti_m5_t)();
       memcpy(params->guti, &(ue_context->amf_context.m5_guti),
@@ -656,8 +651,6 @@ int amf_handle_identity_response(
      * TODO Note:currently adapting the way
      */
     amf_ctx_guti = (guti_m5_t*)&amf_guti;
-
-    imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
 
     ue_m5gmm_context_s* ue_context =
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
