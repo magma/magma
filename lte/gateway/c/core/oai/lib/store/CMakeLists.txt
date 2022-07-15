@@ -45,7 +45,7 @@ include_directories(${ORC8R_OUT_DIR})
 
 
 add_library(LIB_STORE sqlite.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(LIB_STORE MAGMA_CONFIG COMMON  protobuf)
+target_link_libraries(LIB_STORE MAGMA_CONFIG COMMON  protobuf sqlite3)
 
 
 target_include_directories(LIB_STORE PUBLIC

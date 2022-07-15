@@ -122,6 +122,9 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
   return true;
 }
 
+void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
+                                    magma::lte::SubscriberData& sub_data);
+
 static void s6a_handle_update_location_ans(const std::string& imsi,
                                            uint8_t imsi_length,
                                            uint32_t rat_type,
@@ -155,9 +158,9 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
       sub_data.set_allocated_sid(
           &sub_id);  // populating the IMSI here, since this info is not
                      // received from ULA.
-      convert_ula_to_subscriber_data(response, &sub_data);
-
-      magma::lte::SqliteStore::add_subscriber(sub_data);
+      convert_ula_to_subscriber_data(response, sub_data);
+      magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore("", 2);
+      sqlObj->add_subscriber(sub_data);
     } else {
       itti_msg->result.present = S6A_RESULT_EXPERIMENTAL;
       itti_msg->result.choice.experimental =
@@ -201,15 +204,14 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
   return true;
 }
 
-void convert_ula_to_subscriber_data(
-    feg::UpdateLocationAnswer response,
-    const magma::lte::SubscriberData& sub_data) {
+void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
+                                    magma::lte::SubscriberData& sub_data) {
   if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
   } else {
     for (int i = 0; i < response.apn_size(); i++) {
       auto apn = response.apn(i);
-      auto sub_apn_config = sub_data.non_3gpp().add_apn_config();
+      auto sub_apn_config = sub_data.mutable_non_3gpp()->add_apn_config();
       if (apn.context_id() != 0) {
         sub_apn_config->set_context_id(apn.context_id());
       }
@@ -219,24 +221,28 @@ void convert_ula_to_subscriber_data(
       }
 
       if (apn.has_qos_profile()) {
-        sub_apn_config->set_allocated_qos_profile(apn.mutable_qos_profile());
+        sub_apn_config->set_allocated_qos_profile(
+            (magma::lte::APNConfiguration_QoSProfile*)
+                apn.mutable_qos_profile());
       }
 
       if (apn.has_ambr()) {
-        sub_apn_config->set_allocated_ambr(apn.mutable_ambr());
+        sub_apn_config->set_allocated_ambr(
+            (magma::lte::AggregatedMaximumBitrate*)apn.mutable_ambr());
       }
 
       if (apn.pdn() != 0) {
-        sub_apn_config->set_pdn(apn.pdn());
+        sub_apn_config->set_pdn(
+            (magma::lte::APNConfiguration_PDNType)apn.pdn());
       }
 
       if (apn.served_party_ip_address_size() > 0) {
-        sub_apn_config->set_assigned_static_ip(
-            apn.served_party_ip_address_size(0));
+        sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
       }
 
       if (apn.has_resource()) {
-        sub_apn_config->set_allocated_resource(apn.mutable_resource());
+        sub_apn_config->set_allocated_resource(
+            (magma::lte::APNConfiguration_APNResource*)apn.mutable_resource());
       }
     }
   }

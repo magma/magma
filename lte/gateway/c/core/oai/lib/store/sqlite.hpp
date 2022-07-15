@@ -15,7 +15,7 @@ class SqliteStore {
 
   // Add subscriber
   void add_subscriber(
-      const SubscriberData& subscriber_data);  // TODO: add the parameters
+      SubscriberData& subscriber_data);  // TODO: add the parameters
 
   // Delete subscriber
   void delete_subscriber();  // TODO: add the parameters
