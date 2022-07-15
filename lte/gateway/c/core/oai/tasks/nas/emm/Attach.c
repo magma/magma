@@ -199,7 +199,7 @@ status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
     STOLEN_REF emm_attach_request_ies_t* const ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   ue_mm_context_t ue_ctx;
   emm_fsm_state_t fsm_state = EMM_DEREGISTERED;
   bool clear_emm_ctxt = false;
@@ -601,7 +601,7 @@ status_code_e emm_proc_attach_request(
 status_code_e emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id,
                                      emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
   if (emm_ctx) {
@@ -662,7 +662,7 @@ status_code_e emm_proc_attach_complete(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
   nas_emm_attach_proc_t* attach_proc = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {0};
   esm_sap_t esm_sap = {0};
   emm_context_t* emm_ctx = NULL;
@@ -1005,7 +1005,7 @@ static int emm_attach_release(emm_context_t* emm_context) {
 status_code_e _emm_attach_reject(emm_context_t* emm_context,
                                  struct nas_base_proc_s* nas_base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   attach_reject_event(emm_context->_imsi64);
   emm_sap_t emm_sap = {0};

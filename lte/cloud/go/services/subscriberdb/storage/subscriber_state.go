@@ -35,6 +35,8 @@ type SubscriberStorage interface {
 	DeleteSubscribersForGateway(networkID string, gatewayID string) error
 
 	SetAllSubscribersForGateway(networkID string, gatewayID string, subscriberStates *GatewaySubscriberState) error
+
+	GetSubscribersForIMSIs(networkID string, imsis []string) (ImsiStateMap, error)
 }
 
 const (
@@ -52,9 +54,11 @@ type subscriberStorage struct {
 	builder sqorc.StatementBuilder
 }
 
+// key: IMSI, value: sessiond subscriber state
+type ImsiStateMap = map[string]state.ArbitraryJSON
+
 type GatewaySubscriberState struct {
-	// key: IMSI, value: sessiond subscriber state
-	Subscribers map[string]state.ArbitraryJSON `json:"subscribers"`
+	Subscribers ImsiStateMap `json:"subscribers"`
 }
 
 func (j *GatewaySubscriberState) MarshalBinary() ([]byte, error) {
@@ -90,6 +94,15 @@ func (ss *subscriberStorage) Initialize() error {
 			Exec()
 		if err != nil {
 			return nil, fmt.Errorf("initialize subscriber storage table: %w", err)
+		}
+		_, err = ss.builder.CreateIndex("network_id_imsi_idx").
+			IfNotExists().
+			On(tableName).
+			Columns(nidColumn, imsiColumn).
+			RunWith(tx).
+			Exec()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create nid,imsi index: %w", err)
 		}
 		return nil, nil
 	}
@@ -182,11 +195,88 @@ func (ss *subscriberStorage) DeleteSubscribersForGateway(networkID string, gatew
 	return err
 }
 
+// GetSubscribersForIMSIs takes a network ID and a list of IMSIs and returns the
+// subscriber states of those IMSIs in the network.
+// If imsis == nil, states for all IMSIs are returned.
+func (ss *subscriberStorage) GetSubscribersForIMSIs(networkID string, imsis []string) (ImsiStateMap, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		var rows *sql.Rows
+		var err error
+		if imsis == nil {
+			rows, err = ss.getSubscribersForNetwork(tx, networkID)
+		} else {
+			rows, err = ss.getSubscribersForIMSIs(tx, networkID, imsis)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("Error getting subscribers for nid / imsis:  %v / %v", networkID, imsis)
+		}
+		defer sqorc.CloseRowsLogOnError(rows, "GetSubscribersForIMSIs")
+
+		mappings, err := ss.convertRowsToMap(rows)
+		if err != nil {
+			return nil, fmt.Errorf("GetSubscribersForIMSIs, SQL rows error: %w", err)
+		}
+
+		return mappings, nil
+	}
+	txRet, err := sqorc.ExecInTx(ss.db, nil, nil, txFn)
+	if err != nil {
+		return nil, err
+	}
+	ret := txRet.(ImsiStateMap)
+	return ret, nil
+}
+
+func (ss *subscriberStorage) convertRowsToMap(rows *sql.Rows) (ImsiStateMap, error) {
+	mappings := ImsiStateMap{}
+	lastUpdates := map[string]int64{}
+	for rows.Next() {
+		var rawState []byte
+		imsi := ""
+		var lastUpdated int64
+		err := rows.Scan(&imsi, &rawState, &lastUpdated)
+		if err != nil {
+			return nil, fmt.Errorf("GetSubscribersForIMSIs, SQL row scan error: %w", err)
+		}
+		reportedState := make(state.ArbitraryJSON)
+		err = json.Unmarshal(rawState, &reportedState)
+		if err != nil {
+			return nil, fmt.Errorf("GetSubscribersForIMSIs, error unmarshaling state: %w", err)
+		}
+		if lastUpdated > lastUpdates[imsi] {
+			lastUpdates[imsi] = lastUpdated
+			mappings[imsi] = reportedState
+		}
+	}
+	err := rows.Err()
+	return mappings, err
+}
+
 func (ss *subscriberStorage) getSubscribers(tx *sql.Tx, networkID string, gatewayID string) (*sql.Rows, error) {
 	rows, err := ss.builder.
 		Select(imsiColumn, stateColumn).
 		From(tableName).
 		Where(squirrel.Eq{nidColumn: networkID, gwidColumn: gatewayID}).
+		RunWith(tx).
+		Query()
+	return rows, err
+}
+
+func (ss *subscriberStorage) getSubscribersForIMSIs(tx *sql.Tx, networkID string, imsis []string) (*sql.Rows, error) {
+	rows, err := ss.builder.
+		Select(imsiColumn, stateColumn, lastUpdatedColumn).
+		From(tableName).
+		Where(squirrel.Eq{nidColumn: networkID, imsiColumn: imsis}).
+		RunWith(tx).
+		Query()
+	return rows, err
+}
+
+func (ss *subscriberStorage) getSubscribersForNetwork(tx *sql.Tx, networkID string) (*sql.Rows, error) {
+	rows, err := ss.builder.
+		Select(imsiColumn, stateColumn, lastUpdatedColumn).
+		From(tableName).
+		Where(squirrel.Eq{nidColumn: networkID}).
 		RunWith(tx).
 		Query()
 	return rows, err

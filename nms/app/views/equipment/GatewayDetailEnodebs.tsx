@@ -16,15 +16,11 @@ import type {GatewayDetailType} from './GatewayDetailMain';
 import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
-import React from 'react';
-import nullthrows from '../../../shared/util/nullthrows';
-
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import React, {useContext} from 'react';
+import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
-import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
+import {useInterval} from '../../hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
 import {useState} from 'react';
 
 type EnodebRowType = {
@@ -37,21 +33,18 @@ type EnodebRowType = {
 export default function GatewayDetailEnodebs(props: GatewayDetailType) {
   const resolvedPath = useResolvedPath('');
   const navigate = useNavigate();
-  const params = useParams();
-  const networkId: string = nullthrows(params.networkId);
-  // Auto refresh  every 30 seconds
-  const enbState = useRefreshingContext({
-    context: EnodebContext,
-    networkId: networkId,
-    type: 'enodeb',
-    interval: REFRESH_INTERVAL,
-    refresh: props.refresh || false,
-  });
+  const enodebContext = useContext(EnodebContext);
+
+  useInterval(
+    () => enodebContext.refetch(),
+    props.refresh ? REFRESH_INTERVAL : null,
+  );
+
   const enbInfo =
     props.gwInfo.connected_enodeb_serials?.reduce(
       (enbs: Record<string, EnodebInfo>, serial: string) => {
-        if (enbState?.enbInfo?.[serial] != null) {
-          enbs[serial] = enbState.enbInfo?.[serial];
+        if (enodebContext.state.enbInfo[serial] != null) {
+          enbs[serial] = enodebContext.state.enbInfo[serial];
         }
         return enbs;
       },

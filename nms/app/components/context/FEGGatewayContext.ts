@@ -14,10 +14,7 @@
 import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
 import React from 'react';
-import {
-  FederationGateway,
-  MutableFederationGateway,
-} from '../../../generated-ts';
+import {FederationGateway, MutableFederationGateway} from '../../../generated';
 import {GatewayId} from '../../../shared/types/network';
 
 export type FEGGatewayContextType = {
@@ -27,6 +24,7 @@ export type FEGGatewayContextType = {
     val?: MutableFederationGateway,
     newState?: Record<string, FederationGateway>,
   ) => Promise<void>;
+  refetch: (id?: GatewayId) => void;
   health: Record<GatewayId, FederationGatewayHealthStatus>;
   activeFegGatewayId: GatewayId;
 };

@@ -19,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {AxiosResponse} from 'axios';
 import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
-import {FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest} from '../../../../generated-ts';
+import {FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
@@ -34,7 +34,7 @@ import type {
   PromqlReturnObject,
   S6a,
   Swx,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 
 jest.mock('../../../hooks/useSnackbar');
 

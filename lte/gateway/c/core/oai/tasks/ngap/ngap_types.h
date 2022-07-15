@@ -27,6 +27,7 @@
 
 #define NGAP_TIMER_INACTIVE_ID (-1)
 #define NGAP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
+#define NGAP_ASN_ENCODED_BYTES(x) (x + 7) >> 3
 
 // Forward declarations
 struct gnb_description_s;

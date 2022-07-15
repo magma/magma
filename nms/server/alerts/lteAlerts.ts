@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {PromAlertConfig} from '../../generated-ts';
+import type {PromAlertConfig} from '../../generated';
 
 export default function getLteAlerts(
   networkID: string,

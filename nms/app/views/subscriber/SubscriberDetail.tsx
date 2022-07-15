@@ -42,7 +42,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import type {DataRows} from '../../components/DataGrid';
-import type {Subscriber, SubscriberState} from '../../../generated-ts';
+import type {Subscriber, SubscriberState} from '../../../generated';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {

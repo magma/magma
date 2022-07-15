@@ -31,7 +31,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';
-import type {CallTraceConfig} from '../../../generated-ts';
+import type {CallTraceConfig} from '../../../generated';
 
 const DEFAULT_TRACE_CONFIG: CallTraceConfig = {
   gateway_id: '',

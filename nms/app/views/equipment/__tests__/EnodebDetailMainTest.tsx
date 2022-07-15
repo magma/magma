@@ -10,17 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {PromqlReturnObject} from '../../../../generated-ts';
+import type {PromqlReturnObject} from '../../../../generated';
 
-import * as hooks from '../../../components/context/RefreshContext';
 import EnodebContext from '../../../components/context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
+import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-
-import MagmaAPI from '../../../api/MagmaAPI';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
@@ -140,9 +138,6 @@ describe('<Enodeb />', () => {
   };
 
   it('managed eNodeB', async () => {
-    jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => ({
-      enbInfo: {testEnodebSerial0: enbInfo['testEnodebSerial0']},
-    }));
     const Wrapper = () => (
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
@@ -154,6 +149,7 @@ describe('<Enodeb />', () => {
                 value={{
                   state: {enbInfo: enbInfo},
                   setState: async () => {},
+                  refetch: () => {},
                 }}>
                 <Routes>
                   <Route
@@ -170,10 +166,6 @@ describe('<Enodeb />', () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
 
-    // TODO - commenting this out till we have per enodeb metric support
-    // expect(
-    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    // ).toHaveBeenCalledTimes(2);
     expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial0',
     );
@@ -185,9 +177,6 @@ describe('<Enodeb />', () => {
   });
 
   it('unManaged eNodeB', async () => {
-    jest.spyOn(hooks, 'useRefreshingContext').mockImplementation(() => ({
-      enbInfo: {testEnodebSerial1: enbInfo['testEnodebSerial1']},
-    }));
     const Wrapper = () => (
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
@@ -199,6 +188,7 @@ describe('<Enodeb />', () => {
                 value={{
                   state: {enbInfo: enbInfo},
                   setState: async () => {},
+                  refetch: () => {},
                 }}>
                 <Routes>
                   <Route
@@ -215,10 +205,6 @@ describe('<Enodeb />', () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
 
-    // TODO - commenting this out till we have per enodeb metric support
-    // expect(
-    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
-    // ).toHaveBeenCalledTimes(2);
     expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial1',
     );

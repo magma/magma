@@ -21,7 +21,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
-import type {PromqlReturnObject} from '../../../generated-ts';
+import type {PromqlReturnObject} from '../../../generated';
 
 const mockMetricSt: PromqlReturnObject = {
   status: 'success',

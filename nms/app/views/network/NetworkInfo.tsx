@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {FegLteNetwork, LteNetwork} from '../../../generated-ts';
+import type {FegLteNetwork, LteNetwork} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';
@@ -25,6 +25,7 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import axios from 'axios';
 
+import AppContext from '../../components/context/AppContext';
 import {AltFormField} from '../../components/FormField';
 import {FEG_LTE, LTE} from '../../../shared/types/network';
 import {getErrorMessage} from '../../util/ErrorUtils';
@@ -94,6 +95,7 @@ export function NetworkInfoEdit(props: EditProps) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
+  const appContext = useContext(AppContext);
   const [lteNetwork, setLteNetwork] = useState<
     Partial<LteNetwork & FegLteNetwork>
   >(props.lteNetwork);
@@ -132,6 +134,7 @@ export function NetworkInfoEdit(props: EditProps) {
           payload,
         );
         if (response.data.success) {
+          appContext.addNetworkId(lteNetwork.id!);
           enqueueSnackbar(`Network ${lteNetwork.name!} successfully created`, {
             variant: 'success',
           });

@@ -19,7 +19,7 @@ import type {
   MutableCellularGatewayPool,
   NetworkDnsConfig,
   ServiceStatusHealth,
-} from '../../generated-ts';
+} from '../../generated';
 import type {GatewayId, NetworkId} from '../../shared/types/network';
 
 export const toString = (input: number | null | undefined): string => {

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {LteGateway} from '../../../generated-ts';
+import type {LteGateway} from '../../../generated';
 
 import DataGrid from '../../components/DataGrid';
 import React from 'react';

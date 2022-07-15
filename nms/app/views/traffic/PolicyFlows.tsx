@@ -39,11 +39,11 @@ import {
   FlowMatch,
   FlowMatchDirectionEnum,
   FlowMatchIpProtoEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
 import {useState} from 'react';
-import type {FlowDescription, PolicyRule} from '../../../generated-ts';
+import type {FlowDescription, PolicyRule} from '../../../generated';
 
 const useStyles = makeStyles(() => policyStyles);
 

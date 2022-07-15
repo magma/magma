@@ -101,7 +101,7 @@ class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(
 
         for ue in ue_ids:
             # Now detach the UE
-            random.seed(time.clock())
+            random.seed(time.time())
             index = random.randint(0, 1)
             print(
                 "************************* Running UE detach for UE id ",

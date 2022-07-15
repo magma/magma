@@ -42,9 +42,8 @@ import type {
   PolicyRule,
   RatingGroup,
   Tier,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {EnodebInfo} from './EnodebUtils';
-import type {EnodebState} from '../context/EnodebContext';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import * as cbsdState from '../../state/lte/CbsdState';
@@ -56,6 +55,8 @@ import {
   SubscriberId,
 } from '../../../shared/types/network';
 import {
+  FetchEnodebs,
+  FetchGateways,
   InitEnodeState,
   InitGatewayPoolState,
   InitTierState,
@@ -126,14 +127,13 @@ export function GatewayContextProvider(props: Props) {
     <GatewayContext.Provider
       value={{
         state: lteGateways,
-        setState: (key, value?, newState?) => {
+        setState: (key, value?) => {
           return SetGatewayState({
             lteGateways,
             setLteGateways,
             networkId,
             key,
             value,
-            newState,
           });
         },
         updateGateway: props =>
@@ -142,6 +142,19 @@ export function GatewayContextProvider(props: Props) {
             setLteGateways,
             ...props,
           } as UpdateGatewayProps),
+        refetch: id => {
+          void FetchGateways({
+            id: id,
+            networkId,
+            enqueueSnackbar,
+          }).then(gateways => {
+            if (gateways) {
+              setLteGateways(gatewayState =>
+                id ? {...gatewayState, ...gateways} : gateways,
+              );
+            }
+          });
+        },
       }}>
       {props.children}
     </GatewayContext.Provider>
@@ -316,14 +329,26 @@ export function EnodebContextProvider(props: Props) {
       value={{
         state: {enbInfo},
         lteRanConfigs: lteRanConfigs,
-        setState: (key: string, value?, newState?: EnodebState) => {
+        setState: (key: string, value?) => {
           return SetEnodebState({
             enbInfo,
             setEnbInfo,
             networkId,
             key,
             value,
-            newState,
+          });
+        },
+        refetch: id => {
+          void FetchEnodebs({
+            id: id,
+            networkId,
+            enqueueSnackbar,
+          }).then(enodebs => {
+            if (enodebs) {
+              setEnbInfo(enodebState =>
+                id ? {...enodebState, ...enodebs} : enodebs,
+              );
+            }
           });
         },
       }}>

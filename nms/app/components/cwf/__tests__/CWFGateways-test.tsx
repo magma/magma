@@ -17,7 +17,7 @@ import React from 'react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import type {CwfGateway, CwfHaPair} from '../../../../generated-ts';
+import type {CwfGateway, CwfHaPair} from '../../../../generated';
 
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
@@ -112,7 +112,6 @@ const CWF_HA_PAIR: CwfHaPair = {
 };
 
 jest.mock('axios');
-jest.mock('../../../../generated/MagmaAPIBindings.js');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>

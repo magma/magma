@@ -192,7 +192,6 @@ jobs:
             bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* \
               --config=asan \
               --test_output=errors \
-              --cache_test_results=no \
               --profile=Bazel_cpp_unit_tests_profile
             TEST_RESULT=$?
             # copy out test results

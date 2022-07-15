@@ -25,7 +25,7 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {DateTimePicker} from '@material-ui/pickers';
-import {Event as MagmaEvent} from '../../../generated-ts';
+import {Event as MagmaEvent} from '../../../generated';
 import {MaterialTableProps} from '@material-table/core';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';

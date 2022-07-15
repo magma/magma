@@ -111,9 +111,6 @@ export default function CustomHistogram(props: Props) {
         data={{datasets: props.dataset}}
         options={{
           maintainAspectRatio: false,
-          // TODO[TS-migration is this a valid chart.js option?]
-          // @ts-ignore
-          scaleShowValues: true,
           scales: {
             xAxes: [
               {
@@ -188,9 +185,6 @@ export function CustomLineChart(props: Props) {
         }}
         options={{
           maintainAspectRatio: false,
-          // TODO[TS-migration is this a valid chart.js option?]
-          // @ts-ignore
-          scaleShowValues: true,
           scales: {
             xAxes: [
               {

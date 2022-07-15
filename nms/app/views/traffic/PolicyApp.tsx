@@ -25,7 +25,7 @@ import type {
   PolicyRule,
   PolicyRuleAppNameEnum,
   PolicyRuleAppServiceTypeEnum,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 const useStyles = makeStyles(() => policyStyles);
 

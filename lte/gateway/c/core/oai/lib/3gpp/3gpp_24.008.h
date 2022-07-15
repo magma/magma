@@ -1056,7 +1056,7 @@ int decode_packet_flow_identifier_ie(
  *        Packet filter list
  * ----------------------------------------------------------------------------
  */
-
+#define TRAFFIC_FLOW_TEMPLATE_MATCH_ALL 0b00000001
 #define TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR 0b00010000
 #define TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR 0b00100000
 #define TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER 0b00110000
@@ -1092,6 +1092,7 @@ typedef struct packet_filter_contents_s {
 #define TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG (1 << 7)
 #define TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG (1 << 8)
 #define TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG (1 << 9)
+#define TRAFFIC_FLOW_TEMPLATE_MATCH_ALL_FLAG (1 << 10)
   uint16_t flags;
 #define TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE 4
   struct {

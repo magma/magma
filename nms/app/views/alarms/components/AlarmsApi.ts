@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import {PromFiringAlert} from '../../../../generated-ts';
+import {PromFiringAlert} from '../../../../generated';
 import type {
   AlertConfig,
   AlertManagerGlobalConfig,

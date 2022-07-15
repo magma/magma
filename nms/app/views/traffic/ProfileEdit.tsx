@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {PolicyQosProfile} from '../../../generated-ts';
+import type {PolicyQosProfile} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

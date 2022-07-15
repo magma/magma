@@ -22,19 +22,22 @@ from dp.protos.cbsd_pb2 import UpdateCbsdResponse
 from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
 from magma.enodebd.data_models.data_model import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
+from magma.enodebd.device_config.configuration_util import (
+    calc_bandwidth_mhz,
+    calc_bandwidth_rbs,
+    calc_earfcn,
+)
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.baicells_qrtb import (
     BaicellsQRTBNotifyDPState,
     BaicellsQRTBQueuedEventsWaitState,
     BaicellsQRTBTrDataModel,
     BaicellsQRTBWaitInformRebootState,
+    CarrierAggregationParameters,
     qrtb_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.dp_client import (
-    build_enodebd_update_cbsd_request,
-    enodebd_update_cbsd,
-)
+from magma.enodebd.dp_client import build_enodebd_update_cbsd_request
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.acs_state_utils import (
     get_firmware_upgrade_download_config,
@@ -121,16 +124,41 @@ GET_PARAMS_RESPONSE_PARAMS = [
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkPort', 'int', '36412'),
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList', 'string', '192.168.60.142'),
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.X_COM_MmePool.Enable', 'boolean', 'false'),
-    Param('Device.Services.FAPService.Ipsec.IPSEC_ENABLE', 'boolean', 'false'),
+    Param('Device.Services.FAPService.Ipsec.IPSEC_ENABLE', 'bool', 'false'),
+
+    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.CA.CaEnable', 'bool', 'false'),
+    Param('FAPService.1.CellConfig.LTE.RAN.CA.PARAMS.NumOfCells', 'int', '1'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.Common.CellIdentity', 'int', '138777000'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.FreqBandIndicator', 'int', '48'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.DLBandwidth', 'str', '100'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.ULBandwidth', 'int', '100'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.EARFCNDL', 'int', '39150'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.EARFCNUL', 'int', '39150'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.PhyCellID', 'int', '260'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.X_COM_RadioEnable', 'bool', 'false'),
+    Param('Device.Services.FAPService.2.FAPControl.LTE.AdminState', 'bool', 'true'),
+    Param('Device.Services.FAPService.2.FAPControl.LTE.OpState', 'bool', 'true'),
+    Param('Device.Services.FAPService.2.FAPControl.LTE.RFTxStatus', 'boolean', 'false'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.EPC.PLMNList.1.CellReservedForOperatorUse', 'bool', 'true'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.EPC.PLMNList.1.Enable', 'bool', 'true'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.EPC.PLMNList.1.IsPrimary', 'bool', 'false'),
+    Param('Device.Services.FAPService.2.CellConfig.LTE.EPC.PLMNList.1.PLMNID', 'int', '00102'),
 ]
 
 MOCK_CBSD_STATE = CBSDStateResult(
     radio_enabled=True,
-    channel=LteChannel(
-        low_frequency_hz=3550_000_000,
-        high_frequency_hz=3570_000_000,
-        max_eirp_dbm_mhz=34,
-    ),
+    channels=[
+        LteChannel(
+            low_frequency_hz=3550_000_000,
+            high_frequency_hz=3570_000_000,
+            max_eirp_dbm_mhz=34,
+        ),
+        LteChannel(
+            low_frequency_hz=3570_000_000,
+            high_frequency_hz=3590_000_000,
+            max_eirp_dbm_mhz=34,
+        ),
+    ],
 )
 
 MOCK_ENODEBD_CBSD_UPDATE = UpdateCbsdResponse()
@@ -144,9 +172,10 @@ class SasToRfConfigTests(TestCase):
             high_frequency_hz=3570_000_000,
             max_eirp_dbm_mhz=34,
         )
+        channels = [channel]
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=channels,
         )
         qrtb_update_desired_config_from_cbsd_state(state, config)
         self.assert_config_updated(config, '100', 55340, 34)
@@ -160,7 +189,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         qrtb_update_desired_config_from_cbsd_state(state, config)
         self.assert_config_updated(config, '75', 55365, 37)
@@ -174,7 +203,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         qrtb_update_desired_config_from_cbsd_state(state, config)
         self.assert_config_updated(config, '50', 55790, 24)
@@ -188,7 +217,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         qrtb_update_desired_config_from_cbsd_state(state, config)
         self.assert_config_updated(config, '25', 55765, 22)
@@ -202,7 +231,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         with self.assertRaises(ConfigurationError):
             qrtb_update_desired_config_from_cbsd_state(state, config)
@@ -216,7 +245,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         with self.assertRaises(ConfigurationError):
             qrtb_update_desired_config_from_cbsd_state(state, config)
@@ -230,7 +259,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         qrtb_update_desired_config_from_cbsd_state(state, config)
         self.assert_config_updated(config, '25', 56680, 1)
@@ -244,7 +273,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         with self.assertRaises(ConfigurationError):
             qrtb_update_desired_config_from_cbsd_state(state, config)
@@ -258,7 +287,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=False,
-            channel=channel,
+            channels=[channel],
         )
         qrtb_update_desired_config_from_cbsd_state(state, config)
         self.assertEqual(
@@ -276,7 +305,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         with self.assertRaises(ConfigurationError):
             qrtb_update_desired_config_from_cbsd_state(state, config)
@@ -290,7 +319,7 @@ class SasToRfConfigTests(TestCase):
         )
         state = CBSDStateResult(
             radio_enabled=True,
-            channel=channel,
+            channels=[channel],
         )
         with self.assertRaises(ConfigurationError):
             qrtb_update_desired_config_from_cbsd_state(state, config)
@@ -310,6 +339,25 @@ class SasToRfConfigTests(TestCase):
 
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+        test_serial_number = '120200024019APP0105'
+
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
+
+        acs_state_machine.desired_cfg = EnodebConfiguration(BaicellsQRTBTrDataModel())
+
+        req = Tr069MessageBuilder.get_qrtb_inform(
+            params=DEFAULT_INFORM_PARAMS,
+            oui='48BF74',
+            enb_serial=test_serial_number,
+            event_codes=['2 PERIODIC'],
+        )
+        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, '0')
+        acs_state_machine.handle_tr069_message(req)
+        acs_state_machine.transition('notify_dp')
+        mock_enodebd_update_cbsd.assert_not_called()
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
@@ -488,6 +536,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
     def test_provision(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+        self.maxDiff = None
         mock_get_state.return_value = MOCK_CBSD_STATE
         mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
 
@@ -571,7 +620,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         # Therefore the provisioning ends here. The radio goes directly into end_session -> notify_dp state
         self.assertTrue(
             isinstance(resp, models.DummyInput),
-            'State machine should send back an empty message',
+            f'State machine should send back an empty message, got {resp} instead.',
         )
 
         self.assertIsInstance(
@@ -580,6 +629,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         )
 
     def verify_acs_asking_enb_for_params(self, should_ask_for, response):
+        self.maxDiff = None
         param_values_that_enodebd_actually_asked_for = response.ParameterNames.string
 
         self.assertEqual(
@@ -704,6 +754,25 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
         )
         for p in parameters_to_delete:
             self.assertFalse(desired_cfg.has_parameter(p))
+
+    def test_cells_plmn_configured_in_postprocessor(self):
+        acs_state_machine = provision_clean_sm()
+        acs_state_machine.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'false')
+
+        desired_cfg = build_desired_config(
+            acs_state_machine.mconfig,
+            acs_state_machine.service_config,
+            acs_state_machine.device_cfg,
+            acs_state_machine.data_model,
+            acs_state_machine.config_postprocessor,
+        )
+
+        self.assertEqual(desired_cfg.get_parameter_for_object(ParameterName.PLMN_N_CELL_RESERVED % 1, ParameterName.PLMN_N % 1), True)
+        self.assertEqual(desired_cfg.get_parameter_for_object(ParameterName.PLMN_N_ENABLE % 1, ParameterName.PLMN_N % 1), True)
+        self.assertEqual(desired_cfg.get_parameter_for_object(ParameterName.PLMN_N_PRIMARY % 1, ParameterName.PLMN_N % 1), True)
+        self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_CELL_RESERVED), True)
+        self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_ENABLE), True)
+        self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_PRIMARY), False)
 
     def test_device_and_desired_config_discrepancy_after_initial_configuration(self):
         """
@@ -1046,6 +1115,147 @@ class BaicellsQRTBFirmwareUpgradeDownloadTests(EnodebHandlerTestCase):
         self.assertEqual(message.DelaySeconds, 0)
         self.assertEqual(message.SuccessURL, "")
         self.assertEqual(message.FailureURL, "")
+
+
+class BaicellsQRTBCarrierAggregationTests(EnodebHandlerTestCase):
+    channel_20_1 = LteChannel(low_frequency_hz=3550_000_000, high_frequency_hz=3570_000_000, max_eirp_dbm_mhz=34)
+    channel_20_2 = LteChannel(low_frequency_hz=3570_000_000, high_frequency_hz=3590_000_000, max_eirp_dbm_mhz=34)
+    channel_20_3 = LteChannel(low_frequency_hz=3670_000_000, high_frequency_hz=3690_000_000, max_eirp_dbm_mhz=14)
+    channel_15_1 = LteChannel(low_frequency_hz=3570_000_000, high_frequency_hz=3585_000_000, max_eirp_dbm_mhz=34)
+    channel_15_2 = LteChannel(low_frequency_hz=3585_000_000, high_frequency_hz=3600_000_000, max_eirp_dbm_mhz=34)
+    channel_10_1 = LteChannel(low_frequency_hz=3570_000_000, high_frequency_hz=3580_000_000, max_eirp_dbm_mhz=34)
+    channel_10_2 = LteChannel(low_frequency_hz=3580_000_000, high_frequency_hz=3590_000_000, max_eirp_dbm_mhz=34)
+    channel_10_3 = LteChannel(low_frequency_hz=3680_000_000, high_frequency_hz=3690_000_000, max_eirp_dbm_mhz=34)
+    channel_5_1 = LteChannel(low_frequency_hz=3550_000_000, high_frequency_hz=3555_000_000, max_eirp_dbm_mhz=34)
+    channel_5_2 = LteChannel(low_frequency_hz=3555_000_000, high_frequency_hz=3560_000_000, max_eirp_dbm_mhz=34)
+    channel_5_3 = LteChannel(low_frequency_hz=3655_000_000, high_frequency_hz=3660_000_000, max_eirp_dbm_mhz=34)
+
+    # Domain Proxy state results, which should be supported and accepted by QRTB. Carrier Aggregation should be set on eNB.
+    state_ca_enabled_2_channels_20 = CBSDStateResult(channels=[channel_20_1, channel_20_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_10 = CBSDStateResult(channels=[channel_10_1, channel_10_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_5 = CBSDStateResult(channels=[channel_5_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_20_10 = CBSDStateResult(channels=[channel_20_1, channel_10_1], radio_enabled=True, carrier_aggregation_enabled=True)
+
+    # Domain Proxy state results, which result in disabling the radio.
+    state_ca_enabled_0_channels = CBSDStateResult(channels=[], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_disabled_0_channels = CBSDStateResult(channels=[], radio_enabled=True, carrier_aggregation_enabled=False)
+
+    # Domain Proxy state results, with just 1 channel or 2 channels but CA disabled. Should result in eNB switching to Single Carrier
+    state_ca_enabled_1_channel_20 = CBSDStateResult(channels=[channel_20_1], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_disabled_2_channels_20 = CBSDStateResult(channels=[channel_20_1, channel_20_2], radio_enabled=True, carrier_aggregation_enabled=False)
+    state_ca_disabled_1_channel_20 = CBSDStateResult(channels=[channel_20_1], radio_enabled=True, carrier_aggregation_enabled=False)
+
+    # Domain Proxy state results, with 2 channels that exceed max allowed IBW. Should result in eNB switching to Single Carrier
+    state_ca_enabled_2_channels_20_ibw_over_100 = CBSDStateResult(channels=[channel_20_1, channel_20_3], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_10_ibw_over_100 = CBSDStateResult(channels=[channel_10_1, channel_10_3], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_5_ibw_over_100 = CBSDStateResult(channels=[channel_5_1, channel_5_3], radio_enabled=True, carrier_aggregation_enabled=True)
+
+    # Domain Proxy state results, with 2 channels that are not in supported bandwidth configurations. Should result in eNB switching to Single Carrier
+    state_ca_enabled_2_channels_15 = CBSDStateResult(channels=[channel_15_1, channel_15_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_20_15 = CBSDStateResult(channels=[channel_20_1, channel_15_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_20_5 = CBSDStateResult(channels=[channel_20_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_15_10 = CBSDStateResult(channels=[channel_15_1, channel_10_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_15_5 = CBSDStateResult(channels=[channel_15_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+    state_ca_enabled_2_channels_10_5 = CBSDStateResult(channels=[channel_10_1, channel_5_2], radio_enabled=True, carrier_aggregation_enabled=True)
+
+    @parameterized.expand([
+        (state_ca_enabled_2_channels_20,),
+        (state_ca_enabled_2_channels_10,),
+        (state_ca_enabled_2_channels_5,),
+        (state_ca_enabled_2_channels_20_10,),
+    ])
+    def test_ca_enabled_and_fapservice_2_configured_based_on_domain_proxy_state(self, state) -> None:
+        """
+        Test eNB configuration set to Carrier Aggregation when Domain Proxy
+        state response contains applicable channels
+        """
+        config = EnodebConfiguration(BaicellsQRTBTrDataModel())
+
+        # Set required params in device configuration
+        _pci = 260
+        _cell_id = 138777000
+        config.set_parameter(ParameterName.PCI, 260)
+        config.set_parameter(ParameterName.CELL_ID, 138777000)
+
+        # Update eNB configuration based on Domain Proxy state response
+        qrtb_update_desired_config_from_cbsd_state(state, config)
+
+        # Check eNB set to Carrier Aggregation
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_ENABLE), 1)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_NUM_OF_CELLS), 2)
+
+        # Check FAPService.2 set to parameters derived from second channel
+        ca_channel_low_freq = state.channels[1].low_frequency_hz
+        ca_channel_high_freq = state.channels[1].high_frequency_hz
+        ca_bw_mhz = calc_bandwidth_mhz(ca_channel_low_freq, ca_channel_high_freq)
+        ca_bw_rbs = calc_bandwidth_rbs(ca_bw_mhz)
+        ca_earfcn = calc_earfcn(ca_channel_low_freq, ca_channel_high_freq)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_DL_BANDWIDTH), ca_bw_rbs)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_UL_BANDWIDTH), ca_bw_rbs)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_EARFCNDL), ca_earfcn)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_EARFCNDL), ca_earfcn)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_BAND), 48)
+
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_RADIO_ENABLE), True)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_PCI), _pci + 1)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_CELL_ID), _cell_id + 1)
+
+    @parameterized.expand([
+        (state_ca_enabled_0_channels,),
+        (state_ca_disabled_0_channels,),
+    ])
+    def test_radio_disabled_based_on_domain_proxy_state(self, state) -> None:
+        """
+        Test eNB configuration set to disable radio tranmission and not touch
+        any eNB parameters, when Domain Proxy state response contains no channels
+        """
+        config = EnodebConfiguration(BaicellsQRTBTrDataModel())
+        qrtb_update_desired_config_from_cbsd_state(state, config)
+        self.assertEqual(config.get_parameter(ParameterName.SAS_RADIO_ENABLE), False)
+
+    @parameterized.expand([
+        (state_ca_enabled_1_channel_20,),
+        (state_ca_disabled_2_channels_20,),
+        (state_ca_disabled_1_channel_20,),
+        (state_ca_enabled_2_channels_20_ibw_over_100,),
+        (state_ca_enabled_2_channels_10_ibw_over_100,),
+        (state_ca_enabled_2_channels_5_ibw_over_100,),
+        (state_ca_enabled_2_channels_20_15,),
+        (state_ca_enabled_2_channels_20_5,),
+        (state_ca_enabled_2_channels_15,),
+        (state_ca_enabled_2_channels_15_10,),
+        (state_ca_enabled_2_channels_15_5,),
+        (state_ca_enabled_2_channels_10_5,),
+    ])
+    def test_single_carrier_enabled_based_on_domain_proxy_state(self, state) -> None:
+        """
+        Test eNB configuration set to Single Carrier when Domain Proxy
+        state response contains one channel or 2 channels with incompatible
+        channel configuration
+        """
+        config = EnodebConfiguration(BaicellsQRTBTrDataModel())
+
+        # Set required params in device configuration
+        config.set_parameter(ParameterName.GPS_STATUS, True)
+
+        # Update eNB configuration based on Domain Proxy state response
+        qrtb_update_desired_config_from_cbsd_state(state, config)
+
+        # Check eNB set to Single Carrier
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_ENABLE), 0)
+        self.assertEqual(config.get_parameter(CarrierAggregationParameters.CA_NUM_OF_CELLS), 1)
+
+        # Check eNB FAPService.1 set to parameters derived from first channel
+        sc_channel_low_freq = state.channels[0].low_frequency_hz
+        sc_channel_high_freq = state.channels[0].high_frequency_hz
+        sc_bw_mhz = calc_bandwidth_mhz(sc_channel_low_freq, sc_channel_high_freq)
+        sc_bw_rbs = calc_bandwidth_rbs(sc_bw_mhz)
+        sc_earfcn = calc_earfcn(sc_channel_low_freq, sc_channel_high_freq)
+        self.assertEqual(config.get_parameter(ParameterName.DL_BANDWIDTH), sc_bw_rbs)
+        self.assertEqual(config.get_parameter(ParameterName.UL_BANDWIDTH), sc_bw_rbs)
+        self.assertEqual(config.get_parameter(ParameterName.EARFCNDL), sc_earfcn)
+        self.assertEqual(config.get_parameter(ParameterName.EARFCNDL), sc_earfcn)
+        self.assertEqual(config.get_parameter(ParameterName.SAS_RADIO_ENABLE), True)
 
 
 def prepare_device_cfg_same_as_desired_cfg(acs_state_machine):
