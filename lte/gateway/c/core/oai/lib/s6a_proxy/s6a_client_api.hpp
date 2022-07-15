@@ -18,9 +18,6 @@
 #pragma once
 
 #include <gmp.h>
-#include <string.h>
-#include "feg/protos/s6a_proxy.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,8 +25,6 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-
-// #include "../../store/lte/protos/subscriberdb.pb.h"
 
 /**
  * s6a_purge is an asynchronous call that forwards S6a PU to Federation Gateway
@@ -51,6 +46,5 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p);
 
 #ifdef __cplusplus
 }
-void convert_ula_to_subscriber_data(magma::feg::UpdateLocationAnswer response,
-                                    const magma::lte::SubscriberData& sub_data);
+
 #endif
