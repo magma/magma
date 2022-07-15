@@ -67,15 +67,7 @@ juju scp --container="magma-orc8r-certifier" orc8r-certifier/0:/var/opt/magma/ce
 > The default password to open the admin_operator.pfx file is `password123`. To choose a different
 > password, re-deploy orc8r-certifier with the `passphrase` juju config.
 
-## 5. Create the Orchestrator admin user
-
-Create the user:
-
-```bash
-juju run-action orc8r-orchestrator/0 create-orchestrator-admin-user
-```
-
-## 6. Setup DNS
+## 5. Setup DNS
 
 Use `kubectl` or your cloud's CLI to retrieve the public addresses associated to the following Kubernetes
 LoadBalancer services:
@@ -94,7 +86,7 @@ Create these A records in your managed domain:
 | `controller.<your domain>`              | `<orc8r-clientcert-nginx External IP>` |
 | `*.nms.<your domain>`                   | `<nginx-proxy External IP>`            |
 
-## 7. Verify the deployment
+## 6. Verify the deployment
 
 Get the master organization's username and password:
 
