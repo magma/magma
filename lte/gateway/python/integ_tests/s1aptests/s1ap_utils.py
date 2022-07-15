@@ -410,7 +410,7 @@ class S1ApUtil(object):
         return msg
 
     def receive_initial_ctxt_setup_and_attach_accept(self) -> Msg:
-        """Receive intial context setup and attach accept indication from TFW"""
+        """Receive initial cntxt setup and attach accept indication from TFW"""
         # The MME actually sends INT_CTX_SETUP_IND and UE_ATTACH_ACCEPT_IND
         # in one message, but the S1APTester splits it and sends the tests 2
         # messages. Usually initial context setup comes before attach accept,
@@ -430,7 +430,7 @@ class S1ApUtil(object):
         return response
 
     def receive_initial_ctxt_setup_and_tau_accept(self) -> Msg:
-        """Receive intial context setup and TAU accept indication from TFW"""
+        """Receive initial context setup and TAU accept indication from TFW"""
         # The MME actually sends INT_CTX_SETUP_IND and UE_TAU_ACCEPT_IND
         # in one message, but the S1APTester splits it and sends the tests 2
         # messages. Usually initial context setup comes before TAU accept,
