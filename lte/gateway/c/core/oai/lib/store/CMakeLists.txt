@@ -16,17 +16,32 @@ set(CMAKE_CXX_FLAGS "-Wno-write-strings -Wno-literal-suffix")
 
 
 #compile the required protos
+
+
 set(SUB_CPP_PROTOS subscriberdb)
+set(DIGEST_CPP_PROTOS digest)
+set(APN_CPP_PROTOS apn)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 create_proto_dir("lte" LTE_OUT_DIR)
+create_proto_dir("orc8r" ORC8R_OUT_DIR)
+
 
 
 generate_cpp_protos("${SUB_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+generate_cpp_protos("${DIGEST_CPP_PROTOS}" "${PROTO_SRCS}"
+    "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
+
+generate_cpp_protos("${APN_CPP_PROTOS}" "${PROTO_SRCS}"
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${LTE_OUT_DIR})
+include_directories(${ORC8R_OUT_DIR})
 
 
 add_library(LIB_STORE sqlite.cpp ${PROTO_SRCS} ${PROTO_HDRS})
