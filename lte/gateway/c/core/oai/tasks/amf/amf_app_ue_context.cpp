@@ -305,7 +305,6 @@ struct ue_m5gmm_context_s* amf_ue_context_exists_imsi(
  ***************************************************************************/
 ue_m5gmm_context_s* amf_get_ue_context_from_imsi(char* imsi) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_context_t* amf_context_p = nullptr;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
@@ -491,20 +490,6 @@ ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_app_state_free_ue_context()                               **
- **                                                                        **
- ** Description: Cleans up AMF context                                     **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-void amf_app_state_free_ue_context(void** ue_context_node) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
-
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
-}
-
-/****************************************************************************
- **                                                                        **
  ** Name:    amf_lookup_guti_by_ueid()                                     **
  **                                                                        **
  ** Description:  Fetch the guti based on ue id                            **
@@ -556,11 +541,9 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  ***************************************************************************/
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  magma::map_rc_t m_rc = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_AMF_APP, "amf_free_ue_context \n");
-  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
   }
@@ -733,11 +716,27 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
 
   ue_context_p->m5_mobile_reachability_timer.id = AMF_APP_TIMER_INACTIVE_ID;
 
-  // Start Implicit Deregister timer
-  ue_context_p->m5_implicit_deregistration_timer.id = amf_app_start_timer(
-      ue_context_p->m5_implicit_deregistration_timer.sec * 1000,
-      TIMER_REPEAT_ONCE, amf_app_handle_implicit_deregistration_timer_expiry,
-      ue_id);
+  // Start Implicit Deregister timer only if it is not running
+  if ((ue_context_p->m5_implicit_deregistration_timer.id = amf_app_start_timer(
+           ue_context_p->m5_implicit_deregistration_timer.sec * 1000,
+           TIMER_REPEAT_ONCE,
+           amf_app_handle_implicit_deregistration_timer_expiry, ue_id)) ==
+      RETURNerror) {
+    OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+                    "Failed to start Implicit Deregistration timer for UE "
+                    "id: " AMF_UE_NGAP_ID_FMT "\n",
+                    ue_context_p->amf_ue_ngap_id);
+    ue_context_p->m5_implicit_deregistration_timer.id =
+        AMF_APP_TIMER_INACTIVE_ID;
+  } else {
+    OAILOG_DEBUG_UE(
+        LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+        "Started Implicit Deregistration timer for UE id: " AMF_UE_NGAP_ID_FMT
+        ", Timer Id: %ld, Timer Val: %u (ms) ",
+        ue_context_p->amf_ue_ngap_id,
+        ue_context_p->m5_implicit_deregistration_timer.id,
+        ue_context_p->m5_implicit_deregistration_timer.sec);
+  }
 
   ue_context_p->ppf = false;
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
@@ -784,14 +783,30 @@ void amf_ue_context_update_ue_sig_connection_state(
         ue_context_p->m5_mobile_reachability_timer.id ==
             AMF_APP_TIMER_INACTIVE_ID) {
       ue_context_p->m5_mobile_reachability_timer.sec =
-          (amf_config.nas_config.t3512_min + 4 * 60);
+          (amf_config.nas_config.t3512_min + (4 * 60));
+      ue_context_p->m5_implicit_deregistration_timer.sec =
+          ue_context_p->m5_mobile_reachability_timer.sec;
 
-      if (ue_context_p->m5_mobile_reachability_timer.sec ==
-          AMF_APP_TIMER_INACTIVE_ID) {
-        ue_context_p->m5_mobile_reachability_timer.id = amf_app_start_timer(
-            ue_context_p->m5_mobile_reachability_timer.sec * 1000,
-            TIMER_REPEAT_ONCE, amf_app_handle_mobile_reachability_timer_expiry,
-            ue_context_p->amf_ue_ngap_id);
+      // Start Mobile Reachability timer only if it is not running
+      if ((ue_context_p->m5_mobile_reachability_timer.id = amf_app_start_timer(
+               ue_context_p->m5_mobile_reachability_timer.sec * 1000,
+               TIMER_REPEAT_ONCE,
+               amf_app_handle_mobile_reachability_timer_expiry,
+               ue_context_p->amf_ue_ngap_id)) == RETURNerror) {
+        OAILOG_ERROR_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+                        "Failed to start Mobile Reachability timer for UE id "
+                        " " AMF_UE_NGAP_ID_FMT "\n",
+                        ue_context_p->amf_ue_ngap_id);
+        ue_context_p->m5_mobile_reachability_timer.id =
+            AMF_APP_TIMER_INACTIVE_ID;
+      } else {
+        OAILOG_DEBUG_UE(
+            LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+            "Started Mobile Reachability timer for UE id " AMF_UE_NGAP_ID_FMT
+            ", Timer Id: %ld, Timer Val: %u (s) ",
+            ue_context_p->amf_ue_ngap_id,
+            ue_context_p->m5_mobile_reachability_timer.id,
+            ue_context_p->m5_mobile_reachability_timer.sec);
       }
     }
 
@@ -847,7 +862,6 @@ void amf_ue_context_update_ue_sig_connection_state(
 static int amf_ue_context_release_complete_timer_handler(zloop_t* loop,
                                                          int timer_id,
                                                          void* output) {
-  amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 

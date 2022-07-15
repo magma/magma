@@ -81,6 +81,7 @@ class amf_as_data_t {
   amf_ue_ngap_id_t ue_id;       // UE lower layer identifier
   guti_m5_t* guti;              // GUTI temporary mobile identity
   amf_as_security_data_t sctx;  // M5G NAS security context
+  tai_t tai;                    // The first tracking area the UE is registered
 #define AMF_AS_NAS_DATA_REGISTRATION_ACCEPT 0x04    // REGISTRATION Accept
 #define AMF_AS_NAS_AMF_INFORMATION 0x05             // Amf information
 #define AMF_AS_NAS_DATA_DEREGISTRATION_ACCEPT 0x06  // DEREGISTRATION Accept

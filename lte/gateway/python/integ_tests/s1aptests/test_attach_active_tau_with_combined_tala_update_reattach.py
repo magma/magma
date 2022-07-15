@@ -72,11 +72,13 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+            req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print(
             "************************* Received UE context release indication",
@@ -95,23 +97,18 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         req.ueMtmsi.pres = False
         self._s1ap_wrapper.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_TAU_REQ, req)
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        response = (
+            self._s1ap_wrapper._s1_util.receive_initial_ctxt_setup_and_tau_accept()
         )
-        # Waiting for TAU Accept
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
-        )
+        tau_acc = response.cast(s1ap_types.ueTauAccept_t)
         print(
-            "************************* Received Tracking Area Update Accept "
-            "Indication",
+            "************************* Received Tracking Area Update",
+            "accept for UE Id:",
+            tau_acc.ue_Id,
         )
 
         print(
-            "************************* Running End to End attach "
-            "for UE id ",
+            "************************* Running End to End attach for UE Id:",
             ue_id,
         )
         # Now actually complete the attach
@@ -129,7 +126,9 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
         print("************************* Running UE detach for UE id", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
+            ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            wait_for_s1_ctxt_release=True,
         )
 
 

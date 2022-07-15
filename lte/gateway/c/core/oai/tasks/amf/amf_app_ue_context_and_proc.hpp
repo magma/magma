@@ -834,7 +834,6 @@ class nas_amf_smc_proc_t {
 
 nas_amf_smc_proc_t* get_nas5g_common_procedure_smc(const amf_context_t* ctxt);
 
-void amf_app_state_free_ue_context(void** ue_context_node);
 int amf_proc_security_mode_control(amf_context_t* amf_ctx,
                                    nas_amf_specific_proc_t* amf_specific_proc,
                                    ksi_t ksi, success_cb_t success,

@@ -17,17 +17,21 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSync(unittest.TestCase):
+class TestResync(unittest.TestCase):
+    """Integration Test: TestResync"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_sync_attach(self):
-        """ Attach logic where we bump up the seq number stored in UE SQN
-            array in order to trigger authentication failure from UE to
-            verify the re-sync of seq number logic in EPC """
+    def test_resync(self):
+        """Attach logic where we bump up the seq number stored in UE SQN
+        array in order to trigger authentication failure from UE to
+        verify the re-sync of seq number logic in EPC"""
 
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
@@ -46,66 +50,76 @@ class TestSync(unittest.TestCase):
 
         # Trigger Attach
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
-        sqnRecvd = s1ap_types.ueSqnRcvd_t()
-        maxSqnRecvd = s1ap_types.ueSqnRcvd_t()
+        sqn_recvd = s1ap_types.ueSqnRcvd_t()
+        max_sqn_recvd = s1ap_types.ueSqnRcvd_t()
         # Use SQN received from EPC as is
-        sqnRecvd.pres = False
+        sqn_recvd.pres = False
         # Set UE side max SQN value to bigger than value received from EPC
         # This is to trigger auth failure with cause = Sync Failure
-        maxSqnRecvd.pres = True
-        maxSqnRecvd.sqn = (0, 0, 0, 0, 0, 96)
-        auth_res.sqnRcvd = sqnRecvd
-        auth_res.maxSqnRcvd = maxSqnRecvd
+        max_sqn_recvd.pres = True
+        max_sqn_recvd.sqn = (0, 0, 0, 0, 0, 96)
+        auth_res.sqnRcvd = sqn_recvd
+        auth_res.maxSqnRcvd = max_sqn_recvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
 
         # Verify that EPC re-sends Authentication Request
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("************************* Retrying authentication")
         # Use SQN received from EPC as is
-        sqnRecvd.pres = False
-        auth_res.sqnRcvd = sqnRecvd
+        sqn_recvd.pres = False
+        auth_res.sqnRcvd = sqn_recvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         # Trigger Security mode complete message
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
-        )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
+        )
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
 
         # Trigger Attach complete message
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+            attach_complete,
         )
         print("************************* UE Attach Complete")
 
@@ -120,11 +134,13 @@ class TestSync(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST,
+            detach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
 
