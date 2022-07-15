@@ -37,9 +37,12 @@ struct enb_description_s;
 #define S1AP_TIMER_INACTIVE_ID (-1)
 #define S1AP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
 
+// Map- Key: uint32_t , Data: enb_description_t*
+typedef magma::proto_map_s<uint32_t, struct enb_description_s*>
+    map_uint32_enb_description_t;
 typedef struct s1ap_state_s {
-  // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)
-  hash_table_ts_t enbs;
+  // key:sctp_assoc_id, value: pointer to eNB_description_s
+  map_uint32_enb_description_t enbs;
   // contains sctp association id, key is mme_ue_s1ap_id
   hash_table_ts_t mmeid2associd;
   uint32_t num_enbs;

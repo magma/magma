@@ -43,8 +43,8 @@ import {
   TenantsApi,
   UpgradesApi,
   UserApi,
-} from '../generated-ts';
-import {BaseAPI} from '../generated-ts/base';
+} from '../generated';
+import {BaseAPI} from '../generated/base';
 
 const config = new Configuration();
 

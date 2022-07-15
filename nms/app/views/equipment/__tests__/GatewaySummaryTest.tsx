@@ -16,7 +16,7 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {render} from '@testing-library/react';
-import type {LteGateway} from '../../../../generated-ts';
+import type {LteGateway} from '../../../../generated';
 
 const mockGatewaySt: LteGateway = {
   cellular: {

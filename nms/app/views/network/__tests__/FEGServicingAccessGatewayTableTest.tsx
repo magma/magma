@@ -26,7 +26,7 @@ import type {
   FegLteNetwork,
   FegNetwork,
   LteGateway,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',

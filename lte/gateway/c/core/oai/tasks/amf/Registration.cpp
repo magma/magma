@@ -620,6 +620,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
     ue_m5gmm_context_s* ue_m5gmm_context_p =
         PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
+    amf_sap.u.amf_as.u.establish.tai.tac = amf_context->originating_tai.tac;
+    amf_sap.u.amf_as.u.data.tai.tac = amf_sap.u.amf_as.u.establish.tai.tac;
 
     if (registration_proc) {
       registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;

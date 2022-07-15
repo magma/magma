@@ -277,7 +277,7 @@ class MagmaService(Service303Servicer):
         self._state = ServiceInfo.STOPPING
         self._server.stop(0)
 
-        for pending_task in asyncio.Task.all_tasks(self._loop):
+        for pending_task in asyncio.all_tasks(self._loop):
             pending_task.cancel()
 
         self._state = ServiceInfo.STOPPED

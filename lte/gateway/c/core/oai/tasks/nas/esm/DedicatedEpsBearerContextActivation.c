@@ -182,7 +182,7 @@ status_code_e esm_proc_dedicated_eps_bearer_context_request(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -243,7 +243,7 @@ status_code_e esm_proc_dedicated_eps_bearer_context_request(
 status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   ue_mm_context_t* ue_context_p = NULL;
 
   ue_context_p =
@@ -330,7 +330,7 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
 status_code_e esm_proc_dedicated_eps_bearer_context_reject(
     emm_context_t* emm_context, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
+  status_code_e rc = RETURNerror;
   ue_mm_context_t* ue_context_p = NULL;
 
   ue_context_p =
@@ -430,7 +430,7 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
   }
 
   ebi_t ebi = timer_args.ebi;
-  int rc;
+  status_code_e rc = RETURNok;
   int bid = EBI_TO_INDEX(ebi);
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
@@ -615,7 +615,7 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(zloop_t* loop,
   }
 
   ebi_t ebi = timer_args.ebi;
-  int rc;
+  status_code_e rc = RETURNok;
   int bid = EBI_TO_INDEX(ebi);
 
   bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];

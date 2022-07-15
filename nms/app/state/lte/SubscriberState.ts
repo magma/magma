@@ -17,7 +17,7 @@ import type {
   PaginatedSubscribers,
   Subscriber,
   SubscriberState,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {OptionsObject} from 'notistack';
 import type {SubscriberContextType} from '../../components/context/SubscriberContext';
 
@@ -369,7 +369,7 @@ export async function handleSubscriberQuery(
       const metrics = subscriberMetrics?.[`${search}`];
       if (searchedSubscriber) {
         subscriberSearch = {
-          name: searchedSubscriber.id,
+          name: searchedSubscriber.name || '',
           imsi: searchedSubscriber.id,
           service: searchedSubscriber.lte?.state || '',
           currentUsage: metrics?.currentUsage ?? '0',

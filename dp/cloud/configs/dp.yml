@@ -14,3 +14,6 @@
 # time is measured since last get state grpc request to
 # radio controller service in domain proxy
 cbsd_inactivity_interval_sec: 14400
+
+# URL where DP logs are sent
+log_consumer_url: "http://domain-proxy-fluentd:9888/dp"

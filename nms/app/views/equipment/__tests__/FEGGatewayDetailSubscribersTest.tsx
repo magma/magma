@@ -22,10 +22,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SubscriberId} from '../../../../shared/types/network';
 import {render, wait} from '@testing-library/react';
-import type {
-  FederationGateway,
-  SubscriberState,
-} from '../../../../generated-ts';
+import type {FederationGateway, SubscriberState} from '../../../../generated';
 
 const mockSubscriberIds: Array<SubscriberId> = [
   'IMSI001011234565000',
@@ -145,6 +142,7 @@ describe('<FEGGatewayDetailSubscribers />', () => {
         <MuiStylesThemeProvider theme={defaultTheme}>
           <FEGSubscriberContext.Provider
             value={{
+              refetch: () => {},
               sessionState: {
                 feg_lte_network1: mockSubscriberSessionState0,
                 feg_lte_network2: mockSubscriberSessionState1,

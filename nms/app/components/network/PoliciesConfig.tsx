@@ -161,6 +161,10 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
               qosProfiles={qosProfiles ?? {}}
               mirrorNetwork={props.mirrorNetwork}
               onCancel={() => navigate('')}
+              onSave={ruleID => {
+                setRuleIDs(prevRuleIDs => [...(prevRuleIDs || []), ruleID]);
+                navigate('');
+              }}
             />
           }
         />
@@ -317,6 +321,7 @@ const RuleRow = withAlert((props: Props) => {
                   mirrorNetwork={props.mirrorNetwork}
                   rule={rule}
                   onCancel={() => navigate('')}
+                  onSave={() => navigate('')}
                 />
               ) : (
                 <LoadingFillerBackdrop />

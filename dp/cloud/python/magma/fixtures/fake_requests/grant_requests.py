@@ -20,8 +20,8 @@ grant_requests = [
                     "maxEirp": 100,
                     "operationFrequencyRange":
                         {
-                            "lowFrequency": 1,
-                            "highFrequency": 1000,
+                            "lowFrequency": 3560000000,
+                            "highFrequency": 3561000000,
                         },
                 },
             },
@@ -35,8 +35,8 @@ grant_requests = [
                     "maxEirp": 100,
                     "operationFrequencyRange":
                         {
-                            "lowFrequency": 1,
-                            "highFrequency": 1000,
+                            "lowFrequency": 3560000000,
+                            "highFrequency": 3561000000,
                         },
                 },
             },

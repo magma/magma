@@ -36,7 +36,7 @@ import {
   NetworkRanConfigs,
   PolicyRule,
   Subscriber,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';

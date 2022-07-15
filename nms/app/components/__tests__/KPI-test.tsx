@@ -24,11 +24,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI, mockAPIOnce} from '../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
-import type {
-  EnodebState,
-  FegLteNetwork,
-  LteGateway,
-} from '../../../generated-ts';
+import type {EnodebState, FegLteNetwork, LteGateway} from '../../../generated';
 
 const mockFegLteNetworks: Array<string> = [
   'test_network1',
@@ -137,6 +133,7 @@ describe('<GatewaysKPIs />', () => {
       },
       setState: async () => {},
       updateGateway: async () => {},
+      refetch: () => {},
     };
 
     return (
@@ -206,6 +203,7 @@ describe('<EnodebKPIs />', () => {
   const enodebCtx: EnodebContextType = {
     state: {enbInfo},
     setState: async () => {},
+    refetch: () => {},
   };
 
   const Wrapper = () => {

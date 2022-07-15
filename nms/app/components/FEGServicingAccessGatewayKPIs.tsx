@@ -23,7 +23,7 @@ import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import type {DataRows} from './DataGrid';
-import type {FegLteNetwork} from '../../generated-ts';
+import type {FegLteNetwork} from '../../generated';
 import type {OptionsObject} from 'notistack';
 
 /**

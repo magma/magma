@@ -13,7 +13,9 @@
 'use strict';
 
 import * as React from 'react';
-import {noop} from 'lodash';
+import {NetworkId} from '../../../shared/types/network';
+import {noop, sortBy} from 'lodash';
+import {useState} from 'react';
 import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import type {FeatureID} from '../../../shared/types/features';
 import type {SSOSelectedType} from '../../../shared/types/auth';
@@ -22,6 +24,8 @@ export type AppContextType = {
   csrfToken: string | null | undefined;
   version: string | null | undefined;
   networkIds: Array<string>;
+  addNetworkId: (id: string) => void;
+  removeNetworkId: (id: NetworkId) => void;
   user: User;
   showExpandButton: () => void;
   hideExpandButton: () => void;
@@ -36,6 +40,8 @@ const appContextDefaults: AppContextType = {
   csrfToken: null,
   version: null,
   networkIds: [],
+  addNetworkId: () => {},
+  removeNetworkId: () => {},
   user: {
     tenant: '',
     email: '',
@@ -62,6 +68,8 @@ export function AppContextProvider(props: Props) {
   const config: {
     appData: EmbeddedData;
   } = window.CONFIG;
+
+  const [networkIds, setNetworkIds] = useState(props.networkIDs || []);
   const {appData} = config;
   const value = {
     ...appContextDefaults,
@@ -69,7 +77,15 @@ export function AppContextProvider(props: Props) {
     hasAccountSettings: !appData.ssoEnabled,
     // is organizations management aka. the host site
     isOrganizations: !!props.isOrganizations,
-    networkIds: props.networkIDs || [],
+    networkIds,
+    addNetworkId: (id: NetworkId) => {
+      setNetworkIds(currentIds =>
+        sortBy([...currentIds, id], [n => n.toLowerCase()]),
+      );
+    },
+    removeNetworkId: (idToRemove: NetworkId) => {
+      setNetworkIds(currentIds => currentIds.filter(id => id !== idToRemove));
+    },
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;
     },

@@ -38,11 +38,8 @@ func NewEPSAuthServer(store storage.SubscriberDBStorage) (*EPSAuthServer, error)
 }
 
 // lookupSubscriber returns a subscriber's data or an error.
-func (srv *EPSAuthServer) lookupSubscriber(
-	userName, networkID string) (*lteprotos.SubscriberData, fegprotos.ErrorCode, error) {
-	subscriber, err := srv.store.GetSubscriberData(
-		&lteprotos.SubscriberID{Id: userName}, &protos.NetworkID{Id: networkID})
-
+func (srv *EPSAuthServer) lookupSubscriber(user, nid string) (*lteprotos.SubscriberData, fegprotos.ErrorCode, error) {
+	subscriber, err := srv.store.GetSubscriberData(&lteprotos.SubscriberID{Id: user}, &protos.NetworkID{Id: nid})
 	if err != nil {
 		if status.Convert(err).Code() == codes.NotFound {
 			return nil, fegprotos.ErrorCode_USER_UNKNOWN, err
@@ -50,4 +47,19 @@ func (srv *EPSAuthServer) lookupSubscriber(
 		return nil, fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, err
 	}
 	return subscriber, fegprotos.ErrorCode_SUCCESS, nil
+}
+
+// lookupSubscriberProfile returns a subscriber's data & profile or an error.
+func (srv *EPSAuthServer) lookupSubscriberProfile(
+	userName, networkID string) (*lteprotos.SubscriberData, map[string]string, []string, fegprotos.ErrorCode, error) {
+
+	subscriber, staticIps, subApns, err := srv.store.GetSubscriberDataProfile(
+		&lteprotos.SubscriberID{Id: userName}, &protos.NetworkID{Id: networkID})
+	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return nil, staticIps, subApns, fegprotos.ErrorCode_USER_UNKNOWN, err
+		}
+		return nil, staticIps, subApns, fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, err
+	}
+	return subscriber, staticIps, subApns, fegprotos.ErrorCode_SUCCESS, nil
 }

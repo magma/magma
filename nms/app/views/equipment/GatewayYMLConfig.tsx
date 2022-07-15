@@ -26,7 +26,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '../../components/Alert/withAlert';
 import {AltFormField} from '../../components/FormField';
-import {GenericCommandResponse} from '../../../generated-ts';
+import {GenericCommandResponse} from '../../../generated';
 import {RUNNING_SERVICES} from '../../components/GatewayUtils';
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../../util/ErrorUtils';

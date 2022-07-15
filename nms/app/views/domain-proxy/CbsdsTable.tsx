@@ -23,7 +23,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import CbsdContext from '../../components/context/CbsdContext';
 import {CbsdAddEditDialog} from './CbsdEdit';
 import {Query} from '@material-table/core';
-import type {Cbsd} from '../../../generated-ts';
+import type {Cbsd} from '../../../generated';
 
 type CbsdRowType = {
   id: number;

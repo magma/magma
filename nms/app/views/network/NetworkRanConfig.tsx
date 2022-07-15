@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {NetworkRanConfigs} from '../../../generated-ts';
+import type {NetworkRanConfigs} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';

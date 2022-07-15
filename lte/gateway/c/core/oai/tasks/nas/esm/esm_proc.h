@@ -132,9 +132,9 @@ status_code_e esm_proc_pdn_connectivity_failure(emm_context_t* emm_context,
  * --------------------------------------------------------------------------
  */
 
-status_code_e esm_proc_pdn_disconnect_request(emm_context_t* emm_context,
-                                              const proc_tid_t pti,
-                                              esm_cause_t* esm_cause);
+int esm_proc_pdn_disconnect_request(emm_context_t* emm_context,
+                                    const proc_tid_t pti,
+                                    esm_cause_t* esm_cause);
 
 status_code_e esm_proc_pdn_disconnect_accept(emm_context_t* emm_context,
                                              pdn_cid_t pid,

@@ -21,7 +21,7 @@ import {
   REFRESH_INTERVAL,
   useRefreshingContext,
 } from '../../components/context/RefreshContext';
-import {Subscriber} from '../../../generated-ts';
+import {Subscriber} from '../../../generated';
 import {useContext} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 

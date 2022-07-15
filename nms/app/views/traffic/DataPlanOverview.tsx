@@ -42,14 +42,14 @@ const useStyles = makeStyles<Theme>(theme => ({
 /**
  * Stores info for a single row of the data plan table.
  *
- * @property {string} dataPlanID
+ * @property {string} id
  * @property {string} maxUploadBitRate
  *    - bit rate specified in Mbps
  * @property {string} maxDownloadBitRate
  *    - bit rate specified in Mbps
  */
 type DataPlanRowType = {
-  dataPlanID: string;
+  id: string;
   maxUploadBitRate: string;
   maxDownloadBitRate: string;
 };
@@ -79,7 +79,7 @@ function DataPlanOverview(props: WithAlert) {
     ? Object.keys(dataPlans || {}).map((id: string) => {
         const profile = nullthrows(dataPlans)[id];
         return {
-          dataPlanID: id,
+          id: id,
           maxUploadBitRate:
             profile.max_dl_bit_rate ===
             DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
@@ -126,14 +126,14 @@ function DataPlanOverview(props: WithAlert) {
         <DataPlanEditDialog
           open={open}
           onClose={() => setOpen(false)}
-          dataPlanId={currRow.dataPlanID}
+          dataPlanId={currRow.id}
         />
         <ActionTable
           data={dataPlanRows}
           columns={[
             {
               title: 'Data Plan ID',
-              field: 'dataPlanID',
+              field: 'id',
               render: currRow => (
                 <Link
                   variant="body2"
@@ -142,7 +142,7 @@ function DataPlanOverview(props: WithAlert) {
                     setCurrRow(currRow);
                     setOpen(true);
                   }}>
-                  {currRow.dataPlanID}
+                  {currRow.id}
                 </Link>
               ),
             },
@@ -170,7 +170,7 @@ function DataPlanOverview(props: WithAlert) {
               handleFunc: () => {
                 void props
                   .confirm(
-                    `Are you sure you want to delete data plan ${currRow.dataPlanID}?`,
+                    `Are you sure you want to delete data plan ${currRow.id}?`,
                   )
                   .then(async confirmed => {
                     if (!confirmed) {
@@ -178,10 +178,10 @@ function DataPlanOverview(props: WithAlert) {
                     }
 
                     try {
-                      await onDelete(currRow.dataPlanID);
+                      await onDelete(currRow.id);
                     } catch (e) {
                       enqueueSnackbar(
-                        'failed deleting data plan ' + currRow.dataPlanID,
+                        'failed deleting data plan ' + currRow.id,
                         {
                           variant: 'error',
                         },

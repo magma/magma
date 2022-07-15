@@ -12,7 +12,7 @@
  */
 
 import MagmaAPI from '../../api/MagmaAPI';
-import {Apn} from '../../../generated-ts';
+import {Apn} from '../../../generated';
 import {NetworkId} from '../../../shared/types/network';
 
 type Props = {

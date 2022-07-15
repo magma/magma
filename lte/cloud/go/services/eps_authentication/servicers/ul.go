@@ -56,19 +56,19 @@ func (srv *EPSAuthServer) UpdateLocation(
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	networkID, err := identity.GetClientNetworkID(ctx)
+	networkID, gatewayID, err := identity.GetClientNetworkAndGatewayID(ctx)
 	if err != nil {
 		glog.V(2).Infof("could not lookup networkID: %v", err.Error())
 		metrics.NetworkIDErrors.Inc()
 		return nil, err
 	}
-	config, err := getConfig(networkID)
+	config, err := GetConfig(networkID)
 	if err != nil {
 		glog.V(2).Infof("could not lookup config for networkID '%s': %v", networkID, err.Error())
 		metrics.ConfigErrors.Inc()
 		return nil, err
 	}
-	subscriber, errorCode, err := srv.lookupSubscriber(ulr.UserName, networkID)
+	subscriber, staticIps, apns, errorCode, err := srv.lookupSubscriberProfile(ulr.UserName, networkID)
 	if err != nil {
 		glog.V(2).Infof("failed to lookup subscriber '%s': %v", ulr.UserName, err.Error())
 		metrics.UnknownSubscribers.Inc()
@@ -84,29 +84,13 @@ func (srv *EPSAuthServer) UpdateLocation(
 				subscriber.SubProfile,
 			)
 	}
-
 	return &protos.UpdateLocationAnswer{
 		ErrorCode: protos.ErrorCode_SUCCESS,
 		TotalAmbr: &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
 			MaxBandwidthUl: uint32(profile.MaxUlBitRate),
 			MaxBandwidthDl: uint32(profile.MaxDlBitRate),
 		},
-		Apn: []*protos.UpdateLocationAnswer_APNConfiguration{
-			{
-				Ambr: &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
-					MaxBandwidthUl: uint32(profile.MaxUlBitRate),
-					MaxBandwidthDl: uint32(profile.MaxDlBitRate),
-				},
-				ServiceSelection: serviceSelection,
-				Pdn:              protos.UpdateLocationAnswer_APNConfiguration_IPV4,
-				QosProfile: &protos.UpdateLocationAnswer_APNConfiguration_QoSProfile{
-					ClassId:                 qosProfileClassID,
-					PriorityLevel:           qosProfilePriorityLevel,
-					PreemptionCapability:    qosProfilePreemptionCapability,
-					PreemptionVulnerability: qosProfilePreemptionVulnerability,
-				},
-			},
-		},
+		Apn: createApns(networkID, gatewayID, staticIps, apns, profile, config),
 	}, nil
 }
 
@@ -128,7 +112,7 @@ func getSubProfile(profileName string, config *EpsAuthConfig) *models.NetworkEpc
 	return &profile
 }
 
-// validateULR returns an error iff the ULR is invalid.
+// validateULR returns an error if the ULR is invalid.
 func validateULR(ulr *protos.UpdateLocationRequest) error {
 	if ulr == nil {
 		return errors.New("received a nil UpdateLocationRequest")
@@ -140,4 +124,89 @@ func validateULR(ulr *protos.UpdateLocationRequest) error {
 		return fmt.Errorf("expected Visited PLMN to be %v bytes, but got %v bytes", milenage.ExpectedPlmnBytes, len(ulr.VisitedPlmn))
 	}
 	return nil
+}
+
+// createApns returns a list of APN Configs for ULA
+func createApns(
+	networkID, gatewayID string,
+	staticIps map[string]string,
+	apns []string,
+	profile *models.NetworkEpcConfigsSubProfilesAnon,
+	netCfg *EpsAuthConfig) []*protos.UpdateLocationAnswer_APNConfiguration {
+
+	if netCfg == nil || len(netCfg.ApnConfigs) == 0 || len(apns) == 0 {
+		return []*protos.UpdateLocationAnswer_APNConfiguration{
+			{
+				Ambr: &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
+					MaxBandwidthUl: uint32(profile.MaxUlBitRate),
+					MaxBandwidthDl: uint32(profile.MaxDlBitRate),
+				},
+				ServiceSelection: serviceSelection,
+				Pdn:              protos.UpdateLocationAnswer_APNConfiguration_IPV4,
+				QosProfile: &protos.UpdateLocationAnswer_APNConfiguration_QoSProfile{
+					ClassId:                 qosProfileClassID,
+					PriorityLevel:           qosProfilePriorityLevel,
+					PreemptionCapability:    qosProfilePreemptionCapability,
+					PreemptionVulnerability: qosProfilePreemptionVulnerability,
+				},
+			},
+		}
+	}
+	if staticIps == nil {
+		staticIps = map[string]string{}
+	}
+	res := []*protos.UpdateLocationAnswer_APNConfiguration{}
+	gwApnResources := GetGwApnResources(networkID, gatewayID, netCfg.ApnResources, netCfg.ApnResourcesByName)
+
+	for _, apnName := range apns {
+		apn, found := netCfg.ApnConfigs[apnName]
+		if !found {
+			glog.Warningf("failed to find APN '%s' in network '%s'", apnName, networkID)
+			continue
+		}
+		apnCfg := &protos.UpdateLocationAnswer_APNConfiguration{ServiceSelection: apnName}
+		if sip, found := staticIps[apnName]; found {
+			apnCfg.ServedPartyIpAddress = []string{sip}
+		}
+		if apn != nil {
+			apnCfg.Pdn = protos.UpdateLocationAnswer_APNConfiguration_PDNType(apn.PdnType)
+			if p := apn.QosProfile; p != nil {
+				apnCfg.QosProfile = &protos.UpdateLocationAnswer_APNConfiguration_QoSProfile{}
+				if p.ClassID != nil {
+					apnCfg.QosProfile.ClassId = *p.ClassID
+				}
+				if p.PriorityLevel != nil {
+					apnCfg.QosProfile.PriorityLevel = *p.PriorityLevel
+				}
+				if p.PreemptionCapability != nil {
+					apnCfg.QosProfile.PreemptionCapability = *p.PreemptionCapability
+				}
+				if p.PreemptionVulnerability != nil {
+					apnCfg.QosProfile.PreemptionVulnerability = *p.PreemptionVulnerability
+				}
+			}
+			apnCfg.Ambr = &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
+				MaxBandwidthUl: uint32(profile.MaxUlBitRate),
+				MaxBandwidthDl: uint32(profile.MaxDlBitRate),
+			}
+			if a := apn.Ambr; a != nil {
+				if a.MaxBandwidthDl != nil {
+					apnCfg.Ambr.MaxBandwidthDl = *a.MaxBandwidthDl
+				}
+				if a.MaxBandwidthUl != nil {
+					apnCfg.Ambr.MaxBandwidthUl = *a.MaxBandwidthUl
+				}
+			}
+			if ar, found := gwApnResources[apnName]; found && ar != nil {
+				apnCfg.Resource = &protos.UpdateLocationAnswer_APNConfiguration_APNResource{
+					ApnName:    apnName,
+					GatewayIp:  ar.GatewayIP.String(),
+					GatewayMac: ar.GatewayMac.String(),
+					VlanId:     ar.VlanID,
+				}
+			}
+		}
+		res = append(res, apnCfg)
+	}
+	return res
 }
