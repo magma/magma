@@ -1,7 +1,10 @@
 package models_test
 
 import (
+	"context"
 	"testing"
+
+	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
@@ -95,6 +98,33 @@ func TestMutableCbsd_Validate(t *testing.T) {
 	for _, tt := range testData {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.data.Validate(strfmt.Default)
+			assert.Contains(t, err.Error(), tt.expectedError)
+		})
+	}
+}
+
+func TestMutableCbsd_ValidateModel(t *testing.T) {
+	testData := []struct {
+		name          string
+		data          *models.MutableCbsd
+		expectedError string
+	}{{
+		name: "Should validate grant_redundancy false with carrier aggregation enabled",
+		data: b.NewMutableCbsdModelPayloadBuilder().
+			WithGrantRedundancy(to_pointer.Bool(false)).
+			WithCarrierAggregationEnabled(to_pointer.Bool(true)).
+			Payload,
+		expectedError: "grant_redundancy cannot be set to false when carrier_aggregation_enabled is enabled",
+	}, {
+		name: "Should validate max ibw mhz lesser than bandwidth mhz",
+		data: b.NewMutableCbsdModelPayloadBuilder().
+			WithMaxIbwMhz(5).WithBandwidth(10).Payload,
+		expectedError: "max_ibw_mhz cannot be less than bandwidth_mhz",
+	}}
+	c := context.TODO()
+	for _, tt := range testData {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.data.ValidateModel(c)
 			assert.Contains(t, err.Error(), tt.expectedError)
 		})
 	}
