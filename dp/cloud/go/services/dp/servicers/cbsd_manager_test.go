@@ -152,7 +152,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 		expectedDBCbsd         *storage.DBCbsd
 		expectedLog            *logs_pusher.DPLog
 		expectedConsumerUrl    string
-		expectedLogPusherError error
+		expectedErrorSubstring string
 	}{{
 		name:                "update cbsd",
 		payload:             b.NewCbsdProtoPayloadBuilder().WithEmptyInstallationParam().Payload,
@@ -175,11 +175,33 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			WithIncompleteInstallationParam().Cbsd,
 		expectedLog:         b.NewDPLogBuilder().WithLogMessage("{\"serial_number\":\"some_serial_number\",\"installation_param\":{\"latitude_deg\":{\"value\":10.5},\"longitude_deg\":{\"value\":11.5},\"indoor_deployment\":{\"value\":true}},\"cbsd_category\":\"b\"}").Log,
 		expectedConsumerUrl: someUrl,
+	}, {
+		name:                   "update cbsd with lat too low",
+		payload:                b.NewCbsdProtoPayloadBuilder().WithLatitudeDeg(-90.01).WithLongitudeDeg(20).Payload,
+		expectedErrorSubstring: "Installation Params validation failed",
+		expectedConsumerUrl:    someUrl,
+	}, {
+		name:                   "update cbsd with lat too high",
+		payload:                b.NewCbsdProtoPayloadBuilder().WithLatitudeDeg(90.01).WithLongitudeDeg(20).Payload,
+		expectedErrorSubstring: "Installation Params validation failed",
+		expectedConsumerUrl:    someUrl,
+	}, {
+		name:                   "update cbsd with lon too low",
+		payload:                b.NewCbsdProtoPayloadBuilder().WithLatitudeDeg(10).WithLongitudeDeg(-180.01).Payload,
+		expectedErrorSubstring: "Installation Params validation failed",
+		expectedConsumerUrl:    someUrl,
+	}, {
+		name:                   "update cbsd with lon too high",
+		payload:                b.NewCbsdProtoPayloadBuilder().WithLatitudeDeg(10).WithLongitudeDeg(180.01).Payload,
+		expectedErrorSubstring: "Installation Params validation failed",
+		expectedConsumerUrl:    someUrl,
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.logPusher.expectedLog = *tc.expectedLog
-			s.logPusher.expectedLogConsumerUrl = tc.expectedConsumerUrl
+			if tc.expectedLog != nil {
+				s.logPusher.expectedLog = *tc.expectedLog
+				s.logPusher.expectedLogConsumerUrl = tc.expectedConsumerUrl
+			}
 			request := &protos.EnodebdUpdateCbsdRequest{
 				SerialNumber: tc.payload.SerialNumber,
 				InstallationParam: &protos.InstallationParam{
@@ -194,13 +216,17 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			}
 			s.store.data = tc.expectedDBCbsd
 			_, err := s.manager.EnodebdUpdateCbsd(context.Background(), request)
-			s.Require().NoError(err)
+			if tc.expectedErrorSubstring == "" {
+				s.Require().NoError(err)
+			} else {
+				s.Assert().Contains(err.Error(), tc.expectedErrorSubstring)
+			}
 			s.Assert().Equal(tc.expectedDBCbsd, s.store.data)
 		})
 	}
 }
 
-func (s *CbsdManagerTestSuite) TestEnodebdUpdateWithError() {
+func (s *CbsdManagerTestSuite) TestEnodebdUpdateWithStorageError() {
 	testCases := []struct {
 		name                string
 		storageError        error

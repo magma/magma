@@ -98,6 +98,16 @@ func (b *DBCbsdBuilder) WithAntennaGain(gain float64) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithLatitudeDeg(lat float64) *DBCbsdBuilder {
+	b.Cbsd.LatitudeDeg = db.MakeFloat(lat)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithLongitudeDeg(lon float64) *DBCbsdBuilder {
+	b.Cbsd.LongitudeDeg = db.MakeFloat(lon)
+	return b
+}
+
 func (b *DBCbsdBuilder) WithLatitude(lat float64) *DBCbsdBuilder {
 	b.Cbsd.LatitudeDeg = db.MakeFloat(lat)
 	return b
@@ -308,6 +318,16 @@ func (b *CbsdProtoPayloadBuilder) WithEmptyInstallationParam() *CbsdProtoPayload
 
 func (b *CbsdProtoPayloadBuilder) WithAntennaGain(gain float64) *CbsdProtoPayloadBuilder {
 	b.Payload.InstallationParam.AntennaGain = wrapperspb.Double(gain)
+	return b
+}
+
+func (b *CbsdProtoPayloadBuilder) WithLatitudeDeg(lat float64) *CbsdProtoPayloadBuilder {
+	b.Payload.InstallationParam.LatitudeDeg = wrapperspb.Double(lat)
+	return b
+}
+
+func (b *CbsdProtoPayloadBuilder) WithLongitudeDeg(lon float64) *CbsdProtoPayloadBuilder {
+	b.Payload.InstallationParam.LongitudeDeg = wrapperspb.Double(lon)
 	return b
 }
 

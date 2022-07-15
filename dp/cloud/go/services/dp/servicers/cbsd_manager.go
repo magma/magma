@@ -64,7 +64,10 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 	return &protos.UpdateCbsdResponse{}, nil
 }
 func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
-	data := requestToDbCbsd(request)
+	data, err := requestToDbCbsd(request)
+	if err != nil {
+		return nil, err
+	}
 	cbsd, err := c.store.EnodebdUpdateCbsd(data)
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
@@ -87,14 +90,33 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	return &protos.UpdateCbsdResponse{}, nil
 }
 
-func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
+func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) (*storage.DBCbsd, error) {
+	params, err := validateInstallationParams(request.GetInstallationParam())
+	if err != nil {
+		return nil, err
+	}
 	cbsd := storage.DBCbsd{
 		CbsdSerialNumber: db.MakeString(request.SerialNumber),
 		CbsdCategory:     db.MakeString(request.CbsdCategory),
 	}
-	params := request.GetInstallationParam()
 	setInstallationParam(&cbsd, params)
-	return &cbsd
+	return &cbsd, nil
+}
+
+func validateInstallationParams(params *protos.InstallationParam) (*protos.InstallationParam, error) {
+	lon := params.LongitudeDeg
+	lat := params.LatitudeDeg
+	if lon == nil || lat == nil {
+		return nil, nil
+	}
+	lonDeg := lon.Value
+	latDeg := lat.Value
+	if latDeg < -90 || latDeg > 90 || lonDeg < -180 || lonDeg > 180 {
+		msg := fmt.Sprintf("Installation Params validation failed. Expected lat between -90 and 90 deg, lon between -180 and 180 deg. "+
+			"Got lat: %f lon: %f", latDeg, lonDeg)
+		return nil, status.Error(codes.InvalidArgument, msg)
+	}
+	return params, nil
 }
 
 func (c *cbsdManager) DeleteCbsd(_ context.Context, request *protos.DeleteCbsdRequest) (*protos.DeleteCbsdResponse, error) {
