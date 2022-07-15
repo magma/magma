@@ -201,8 +201,9 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
   return true;
 }
 
-void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
-                                    const SubscriberData& sub_data) {
+void convert_ula_to_subscriber_data(
+    feg::UpdateLocationAnswer response,
+    const magma::lte::SubscriberData& sub_data) {
   if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
   } else {
@@ -210,32 +211,32 @@ void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
       auto apn = response.apn(i);
       auto sub_apn_config = sub_data.non_3gpp().add_apn_config();
       if (apn.context_id() != 0) {
-        sub_apn_config.set_context_id(apn.context_id());
+        sub_apn_config->set_context_id(apn.context_id());
       }
 
       if (apn.service_selection().size() > 0) {
-        sub_apn_config.set_service_selection(apn.service_selection());
+        sub_apn_config->set_service_selection(apn.service_selection());
       }
 
       if (apn.has_qos_profile()) {
-        sub_apn_config.set_allocated_qos_profile(apn.mutable_qos_profile());
+        sub_apn_config->set_allocated_qos_profile(apn.mutable_qos_profile());
       }
 
       if (apn.has_ambr()) {
-        sub_apn_config.set_allocated_ambr(apn.mutable_ambr());
+        sub_apn_config->set_allocated_ambr(apn.mutable_ambr());
       }
 
       if (apn.pdn() != 0) {
-        sub_apn_config.set_pdn(apn.pdn());
+        sub_apn_config->set_pdn(apn.pdn());
       }
 
       if (apn.served_party_ip_address_size() > 0) {
-        sub_apn_config.set_assigned_static_ip(
+        sub_apn_config->set_assigned_static_ip(
             apn.served_party_ip_address_size(0));
       }
 
       if (apn.has_resource()) {
-        sub_apn_config.set_allocated_resource(apn.mutable_resource());
+        sub_apn_config->set_allocated_resource(apn.mutable_resource());
       }
     }
   }
