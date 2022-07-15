@@ -57,7 +57,7 @@ static int amf_as_security_req(const amf_as_security_t* msg,
 static int amf_as_security_rej(const amf_as_security_t* msg,
                                m5g_dl_info_transfer_req_t* as_msg);
 static int amf_as_establish_rej(const amf_as_establish_t* msg,
-                                nas5g_establish_rsp_t* amf_msg);
+                                nas5g_establish_rsp_t* as_msg);
 // Setup the security header of the given NAS message
 static AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
                                  const amf_as_security_data_t* security);
@@ -671,7 +671,6 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
   int is_encoded = false;
   amf_nas_message_t nas_msg = {0};
   nas_msg.security_protected.header = {0};
-  nas_msg.security_protected.plain.amf.header = {0};
   nas_msg.security_protected.plain.amf.header = {0};
 
   // Setup the AS message

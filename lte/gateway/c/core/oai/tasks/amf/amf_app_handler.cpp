@@ -1097,9 +1097,7 @@ void amf_app_handle_resource_setup_response(
     /* This is success case and we need not to send message to SMF
      * and drop the message here
      */
-    amf_ue_ngap_id_t ue_id;
     amf_smf_establish_t amf_smf_grpc_ies;
-    ue_m5gmm_context_s* ue_context = nullptr;
     char imsi[IMSI_BCD_DIGITS_MAX + 1];
 
     ue_id = session_seup_resp.amf_ue_ngap_id;
@@ -1304,11 +1302,6 @@ static void amf_app_handle_ngap_ue_context_release(
                  "gnb_ue_ngap_id " GNB_UE_NGAP_ID_FMT
                  " amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "\n",
                  gnb_ue_ngap_id, amf_ue_ngap_id);
-    OAILOG_FUNC_OUT(LOG_AMF_APP);
-  }
-
-  if (!ue_context_p) {
-    OAILOG_ERROR(LOG_AMF_APP, "Context not found ");
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 

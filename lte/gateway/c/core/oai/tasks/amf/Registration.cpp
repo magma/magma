@@ -396,7 +396,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
       } else {
         // force identification, even if not necessary
         rc = amf_proc_identification(
-            amf_context, (nas_amf_proc_t*)registration_proc,
+            amf_context, reinterpret_cast<nas_amf_proc_t*>(registration_proc),
             IDENTITY_TYPE_2_IMSI,
 
             amf_registration_success_identification_cb,
@@ -417,7 +417,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
       } else {
         /* If its first time GUTI Identify the IMSI */
         rc = amf_proc_identification(
-            amf_context, (nas_amf_proc_t*)registration_proc,
+            amf_context, reinterpret_cast<nas_amf_proc_t*>(registration_proc),
             IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
             amf_registration_failure_identification_cb);
       }

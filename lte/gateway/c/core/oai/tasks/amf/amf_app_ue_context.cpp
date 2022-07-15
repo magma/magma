@@ -305,7 +305,6 @@ struct ue_m5gmm_context_s* amf_ue_context_exists_imsi(
  ***************************************************************************/
 ue_m5gmm_context_s* amf_get_ue_context_from_imsi(char* imsi) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_context_t* amf_context_p = nullptr;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
@@ -491,20 +490,6 @@ ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_app_state_free_ue_context()                               **
- **                                                                        **
- ** Description: Cleans up AMF context                                     **
- **                                                                        **
- **                                                                        **
- ***************************************************************************/
-void amf_app_state_free_ue_context(void** ue_context_node) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
-
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
-}
-
-/****************************************************************************
- **                                                                        **
  ** Name:    amf_lookup_guti_by_ueid()                                     **
  **                                                                        **
  ** Description:  Fetch the guti based on ue id                            **
@@ -556,11 +541,9 @@ int amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  ***************************************************************************/
 void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  magma::map_rc_t m_rc = magma::MAP_OK;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_AMF_APP, "amf_free_ue_context \n");
-  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   if (!ue_context_p || !amf_ue_context_p) {
     return;
   }
@@ -879,7 +862,6 @@ void amf_ue_context_update_ue_sig_connection_state(
 static int amf_ue_context_release_complete_timer_handler(zloop_t* loop,
                                                          int timer_id,
                                                          void* output) {
-  amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 

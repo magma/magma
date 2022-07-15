@@ -40,7 +40,7 @@ namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 AmfMsg amf_msg_obj;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
-static int subs_auth_retry(zloop_t* loop, int timer_id, void* output);
+static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg);
 int nas_proc_establish_ind(const amf_ue_ngap_id_t ue_id,
                            const bool is_mm_ctx_new,
                            const tai_t originating_tai, const ecgi_t ecgi,
@@ -324,6 +324,8 @@ static void nas5g_delete_cn_procedures(struct amf_context_s* amf_context) {
         case CN5G_PROC_AUTH_INFO:
           nas5g_delete_auth_info_procedure(amf_context,
                                            (nas5g_auth_info_proc_t**)&p1->proc);
+          break;
+        default:
           break;
       }
       LIST_REMOVE(p1, entries);
@@ -839,7 +841,6 @@ int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
-  guti_and_amf_id_t guti_and_amf_id;
   const bool is_amf_ctx_new = true;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
