@@ -22,7 +22,6 @@ definitions:
         type: integer
         x-nullable: false
         maximum: 150
-        minimum: 5
         multipleOf: 5
       min_power:
         description: min tx power available on cbsd

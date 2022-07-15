@@ -6850,7 +6850,6 @@ definitions:
           end of leftmost channel and rightmost end of rightmost channel used by a
           Base Station (eNB)
         maximum: 150
-        minimum: 5
         multipleOf: 5
         type: integer
         x-nullable: false
