@@ -246,8 +246,8 @@ profiles:
           namespace: default
           version: "0.2.5"
           artifactOverrides:
-            magmalte:
-              image: magmalte
+            controller:
+              image: controller
           imageStrategy:
             helm: {}
       - op: add
@@ -281,6 +281,17 @@ profiles:
                 - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
       - op: remove
         path: /deploy/helm/hooks/before/6
+  - name: nms-deployment
+    patches:
+      - op: add
+        path: /deploy/helm/releases/2/artifactOverrides
+        value:
+          nms:
+            magmalte:
+              image: magmalte
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/nms_overrides.yaml
   - name: metrics
     patches:
       - op: add
