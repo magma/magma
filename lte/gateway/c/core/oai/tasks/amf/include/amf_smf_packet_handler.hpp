@@ -22,13 +22,13 @@ namespace magma5g {
 #define MAX_UE_PDU_SESSION_LIMIT 15
 #define MAX_UE_INITIAL_PDU_SESSION_ESTABLISHMENT_REQ_ALLOWED 5
 
-int handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
-                                      ULNASTransportMsg* msg,
-                                      M5GMmCause m5gmmcause);
+status_code_e handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
+                                                ULNASTransportMsg* msg,
+                                                M5GMmCause m5gmmcause);
 int amf_max_pdu_session_reject(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg);
-int amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
-                                         uint8_t session_id, uint8_t pti,
-                                         uint8_t cause);
+status_code_e amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
+                                                   uint8_t session_id,
+                                                   uint8_t pti, uint8_t cause);
 int construct_pdu_session_reject_dl_req(uint8_t sequence_number,
                                         uint8_t session_id, uint8_t pti,
                                         uint8_t cause, bool is_security_enabled,

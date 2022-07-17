@@ -123,12 +123,12 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
+static status_code_e amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx = NULL;
   amf_sap_t amf_sap = {};
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
   if (smc_proc) {
@@ -292,12 +292,11 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_security_mode_control(amf_context_t* amf_ctx,
-                                   nas_amf_specific_proc_t* amf_specific_proc,
-                                   ksi_t ksi, success_cb_t success,
-                                   failure_cb_t failure) {
+status_code_e amf_proc_security_mode_control(
+    amf_context_t* amf_ctx, nas_amf_specific_proc_t* amf_specific_proc,
+    ksi_t ksi, success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   bool security_context_is_new = false;
   int amf_ea = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
   int amf_ia = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
@@ -449,11 +448,11 @@ int amf_proc_security_mode_control(amf_context_t* amf_ctx,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
+status_code_e amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   OAILOG_WARNING(LOG_NAS_AMF,
                  "AMF-PROC  - Security mode command not accepted by the UE"
@@ -521,8 +520,9 @@ int amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  ***************************************************************************/
 
-int m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
-                                   int* const amf_iaP, int* const amf_eaP) {
+status_code_e m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
+                                             int* const amf_iaP,
+                                             int* const amf_eaP) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int preference_index;
 

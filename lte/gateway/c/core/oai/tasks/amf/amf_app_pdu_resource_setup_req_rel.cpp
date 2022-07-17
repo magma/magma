@@ -71,7 +71,7 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
  * information in smf_context or default. No NAS message is involved and direct
  * itti_message is sent to NGAP.
  */
-int pdu_session_resource_setup_request(
+status_code_e pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);

@@ -31,11 +31,12 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 /* Handles NAS encoded message and sends it to NGAP task */
-int amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id, bstring nas_msg,
-                              nas5g_error_code_t transaction_status) {
+status_code_e amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id,
+                                        bstring nas_msg,
+                                        nas5g_error_code_t transaction_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
   message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
