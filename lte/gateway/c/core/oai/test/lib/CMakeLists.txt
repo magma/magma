@@ -15,7 +15,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories("/usr/src/googletest/googlemock/include/")
 
+set(MCONFIG_PROTOS mconfig/mconfigs)
+
 link_directories(/usr/src/googletest/googlemock/lib/)
+
+set(MCONFIG_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos")
+generate_cpp_protos("${MCONFIG_PROTOS}" "${PROTO_SRCS}"
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${MCONFIG_OUT_DIR})
 
 add_executable(bstr_test test_bstr.cpp)
 target_link_libraries(bstr_test LIB_BSTR gmock_main gtest gtest_main gmock pthread)
@@ -24,3 +30,7 @@ add_test(test_bstr bstr_test)
 add_executable(3gpp_test test_3gpp.cpp)
 target_link_libraries(3gpp_test LIB_3GPP gmock_main gtest gtest_main gmock)
 add_test(test_3gpp 3gpp_test)
+
+add_executable(ula_sub_data_test test_ula_subdata.cpp)
+target_link_libraries(ula_sub_data_test LIB_STORE LIB_S6A_PROXY COMMON MAGMA_CONFIG gmock_main gtest gtest_main gmock)
+add_test(test_ula_subdata ula_sub_data_test)
