@@ -149,7 +149,6 @@ func GetNetworkInfo() *NetworkInfo {
 		interfaces[i] = netIface
 	}
 
-	ipNameMapNI := getIPInterfaceNameMap()
 	linkList, _ := netlink.LinkList()
 	linkNameMap := make(map[int]string)
 
@@ -157,11 +156,11 @@ func GetNetworkInfo() *NetworkInfo {
 		linkNameMap[i+1] = l.Attrs().Name
 	}
 
-	routes, ipToInterface, unlinkedHostRoutes := getRoutes(ipNameMapNI, hostRoutes)
+	routes, ipToInterface, unlinkedHostRoutes := getRoutes(hostRoutes)
 	for i, uhr := range unlinkedHostRoutes {
 		unlinkedHostRoutes[i].Src = net.ParseIP(ipToInterface[linkNameMap[uhr.LinkIndex]])
 	}
-	additionalRoutes, _, _ := getRoutes(ipNameMapNI, unlinkedHostRoutes)
+	additionalRoutes, _, _ := getRoutes(unlinkedHostRoutes)
 	routes = append(routes, additionalRoutes...)
 	return &NetworkInfo{
 		NetworkInterfaces: interfaces,
@@ -169,7 +168,7 @@ func GetNetworkInfo() *NetworkInfo {
 	}
 }
 
-func getRoutes(ipNameMapNI map[string]int, hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.Route) {
+func getRoutes(hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.Route) {
 	ipToInterface := make(map[string]string)
 	var unlinkedHostRoutes []netlink.Route
 	var routes []*Route
@@ -182,10 +181,8 @@ func getRoutes(ipNameMapNI map[string]int, hRoutes []netlink.Route) ([]*Route, m
 			continue
 		}
 
-		index, exists := ipNameMapNI[src]
-		if !exists {
-			continue
-		}
+		index := r.LinkIndex - 1
+
 		dest := getDestinationIP(r).IP.To4()
 		if dest == nil {
 			continue
@@ -210,6 +207,10 @@ func getRoutes(ipNameMapNI map[string]int, hRoutes []netlink.Route) ([]*Route, m
 				maskStr = maskV4.String()
 			}
 		}
+		if index >= len(netInterfaces) {
+			continue
+		}
+
 		convertedIface := getNetInterface(index)
 		route := &Route{
 			DestinationIp:      dest.String(),
@@ -285,18 +286,6 @@ func GetGatewayStatus() *GatewayStatus {
 // UnixMs returns Unix time in milliseconds
 func UnixMs(t time.Time) int64 {
 	return t.Unix() + int64(t.Nanosecond())/int64(time.Millisecond)
-}
-
-func getIPInterfaceNameMap() map[string]int {
-	ipNameMapNI := make(map[string]int)
-	for i, nf := range netInterfaces {
-		if len(nf.Addrs) == 0 {
-			continue
-		}
-		nfIP, _, _ := net.ParseCIDR(nf.Addrs[0].Addr)
-		ipNameMapNI[nfIP.To4().String()] = i
-	}
-	return ipNameMapNI
 }
 
 func getNetInterface(index int) net.Interface {
