@@ -17,24 +17,21 @@ import EnodebContext from '../context/EnodebContext';
 import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
-import InitSubscriberState from '../../state/lte/SubscriberState';
+
 import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
-import TraceContext from '../context/TraceContext';
+import {TraceContextProvider} from '../context/TraceContext';
 import {omit} from 'lodash';
 import type {
   Apn,
   BaseNameRecord,
-  CallTrace,
-  CallTraceConfig,
   FegLteNetwork,
   FegNetwork,
   LteGateway,
   LteNetwork,
-  MutableCallTrace,
   MutableCbsd,
   MutableSubscriber,
   NetworkRanConfigs,
@@ -50,6 +47,11 @@ import type {EnodebInfo} from './EnodebUtils';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import * as cbsdState from '../../state/lte/CbsdState';
+import InitSubscriberState, {
+  FetchSubscriberState,
+  getGatewaySubscriberMap,
+  setSubscriberState,
+} from '../../state/lte/SubscriberState';
 import MagmaAPI from '../../api/MagmaAPI';
 import {
   FEG_LTE,
@@ -71,12 +73,6 @@ import {
   UpdateGatewayPoolRecords,
   UpdateGatewayProps,
 } from '../../state/lte/EquipmentState';
-import {
-  FetchSubscriberState,
-  getGatewaySubscriberMap,
-  setSubscriberState,
-} from '../../state/lte/SubscriberState';
-import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
   SetBaseNameState,
@@ -358,49 +354,6 @@ export function EnodebContextProvider(props: Props) {
       }}>
       {props.children}
     </EnodebContext.Provider>
-  );
-}
-
-export function TraceContextProvider(props: Props) {
-  const {networkId} = props;
-  const [traceMap, setTraceMap] = useState<Record<string, CallTrace>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchLteState = async () => {
-      if (networkId == null) {
-        return;
-      }
-      await InitTraceState({
-        networkId,
-        setTraceMap,
-        enqueueSnackbar,
-      }),
-        setIsLoading(false);
-    };
-    void fetchLteState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <TraceContext.Provider
-      value={{
-        state: traceMap,
-        setState: (key: string, value?: MutableCallTrace | CallTraceConfig) =>
-          SetCallTraceState({
-            networkId,
-            callTraces: traceMap,
-            setCallTraces: setTraceMap,
-            key,
-            value,
-          }),
-      }}>
-      {props.children}
-    </TraceContext.Provider>
   );
 }
 
