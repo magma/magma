@@ -4,13 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
-
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
+	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 )
 
 func TestMutableCbsd_Validate(t *testing.T) {
