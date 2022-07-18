@@ -52,8 +52,7 @@ void SqliteStore::_create_store() {
         "CREATE TABLE IF NOT EXISTS subscriberdb"
         "(subscriber_id text PRIMARY KEY, data text)";
     char* zErrMsg;
-    rc = sqlite3_exec(db, sql, NULL, 0,
-                      &zErrMsg);
+    rc = sqlite3_exec(db, sql, NULL, 0, &zErrMsg);
 
     if (rc != SQLITE_OK) {
       std::cout << "SQL Error " << zErrMsg << std::endl;

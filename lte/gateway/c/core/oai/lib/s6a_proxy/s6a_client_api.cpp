@@ -40,9 +40,6 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
 using namespace magma;
 using namespace magma::feg;
 
-
-
-
 bool s6a_purge_ue(const char* imsi) {
   if (imsi == nullptr) {
     return false;
@@ -125,8 +122,6 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
   return true;
 }
 
-
-
 static void s6a_handle_update_location_ans(const std::string& imsi,
                                            uint8_t imsi_length,
                                            uint32_t rat_type,
@@ -134,7 +129,6 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
                                            feg::UpdateLocationAnswer response) {
   MessageDef* message_p = NULL;
   s6a_update_location_ans_t* itti_msg = NULL;
-
 
   message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   itti_msg = &message_p->ittiMsg.s6a_update_location_ans;
@@ -153,17 +147,19 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
       magma::convert_proto_msg_to_itti_s6a_update_location_ans(response,
                                                                itti_msg);
 
-        // convert ULA response to SubscriberData and write to subscriberdb
-        if(S6aClient::get_cloud_subscriberdb_enabled()){
-          magma::lte::SubscriberData sub_data = magma::lte::SubscriberData();
-          magma::lte::SubscriberID sub_id = magma::lte::SubscriberID();
-          sub_id.set_id(imsi);
-          sub_id.set_type(magma::lte::SubscriberID::IMSI);
-          sub_data.set_allocated_sid(&sub_id);
-          magma::S6aClient::convert_ula_to_subscriber_data(response, sub_data);
-          magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore("", 2); //hardcoded here, todo get the db location for the sqlite from somewhere?
-          sqlObj->add_subscriber(sub_data);
-        }
+      // convert ULA response to SubscriberData and write to subscriberdb
+      if (S6aClient::get_cloud_subscriberdb_enabled()) {
+        magma::lte::SubscriberData sub_data = magma::lte::SubscriberData();
+        magma::lte::SubscriberID sub_id = magma::lte::SubscriberID();
+        sub_id.set_id(imsi);
+        sub_id.set_type(magma::lte::SubscriberID::IMSI);
+        sub_data.set_allocated_sid(&sub_id);
+        magma::S6aClient::convert_ula_to_subscriber_data(response, sub_data);
+        magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore(
+            "", 2);  // hardcoded here, todo get the db location for the sqlite
+                     // from somewhere?
+        sqlObj->add_subscriber(sub_data);
+      }
 
     } else {
       itti_msg->result.present = S6A_RESULT_EXPERIMENTAL;
