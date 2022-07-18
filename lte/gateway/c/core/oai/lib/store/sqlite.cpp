@@ -101,7 +101,6 @@ void SqliteStore::add_subscriber(SubscriberData& subscriber_data) {
       "VALUES (?, ?)";
   sqlite3_stmt* stmt;
   const char* pzTail;
-<<<<<<< HEAD
   int rc_prep = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
   if (rc_prep == SQLITE_OK) {
     sqlite3_bind_text(stmt, 1, sid, strlen(sid), NULL);
@@ -110,25 +109,11 @@ void SqliteStore::add_subscriber(SubscriberData& subscriber_data) {
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     std::cout << "Finalized the sqlite write operation" << std::endl;
-=======
-  int rc2 = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
-  if (rc2 == SQLITE_OK) {
-    sqlite3_bind_text(
-        stmt, 1, sid, 4 * strlen(sid),
-        SQLITE_STATIC);  // REVIEW THAT THE PARAMETERS HERE ARE CORRECT
-    std::cout << "Successful data binding" << std::endl;
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
->>>>>>> d3eda56765 (fixing formatting issues)
   } else {
     std::cout << "SQL Error " << std::endl;
   }
 }
 
-<<<<<<< HEAD
-=======
-// function is hardcoded for now, will fix
->>>>>>> d3eda56765 (fixing formatting issues)
 std::string SqliteStore::_to_str(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
     std::cout << "Valid sid " << std::endl;

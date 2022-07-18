@@ -222,10 +222,8 @@ void S6aClient::update_location_request(
   resp->set_response_reader(std::move(resp_rdr));
 }
 
-
-
- void S6aClient::convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
-                                    magma::lte::SubscriberData& sub_data) {
+void S6aClient::convert_ula_to_subscriber_data(
+    feg::UpdateLocationAnswer response, magma::lte::SubscriberData& sub_data) {
   if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
   } else {
