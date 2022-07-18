@@ -222,4 +222,50 @@ void S6aClient::update_location_request(
   resp->set_response_reader(std::move(resp_rdr));
 }
 
+
+
+ void S6aClient::convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
+                                    magma::lte::SubscriberData& sub_data) {
+  if (response.apn_size() < 1) {
+    std::cout << "No APN configurations received" << std::endl;
+  } else {
+    for (int i = 0; i < response.apn_size(); i++) {
+      auto apn = response.apn(i);
+      auto sub_apn_config = sub_data.mutable_non_3gpp()->add_apn_config();
+      if (apn.context_id() != 0) {
+        sub_apn_config->set_context_id(apn.context_id());
+      }
+
+      if (apn.service_selection().size() > 0) {
+        sub_apn_config->set_service_selection(apn.service_selection());
+      }
+
+      if (apn.has_qos_profile()) {
+        sub_apn_config->set_allocated_qos_profile(
+            (magma::lte::APNConfiguration_QoSProfile*)
+                apn.mutable_qos_profile());
+      }
+
+      if (apn.has_ambr()) {
+        sub_apn_config->set_allocated_ambr(
+            (magma::lte::AggregatedMaximumBitrate*)apn.mutable_ambr());
+      }
+
+      if (apn.pdn() != 0) {
+        sub_apn_config->set_pdn(
+            (magma::lte::APNConfiguration_PDNType)apn.pdn());
+      }
+
+      if (apn.served_party_ip_address_size() > 0) {
+        sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
+      }
+
+      if (apn.has_resource()) {
+        sub_apn_config->set_allocated_resource(
+            (magma::lte::APNConfiguration_APNResource*)apn.mutable_resource());
+      }
+    }
+  }
+}
+
 }  // namespace magma

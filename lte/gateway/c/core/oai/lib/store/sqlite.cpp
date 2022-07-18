@@ -68,8 +68,6 @@ void SqliteStore::_create_store() {
 
     rc = sqlite3_exec(db, sql, NULL, 0,
                       &zErrMsg);
-
-
     if (rc != SQLITE_OK) {
       std::cout << "SQL Error " << zErrMsg << std::endl;
       sqlite3_free(zErrMsg);
@@ -84,16 +82,10 @@ void SqliteStore::_create_store() {
 void SqliteStore::add_subscriber(SubscriberData& subscriber_data) {
   std::string sid_s = _to_str(subscriber_data);
   const char* sid = sid_s.c_str();
-<<<<<<< HEAD
   std::string data_str_s;
   subscriber_data.SerializeToString(&data_str_s);
   std::cout << "Serialized subscriber data: " << data_str_s << std::endl;
   const char* data_str = data_str_s.c_str();
-
-=======
-  std::string data_str;
-  subscriber_data.SerializeToString(&data_str);  // TODO: serialize to string
->>>>>>> d3eda56765 (fixing formatting issues)
   std::string db_location_s = _db_locations[_sid2bucket(sid)];
   const char* db_location = db_location_s.c_str();
   sqlite3* db;
