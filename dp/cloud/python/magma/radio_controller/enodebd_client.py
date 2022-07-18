@@ -143,13 +143,13 @@ def _dump_message(message: MessageType) -> str:
         message: gRPC message
 
     Returns:
-        marshalled json
+        marshaled json
     """
     return json_format.MessageToJson(
         message=message,
         including_default_value_fields=True,
         preserving_proto_field_name=True,
-        sort_keys=True
+        sort_keys=True,
     )
 
 
@@ -242,7 +242,7 @@ def main() -> None:
     response = method(message, **command_config.request_kwargs)
     logging.info(
         f'Received gRPC response:\n'
-        f'{_dump_message(message=response)}\n'
+        f'{_dump_message(message=response)}\n',
     )
 
 
