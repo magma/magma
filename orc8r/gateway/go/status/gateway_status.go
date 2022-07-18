@@ -149,16 +149,14 @@ func GetNetworkInfo() *NetworkInfo {
 		interfaces[i] = netIface
 	}
 
-	routes, unlinkedHostRoutes := getRoutes(hostRoutes)
-	additionalRoutes, _ := getRoutes(unlinkedHostRoutes)
-	routes = append(routes, additionalRoutes...)
+	routes := getRoutes(hostRoutes, true)
 	return &NetworkInfo{
 		NetworkInterfaces: interfaces,
 		RoutingTable:      routes,
 	}
 }
 
-func getRoutes(hRoutes []netlink.Route) ([]*Route, []netlink.Route) {
+func getRoutes(hRoutes []netlink.Route, recursiveResolving bool) []*Route {
 	interfaceToIP := make(map[string]string)
 	var unlinkedHostRoutes []netlink.Route
 	var routes []*Route
@@ -218,7 +216,12 @@ func getRoutes(hRoutes []netlink.Route) ([]*Route, []netlink.Route) {
 		unlinkedHostRoutes[i].Src = net.ParseIP(linkIndexToIP[uhr.LinkIndex])
 	}
 
-	return routes, unlinkedHostRoutes
+	if recursiveResolving {
+		additionalRoutes := getRoutes(unlinkedHostRoutes, false)
+		routes = append(routes, additionalRoutes...)
+	}
+
+	return routes
 }
 
 // GetMachineInfo
