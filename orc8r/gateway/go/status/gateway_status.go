@@ -148,39 +148,6 @@ func GetNetworkInfo() *NetworkInfo {
 		}
 		interfaces[i] = netIface
 	}
-	// for i, rt := range hostRoutes {
-	// 	dest := rt.Destination.IP.To4()
-	// 	if dest == nil {
-	// 		dest = rt.Destination.IP
-	// 	}
-	// 	gw := rt.Gateway.To4()
-	// 	if gw == nil {
-	// 		gw = rt.Gateway
-	// 		if len(gw) == 0 {
-	// 			if len(dest) == net.IPv4len {
-	// 				gw = []byte{0, 0, 0, 0}
-	// 			} else {
-	// 				gw = net.IP([]byte{0, 0, 0, 0}).To16()
-	// 			}
-	// 		}
-	// 	}
-	// 	maskStr := rt.Destination.Mask.String()
-	// 	if len(dest) == net.IPv4len {
-	// 		maskV4 := net.IP(rt.Destination.Mask).To4()
-	// 		if maskV4 != nil {
-	// 			maskStr = maskV4.String()
-	// 		}
-	// 	}
-	// 	route := &Route{
-	// 		DestinationIp: dest.String(),
-	// 		GatewayIp:     gw.String(),
-	// 		Genmask:       maskStr,
-	// 	}
-	// 	if rt.Interface != nil {
-	// 		route.NetworkInterfaceId = rt.Interface.Name
-	// 	}
-	// 	routes[i] = route
-	// }
 
 	ipNameMapNI := getIPInterfaceNameMap()
 	linkList, _ := netlink.LinkList()
