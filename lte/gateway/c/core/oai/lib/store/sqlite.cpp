@@ -53,8 +53,7 @@ void SqliteStore::_create_store() {
         "(subscriber_id text PRIMARY KEY, data text)";
     char* zErrMsg;
     rc = sqlite3_exec(db, sql, NULL, 0,
-                      &zErrMsg);  // TODO: define callback function, figure out
-                                  // what zErrMsg should look like.
+                      &zErrMsg);
 
     if (rc != SQLITE_OK) {
       std::cout << "SQL Error " << zErrMsg << std::endl;

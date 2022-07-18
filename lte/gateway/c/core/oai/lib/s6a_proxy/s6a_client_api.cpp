@@ -40,6 +40,9 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
 using namespace magma;
 using namespace magma::feg;
 
+
+
+
 bool s6a_purge_ue(const char* imsi) {
   if (imsi == nullptr) {
     return false;
@@ -122,8 +125,7 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
   return true;
 }
 
-void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
-                                    magma::lte::SubscriberData& sub_data);
+
 
 static void s6a_handle_update_location_ans(const std::string& imsi,
                                            uint8_t imsi_length,
@@ -132,11 +134,7 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
                                            feg::UpdateLocationAnswer response) {
   MessageDef* message_p = NULL;
   s6a_update_location_ans_t* itti_msg = NULL;
-  magma::lte::SubscriberData sub_data = magma::lte::SubscriberData();
-  magma::lte::SubscriberID sub_id = magma::lte::SubscriberID();
-  sub_id.set_id(imsi);
-  // sub_id.set_type(IMSI); //hardcoded here, should I be getting the IDType
-  // from somewhere?
+
 
   message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   itti_msg = &message_p->ittiMsg.s6a_update_location_ans;
@@ -154,13 +152,19 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
       itti_msg->result.choice.base = DIAMETER_SUCCESS;
       magma::convert_proto_msg_to_itti_s6a_update_location_ans(response,
                                                                itti_msg);
-      // write to subscriberdb, should write only if there is data.
-      sub_data.set_allocated_sid(
-          &sub_id);  // populating the IMSI here, since this info is not
-                     // received from ULA.
-      convert_ula_to_subscriber_data(response, sub_data);
-      magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore("", 2);
-      sqlObj->add_subscriber(sub_data);
+
+        // convert ULA response to SubscriberData and write to subscriberdb
+        if(S6aClient::get_cloud_subscriberdb_enabled()){
+          magma::lte::SubscriberData sub_data = magma::lte::SubscriberData();
+          magma::lte::SubscriberID sub_id = magma::lte::SubscriberID();
+          sub_id.set_id(imsi);
+          sub_id.set_type(magma::lte::SubscriberID::IMSI);
+          sub_data.set_allocated_sid(&sub_id);
+          magma::S6aClient::convert_ula_to_subscriber_data(response, sub_data);
+          magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore("", 2); //hardcoded here, todo get the db location for the sqlite from somewhere?
+          sqlObj->add_subscriber(sub_data);
+        }
+
     } else {
       itti_msg->result.present = S6A_RESULT_EXPERIMENTAL;
       itti_msg->result.choice.experimental =
@@ -202,48 +206,4 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
                                        response);
       });
   return true;
-}
-
-void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
-                                    magma::lte::SubscriberData& sub_data) {
-  if (response.apn_size() < 1) {
-    std::cout << "No APN configurations received" << std::endl;
-  } else {
-    for (int i = 0; i < response.apn_size(); i++) {
-      auto apn = response.apn(i);
-      auto sub_apn_config = sub_data.mutable_non_3gpp()->add_apn_config();
-      if (apn.context_id() != 0) {
-        sub_apn_config->set_context_id(apn.context_id());
-      }
-
-      if (apn.service_selection().size() > 0) {
-        sub_apn_config->set_service_selection(apn.service_selection());
-      }
-
-      if (apn.has_qos_profile()) {
-        sub_apn_config->set_allocated_qos_profile(
-            (magma::lte::APNConfiguration_QoSProfile*)
-                apn.mutable_qos_profile());
-      }
-
-      if (apn.has_ambr()) {
-        sub_apn_config->set_allocated_ambr(
-            (magma::lte::AggregatedMaximumBitrate*)apn.mutable_ambr());
-      }
-
-      if (apn.pdn() != 0) {
-        sub_apn_config->set_pdn(
-            (magma::lte::APNConfiguration_PDNType)apn.pdn());
-      }
-
-      if (apn.served_party_ip_address_size() > 0) {
-        sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
-      }
-
-      if (apn.has_resource()) {
-        sub_apn_config->set_allocated_resource(
-            (magma::lte::APNConfiguration_APNResource*)apn.mutable_resource());
-      }
-    }
-  }
 }

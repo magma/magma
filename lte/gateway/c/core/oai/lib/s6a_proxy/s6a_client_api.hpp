@@ -19,6 +19,7 @@
 
 #include <gmp.h>
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,6 +39,8 @@ bool s6a_purge_ue(const char* imsi);
  */
 bool s6a_authentication_info_req(const s6a_auth_info_req_t* air_p);
 
+
+
 /**
  * s6a_update_location_req is an asynchronous call that forwards S6a ULR to
  * Federation Gateway, if S6a Relay is enabled by mconfig
@@ -46,5 +49,7 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p);
 
 #ifdef __cplusplus
 }
+
+
 
 #endif
