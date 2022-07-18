@@ -156,6 +156,11 @@ func GetNetworkInfo() *NetworkInfo {
 	}
 }
 
+// getRoutes resolves the routing table based on the hostRoutes. This function
+// uses the source IP of the hostRoute to find the matching NetworkInterfaceId.
+// We use the LinkIndex to infer missing source IPs based on other host routes.
+// After resolving the unlinked host routes' source IPs, we make a recursive
+// call to getRoutes to add the missing entries to the routing table.
 func getRoutes(hostRoutes []netlink.Route, recursiveResolving bool) []*Route {
 	interfaceToIP := make(map[string]string)
 	var unlinkedHostRoutes []netlink.Route
@@ -165,6 +170,7 @@ func getRoutes(hostRoutes []netlink.Route, recursiveResolving bool) []*Route {
 		src := getSourceIP(hostRoute)
 
 		if src == "" {
+			// No source IP is stored in hostRoute, we try to resolve this later
 			unlinkedHostRoutes = append(unlinkedHostRoutes, hostRoute)
 			continue
 		}
@@ -193,10 +199,15 @@ func getRoutes(hostRoutes []netlink.Route, recursiveResolving bool) []*Route {
 		linkIndexToIP[l.Attrs().Index] = interfaceToIP[l.Attrs().Name]
 	}
 
+	// Link the previously unlinked host routes to their source IP based on the
+	// LinkIndex.
 	for i, uhr := range unlinkedHostRoutes {
 		unlinkedHostRoutes[i].Src = net.ParseIP(linkIndexToIP[uhr.LinkIndex])
 	}
 
+	// Get the routing table entries for the newly linked host routes.
+	// recursiveResolving is false because we can no longer resolve any new
+	// source IPs.
 	if recursiveResolving {
 		additionalRoutes := getRoutes(unlinkedHostRoutes, false)
 		routes = append(routes, additionalRoutes...)
@@ -287,6 +298,8 @@ func getNetInterface(index int) net.Interface {
 	return convertedIface
 }
 
+// getSourceIP resolves the source IP as a string given a host route.
+// Returns an empty string if no source IP is given.
 func getSourceIP(r netlink.Route) string {
 	if r.Src == nil {
 		return ""
@@ -295,6 +308,8 @@ func getSourceIP(r netlink.Route) string {
 	}
 }
 
+// getDestinationIP resolves the destination IP as net.IPNet given a host route.
+// Defaults to "0.0.0.0/0" because this is the default if nothing is found in the host route.
 func getDestinationIP(r netlink.Route) net.IPNet {
 	if r.Dst == nil {
 		_, dstIPNet, _ := net.ParseCIDR("0.0.0.0/0")
@@ -304,7 +319,8 @@ func getDestinationIP(r netlink.Route) net.IPNet {
 	}
 }
 
-// getGatewayIP
+// getGatewayIP resolves the gateway IP as a string given the host route and the
+// destination IP. Defaults to IPv4/6 "0.0.0.0" if no IP can be resolved.
 func getGatewayIP(r netlink.Route, dest net.IP) string {
 	gw := r.Gw.To4()
 	if gw == nil {
@@ -320,6 +336,8 @@ func getGatewayIP(r netlink.Route, dest net.IP) string {
 	return gw.String()
 }
 
+// getMaskStr resolves the subnet mask string given the host route and the
+// destination IP. Selects IPv4/6 format depending on the destination IP.
 func getMaskStr(r netlink.Route, dest net.IP) string {
 	maskStr := getDestinationIP(r).Mask.String()
 	if len(dest) == net.IPv4len {
