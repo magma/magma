@@ -14,11 +14,9 @@ limitations under the License.
 package status
 
 import (
-	"fmt"
 	"net"
 
 	"github.com/emakeev/snowflake"
-	"github.com/moriyoshi/routewrapper"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -33,13 +31,11 @@ var (
 	hostInfo      *host.InfoStat
 	netInterfaces []gopsutil_net.InterfaceStat
 	disksInfo     []disk.PartitionStat
-	// hostRoutes    []routewrapper.Route
-	hostRoutes []netlink.Route
-	// hostRoutesNew []
-	bootTime     uint64
-	vpnIp        string
-	machineInfo  *MachineInfo
-	platformInfo *PlatformInfo
+	hostRoutes    []netlink.Route
+	bootTime      uint64
+	vpnIp         string
+	machineInfo   *MachineInfo
+	platformInfo  *PlatformInfo
 )
 
 func init() {
@@ -82,15 +78,7 @@ func init() {
 	}
 	disksInfo, _ = disk.Partitions(true)
 
-	var oldHostRoutes []routewrapper.Route
-	w, err := routewrapper.NewRouteWrapper()
-	if err == nil {
-		oldHostRoutes, _ = w.Routes()
-	}
-	fmt.Print(oldHostRoutes)
-
 	hostRoutes, _ = netlink.RouteList(nil, 0)
-
 	machineInfo = GetMachineInfo()
 	platformInfo = GetPlatformInfo()
 }
