@@ -135,6 +135,24 @@ def _create_message(
     return json_format.ParseDict(js_dict=data, message=message_cls())
 
 
+def _dump_message(message: MessageType) -> str:
+    """
+    Dump message to json
+
+    Parameters:
+        message: gRPC message
+
+    Returns:
+        marshalled json
+    """
+    return json_format.MessageToJson(
+        message=message,
+        including_default_value_fields=True,
+        preserving_proto_field_name=True,
+        sort_keys=True
+    )
+
+
 def _load_json(path: str) -> dict:
     """
     Read json file content
@@ -219,10 +237,13 @@ def main() -> None:
 
     logging.info(
         f'Sending gRPC {command_config.method_name} '
-        f'request:\n{message}',
+        f'request:\n{_dump_message(message=message)}',
     )
     response = method(message, **command_config.request_kwargs)
-    logging.info(f'Received gRPC response:\n{response}\n')
+    logging.info(
+        f'Received gRPC response:\n'
+        f'{_dump_message(message=response)}\n'
+    )
 
 
 if __name__ == '__main__':
