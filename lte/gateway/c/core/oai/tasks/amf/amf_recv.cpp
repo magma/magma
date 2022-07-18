@@ -691,48 +691,59 @@ status_code_e amf_handle_identity_response(
         imsi.u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
                           (supi_imsi.plmn.mnc_digit3 & 0xf);
       }
-
-    } else {
-      /* Mobile identity is SUPI type IMSI but Protection scheme is not NULL
-       * which is not valid message from UE. Return from here after
-       * printing error message
+      /* SUPI as IMSI retrieved from SUSI. Generate GUTI based on incoming
+       * PLMN and amf_config file and fill the SUPI-GUTI MAP
+       * Note: GUTI generation supposed to be done after verifying
+       * subscriber data with AUSF/UDM. But currently we are not supporting
+       * AUSF/UDM and directly generating GUTI.
+       * If authentication request rejected by UE, the MAP has to be cleared
        */
-      OAILOG_ERROR(LOG_AMF_APP,
-                   "Invalid protection scheme  received "
-                   " in identity response from UE \n");
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-    }
+      amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+      OAILOG_DEBUG(LOG_NAS_AMF, "5G-TMSI as 0x%08" PRIx32 "\n",
+                   amf_guti.m_tmsi);
 
-    /* SUPI as IMSI retrieved from SUSI. Generate GUTI based on incoming
-     * PLMN and amf_config file and fill the SUPI-GUTI MAP
-     * Note: GUTI generation supposed to be done after verifying
-     * subscriber data with AUSF/UDM. But currently we are not supporting
-     * AUSF/UDM and directly generating GUTI.
-     * If authentication request rejected by UE, the MAP has to be cleared
-     */
-    amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-    OAILOG_DEBUG(LOG_NAS_AMF, "5G-TMSI as 0x%08" PRIx32 "\n", amf_guti.m_tmsi);
+      /* Need to store guti in amf_ctx as well for quick access
+       * which will be used to send in DL message during registration
+       * accept message
+       * TODO Note:currently adapting the way
+       */
+      amf_ctx_guti = (guti_m5_t*)&amf_guti;
 
-    /* Need to store guti in amf_ctx as well for quick access
-     * which will be used to send in DL message during registration
-     * accept message
-     * TODO Note:currently adapting the way
-     */
-    amf_ctx_guti = (guti_m5_t*)&amf_guti;
+      imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
 
-    ue_m5gmm_context_s* ue_context =
-        amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-    if (ue_context) {
+      ue_m5gmm_context_s* ue_context =
+          amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+      if (ue_context) {
+        ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+        amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
+      }
+
+      /*
+       * Execute the identification completion procedure
+       */
+      rc = amf_proc_identification_complete(ue_id, p_imsi, p_imei, p_imeisv,
+                                            (uint32_t*)(p_tmsi), amf_ctx_guti);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+    } else {
+      ue_m5gmm_context_s* ue_context =
+          amf_ue_context_exists_amf_ue_ngap_id(ue_id);
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
-      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
+      amf_copy_plmn_to_context(msg->mobile_identity.imsi, ue_context);
+
+      std::string empheral_public_key = reinterpret_cast<char*>(
+          msg->mobile_identity.imsi.empheral_public_key);
+      std::string ciphertext =
+          reinterpret_cast<char*>(msg->mobile_identity.imsi.ciphertext);
+      bdestroy(msg->mobile_identity.imsi.ciphertext);
+      std::string mac_tag =
+          reinterpret_cast<char*>(msg->mobile_identity.imsi.mac_tag);
+      rc = RETURNok;
+      get_decrypt_imsi_suci_extension(&ue_context->amf_context,
+                                      msg->mobile_identity.imsi.home_nw_id,
+                                      empheral_public_key, ciphertext, mac_tag);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }
   }
-  /*
-   * Execute the identification completion procedure
-   */
-  rc = amf_proc_identification_complete(ue_id, p_imsi, p_imei, p_imeisv,
-                                        (uint32_t*)(p_tmsi), amf_ctx_guti);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 /****************************************************************************
