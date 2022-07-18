@@ -14,6 +14,7 @@ limitations under the License.
 package status
 
 import (
+	"fmt"
 	"math"
 	"net"
 	"runtime"
@@ -116,7 +117,6 @@ func GetPlatformInfo() *PlatformInfo {
 // GetNetworkInfo
 func GetNetworkInfo() *NetworkInfo {
 	interfaces := make([]*NetworkInterface, len(netInterfaces))
-	// routes := make([]*Route, len(hostRoutes))
 	for i, ni := range netInterfaces {
 		// dumb down, interface status
 		status := "UNKNOWN"
@@ -150,16 +150,9 @@ func GetNetworkInfo() *NetworkInfo {
 		interfaces[i] = netIface
 	}
 
-	linkList, _ := netlink.LinkList()
-	linkNameMap := make(map[int]string)
-
-	for i, l := range linkList {
-		linkNameMap[i+1] = l.Attrs().Name
-	}
-
-	routes, ipToInterface, unlinkedHostRoutes := getRoutes(hostRoutes)
+	routes, linkIndextoIP, unlinkedHostRoutes := getRoutes(hostRoutes)
 	for i, uhr := range unlinkedHostRoutes {
-		unlinkedHostRoutes[i].Src = net.ParseIP(ipToInterface[linkNameMap[uhr.LinkIndex]])
+		unlinkedHostRoutes[i].Src = net.ParseIP(linkIndextoIP[uhr.LinkIndex])
 	}
 	additionalRoutes, _, _ := getRoutes(unlinkedHostRoutes)
 	routes = append(routes, additionalRoutes...)
@@ -169,8 +162,8 @@ func GetNetworkInfo() *NetworkInfo {
 	}
 }
 
-func getRoutes(hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.Route) {
-	ipToInterface := make(map[string]string)
+func getRoutes(hRoutes []netlink.Route) ([]*Route, map[int]string, []netlink.Route) {
+	interfaceToIP := make(map[string]string)
 	var unlinkedHostRoutes []netlink.Route
 	var routes []*Route
 
@@ -187,7 +180,6 @@ func getRoutes(hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.
 		dest := getDestinationIP(r).IP.To4()
 		if dest == nil {
 			continue
-			// dest = r.Dst.IP
 		}
 		gw := r.Gw.To4()
 		if gw == nil {
@@ -217,9 +209,29 @@ func getRoutes(hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.
 			NetworkInterfaceId: convertedIface.Name,
 		}
 		routes = append(routes, route)
-		ipToInterface[convertedIface.Name] = src
+		interfaceToIP[convertedIface.Name] = src
 	}
-	return routes, ipToInterface, unlinkedHostRoutes
+
+	linkIndexToLinkName := make(map[int]string)
+
+	linkList, _ := netlink.LinkList()
+	for _, l := range linkList {
+		linkIndexToLinkName[l.Attrs().Index] = l.Attrs().Name
+	}
+
+	linkIndexToIP := make(map[int]string)
+
+	for idx, name := range linkIndexToLinkName {
+		linkIndexToIP[idx] = interfaceToIP[name]
+		fmt.Print(idx)
+		fmt.Print(name)
+	}
+
+	for i, uhr := range unlinkedHostRoutes {
+		unlinkedHostRoutes[i].Src = net.ParseIP(linkIndexToIP[uhr.LinkIndex])
+	}
+
+	return routes, linkIndexToIP, unlinkedHostRoutes
 }
 
 // GetMachineInfo
@@ -288,43 +300,35 @@ func UnixMs(t time.Time) int64 {
 
 func getNetInterface(index int) net.Interface {
 	var iface gopsutil_net.InterfaceStat
-	for _, nif := range netInterfaces {
-		if nif.Index == index {
-			iface = nif
+	for _, ni := range netInterfaces {
+		if ni.Index == index {
+			iface = ni
+			break
 		}
 	}
-	// iface := netInterfaces[index]
 	parsedAddr, _ := net.ParseMAC(iface.HardwareAddr)
-	// hex.DecodeString(iface.HardwareAddr)
 	convertedIface := net.Interface{
 		Index:        iface.Index,
 		MTU:          iface.MTU,
 		Name:         iface.Name,
 		HardwareAddr: parsedAddr,
-		Flags:        0,
 	}
 	return convertedIface
 }
 
 func getSourceIP(r netlink.Route) string {
-	var src string
 	if r.Src == nil {
 		return ""
-		// src = "10.7.0.52" // probably won't work in general
-		// src = "127.0.0.1"
 	} else {
-		src = r.Src.To4().String()
+		return r.Src.To4().String()
 	}
-	return src
 }
 
 func getDestinationIP(r netlink.Route) net.IPNet {
-	var dst net.IPNet
 	if r.Dst == nil {
 		dstIP, dstIPNet, _ := net.ParseCIDR("0.0.0.0/0")
-		dst = net.IPNet{IP: dstIP, Mask: dstIPNet.Mask}
+		return net.IPNet{IP: dstIP, Mask: dstIPNet.Mask}
 	} else {
-		dst = *r.Dst
+		return *r.Dst
 	}
-	return dst
 }
