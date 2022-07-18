@@ -156,49 +156,30 @@ func GetNetworkInfo() *NetworkInfo {
 	}
 }
 
-func getRoutes(hRoutes []netlink.Route, recursiveResolving bool) []*Route {
+func getRoutes(hostRoutes []netlink.Route, recursiveResolving bool) []*Route {
 	interfaceToIP := make(map[string]string)
 	var unlinkedHostRoutes []netlink.Route
 	var routes []*Route
 
-	for _, r := range hRoutes {
-		src := getSourceIP(r)
+	for _, hostRoute := range hostRoutes {
+		src := getSourceIP(hostRoute)
 
 		if src == "" {
-			unlinkedHostRoutes = append(unlinkedHostRoutes, r)
+			unlinkedHostRoutes = append(unlinkedHostRoutes, hostRoute)
 			continue
 		}
 
-		index := r.LinkIndex
-
-		dest := getDestinationIP(r).IP.To4()
+		dest := getDestinationIP(hostRoute).IP.To4()
 		if dest == nil {
 			continue
 		}
-		gw := r.Gw.To4()
-		if gw == nil {
-			gw = r.Gw
-			if len(gw) == 0 {
-				if len(dest) == net.IPv4len {
-					gw = []byte{0, 0, 0, 0}
-				} else {
-					gw = net.IP([]byte{0, 0, 0, 0}).To16()
-				}
-			}
-		}
+		gw := getGatewayIP(hostRoute, dest)
+		maskStr := getMaskStr(hostRoute, dest)
 
-		maskStr := getDestinationIP(r).Mask.String()
-		if len(dest) == net.IPv4len {
-			maskV4 := net.IP(getDestinationIP(r).Mask).To4()
-			if maskV4 != nil {
-				maskStr = maskV4.String()
-			}
-		}
-
-		convertedIface := getNetInterface(index)
+		convertedIface := getNetInterface(hostRoute.LinkIndex)
 		route := &Route{
 			DestinationIp:      dest.String(),
-			GatewayIp:          gw.String(),
+			GatewayIp:          gw,
 			Genmask:            maskStr,
 			NetworkInterfaceId: convertedIface.Name,
 		}
@@ -316,9 +297,36 @@ func getSourceIP(r netlink.Route) string {
 
 func getDestinationIP(r netlink.Route) net.IPNet {
 	if r.Dst == nil {
-		dstIP, dstIPNet, _ := net.ParseCIDR("0.0.0.0/0")
-		return net.IPNet{IP: dstIP, Mask: dstIPNet.Mask}
+		_, dstIPNet, _ := net.ParseCIDR("0.0.0.0/0")
+		return *dstIPNet
 	} else {
 		return *r.Dst
 	}
+}
+
+// getGatewayIP
+func getGatewayIP(r netlink.Route, dest net.IP) string {
+	gw := r.Gw.To4()
+	if gw == nil {
+		gw = r.Gw
+		if len(gw) == 0 {
+			if len(dest) == net.IPv4len {
+				gw = []byte{0, 0, 0, 0}
+			} else {
+				gw = net.IP([]byte{0, 0, 0, 0}).To16()
+			}
+		}
+	}
+	return gw.String()
+}
+
+func getMaskStr(r netlink.Route, dest net.IP) string {
+	maskStr := getDestinationIP(r).Mask.String()
+	if len(dest) == net.IPv4len {
+		maskV4 := net.IP(getDestinationIP(r).Mask).To4()
+		if maskV4 != nil {
+			maskStr = maskV4.String()
+		}
+	}
+	return maskStr
 }
