@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sas_test
+package grant_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas/grant"
 )
 
 const msg = "\nexpected: %b\nactual:   %b"
@@ -125,7 +125,7 @@ func TestSelectGrantsWithRedundancy(t *testing.T) {
 	}}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := sas.SelectGrantsWithRedundancy(tt.available, tt.grants, tt.pref, tt.minWidth, tt.maxWidth, tt.index)
+			actual := grant.SelectGrantsWithRedundancy(tt.available, tt.grants, tt.pref, tt.minWidth, tt.maxWidth, tt.index)
 			assert.Equal(t, tt.expected, actual, msg, tt.expected, actual)
 		})
 	}
@@ -154,7 +154,7 @@ func TestSelectGrantsWithoutRedundancy(t *testing.T) {
 	}}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := sas.SelectGrantsWithoutRedundancy(tt.available, tt.grants, tt.pref, tt.index)
+			actual := grant.SelectGrantsWithoutRedundancy(tt.available, tt.grants, tt.pref, tt.index)
 			assert.Equal(t, tt.expected, actual, msg, tt.expected, actual)
 		})
 	}
