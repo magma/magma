@@ -233,8 +233,8 @@ export function SubscriberContextProvider(props: Props) {
         setSessionState,
         setTotalCount,
         enqueueSnackbar,
-      }),
-        setIsLoading(false);
+      });
+      setIsLoading(false);
     };
     void fetchLteState();
   }, [networkId, enqueueSnackbar]);
@@ -748,10 +748,10 @@ export function LteContextProvider(props: Props) {
         <ApnContextProvider networkId={networkId}>
           <SubscriberContextProvider {...{networkId, networkType}}>
             <GatewayTierContextProvider {...{networkId, networkType}}>
-              <EnodebContextProvider {...{networkId, networkType}}>
-                <GatewayContextProvider {...{networkId, networkType}}>
+              <EnodebContextProvider networkId={networkId}>
+                <GatewayContextProvider networkId={networkId}>
                   <GatewayPoolsContextProvider {...{networkId, networkType}}>
-                    <TraceContextProvider {...{networkId, networkType}}>
+                    <TraceContextProvider networkId={networkId}>
                       <CbsdContextProvider {...{networkId, networkType}}>
                         {props.children}
                       </CbsdContextProvider>

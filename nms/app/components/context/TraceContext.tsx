@@ -25,7 +25,6 @@ type TraceContextType = {
 };
 type ContextProviderProps = {
   networkId: NetworkId;
-  networkType: string;
   children: React.ReactNode;
 };
 
