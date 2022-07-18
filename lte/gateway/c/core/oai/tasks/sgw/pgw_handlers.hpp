@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_handlers.h
+/*! \file pgw_handlers.hpp
  * \brief
  * \author Lionel Gauthier
  * \company Eurecom
@@ -38,8 +38,8 @@ void spgw_handle_pcef_create_session_response(
     const itti_pcef_create_session_response_t* const pcef_csr_resp_p,
     imsi64_t imsi64);
 
-uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
-                                                   ebi_t lbi);
+status_code_e spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
+                                                        ebi_t lbi);
 
 status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     spgw_state_t* state,
@@ -55,8 +55,15 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
     bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name);
 
-int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11, log_proto_t module);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* FILE_PGW_HANDLERS_SEEN */

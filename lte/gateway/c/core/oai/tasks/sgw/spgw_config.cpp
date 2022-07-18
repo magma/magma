@@ -29,10 +29,17 @@
 #include <string.h>
 #include <libconfig.h>
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -52,7 +59,7 @@ void spgw_config_init(spgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-static int spgw_config_process(spgw_config_t* config_pP) {
+status_code_e spgw_config_process(spgw_config_t* config_pP) {
   if (RETURNok != sgw_config_process(&config_pP->sgw_config)) {
     return RETURNerror;
   }

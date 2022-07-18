@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file spgw_config.c
+/*! \file pgw_config.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -42,12 +42,19 @@
 #include <inttypes.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 
 #ifdef LIBCONFIG_LONG
 #define libconfig_int long
@@ -136,7 +143,7 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
           OAILOG_CRITICAL(
               LOG_SPGW_APP,
               "ERROR in getting assigned IP block from mobilityd\n");
-          return -1;
+          return RETURNerror;
         } else {
           OAILOG_DEBUG(LOG_SPGW_APP,
                        "mobilityD IP block read: retry attempt: %d", retry);
@@ -152,7 +159,7 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
 
   // TODO: Fix me: Add tc support
 
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
@@ -442,7 +449,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
                         "Bad SDF identifier value %d for dedicated bearer",
                         sdf_id);
             config_pP->pcef.automatic_push_dedicated_bearer_sdf_identifier =
-                sdf_id;
+                (sdf_id_t)sdf_id;
           }
 
           if (config_setting_lookup_int(
@@ -451,7 +458,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
             AssertFatal((sdf_id < SDF_ID_MAX) && (sdf_id >= 0),
                         "Bad SDF identifier value %d for default bearer",
                         sdf_id);
-            config_pP->pcef.default_bearer_sdf_identifier = sdf_id;
+            config_pP->pcef.default_bearer_sdf_identifier = (sdf_id_t)sdf_id;
           }
 
           sub2setting = config_setting_get_member(
@@ -464,7 +471,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
             for (i = 0; i < num; i++) {
               config_pP->pcef.preload_static_sdf_identifiers[i] =
-                  config_setting_get_int_elem(sub2setting, i);
+                  (sdf_id_t)config_setting_get_int_elem(sub2setting, i);
             }
           }
 
