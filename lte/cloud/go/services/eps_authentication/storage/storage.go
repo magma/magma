@@ -35,8 +35,11 @@ const (
 )
 
 type SubscriberDBStorage interface {
-	// GetSubscriberData returns subscriber data of given subscriber ID
+	// GetSubscriberData returns subscriber data of given subscriber ID,
+	// GetSubscriberData only fills in auth related fields of the SubscriberProfile
 	GetSubscriberData(*lteprotos.SubscriberID, *protos.NetworkID) (*lteprotos.SubscriberData, error)
+	// GetSubscriberDataProfile returns subscriber data & its [non]3GPP profile information (APN, static IPs, ...)
+	GetSubscriberDataProfile(*lteprotos.SubscriberID, *protos.NetworkID) (*lteprotos.SubscriberData, map[string]string, []string, error)
 	// UpdateSubscriberAuthNextSeq sets subscriber's AuthNextSeq to the provided value
 	UpdateSubscriberAuthNextSeq(*lteprotos.SubscriberData) (*protos.Void, error)
 	// IncrementSubscriberAuthNextSeq increments subscriber's AuthNextSeq
@@ -52,33 +55,23 @@ func NewSubscriberDBStorage(storeFactory blobstore.StoreFactory) SubscriberDBSto
 	return &subscriberDBStorageImpl{StoreFactory: storeFactory}
 }
 
-// GetSubscriberData returns subscriber data of given subscriber ID
+// GetSubscriberData returns subscriber data of given subscriber ID, the subscribers StaticIps map and associated APNs
 func (s *subscriberDBStorageImpl) GetSubscriberData(
-	sid *lteprotos.SubscriberID, nid *protos.NetworkID) (*lteprotos.SubscriberData, error) {
+	sid *lteprotos.SubscriberID, networkID *protos.NetworkID) (*lteprotos.SubscriberData, error) {
 
-	lc := configurator.EntityLoadCriteria{
-		PageSize:           0,
-		PageToken:          "",
-		LoadConfig:         true,
-		LoadAssocsToThis:   false,
-		LoadAssocsFromThis: false,
-	}
-
+	lc := configurator.EntityLoadCriteria{LoadConfig: true}
 	ent, err := configurator.LoadEntity(
-		context.Background(), nid.GetId(), lte.SubscriberEntityType, lteprotos.SidString(sid), lc, serdes.Entity)
-
+		context.Background(), networkID.GetId(), lte.SubscriberEntityType, lteprotos.SidString(sid), lc, serdes.Entity)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.NotFound,
-			"error loading subscriber entity for NID: %s, SID: %s: %v", nid.GetId(), sid.GetId(), err)
+			"error loading subscriber ent for network ID: %s, SID: %s: %v", networkID.GetId(), sid.GetId(), err)
 	}
-	subData := &lteprotos.SubscriberData{
-		Sid:       sid,
-		NetworkId: nid,
-	}
+	subData := &lteprotos.SubscriberData{Sid: sid, NetworkId: networkID}
 	if ent.Config == nil {
 		return nil, status.Errorf(
-			codes.NotFound, "missing subscriber configuration for NID: %s, SID: %s", nid.GetId(), sid.GetId())
+			codes.NotFound,
+			"empty subscriber configuration for network ID: %s, SID: %s", networkID.GetId(), sid.GetId())
 	}
 	if cfg := ent.Config.(*models.SubscriberConfig); cfg != nil && cfg.Lte != nil {
 		subData.SubProfile = string(*cfg.Lte.SubProfile)
@@ -92,6 +85,50 @@ func (s *subscriberDBStorageImpl) GetSubscriberData(
 		}
 	}
 	return subData, nil
+}
+
+// GetSubscriberData returns subscriber data of given subscriber ID, the subscribers StaticIps map and associated APNs
+func (s *subscriberDBStorageImpl) GetSubscriberDataProfile(
+	sid *lteprotos.SubscriberID,
+	networkID *protos.NetworkID) (*lteprotos.SubscriberData, map[string]string, []string, error) {
+
+	lc := configurator.EntityLoadCriteria{
+		LoadConfig:         true,
+		LoadAssocsToThis:   false,
+		LoadAssocsFromThis: true,
+	}
+	ent, err := configurator.LoadEntity(
+		context.Background(), networkID.GetId(), lte.SubscriberEntityType, lteprotos.SidString(sid), lc, serdes.Entity)
+
+	if err != nil {
+		return nil, nil, nil, status.Errorf(
+			codes.NotFound,
+			"error loading subscriber ent with assocs for network ID: %s, SID: %s: %v",
+			networkID.GetId(), sid.GetId(), err)
+	}
+	subData := &lteprotos.SubscriberData{
+		Sid:       sid,
+		NetworkId: networkID,
+	}
+	if ent.Config == nil {
+		return nil, nil, nil, status.Errorf(
+			codes.NotFound,
+			"missing subscriber configuration for network ID: %s, SID: %s", networkID.GetId(), sid.GetId())
+	}
+	var staticIps models.SubscriberStaticIps
+	if cfg := ent.Config.(*models.SubscriberConfig); cfg != nil && cfg.Lte != nil {
+		subData.SubProfile = string(*cfg.Lte.SubProfile)
+		subData.Lte = &lteprotos.LTESubscription{
+			State: lteprotos.LTESubscription_LTESubscriptionState(
+				lteprotos.LTESubscription_LTESubscriptionState_value[cfg.Lte.State]),
+			AuthAlgo: lteprotos.LTESubscription_LTEAuthAlgo(
+				lteprotos.LTESubscription_LTEAuthAlgo_value[cfg.Lte.AuthAlgo]),
+			AuthKey: cfg.Lte.AuthKey,
+			AuthOpc: cfg.Lte.AuthOpc,
+		}
+		staticIps = cfg.StaticIps
+	}
+	return subData, staticIps, ent.Associations.Filter(lte.APNEntityType).Keys(), nil
 }
 
 // UpdateSubscriberAuthNextSeq sets subscriber's AuthNextSeq to the provided value

@@ -77,7 +77,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownSubscriber()
 	aia, err := suite.AuthenticationInformation(air)
 	suite.EqualError(
 		err,
-		"rpc error: code = NotFound desc = error loading subscriber entity for NID: test, SID: sub_unknown: Not found")
+		"rpc error: code = NotFound desc = error loading subscriber ent for network ID: test, SID: sub_unknown: Not found")
 	suite.checkAIA(aia, fegprotos.ErrorCode_USER_UNKNOWN, 0)
 }
 

@@ -30,14 +30,15 @@ namespace magma5g {
 #define M5GSMobileIdentityMsg_GUTI_LENGTH 11
 
 // AMF_AS Service Access point primitive
-int amf_as_send(amf_as_t* msg);
+status_code_e amf_as_send(amf_as_t* msg);
 
 // Builds NAS message according to the given AMFAS Service Access Point
 // primitive
-int amf_as_send_ng(const amf_as_t* msg);
+status_code_e amf_as_send_ng(const amf_as_t* msg);
 
-int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                  amf_context_t* amf_ctx, bstring nas_msg);
+status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
+                                            amf_context_t* amf_ctx,
+                                            bstring nas_msg);
 
 // For _AMFAS_DATA_REQ primitive
 uint16_t amf_as_data_req(const amf_as_data_t* msg,

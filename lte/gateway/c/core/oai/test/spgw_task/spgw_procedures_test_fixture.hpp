@@ -28,12 +28,12 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 }
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 extern bool hss_associated;
 

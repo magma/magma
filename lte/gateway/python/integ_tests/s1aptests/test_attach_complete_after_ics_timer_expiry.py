@@ -56,12 +56,14 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         attach_req.pdnType_pr = pdn_type
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         print("****** Sent ATTACH_REQUEST")
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("****** Received AUTH_REQ_IND")
         delay_init_ctxt_setup_resp = s1ap_types.UeDelayInitCtxtSetupRsp()
@@ -70,7 +72,8 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         delay_init_ctxt_setup_resp.tmrVal = 4500
         print("*** Setting Initial Context Setup Resp Delay ***")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_DELAY_ICS_RSP, delay_init_ctxt_setup_resp,
+            s1ap_types.tfwCmd.UE_SET_DELAY_ICS_RSP,
+            delay_init_ctxt_setup_resp,
         )
 
         # Trigger Authentication Response
@@ -80,12 +83,14 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         sqn_recvd.pres = 0
         auth_res.sqnRcvd = sqn_recvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         print("****** Sent UE_AUTH_RESP")
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print("****** Received UE_SEC_MOD_CMD_IND")
 
@@ -93,21 +98,21 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
         print("****** Sent UE_SEC_MOD_COMPLETE")
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
-        print("****** Received INT_CTX_SETUP_IND")
-
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
-        print("****** Received UE_ATTACH_ACCEPT_IND")
 
         print("****** Sleeping for 4 seconds. Waiting for ICS timer to expire")
         time.sleep(4)
@@ -115,13 +120,15 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+            attach_complete,
         )
         print("****** Sent ATTACH_COMPLETE")
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("****** Received UE_CTX_REL_IND")
 

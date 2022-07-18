@@ -19,18 +19,22 @@ import s1ap_wrapper
 
 
 class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
+    """Integration Test: TestAttachDetachDuplicateNASRespMessages"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_duplicate_nas_resp_messages(self):
-        """ Duplicate NAS Response Messages Test Case"""
+        """Duplicate NAS Response Messages Test Case"""
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
-        maxNasMsgRetransmission = 4
+        max_nas_msg_retransmission = 4
 
         # Trigger Attach Request
         attach_req = s1ap_types.ueAttachRequest_t()
@@ -44,12 +48,13 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
 
         print("*** Triggering Attach Request ***")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
 
         # Waiting for Authentication Request
         # Wait for last Timer T3460 Expiry
-        for i in range(maxNasMsgRetransmission):
+        for i in range(max_nas_msg_retransmission):
             print(
                 "*** Waiting for Authentication Request Message (",
                 str(i + 1),
@@ -57,7 +62,8 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
             )
             print(
                 "*** Authentication Request Message Received (",
@@ -68,22 +74,23 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
-        sqnRecvd = s1ap_types.ueSqnRcvd_t()
-        sqnRecvd.pres = 0
-        auth_res.sqnRcvd = sqnRecvd
-        for i in range(maxNasMsgRetransmission):
+        sqn_recvd = s1ap_types.ueSqnRcvd_t()
+        sqn_recvd.pres = 0
+        auth_res.sqnRcvd = sqn_recvd
+        for i in range(max_nas_msg_retransmission):
             print(
                 "*** Sending Authentication Response Message (",
                 str(i + 1),
                 ") ***",
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+                s1ap_types.tfwCmd.UE_AUTH_RESP,
+                auth_res,
             )
 
         # Waiting for Security mode command
         # Wait for last Timer T3460 Expiry
-        for i in range(maxNasMsgRetransmission):
+        for i in range(max_nas_msg_retransmission):
             print(
                 "*** Waiting for Security Mode Command Message (",
                 str(i + 1),
@@ -91,7 +98,8 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
             )
             print(
                 "*** Security Mode Command Message Received (",
@@ -102,48 +110,61 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
-        for i in range(maxNasMsgRetransmission):
+        for i in range(max_nas_msg_retransmission):
             print(
                 "*** Sending Security Mode Complete Message (",
                 str(i + 1),
                 ") ***",
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+                sec_mode_complete,
             )
+
+        # Attach accept will be sent in ICSR only for the first time
+        # Re-transmitted Attach Accept will be sent in DL NAS transport
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
+        )
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept in ICSR for UE Id:",
+            attach_acc.ue_Id,
+        )
 
         # Waiting for Attach accept
         # Wait for last Timer T3450 Expiry
-        for i in range(maxNasMsgRetransmission):
+        for i in range(max_nas_msg_retransmission):
             print(
-                "*** Waiting for Attach Accept Message (", str(i + 1), ") ***",
+                "*** Waiting for Attach Accept Message (",
+                str(i + 1),
+                ") ***",
             )
-            # Attach accept will be sent in ICSR only for the first time
-            # Re-transmitted Attach Accept will be sent in DL NAS transport
-            if i < 1:
-                response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEqual(
-                    response.msg_type,
-                    s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-                )
-
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
             )
             print(
-                "*** Attach Accept Message Received (", str(i + 1), ") ***",
+                "*** Attach Accept Message Received in DL NAS transport msg (",
+                str(i + 1),
+                ") ***",
             )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = req.ue_id
-        for i in range(maxNasMsgRetransmission):
+        for i in range(max_nas_msg_retransmission):
             print(
-                "*** Sending Attach Complete Message (", str(i + 1), ") ***",
+                "*** Sending Attach Complete Message (",
+                str(i + 1),
+                ") ***",
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+                attach_complete,
             )
 
         print("*** Running UE detach ***")
@@ -152,7 +173,8 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
         detach_req.ue_Id = req.ue_id
         detach_req.ueDetType = s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST,
+            detach_req,
         )
 
 
