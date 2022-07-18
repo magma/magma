@@ -14,7 +14,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/moriyoshi/routewrapper v0.0.0-20180228100351-e52d8d14cf39
 	github.com/prometheus/client_model v0.2.0
 	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/stretchr/testify v1.7.0
