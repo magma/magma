@@ -14,21 +14,13 @@ import type {
   CellularGatewayPool,
   Enodeb,
   EnodebState as EnodebStateResponse,
-  GatewayCellularConfigs,
-  GatewayDnsConfigs,
-  GatewayEpcConfigs,
-  GatewayRanConfigs,
   GenericCommandParams,
-  LteGateway,
-  MagmadGatewayConfigs,
   MutableCellularGatewayPool,
-  MutableLteGateway,
   PingRequest,
   Tier,
 } from '../../../generated';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {
-  EnodebSerial,
   GatewayId,
   GatewayPoolId,
   NetworkId,
@@ -287,172 +279,6 @@ export async function SetEnodebState(props: EnodebStateProps) {
   }
 }
 
-/**************************** Gateway State **********************************/
-
-export async function FetchGateways(props: FetchProps) {
-  const {networkId, id, enqueueSnackbar} = props;
-  if (id !== undefined && id !== null) {
-    try {
-      const gateway = (
-        await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdGet({
-          networkId: networkId,
-          gatewayId: id,
-        })
-      ).data;
-      if (gateway) {
-        return {
-          [id]: gateway,
-        };
-      }
-    } catch (e) {
-      enqueueSnackbar?.('failed fetching gateway information', {
-        variant: 'error',
-      });
-    }
-  } else {
-    try {
-      return (
-        await MagmaAPI.lteGateways.lteNetworkIdGatewaysGet({
-          networkId: networkId,
-        })
-      ).data;
-    } catch (e) {
-      enqueueSnackbar?.('failed fetching gateway information', {
-        variant: 'error',
-      });
-    }
-  }
-}
-
-type GatewayStateProps = {
-  networkId: NetworkId;
-  lteGateways: Record<string, LteGateway>;
-  setLteGateways: (lteGateways: Record<string, LteGateway>) => void;
-  key: GatewayId;
-  value?: MutableLteGateway;
-};
-
-export async function SetGatewayState(props: GatewayStateProps) {
-  const {networkId, lteGateways, setLteGateways, key, value} = props;
-
-  if (value != null) {
-    if (!(key in lteGateways)) {
-      await MagmaAPI.lteGateways.lteNetworkIdGatewaysPost({
-        networkId: networkId,
-        gateway: value,
-      });
-      // TODO[TS-migration] does it make sense that value is of type MutableLteGateway?
-      setLteGateways({...lteGateways, [key]: value as LteGateway});
-    } else {
-      await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdPut({
-        networkId: networkId,
-        gatewayId: key,
-        gateway: value,
-      });
-      setLteGateways({...lteGateways, [key]: value as LteGateway});
-    }
-  } else {
-    await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdDelete({
-      networkId: networkId,
-      gatewayId: key,
-    });
-    const newLteGateways = {...lteGateways};
-    delete newLteGateways[key];
-    setLteGateways(newLteGateways);
-  }
-}
-
-export type UpdateGatewayProps = {
-  gatewayId: GatewayId;
-  tierId?: string;
-  magmadConfigs?: MagmadGatewayConfigs;
-  epcConfigs?: GatewayEpcConfigs;
-  ranConfigs?: GatewayRanConfigs;
-  dnsConfig?: GatewayDnsConfigs;
-  cellularConfigs?: GatewayCellularConfigs;
-  enbs?: Array<EnodebSerial>;
-  networkId: NetworkId;
-  setLteGateways: (lteGateways: Record<string, LteGateway>) => void;
-};
-
-export async function UpdateGateway(props: UpdateGatewayProps) {
-  const {networkId, gatewayId, setLteGateways} = props;
-  if (props.tierId !== undefined && props.tierId !== '') {
-    await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdTierPut({
-      networkId,
-      gatewayId: gatewayId,
-      tierId: JSON.stringify(`"${props.tierId}"`),
-    });
-  }
-  const requests = [];
-  if (props.magmadConfigs) {
-    requests.push(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdMagmadPut({
-        networkId,
-        gatewayId: gatewayId,
-        magmad: props.magmadConfigs,
-      }),
-    );
-  }
-  if (props.epcConfigs) {
-    requests.push(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularEpcPut({
-        networkId,
-        gatewayId: gatewayId,
-        config: props.epcConfigs,
-      }),
-    );
-  }
-  if (props.ranConfigs) {
-    requests.push(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularRanPut({
-        networkId,
-        gatewayId: gatewayId,
-        config: props.ranConfigs,
-      }),
-    );
-  }
-
-  if (props.enbs) {
-    requests.push(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdConnectedEnodebSerialsPut(
-        {
-          networkId,
-          gatewayId: gatewayId,
-          serials: props.enbs,
-        },
-      ),
-    );
-  }
-
-  if (props.dnsConfig) {
-    requests.push(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut({
-        networkId,
-        gatewayId: gatewayId,
-        config: props.dnsConfig,
-      }),
-    );
-  }
-
-  if (props.cellularConfigs) {
-    requests.push(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPut({
-        networkId,
-        gatewayId: gatewayId,
-        config: props.cellularConfigs,
-      }),
-    );
-  }
-  await Promise.all(requests);
-
-  const gateways = (
-    await MagmaAPI.lteGateways.lteNetworkIdGatewaysGet({
-      networkId,
-    })
-  ).data;
-  setLteGateways(gateways);
-}
 export type GatewayCommandProps = {
   networkId: NetworkId;
   gatewayId: GatewayId;

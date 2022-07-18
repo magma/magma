@@ -13,7 +13,6 @@
 import * as React from 'react';
 import CbsdContext from '../context/CbsdContext';
 import EnodebContext from '../context/EnodebContext';
-import GatewayContext from '../context/GatewayContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 
@@ -23,13 +22,13 @@ import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 import {ApnContextProvider} from '../context/ApnContext';
+import {GatewayContextProvider} from '../context/GatewayContext';
 import {TraceContextProvider} from '../context/TraceContext';
 import {omit} from 'lodash';
 import type {
   BaseNameRecord,
   FegLteNetwork,
   FegNetwork,
-  LteGateway,
   LteNetwork,
   MutableCbsd,
   MutableSubscriber,
@@ -60,17 +59,13 @@ import {
 } from '../../../shared/types/network';
 import {
   FetchEnodebs,
-  FetchGateways,
   InitEnodeState,
   InitGatewayPoolState,
   InitTierState,
   SetEnodebState,
   SetGatewayPoolsState,
-  SetGatewayState,
   SetTierState,
-  UpdateGateway,
   UpdateGatewayPoolRecords,
-  UpdateGatewayProps,
 } from '../../state/lte/EquipmentState';
 import {
   SetBaseNameState,
@@ -89,75 +84,6 @@ type Props = {
   networkType: string;
   children: React.ReactNode;
 };
-
-export function GatewayContextProvider(props: Props) {
-  const {networkId} = props;
-  const [lteGateways, setLteGateways] = useState<Record<string, LteGateway>>(
-    {},
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        const lteGateways = (
-          await MagmaAPI.lteGateways.lteNetworkIdGatewaysGet({
-            networkId,
-          })
-        ).data;
-        setLteGateways(lteGateways);
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching gateway information', {
-          variant: 'error',
-        });
-      }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <GatewayContext.Provider
-      value={{
-        state: lteGateways,
-        setState: (key, value?) => {
-          return SetGatewayState({
-            lteGateways,
-            setLteGateways,
-            networkId,
-            key,
-            value,
-          });
-        },
-        updateGateway: props =>
-          UpdateGateway({
-            networkId,
-            setLteGateways,
-            ...props,
-          } as UpdateGatewayProps),
-        refetch: id => {
-          void FetchGateways({
-            id: id,
-            networkId,
-            enqueueSnackbar,
-          }).then(gateways => {
-            if (gateways) {
-              setLteGateways(gatewayState =>
-                id ? {...gatewayState, ...gateways} : gateways,
-              );
-            }
-          });
-        },
-      }}>
-      {props.children}
-    </GatewayContext.Provider>
-  );
-}
 
 export function CbsdContextProvider({networkId, children}: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
