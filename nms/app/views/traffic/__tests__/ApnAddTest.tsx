@@ -18,10 +18,8 @@ import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 import {LTE} from '../../../../shared/types/network';
 
-import {
-  ApnProvider,
-  LteNetworkContextProvider,
-} from '../../../components/lte/LteContext';
+import {ApnContextProvider} from '../../../components/context/ApnContext';
+import {LteNetworkContextProvider} from '../../../components/lte/LteContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
@@ -95,14 +93,14 @@ describe('<TrafficDashboard />', () => {
               networkId: 'test',
             }}>
             <LteNetworkContextProvider networkId={'test'} networkType={LTE}>
-              <ApnProvider networkId={'test'} networkType={LTE}>
+              <ApnContextProvider networkId={'test'}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/traffic/*"
                     element={<TrafficDashboard />}
                   />
                 </Routes>
-              </ApnProvider>
+              </ApnContextProvider>
             </LteNetworkContextProvider>
           </NetworkContext.Provider>
         </MuiStylesThemeProvider>

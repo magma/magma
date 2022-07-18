@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import ApnContext from '../context/ApnContext';
 import CbsdContext from '../context/CbsdContext';
 import EnodebContext from '../context/EnodebContext';
 import GatewayContext from '../context/GatewayContext';
@@ -23,10 +22,10 @@ import LteNetworkContext from '../context/LteNetworkContext';
 import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
+import {ApnContextProvider} from '../context/ApnContext';
 import {TraceContextProvider} from '../context/TraceContext';
 import {omit} from 'lodash';
 import type {
-  Apn,
   BaseNameRecord,
   FegLteNetwork,
   FegNetwork,
@@ -73,7 +72,6 @@ import {
   UpdateGatewayPoolRecords,
   UpdateGatewayProps,
 } from '../../state/lte/EquipmentState';
-import {SetApnState} from '../../state/lte/ApnState';
 import {
   SetBaseNameState,
   SetPolicyState,
@@ -804,55 +802,6 @@ export function PolicyProvider(props: Props) {
   );
 }
 
-export function ApnProvider(props: Props) {
-  const {networkId} = props;
-  const [apns, setApns] = useState<Record<string, Apn>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        setApns(
-          (
-            await MagmaAPI.apns.lteNetworkIdApnsGet({
-              networkId,
-            })
-          ).data,
-        );
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching APN information', {
-          variant: 'error',
-        });
-      }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <ApnContext.Provider
-      value={{
-        state: apns,
-        setState: (key, value?) => {
-          return SetApnState({
-            apns,
-            setApns,
-            networkId,
-            key,
-            value,
-          });
-        },
-      }}>
-      {props.children}
-    </ApnContext.Provider>
-  );
-}
-
 export function LteNetworkContextProvider(props: Props) {
   const {networkId} = props;
   const networkCtx = useContext(NetworkContext);
@@ -942,7 +891,7 @@ export function LteContextProvider(props: Props) {
   return (
     <LteNetworkContextProvider {...{networkId, networkType}}>
       <PolicyProvider {...{networkId, networkType}}>
-        <ApnProvider {...{networkId, networkType}}>
+        <ApnContextProvider networkId={networkId}>
           <SubscriberContextProvider {...{networkId, networkType}}>
             <GatewayTierContextProvider {...{networkId, networkType}}>
               <EnodebContextProvider {...{networkId, networkType}}>
@@ -958,7 +907,7 @@ export function LteContextProvider(props: Props) {
               </EnodebContextProvider>
             </GatewayTierContextProvider>
           </SubscriberContextProvider>
-        </ApnProvider>
+        </ApnContextProvider>
       </PolicyProvider>
     </LteNetworkContextProvider>
   );
