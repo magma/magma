@@ -149,10 +149,9 @@ func GetNetworkInfo() *NetworkInfo {
 		interfaces[i] = netIface
 	}
 
-	routes := getRoutes(hostRoutes, true)
 	return &NetworkInfo{
 		NetworkInterfaces: interfaces,
-		RoutingTable:      routes,
+		RoutingTable:      getRoutes(hostRoutes, true),
 	}
 }
 
@@ -300,31 +299,31 @@ func getNetInterface(index int) net.Interface {
 
 // getSourceIP resolves the source IP as a string given a host route.
 // Returns an empty string if no source IP is given.
-func getSourceIP(r netlink.Route) string {
-	if r.Src == nil {
+func getSourceIP(hostRoute netlink.Route) string {
+	if hostRoute.Src == nil {
 		return ""
 	} else {
-		return r.Src.To4().String()
+		return hostRoute.Src.To4().String()
 	}
 }
 
 // getDestinationIP resolves the destination IP as net.IPNet given a host route.
 // Defaults to "0.0.0.0/0" because this is the default if nothing is found in the host route.
-func getDestinationIP(r netlink.Route) net.IPNet {
-	if r.Dst == nil {
+func getDestinationIP(hostRoute netlink.Route) net.IPNet {
+	if hostRoute.Dst == nil {
 		_, dstIPNet, _ := net.ParseCIDR("0.0.0.0/0")
 		return *dstIPNet
 	} else {
-		return *r.Dst
+		return *hostRoute.Dst
 	}
 }
 
 // getGatewayIP resolves the gateway IP as a string given the host route and the
 // destination IP. Defaults to IPv4/6 "0.0.0.0" if no IP can be resolved.
-func getGatewayIP(r netlink.Route, dest net.IP) string {
-	gw := r.Gw.To4()
+func getGatewayIP(hostRoute netlink.Route, dest net.IP) string {
+	gw := hostRoute.Gw.To4()
 	if gw == nil {
-		gw = r.Gw
+		gw = hostRoute.Gw
 		if len(gw) == 0 {
 			if len(dest) == net.IPv4len {
 				gw = []byte{0, 0, 0, 0}
@@ -338,10 +337,10 @@ func getGatewayIP(r netlink.Route, dest net.IP) string {
 
 // getMaskStr resolves the subnet mask string given the host route and the
 // destination IP. Selects IPv4/6 format depending on the destination IP.
-func getMaskStr(r netlink.Route, dest net.IP) string {
-	maskStr := getDestinationIP(r).Mask.String()
+func getMaskStr(hostRoute netlink.Route, dest net.IP) string {
+	maskStr := getDestinationIP(hostRoute).Mask.String()
 	if len(dest) == net.IPv4len {
-		maskV4 := net.IP(getDestinationIP(r).Mask).To4()
+		maskV4 := net.IP(getDestinationIP(hostRoute).Mask).To4()
 		if maskV4 != nil {
 			maskStr = maskV4.String()
 		}
