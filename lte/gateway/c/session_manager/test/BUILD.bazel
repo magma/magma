@@ -296,3 +296,18 @@ cc_test(
         "@github_nlohmann_json//:json",
     ],
 )
+
+cc_test(
+    name = "session_state_5g_test",
+    size = "small",
+    srcs = [
+        "SessionStateTester5g.hpp",
+        "test_session_state_5g.cpp",
+    ],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//orc8r/gateway/c/common/logging",
+    ],
+)
