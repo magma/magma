@@ -90,33 +90,6 @@ func init() {
 	fmt.Print(oldHostRoutes)
 
 	hostRoutes, _ = netlink.RouteList(nil, 0)
-	addr, _ := netlink.AddrList(nil, 0)
-	print(addr)
-	// var hostRoutesNew []routewrapper.Route
-	//
-	// for _, r := range routeList {
-	// 	src := getSourceIP(r)
-	//
-	// 	index, exists := ipNameMapNI[src]
-	// 	if !exists {
-	// 		continue
-	// 	}
-	// 	convertedIface := getNetInterface(index)
-	//
-	// 	dst := getDestinationIP(r)
-	// 	if dst.IP.To4() == nil {
-	// 		continue
-	// 	}
-	//
-	// 	hostRoute := routewrapper.Route{
-	// 		Destination: dst,
-	// 		Gateway:     r.Gw,
-	// 		Interface:   &convertedIface,
-	// 		Flags:       nil,
-	// 		Expire:      0,
-	// 		Metric:      r.Priority} // Expire was always set to zero before
-	// 	hostRoutesNew = append(hostRoutesNew, hostRoute)
-	// }
 
 	machineInfo = GetMachineInfo()
 	platformInfo = GetPlatformInfo()
