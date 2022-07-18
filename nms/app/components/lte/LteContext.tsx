@@ -13,8 +13,11 @@
 import * as React from 'react';
 import CbsdContext from '../context/CbsdContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
-import GatewayTierContext from '../context/GatewayTierContext';
-
+import InitSubscriberState, {
+  FetchSubscriberState,
+  getGatewaySubscriberMap,
+  setSubscriberState,
+} from '../../state/lte/SubscriberState';
 import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import NetworkContext from '../context/NetworkContext';
@@ -23,6 +26,7 @@ import SubscriberContext from '../context/SubscriberContext';
 import {ApnContextProvider} from '../context/ApnContext';
 import {EnodebContextProvider} from '../context/EnodebContext';
 import {GatewayContextProvider} from '../context/GatewayContext';
+import {GatewayTierContextProvider} from '../context/GatewayTierContext';
 import {TraceContextProvider} from '../context/TraceContext';
 import {omit} from 'lodash';
 import type {
@@ -38,16 +42,10 @@ import type {
   RatingGroup,
   Subscriber,
   SubscriberState,
-  Tier,
 } from '../../../generated';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import * as cbsdState from '../../state/lte/CbsdState';
-import InitSubscriberState, {
-  FetchSubscriberState,
-  getGatewaySubscriberMap,
-  setSubscriberState,
-} from '../../state/lte/SubscriberState';
 import MagmaAPI from '../../api/MagmaAPI';
 import {
   FEG_LTE,
@@ -57,9 +55,7 @@ import {
 } from '../../../shared/types/network';
 import {
   InitGatewayPoolState,
-  InitTierState,
   SetGatewayPoolsState,
-  SetTierState,
   UpdateGatewayPoolRecords,
 } from '../../state/lte/EquipmentState';
 import {
@@ -343,54 +339,6 @@ export function GatewayPoolsContextProvider(props: Props) {
       }}>
       {props.children}
     </GatewayPoolsContext.Provider>
-  );
-}
-
-export function GatewayTierContextProvider(props: Props) {
-  const {networkId} = props;
-  const [tiers, setTiers] = useState<Record<string, Tier>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const [supportedVersions, setSupportedVersions] = useState<Array<string>>([]);
-
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        if (networkId == null) {
-          return;
-        }
-        const [stableChannelResp] = await Promise.allSettled([
-          MagmaAPI.upgrades.channelsChannelIdGet({channelId: 'stable'}),
-          InitTierState({networkId, setTiers, enqueueSnackbar}),
-        ]);
-        if (stableChannelResp.status === 'fulfilled') {
-          setSupportedVersions(
-            stableChannelResp.value.data.supported_versions.reverse(),
-          );
-        }
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching tier information', {
-          variant: 'error',
-        });
-      }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <GatewayTierContext.Provider
-      value={{
-        state: {supportedVersions, tiers},
-        setState: (key, value?) =>
-          SetTierState({tiers, setTiers, networkId, key, value}),
-      }}>
-      {props.children}
-    </GatewayTierContext.Provider>
   );
 }
 

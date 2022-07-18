@@ -15,7 +15,6 @@ import type {
   GenericCommandParams,
   MutableCellularGatewayPool,
   PingRequest,
-  Tier,
 } from '../../../generated';
 import type {
   GatewayId,
@@ -29,92 +28,6 @@ import type {
 import type {OptionsObject} from 'notistack';
 
 import MagmaAPI from '../../api/MagmaAPI';
-
-/************************** Gateway Tier State *******************************/
-type InitTierStateProps = {
-  networkId: NetworkId;
-  setTiers: (tiers: Record<string, Tier>) => void;
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
-};
-
-export async function InitTierState(props: InitTierStateProps) {
-  const {networkId, setTiers, enqueueSnackbar} = props;
-  let tierIdList: Array<string> = [];
-  try {
-    tierIdList = (
-      await MagmaAPI.upgrades.networksNetworkIdTiersGet({
-        networkId,
-      })
-    ).data;
-  } catch (e) {
-    enqueueSnackbar?.('failed fetching tier information', {
-      variant: 'error',
-    });
-  }
-
-  const requests = tierIdList.map(tierId => {
-    try {
-      return MagmaAPI.upgrades.networksNetworkIdTiersTierIdGet({
-        networkId,
-        tierId,
-      });
-    } catch (e) {
-      enqueueSnackbar?.('failed fetching tier information for ' + tierId, {
-        variant: 'error',
-      });
-      return;
-    }
-  });
-
-  const tierResponse = await Promise.all(requests);
-  const tiers: Record<string, Tier> = {};
-  tierResponse
-    .filter(Boolean)
-    .map(res => res!.data)
-    .forEach(item => {
-      tiers[item.id] = item;
-    });
-  setTiers(tiers);
-}
-
-type TierStateProps = {
-  networkId: NetworkId;
-  tiers: Record<string, Tier>;
-  setTiers: (tiers: Record<string, Tier>) => void;
-  key: string;
-  value?: Tier;
-};
-
-export async function SetTierState(props: TierStateProps) {
-  const {networkId, tiers, setTiers, key, value} = props;
-
-  if (value != null) {
-    if (!(key in tiers)) {
-      await MagmaAPI.upgrades.networksNetworkIdTiersPost({
-        networkId: networkId,
-        tier: value,
-      });
-    } else {
-      await MagmaAPI.upgrades.networksNetworkIdTiersTierIdPut({
-        networkId: networkId,
-        tierId: key,
-        tier: value,
-      });
-    }
-    setTiers({...tiers, [key]: value});
-  } else {
-    await MagmaAPI.upgrades.networksNetworkIdTiersTierIdDelete({
-      networkId: networkId,
-      tierId: key,
-    });
-    const newTiers = {...tiers};
-    delete newTiers[key];
-    setTiers(newTiers);
-  }
-}
 
 /**************************** Enode State ************************************/
 type FetchProps = {
