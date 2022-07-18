@@ -35,11 +35,11 @@ extern "C" {
 #define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)
 namespace magma5g {
 
-int amf_handle_service_request(
+status_code_e amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
     const amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   ue_m5gmm_context_s* ue_context = nullptr;
   notify_ue_event notify_ue_event_type;
   amf_sap_t amf_sap;
@@ -89,8 +89,6 @@ int amf_handle_service_request(
       // Fill the itti msg based on context info produced in amf core
       OAILOG_DEBUG(LOG_AMF_APP, "T3513: After stopping PAGING Timer\n");
     }
-
-    imsi64_t imsi64 = ue_context->amf_context.imsi64;
 
     if (msg->service_type.service_type_value == SERVICE_TYPE_SIGNALING) {
       OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is signalling \n");
@@ -235,8 +233,8 @@ void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-int amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
-                             ue_m5gmm_context_s* ue_context) {
+status_code_e amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
+                                       ue_m5gmm_context_s* ue_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null");
@@ -278,13 +276,13 @@ void amf_get_registration_type_request(
 }
 
 /* Identifies 5GS Registration type and processes the Message accordingly */
-int amf_handle_registration_request(
+status_code_e amf_handle_registration_request(
     amf_ue_ngap_id_t ue_id, tai_t* originating_tai, ecgi_t* originating_ecgi,
     RegistrationRequestMsg* msg, const bool is_initial,
     const bool is_amf_ctx_new, int amf_cause,
     const amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
@@ -456,7 +454,6 @@ int amf_handle_registration_request(
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
         ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
-        imsi64_t imsi64 = amf_imsi_to_imsi64(params->imsi);
       } else {
         /*
          * Call subscriberdb to decode the SUPI or IMSI from SUCI as scheme
@@ -530,8 +527,6 @@ int amf_handle_registration_request(
       amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
-      imsi64_t imsi64 = ue_context->amf_context.imsi64;
-
       params->guti = new (guti_m5_t)();
       memcpy(params->guti, &(ue_context->amf_context.m5_guti),
              sizeof(guti_m5_t));
@@ -578,11 +573,11 @@ int amf_handle_registration_request(
  **                                                                        **
  ***************************************************************************/
 
-int amf_handle_identity_response(
+status_code_e amf_handle_identity_response(
     amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   /*
    * Message processing
    */
@@ -657,8 +652,6 @@ int amf_handle_identity_response(
      */
     amf_ctx_guti = (guti_m5_t*)&amf_guti;
 
-    imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
-
     ue_m5gmm_context_s* ue_context =
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context) {
@@ -689,12 +682,11 @@ int amf_handle_identity_response(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_handle_authentication_response(amf_ue_ngap_id_t ue_id,
-                                       AuthenticationResponseMsg* msg,
-                                       int amf_cause,
-                                       amf_nas_message_decode_status_t status) {
+status_code_e amf_handle_authentication_response(
+    amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
+    amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   /*
    * Message checking
    */
@@ -736,12 +728,11 @@ int amf_handle_authentication_response(amf_ue_ngap_id_t ue_id,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_handle_authentication_failure(amf_ue_ngap_id_t ue_id,
-                                      AuthenticationFailureMsg* msg,
-                                      int amf_cause,
-                                      amf_nas_message_decode_status_t status) {
+status_code_e amf_handle_authentication_failure(
+    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause,
+    amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   /*
    * Handle message checking error
@@ -773,11 +764,11 @@ int amf_handle_authentication_failure(amf_ue_ngap_id_t ue_id,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_handle_security_mode_reject(
+status_code_e amf_handle_security_mode_reject(
     amf_ue_ngap_id_t ue_id, SecurityModeRejectMsg* msg, int amf_cause,
     const amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_WARNING(LOG_NAS_AMF,
                  "AMFAS-SAP - Received Security Mode Reject message "

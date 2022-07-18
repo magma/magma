@@ -32,6 +32,7 @@ from magma.common.rpc_utils import indicates_connection_error
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.ingress import INGRESS
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows, messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -73,6 +74,7 @@ class Classifier(MagmaController):
             'gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
             'internal_sampling_fwd_tbl', 'multi_tunnel_flag',
             'internal_conntrack_port', 'internal_conntrack_fwd_tbl', 'paging_timeout', 'classifier_controller_id',
+            'enable_nat',
         ],
     )
 
@@ -82,7 +84,13 @@ class Classifier(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = self._service_manager.get_table_num(INGRESS)
         self.loop = kwargs['loop']
-        self._uplink_port = OFPP_LOCAL
+        self.uplink_port_name = kwargs['config']['ovs_uplink_port_name']
+        if self.config.enable_nat is False and self.uplink_port_name is not None:
+            self._uplink_port = BridgeTools.get_ofport(
+                self.uplink_port_name,
+            )
+        else:
+            self._uplink_port = OFPP_LOCAL
         self._datapath = None
         self._clean_restart = kwargs['config']['clean_restart']
         self._sessiond_setinterface = \
@@ -116,6 +124,7 @@ class Classifier(MagmaController):
             internal_conntrack_fwd_tbl=config_dict['ovs_internal_conntrack_fwd_tbl_number'],
             paging_timeout=config_dict['paging_timeout'],
             classifier_controller_id=config_dict['classifier_controller_id'],
+            enable_nat=config_dict['enable_nat'],
 
         )
 

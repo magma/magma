@@ -135,15 +135,15 @@ class TrafficUtil(object):
 
     def update_dl_route(self, ue_ip_block):
         """Update downlink route in TRF server"""
-        ret_code = self.exec_command(
+        ret_code_ipv4 = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
             "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
         )
-        ret_code = self.exec_command(
+        ret_code_ipv6 = self.exec_command(
             "sudo ip -6 route flush via " + self.agw_ipv6 + " && sudo ip -6 route "
             "replace " + self.ue_ipv6_block + " via " + self.agw_ipv6 + " dev eth3",
         )
-        return ret_code == 0
+        return ret_code_ipv4 == 0 and ret_code_ipv6 == 0
 
     def close_running_iperf_servers(self):
         """Close running Iperf3 servers in TRF server VM"""

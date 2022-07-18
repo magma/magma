@@ -97,6 +97,8 @@ class PagingTest(unittest.TestCase):
                 'clean_restart': True,
                 'paging_timeout': 30,
                 'classifier_controller_id': 5,
+                'enable_nat': True,
+                'ovs_uplink_port_name': "patch-up",
             },
             mconfig=PipelineD(),
             loop=None,

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_handlers.c
+/*! \file sgw_handlers.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -23,7 +23,7 @@
   */
 #define SGW
 
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 
 #include <inttypes.h>
 #include <netinet/in.h>
@@ -33,12 +33,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/async_system.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/async_system.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/pgw_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
@@ -52,7 +58,7 @@
  */
 status_code_e pgw_pcef_emulation_init(spgw_state_t* state_p,
                                       const pgw_config_t* const pgw_config_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   hashtable_rc_t hrc = HASH_TABLE_OK;
 
   //--------------------------

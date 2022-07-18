@@ -25,18 +25,18 @@ $(PYTHON_BUILD)/setupinteg_env:
 # TODO T21489739 - Don't sleep and don't stop after a failure
 RESULTS_DIR := /var/tmp/test_results
 ifdef enable-flaky-retry
-	FLAKY_CMD_ARGS := --with-flaky --force-flaky --no-flaky-report --max-runs=3 --min-passes=1
+	FLAKY_CMD_ARGS := --force-flaky --no-flaky-report --max-runs=3 --min-passes=1
 else
 	FLAKY_CMD_ARGS :=
 endif
 define execute_test
 	echo "Running test: $(1)"
-	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(PYTHON_BUILD)/bin/nosetests $(FLAKY_CMD_ARGS) --with-xunit --xunit-file=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x -s $(1) || (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
+	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(BIN)/pytest $(FLAKY_CMD_ARGS) --capture=tee-sys --junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) || (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
 	sleep 1
 endef
 
 .PHONY: precommit
-precommit: $(PYTHON_BUILD)/setupinteg_env $(BIN)/nosetests
+precommit: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
 ifdef TESTS
 	$(call execute_test,$(TESTS))
@@ -45,7 +45,7 @@ else
 endif
 
 .PHONY: integ_test
-integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/nosetests
+integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
 ifdef TESTS
 	$(call execute_test,$(TESTS))
@@ -55,7 +55,7 @@ else
 endif
 
 .PHONY: nonsanity
-nonsanity: $(PYTHON_BUILD)/setupinteg_env $(BIN)/nosetests
+nonsanity: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
 ifdef TESTS
 	$(call execute_test,$(TESTS))
@@ -66,4 +66,4 @@ endif
 local_integ_test:
 	# check if magma services are running
 	systemctl is-active --quiet magma@magmad || (echo "Local integ tests should be run on access gw with magma services running"; exit 1)
-	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/nosetests -s $(LOCAL_INTEG_TESTS)
+	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/pytest -s $(LOCAL_INTEG_TESTS)

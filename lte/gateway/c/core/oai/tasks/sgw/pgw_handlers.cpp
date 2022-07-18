@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_handlers.c
+/*! \file pgw_handlers.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -31,17 +31,27 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
@@ -50,20 +60,16 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
-extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
 static void delete_temporary_dedicated_bearer_context(
     teid_t s1_u_sgw_fteid, ebi_t lbi,
@@ -207,7 +213,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     imsi64_t imsi64, gtpv2c_cause_value_t* failed_cause) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t i = 0;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   hash_table_ts_t* hashtblP = NULL;
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = NULL;
@@ -327,7 +333,7 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
     const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  int32_t rc = RETURNok;
+  status_code_e rc = RETURNok;
   hash_table_ts_t* hashtblP = NULL;
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = NULL;
@@ -437,13 +443,14 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
 }
 
 // Send ITTI message,S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST to mme_app
-int32_t spgw_build_and_send_s11_deactivate_bearer_req(
+status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   MessageDef* message_p = itti_alloc_new_message(
-      module, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
+      (module == LOG_SPGW_APP ? TASK_SPGW_APP : TASK_SGW_S8),
+      S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
         module, imsi64,
@@ -473,7 +480,7 @@ int32_t spgw_build_and_send_s11_deactivate_bearer_req(
                  "Sending nw_initiated_deactv_bearer_req to mme_app "
                  "with delete_default_bearer flag set to %d\n",
                  s11_bearer_deactv_request->delete_default_bearer);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   if (module == LOG_SPGW_APP) {
     rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   } else if (module == LOG_SGW_S8) {
@@ -490,7 +497,7 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
     bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint32_t rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
                  "Sending Create Bearer Rsp to PCRF with EBI %d with "
@@ -517,9 +524,9 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
 }
 
 //------------------------------------------------------------------------------
-uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
-                                                   ebi_t lbi) {
-  uint32_t rc = RETURNok;
+status_code_e spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
+                                                        ebi_t lbi) {
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
   OAILOG_INFO(
@@ -534,7 +541,7 @@ uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(gtpv2c_cause_t cause,
 }
 
 // Build and send ITTI message, s11_create_bearer_request to MME APP
-int sgw_build_and_send_s11_create_bearer_request(
+status_code_e sgw_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
@@ -542,10 +549,11 @@ int sgw_build_and_send_s11_create_bearer_request(
     log_proto_t module) {
   OAILOG_FUNC_IN(module);
   MessageDef* message_p = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
-  message_p =
-      itti_alloc_new_message(module, S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
+  message_p = itti_alloc_new_message(
+      (module == LOG_SPGW_APP ? TASK_SPGW_APP : TASK_SGW_S8),
+      S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
   if (!message_p) {
     OAILOG_ERROR_UE(module, sgw_eps_bearer_context_information->imsi64,
                     "Failed to allocate message_p for"
@@ -599,7 +607,7 @@ int sgw_build_and_send_s11_create_bearer_request(
 }
 
 // Create temporary dedicated bearer context
-int create_temporary_dedicated_bearer_context(
+status_code_e create_temporary_dedicated_bearer_context(
     sgw_eps_bearer_context_information_t* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
@@ -607,7 +615,8 @@ int create_temporary_dedicated_bearer_context(
     uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
-      calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+      reinterpret_cast<sgw_eps_bearer_ctxt_t*>(
+          calloc(1, sizeof(sgw_eps_bearer_ctxt_t)));
 
   if (!eps_bearer_ctxt_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
@@ -670,7 +679,8 @@ int create_temporary_dedicated_bearer_context(
     }
   }
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
-      calloc(1, sizeof(*sgw_eps_bearer_entry_p));
+      reinterpret_cast<sgw_eps_bearer_entry_wrapper_s*>(
+          calloc(1, sizeof(*sgw_eps_bearer_entry_p)));
   if (!sgw_eps_bearer_entry_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
                     "Failed to allocate memory for sgw_eps_bearer_entry_p\n");

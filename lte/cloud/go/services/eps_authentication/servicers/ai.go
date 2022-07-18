@@ -51,7 +51,7 @@ func (srv *EPSAuthServer) AuthenticationInformation(
 		metrics.NetworkIDErrors.Inc()
 		return nil, err
 	}
-	config, err := getConfig(networkID)
+	config, err := GetConfig(networkID)
 	if err != nil {
 		glog.V(2).Infof("could not lookup config for networkID '%s': %v", networkID, err.Error())
 		metrics.ConfigErrors.Inc()

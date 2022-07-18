@@ -15,26 +15,33 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_pco.c
+/*! \file pgw_pco.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#include "lte/gateway/c/core/common/common_defs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/rfc_1332.h"
 #include "lte/gateway/c/core/oai/common/rfc_1877.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
 
 //------------------------------------------------------------------------------
 status_code_e pgw_pco_push_protocol_or_container_id(
@@ -120,7 +127,7 @@ status_code_e pgw_process_pco_request_ipcp(
         pco_in_index);
 
     switch (ipcp_req_option) {
-      case IPCP_OPTION_PRIMARY_DNS_SERVER_IP_ADDRESS:
+      case IPCP_OPTION_PRIMARY_DNS_SERVER_IP_ADDRESS: {
         /* RFC 1877
          * This Configuration Option defines a method for negotiating with
          * the remote peer the address of the primary DNS server to be used
@@ -182,9 +189,9 @@ status_code_e pgw_process_pco_request_ipcp(
         idp[5] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 24) & 0x000000FF);
         ipcp_out_length += 6;
         bcatblk(poc_id_resp.contents, idp, 6);
-        break;
+      } break;
 
-      case IPCP_OPTION_SECONDARY_DNS_SERVER_IP_ADDRESS:
+      case IPCP_OPTION_SECONDARY_DNS_SERVER_IP_ADDRESS: {
         /* RFC 1877
          * This Configuration Option defines a method for negotiating with
          * the remote peer the address of the secondary DNS server to be used
@@ -240,7 +247,7 @@ status_code_e pgw_process_pco_request_ipcp(
         ids[5] = (uint8_t)((ipcp_out_dns_sec_ipv4_addr >> 24) & 0x000000FF);
         ipcp_out_length += 6;
         bcatblk(poc_id_resp.contents, ids, 6);
-        break;
+      } break;
 
       default:
         OAILOG_WARNING(LOG_SPGW_APP,
@@ -377,7 +384,7 @@ status_code_e pgw_process_pco_request(
     protocol_configuration_options_t* pco_resp,
     protocol_configuration_options_ids_t* const pco_ids) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint32_t rc = RETURNok;
+  status_code_e rc = RETURNok;
   memset(pco_ids, 0, sizeof *pco_ids);
 
   switch (pco_req->configuration_protocol) {
