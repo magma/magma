@@ -134,7 +134,7 @@ class IPV6RouterSolicitation5GTableTest(unittest.TestCase):
 
     def test_ipv6_5g_flows(self):
         """
-        Verify that a UPLINK->UE arp request is properly matched
+        Verify that a UPLINK->UE Router Solic & Router Adv
         """
         ll_addr = get_if_hwaddr('testing_br')
 
