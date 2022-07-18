@@ -84,8 +84,8 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
-    # Default maximum wait time is 60 sec (1 min)
-    MAX_RESP_WAIT_TIME = 60
+    # Default maximum wait time is 180 sec (3 min)
+    MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
