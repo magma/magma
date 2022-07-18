@@ -14,7 +14,6 @@ limitations under the License.
 package status
 
 import (
-	"fmt"
 	"math"
 	"net"
 	"runtime"
@@ -150,11 +149,8 @@ func GetNetworkInfo() *NetworkInfo {
 		interfaces[i] = netIface
 	}
 
-	routes, linkIndextoIP, unlinkedHostRoutes := getRoutes(hostRoutes)
-	for i, uhr := range unlinkedHostRoutes {
-		unlinkedHostRoutes[i].Src = net.ParseIP(linkIndextoIP[uhr.LinkIndex])
-	}
-	additionalRoutes, _, _ := getRoutes(unlinkedHostRoutes)
+	routes, unlinkedHostRoutes := getRoutes(hostRoutes)
+	additionalRoutes, _ := getRoutes(unlinkedHostRoutes)
 	routes = append(routes, additionalRoutes...)
 	return &NetworkInfo{
 		NetworkInterfaces: interfaces,
@@ -162,7 +158,7 @@ func GetNetworkInfo() *NetworkInfo {
 	}
 }
 
-func getRoutes(hRoutes []netlink.Route) ([]*Route, map[int]string, []netlink.Route) {
+func getRoutes(hRoutes []netlink.Route) ([]*Route, []netlink.Route) {
 	interfaceToIP := make(map[string]string)
 	var unlinkedHostRoutes []netlink.Route
 	var routes []*Route
@@ -212,26 +208,17 @@ func getRoutes(hRoutes []netlink.Route) ([]*Route, map[int]string, []netlink.Rou
 		interfaceToIP[convertedIface.Name] = src
 	}
 
-	linkIndexToLinkName := make(map[int]string)
-
+	linkIndexToIP := make(map[int]string)
 	linkList, _ := netlink.LinkList()
 	for _, l := range linkList {
-		linkIndexToLinkName[l.Attrs().Index] = l.Attrs().Name
-	}
-
-	linkIndexToIP := make(map[int]string)
-
-	for idx, name := range linkIndexToLinkName {
-		linkIndexToIP[idx] = interfaceToIP[name]
-		fmt.Print(idx)
-		fmt.Print(name)
+		linkIndexToIP[l.Attrs().Index] = interfaceToIP[l.Attrs().Name]
 	}
 
 	for i, uhr := range unlinkedHostRoutes {
 		unlinkedHostRoutes[i].Src = net.ParseIP(linkIndexToIP[uhr.LinkIndex])
 	}
 
-	return routes, linkIndexToIP, unlinkedHostRoutes
+	return routes, unlinkedHostRoutes
 }
 
 // GetMachineInfo
