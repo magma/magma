@@ -323,6 +323,9 @@ func UnixMs(t time.Time) int64 {
 func getIPInterfaceNameMap() map[string]int {
 	ipNameMapNI := make(map[string]int)
 	for i, nf := range netInterfaces {
+		if len(nf.Addrs) == 0 {
+			continue
+		}
 		nfIP, _, _ := net.ParseCIDR(nf.Addrs[0].Addr)
 		ipNameMapNI[nfIP.To4().String()] = i
 	}
