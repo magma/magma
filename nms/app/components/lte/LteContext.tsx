@@ -12,7 +12,6 @@
  */
 import * as React from 'react';
 import CbsdContext from '../context/CbsdContext';
-import EnodebContext from '../context/EnodebContext';
 import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import GatewayTierContext from '../context/GatewayTierContext';
 
@@ -22,6 +21,7 @@ import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 import {ApnContextProvider} from '../context/ApnContext';
+import {EnodebContextProvider} from '../context/EnodebContext';
 import {GatewayContextProvider} from '../context/GatewayContext';
 import {TraceContextProvider} from '../context/TraceContext';
 import {omit} from 'lodash';
@@ -32,7 +32,6 @@ import type {
   LteNetwork,
   MutableCbsd,
   MutableSubscriber,
-  NetworkRanConfigs,
   PaginatedCbsds,
   PolicyQosProfile,
   PolicyRule,
@@ -41,7 +40,6 @@ import type {
   SubscriberState,
   Tier,
 } from '../../../generated';
-import type {EnodebInfo} from './EnodebUtils';
 import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import * as cbsdState from '../../state/lte/CbsdState';
@@ -58,11 +56,8 @@ import {
   SubscriberId,
 } from '../../../shared/types/network';
 import {
-  FetchEnodebs,
-  InitEnodeState,
   InitGatewayPoolState,
   InitTierState,
-  SetEnodebState,
   SetGatewayPoolsState,
   SetTierState,
   UpdateGatewayPoolRecords,
@@ -211,73 +206,6 @@ export function CbsdContextProvider({networkId, children}: Props) {
       }}>
       {children}
     </CbsdContext.Provider>
-  );
-}
-
-export function EnodebContextProvider(props: Props) {
-  const {networkId} = props;
-  const [enbInfo, setEnbInfo] = useState<Record<string, EnodebInfo>>({});
-  const [lteRanConfigs, setLteRanConfigs] = useState<NetworkRanConfigs>(
-    {} as NetworkRanConfigs,
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        if (networkId == null) {
-          return;
-        }
-        const [lteRanConfigsResp] = await Promise.allSettled([
-          MagmaAPI.lteNetworks.lteNetworkIdCellularRanGet({networkId}),
-          InitEnodeState({networkId, setEnbInfo, enqueueSnackbar}),
-        ]);
-        if (lteRanConfigsResp.status === 'fulfilled') {
-          setLteRanConfigs(lteRanConfigsResp.value.data);
-        }
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching enodeb information', {
-          variant: 'error',
-        });
-      }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  return (
-    <EnodebContext.Provider
-      value={{
-        state: {enbInfo},
-        lteRanConfigs: lteRanConfigs,
-        setState: (key: string, value?) => {
-          return SetEnodebState({
-            enbInfo,
-            setEnbInfo,
-            networkId,
-            key,
-            value,
-          });
-        },
-        refetch: id => {
-          void FetchEnodebs({
-            id: id,
-            networkId,
-            enqueueSnackbar,
-          }).then(enodebs => {
-            if (enodebs) {
-              setEnbInfo(enodebState =>
-                id ? {...enodebState, ...enodebs} : enodebs,
-              );
-            }
-          });
-        },
-      }}>
-      {props.children}
-    </EnodebContext.Provider>
   );
 }
 

@@ -12,14 +12,11 @@
  */
 import type {
   CellularGatewayPool,
-  Enodeb,
-  EnodebState as EnodebStateResponse,
   GenericCommandParams,
   MutableCellularGatewayPool,
   PingRequest,
   Tier,
 } from '../../../generated';
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {
   GatewayId,
   GatewayPoolId,
@@ -128,156 +125,6 @@ type FetchProps = {
     cfg: OptionsObject,
   ) => string | number | null | undefined;
 };
-
-export async function FetchEnodebs(
-  props: FetchProps,
-): Promise<Record<string, EnodebInfo> | undefined> {
-  const {networkId, id} = props;
-  if (id !== undefined && id !== null) {
-    let enb: Enodeb;
-    try {
-      enb = (
-        await MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialGet({
-          networkId: networkId,
-          enodebSerial: id,
-        })
-      ).data;
-      if (enb) {
-        const newEnbSt = (
-          await MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialStateGet({
-            networkId: networkId,
-            enodebSerial: id,
-          })
-        ).data;
-        const newEnb = {
-          [id]: {
-            enb_state: newEnbSt,
-            enb: enb,
-          },
-        };
-        return newEnb;
-      }
-    } catch (e) {
-      return {
-        [id]: {
-          enb_state: {},
-          enb: enb!,
-        } as EnodebInfo,
-      };
-    }
-  } else {
-    const resp = (
-      await MagmaAPI.enodebs.lteNetworkIdEnodebsGet({
-        networkId,
-      })
-    ).data;
-    const enbs = resp.enodebs;
-    if (!enbs) {
-      return;
-    }
-
-    const requests = Object.keys(enbs).map(async k => {
-      try {
-        const {serial} = enbs[k];
-        // eslint-disable-next-line max-len
-        const enbSt = (
-          await MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialStateGet({
-            networkId: networkId,
-            enodebSerial: serial,
-          })
-        ).data;
-        return [enbs[k], enbSt ?? {}] as const;
-      } catch (e) {
-        return [enbs[k], {}] as const;
-      }
-    });
-
-    const enbResp = await Promise.all(requests);
-    const enbInfo: Record<string, EnodebInfo> = {};
-    enbResp.filter(Boolean).forEach(r => {
-      if (r.length > 0) {
-        const [enb, enbSt] = r;
-        if (enb != null && enbSt != null) {
-          enbInfo[enb.serial] = {
-            enb,
-            enb_state: enbSt as EnodebStateResponse,
-          };
-        }
-      }
-    });
-    return enbInfo;
-  }
-}
-
-type InitEnodeStateProps = {
-  networkId: NetworkId;
-  setEnbInfo: (enodebInfo: Record<string, EnodebInfo>) => void;
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
-};
-
-export async function InitEnodeState(props: InitEnodeStateProps) {
-  const enodebInfo = await FetchEnodebs({
-    networkId: props.networkId,
-    enqueueSnackbar: props.enqueueSnackbar,
-  });
-
-  if (enodebInfo) {
-    props.setEnbInfo(enodebInfo);
-  }
-}
-
-type EnodebStateProps = {
-  networkId: NetworkId;
-  enbInfo: Record<string, EnodebInfo>;
-  setEnbInfo: (enodebInfo: Record<string, EnodebInfo>) => void;
-  key: string;
-  value?: EnodebInfo;
-};
-
-export async function SetEnodebState(props: EnodebStateProps) {
-  const {networkId, enbInfo, setEnbInfo, key, value} = props;
-
-  if (value != null) {
-    // remove attached gateway id read only property
-    if (value.enb.hasOwnProperty('attached_gateway_id')) {
-      delete value.enb['attached_gateway_id'];
-    }
-
-    if (!(key in enbInfo)) {
-      await MagmaAPI.enodebs.lteNetworkIdEnodebsPost({
-        networkId: networkId,
-        enodeb: value.enb,
-      });
-      setEnbInfo({...enbInfo, [key]: value});
-    } else {
-      await MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut({
-        networkId: networkId,
-        enodebSerial: key,
-        enodeb: value.enb,
-      });
-      const prevEnbSt = enbInfo[key].enb_state;
-      setEnbInfo({
-        ...enbInfo,
-        [key]: {
-          enb_state: prevEnbSt,
-          enb: value.enb,
-        },
-      });
-    }
-  } else {
-    await MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialDelete({
-      networkId: networkId,
-      enodebSerial: key,
-    });
-    const newEnbInfo = {...enbInfo};
-    delete newEnbInfo[key];
-    setEnbInfo(newEnbInfo);
-    return;
-  }
-}
 
 export type GatewayCommandProps = {
   networkId: NetworkId;

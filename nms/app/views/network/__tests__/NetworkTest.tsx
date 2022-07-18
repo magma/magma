@@ -284,6 +284,7 @@ describe('<NetworkDashboard />', () => {
       state: apns,
       setState: async () => {},
     };
+
     const policyCtx = {
       state: policies,
       baseNames: {},
@@ -295,6 +296,7 @@ describe('<NetworkDashboard />', () => {
       setState: async () => {},
       refetch: () => {},
     } as PolicyContextType;
+
     const enodebCtx = {
       state: {enbInfo},
       setState: async () => {},
