@@ -14,7 +14,7 @@ import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import GatewayPoolsContext, {
-  GatewayPoolRecordsType,
+    GatewayPoolRecordsType, SetGatewayPoolsState, UpdateGatewayPoolRecords,
 } from '../../../components/context/GatewayPoolsContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -24,10 +24,6 @@ import {GatewayPoolId} from '../../../../shared/types/network';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {MutableCellularGatewayPool} from '../../../../generated';
-import {
-  SetGatewayPoolsState,
-  UpdateGatewayPoolRecords,
-} from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';

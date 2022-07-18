@@ -12,7 +12,6 @@
  */
 import * as React from 'react';
 import CbsdContext from '../context/CbsdContext';
-import GatewayPoolsContext from '../context/GatewayPoolsContext';
 import InitSubscriberState, {
   FetchSubscriberState,
   getGatewaySubscriberMap,
@@ -26,9 +25,11 @@ import SubscriberContext from '../context/SubscriberContext';
 import {ApnContextProvider} from '../context/ApnContext';
 import {EnodebContextProvider} from '../context/EnodebContext';
 import {GatewayContextProvider} from '../context/GatewayContext';
+import {GatewayPoolsContextProvider} from '../context/GatewayPoolsContext';
 import {GatewayTierContextProvider} from '../context/GatewayTierContext';
 import {TraceContextProvider} from '../context/TraceContext';
 import {omit} from 'lodash';
+import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {
   BaseNameRecord,
   FegLteNetwork,
@@ -43,7 +44,6 @@ import type {
   Subscriber,
   SubscriberState,
 } from '../../../generated';
-import type {gatewayPoolsStateType} from '../context/GatewayPoolsContext';
 
 import * as cbsdState from '../../state/lte/CbsdState';
 import MagmaAPI from '../../api/MagmaAPI';
@@ -54,11 +54,6 @@ import {
   SubscriberId,
 } from '../../../shared/types/network';
 import {
-  InitGatewayPoolState,
-  SetGatewayPoolsState,
-  UpdateGatewayPoolRecords,
-} from '../../state/lte/EquipmentState';
-import {
   SetBaseNameState,
   SetPolicyState,
   SetQosProfileState,
@@ -67,7 +62,6 @@ import {
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
-import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
@@ -279,66 +273,6 @@ export function SubscriberContextProvider(props: Props) {
       }}>
       {props.children}
     </SubscriberContext.Provider>
-  );
-}
-
-export function GatewayPoolsContextProvider(props: Props) {
-  const {networkId} = props;
-  const [isLoading, setIsLoading] = useState(true);
-  const [gatewayPools, setGatewayPools] = useState<
-    Record<string, gatewayPoolsStateType>
-  >({});
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        if (networkId == null) {
-          return;
-        }
-        await InitGatewayPoolState({
-          enqueueSnackbar,
-          networkId,
-          setGatewayPools,
-        });
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching gateway pool information', {
-          variant: 'error',
-        });
-      }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <GatewayPoolsContext.Provider
-      value={{
-        state: gatewayPools,
-        setState: (key, value?) =>
-          SetGatewayPoolsState({
-            gatewayPools,
-            setGatewayPools,
-            networkId,
-            key,
-            value,
-          }),
-        updateGatewayPoolRecords: (key, value?, resources?) =>
-          UpdateGatewayPoolRecords({
-            gatewayPools,
-            setGatewayPools,
-            networkId,
-            key,
-            value,
-            resources,
-          }),
-      }}>
-      {props.children}
-    </GatewayPoolsContext.Provider>
   );
 }
 
@@ -698,7 +632,7 @@ export function LteContextProvider(props: Props) {
             <GatewayTierContextProvider {...{networkId, networkType}}>
               <EnodebContextProvider networkId={networkId}>
                 <GatewayContextProvider networkId={networkId}>
-                  <GatewayPoolsContextProvider {...{networkId, networkType}}>
+                  <GatewayPoolsContextProvider networkId={networkId}>
                     <TraceContextProvider networkId={networkId}>
                       <CbsdContextProvider {...{networkId, networkType}}>
                         {props.children}
