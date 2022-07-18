@@ -24,6 +24,7 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
+	gopsutil_net "github.com/shirou/gopsutil/v3/net"
 	"github.com/vishvananda/netlink"
 
 	"magma/gateway/config"
@@ -181,7 +182,7 @@ func getRoutes(hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.
 			continue
 		}
 
-		index := r.LinkIndex - 1
+		index := r.LinkIndex
 
 		dest := getDestinationIP(r).IP.To4()
 		if dest == nil {
@@ -206,9 +207,6 @@ func getRoutes(hRoutes []netlink.Route) ([]*Route, map[string]string, []netlink.
 			if maskV4 != nil {
 				maskStr = maskV4.String()
 			}
-		}
-		if index >= len(netInterfaces) {
-			continue
 		}
 
 		convertedIface := getNetInterface(index)
@@ -289,7 +287,13 @@ func UnixMs(t time.Time) int64 {
 }
 
 func getNetInterface(index int) net.Interface {
-	iface := netInterfaces[index]
+	var iface gopsutil_net.InterfaceStat
+	for _, nif := range netInterfaces {
+		if nif.Index == index {
+			iface = nif
+		}
+	}
+	// iface := netInterfaces[index]
 	parsedAddr, _ := net.ParseMAC(iface.HardwareAddr)
 	// hex.DecodeString(iface.HardwareAddr)
 	convertedIface := net.Interface{
