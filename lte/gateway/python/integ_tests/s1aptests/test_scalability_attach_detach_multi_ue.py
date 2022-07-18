@@ -23,6 +23,11 @@ class TestScalabilityAttachDetachMultiUe(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
+        # The default IP pool for UE IP address allocation is configured in
+        # s1ap_wrapper.py as 192.168.128.0/24. This mask value of 24 needs to
+        # be changed as per the logic explained in s1ap_wrapper.py file to
+        # allocate IP address for more than 243 UEs
+        # Please follow https://github.com/magma/S1APTester for more details
         self.default_ip_block = s1ap_wrapper.TestWrapper.TEST_IP_BLOCK
         s1ap_wrapper.TestWrapper.TEST_IP_BLOCK = "192.168.128.0/17"
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -80,7 +85,7 @@ class TestScalabilityAttachDetachMultiUe(unittest.TestCase):
             )
 
         # Reset the inactivity timer value to default 2 mins (120000 ms)
-        print("Resetting the inactivity timer value to dafault value (2 mins)")
+        print("Resetting the inactivity timer value to default value (2 mins)")
         config_data = s1ap_types.FwNbConfigReq_t()
         config_data.inactvTmrVal_pr.pres = True
         config_data.inactvTmrVal_pr.val = 120000
