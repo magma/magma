@@ -21,6 +21,8 @@ type Capabilities struct {
 
 	// this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
 	// Required: true
+	// Maximum: 150
+	// Multiple Of: 5
 	MaxIbwMhz int64 `json:"max_ibw_mhz"`
 
 	// max tx power available on cbsd
@@ -68,6 +70,14 @@ func (m *Capabilities) Validate(formats strfmt.Registry) error {
 func (m *Capabilities) validateMaxIbwMhz(formats strfmt.Registry) error {
 
 	if err := validate.Required("max_ibw_mhz", "body", int64(m.MaxIbwMhz)); err != nil {
+		return err
+	}
+
+	if err := validate.MaximumInt("max_ibw_mhz", "body", m.MaxIbwMhz, 150, false); err != nil {
+		return err
+	}
+
+	if err := validate.MultipleOfInt("max_ibw_mhz", "body", m.MaxIbwMhz, 5); err != nil {
 		return err
 	}
 

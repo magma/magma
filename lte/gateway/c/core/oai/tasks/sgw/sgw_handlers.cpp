@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_handlers.c
+/*! \file sgw_handlers.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -32,12 +32,21 @@
 #include <netinet/in.h>
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
@@ -53,18 +62,15 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
@@ -285,7 +291,7 @@ status_code_e sgw_handle_sgi_endpoint_created(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_create_session_response_t* create_session_response_p = NULL;
   MessageDef* message_p = NULL;
-  int rv = RETURNok;
+  status_code_e rv = RETURNok;
 
   OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
                   "Rx SGI_CREATE_ENDPOINT_RESPONSE, Context: S11 teid " TEID_FMT
@@ -695,7 +701,7 @@ void sgw_handle_sgi_endpoint_updated(
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 //------------------------------------------------------------------------------
-status_code_e sgw_handle_sgi_endpoint_deleted(
+int sgw_handle_sgi_endpoint_deleted(
     const itti_sgi_delete_end_point_request_t* const resp_pP, imsi64_t imsi64) {
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
   int rv = RETURNok;
@@ -866,7 +872,7 @@ status_code_e send_mbr_failure(
     log_proto_t module,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64) {
-  int rv = RETURNok;
+  status_code_e rv = RETURNok;
   OAILOG_FUNC_IN(module);
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
@@ -912,7 +918,7 @@ status_code_e sgw_handle_modify_bearer_request(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
-  int rv = RETURNok;
+  status_code_e rv = RETURNok;
   uint8_t idx = 0;
   itti_sgi_update_end_point_response_t sgi_update_end_point_resp = {0};
   struct in_addr enb = {.s_addr = 0};
@@ -984,10 +990,16 @@ status_code_e sgw_handle_modify_bearer_request(
             // This is best effort, ignore return code.
             gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
             // delete GTPv1-U tunnel
-            rv = gtp_tunnel_ops->del_tunnel(
-                enb, enb_ipv6, ue_ipv4, ue_ipv6,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-                eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+            if (gtp_tunnel_ops->del_tunnel(
+                    enb, enb_ipv6, ue_ipv4, ue_ipv6,
+                    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                    eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
+              OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                              "ERROR in deleting TUNNEL " TEID_FMT
+                              " (eNB) <-> (SGW) " TEID_FMT "\n",
+                              eps_bearer_ctxt_p->enb_teid_S1u,
+                              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+            }
           }
         }
         populate_sgi_end_point_update(sgi_rsp_idx, idx, modify_bearer_pP,
@@ -1033,7 +1045,7 @@ status_code_e sgw_handle_delete_session_request(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_delete_session_response_t* delete_session_resp_p = NULL;
   MessageDef* message_p = NULL;
-  int rv = RETURNok;
+  status_code_e rv = RETURNok;
 
   increment_counter("spgw_delete_session", 1, NO_LABELS);
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1109,11 +1121,10 @@ status_code_e sgw_handle_delete_session_request(
             }
 
 #if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
-            rv = gtp_tunnel_ops->del_tunnel(
-                enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-                eps_bearer_ctxt_p->enb_teid_S1u, NULL);
-            if (rv < 0) {
+            if (gtp_tunnel_ops->del_tunnel(
+                    enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                    eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
               OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                               "ERROR in deleting TUNNEL " TEID_FMT
                               " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -1262,7 +1273,7 @@ void handle_s5_create_session_response(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_create_session_response_t* create_session_response_p = NULL;
   MessageDef* message_p = NULL;
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {};
   gtpv2c_cause_value_t cause = REQUEST_ACCEPTED;
 
   /* Since bearer context is not found, can not get mme_s11_teid, imsi64,
@@ -1309,8 +1320,8 @@ void handle_s5_create_session_response(
   sgi_create_endpoint_resp.context_teid = session_resp.context_teid;
   sgi_create_endpoint_resp.eps_bearer_id = session_resp.eps_bearer_id;
   sgi_create_endpoint_resp.paa.pdn_type =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-          .pdn_type;
+      (pdn_type_value_t)new_bearer_ctxt_info_p
+          ->sgw_eps_bearer_context_information.saved_message.pdn_type;
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
@@ -1427,7 +1438,7 @@ status_code_e sgw_handle_suspend_notification(
     imsi64_t imsi64) {
   itti_s11_suspend_acknowledge_t* suspend_acknowledge_p = NULL;
   MessageDef* message_p = NULL;
-  int rv = RETURNok;
+  status_code_e rv = RETURNok;
   sgw_eps_bearer_ctxt_t* eps_bearer_entry_p = NULL;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1475,9 +1486,9 @@ status_code_e sgw_handle_suspend_notification(
         ue_ipv6 = &eps_bearer_entry_p->paa.ipv6_address;
       }
 #if !MME_UNIT_TEST
-      rv = gtp_tunnel_ops->discard_data_on_tunnel(
-          ue_ipv4, ue_ipv6, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
-      if (rv < 0) {
+      if (gtp_tunnel_ops->discard_data_on_tunnel(
+              ue_ipv4, ue_ipv6, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up,
+              NULL) < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                         "ERROR in Disabling DL data on TUNNEL\n");
       }
@@ -1513,7 +1524,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t msg_bearer_index = 0;
-  uint32_t rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
@@ -1649,7 +1660,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64) {
-  uint32_t rc = RETURNok;
+  status_code_e rc = RETURNok;
   uint32_t i = 0;
   uint32_t no_of_bearers = 0;
   ebi_t ebi = {0};
@@ -1701,11 +1712,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
             ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
           }
 #if !MME_UNIT_TEST
-          rc = gtp_tunnel_ops->del_tunnel(
-              enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->enb_teid_S1u, NULL);
-          if (rc != RETURNok) {
+          if (gtp_tunnel_ops->del_tunnel(
+                  enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                  eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                  eps_bearer_ctxt_p->enb_teid_S1u, NULL) < 0) {
             OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                             "ERROR in deleting TUNNEL " TEID_FMT
                             " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -1782,11 +1792,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
                 &eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv6_address;
           }
 #if !MME_UNIT_TEST
-          rc = gtp_tunnel_ops->del_tunnel(
-              enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-              eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
-          if (rc != RETURNok) {
+          if (gtp_tunnel_ops->del_tunnel(
+                  enb, enb_ipv6, eps_bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
+                  eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                  eps_bearer_ctxt_p->enb_teid_S1u, &dlflow) < 0) {
             OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                             "ERROR in deleting TUNNEL " TEID_FMT
                             " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -2021,7 +2030,7 @@ void generate_dl_flow(packet_filter_contents_t* packet_filter,
     } else if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG &
                 packet_filter->flags) ==
                TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
-      struct in6_addr remoteaddr = {.s6_addr = 0};
+      struct in6_addr remoteaddr = {};
       for (uint8_t itr = 0; itr < 16; itr++) {
         remoteaddr.s6_addr[itr] = packet_filter->ipv6remoteaddr[itr].addr;
       }
@@ -2035,7 +2044,7 @@ void generate_dl_flow(packet_filter_contents_t* packet_filter,
     dlflow->set_params |= DST_IPV4;
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
-      struct in_addr remoteaddr = {.s_addr = 0};
+      struct in_addr remoteaddr = {};
       remoteaddr.s_addr =
           (((uint32_t)packet_filter->ipv4remoteaddr[0].addr) << 24) +
           (((uint32_t)packet_filter->ipv4remoteaddr[1].addr) << 16) +
@@ -2049,7 +2058,7 @@ void generate_dl_flow(packet_filter_contents_t* packet_filter,
     dlflow->set_params |= DST_IPV6;
     if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
-      struct in6_addr remoteaddr = {.s6_addr = 0};
+      struct in6_addr remoteaddr = {};
       for (uint8_t itr = 0; itr < 16; itr++) {
         remoteaddr.s6_addr[itr] = packet_filter->ipv6remoteaddr[itr].addr;
       }
@@ -2190,7 +2199,7 @@ void sgw_send_release_access_bearer_response(
         release_access_bearers_req_pP,
     teid_t mme_teid_s11) {
   OAILOG_FUNC_IN(module);
-  int rv = RETURNok;
+  status_code_e rv = RETURNok;
   itti_s11_release_access_bearers_response_t* release_access_bearers_resp_p =
       NULL;
   MessageDef* message_p = itti_alloc_new_message(

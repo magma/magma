@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_lite_paa.h
+/*! \file pgw_pco.hpp
  * \brief
  * \author Lionel Gauthier
  * \company Eurecom

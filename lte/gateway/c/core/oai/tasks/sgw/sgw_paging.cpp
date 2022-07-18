@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.hpp"
+
 #include <arpa/inet.h>
 #include <string.h>
 #include <netinet/in.h>
@@ -22,14 +24,19 @@
 #include <sys/socket.h>
 #include "lte/gateway/c/core/oai/common/conversions.h"
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 
 void sgw_send_paging_request(const struct in_addr* dest_ipv4,
                              const struct in6_addr* dest_ipv6) {
@@ -61,7 +68,7 @@ void sgw_send_paging_request(const struct in_addr* dest_ipv4,
            sizeof(const struct in_addr));
     paging_request_p->ip_addr_type = IPV4_ADDR_TYPE;
   } else {
-    OAILOG_ERROR(TASK_SPGW_APP, "Both ipv4 and ipv6 addresses are NULL\n");
+    OAILOG_ERROR(LOG_SPGW_APP, "Both ipv4 and ipv6 addresses are NULL\n");
     return;
   }
   send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);

@@ -15,18 +15,25 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_procedures.c
+/*! \file pgw_procedures.cpp
   \brief  Just a workaround waiting for PCEF implementation
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 void delete_pending_procedures(
@@ -53,19 +60,23 @@ void delete_pending_procedures(
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* ctx_p) {
   pgw_ni_cbr_proc_t* s11_proc_create_bearer =
-      calloc(1, sizeof(pgw_ni_cbr_proc_t));
+      reinterpret_cast<pgw_ni_cbr_proc_t*>(
+          calloc(1, sizeof(pgw_ni_cbr_proc_t)));
   s11_proc_create_bearer->proc.type =
       PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST;
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
 
   if (!ctx_p->pending_procedures) {
-    ctx_p->pending_procedures = calloc(1, sizeof(struct pending_eps_bearers_s));
+    ctx_p->pending_procedures =
+        (sgw_eps_bearer_context_information_s::pending_procedures_s*)calloc(
+            1, sizeof(ctx_p->pending_procedures));
     LIST_INIT(ctx_p->pending_procedures);
   }
   LIST_INSERT_HEAD((ctx_p->pending_procedures), base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
-      calloc(1, sizeof(struct pending_eps_bearers_s));
+      (pgw_ni_cbr_proc_s::pending_eps_bearers_s*)calloc(
+          1, sizeof(s11_proc_create_bearer->pending_eps_bearers));
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
 
   return s11_proc_create_bearer;

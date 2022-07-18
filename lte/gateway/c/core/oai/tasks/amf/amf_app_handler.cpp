@@ -497,12 +497,13 @@ imsi64_t amf_app_handle_initial_ue_message(
 **      Return:    RETURNok, RETURNerror                                  **
 **                                                                        **
 ***************************************************************************/
-int amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
-                                      bstring msg, amf_ue_ngap_id_t ue_id,
-                                      const tai_t originating_tai) {
+status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
+                                                bstring msg,
+                                                amf_ue_ngap_id_t ue_id,
+                                                const tai_t originating_tai) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   if (msg) {
     amf_sap_t amf_sap = {};
     /*
@@ -547,7 +548,7 @@ static int amf_smf_session_update_pti_proc(
 /* Received the session created response message from SMF. Populate and Send
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
-int amf_app_handle_pdu_session_response(
+status_code_e amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
   memset(&encode_msg, 0, sizeof(encode_msg));
@@ -557,7 +558,7 @@ int amf_app_handle_pdu_session_response(
   memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint64_t ue_id = 0;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   uint32_t event;
 
   imsi64_t imsi64 = 0;
@@ -794,10 +795,8 @@ int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
 **      Return:    RETURNok, RETURNerror                                  **
 **                                                                        **
 ***************************************************************************/
-int amf_app_handle_pdu_session_accept(
+status_code_e amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
-  nas5g_error_code_t rc = M5G_AS_SUCCESS;
-
   DLNASTransportMsg* encode_msg;
   amf_nas_message_t msg = {};
   uint32_t bytes = 0;
@@ -816,7 +815,7 @@ int amf_app_handle_pdu_session_accept(
     OAILOG_ERROR(LOG_AMF_APP,
                  "ue context not found for the ue_id:" AMF_UE_NGAP_ID_FMT,
                  ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   smf_ctx = amf_get_smf_context_by_pdu_session_id(
@@ -824,7 +823,7 @@ int amf_app_handle_pdu_session_accept(
   if (!smf_ctx) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "Smf context is not exist UE ID:" AMF_UE_NGAP_ID_FMT, ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   // updating session state
   smf_ctx->pdu_session_state = ACTIVE;
@@ -975,7 +974,7 @@ int amf_app_handle_pdu_session_accept(
                  "Slice Configuration does not exist:" AMF_UE_NGAP_ID_FMT,
                  ue_id);
 
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, M5G_AS_FAILURE);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
 
   if (slice_information.sd[0]) {
@@ -1051,7 +1050,7 @@ int amf_app_handle_pdu_session_accept(
   bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosrules);
   bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosflowdescriptors);
 
-  return rc;
+  return RETURNok;
 }  // namespace magma5g
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
@@ -1557,14 +1556,14 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 
 // Doing Paging Request handling received from SMF in AMF CORE
 // int amf_app_defs::amf_app_handle_notification_received(
-int amf_app_handle_notification_received(
+status_code_e amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification) {
   ue_m5gmm_context_s* ue_context = nullptr;
   amf_context_t* amf_ctx = nullptr;
   paging_context_t* paging_ctx = nullptr;
   MessageDef* message_p = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
@@ -1575,7 +1574,7 @@ int amf_app_handle_notification_received(
 
   if (!ue_context) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null\n");
-    return -1;
+    return RETURNerror;
   }
 
   switch (notification->notify_ue_evnt) {
@@ -1721,7 +1720,7 @@ void amf_app_handle_initial_context_setup_rsp(
   }
 }
 using grpc::Status;
-int amf_app_handle_pdu_session_failure(
+status_code_e amf_app_handle_pdu_session_failure(
     itti_n11_create_pdu_session_failure_t* pdu_session_failure) {
   if (!pdu_session_failure) {
     return RETURNok;

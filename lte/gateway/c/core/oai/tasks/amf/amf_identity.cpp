@@ -110,13 +110,11 @@ void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
  **      Others:    amf_data, T3570                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_proc_identification_complete(const amf_ue_ngap_id_t ue_id,
-                                     imsi_t* const imsi, imei_t* const imei,
-                                     imeisv_t* const imeisv,
-                                     uint32_t* const tmsi,
-                                     guti_m5_t* amf_ctx_guti) {
+status_code_e amf_proc_identification_complete(
+    const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
+    imeisv_t* const imeisv, uint32_t* const tmsi, guti_m5_t* amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   amf_context_t* amf_ctx = NULL;
 
   OAILOG_DEBUG(LOG_NAS_AMF,

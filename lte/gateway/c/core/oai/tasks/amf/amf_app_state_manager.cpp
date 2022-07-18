@@ -105,9 +105,10 @@ AmfNasStateManager::~AmfNasStateManager() { free_state(); }
 
 // Singleton class initializer which calls to create new object of
 // AmfNasStateManager
-int AmfNasStateManager::initialize_state(const amf_config_t* amf_config_p) {
+status_code_e AmfNasStateManager::initialize_state(
+    const amf_config_t* amf_config_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  uint32_t rc = RETURNok;
+  status_code_e rc = RETURNok;
   persist_state_enabled = amf_config_p->use_stateless;
   max_ue_htbl_lists_ = amf_config_p->max_ues;
   amf_statistic_timer_ = amf_config_p->amf_statistic_timer;

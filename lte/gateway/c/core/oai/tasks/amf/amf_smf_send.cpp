@@ -275,11 +275,11 @@ int pdu_session_resource_release_complete(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-int pdu_session_resource_modification_complete(
+status_code_e pdu_session_resource_modification_complete(
     ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
     std::shared_ptr<smf_context_t> smf_ctx) {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  int rc = 1;
+  status_code_e rc = RETURNok;
 
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
 
@@ -411,10 +411,11 @@ static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
-                                       ULNASTransportMsg* msg, int amf_cause) {
+status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
+                                                 ULNASTransportMsg* msg,
+                                                 int amf_cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   amf_smf_t amf_smf_msg = {};
   std::shared_ptr<smf_context_t> smf_ctx;
   char imsi[IMSI_BCD_DIGITS_MAX + 1] = {0};
@@ -792,8 +793,9 @@ M5GMmCause amf_smf_validate_context(amf_ue_ngap_id_t ue_id,
 ** This function validates the DNN string received from UE or from        **
 ** mme.yml againt apn stored in amf_context for a particular imsi.        **
 ***************************************************************************/
-int amf_validate_dnn(const amf_context_s* amf_ctxt_p, std::string dnn_string,
-                     int* index, bool ue_sent_dnn) {
+status_code_e amf_validate_dnn(const amf_context_s* amf_ctxt_p,
+                               std::string dnn_string, int* index,
+                               bool ue_sent_dnn) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   // Validating apn_configuration_s
   if (dnn_string.empty()) {
@@ -824,10 +826,10 @@ int amf_validate_dnn(const amf_context_s* amf_ctxt_p, std::string dnn_string,
 ** UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY                                     **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
-                              ue_m5gmm_context_s* ue_context,
-                              notify_ue_event notify_event_type,
-                              uint16_t session_id) {
+status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
+                                        ue_m5gmm_context_s* ue_context,
+                                        notify_ue_event notify_event_type,
+                                        uint16_t session_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   /* Get gRPC structure of notification to be filled common and
    * rat type elements.
@@ -884,8 +886,8 @@ int amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_update_smf_context_pdu_ip(const std::shared_ptr<smf_context_t>& smf_ctx,
-                                  paa_t* address_info) {
+status_code_e amf_update_smf_context_pdu_ip(
+    const std::shared_ptr<smf_context_t>& smf_ctx, paa_t* address_info) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_INFO(LOG_AMF_APP, "SMF context PDU address updated\n");
   memcpy(&(smf_ctx->pdu_address), address_info, sizeof(paa_t));
@@ -901,13 +903,13 @@ int amf_update_smf_context_pdu_ip(const std::shared_ptr<smf_context_t>& smf_ctx,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_handle_ip_address_response(
+status_code_e amf_smf_handle_ip_address_response(
     itti_amf_ip_allocation_response_t* response_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
   imsi64_t imsi64;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   IMSI_STRING_TO_IMSI64(response_p->imsi, &imsi64);
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
@@ -994,10 +996,10 @@ int amf_smf_handle_ip_address_response(
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
-int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
+status_code_e amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(
       LOG_AMF_APP,
@@ -1050,11 +1052,11 @@ int amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
  **  Return     :  RETURNok, RETURNerror                                   **
  **                                                                        **
  ***************************************************************************/
-int handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
-                                      ULNASTransportMsg* ulmsg,
-                                      M5GMmCause m5gmmcause) {
+status_code_e handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
+                                                ULNASTransportMsg* ulmsg,
+                                                M5GMmCause m5gmmcause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   DLNASTransportMsg* dlmsg = nullptr;
   uint32_t bytes = 0;
   uint32_t len = 0;
@@ -1295,11 +1297,11 @@ int construct_pdu_session_reject_dl_req(uint8_t sequence_number,
  **  Return     :  RETURNok, RETURNerror                                   **
  **                                                                        **
  ***************************************************************************/
-int amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
-                                         uint8_t session_id, uint8_t pti,
-                                         uint8_t cause) {
+status_code_e amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
+                                                   uint8_t session_id,
+                                                   uint8_t pti, uint8_t cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   uint32_t bytes = 0;
   uint32_t len = 0;
   bstring buffer;

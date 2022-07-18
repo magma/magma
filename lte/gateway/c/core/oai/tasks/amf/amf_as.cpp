@@ -51,7 +51,8 @@ using namespace magma;
 namespace magma5g {
 /*forward declaration*/
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
+static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
+                                          int* amf_cause);
 static int amf_as_security_req(const amf_as_security_t* msg,
                                m5g_dl_info_transfer_req_t* as_msg);
 static int amf_as_security_rej(const amf_as_security_t* msg,
@@ -79,8 +80,8 @@ static int amf_service_reject(const amf_as_data_t* msg,
 **      Others : None                                                    **
 **                                                                       **
 **************************************************************************/
-int amf_as_send(amf_as_t* msg) {
-  int rc = RETURNok;
+status_code_e amf_as_send(amf_as_t* msg) {
+  status_code_e rc = RETURNok;
   int amf_cause = AMF_CAUSE_SUCCESS;
   amf_as_primitive_t primitive = msg->primitive;
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -120,13 +121,14 @@ int amf_as_send(amf_as_t* msg) {
 **      Others:    None                                                   **
 **                                                                        **
 ***************************************************************************/
-static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
+static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
+                                          int* amf_cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_security_context_t* amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
   memset(&decode_status, 0, sizeof(decode_status));
   int decoder_rc = 1;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   tai_t originating_tai = {0};
   amf_nas_message_t nas_msg = {0};
   ue_m5gmm_context_s* ue_m5gmm_context = NULL;
@@ -250,7 +252,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
  **      Others: None                                                    **
  **                                                                      **
  *************************************************************************/
-int amf_as_send_ng(const amf_as_t* msg) {
+status_code_e amf_as_send_ng(const amf_as_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_as_message_t as_msg = {0};
 
@@ -1182,8 +1184,9 @@ static int amf_as_security_rej(const amf_as_security_t* msg,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
-int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                  amf_context_t* amf_ctx, bstring nas_msg) {
+status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
+                                            amf_context_t* amf_ctx,
+                                            bstring nas_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/

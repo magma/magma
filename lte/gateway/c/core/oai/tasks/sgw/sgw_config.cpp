@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file spgw_config.c
+/*! \file spgw_config.cpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
@@ -32,10 +32,17 @@
 #include <stdbool.h>
 #include <libconfig.h>
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -60,7 +67,7 @@ void sgw_config_init(sgw_config_t* config_pP) {
 }
 //------------------------------------------------------------------------------
 status_code_e sgw_config_process(sgw_config_t* config_pP) {
-  int ret = RETURNok;
+  status_code_e ret = RETURNok;
   return ret;
 }
 
@@ -346,9 +353,9 @@ status_code_e sgw_config_parse_string(const char* config_string,
   return RETURNok;
 }
 
-int sgw_config_parse_file(sgw_config_t* config_pP) {
+status_code_e sgw_config_parse_file(sgw_config_t* config_pP) {
   FILE* fp = NULL;
-  int ret_code = RETURNerror;
+  status_code_e ret_code = RETURNerror;
   fp = fopen(bdata(config_pP->config_file), "r");
   if (fp == NULL) {
     OAILOG_CRITICAL(LOG_CONFIG,

@@ -93,7 +93,7 @@ class AmfNasStateManager
   static AmfNasStateManager& getInstance();
 
   // Initialize the local in-memory state when Amf app inits
-  int initialize_state(const amf_config_t* amf_config_p);
+  status_code_e initialize_state(const amf_config_t* amf_config_p);
 
   /**
    * Retrieve the state pointer from state manager. The read_from_db flag is a

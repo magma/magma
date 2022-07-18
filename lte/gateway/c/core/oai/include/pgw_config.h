@@ -140,9 +140,9 @@ typedef struct pgw_config_s {
   STAILQ_HEAD(ipv4_pool_head_s, conf_ipv4_list_elm_s) ipv4_pool_list;
 } pgw_config_t;
 
-int pgw_config_process(pgw_config_t* config_pP);
+status_code_e pgw_config_process(pgw_config_t* config_pP);
 void pgw_config_init(pgw_config_t* config_pP);
-int pgw_config_parse_file(pgw_config_t* config_pP);
+status_code_e pgw_config_parse_file(pgw_config_t* config_pP);
 void pgw_config_display(pgw_config_t* config_p);
 void free_pgw_config(pgw_config_t* pgw_config_p);
 

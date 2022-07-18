@@ -130,12 +130,18 @@ typedef struct sgw_config_s {
 } sgw_config_t;
 
 void sgw_config_init(sgw_config_t* config_pP);
-int sgw_config_process(sgw_config_t* config_pP);
-int sgw_config_parse_file(sgw_config_t* config_pP);
-int sgw_config_parse_string(const char* config_string, sgw_config_t* config_pP);
+status_code_e sgw_config_process(sgw_config_t* config_pP);
+status_code_e sgw_config_parse_file(sgw_config_t* config_pP);
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e sgw_config_parse_string(const char* config_string,
+                                      sgw_config_t* config_pP);
 void free_sgw_config(sgw_config_t* sgw_config);
 void sgw_config_display(sgw_config_t* config_p);
-
+#ifdef __cplusplus
+}
+#endif
 #define sgw_config_read_lock(sGWcONFIG)           \
   do {                                            \
     pthread_rwlock_rdlock(&(sGWcONFIG)->rw_lock); \
