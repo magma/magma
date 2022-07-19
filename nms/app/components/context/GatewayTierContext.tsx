@@ -23,10 +23,6 @@ type GatewayTierState = {
   tiers: Record<string, Tier>;
   supportedVersions: Array<string>;
 };
-type GatewayTierContextProps = {
-  networkId: NetworkId;
-  children: React.ReactNode;
-};
 type GatewayTierContextType = {
   state: GatewayTierState;
   setState: (key: string, val?: Tier) => Promise<void>;
@@ -114,7 +110,10 @@ async function setTierState(params: {
   }
 }
 
-export function GatewayTierContextProvider(props: GatewayTierContextProps) {
+export function GatewayTierContextProvider(props: {
+  networkId: NetworkId;
+  children: React.ReactNode;
+}) {
   const {networkId} = props;
   const [tiers, setTiers] = useState<Record<string, Tier>>({});
   const [isLoading, setIsLoading] = useState(true);

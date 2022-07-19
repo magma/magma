@@ -35,11 +35,6 @@ export type CbsdContextType = {
   remove: (id: number) => Promise<void>;
 };
 
-type ProviderProps = {
-  networkId: NetworkId;
-  children: React.ReactNode;
-};
-
 const CbsdContext = React.createContext<CbsdContextType>({} as CbsdContextType);
 
 async function fetch(params: {
@@ -128,7 +123,13 @@ export async function remove(params: {networkId: string; cbsdId: number}) {
   });
 }
 
-export function CbsdContextProvider({networkId, children}: ProviderProps) {
+export function CbsdContextProvider({
+  networkId,
+  children,
+}: {
+  networkId: NetworkId;
+  children: React.ReactNode;
+}) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const [isLoading, setIsLoading] = useState(false);

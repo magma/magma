@@ -37,11 +37,6 @@ export type LteNetworkContextType = {
   updateNetworks: (props: UpdateNetworkContextParams) => Promise<void>;
 };
 
-type ProviderProps = {
-  networkId: NetworkId;
-  children: React.ReactNode;
-};
-
 type UpdateFegLteNetworkParams = {
   networkId: NetworkId;
   lteNetwork?: FegLteNetwork & {
@@ -188,7 +183,10 @@ async function updateLteNetworkState(params: UpdateLteNetworkParams) {
   }
 }
 
-export function LteNetworkContextProvider(props: ProviderProps) {
+export function LteNetworkContextProvider(props: {
+  networkId: NetworkId;
+  children: React.ReactNode;
+}) {
   const {networkId} = props;
   const networkCtx = useContext(NetworkContext);
   const [lteNetwork, setLteNetwork] = useState<

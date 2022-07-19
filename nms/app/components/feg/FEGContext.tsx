@@ -24,8 +24,8 @@ import {
   InitGatewayState,
   SetGatewayState,
 } from '../../state/feg/EquipmentState';
-import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
+import {fetchFegSubscriberState} from '../../util/SubscriberState';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import type {FederationGateway, SubscriberState} from '../../../generated';
 import type {FederationGatewayHealthStatus} from '../GatewayUtils';
@@ -56,7 +56,7 @@ export function FEGSubscriberContextProvider(props: Props) {
       if (networkId == null) {
         return;
       }
-      const sessionState = await FetchFegSubscriberState({
+      const sessionState = await fetchFegSubscriberState({
         networkId,
         enqueueSnackbar,
       });
@@ -74,7 +74,7 @@ export function FEGSubscriberContextProvider(props: Props) {
     <FEGSubscriberContext.Provider
       value={{
         refetch: () => {
-          void FetchFegSubscriberState({networkId}).then(fegSubscriberState => {
+          void fetchFegSubscriberState({networkId}).then(fegSubscriberState => {
             setSessionState(fegSubscriberState);
             if (fegSubscriberState) {
             }
@@ -188,7 +188,7 @@ export function FEGContextProvider(props: Props) {
   const {networkId, networkType} = props;
 
   return (
-    <FEGNetworkContextProvider {...{networkId, networkType}}>
+    <FEGNetworkContextProvider networkId={networkId}>
       <FEGSubscriberContextProvider {...{networkId, networkType}}>
         <FEGGatewayContextProvider {...{networkId, networkType}}>
           {props.children}

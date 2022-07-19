@@ -40,7 +40,7 @@ import {SubscriberDetailsUpload} from './SubscriberUpload';
 import {
   SubscriberRowType,
   handleSubscriberQuery,
-} from '../../state/lte/SubscriberState';
+} from '../../util/SubscriberState';
 import {colors} from '../../theme/default';
 import {forbiddenNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
