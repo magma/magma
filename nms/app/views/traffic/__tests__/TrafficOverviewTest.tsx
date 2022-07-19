@@ -12,23 +12,15 @@
  */
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import PolicyContext, {
-  PolicyContextType,
-} from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 import {ApnContextProvider} from '../../../components/context/ApnContext';
+import {PolicyProvider} from '../../../components/context/PolicyContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {PolicyId} from '../../../../shared/types/network';
 import {PolicyQosProfile, PolicyRule, RatingGroup} from '../../../../generated';
-import {
-  SetPolicyState,
-  SetQosProfileState,
-  SetRatingGroupState,
-} from '../../../state/PolicyState';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 
@@ -129,46 +121,23 @@ const ratingGroups: Record<string, RatingGroup> = {
 };
 
 describe('<TrafficDashboard />', () => {
+  const networkId = 'test';
+
   beforeEach(() => {
     mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsGet', apns);
+    mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesRulesviewfullGet',
+      policies,
+    );
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet', []);
+    mockAPI(
+      MagmaAPI.ratingGroups,
+      'networksNetworkIdRatingGroupsGet',
+      (ratingGroups as unknown) as Array<RatingGroup>,
+    );
+    mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });
-
-  const networkId = 'test';
-  const policyCtx: PolicyContextType = {
-    state: policies,
-    baseNames: {},
-    qosProfiles,
-    ratingGroups,
-    setBaseNames: () => Promise.resolve(),
-    setRatingGroups: (key: string, value?: RatingGroup) => {
-      return SetRatingGroupState({
-        ratingGroups,
-        setRatingGroups: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    setQosProfiles: (key: string, value?: PolicyQosProfile) => {
-      return SetQosProfileState({
-        qosProfiles,
-        setQosProfiles: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    setState: (key: PolicyId, value?: PolicyRule) => {
-      return SetPolicyState({
-        policies,
-        setPolicies: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    refetch: () => {},
-  };
 
   const Wrapper = () => (
     <MemoryRouter
@@ -176,7 +145,7 @@ describe('<TrafficDashboard />', () => {
       initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <PolicyContext.Provider value={policyCtx}>
+          <PolicyProvider networkId={networkId}>
             <ApnContextProvider networkId={networkId}>
               <Routes>
                 <Route
@@ -185,7 +154,7 @@ describe('<TrafficDashboard />', () => {
                 />
               </Routes>
             </ApnContextProvider>
-          </PolicyContext.Provider>
+          </PolicyProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
@@ -358,6 +327,7 @@ describe('<TrafficDashboard />', () => {
 
 describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
+  const networkId = 'test';
 
   beforeEach((): void => {
     window.location = {
@@ -365,37 +335,30 @@ describe('<TrafficDashboard APNs/>', () => {
     } as Location;
 
     mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsGet', apns);
+
+    mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesRulesviewfullGet',
+      policies,
+    );
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet', []);
+    mockAPI(
+      MagmaAPI.ratingGroups,
+      'networksNetworkIdRatingGroupsGet',
+      (ratingGroups as unknown) as Array<RatingGroup>,
+    );
+    mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });
 
   afterEach((): void => {
     window.location = location;
   });
 
-  const networkId = 'test';
-  const policyCtx: PolicyContextType = {
-    state: policies,
-    baseNames: {},
-    qosProfiles: {},
-    ratingGroups: {},
-    setBaseNames: async () => {},
-    setRatingGroups: async () => {},
-    setQosProfiles: async () => {},
-    setState: (key: PolicyId, value?: PolicyRule) => {
-      return SetPolicyState({
-        policies,
-        setPolicies: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    refetch: () => {},
-  };
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <PolicyContext.Provider value={policyCtx}>
+          <PolicyProvider networkId={networkId}>
             <ApnContextProvider networkId={networkId}>
               <Routes>
                 <Route
@@ -404,7 +367,7 @@ describe('<TrafficDashboard APNs/>', () => {
                 />
               </Routes>
             </ApnContextProvider>
-          </PolicyContext.Provider>
+          </PolicyProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>

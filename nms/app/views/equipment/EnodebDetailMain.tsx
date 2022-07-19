@@ -32,7 +32,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-import {RunGatewayCommands} from '../../state/lte/EquipmentState';
+import {RunGatewayCommands} from './RunGatewayCommands';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';

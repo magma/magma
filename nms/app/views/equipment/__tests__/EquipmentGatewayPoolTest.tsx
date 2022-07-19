@@ -13,87 +13,75 @@
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../components/context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
-import GatewayPoolsContext, {
-    GatewayPoolRecordsType, SetGatewayPoolsState, UpdateGatewayPoolRecords,
-} from '../../../components/context/GatewayPoolsContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {GatewayPoolId} from '../../../../shared/types/network';
+import {GatewayPoolsContextProvider} from '../../../components/context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {MutableCellularGatewayPool} from '../../../../generated';
 import {fireEvent, render, wait, waitFor} from '@testing-library/react';
-import {mockAPI} from '../../../util/TestUtils';
+import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import {useState} from 'react';
 import type {LteGateway} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
-const gwPoolStateMock = {
+const lteNetworkIdGatewayPoolsGetMock = {
   pool1: {
-    gatewayPool: {
-      config: {mme_group_id: 1},
-      gateway_ids: ['gw1', 'gw2', 'gw5'],
-      gateway_pool_id: 'pool1',
-      gateway_pool_name: 'pool_1',
-    },
-    gatewayPoolRecords: [
-      {
-        gateway_pool_id: 'pool1',
-        gateway_id: 'gw1',
-        mme_code: 1,
-        mme_relative_capacity: 255,
-      },
-      {
-        gateway_pool_id: 'pool1',
-        gateway_id: 'gw2',
-        mme_code: 2,
-        mme_relative_capacity: 255,
-      },
-      {
-        gateway_pool_id: 'pool1',
-        gateway_id: 'gw5',
-        mme_code: 3,
-        mme_relative_capacity: 1,
-      },
-    ],
+    config: {mme_group_id: 1},
+    gateway_ids: ['gw1', 'gw2', 'gw5'],
+    gateway_pool_id: 'pool1',
+    gateway_pool_name: 'pool_1',
   },
   pool2: {
-    gatewayPool: {
-      config: {mme_group_id: 2},
-      gateway_ids: ['gw3', 'gw4'],
-      gateway_pool_id: 'pool2',
-      gateway_pool_name: 'pool_2',
-    },
-    gatewayPoolRecords: [
-      {
-        gateway_pool_id: 'pool2',
-        gateway_id: 'gw3',
-        mme_code: 1,
-        mme_relative_capacity: 255,
-      },
-      {
-        gateway_pool_id: 'pool2',
-        gateway_id: 'gw4',
-        mme_code: 2,
-        mme_relative_capacity: 1,
-      },
-    ],
+    config: {mme_group_id: 2},
+    gateway_ids: ['gw3', 'gw4'],
+    gateway_pool_id: 'pool2',
+    gateway_pool_name: 'pool_2',
   },
   pool3: {
-    gatewayPool: {
-      config: {mme_group_id: 3},
-      gateway_ids: [],
-      gateway_pool_id: 'pool3',
-      gateway_pool_name: 'pool_3',
-    },
-    gatewayPoolRecords: [],
+    config: {mme_group_id: 3},
+    gateway_ids: [],
+    gateway_pool_id: 'pool3',
+    gateway_pool_name: 'pool_3',
   },
 };
+
+const lteNetworkIdGatewaysGatewayIdCellularPoolingGetMock = [
+  {
+    gateway_pool_id: 'pool1',
+    //gateway_id: 'gw1',
+    mme_code: 1,
+    mme_relative_capacity: 255,
+  },
+  {
+    gateway_pool_id: 'pool1',
+    //gateway_id: 'gw2',
+    mme_code: 2,
+    mme_relative_capacity: 255,
+  },
+  {
+    gateway_pool_id: 'pool1',
+    //gateway_id: 'gw5',
+    mme_code: 3,
+    mme_relative_capacity: 1,
+  },
+  {
+    gateway_pool_id: 'pool2',
+    //gateway_id: 'gw3',
+    mme_code: 1,
+    mme_relative_capacity: 255,
+  },
+  {
+    gateway_pool_id: 'pool2',
+    //gateway_id: 'gw4',
+    mme_code: 2,
+    mme_relative_capacity: 1,
+  },
+];
+
 const networkId = 'test';
 const mockGw0: LteGateway = {
   apn_resources: {},
@@ -146,27 +134,30 @@ const lteGateways = {
   testGatewayId1: mockGw1,
 };
 describe('<GatewayPools />', () => {
+  beforeEach(() => {
+    mockAPI(
+      MagmaAPI.lteNetworks,
+      'lteNetworkIdGatewayPoolsGet',
+      lteNetworkIdGatewayPoolsGetMock,
+    );
+    for (const element of lteNetworkIdGatewaysGatewayIdCellularPoolingGetMock) {
+      mockAPIOnce(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularPoolingGet',
+        [element],
+      );
+    }
+  });
+
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <GatewayPoolsContext.Provider
-            value={{
-              state: gwPoolStateMock,
-              setState: (key, value?) =>
-                SetGatewayPoolsState({
-                  networkId,
-                  gatewayPools: gwPoolStateMock,
-                  setGatewayPools: () => {},
-                  key,
-                  value,
-                }),
-              updateGatewayPoolRecords: async () => {},
-            }}>
+          <GatewayPoolsContextProvider networkId={networkId}>
             <Routes>
               <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
             </Routes>
-          </GatewayPoolsContext.Provider>
+          </GatewayPoolsContextProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
@@ -306,7 +297,6 @@ describe('<AddEditGatewayPoolButton />', () => {
     );
   });
   const AddWrapper = () => {
-    const [gwPoolsState, setGatewayPoolsState] = useState({});
     return (
       <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
@@ -318,32 +308,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                 updateGateway: async () => {},
                 refetch: () => {},
               }}>
-              <GatewayPoolsContext.Provider
-                value={{
-                  state: {},
-                  setState: async (
-                    key: GatewayPoolId,
-                    value: MutableCellularGatewayPool | undefined,
-                    resources?: Array<GatewayPoolRecordsType>,
-                  ) =>
-                    SetGatewayPoolsState({
-                      networkId,
-                      gatewayPools: gwPoolsState,
-                      setGatewayPools: setGatewayPoolsState,
-                      key,
-                      value,
-                      resources,
-                    }),
-                  updateGatewayPoolRecords: (key, value, resources) =>
-                    UpdateGatewayPoolRecords({
-                      networkId,
-                      gatewayPools: gwPoolsState,
-                      setGatewayPools: setGatewayPoolsState,
-                      key,
-                      value,
-                      resources,
-                    }),
-                }}>
+              <GatewayPoolsContextProvider networkId={networkId}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/pools"
@@ -355,7 +320,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                     }
                   />
                 </Routes>
-              </GatewayPoolsContext.Provider>
+              </GatewayPoolsContextProvider>
             </GatewayContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>

@@ -16,10 +16,7 @@ import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 import {FEG_LTE, LTE} from '../../../../shared/types/network';
-import {
-  LteNetworkContextProvider,
-  PolicyProvider,
-} from '../../../components/lte/LteContext';
+import {LteNetworkContextProvider} from '../../../components/lte/LteContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {
@@ -32,6 +29,7 @@ import {
 } from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {PolicyProvider} from '../../../components/context/PolicyContext';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
@@ -232,7 +230,7 @@ describe('<TrafficDashboard />', () => {
             <LteNetworkContextProvider
               networkId={'test'}
               networkType={networkType}>
-              <PolicyProvider networkId={'test'} networkType={networkType}>
+              <PolicyProvider networkId={'test'}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/traffic/policy/*"

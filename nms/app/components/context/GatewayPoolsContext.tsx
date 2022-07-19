@@ -19,16 +19,15 @@ import {
   CellularGatewayPoolRecord,
   MutableCellularGatewayPool,
 } from '../../../generated';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {GatewayPoolId, NetworkId} from '../../../shared/types/network';
-import {OptionsObject} from 'notistack';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 // add gateway ID to gateway pool records (gateway primary/secondary)
-type GatewayPoolRecordsType = {
+export type GatewayPoolRecordsType = {
   gateway_id: string;
 } & CellularGatewayPoolRecord;
-type gatewayPoolsStateType = {
+export type GatewayPoolsStateType = {
   gatewayPool: CellularGatewayPool;
   gatewayPoolRecords: Array<GatewayPoolRecordsType>;
 };
@@ -38,7 +37,7 @@ type gatewayPoolsStateType = {
  * updateGatewayPoolRecords: POST, PUT, DELETE gateway pool records
  */
 type GatewayPoolsContextType = {
-  state: Record<string, gatewayPoolsStateType>;
+  state: Record<string, GatewayPoolsStateType>;
   setState: (
     key: GatewayPoolId,
     val?: MutableCellularGatewayPool,
@@ -53,41 +52,60 @@ type GatewayToolProps = {
   networkId: NetworkId;
   children: React.ReactNode;
 };
-type FetchGatewayPoolParams = {
-  networkId: string;
-  id?: string;
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
-};
-type GatewayPoolsStateProps = {
-  networkId: NetworkId;
-  gatewayPools: Record<string, gatewayPoolsStateType>;
-  setGatewayPools: (
-    gatewayPools: Record<string, gatewayPoolsStateType>,
-  ) => void;
-  key: GatewayPoolId;
-  value?: MutableCellularGatewayPool;
-  resources?: Array<GatewayPoolRecordsType>;
-};
-type InitGatewayPoolStateType = {
-  setGatewayPools: (
-    gatewayPools: Record<string, gatewayPoolsStateType>,
-  ) => void;
-  networkId: NetworkId;
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
-};
 
 const GatewayPoolsContext = React.createContext<GatewayPoolsContextType>(
   {} as GatewayPoolsContextType,
 );
 
-async function FetchGatewayPools(props: FetchGatewayPoolParams) {
-  const {networkId, id, enqueueSnackbar} = props;
+async function initGatewayPoolState(params: {
+  setGatewayPools: (
+    gatewayPools: Record<string, GatewayPoolsStateType>,
+  ) => void;
+  networkId: NetworkId;
+  enqueueSnackbar?: EnqueueSnackbar;
+}) {
+  const {networkId, setGatewayPools, enqueueSnackbar} = params;
+  const pools = (await fetchGatewayPools({
+    networkId: networkId,
+  })) as Record<string, CellularGatewayPool>;
+
+  if (pools) {
+    const poolGatewayState: Record<string, GatewayPoolsStateType> = {};
+    for (const poolId in pools) {
+      const pool = pools[poolId];
+      try {
+        // get primary/secondary gateways for each gateway pool
+        const records = pool.gateway_ids.map(id =>
+          MagmaAPI.lteGateways
+            .lteNetworkIdGatewaysGatewayIdCellularPoolingGet({
+              networkId,
+              gatewayId: id,
+            })
+            .then(({data}) => {
+              return data.map(record => ({...record, gateway_id: id}));
+            }),
+        );
+        const gwPoolRecords = await Promise.all(records);
+        poolGatewayState[poolId] = {
+          gatewayPool: pool,
+          gatewayPoolRecords: gwPoolRecords.flat() || [],
+        };
+      } catch (error) {
+        enqueueSnackbar?.('failed fetching gateway pool records', {
+          variant: 'error',
+        });
+      }
+    }
+    setGatewayPools(poolGatewayState);
+  }
+}
+
+async function fetchGatewayPools(params: {
+  networkId: string;
+  id?: string;
+  enqueueSnackbar?: EnqueueSnackbar;
+}) {
+  const {networkId, id, enqueueSnackbar} = params;
   if (id !== undefined && id !== null) {
     try {
       const gatewayPool = (
@@ -117,9 +135,20 @@ async function FetchGatewayPools(props: FetchGatewayPoolParams) {
   }
 }
 
+type GatewayPoolsStateParams = {
+  networkId: NetworkId;
+  gatewayPools: Record<string, GatewayPoolsStateType>;
+  setGatewayPools: (
+    gatewayPools: Record<string, GatewayPoolsStateType>,
+  ) => void;
+  key: GatewayPoolId;
+  value?: MutableCellularGatewayPool;
+  resources?: Array<GatewayPoolRecordsType>;
+};
+
 // update gateway pool config
-async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
-  const {networkId, gatewayPools, setGatewayPools, key, value} = props;
+async function setGatewayPoolsState(params: GatewayPoolsStateParams) {
+  const {networkId, gatewayPools, setGatewayPools, key, value} = params;
   if (value) {
     if (!(key in gatewayPools)) {
       await MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsPost({
@@ -139,7 +168,7 @@ async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
         gatewayPoolId: key,
         hAGatewayPool: value,
       });
-      const newGwPool = await FetchGatewayPools({
+      const newGwPool = await fetchGatewayPools({
         networkId,
         id: key,
       });
@@ -148,7 +177,7 @@ async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
         [key]: {
           gatewayPool: newGwPool,
           gatewayPoolRecords: gatewayPools[key].gatewayPoolRecords,
-        } as gatewayPoolsStateType,
+        } as GatewayPoolsStateType,
       });
     }
   } else {
@@ -163,8 +192,8 @@ async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
 }
 
 // update gateway pool primary/secondary gateways
-async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
-  const {networkId, gatewayPools, setGatewayPools, key, resources} = props;
+async function updateGatewayPoolRecords(params: GatewayPoolsStateParams) {
+  const {networkId, gatewayPools, setGatewayPools, key, resources} = params;
 
   // add primary/secondary gateways
   if (resources != null) {
@@ -201,7 +230,7 @@ async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
         ),
     );
     await Promise.all(deleteRequests);
-    const newGwPool = await FetchGatewayPools({
+    const newGwPool = await fetchGatewayPools({
       networkId: networkId,
       id: key,
     });
@@ -210,49 +239,9 @@ async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
       [key]: {
         gatewayPool: newGwPool,
         gatewayPoolRecords: resources,
-      } as gatewayPoolsStateType,
+      } as GatewayPoolsStateType,
     });
     return;
-  }
-}
-
-async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
-  const {networkId, setGatewayPools, enqueueSnackbar} = props;
-  const pools = (await FetchGatewayPools({
-    networkId: networkId,
-  })) as Record<string, CellularGatewayPool>;
-
-  if (pools) {
-    const poolGatewayState: Record<string, gatewayPoolsStateType> = {};
-    Object.keys(pools).map(async poolId => {
-      const pool = pools[poolId];
-      try {
-        // get primary/secondary gateways for each gateway pool
-        const records = pool.gateway_ids.map(async id => {
-          const gatewayRecords = (
-            await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingGet(
-              {
-                networkId,
-                gatewayId: id,
-              },
-            )
-          ).data;
-          return gatewayRecords.map(record => {
-            return {...record, gateway_id: id};
-          });
-        });
-        const gwPoolRecords = await Promise.all(records);
-        poolGatewayState[poolId] = {
-          gatewayPool: pool,
-          gatewayPoolRecords: gwPoolRecords.flat() || [],
-        };
-      } catch (error) {
-        enqueueSnackbar?.('failed fetching gateway pool records', {
-          variant: 'error',
-        });
-      }
-    });
-    setGatewayPools(poolGatewayState);
   }
 }
 
@@ -260,7 +249,7 @@ export function GatewayPoolsContextProvider(props: GatewayToolProps) {
   const {networkId} = props;
   const [isLoading, setIsLoading] = useState(true);
   const [gatewayPools, setGatewayPools] = useState<
-    Record<string, gatewayPoolsStateType>
+    Record<string, GatewayPoolsStateType>
   >({});
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -270,7 +259,7 @@ export function GatewayPoolsContextProvider(props: GatewayToolProps) {
         if (networkId == null) {
           return;
         }
-        await InitGatewayPoolState({
+        await initGatewayPoolState({
           enqueueSnackbar,
           networkId,
           setGatewayPools,
@@ -294,7 +283,7 @@ export function GatewayPoolsContextProvider(props: GatewayToolProps) {
       value={{
         state: gatewayPools,
         setState: (key, value?) =>
-          SetGatewayPoolsState({
+          setGatewayPoolsState({
             gatewayPools,
             setGatewayPools,
             networkId,
@@ -302,7 +291,7 @@ export function GatewayPoolsContextProvider(props: GatewayToolProps) {
             value,
           }),
         updateGatewayPoolRecords: (key, value?, resources?) =>
-          UpdateGatewayPoolRecords({
+          updateGatewayPoolRecords({
             gatewayPools,
             setGatewayPools,
             networkId,

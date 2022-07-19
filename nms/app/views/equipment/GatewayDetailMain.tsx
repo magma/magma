@@ -50,7 +50,7 @@ import {
   TroubleshootingControl,
 } from '../../components/GatewayCommandFields';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-import {RunGatewayCommands} from '../../state/lte/EquipmentState';
+import {RunGatewayCommands} from './RunGatewayCommands';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

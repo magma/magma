@@ -20,27 +20,21 @@ import InitSubscriberState, {
 import LoadingFiller from '../LoadingFiller';
 import LteNetworkContext from '../context/LteNetworkContext';
 import NetworkContext from '../context/NetworkContext';
-import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 import {ApnContextProvider} from '../context/ApnContext';
 import {EnodebContextProvider} from '../context/EnodebContext';
 import {GatewayContextProvider} from '../context/GatewayContext';
 import {GatewayPoolsContextProvider} from '../context/GatewayPoolsContext';
 import {GatewayTierContextProvider} from '../context/GatewayTierContext';
+import {PolicyProvider} from '../context/PolicyContext';
 import {TraceContextProvider} from '../context/TraceContext';
-import {omit} from 'lodash';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {
-  BaseNameRecord,
   FegLteNetwork,
-  FegNetwork,
   LteNetwork,
   MutableCbsd,
   MutableSubscriber,
   PaginatedCbsds,
-  PolicyQosProfile,
-  PolicyRule,
-  RatingGroup,
   Subscriber,
   SubscriberState,
 } from '../../../generated';
@@ -53,14 +47,7 @@ import {
   NetworkId,
   SubscriberId,
 } from '../../../shared/types/network';
-import {
-  SetBaseNameState,
-  SetPolicyState,
-  SetQosProfileState,
-  SetRatingGroupState,
-} from '../../state/PolicyState';
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
-import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -276,268 +263,6 @@ export function SubscriberContextProvider(props: Props) {
   );
 }
 
-export function PolicyProvider(props: Props) {
-  const {networkId} = props;
-  const networkCtx = useContext(NetworkContext);
-  const lteNetworkCtx = useContext(LteNetworkContext);
-  const [policies, setPolicies] = useState<Record<string, PolicyRule>>({});
-  const [baseNames, setBaseNames] = useState<Record<string, BaseNameRecord>>(
-    {},
-  );
-  const [qosProfiles, setQosProfiles] = useState<
-    Record<string, PolicyQosProfile>
-  >({});
-  const [ratingGroups, setRatingGroups] = useState<Record<string, RatingGroup>>(
-    {},
-  );
-  const [fegNetwork, setFegNetwork] = useState<FegNetwork>({} as FegNetwork);
-  const [fegPolicies, setFegPolicies] = useState<Record<string, PolicyRule>>(
-    {},
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const networkType = networkCtx.networkType;
-  const enqueueSnackbar = useEnqueueSnackbar();
-  let fegNetworkId: string | undefined;
-  if (networkType === FEG_LTE) {
-    fegNetworkId = lteNetworkCtx.state?.federation?.feg_network_id;
-  }
-
-  const fetchState = useCallback(async () => {
-    try {
-      setPolicies(
-        (
-          await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
-            networkId,
-          })
-        ).data,
-      );
-
-      // Base Names
-      const baseNameIDs: Array<string> = (
-        await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesGet({
-          networkId,
-        })
-      ).data;
-      const baseNameRecords = await Promise.all(
-        baseNameIDs.map(baseNameID =>
-          MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
-            networkId,
-            baseName: baseNameID,
-          }),
-        ),
-      );
-      const newBaseNames: Record<string, BaseNameRecord> = {};
-      baseNameRecords.map(({data: record}) => {
-        newBaseNames[record.name] = record;
-      });
-      setBaseNames(newBaseNames);
-
-      setRatingGroups(
-        // TODO[TS-migration] What is the actual type here?
-        ((
-          await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
-            networkId,
-          })
-        ).data as unknown) as Record<string, RatingGroup>,
-      );
-      setQosProfiles(
-        (
-          await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet({
-            networkId,
-          })
-        ).data,
-      );
-      if (fegNetworkId) {
-        setFegNetwork(
-          (
-            await MagmaAPI.federationNetworks.fegNetworkIdGet({
-              networkId: fegNetworkId,
-            })
-          ).data,
-        );
-        setFegPolicies(
-          (
-            await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
-              networkId: fegNetworkId,
-            })
-          ).data,
-        );
-      }
-    } catch (e) {
-      enqueueSnackbar?.('failed fetching policy information', {
-        variant: 'error',
-      });
-    }
-    setIsLoading(false);
-  }, [networkId, fegNetworkId, enqueueSnackbar]);
-
-  useEffect(() => void fetchState(), [fetchState, networkType]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  return (
-    <PolicyContext.Provider
-      value={{
-        state: policies,
-        ratingGroups: ratingGroups,
-        setRatingGroups: async (key, value) => {
-          await SetRatingGroupState({
-            networkId,
-            ratingGroups,
-            setRatingGroups,
-            key,
-            value,
-          });
-        },
-
-        baseNames: baseNames,
-        setBaseNames: async (key, value) => {
-          await SetBaseNameState({
-            networkId,
-            baseNames,
-            setBaseNames,
-            key,
-            value,
-          });
-        },
-
-        qosProfiles: qosProfiles,
-        setQosProfiles: async (key, value) => {
-          await SetQosProfileState({
-            networkId,
-            qosProfiles,
-            setQosProfiles,
-            key,
-            value,
-          });
-        },
-        setState: async (key, value?, isNetworkWide?) => {
-          if (networkType === FEG_LTE) {
-            const fegNetworkID =
-              lteNetworkCtx.state?.federation?.feg_network_id;
-            await SetPolicyState({
-              policies,
-              setPolicies,
-              networkId,
-              key,
-              value,
-            });
-
-            // duplicate the policy on feg_network as well
-            if (fegNetworkID) {
-              await SetPolicyState({
-                policies: fegPolicies,
-                setPolicies: setFegPolicies,
-                networkId: fegNetworkID,
-                key,
-                value: omit(value, 'qos_profile'),
-              });
-            }
-          } else {
-            await SetPolicyState({
-              policies,
-              setPolicies,
-              networkId,
-              key,
-              value,
-            });
-          }
-          if (isNetworkWide === true) {
-            // we only support isNetworkWide rules now(and not basenames)
-            let ruleNames = [];
-            let fegRuleNames = [];
-
-            if (value != null) {
-              ruleNames =
-                lteNetworkCtx.state?.subscriber_config
-                  ?.network_wide_rule_names ?? [];
-              fegRuleNames =
-                fegNetwork.subscriber_config?.network_wide_rule_names ?? [];
-
-              // update subscriber config if necessary
-              if (!ruleNames.includes(key)) {
-                ruleNames.push(key);
-                void lteNetworkCtx.updateNetworks({
-                  networkId,
-                  subscriberConfig: {
-                    network_wide_base_names:
-                      lteNetworkCtx.state?.subscriber_config
-                        ?.network_wide_base_names,
-                    network_wide_rule_names: ruleNames,
-                  },
-                });
-              }
-
-              if (!fegRuleNames.includes(key)) {
-                fegRuleNames.push(key);
-                if (networkType === FEG_LTE && fegNetwork) {
-                  void UpdateFegNetworkState({
-                    networkId: fegNetwork.id,
-                    subscriberConfig: {
-                      network_wide_base_names:
-                        fegNetwork.subscriber_config?.network_wide_base_names,
-                      network_wide_rule_names: fegRuleNames,
-                    },
-                    setFegNetwork,
-                    refreshState: true,
-                  });
-                }
-              }
-            }
-          } else {
-            // delete network wide rules for the key if present
-            let ruleNames = [];
-            let fegRuleNames = [];
-            const oldRuleNames =
-              lteNetworkCtx.state?.subscriber_config?.network_wide_rule_names ??
-              [];
-            const oldFegRuleNames =
-              fegNetwork.subscriber_config?.network_wide_rule_names ?? [];
-
-            if (oldRuleNames.includes(key)) {
-              ruleNames = oldRuleNames.filter(function (ruleId) {
-                return ruleId !== key;
-              });
-              void lteNetworkCtx.updateNetworks({
-                networkId,
-                subscriberConfig: {
-                  network_wide_base_names:
-                    lteNetworkCtx.state?.subscriber_config
-                      ?.network_wide_base_names,
-                  network_wide_rule_names: ruleNames,
-                },
-              });
-            }
-
-            // if we have old feg rul
-            if (oldFegRuleNames.includes(key)) {
-              fegRuleNames = oldFegRuleNames.filter(function (ruleId) {
-                return ruleId !== key;
-              });
-
-              if (networkType === FEG_LTE && fegNetwork) {
-                void UpdateFegNetworkState({
-                  networkId: fegNetwork.id,
-                  subscriberConfig: {
-                    network_wide_base_names:
-                      fegNetwork.subscriber_config?.network_wide_base_names,
-                    network_wide_rule_names: fegRuleNames,
-                  },
-                  setFegNetwork,
-                  refreshState: true,
-                });
-              }
-            }
-          }
-        },
-        refetch: () => void fetchState(),
-      }}>
-      {props.children}
-    </PolicyContext.Provider>
-  );
-}
-
 export function LteNetworkContextProvider(props: Props) {
   const {networkId} = props;
   const networkCtx = useContext(NetworkContext);
@@ -626,7 +351,7 @@ export function LteContextProvider(props: Props) {
 
   return (
     <LteNetworkContextProvider {...{networkId, networkType}}>
-      <PolicyProvider {...{networkId, networkType}}>
+      <PolicyProvider networkId={networkId}>
         <ApnContextProvider networkId={networkId}>
           <SubscriberContextProvider {...{networkId, networkType}}>
             <GatewayTierContextProvider {...{networkId, networkType}}>

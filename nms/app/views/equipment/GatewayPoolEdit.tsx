@@ -12,7 +12,7 @@
  */
 import type {
   GatewayPoolRecordsType,
-  gatewayPoolsStateType,
+  GatewayPoolsStateType,
 } from '../../components/context/GatewayPoolsContext';
 import type {MutableCellularGatewayPool} from '../../../generated';
 
@@ -60,7 +60,7 @@ const useStyles = makeStyles({
 type DialogProps = {
   open: boolean;
   onClose: () => void;
-  pool?: gatewayPoolsStateType;
+  pool?: GatewayPoolsStateType;
   isAdd: boolean;
 };
 
