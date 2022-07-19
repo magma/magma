@@ -482,15 +482,14 @@ status_code_e s1ap_generate_downlink_nas_transport(
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  void* id = NULL;
+  uint32_t sctp_assoc_id = 0;
   uint8_t err = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
   // Try to retrieve SCTP association id using mme_ue_s1ap_id
-  if (HASH_TABLE_OK == hashtable_ts_get(&state->mmeid2associd,
-                                        (const hash_key_t)ue_id, (void**)&id)) {
-    sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
+  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
+      magma::PROTO_MAP_OK) {
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
@@ -613,13 +612,12 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  void* id = NULL;
+  uint32_t sctp_assoc_id = 0;
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_setup_req->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
-  hashtable_ts_get(&state->mmeid2associd, (const hash_key_t)ue_id, (void**)&id);
-  if (id) {
-    sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
+  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
+      magma::PROTO_MAP_OK) {
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
@@ -1205,9 +1203,8 @@ void s1ap_handle_mme_ue_id_notification(
         return;
       }
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
-      hashtable_rc_t h_rc = hashtable_ts_insert(
-          &state->mmeid2associd, (const hash_key_t)mme_ue_s1ap_id,
-          (void*)(uintptr_t)sctp_assoc_id);
+      magma::proto_map_rc_t rc =
+          state->mmeid2associd.insert(mme_ue_s1ap_id, sctp_assoc_id);
 
       enb_ref->ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id,
                                  ue_ref->comp_s1ap_id);
@@ -1221,7 +1218,7 @@ void s1ap_handle_mme_ue_id_notification(
           "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
           sctp_assoc_id, enb_ue_s1ap_id, mme_ue_s1ap_id,
-          hashtable_rc_code2string(h_rc));
+          magma::map_rc_code2string(rc));
       return;
     }
     OAILOG_DEBUG(LOG_S1AP,
@@ -1244,11 +1241,11 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  void* id = NULL;
+  uint32_t id = 0;
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_rel_cmd->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_rel_cmd->mme_ue_s1ap_id;
 
-  hashtable_ts_get(&state->mmeid2associd, (const hash_key_t)ue_id, (void**)&id);
+  state->mmeid2associd.get(ue_id, &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);

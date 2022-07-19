@@ -13,7 +13,9 @@
 import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import PolicyContext from '../../../components/context/PolicyContext';
+import PolicyContext, {
+  PolicyContextType,
+} from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
@@ -133,7 +135,7 @@ const ratingGroups: Record<string, RatingGroup> = {
 
 describe('<TrafficDashboard />', () => {
   const networkId = 'test';
-  const policyCtx = {
+  const policyCtx: PolicyContextType = {
     state: policies,
     baseNames: {},
     qosProfiles,
@@ -166,6 +168,7 @@ describe('<TrafficDashboard />', () => {
         value,
       });
     },
+    refetch: () => {},
   };
 
   const apnCtx = {
@@ -381,7 +384,7 @@ describe('<TrafficDashboard APNs/>', () => {
   });
 
   const networkId = 'test';
-  const policyCtx = {
+  const policyCtx: PolicyContextType = {
     state: policies,
     baseNames: {},
     qosProfiles: {},
@@ -398,6 +401,7 @@ describe('<TrafficDashboard APNs/>', () => {
         value,
       });
     },
+    refetch: () => {},
   };
   const apnCtx = {
     state: apns,

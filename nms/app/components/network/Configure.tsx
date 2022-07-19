@@ -19,6 +19,7 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import TopBar from '../../components/TopBar';
 
 import {
   Navigate,
@@ -69,33 +70,36 @@ export default function Configure(props: Props) {
   }
 
   return (
-    <Paper className={classes.paper} elevation={2}>
-      <AppBar position="static" color="default">
-        <Tabs
-          value={currentTab}
-          indicatorColor="primary"
-          textColor="primary"
-          onChange={(_, tab) => setCurrentTab(tab as number)}
-          className={classes.tabs}>
+    <>
+      <TopBar header="Configure" tabs={[]} />
+      <Paper className={classes.paper} elevation={2}>
+        <AppBar position="static" color="default">
+          <Tabs
+            value={currentTab}
+            indicatorColor="primary"
+            textColor="primary"
+            onChange={(_, tab) => setCurrentTab(tab as number)}
+            className={classes.tabs}>
+            {tabRoutes.map((route, i) => (
+              <Tab
+                key={i}
+                component={NestedRouteLink}
+                label={route.label}
+                to={route.path}
+              />
+            ))}
+          </Tabs>
+        </AppBar>
+        <Routes>
           {tabRoutes.map((route, i) => (
-            <Tab
+            <Route
               key={i}
-              component={NestedRouteLink}
-              label={route.label}
-              to={route.path}
+              path={`${route.path}/*`}
+              element={<route.component />}
             />
           ))}
-        </Tabs>
-      </AppBar>
-      <Routes>
-        {tabRoutes.map((route, i) => (
-          <Route
-            key={i}
-            path={`${route.path}/*`}
-            element={<route.component />}
-          />
-        ))}
-      </Routes>
-    </Paper>
+        </Routes>
+      </Paper>
+    </>
   );
 }

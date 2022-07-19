@@ -170,4 +170,7 @@ int send_pdu_resource_modify_response(amf_ue_ngap_id_t ue_id);
 int send_pdu_session_modification_itti();
 
 int send_pdu_session_modification_deletion_itti();
+
+// Send GNB Reset Request
+void send_gnb_reset_req();
 }  // namespace magma5g

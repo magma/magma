@@ -14,16 +14,12 @@ import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import nullthrows from '../../../shared/util/nullthrows';
-import type {GatewayDetailType} from './GatewayDetailMain';
 
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
-import {Subscriber} from '../../../generated';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {useContext} from 'react';
-import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
+import {useInterval} from '../../hooks';
+import {useNavigate, useResolvedPath} from 'react-router-dom';
+import type {GatewayDetailType} from './GatewayDetailMain';
 
 type SubscriberRowType = {
   id: string;
@@ -33,17 +29,11 @@ type SubscriberRowType = {
 export default function GatewayDetailSubscribers(props: GatewayDetailType) {
   const resolvedPath = useResolvedPath('');
   const navigate = useNavigate();
-  const params = useParams();
-  const networkId: string = nullthrows(params.networkId);
-  // Auto refresh  every 30 seconds
-  const subscriberState = useRefreshingContext({
-    context: SubscriberContext,
-    networkId: networkId,
-    type: 'subscriber',
-    interval: REFRESH_INTERVAL,
-    refresh: props.refresh,
-  });
   const subscriberCtx = useContext(SubscriberContext);
+  useInterval(
+    () => subscriberCtx.refetchSessionState(),
+    props.refresh ? REFRESH_INTERVAL : null,
+  );
   const hardware_id = props.gwInfo?.device?.hardware_id;
   const gwSubscriberMap = hardware_id
     ? subscriberCtx.gwSubscriberMap[hardware_id] || []
@@ -51,11 +41,7 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
 
   const subscriberRows: Array<SubscriberRowType> = gwSubscriberMap.map(
     (serialNum: string) => {
-      //TODO[TS-migration] Something is seriously wrong here?
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-      const subscriberInfo = (subscriberState as any).state?.[
-        serialNum
-      ] as Subscriber;
+      const subscriberInfo = subscriberCtx.state?.[serialNum];
       return {
         name: subscriberInfo?.name || serialNum,
         id: serialNum,

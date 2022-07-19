@@ -17,7 +17,7 @@ import Link from '@material-ui/core/Link';
 import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
 import {FetchSubscribers} from '../../state/lte/SubscriberState';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {useContext, useEffect, useState} from 'react';
 import {useInterval} from '../../hooks';
 import {useNavigate, useResolvedPath} from 'react-router-dom';

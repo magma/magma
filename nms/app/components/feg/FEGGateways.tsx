@@ -32,6 +32,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
+import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../Alert/withAlert';
 import {HEALTHY_STATUS} from '../GatewayUtils';
@@ -134,46 +135,51 @@ function FEGGateways(props: WithAlert) {
   ));
 
   return (
-    <div className={classes.paper}>
-      <div className={classes.header}>
-        <Text variant="h5">Configure Gateways</Text>
-        <NestedRouteLink to="new">
-          <Button variant="contained" color="primary">
-            Add Gateway
-          </Button>
-        </NestedRouteLink>
+    <>
+      <TopBar header="Gateways" tabs={[]} />
+      <div className={classes.paper}>
+        <div className={classes.header}>
+          <Text variant="h5">Configure Gateways</Text>
+          <NestedRouteLink to="new">
+            <Button variant="contained" color="primary">
+              Add Gateway
+            </Button>
+          </NestedRouteLink>
+        </div>
+        <Paper elevation={2}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Hardware UUID</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>{rows}</TableBody>
+          </Table>
+        </Paper>
+        <Routes>
+          <Route
+            path="/new"
+            element={
+              <FEGGatewayDialog
+                onClose={() => navigate('')}
+                onSave={gateway => {
+                  setGateways([...gateways, gateway]);
+                  navigate('');
+                }}
+              />
+            }
+          />
+          <Route
+            path="edit/:gatewayID"
+            element={
+              <EditDialog gateways={gateways} setGateways={setGateways} />
+            }
+          />
+        </Routes>
       </div>
-      <Paper elevation={2}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Hardware UUID</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>{rows}</TableBody>
-        </Table>
-      </Paper>
-      <Routes>
-        <Route
-          path="/new"
-          element={
-            <FEGGatewayDialog
-              onClose={() => navigate('')}
-              onSave={gateway => {
-                setGateways([...gateways, gateway]);
-                navigate('');
-              }}
-            />
-          }
-        />
-        <Route
-          path="edit/:gatewayID"
-          element={<EditDialog gateways={gateways} setGateways={setGateways} />}
-        />
-      </Routes>
-    </div>
+    </>
   );
 }
 

@@ -1696,4 +1696,137 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
   bdestroy(pdu_ss_modify_response_succ_msg);
 }
 
+TEST_F(NgapFlowTest, TestNgapReset) {
+  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_InitialUEMessage_t* container;
+  unsigned char ngap_setup_req_hexbuf[] = {
+      0x00, 0x15, 0x00, 0x42, 0x00, 0x00, 0x04, 0x00, 0x1b, 0x00, 0x09, 0x00,
+      0x22, 0x42, 0x65, 0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x52, 0x40, 0x18,
+      0x0a, 0x80, 0x55, 0x45, 0x52, 0x41, 0x4e, 0x53, 0x49, 0x4d, 0x2d, 0x67,
+      0x6e, 0x62, 0x2d, 0x32, 0x32, 0x32, 0x2d, 0x34, 0x35, 0x36, 0x2d, 0x31,
+      0x00, 0x66, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x22, 0x42,
+      0x65, 0x00, 0x00, 0x00, 0x08, 0x00, 0x15, 0x40, 0x01, 0x40};
+
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+
+  Ngap_NGAP_PDU_t decoded_pdu1 = {};
+  uint16_t length1 = sizeof(ngap_setup_req_hexbuf) / sizeof(unsigned char);
+
+  bstring ngap_setup_req_msg = blk2bstr(ngap_setup_req_hexbuf, length1);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu1, ngap_setup_req_msg), RETURNok);
+  bdestroy(ngap_setup_req_msg);
+
+  sctp_stream_id_t stream_id = 0;
+
+  gnb_description_t* gnb_association = NULL;
+  gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
+
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id, stream_id,
+                                    &decoded_pdu1),
+            RETURNok);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu1);
+
+  unsigned char initial_ue_message_hexbuf[] = {
+      0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x26, 0x00, 0x1a, 0x19, 0x7e, 0x00, 0x41, 0x79,
+      0x00, 0x0d, 0x01, 0x22, 0x62, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0, 0x00,
+      0x79, 0x00, 0x13, 0x48, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01,
+      0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
+      0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
+
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+  bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
+  bdestroy(ngap_initial_ue_msg);
+
+  // check if initial UE message is handled successfully
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
+                                    peerInfo.instreams, &decoded_pdu),
+            RETURNok);
+
+  container =
+      &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
+  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
+                                      container,
+                                      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // Check if Ran_UE_NGAP_ID is present in initial message
+  ASSERT_TRUE(ie != NULL);
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
+
+  // Mocking the AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION from AMF
+  itti_amf_app_ngap_amf_ue_id_notification_t notification_p = {};
+  notification_p.gnb_ue_ngap_id = gnb_ue_ngap_id;
+  notification_p.amf_ue_ngap_id = 1;
+  notification_p.sctp_assoc_id = gnb_association->sctp_assoc_id;
+
+  ngap_handle_amf_ue_id_notification(state, &notification_p);
+
+  ue_ref =
+      ngap_state_get_ue_gnbid(gnb_association->sctp_assoc_id, gnb_ue_ngap_id);
+  ASSERT_TRUE(ue_ref != NULL);
+
+  unsigned char ng_reset_hexbuf[] = {0x00, 0x14, 0x00, 0x0e, 0x00, 0x00,
+                                     0x02, 0x00, 0x0f, 0x40, 0x02, 0x00,
+                                     0x00, 0x00, 0x58, 0x00, 0x01, 0x00};
+  Ngap_NGAP_PDU_t pdu = {};
+  uint16_t length_reset = sizeof(ng_reset_hexbuf) / sizeof(unsigned char);
+  bstring ng_reset_msg = blk2bstr(ng_reset_hexbuf, length_reset);
+
+  //   Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&pdu, ng_reset_msg), RETURNok);
+  bdestroy(ng_reset_msg);
+
+  int rc = ngap_amf_handle_message(state, peerInfo.assoc_id, peerInfo.instreams,
+                                   &pdu);
+  EXPECT_EQ(rc, RETURNok);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
+}
+
+TEST_F(NgapFlowTest, test_gNB_reset_ack) {
+  unsigned char initial_ue_message_hexbuf[] = {
+      0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x26, 0x00, 0x1a, 0x19, 0x7e, 0x00, 0x41, 0x79,
+      0x00, 0x0d, 0x01, 0x22, 0x62, 0x54, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x2e, 0x04, 0xf0, 0xf0, 0xf0, 0xf0, 0x00,
+      0x79, 0x00, 0x13, 0x48, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01,
+      0x00, 0x22, 0x42, 0x65, 0x00, 0x00, 0x01, 0xe4, 0xf7, 0x04, 0x44,
+      0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x70, 0x40, 0x01, 0x00};
+
+  // Verify sctp association is successful
+  EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
+
+  // Verify number of connected gNB's is 1
+  EXPECT_EQ(state->gnbs.num_elements, 1);
+
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(initial_ue_message_hexbuf) / sizeof(unsigned char);
+  bstring ngap_initial_ue_msg = blk2bstr(initial_ue_message_hexbuf, length);
+
+  // Check if the pdu can be decoded
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_initial_ue_msg), RETURNok);
+
+  // check if initial UE message is handled successfully
+  EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id,
+                                    peerInfo.instreams, &decoded_pdu),
+            RETURNok);
+
+  // Send NGAP GNB Reset Acknowledgement
+  EXPECT_EQ(send_ngap_gnb_reset_ack(), RETURNok);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(ngap_initial_ue_msg);
+}
 }  // namespace magma5g

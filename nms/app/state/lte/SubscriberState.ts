@@ -102,12 +102,15 @@ export async function FetchSubscriberState(props: FetchProps) {
   const {networkId, enqueueSnackbar, id} = props;
   if (id !== null && id !== undefined) {
     try {
-      return (
-        await MagmaAPI.subscribers.lteNetworkIdSubscriberStateSubscriberIdGet({
+      const subscriber = await MagmaAPI.subscribers.lteNetworkIdSubscriberStateSubscriberIdGet(
+        {
           networkId,
           subscriberId: id,
-        })
-      ).data;
+        },
+      );
+      if (subscriber) {
+        return {[id]: subscriber.data};
+      }
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber state', {
         variant: 'error',
@@ -116,11 +119,14 @@ export async function FetchSubscriberState(props: FetchProps) {
     }
   } else {
     try {
-      return (
-        await MagmaAPI.subscribers.lteNetworkIdSubscriberStateGet({
+      const subscribers = await MagmaAPI.subscribers.lteNetworkIdSubscriberStateGet(
+        {
           networkId,
-        })
-      ).data;
+        },
+      );
+      if (subscribers) {
+        return subscribers.data;
+      }
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber state', {
         variant: 'error',
@@ -190,10 +196,10 @@ export default async function InitSubscriberState(
     setTotalCount(subscriberResponse.total_count);
   }
 
-  const state = (await FetchSubscriberState({
+  const state = await FetchSubscriberState({
     networkId,
     enqueueSnackbar,
-  })) as Record<string, SubscriberState>;
+  });
   if (state) {
     setSessionState(state);
   }
@@ -217,7 +223,6 @@ type SubscriberStateProps = {
   key: string;
   value?: MutableSubscriber | Array<MutableSubscriber>;
   newState?: Record<string, Subscriber>;
-  newSessionState?: Record<string, SubscriberState>;
 };
 
 export async function setSubscriberState(props: SubscriberStateProps) {
@@ -225,23 +230,12 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     networkId,
     subscriberMap,
     setSubscriberMap,
-    setSessionState,
     key,
     value,
     newState,
-    newSessionState,
   } = props;
   if (newState) {
     setSubscriberMap(newState);
-    return;
-  }
-  if (newSessionState) {
-    // TODO[TS-migration] is the type of newSessionState broken?
-    setSessionState(
-      ((newSessionState as unknown) as {
-        sessionState: Record<string, SubscriberState>;
-      }).sessionState,
-    );
     return;
   }
   if (Array.isArray(value)) {
