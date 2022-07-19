@@ -34,10 +34,17 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_DYNAMIC_MEMORY_CHECK_SEEN
-#define FILE_DYNAMIC_MEMORY_CHECK_SEEN
+#pragma once
+
+// TODO(rsarwad): Shall rename file to hpp while addressing issue_id: 13096
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 void free_wrapper(void** ptr) __attribute__((hot));
 void bdestroy_wrapper(bstring* b);
-#endif /* FILE_DYNAMIC_MEMORY_CHECK_SEEN */
+#ifdef __cplusplus
+}
+#endif
+void free_cpp_wrapper(void** ptr);

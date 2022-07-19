@@ -94,8 +94,8 @@ def decrypt_msin(client, args):
     """
     decrypt_msin
     """
-    if len(args.imsi) != 10:
-        print("Length of the IMSI provided is incorrect")
+    if len(args.msin) != 10:
+        print("Length of the MSIN provided is incorrect")
         return
 
     if int(args.protection_scheme) == 0:
@@ -110,7 +110,7 @@ def decrypt_msin(client, args):
         print("Invalid home_net_public_key_id value:", args.ue_pubkey_identifier)
         return
 
-    ue_msin = UEmsin(bytes.fromhex(args.imsi), profile)
+    ue_msin = UEmsin(bytes.fromhex(args.msin), profile)
 
     pubkey = get_suciprofile(int(args.ue_pubkey_identifier))
 
@@ -134,8 +134,8 @@ def decrypt_msin(client, args):
         ue_ciphertext=ue_msin.ue_encrypt_context.cipher_text,
         ue_encrypted_mac=ue_msin.ue_encrypt_context.mac,
     )
-    response = client.M5GDecryptImsiSUCIRegistration(request)
-    print("Deconcealed IMSI received from subscriberdb:", response.ue_msin_recv.hex())
+    response = client.M5GDecryptMsinSUCIRegistration(request)
+    print("Deconcealed MSIN received from subscriberdb:", response.ue_msin_recv.hex())
 
 
 def main():
@@ -150,7 +150,7 @@ def main():
 
     # decrypt_msin
     subparser = subparsers.add_parser('decrypt', help='Decrypt msin')
-    subparser.add_argument("--imsi", help="Last 10 digit imsi" "  e.g: --imsi 1032547698")
+    subparser.add_argument("--msin", help="Last 10 digit imsi" "  e.g: --msin 1032547698")
     subparser.add_argument(
         "--protection_scheme", help="ProfileA(0), ProfileB(1)"
         "  e.g: --protection_scheme 0",

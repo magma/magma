@@ -11,10 +11,16 @@
 
 #pragma once
 #include <sstream>
+#include <vector>
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowDescriptor.hpp"
 
 namespace magma5g {
 // PDUSessionModificationRequest Message Class
@@ -25,6 +31,10 @@ class PDUSessionModificationRequestMsg {
   PDUSessionIdentityMsg pdu_session_identity;
   PTIMsg pti;
   MessageTypeMsg message_type;
+  M5GSMCauseMsg cause;
+  std::vector<QOSRulesMsg> authqosrules;
+  std::vector<M5GQosFlowDescription> authqosflowdescriptors;
+  ProtocolConfigurationOptions extprotocolconfigurationoptions;
 
   PDUSessionModificationRequestMsg();
   ~PDUSessionModificationRequestMsg();

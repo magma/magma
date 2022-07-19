@@ -168,7 +168,7 @@ status_code_e emm_proc_security_mode_control(
     nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
     success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   bool security_context_is_new = false;
   int mme_eea = NAS_SECURITY_ALGORITHMS_EEA0;
   int mme_eia = NAS_SECURITY_ALGORITHMS_EIA0;
@@ -401,7 +401,7 @@ status_code_e emm_proc_security_mode_control(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e validate_imei(imeisv_t* imeisv) {
+int validate_imei(imeisv_t* imeisv) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /* First convert only TAC to uint64_t. If TAC is not found in the hashlist,
    * convert IMEI(TAC + SNR) into uint64_t and check if the key is found
@@ -461,7 +461,7 @@ status_code_e emm_proc_security_mode_complete(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   /*
    * Get the UE context
@@ -627,7 +627,7 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   /*
    * Get the UE context

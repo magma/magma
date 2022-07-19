@@ -16,13 +16,13 @@ package main
 import (
 	"github.com/golang/glog"
 
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/eventd"
 	"magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 )
 
 func main() {

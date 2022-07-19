@@ -307,7 +307,7 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
 
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMM-PROC  - Detach type = %s (%d) requested"
@@ -472,7 +472,7 @@ status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
 status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
                                                    uint8_t detach_type) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc;
+  status_code_e rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
 
   OAILOG_INFO(LOG_NAS_EMM,

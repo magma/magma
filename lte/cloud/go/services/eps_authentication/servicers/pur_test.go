@@ -13,14 +13,14 @@ limitations under the License.
 
 package servicers
 
-import "magma/lte/cloud/go/protos"
+import "magma/feg/cloud/go/protos"
 
 func (suite *EpsAuthTestSuite) TestPurgeUE_UnknownSubscriber() {
 	purge := &protos.PurgeUERequest{UserName: "sub_unknown"}
 	answer, err := suite.PurgeUE(purge)
 	suite.EqualError(
 		err,
-		"rpc error: code = NotFound desc = error loading subscriber entity for NID: test, SID: sub_unknown: Not found")
+		"rpc error: code = NotFound desc = error loading subscriber ent for network ID: test, SID: sub_unknown: Not found")
 	suite.Equal(protos.ErrorCode_USER_UNKNOWN, answer.ErrorCode)
 }
 

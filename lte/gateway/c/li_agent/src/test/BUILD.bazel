@@ -24,8 +24,8 @@ cc_test(
         "//lte/gateway/c/li_agent/src:pdu_generator",
         "//lte/gateway/c/li_agent/src:utilities",
         "@com_github_gflags_gflags//:gflags",
-        "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
+        "@system_libraries//:libglog",
     ],
 )
 

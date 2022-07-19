@@ -34,7 +34,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
-	github.com/labstack/echo/v4 v4.2.1
+	github.com/labstack/echo/v4 v4.7.2
 	github.com/magma/milenage v1.0.2
 	github.com/mennanov/fieldmask-utils v0.5.0
 	github.com/ory/go-acc v0.2.8
@@ -101,7 +101,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jxskiss/base62 v1.0.0 // indirect
-	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect

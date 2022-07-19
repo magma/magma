@@ -41,8 +41,7 @@ struct enb_description_s;
 typedef magma::proto_map_s<uint32_t, struct enb_description_s*>
     map_uint32_enb_description_t;
 typedef struct s1ap_state_s {
-  // contains eNB_description_s, key is eNB_description_s.sctp_assoc_id
-  // (uint32_t)
+  // key:sctp_assoc_id, value: pointer to eNB_description_s
   map_uint32_enb_description_t enbs;
   // contains sctp association id, key is mme_ue_s1ap_id
   magma::proto_map_uint32_uint32_t mmeid2associd;
@@ -171,8 +170,7 @@ typedef struct enb_description_s {
   /*@{*/
   uint32_t nb_ue_associated;  ///< Number of NAS associated UE on this eNB
   magma::proto_map_uint32_uint64_t
-      ue_id_coll;  ///< Contains comp_s1ap_id assoc to
-                   ///< enodeb, key is mme_ue_s1ap_id;
+      ue_id_coll;  ///< key: mme_ue_s1ap_id, value: comp_s1ap_id
   /*@}*/
   /** SCTP stuff **/
   /*@{*/

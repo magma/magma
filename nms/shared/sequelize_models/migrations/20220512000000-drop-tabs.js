@@ -10,53 +10,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
+ * @typedef { import("sequelize").DataTypes } DataTypes
  */
-'use strict';
-
-import type {DataTypes, QueryInterface, Transaction} from 'sequelize';
 
 /**
  * This migration removes 'tabs' from organizations and users.
  */
 module.exports = {
-  up: async (queryInterface: QueryInterface, _types: DataTypes) => {
-    return queryInterface.sequelize.transaction(
-      async (transaction: Transaction): Promise<void> => {
-        await queryInterface.removeColumn('Users', 'tabs', {transaction});
-        await queryInterface.removeColumn('Organizations', 'tabs', {
-          transaction,
-        });
-      },
-    );
+  /**
+   * @param {QueryInterface} queryInterface
+   */
+  up: async queryInterface => {
+    return queryInterface.sequelize.transaction(async transaction => {
+      await queryInterface.removeColumn('Users', 'tabs', {transaction});
+      await queryInterface.removeColumn('Organizations', 'tabs', {
+        transaction,
+      });
+    });
   },
+  /**
+   * @param {QueryInterface} queryInterface
+   * @param {DataTypes} types
+   */
+  down: async (queryInterface, types) => {
+    return queryInterface.sequelize.transaction(async transaction => {
+      await queryInterface.addColumn(
+        'Users',
+        'tabs',
+        {
+          allowNull: true,
+          defaultValue: ['nms'],
+          type: types.JSON,
+        },
+        {transaction},
+      );
 
-  down: async (queryInterface: QueryInterface, types: DataTypes) => {
-    return queryInterface.sequelize.transaction(
-      async (transaction: Transaction): Promise<void> => {
-        await queryInterface.addColumn(
-          'Users',
-          'tabs',
-          {
-            allowNull: true,
-            defaultValue: ['nms'],
-            type: types.JSON,
-          },
-          {transaction},
-        );
-
-        await queryInterface.addColumn(
-          'Organizations',
-          'tabs',
-          {
-            allowNull: true,
-            defaultValue: ['nms'],
-            type: types.JSON,
-          },
-          {transaction},
-        );
-      },
-    );
+      await queryInterface.addColumn(
+        'Organizations',
+        'tabs',
+        {
+          allowNull: true,
+          defaultValue: ['nms'],
+          type: types.JSON,
+        },
+        {transaction},
+      );
+    });
   },
 };

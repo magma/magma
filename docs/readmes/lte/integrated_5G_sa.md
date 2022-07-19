@@ -28,7 +28,7 @@ Before starting to configure 5G SA setup, first you need to bring up a setup to 
 
 - Install [Or8cr](https://docs.magmacore.org/docs/orc8r/architecture_overview),
 - Install [Federatetion Gateway](https://docs.magmacore.org/docs/feg/deploy_intro) and,
-- Install [Access Gateway](https://docs.magmacoreorg/docs/lte/setup_deb).
+- Install [Access Gateway](https://docs.magmacore.org/docs/lte/setup_deb).
 - Make sure your setup is able to serve calls with your local subscribers
 
 Once you are done you need to enable the 5G feature set from the orchestrator. Also need to ensure that this AGW serves the mapped PLMN.Once done we can connect Magma AGW with GNB and the 5G supported UE.

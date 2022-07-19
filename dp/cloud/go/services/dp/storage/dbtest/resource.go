@@ -91,8 +91,7 @@ func (r *resourceManager) InsertResources(mask db.FieldMask, models ...db.Model)
 			_, err := db.NewQuery().
 				WithBuilder(r.GetBuilder()).
 				From(model).
-				Select(mask).
-				Insert()
+				Insert(mask)
 			if err != nil {
 				return err
 			}

@@ -57,10 +57,47 @@ Runs a UE simulator service and all tests.
 
 Runs an iperf3 server to drive traffic through CWAG.
 
+#### Entire test suite
+
 To run all setup work and the entire CWF integration test suite, run
 
 ```bash
 [HOST] fab integ_test
 ```
 
-See `fab --display integ_test` for more information.
+Once the above command has been executed, which means that the set-up of the VMs etc. has been
+performed, command-line options can be utilized to rerun the tests without redoing the set-up
+
+```bash
+[HOST] fab integ_test:provision_vm=False,no_build=True
+```
+
+#### Individual tests
+
+The command above can be further modified to run one integration test at a time
+
+```bash
+[HOST] fab integ_test:provision_vm=False,no_build=True,skip_unit_tests=True,test_re=<TEST_TO_RUN>
+```
+
+where `<TEST_TO_RUN>` is to be replaced by the desired test, e.g. `TestGyReAuth`. Run
+`fab --display integ_test` to see more available options.
+
+Note that running a test can be further expedited by running it directly on the CWAG test VM using
+`gotestsum`, which echoes how it is run by the `fab` command. In particular, the above command can
+be run with `run_tests=False` to do the required set-up
+
+```bash
+[HOST] fab integ_test:run_tests=False,provision_vm=False,no_build=True,skip_unit_tests=True,test_re=<TEST_TO_RUN>
+```
+
+before logging into the CWAG test VM, navigating to the gateway folder and running the test directly
+
+```bash
+[HOST] vagrant ssh cwag_test
+[VM] cd magma/cwf/gateway
+[VM] gotestsum --format=standard-verbose --packages='./...' -- -test.short -timeout 50m -count 1 -tags=all -run=<TEST_TO_RUN>
+```
+
+This command can be used to execute the test multiple times in a way that is faster than can be done
+with the `fab` command, which may be helpful during development.

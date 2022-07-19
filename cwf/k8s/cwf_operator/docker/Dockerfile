@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y bzr curl daemontools gcc
 
 # Install Golang 1.18
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.18"
+ARG GOLANG_VERSION="1.18.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \

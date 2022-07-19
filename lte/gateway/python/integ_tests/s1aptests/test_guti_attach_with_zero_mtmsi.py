@@ -32,7 +32,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_guti_attach_with_zero_mtmsi(self):
-        """ 1. Perform IMSI attach
+        """1. Perform IMSI attach
         2. Move UE to idle mode
         3. Send GUTI attach request for the same UE with M-TMSI value 0
         4. Detach the UE
@@ -41,8 +41,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         req = self._s1ap_wrapper.ue_req
         print(
-            "************************* Running End to End attach for "
-            "UE id ",
+            "************************* Running End to End attach for UE id:",
             req.ue_id,
         )
         # Now actually complete the attach
@@ -68,11 +67,13 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         ureq.ue_Id = req.ue_id
         ureq.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ureq,
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+            ureq,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         time.sleep(5)
@@ -104,7 +105,8 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         attach_req.guti_mi.guti.mTmsi = 0
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         print(
             "********************** Sent attach req for UE id ",
@@ -113,7 +115,8 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
         )
         id_req = response.cast(s1ap_types.ueIdentityReqInd_t)
         print(
@@ -125,15 +128,18 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         identity_resp.ue_Id = id_req.ue_Id
         identity_resp.idType = s1ap_types.TFW_MID_TYPE_IMSI
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_IDENTITY_RESP, identity_resp,
+            s1ap_types.tfwCmd.UE_IDENTITY_RESP,
+            identity_resp,
         )
         print(
-            "********************** Sent identity rsp for UE id", id_req.ue_Id,
+            "********************** Sent identity rsp for UE id",
+            id_req.ue_Id,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_req = response.cast(s1ap_types.ueAuthReqInd_t)
         print(
@@ -147,7 +153,8 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         sqn_recvd.pres = 0
         auth_res.sqnRcvd = sqn_recvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         print("********************** Sent auth rsp for UE id", auth_req.ue_Id)
 
@@ -155,7 +162,8 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         sec_mode_cmd = response.cast(s1ap_types.ueSecModeCmdInd_t)
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print(
             "********************** Received security mode cmd for UE id",
@@ -164,30 +172,31 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = sec_mode_cmd.ue_Id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
         print(
             "********************** Sent security mode complete for UE id",
             sec_mode_cmd.ue_Id,
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
         attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
         print(
-            "********************** Received Attach accept for UE id",
+            "********************** Received attach accept for UE Id:",
             attach_acc.ue_Id,
         )
+
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = attach_acc.ue_Id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+            attach_complete,
         )
         print(
             "********************** Sent attach complete for UE id",
@@ -207,12 +216,14 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST,
+            detach_req,
         )
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
 

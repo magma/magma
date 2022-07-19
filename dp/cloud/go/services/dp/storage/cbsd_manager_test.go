@@ -102,7 +102,21 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
 		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithDefaulValues().Cbsd)
+	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
+}
+
+func (s *CbsdManagerTestSuite) TestCreateCbsdWithCarrierAggregationFields() {
+	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
+		b.NewDBCbsdBuilder().
+			WithCarrierAggregationEnabled(true).
+			WithGrantRedundancy(true).
+			WithMaxIbwMhx(140).Cbsd, registered))
+	s.Require().NoError(err)
+	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
+		WithIndoorDeployment(false).
+		WithCarrierAggregationEnabled(true).
+		WithGrantRedundancy(true).
+		WithMaxIbwMhx(140).Cbsd)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
@@ -205,6 +219,9 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		WithNumberOfPorts(cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
 		WithSingleStepEnabled(true).
 		WithIndoorDeployment(true).
+		WithCarrierAggregationEnabled(true).
+		WithMaxIbwMhx(140).
+		WithGrantRedundancy(true).
 		WithCbsdCategory("a").
 		WithNetworkId(someNetwork).
 		Cbsd,
@@ -327,6 +344,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
+			WithNetworkId(someNetwork).
 			WithSerialNumber(differentSerialNumber).
 			WithCbsdCategory("a").
 			WithIncompleteInstallationParam().
@@ -344,8 +362,10 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 		s.Run(tc.name, func() {
 			s.givenResourcesInserted(tc.input)
 
-			err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
+			cbsd, err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
 			s.Require().NoError(err)
+			s.Assert().Equal(tc.input.CbsdSerialNumber, cbsd.CbsdSerialNumber)
+			s.Assert().Equal(tc.input.NetworkId, cbsd.NetworkId)
 
 			err = s.resourceManager.InTransaction(func() {
 				actual, err := db.NewQuery().
@@ -454,9 +474,9 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 
 	expected := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithEmptyGrant().
 		WithEmptyGrantState().
 		WithCbsdState(registered).
@@ -489,9 +509,9 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
 
 	expected := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithCbsdState(registered).
 		WithDesiredState(registered).
 		WithEmptyGrant().
@@ -523,9 +543,9 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 
 	expected := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithCbsdState(registered).
 		WithDesiredState(registered).
 		WithGrant().
@@ -587,7 +607,7 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	for i := range expected.Cbsds {
 		cbsdBuilder := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1 + offset)).
-			WithDefaulValues().
+			WithIndoorDeployment(false).
 			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1+offset))
 		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
 			WithCbsdState(unregistered).
@@ -627,7 +647,7 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 	for i := range expected.Cbsds {
 		cbsdBuilder := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1)).
-			WithDefaulValues().
+			WithIndoorDeployment(false).
 			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1))
 		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
 			WithCbsdState(unregistered).
@@ -667,9 +687,9 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 
 	builder := b.NewDetailedDBCbsdBuilder(
 		b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithDefaulValues()).
+			WithCbsdId(someCbsdIdStr)).
 		WithEmptyGrant().
 		WithEmptyGrantState().
 		WithCbsdState(registered).

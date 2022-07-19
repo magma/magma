@@ -1,3 +1,4 @@
+// @ts-nocheck
 // @generated
 /* eslint-disabled */
 // Generated automatically by nearley, version 2.19.1

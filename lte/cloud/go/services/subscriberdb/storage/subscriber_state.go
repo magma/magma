@@ -14,6 +14,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -29,11 +30,13 @@ type SubscriberStorage interface {
 	// Initialize the backing store.
 	Initialize() error
 
-	GetSubscribersForGateway(networkID string, gatewayID string) ([]SubscriberState, error)
+	GetSubscribersForGateway(networkID string, gatewayID string) (*GatewaySubscriberState, error)
 
 	DeleteSubscribersForGateway(networkID string, gatewayID string) error
 
-	SetAllSubscribersForGateway(networkID string, gatewayID string, subscriberStates []SubscriberState) error
+	SetAllSubscribersForGateway(networkID string, gatewayID string, subscriberStates *GatewaySubscriberState) error
+
+	GetSubscribersForIMSIs(networkID string, imsis []string) (ImsiStateMap, error)
 }
 
 const (
@@ -49,6 +52,25 @@ const (
 type subscriberStorage struct {
 	db      *sql.DB
 	builder sqorc.StatementBuilder
+}
+
+// key: IMSI, value: sessiond subscriber state
+type ImsiStateMap = map[string]state.ArbitraryJSON
+
+type GatewaySubscriberState struct {
+	Subscribers ImsiStateMap `json:"subscribers"`
+}
+
+func (j *GatewaySubscriberState) MarshalBinary() ([]byte, error) {
+	return json.Marshal(j)
+}
+
+func (j *GatewaySubscriberState) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, j)
+}
+
+func (j *GatewaySubscriberState) ValidateModel(context.Context) error {
+	return nil
 }
 
 func NewSubscriberStorage(db *sql.DB, builder sqorc.StatementBuilder) SubscriberStorage {
@@ -73,18 +95,22 @@ func (ss *subscriberStorage) Initialize() error {
 		if err != nil {
 			return nil, fmt.Errorf("initialize subscriber storage table: %w", err)
 		}
+		_, err = ss.builder.CreateIndex("network_id_imsi_idx").
+			IfNotExists().
+			On(tableName).
+			Columns(nidColumn, imsiColumn).
+			RunWith(tx).
+			Exec()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create nid,imsi index: %w", err)
+		}
 		return nil, nil
 	}
 	_, err := sqorc.ExecInTx(ss.db, nil, nil, txFn)
 	return err
 }
 
-type SubscriberState struct {
-	Imsi  string
-	Value state.ArbitraryJSON
-}
-
-func (ss *subscriberStorage) GetSubscribersForGateway(networkID string, gatewayID string) ([]SubscriberState, error) {
+func (ss *subscriberStorage) GetSubscribersForGateway(networkID string, gatewayID string) (*GatewaySubscriberState, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		rows, err := ss.getSubscribers(tx, networkID, gatewayID)
 		if err != nil {
@@ -92,7 +118,7 @@ func (ss *subscriberStorage) GetSubscribersForGateway(networkID string, gatewayI
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetSubscribersForGateway")
 
-		var mappings []SubscriberState
+		mappings := GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{}}
 		for rows.Next() {
 			var rawState []byte
 			imsi := ""
@@ -105,7 +131,7 @@ func (ss *subscriberStorage) GetSubscribersForGateway(networkID string, gatewayI
 			if err != nil {
 				return nil, fmt.Errorf("GetSubscribersForGateway, error unmarshaling state: %w", err)
 			}
-			mappings = append(mappings, SubscriberState{Imsi: imsi, Value: reportedState})
+			mappings.Subscribers[imsi] = reportedState
 		}
 		err = rows.Err()
 		if err != nil {
@@ -118,12 +144,12 @@ func (ss *subscriberStorage) GetSubscribersForGateway(networkID string, gatewayI
 	if err != nil {
 		return nil, err
 	}
-	ret := txRet.([]SubscriberState)
-	return ret, nil
+	ret := txRet.(GatewaySubscriberState)
+	return &ret, nil
 
 }
 
-func (ss *subscriberStorage) SetAllSubscribersForGateway(networkID string, gatewayID string, subscriberStates []SubscriberState) error {
+func (ss *subscriberStorage) SetAllSubscribersForGateway(networkID string, gatewayID string, subscriberStates *GatewaySubscriberState) error {
 	timeSec := clock.Now().Unix()
 
 	txFn := func(tx *sql.Tx) (interface{}, error) {
@@ -135,13 +161,13 @@ func (ss *subscriberStorage) SetAllSubscribersForGateway(networkID string, gatew
 			return nil, fmt.Errorf("error deleting subscribers before update: %w", err)
 		}
 
-		for _, blob := range subscriberStates {
-			value, err := blob.Value.MarshalBinary()
+		for imsi, blob := range subscriberStates.Subscribers {
+			value, err := blob.MarshalBinary()
 			if err != nil {
 				return nil, fmt.Errorf("convert subscriber value %+v: %w", blob, err)
 			}
 
-			err = ss.insertSubscriber(sc, networkID, gatewayID, blob.Imsi, timeSec, value)
+			err = ss.insertSubscriber(sc, networkID, gatewayID, imsi, timeSec, value)
 			if err != nil {
 				return nil, fmt.Errorf("insert subscriber %+v: %w", blob, err)
 			}
@@ -169,11 +195,88 @@ func (ss *subscriberStorage) DeleteSubscribersForGateway(networkID string, gatew
 	return err
 }
 
+// GetSubscribersForIMSIs takes a network ID and a list of IMSIs and returns the
+// subscriber states of those IMSIs in the network.
+// If imsis == nil, states for all IMSIs are returned.
+func (ss *subscriberStorage) GetSubscribersForIMSIs(networkID string, imsis []string) (ImsiStateMap, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		var rows *sql.Rows
+		var err error
+		if imsis == nil {
+			rows, err = ss.getSubscribersForNetwork(tx, networkID)
+		} else {
+			rows, err = ss.getSubscribersForIMSIs(tx, networkID, imsis)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("Error getting subscribers for nid / imsis:  %v / %v", networkID, imsis)
+		}
+		defer sqorc.CloseRowsLogOnError(rows, "GetSubscribersForIMSIs")
+
+		mappings, err := ss.convertRowsToMap(rows)
+		if err != nil {
+			return nil, fmt.Errorf("GetSubscribersForIMSIs, SQL rows error: %w", err)
+		}
+
+		return mappings, nil
+	}
+	txRet, err := sqorc.ExecInTx(ss.db, nil, nil, txFn)
+	if err != nil {
+		return nil, err
+	}
+	ret := txRet.(ImsiStateMap)
+	return ret, nil
+}
+
+func (ss *subscriberStorage) convertRowsToMap(rows *sql.Rows) (ImsiStateMap, error) {
+	mappings := ImsiStateMap{}
+	lastUpdates := map[string]int64{}
+	for rows.Next() {
+		var rawState []byte
+		imsi := ""
+		var lastUpdated int64
+		err := rows.Scan(&imsi, &rawState, &lastUpdated)
+		if err != nil {
+			return nil, fmt.Errorf("GetSubscribersForIMSIs, SQL row scan error: %w", err)
+		}
+		reportedState := make(state.ArbitraryJSON)
+		err = json.Unmarshal(rawState, &reportedState)
+		if err != nil {
+			return nil, fmt.Errorf("GetSubscribersForIMSIs, error unmarshaling state: %w", err)
+		}
+		if lastUpdated > lastUpdates[imsi] {
+			lastUpdates[imsi] = lastUpdated
+			mappings[imsi] = reportedState
+		}
+	}
+	err := rows.Err()
+	return mappings, err
+}
+
 func (ss *subscriberStorage) getSubscribers(tx *sql.Tx, networkID string, gatewayID string) (*sql.Rows, error) {
 	rows, err := ss.builder.
 		Select(imsiColumn, stateColumn).
 		From(tableName).
 		Where(squirrel.Eq{nidColumn: networkID, gwidColumn: gatewayID}).
+		RunWith(tx).
+		Query()
+	return rows, err
+}
+
+func (ss *subscriberStorage) getSubscribersForIMSIs(tx *sql.Tx, networkID string, imsis []string) (*sql.Rows, error) {
+	rows, err := ss.builder.
+		Select(imsiColumn, stateColumn, lastUpdatedColumn).
+		From(tableName).
+		Where(squirrel.Eq{nidColumn: networkID, imsiColumn: imsis}).
+		RunWith(tx).
+		Query()
+	return rows, err
+}
+
+func (ss *subscriberStorage) getSubscribersForNetwork(tx *sql.Tx, networkID string) (*sql.Rows, error) {
+	rows, err := ss.builder.
+		Select(imsiColumn, stateColumn, lastUpdatedColumn).
+		From(tableName).
+		Where(squirrel.Eq{nidColumn: networkID}).
 		RunWith(tx).
 		Query()
 	return rows, err

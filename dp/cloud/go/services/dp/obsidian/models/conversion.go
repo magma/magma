@@ -20,17 +20,20 @@ import (
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 )
 
-func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
+func CbsdToBackend(m *MutableCbsd) (*protos.CbsdData, error) {
 	return &protos.CbsdData{
-		UserId:            m.UserID,
-		FccId:             m.FccID,
-		SerialNumber:      m.SerialNumber,
-		SingleStepEnabled: *m.SingleStepEnabled,
-		CbsdCategory:      m.CbsdCategory,
+		UserId:                    m.UserID,
+		FccId:                     m.FccID,
+		SerialNumber:              m.SerialNumber,
+		SingleStepEnabled:         *m.SingleStepEnabled,
+		CbsdCategory:              m.CbsdCategory,
+		CarrierAggregationEnabled: *m.CarrierAggregationEnabled,
+		GrantRedundancy:           *m.GrantRedundancy,
 		Capabilities: &protos.Capabilities{
 			MaxPower:         *m.Capabilities.MaxPower,
 			MinPower:         *m.Capabilities.MinPower,
 			NumberOfAntennas: m.Capabilities.NumberOfAntennas,
+			MaxIbwMhz:        m.Capabilities.MaxIbwMhz,
 		},
 		Preferences: &protos.FrequencyPreferences{
 			BandwidthMhz:   m.FrequencyPreferences.BandwidthMhz,
@@ -40,7 +43,7 @@ func CbsdToBackend(m *MutableCbsd) *protos.CbsdData {
 		InstallationParam: &protos.InstallationParam{
 			AntennaGain: to_pointer.FloatToDoubleValue(m.InstallationParam.AntennaGain),
 		},
-	}
+	}, nil
 }
 
 func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
@@ -49,23 +52,26 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 			MaxPower:         &details.Data.Capabilities.MaxPower,
 			MinPower:         &details.Data.Capabilities.MinPower,
 			NumberOfAntennas: details.Data.Capabilities.NumberOfAntennas,
+			MaxIbwMhz:        details.Data.Capabilities.MaxIbwMhz,
 		},
 		FrequencyPreferences: FrequencyPreferences{
 			BandwidthMhz:   details.Data.Preferences.BandwidthMhz,
 			FrequenciesMhz: makeSliceNotNil(details.Data.Preferences.FrequenciesMhz),
 		},
-		CbsdID:            details.CbsdId,
-		DesiredState:      details.Data.DesiredState,
-		FccID:             details.Data.FccId,
-		Grant:             getGrant(details.Grant),
-		ID:                details.Id,
-		IsActive:          details.IsActive,
-		SerialNumber:      details.Data.SerialNumber,
-		State:             details.State,
-		UserID:            details.Data.UserId,
-		SingleStepEnabled: details.Data.SingleStepEnabled,
-		CbsdCategory:      details.Data.CbsdCategory,
-		InstallationParam: getModelInstallationParam(details.Data.InstallationParam),
+		GrantRedundancy:           details.Data.GrantRedundancy,
+		CarrierAggregationEnabled: details.Data.CarrierAggregationEnabled,
+		CbsdID:                    details.CbsdId,
+		DesiredState:              details.Data.DesiredState,
+		FccID:                     details.Data.FccId,
+		Grant:                     getGrant(details.Grant),
+		ID:                        details.Id,
+		IsActive:                  details.IsActive,
+		SerialNumber:              details.Data.SerialNumber,
+		State:                     details.State,
+		UserID:                    details.Data.UserId,
+		SingleStepEnabled:         details.Data.SingleStepEnabled,
+		CbsdCategory:              details.Data.CbsdCategory,
+		InstallationParam:         getModelInstallationParam(details.Data.InstallationParam),
 	}
 }
 
