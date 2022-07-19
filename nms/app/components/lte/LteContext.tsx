@@ -41,6 +41,8 @@ import type {
   PolicyQosProfile,
   PolicyRule,
   RatingGroup,
+  Subscriber,
+  SubscriberState,
   Tier,
 } from '../../../generated';
 import type {EnodebInfo} from './EnodebUtils';
@@ -68,6 +70,11 @@ import {
   UpdateGatewayPoolRecords,
   UpdateGatewayProps,
 } from '../../state/lte/EquipmentState';
+import {
+  FetchSubscriberState,
+  getGatewaySubscriberMap,
+  setSubscriberState,
+} from '../../state/lte/SubscriberState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
@@ -79,10 +86,6 @@ import {
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
-import {
-  getGatewaySubscriberMap,
-  setSubscriberState,
-} from '../../state/lte/SubscriberState';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -402,8 +405,12 @@ export function TraceContextProvider(props: Props) {
 
 export function SubscriberContextProvider(props: Props) {
   const {networkId} = props;
-  const [subscriberMap, setSubscriberMap] = useState({});
-  const [sessionState, setSessionState] = useState({});
+  const [subscriberMap, setSubscriberMap] = useState<
+    Record<string, Subscriber>
+  >({});
+  const [sessionState, setSessionState] = useState<
+    Record<string, SubscriberState>
+  >({});
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -443,7 +450,6 @@ export function SubscriberContextProvider(props: Props) {
           key: SubscriberId,
           value?: MutableSubscriber | Array<MutableSubscriber>,
           newState?,
-          newSessionState?,
         ) =>
           setSubscriberState({
             networkId,
@@ -453,8 +459,21 @@ export function SubscriberContextProvider(props: Props) {
             key,
             value,
             newState,
-            newSessionState,
           }),
+        refetchSessionState: (id?: SubscriberId) => {
+          void FetchSubscriberState({networkId, id}).then(sessions => {
+            if (sessions) {
+              setSessionState(currentSessionState =>
+                id
+                  ? {
+                      ...currentSessionState,
+                      ...sessions,
+                    }
+                  : sessions,
+              );
+            }
+          });
+        },
       }}>
       {props.children}
     </SubscriberContext.Provider>

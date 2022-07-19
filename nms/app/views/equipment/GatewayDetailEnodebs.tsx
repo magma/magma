@@ -17,7 +17,7 @@ import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React, {useContext} from 'react';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useInterval} from '../../hooks';
 import {useNavigate, useResolvedPath} from 'react-router-dom';

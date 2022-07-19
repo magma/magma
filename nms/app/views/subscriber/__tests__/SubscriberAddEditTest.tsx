@@ -10,8 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as hooks from '../../../components/context/RefreshContext';
-
 import ApnContext from '../../../components/context/ApnContext';
 import LteNetworkContext, {
   LteNetworkContextType,
@@ -241,6 +239,7 @@ describe('<AddSubscriberButton />', () => {
           value: value,
           setSessionState: setSessionState,
         }),
+      refetchSessionState: () => {},
     };
     const policyCtx: PolicyContextType = {
       state: policies,
@@ -268,10 +267,6 @@ describe('<AddSubscriberButton />', () => {
       },
       updateNetworks: async () => {},
     };
-
-    jest
-      .spyOn(hooks, 'useRefreshingContext')
-      .mockImplementation(() => subscriberCtx);
 
     return (
       <MemoryRouter initialEntries={['/nms/test/subscribers']} initialIndex={0}>
@@ -356,6 +351,7 @@ describe('<AddSubscriberButton />', () => {
                           key: key,
                           value: value,
                         }),
+                      refetchSessionState: () => {},
                     }}>
                     <Routes>
                       <Route
