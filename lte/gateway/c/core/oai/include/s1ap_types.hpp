@@ -44,7 +44,8 @@ typedef struct s1ap_state_s {
   // key:sctp_assoc_id, value: pointer to eNB_description_s
   map_uint32_enb_description_t enbs;
   // contains sctp association id, key is mme_ue_s1ap_id
-  hash_table_ts_t mmeid2associd;
+  magma::proto_map_uint32_uint32_t mmeid2associd;
+
   uint32_t num_enbs;
 } s1ap_state_t;
 
