@@ -18,20 +18,17 @@ import InitSubscriberState, {
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
 import LoadingFiller from '../LoadingFiller';
-import LteNetworkContext from '../context/LteNetworkContext';
-import NetworkContext from '../context/NetworkContext';
 import SubscriberContext from '../context/SubscriberContext';
 import {ApnContextProvider} from '../context/ApnContext';
 import {EnodebContextProvider} from '../context/EnodebContext';
 import {GatewayContextProvider} from '../context/GatewayContext';
 import {GatewayPoolsContextProvider} from '../context/GatewayPoolsContext';
 import {GatewayTierContextProvider} from '../context/GatewayTierContext';
+import {LteNetworkContextProvider} from '../context/LteNetworkContext';
 import {PolicyProvider} from '../context/PolicyContext';
 import {TraceContextProvider} from '../context/TraceContext';
-import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {
-  FegLteNetwork,
-  LteNetwork,
   MutableCbsd,
   MutableSubscriber,
   PaginatedCbsds,
@@ -40,15 +37,12 @@ import type {
 } from '../../../generated';
 
 import * as cbsdState from '../../state/lte/CbsdState';
-import MagmaAPI from '../../api/MagmaAPI';
 import {
   FEG_LTE,
   LTE,
   NetworkId,
   SubscriberId,
 } from '../../../shared/types/network';
-import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
-import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
@@ -260,85 +254,6 @@ export function SubscriberContextProvider(props: Props) {
       }}>
       {props.children}
     </SubscriberContext.Provider>
-  );
-}
-
-export function LteNetworkContextProvider(props: Props) {
-  const {networkId} = props;
-  const networkCtx = useContext(NetworkContext);
-  const [lteNetwork, setLteNetwork] = useState<
-    Partial<LteNetwork & FegLteNetwork>
-  >({});
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        if (networkCtx.networkType === FEG_LTE) {
-          const [
-            fegLteResp,
-            fegLteSubscriberConfigResp,
-          ] = await Promise.allSettled([
-            MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet({networkId}),
-            MagmaAPI.federatedLTENetworks.fegLteNetworkIdSubscriberConfigGet({
-              networkId,
-            }),
-          ]);
-          if (fegLteResp.status === 'fulfilled') {
-            let subscriber_config = {};
-            if (fegLteSubscriberConfigResp.status === 'fulfilled') {
-              subscriber_config = fegLteSubscriberConfigResp.value.data;
-            }
-            setLteNetwork({...fegLteResp.value.data, subscriber_config});
-          }
-        } else {
-          setLteNetwork(
-            (await MagmaAPI.lteNetworks.lteNetworkIdGet({networkId})).data,
-          );
-        }
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching network information', {
-          variant: 'error',
-        });
-      }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, networkCtx, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <LteNetworkContext.Provider
-      value={{
-        state: lteNetwork,
-        updateNetworks: props => {
-          let refreshState = true;
-          if (networkId !== props.networkId) {
-            refreshState = false;
-          }
-          if (networkCtx.networkType === FEG_LTE) {
-            return UpdateFegLteNetworkState({
-              networkId,
-              setLteNetwork,
-              refreshState,
-              ...props,
-            });
-          } else {
-            return UpdateLteNetworkState({
-              networkId,
-              setLteNetwork,
-              refreshState,
-              ...props,
-            });
-          }
-        },
-      }}>
-      {props.children}
-    </LteNetworkContext.Provider>
   );
 }
 

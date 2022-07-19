@@ -17,7 +17,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import LteNetworkContext, {
-  UpdateNetworkContextProps,
+  UpdateNetworkContextParams,
 } from '../../components/context/LteNetworkContext';
 import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
@@ -122,7 +122,7 @@ export function NetworkJsonConfig() {
           await ctx.updateNetworks(({
             networkId,
             lteNetwork,
-          } as unknown) as UpdateNetworkContextProps);
+          } as unknown) as UpdateNetworkContextParams);
           enqueueSnackbar('Network saved successfully', {
             variant: 'success',
           });

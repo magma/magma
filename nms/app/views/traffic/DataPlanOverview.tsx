@@ -24,7 +24,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
+import type {UpdateNetworkContextParams} from '../../components/context/LteNetworkContext';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import {
@@ -102,7 +102,7 @@ function DataPlanOverview(props: WithAlert) {
       ...epcConfig!,
       sub_profiles: subProfiles,
     };
-    const updateNetworkProps: UpdateNetworkContextProps = {
+    const updateNetworkProps: UpdateNetworkContextParams = {
       networkId: networkID,
       epcConfigs: newConfig,
     };

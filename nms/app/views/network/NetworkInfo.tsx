@@ -107,7 +107,7 @@ export function NetworkInfoEdit(props: EditProps) {
         await ctx.updateNetworks({
           networkId: lteNetwork.id,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          lteNetwork: lteNetwork as any, // TODO[TS-migration] The type UpdateNetworkContextProps is probably wrong
+          lteNetwork: lteNetwork as any, // TODO[TS-migration] The type UpdateNetworkContextParams is probably wrong
         });
         enqueueSnackbar('Network configs saved successfully', {
           variant: 'success',

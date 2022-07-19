@@ -30,7 +30,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
+import type {UpdateNetworkContextParams} from '../../components/context/LteNetworkContext';
 
 import {
   BITRATE_MULTIPLIER,
@@ -181,7 +181,7 @@ export function DataPlanEdit(props: Props) {
     };
 
     try {
-      const updateNetworkProps: UpdateNetworkContextProps = {
+      const updateNetworkProps: UpdateNetworkContextParams = {
         networkId: networkID,
         epcConfigs: newConfig,
       };

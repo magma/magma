@@ -16,7 +16,6 @@ import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
 import {FEG_LTE, LTE} from '../../../../shared/types/network';
-import {LteNetworkContextProvider} from '../../../components/lte/LteContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {
@@ -27,6 +26,7 @@ import {
   RatingGroup,
   RedirectInformation,
 } from '../../../../generated';
+import {LteNetworkContextProvider} from '../../../components/context/LteNetworkContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PolicyProvider} from '../../../components/context/PolicyContext';
@@ -227,9 +227,7 @@ describe('<TrafficDashboard />', () => {
               networkId: 'test',
               networkType: networkType,
             }}>
-            <LteNetworkContextProvider
-              networkId={'test'}
-              networkType={networkType}>
+            <LteNetworkContextProvider networkId={'test'}>
               <PolicyProvider networkId={'test'}>
                 <Routes>
                   <Route
