@@ -24,6 +24,7 @@ import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 import TraceContext from '../context/TraceContext';
+import {omit} from 'lodash';
 import type {
   Apn,
   BaseNameRecord,
@@ -743,7 +744,7 @@ export function PolicyProvider(props: Props) {
                 setPolicies: setFegPolicies,
                 networkId: fegNetworkID,
                 key,
-                value,
+                value: omit(value, 'qos_profile'),
               });
             }
           } else {
