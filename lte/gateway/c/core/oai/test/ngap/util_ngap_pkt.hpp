@@ -30,6 +30,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 #ifdef __cplusplus
 }
 #endif
@@ -83,3 +84,5 @@ bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu);
 bool validate_handle_initial_ue_message(gnb_description_t* gNB_ref,
                                         m5g_ue_description_t* ue_ref,
                                         Ngap_NGAP_PDU_t* pdu);
+
+status_code_e send_ngap_gnb_reset_ack();
