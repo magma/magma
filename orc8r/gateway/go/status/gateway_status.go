@@ -175,9 +175,6 @@ func getRoutes(hostRoutes []netlink.Route, recursiveResolving bool) []*Route {
 		}
 
 		dest := getDestinationIP(hostRoute).IP.To4()
-		if dest == nil {
-			continue
-		}
 		gw := getGatewayIP(hostRoute, dest)
 		maskStr := getMaskStr(hostRoute, dest)
 
@@ -325,11 +322,7 @@ func getGatewayIP(hostRoute netlink.Route, dest net.IP) string {
 	if gw == nil {
 		gw = hostRoute.Gw
 		if len(gw) == 0 {
-			if len(dest) == net.IPv4len {
-				gw = []byte{0, 0, 0, 0}
-			} else {
-				gw = net.IP([]byte{0, 0, 0, 0}).To16()
-			}
+			gw = []byte{0, 0, 0, 0}
 		}
 	}
 	return gw.String()
@@ -339,11 +332,9 @@ func getGatewayIP(hostRoute netlink.Route, dest net.IP) string {
 // destination IP. Selects IPv4/6 format depending on the destination IP.
 func getMaskStr(hostRoute netlink.Route, dest net.IP) string {
 	maskStr := getDestinationIP(hostRoute).Mask.String()
-	if len(dest) == net.IPv4len {
-		maskV4 := net.IP(getDestinationIP(hostRoute).Mask).To4()
-		if maskV4 != nil {
-			maskStr = maskV4.String()
-		}
+	maskV4 := net.IP(getDestinationIP(hostRoute).Mask).To4()
+	if maskV4 != nil {
+		maskStr = maskV4.String()
 	}
 	return maskStr
 }

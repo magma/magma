@@ -78,7 +78,7 @@ func init() {
 	}
 	disksInfo, _ = disk.Partitions(true)
 
-	hostRoutes, _ = netlink.RouteList(nil, 0)
+	hostRoutes, _ = netlink.RouteList(nil, netlink.FAMILY_V4)
 	machineInfo = GetMachineInfo()
 	platformInfo = GetPlatformInfo()
 }
