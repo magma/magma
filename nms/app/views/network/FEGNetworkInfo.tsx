@@ -13,7 +13,7 @@
 import DataGrid from '../../components/DataGrid';
 import React from 'react';
 import type {DataRows} from '../../components/DataGrid';
-import type {FegNetwork} from '../../../generated-ts';
+import type {FegNetwork} from '../../../generated';
 
 type Props = {
   // TODO[ts-migration]: Is a partial really needed here? Also fix the implications for NetworkInfo.

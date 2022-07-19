@@ -33,8 +33,8 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_sap_send(amf_sap_t* msg) {
-  int rc = RETURNerror;
+status_code_e amf_sap_send(amf_sap_t* msg) {
+  status_code_e rc = RETURNerror;
   amf_primitive_t primitive = msg->primitive;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   /*

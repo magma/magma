@@ -15,11 +15,11 @@ import type {
   MutableSubscriber,
   Subscriber,
   SubscriberState,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 import React from 'react';
 import {GatewayId, SubscriberId} from '../../../shared/types/network';
-import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated-ts';
+import {SubscriberForbiddenNetworkTypesEnum} from '../../../generated';
 
 export type Metrics = {
   currentUsage: string;
@@ -48,8 +48,8 @@ export type SubscriberContextType = {
     key: string,
     val?: MutableSubscriber | Array<MutableSubscriber>,
     newState?: Record<string, Subscriber>,
-    newSessionState?: Record<string, SubscriberState>,
   ) => Promise<void>;
+  refetchSessionState: (subscriberId?: SubscriberId) => void;
 };
 
 export default React.createContext<SubscriberContextType>(

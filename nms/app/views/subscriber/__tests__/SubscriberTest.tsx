@@ -20,7 +20,7 @@ import defaultTheme from '../../../theme/default';
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {Subscriber} from '../../../../generated-ts';
+import {Subscriber} from '../../../../generated';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
@@ -96,6 +96,7 @@ describe('<SubscriberDashboard />', () => {
       gwSubscriberMap: {},
       sessionState: {},
       totalCount: 2,
+      refetchSessionState: () => {},
     };
 
     return (
@@ -154,5 +155,37 @@ describe('<SubscriberDashboard />', () => {
     await waitFor(() => {
       expect(getByTestId('actions-menu')).toBeVisible();
     });
+  });
+
+  it('subscribers can be searched by IMSI', async () => {
+    const geSubscribersBySubscriberId = mockAPI(
+      MagmaAPI.subscribers,
+      'lteNetworkIdSubscribersSubscriberIdGet',
+      subscribers['IMSI0000000001'],
+    );
+
+    const {findByPlaceholderText, findAllByRole} = render(<Wrapper />);
+
+    const searchInput = await findByPlaceholderText(
+      'Search IMSI001011234560000',
+    );
+
+    fireEvent.change(searchInput, {
+      target: {value: 'IMSI0000000001'},
+    });
+
+    await waitFor(() =>
+      expect(geSubscribersBySubscriberId).toBeCalledWith({
+        networkId: 'test',
+        subscriberId: 'IMSI0000000001',
+      }),
+    );
+
+    const rowItems = await findAllByRole('row');
+
+    expect(rowItems[1]).toHaveTextContent('subscriber1');
+    expect(rowItems[1]).toHaveTextContent('IMSI0000000001');
+    expect(rowItems[1]).toHaveTextContent('INACTIVE');
+    expect(rowItems[1]).toHaveTextContent('0');
   });
 });

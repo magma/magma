@@ -18,7 +18,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
-import {MagmadGatewayConfigs} from '../../generated-ts';
+import {MagmadGatewayConfigs} from '../../generated';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({

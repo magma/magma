@@ -24,7 +24,7 @@ import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
-import {FederationGateway, PromqlReturnObject} from '../../../generated-ts';
+import {FederationGateway, PromqlReturnObject} from '../../../generated';
 import {
   FederationGatewayHealthStatus,
   GatewayTypeEnum,

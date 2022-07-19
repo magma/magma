@@ -20,7 +20,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
-import type {LteGateway, PromqlReturnObject} from '../../../../generated-ts';
+import type {LteGateway, PromqlReturnObject} from '../../../../generated';
 
 jest.mock('../../../hooks/useSnackbar');
 
@@ -141,6 +141,7 @@ describe('<Gateway />', () => {
               state: lteGateways,
               setState: async () => {},
               updateGateway: async () => {},
+              refetch: () => {},
             }}>
             <Routes>
               <Route path="/nms/:networkId/gateway/" element={<Gateway />} />

@@ -12,7 +12,7 @@
  */
 
 import type {DataRows} from '../../components/DataGrid';
-import type {FederationGateway} from '../../../generated-ts';
+import type {FederationGateway} from '../../../generated';
 
 import DataGrid from '../../components/DataGrid';
 import React from 'react';

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {FederatedNetworkConfigs, ModeMapItem} from '../../../generated-ts';
+import type {FederatedNetworkConfigs, ModeMapItem} from '../../../generated';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -34,7 +34,7 @@ import Switch from '@material-ui/core/Switch';
 import Text from '../../theme/design-system/Text';
 
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
-import {ModeMapItemModeEnum} from '../../../generated-ts';
+import {ModeMapItemModeEnum} from '../../../generated';
 import {federationStyles} from './FederationStyles';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

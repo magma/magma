@@ -21,7 +21,7 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {PromqlReturnObject} from '../../../../generated-ts';
+import {PromqlReturnObject} from '../../../../generated';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {render, wait} from '@testing-library/react';
 

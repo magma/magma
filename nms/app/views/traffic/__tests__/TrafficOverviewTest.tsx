@@ -12,9 +12,10 @@
  */
 import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MagmaAPIBindings from '../../../../generated/MagmaAPIBindings';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import PolicyContext from '../../../components/context/PolicyContext';
+import PolicyContext, {
+  PolicyContextType,
+} from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
@@ -24,7 +25,7 @@ import {
   PolicyQosProfile,
   PolicyRule,
   RatingGroup,
-} from '../../../../generated-ts';
+} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PolicyId} from '../../../../shared/types/network';
@@ -134,7 +135,7 @@ const ratingGroups: Record<string, RatingGroup> = {
 
 describe('<TrafficDashboard />', () => {
   const networkId = 'test';
-  const policyCtx = {
+  const policyCtx: PolicyContextType = {
     state: policies,
     baseNames: {},
     qosProfiles,
@@ -167,6 +168,7 @@ describe('<TrafficDashboard />', () => {
         value,
       });
     },
+    refetch: () => {},
   };
 
   const apnCtx = {
@@ -181,10 +183,6 @@ describe('<TrafficDashboard />', () => {
       });
     },
   };
-
-  beforeEach(() => {
-    jest.spyOn(MagmaAPIBindings, 'getNetworks').mockResolvedValue([]);
-  });
 
   const Wrapper = () => (
     <MemoryRouter
@@ -374,9 +372,6 @@ describe('<TrafficDashboard />', () => {
 
 describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
-  beforeEach(() => {
-    jest.spyOn(MagmaAPIBindings, 'getNetworks').mockResolvedValue([]);
-  });
 
   beforeAll((): void => {
     window.location = {
@@ -389,7 +384,7 @@ describe('<TrafficDashboard APNs/>', () => {
   });
 
   const networkId = 'test';
-  const policyCtx = {
+  const policyCtx: PolicyContextType = {
     state: policies,
     baseNames: {},
     qosProfiles: {},
@@ -406,6 +401,7 @@ describe('<TrafficDashboard APNs/>', () => {
         value,
       });
     },
+    refetch: () => {},
   };
   const apnCtx = {
     state: apns,
@@ -484,9 +480,6 @@ describe('<TrafficDashboard APNs/>', () => {
   });
 
   it('shows prompt when remove apn is clicked', async () => {
-    jest
-      .spyOn(MagmaAPIBindings, 'deleteLteByNetworkIdApnsByApnName')
-      .mockImplementation();
     const deleteMock = jest
       .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNameDelete')
       .mockImplementation();

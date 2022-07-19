@@ -40,7 +40,7 @@ func StartTestService(t *testing.T) storage.SubscriberStorage {
 	}
 	annotations := map[string]string{
 		orc8r.StateIndexerVersionAnnotation: "1",
-		orc8r.StateIndexerTypesAnnotation:   lte.MobilitydStateType,
+		orc8r.StateIndexerTypesAnnotation:   lte.MobilitydStateType + "," + lte.GatewaySubscriberStateType,
 	}
 	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, subscriberdb.ServiceName, labels, annotations)
 

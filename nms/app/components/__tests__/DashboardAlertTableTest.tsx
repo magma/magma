@@ -19,7 +19,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../util/TestUtils';
-import type {GettableAlert, PromFiringAlert} from '../../../generated-ts';
+import type {GettableAlert, PromFiringAlert} from '../../../generated';
 
 const tbl_alert: GettableAlert = {
   name: 'null_receiver',

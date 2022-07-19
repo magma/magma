@@ -16,7 +16,7 @@ import type {
   PolicyQosProfile,
   PolicyRule,
   RatingGroup,
-} from '../../../generated-ts';
+} from '../../../generated';
 import type {PolicyId} from '../../../shared/types/network';
 
 export type PolicyContextType = {
@@ -32,6 +32,7 @@ export type PolicyContextType = {
     val?: PolicyRule,
     isNetworkWide?: boolean,
   ) => Promise<void>;
+  refetch: () => void;
 };
 
 export default React.createContext<PolicyContextType>({} as PolicyContextType);

@@ -49,7 +49,7 @@ import MagmaAPI from '../../../api/MagmaAPI';
 import axios from 'axios';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated-ts';
+import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -293,16 +293,19 @@ describe('<NetworkDashboard />', () => {
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
+      refetch: () => {},
     } as PolicyContextType;
     const enodebCtx = {
       state: {enbInfo},
       setState: async () => {},
+      refetch: () => {},
     } as EnodebContextType;
 
     const gatewayCtx = {
       state: gateways,
       setState: async () => {},
       updateGateway: async () => {},
+      refetch: () => {},
     } as GatewayContextType;
 
     const subscriberCtx = {
@@ -312,6 +315,7 @@ describe('<NetworkDashboard />', () => {
       forbiddenNetworkTypes: {},
       gwSubscriberMap: {},
       sessionState: {},
+      refetchSessionState: () => {},
     } as SubscriberContextType;
 
     const networkCtx = {

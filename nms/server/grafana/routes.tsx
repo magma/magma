@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-import Client from '../../grafana/GrafanaAPI';
-import GrafanaErrorMessage from '../../grafana/GrafanaErrorMessage';
+import Client from './GrafanaAPI';
+import GrafanaErrorMessage from './GrafanaErrorMessage';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
 import asyncHandler from '../util/asyncHandler';
@@ -24,9 +24,9 @@ import {
   syncDatasource,
   syncGrafanaUser,
   syncTenants,
-} from '../../grafana/handlers';
-import type {GrafanaClient} from '../../grafana/GrafanaAPI';
-import type {Task} from '../../grafana/handlers';
+} from './handlers';
+import type {GrafanaClient} from './GrafanaAPI';
+import type {Task} from './handlers';
 
 const GRAFANA_PROTOCOL = 'http';
 const GRAFANA_ADDRESS = process.env.USER_GRAFANA_ADDRESS ?? 'user-grafana:3000';

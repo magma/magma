@@ -32,7 +32,7 @@ import grey from '@material-ui/core/colors/grey';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
 import {AltFormField} from './FormField';
-import {GenericCommandParams} from '../../generated-ts';
+import {GenericCommandParams} from '../../generated';
 import {Theme} from '@material-ui/core/styles';
 import {getErrorMessage} from '../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -40,7 +40,7 @@ import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import type {DataRows} from './DataGrid';
-import type {GenericCommandResponse} from '../../generated-ts';
+import type {GenericCommandResponse} from '../../generated';
 
 const useStyles = makeStyles<Theme>(theme => ({
   input: {

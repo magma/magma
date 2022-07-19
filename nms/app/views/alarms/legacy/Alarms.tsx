@@ -14,6 +14,8 @@
 import * as React from 'react';
 import AppContext from '../../../components/context/AppContext';
 import FBCAlarms from '../components/Alarms';
+import TopBar from '../../../components/TopBar';
+
 import {MagmaAlarmsApiUtil} from '../../../state/AlarmsApiUtil';
 import type {Labels} from '../components/AlarmAPIType';
 
@@ -30,15 +32,18 @@ export default function Alarms() {
     [isFeatureEnabled],
   );
   return (
-    <FBCAlarms
-      apiUtil={apiUtil}
-      makeTabLink={({networkId, keyName}) =>
-        `/nms/${networkId || ''}/alerts/${keyName}`
-      }
-      disabledTabs={disabledTabs}
-      thresholdEditorEnabled={true}
-      filterLabels={filterSymphonyLabels}
-    />
+    <>
+      <TopBar header="Alerts" tabs={[]} />
+      <FBCAlarms
+        apiUtil={apiUtil}
+        makeTabLink={({networkId, keyName}) =>
+          `/nms/${networkId || ''}/alerts/${keyName}`
+        }
+        disabledTabs={disabledTabs}
+        thresholdEditorEnabled={true}
+        filterLabels={filterSymphonyLabels}
+      />
+    </>
   );
 }
 

@@ -79,7 +79,7 @@ func main() {
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
 
 	// Attach handlers
-	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers(subscriberStateStore))
 	protos.RegisterSubscriberLookupServer(srv.ProtectedGrpcServer, lookup_servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.ProtectedGrpcServer, lookup_servicers.NewIndexerServicer(subscriberStateStore))
 	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, subscriberdbcloud_servicer.NewSubscriberdbServicer(serviceConfig, subscriberStore))

@@ -17,7 +17,7 @@ import type {
   PolicyQosProfile,
   PolicyRule,
   RatingGroup,
-} from '../../generated-ts';
+} from '../../generated';
 import type {NetworkId, PolicyId} from '../../shared/types/network';
 
 type Props = {

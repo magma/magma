@@ -19,22 +19,29 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestEnbPartialReset(unittest.TestCase):
+class TestEnbPartialResetConDereg(unittest.TestCase):
+    """Integration Test: TestEnbPartialResetConDereg"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_enb_partial_reset(self):
-        """ attach 32 UEs """
+    def test_enb_partial_reset_con_dereg(self):
+        """Test ENB partial reset with 1 UE while UE is connected and
+        de-registered
+        """
         ue_ids = []
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
+
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             print(
-                "************************* Calling attach for UE id ",
+                "************************* Calling attach for UE id",
                 req.ue_id,
             )
             # Trigger Attach Request with PDN_Type = IPv4v6
@@ -53,52 +60,59 @@ class TestEnbPartialReset(unittest.TestCase):
             attach_req.useOldSecCtxt = sec_ctxt
             attach_req.pdnType_pr = pdn_type
 
-            print("********Triggering Attach Request with PND Type IPv4 test")
+            print(
+                "************************* Triggering Attach Request with PDN "
+                "Type IPv4 test",
+            )
 
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+                s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+                attach_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
             )
 
             # Trigger Authentication Response
             auth_res = s1ap_types.ueAuthResp_t()
             auth_res.ue_Id = req.ue_id
-            sqnRecvd = s1ap_types.ueSqnRcvd_t()
-            sqnRecvd.pres = 0
-            auth_res.sqnRcvd = sqnRecvd
+            sqn_recvd = s1ap_types.ueSqnRcvd_t()
+            sqn_recvd.pres = 0
+            auth_res.sqnRcvd = sqn_recvd
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+                s1ap_types.tfwCmd.UE_AUTH_RESP,
+                auth_res,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
             )
 
             # Trigger Security Mode Complete
             sec_mode_complete = s1ap_types.ueSecModeComplete_t()
             sec_mode_complete.ue_Id = req.ue_id
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+                sec_mode_complete,
             )
 
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+            # Receive initial context setup and attach accept indication
+            response = (
+                self._s1ap_wrapper._s1_util
+                    .receive_initial_ctxt_setup_and_attach_accept()
             )
-
-            response = self._s1ap_wrapper.s1_util.get_response()
-            print("response message type for ATTTACH ACC", response.msg_type)
-            print("acc", s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+            attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+            print(
+                "********************** Received attach accept for UE Id:",
+                attach_acc.ue_Id,
             )
             ue_ids.append(req.ue_id)
 
         # Trigger eNB Reset
-        # Add delay to ensure S1APTester sends attach partial before sending
+        # Add delay to ensure S1APTester sends attach complete before sending
         # eNB Reset Request
         time.sleep(0.5)
         print("************************* Sending eNB Partial Reset Request")
@@ -119,26 +133,17 @@ class TestEnbPartialReset(unittest.TestCase):
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
             print(
-                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId",
-                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
+                "Reset_req.r.partialRst.ueS1apIdPairList[",
                 indx,
+                "].ueId",
+                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
             )
-        print("ue_ids", ue_ids)
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req,
+            s1ap_types.tfwCmd.RESET_REQ,
+            reset_req,
         )
-        response1 = self._s1ap_wrapper.s1_util.get_response()
-        print("response1 message type", response1.msg_type)
-        self.assertEqual(response1.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
-        # Trigger detach request
-        """time.sleep(0.5)
-        for ue in ue_ids:
-            print("************************* Calling detach for UE id ", ue)
-            #self._s1ap_wrapper.s1_util.detach(
-            #    ue, detach_type, wait_for_s1)
-            self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True)
-        """
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
 
 
 if __name__ == "__main__":

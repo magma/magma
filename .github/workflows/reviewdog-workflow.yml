@@ -152,7 +152,7 @@ jobs:
           filter_mode: added
           reporter: github-pr-review
           fail_on_error: false
-          markdownlint_flags: "--config ./docs/readmes/.markdownlint.yaml"
+          markdownlint_flags: "--config ./docs/readmes/.markdownlint.yaml ."
 
   misspell:
     name: misspell
@@ -172,7 +172,7 @@ jobs:
           reporter: github-pr-review
           locale: "US"
           exclude: |
-            nms/yarn.lock
+            ./nms/yarn.lock
 
   mypy:
     needs: files_changed

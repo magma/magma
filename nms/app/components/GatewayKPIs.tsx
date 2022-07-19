@@ -15,7 +15,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
 import GatewayContext from './context/GatewayContext';
 import React from 'react';
-import {LteGateway} from '../../generated-ts';
+import {LteGateway} from '../../generated';
 import {useContext} from 'react';
 import type {DataRows} from './DataGrid';
 

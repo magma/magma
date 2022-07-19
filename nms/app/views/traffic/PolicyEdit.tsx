@@ -30,7 +30,7 @@ import React, {SetStateAction} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {AltFormField} from '../../components/FormField';
-import {PolicyRule} from '../../../generated-ts';
+import {PolicyRule} from '../../../generated';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';

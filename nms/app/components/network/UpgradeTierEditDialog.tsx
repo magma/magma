@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {Tier} from '../../../generated-ts';
+import type {Tier} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';

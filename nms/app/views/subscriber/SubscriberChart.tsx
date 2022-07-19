@@ -235,11 +235,6 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             autoOk
-            // TODO[ts-migration]: There is a serious mismatch here.
-            //  type WrapperVariant is a alias for:
-            // "dialog" | "inline" | "static"
-            // @ts-ignore
-            variant="outlined"
             inputVariant="outlined"
             maxDate={end}
             disableFuture
@@ -255,11 +250,6 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             autoOk
-            // TODO[ts-migration]: There is a serious mismatch here.
-            //  type WrapperVariant is a alias for:
-            // "dialog" | "inline" | "static"
-            // @ts-ignore
-            variant="outlined"
             inputVariant="outlined"
             disableFuture
             value={end}
@@ -306,12 +296,8 @@ export default function SubscriberChart() {
               yLabel={yLabelUnit}
               tooltipHandler={(tooltipItem, data) => {
                 const val = tooltipItem.yLabel;
-                return `${
-                  // TODO[ts-migration] The tooltip handler is also broken in CustomMetrics
-                  // such that this is a follow up of the broken type there.
-                  // @ts-ignore
-                  data.datasets[tooltipItem.datasetIndex].label // eslint-disable-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
-                } ${val!} ${yLabelUnit} in last ${toolTipHint}s`;
+                return `${data.datasets![tooltipItem.datasetIndex!]
+                  .label!} ${val!} ${yLabelUnit} in last ${toolTipHint}s`;
               }}
             />
           }

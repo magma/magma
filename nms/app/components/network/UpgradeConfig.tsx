@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {MagmadGateway, Tier} from '../../../generated-ts';
+import type {MagmadGateway, Tier} from '../../../generated';
 import type {WithAlert} from '../Alert/withAlert';
 
 import Button from '@material-ui/core/Button';

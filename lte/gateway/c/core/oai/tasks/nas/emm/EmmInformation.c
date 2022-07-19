@@ -69,7 +69,7 @@
 static void emm_information_pack_gsm_7Bit(bstring str, unsigned char* result);
 
 status_code_e emm_proc_emm_information(ue_mm_context_t* ue_emm_ctx) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   unsigned char result[256] = {0};
   emm_sap_t emm_sap = {0};
   emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;

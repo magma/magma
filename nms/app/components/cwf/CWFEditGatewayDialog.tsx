@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import type {CwfGateway, MagmadGatewayConfigs} from '../../../generated-ts';
+import type {CwfGateway, MagmadGatewayConfigs} from '../../../generated';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';

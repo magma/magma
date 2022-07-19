@@ -15,7 +15,7 @@ import type {
   Enodeb,
   EnodebConfiguration,
   EnodebState,
-} from '../../../generated-ts';
+} from '../../../generated';
 
 export const EnodebDeviceClass: Record<
   string,

@@ -14,7 +14,7 @@ import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
 } from '../../components/context/GatewayPoolsContext';
-import type {MutableCellularGatewayPool} from '../../../generated-ts';
+import type {MutableCellularGatewayPool} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
 import ConfigEdit from './GatewayPoolConfigEdit';

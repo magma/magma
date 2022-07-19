@@ -57,9 +57,9 @@ class TestEnbPartialResetMultiUe(unittest.TestCase):
         time.sleep(0.5)
 
         # Set the reset UEs list
-        random.seed(time.clock())
+        random.seed(time.time())
         reset_ue_count = random.randint(1, num_ues)
-        random.seed(time.clock())
+        random.seed(time.time())
         reset_ue_list = random.sample(range(num_ues), reset_ue_count)
 
         print(

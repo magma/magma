@@ -93,12 +93,12 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
     decoded += 1;
   }
 
-  if ((decoded_result = pdu_session_estab_accept->qos_rules.DecodeQOSRulesMsg(
-           &pdu_session_estab_accept->qos_rules, 0, buffer + decoded,
-           len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
+  // Decode Qos Rule msg
+  {
+    uint16_t length = 0;
+    IES_DECODE_U16(buffer, decoded, length);
+    pdu_session_estab_accept->authorized_qosrules = blk2bstr(buffer, length);
+    decoded += length;
   }
 
   if ((decoded_result =
@@ -240,13 +240,20 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_session_estab_accept->qos_rules.EncodeQOSRulesMsg(
-           &pdu_session_estab_accept->qos_rules, 0, buffer + encoded,
-           len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
+
+  if (blength(pdu_session_estab_accept->authorized_qosrules)) {
+    // Encode the IE of Authorized QoS Rules
+    // Encode the length of the IE
+    IES_ENCODE_U16(buffer, encoded,
+                   blength(pdu_session_estab_accept->authorized_qosrules));
+
+    memcpy(buffer + encoded,
+           pdu_session_estab_accept->authorized_qosrules->data,
+           blength(pdu_session_estab_accept->authorized_qosrules));
+
+    encoded += blength(pdu_session_estab_accept->authorized_qosrules);
   }
+
   if ((encoded_result =
            pdu_session_estab_accept->session_ambr.EncodeSessionAMBRMsg(
                &pdu_session_estab_accept->session_ambr, 0, buffer + encoded,
@@ -273,6 +280,24 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
   } else {
     encoded += encoded_result;
   }
+
+  if (blength(pdu_session_estab_accept->authorized_qosflowdescriptors)) {
+    // Encode the IE of Authorized QOS Flow descriptions
+    *(buffer + encoded) = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
+    encoded++;
+
+    // Encode the length of the IE
+    IES_ENCODE_U16(
+        buffer, encoded,
+        blength(pdu_session_estab_accept->authorized_qosflowdescriptors));
+
+    memcpy(buffer + encoded,
+           pdu_session_estab_accept->authorized_qosflowdescriptors->data,
+           blength(pdu_session_estab_accept->authorized_qosflowdescriptors));
+
+    encoded += blength(pdu_session_estab_accept->authorized_qosflowdescriptors);
+  }
+
   if ((encoded_result =
            pdu_session_estab_accept->protocolconfigurationoptions
                .EncodeProtocolConfigurationOptions(

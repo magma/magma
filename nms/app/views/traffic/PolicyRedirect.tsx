@@ -20,7 +20,7 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
-import {PolicyRule} from '../../../generated-ts';
+import {PolicyRule} from '../../../generated';
 import {makeStyles} from '@material-ui/styles';
 import {policyStyles} from './PolicyStyles';
 
