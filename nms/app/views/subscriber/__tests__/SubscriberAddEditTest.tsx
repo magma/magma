@@ -250,6 +250,7 @@ describe('<AddSubscriberButton />', () => {
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
+      refetch: () => {},
     };
 
     const apnCtx = {
@@ -296,7 +297,7 @@ describe('<AddSubscriberButton />', () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
     const [sessionState, setSessionState] = useState({});
     const [forbiddenNetworkTypes] = useState({});
-    const policyCtx = {
+    const policyCtx: PolicyContextType = {
       state: policies,
       baseNames: {},
       qosProfiles: {},
@@ -305,6 +306,7 @@ describe('<AddSubscriberButton />', () => {
       setRatingGroups: async () => {},
       setQosProfiles: async () => {},
       setState: async () => {},
+      refetch: () => {},
     };
 
     const apnCtx = {

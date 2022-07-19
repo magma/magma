@@ -614,79 +614,76 @@ export function PolicyProvider(props: Props) {
     fegNetworkId = lteNetworkCtx.state?.federation?.feg_network_id;
   }
 
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        setPolicies(
-          (
-            await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
-              networkId,
-            })
-          ).data,
-        );
-
-        // Base Names
-        const baseNameIDs: Array<string> = (
-          await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesGet({
+  const fetchState = useCallback(async () => {
+    try {
+      setPolicies(
+        (
+          await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
             networkId,
           })
-        ).data;
-        const baseNameRecords = await Promise.all(
-          baseNameIDs.map(baseNameID =>
-            MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
-              networkId,
-              baseName: baseNameID,
-            }),
-          ),
-        );
-        const newBaseNames: Record<string, BaseNameRecord> = {};
-        baseNameRecords.map(({data: record}) => {
-          newBaseNames[record.name] = record;
-        });
-        setBaseNames(newBaseNames);
+        ).data,
+      );
 
-        setRatingGroups(
-          // TODO[TS-migration] What is the actual type here?
-          ((
-            await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
-              networkId,
-            })
-          ).data as unknown) as Record<string, RatingGroup>,
-        );
-        setQosProfiles(
+      // Base Names
+      const baseNameIDs: Array<string> = (
+        await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesGet({
+          networkId,
+        })
+      ).data;
+      const baseNameRecords = await Promise.all(
+        baseNameIDs.map(baseNameID =>
+          MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
+            networkId,
+            baseName: baseNameID,
+          }),
+        ),
+      );
+      const newBaseNames: Record<string, BaseNameRecord> = {};
+      baseNameRecords.map(({data: record}) => {
+        newBaseNames[record.name] = record;
+      });
+      setBaseNames(newBaseNames);
+
+      setRatingGroups(
+        // TODO[TS-migration] What is the actual type here?
+        ((
+          await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
+            networkId,
+          })
+        ).data as unknown) as Record<string, RatingGroup>,
+      );
+      setQosProfiles(
+        (
+          await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet({
+            networkId,
+          })
+        ).data,
+      );
+      if (fegNetworkId) {
+        setFegNetwork(
           (
-            await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet({
-              networkId,
+            await MagmaAPI.federationNetworks.fegNetworkIdGet({
+              networkId: fegNetworkId,
             })
           ).data,
         );
-        if (fegNetworkId) {
-          setFegNetwork(
-            (
-              await MagmaAPI.federationNetworks.fegNetworkIdGet({
-                networkId: fegNetworkId,
-              })
-            ).data,
-          );
-          setFegPolicies(
-            (
-              await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet(
-                {
-                  networkId: fegNetworkId,
-                },
-              )
-            ).data,
-          );
-        }
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching policy information', {
-          variant: 'error',
-        });
+        setFegPolicies(
+          (
+            await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
+              networkId: fegNetworkId,
+            })
+          ).data,
+        );
       }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, fegNetworkId, networkType, enqueueSnackbar]);
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching policy information', {
+        variant: 'error',
+      });
+    }
+    setIsLoading(false);
+  }, [networkId, fegNetworkId, enqueueSnackbar]);
+
+  useEffect(() => void fetchState(), [fetchState, networkType]);
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -846,6 +843,7 @@ export function PolicyProvider(props: Props) {
             }
           }
         },
+        refetch: () => void fetchState(),
       }}>
       {props.children}
     </PolicyContext.Provider>
