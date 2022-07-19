@@ -239,14 +239,38 @@ void S6aClient::convert_ula_to_subscriber_data(
       }
 
       if (apn.has_qos_profile()) {
-        sub_apn_config->set_allocated_qos_profile(
-            (magma::lte::APNConfiguration_QoSProfile*)
-                apn.mutable_qos_profile());
+        auto qos_profile = sub_apn_config->mutable_qos_profile();
+        if (apn.qos_profile().class_id()) {
+          qos_profile->set_class_id(apn.qos_profile().class_id());
+        }
+        if (apn.qos_profile().priority_level()) {
+          qos_profile->set_priority_level(apn.qos_profile().priority_level());
+        }
+        if (apn.qos_profile().preemption_capability()) {
+          qos_profile->set_preemption_capability(
+              apn.qos_profile().preemption_capability());
+        }
+        if (apn.qos_profile().preemption_vulnerability()) {
+          qos_profile->set_preemption_vulnerability(
+              apn.qos_profile().preemption_vulnerability());
+        }
       }
 
       if (apn.has_ambr()) {
-        sub_apn_config->set_allocated_ambr(
-            (magma::lte::AggregatedMaximumBitrate*)apn.mutable_ambr());
+        auto ambr = sub_apn_config->mutable_ambr();
+        if (apn.ambr().max_bandwidth_dl() != 0) {
+          ambr->set_max_bandwidth_dl(apn.ambr().max_bandwidth_dl());
+        }
+        if (apn.ambr().max_bandwidth_ul() != 0) {
+          ambr->set_max_bandwidth_ul(apn.ambr().max_bandwidth_ul());
+        }
+        if (apn.ambr().unit() != 0) {
+          ambr->set_br_unit(
+              (magma::lte::AggregatedMaximumBitrate_BitrateUnitsAMBR)apn.ambr()
+                  .unit());
+        }
+        // sub_apn_config->set_allocated_ambr(
+        // (magma::lte::AggregatedMaximumBitrate*)apn.mutable_ambr());
       }
 
       if (apn.pdn() != 0) {
@@ -259,8 +283,19 @@ void S6aClient::convert_ula_to_subscriber_data(
       }
 
       if (apn.has_resource()) {
-        sub_apn_config->set_allocated_resource(
-            (magma::lte::APNConfiguration_APNResource*)apn.mutable_resource());
+        auto resource = sub_apn_config->mutable_resource();
+        if (apn.resource().apn_name().size() > 0) {
+          resource->set_apn_name(apn.resource().apn_name());
+        }
+        if (apn.resource().gateway_ip().size() > 0) {
+          resource->set_gateway_ip(apn.resource().gateway_ip());
+        }
+        if (apn.resource().gateway_mac().size() > 0) {
+          resource->set_gateway_mac(apn.resource().gateway_mac());
+        }
+        if (apn.resource().vlan_id() != 0) {
+          resource->set_vlan_id(apn.resource().vlan_id());
+        }
       }
     }
   }
