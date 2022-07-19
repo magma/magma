@@ -32,6 +32,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/sqorc"
+	orc8r_storage "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -41,6 +42,15 @@ type EpsAuthTestSuite struct {
 	suite.Suite
 	Server *EPSAuthServer
 }
+
+var (
+	qosProfileClassIDi32                  int32  = 9
+	qosProfilePriorityLevelU32            uint32 = 15
+	maxUlBitRateU32                       uint32 = 100000000
+	maxDlBitRateU32                       uint32 = 200000000
+	qosProfilePreemptionCapabilityBool    bool   = true
+	qosProfilePreemptionVulnerabilityBool bool   = false
+)
 
 func (suite *EpsAuthTestSuite) AuthenticationInformation(
 	air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {
@@ -90,6 +100,54 @@ func TestEpsAuthSuite(t *testing.T) {
 	}, serdes.Network)
 	assert.NoError(t, err)
 
+	gw, err := configurator.CreateEntity(
+		context.Background(),
+		"test",
+		configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "test"},
+		serdes.Entity)
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntity(
+		context.Background(), "test", configurator.NetworkEntity{
+			Type: lte.APNEntityType, Key: "apn",
+			Config: &models.ApnConfiguration{
+				Ambr: &models.AggregatedMaximumBitrate{
+					MaxBandwidthUl: &maxUlBitRateU32,
+					MaxBandwidthDl: &maxDlBitRateU32,
+				},
+				QosProfile: &models.QosProfile{
+					ClassID:                 &qosProfileClassIDi32,
+					PreemptionCapability:    &qosProfilePreemptionCapabilityBool,
+					PreemptionVulnerability: &qosProfilePreemptionVulnerabilityBool,
+					PriorityLevel:           &qosProfilePriorityLevelU32,
+				},
+			},
+		}, serdes.Entity)
+	assert.NoError(t, err)
+
+	var writes []configurator.EntityWriteOperation
+	writes = append(writes, configurator.NetworkEntity{
+		NetworkID: "test",
+		Type:      lte.APNResourceEntityType,
+		Key:       "resource",
+		Config: &models.ApnResource{
+			ApnName:    "apn",
+			GatewayIP:  "172.16.254.1",
+			GatewayMac: "00:0a:95:9d:68:16",
+			ID:         "resource",
+			VlanID:     42,
+		},
+		Associations: orc8r_storage.TKs{{Type: lte.APNEntityType, Key: "apn"}},
+	})
+	write := configurator.EntityUpdateCriteria{
+		Type:              lte.CellularGatewayEntityType,
+		Key:               gw.Key,
+		AssociationsToAdd: orc8r_storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource"}},
+	}
+	writes = append(writes, write)
+	err = configurator.WriteEntities(context.Background(), "test", writes, serdes.Entity)
+	assert.NoError(t, err)
+
 	testSuite := &EpsAuthTestSuite{}
 
 	db, err := sqorc.Open("sqlite3", ":memory:")
@@ -101,7 +159,7 @@ func TestEpsAuthSuite(t *testing.T) {
 	store := storage.NewSubscriberDBStorage(stateStoreFactory)
 
 	for _, subscriber := range utils.GetTestSubscribers() {
-		err := addSubscriber(store, subscriber)
+		err := addSubscriber(store, subscriber, map[string]string{"apn": "1.2.3.4"})
 		assert.NoError(t, err)
 	}
 
@@ -117,7 +175,7 @@ func getTestContext() context.Context {
 		"test", "test", "test").NewContextWithIdentity(context.Background())
 }
 
-func addSubscriber(store storage.SubscriberDBStorage, sd *lteprotos.SubscriberData) error {
+func addSubscriber(store storage.SubscriberDBStorage, sd *lteprotos.SubscriberData, staticIps map[string]string) error {
 	ent := configurator.NetworkEntity{
 		Type: lte.SubscriberEntityType, Key: lteprotos.SidString(sd.GetSid()),
 		Config: &sdb_models.SubscriberConfig{},
@@ -132,7 +190,11 @@ func addSubscriber(store storage.SubscriberDBStorage, sd *lteprotos.SubscriberDa
 				State:      "ACTIVE",
 				SubProfile: &subProfile,
 			},
+			StaticIps: staticIps,
 		}
+	}
+	if acfg := sd.GetNon_3Gpp().GetApnConfig(); len(acfg) > 0 && len(acfg[0].GetServiceSelection()) > 1 {
+		ent.Associations = orc8r_storage.TKs{{Type: lte.APNEntityType, Key: acfg[0].GetServiceSelection()}}
 	}
 	_, err := configurator.CreateEntities(
 		context.Background(), sd.GetNetworkId().GetId(), []configurator.NetworkEntity{ent}, serdes.Entity)

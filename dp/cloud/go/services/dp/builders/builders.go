@@ -205,15 +205,6 @@ func (b *DBCbsdBuilder) WithCbsdCategory(cat string) *DBCbsdBuilder {
 	return b
 }
 
-// func (b *DBCbsdBuilder) WithDefaulValues() *DBCbsdBuilder {
-// 	return b.WithCbsdCategory(catB).
-// 		WithSingleStepEnabled(false).
-// 		WithIndoorDeployment(false).
-// 		WithGrantRedundancy(true).
-// 		WithCarrierAggregationEnabled(false).
-// 		WithMaxIbwMhx(150)
-// }
-
 type DBGrantBuilder struct {
 	Grant *storage.DBGrant
 }

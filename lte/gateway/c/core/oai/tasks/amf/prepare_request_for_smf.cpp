@@ -63,10 +63,10 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int create_session_grpc_req_on_gnb_setup_rsp(
+status_code_e create_session_grpc_req_on_gnb_setup_rsp(
     amf_smf_establish_t* message, char* imsi, uint32_t version,
     std::shared_ptr<smf_context_t> smf_ctx) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
 
   auto imsi_str = std::string(imsi);
@@ -190,7 +190,7 @@ int amf_send_grpc_req_on_gnb_pdu_sess_mod_rsp(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_create_session_req(
+status_code_e amf_smf_create_session_req(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
@@ -231,8 +231,8 @@ int amf_smf_create_session_req(
  * **                                                                        **
  * **                                                                        **
  * ***************************************************************************/
-int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
-                                          char* imsi, uint32_t version) {
+status_code_e amf_smf_initiate_pdu_session_creation(
+    amf_smf_establish_t* message, char* imsi, uint32_t version) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;
@@ -287,7 +287,7 @@ int amf_smf_initiate_pdu_session_creation(amf_smf_establish_t* message,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
+status_code_e release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::lte::SetSMSessionContext req;
   auto imsi_str = std::string(imsi);

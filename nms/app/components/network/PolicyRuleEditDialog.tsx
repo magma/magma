@@ -42,8 +42,10 @@ import {
 } from '../../../generated';
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {coalesceNetworkType} from '../../../shared/types/network';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -52,6 +54,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   onCancel: () => void;
+  onSave: (ruleId: string) => void;
   qosProfiles: Record<string, PolicyQosProfile>;
   rule?: PolicyRule;
   mirrorNetwork?: string;
@@ -61,6 +64,8 @@ export default function PolicyRuleEditDialog(props: Props) {
   const classes = useStyles();
   const networkId = useParams().networkId!;
   const {qosProfiles, mirrorNetwork} = props;
+  const enqueueSnackbar = useEnqueueSnackbar();
+
   const [networkType, setNetworkType] = useState<NetworkType | null>(null);
   const [
     mirrorNetworkType,
@@ -158,52 +163,63 @@ export default function PolicyRuleEditDialog(props: Props) {
   };
 
   const onSave = async () => {
-    const ruleData = [
-      {
+    try {
+      const ruleData = [
+        {
+          networkId: nullthrows(networkId),
+          ruleId: rule.id,
+          policyRule: rule,
+        },
+      ];
+
+      if (mirrorNetwork) {
+        ruleData.push({
+          networkId: mirrorNetwork,
+          ruleId: rule.id,
+          policyRule: rule,
+        });
+      }
+
+      if (props.rule) {
+        await Promise.all(
+          ruleData.map(d =>
+            MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut(d),
+          ),
+        );
+      } else {
+        await Promise.all(
+          ruleData.map(d =>
+            MagmaAPI.policies.networksNetworkIdPoliciesRulesPost(d),
+          ),
+        );
+      }
+
+      const networkWideRuleData = {
         networkId: nullthrows(networkId),
         ruleId: rule.id,
-        policyRule: rule,
-      },
-    ];
+      };
+      if (isNetworkWide) {
+        await postNetworkWideRuleID(networkWideRuleData, networkType!);
+        if (mirrorNetwork) {
+          networkWideRuleData.networkId = mirrorNetwork;
+          await postNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
+        }
+      } else {
+        await deleteNetworkWideRuleID(networkWideRuleData, networkType!);
+        if (mirrorNetwork) {
+          networkWideRuleData.networkId = mirrorNetwork;
+          await deleteNetworkWideRuleID(
+            networkWideRuleData,
+            mirrorNetworkType!,
+          );
+        }
+      }
 
-    if (mirrorNetwork != null) {
-      ruleData.push({
-        networkId: mirrorNetwork,
-        ruleId: rule.id,
-        policyRule: rule,
+      props.onSave(rule.id);
+    } catch (error) {
+      enqueueSnackbar(getErrorMessage(error), {
+        variant: 'error',
       });
-    }
-
-    if (props.rule) {
-      await Promise.all(
-        ruleData.map(d =>
-          MagmaAPI.policies.networksNetworkIdPoliciesRulesRuleIdPut(d),
-        ),
-      );
-    } else {
-      await Promise.all(
-        ruleData.map(d =>
-          MagmaAPI.policies.networksNetworkIdPoliciesRulesPost(d),
-        ),
-      );
-    }
-
-    const networkWideRuleData = {
-      networkId: nullthrows(networkId),
-      ruleId: rule.id,
-    };
-    if (isNetworkWide) {
-      await postNetworkWideRuleID(networkWideRuleData, networkType!);
-      if (mirrorNetwork != null) {
-        networkWideRuleData.networkId = mirrorNetwork;
-        await postNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
-      }
-    } else {
-      await deleteNetworkWideRuleID(networkWideRuleData, networkType!);
-      if (mirrorNetwork != null) {
-        networkWideRuleData.networkId = mirrorNetwork;
-        await deleteNetworkWideRuleID(networkWideRuleData, mirrorNetworkType!);
-      }
     }
   };
 
@@ -225,7 +241,8 @@ export default function PolicyRuleEditDialog(props: Props) {
           className={classes.input}
           label="Precendence"
           margin="normal"
-          value={rule.priority}
+          value={isNaN(rule.priority) ? '' : rule.priority}
+          type="number"
           onChange={({target}) =>
             setRule({...rule, priority: parseInt(target.value)})
           }
@@ -257,11 +274,14 @@ export default function PolicyRuleEditDialog(props: Props) {
           value={decodeBase64(rule.monitoring_key ?? '')}
         />
         <TextField
-          required
           className={classes.input}
           label="Rating Group"
           margin="normal"
-          value={rule.rating_group}
+          value={
+            rule.rating_group === undefined || isNaN(rule.rating_group)
+              ? ''
+              : rule.rating_group
+          }
           type="number"
           onChange={({target}) =>
             setRule({

@@ -82,8 +82,8 @@ func IsGateway(id *protos.Identity) bool {
 	return false
 }
 
-//GetStreamGatewayId returns a valid, non nil Gateway identity based on the
-//stream's metadata CTX or error if no GW Identity can be found/verified
+// GetStreamGatewayId returns a valid, non nil Gateway identity based on the
+// stream's metadata CTX or error if no GW Identity can be found/verified
 func GetStreamGatewayId(stream grpc.ServerStream) (*protos.Identity_Gateway, error) {
 	ctx := stream.Context()
 	if ctx == nil {
@@ -135,4 +135,21 @@ func GetClientNetworkID(ctx context.Context) (string, error) {
 		return "", err
 	}
 	return gw.GetNetworkId(), nil
+}
+
+// GetClientNetworkAndGatewayID looks up the Gateway caller retrieved from GRPC/HTTP
+// Context (if present) where it's set by the middleware and returns the associated
+// NetworkID & Gateway ID
+// For use by all Gateway facing cloud services.
+func GetClientNetworkAndGatewayID(ctx context.Context) (string, string, error) {
+	gw := protos.GetClientGateway(ctx)
+	if gw == nil {
+		err := status.Errorf(codes.PermissionDenied, "Missing Gateway Identity")
+		return "", "", err
+	}
+	if !gw.Registered() {
+		err := status.Errorf(codes.PermissionDenied, "Gateway is not registered")
+		return "", "", err
+	}
+	return gw.GetNetworkId(), gw.GetLogicalId(), nil
 }

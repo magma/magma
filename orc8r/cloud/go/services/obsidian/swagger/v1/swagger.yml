@@ -6849,6 +6849,8 @@ definitions:
         description: this is the maximum allowed difference in MHz between leftmost
           end of leftmost channel and rightmost end of rightmost channel used by a
           Base Station (eNB)
+        maximum: 150
+        multipleOf: 5
         type: integer
         x-nullable: false
       max_power:

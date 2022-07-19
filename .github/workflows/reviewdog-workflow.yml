@@ -172,7 +172,7 @@ jobs:
           reporter: github-pr-review
           locale: "US"
           exclude: |
-            nms/yarn.lock
+            ./nms/yarn.lock
 
   mypy:
     needs: files_changed
