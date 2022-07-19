@@ -85,9 +85,6 @@ class TestIpv6NonNatDpUlTcp(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Delay to ensure S1APTester sends attach complete before sending UE
-        # context release
-        time.sleep(5)
         # Receive Router Advertisement message
         apn = "magma"
         response = self._s1ap_wrapper.s1_util.get_response()
