@@ -13,15 +13,19 @@ load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
-py_library(
-    name = "constants",
-    testonly = 1,
-    srcs = ["__init__.py"],
-)
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 py_library(
-    name = "rest_api",
-    testonly = 1,
-    srcs = ["rest_api.py"],
-    deps = [":constants"],
+    name = "rpc",
+    testonly = True,
+    srcs = ["rpc.py"],
+    imports = [ORC8R_ROOT],
+    deps = [
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/gateway/python/magma/configuration:mconfigs",
+        "//orc8r/protos:magmad_python_grpc",
+        "//orc8r/protos:mconfig_python_proto",
+    ],
 )

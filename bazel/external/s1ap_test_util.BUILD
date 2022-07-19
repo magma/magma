@@ -13,15 +13,21 @@ load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
-py_library(
-    name = "constants",
-    testonly = 1,
-    srcs = ["__init__.py"],
+# The s1ap framework is only present on the magma_test environment
+config_setting(
+    name = "expect_s1ap_framework",
+    values = {"define": "on_magma_test=1"},
 )
 
 py_library(
-    name = "rest_api",
-    testonly = 1,
-    srcs = ["rest_api.py"],
-    deps = [":constants"],
+    name = "s1ap_types",
+    srcs = select({
+        ":expect_s1ap_framework": ["home/vagrant/s1ap-tester/bin/s1ap_types.py"],
+        "//conditions:default": [],
+    }),
+    imports = select({
+        ":expect_s1ap_framework": ["home/vagrant/s1ap-tester/bin/"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
 )
