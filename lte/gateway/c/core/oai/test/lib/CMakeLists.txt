@@ -32,5 +32,10 @@ target_link_libraries(3gpp_test LIB_3GPP gmock_main gtest gtest_main gmock)
 add_test(test_3gpp 3gpp_test)
 
 add_executable(ula_sub_data_test test_ula_subdata.cpp)
-target_link_libraries(ula_sub_data_test LIB_STORE LIB_S6A_PROXY COMMON MAGMA_CONFIG gmock_main gtest gtest_main gmock)
+target_link_libraries(ula_sub_data_test LIB_STORE LIB_S6A_PROXY COMMON TASK_MME_APP gmock_main gtest gtest_main gmock)
+target_include_directories(LIB_S6A_PROXY PUBLIC
+    $ENV{MAGMA_ROOT}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<TARGET_FILE_DIR:LIB_S6A_PROXY>
+    )
 add_test(test_ula_subdata ula_sub_data_test)
