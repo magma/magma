@@ -369,7 +369,7 @@ export async function handleSubscriberQuery(
       const metrics = subscriberMetrics?.[`${search}`];
       if (searchedSubscriber) {
         subscriberSearch = {
-          name: searchedSubscriber.id,
+          name: searchedSubscriber.name || '',
           imsi: searchedSubscriber.id,
           service: searchedSubscriber.lte?.state || '',
           currentUsage: metrics?.currentUsage ?? '0',

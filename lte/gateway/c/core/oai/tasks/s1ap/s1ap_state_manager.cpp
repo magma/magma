@@ -72,10 +72,9 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
   state_cache_p->enbs.set_name(S1AP_ENB_COLL);
   state_cache_p->enbs.bind_callback(free_cpp_wrapper);
 
-  ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
-  hashtable_ts_init(&state_cache_p->mmeid2associd, max_ues, nullptr,
-                    hash_free_int_func, ht_name);
-  bdestroy(ht_name);
+  state_cache_p->mmeid2associd.map =
+      new google::protobuf::Map<uint32_t, uint32_t>();
+  state_cache_p->mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
 
   state_cache_p->num_enbs = 0;
   return state_cache_p;
@@ -117,9 +116,9 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
   }
-  if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
+  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
+                 "An error occurred while destroying mmeid2associd map");
   }
   delete state_cache_p;
 }

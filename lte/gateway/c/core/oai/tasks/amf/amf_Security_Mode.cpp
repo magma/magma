@@ -40,12 +40,12 @@ namespace magma5g {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_handle_security_complete_response(
+status_code_e amf_handle_security_complete_response(
     amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_DEBUG(LOG_NAS_AMF,
                "Security mode procedures complete for "
                "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",

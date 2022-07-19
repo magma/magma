@@ -188,7 +188,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
         OAILOG_DEBUG(LOG_S1AP,
                      "Adding mme_ue_s1ap_id %u to eNB clean up list with "
                      "num_ues_checked "
-                     "%u",
+                     "%lu",
                      ue_itr->first, mme_ue_id_no_imsi_list.size());
       }
     }

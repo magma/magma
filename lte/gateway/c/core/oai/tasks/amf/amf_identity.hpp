@@ -36,11 +36,9 @@ int amf_cn_identity_res(amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg,
                         const amf_nas_message_decode_status_t* status);
 
 // Performs the identification completion procedure
-int amf_proc_identification_complete(const amf_ue_ngap_id_t ue_id,
-                                     imsi_t* const imsi, imei_t* const imei,
-                                     imeisv_t* const imeisv,
-                                     uint32_t* const tmsii,
-                                     guti_m5_t* amf_ctx_guti);
+status_code_e amf_proc_identification_complete(
+    const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
+    imeisv_t* const imeisv, uint32_t* const tmsii, guti_m5_t* amf_ctx_guti);
 
 typedef struct amf_guamfi_s {
   amf_plmn_t plmn; /*MCC + MNC*/

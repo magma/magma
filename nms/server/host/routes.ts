@@ -16,7 +16,11 @@ import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import featureConfigs, {FeatureConfig} from '../features';
 import logging from '../../shared/logging';
-import {FeatureFlag, Organization} from '../../shared/sequelize_models';
+import {
+  FeatureFlag,
+  Organization,
+  sequelize,
+} from '../../shared/sequelize_models';
 import {FeatureFlagModel} from '../../shared/sequelize_models/models/featureflag';
 import {Request, Router} from 'express';
 import {User} from '../../shared/sequelize_models';
@@ -270,10 +274,25 @@ router.post(
 router.delete(
   '/organization/async/:id',
   asyncHandler(async (req: Request<{id: string}>, res) => {
-    await Organization.destroy({
+    const organization = await Organization.findOne({
       where: {id: req.params.id},
-      individualHooks: true,
     });
+
+    if (!organization) {
+      res.status(200).send({success: true});
+      return;
+    }
+
+    await sequelize.transaction(async transaction => {
+      await organization.destroy({transaction});
+
+      await User.destroy({
+        where: {organization: organization.name},
+        individualHooks: true,
+        transaction,
+      });
+    });
+
     res.status(200).send({success: true});
   }),
 );

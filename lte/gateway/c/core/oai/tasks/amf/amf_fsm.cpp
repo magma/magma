@@ -197,10 +197,9 @@ void create_state_matrix() {
  * state,ue_context,amf_context
  * @return int for success or failure
  */
-int ue_state_handle_message_initial(m5gmm_state_t cur_state, int event,
-                                    SMSessionFSMState session_state,
-                                    ue_m5gmm_context_s* ue_m5gmm_context,
-                                    amf_context_t* amf_context) {
+status_code_e ue_state_handle_message_initial(
+    m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
@@ -219,7 +218,7 @@ int ue_state_handle_message_initial(m5gmm_state_t cur_state, int event,
 
     OAILOG_FUNC_RETURN(
         LOG_AMF_APP,
-        reinterpret_cast<int (*)(amf_context_t*)>(
+        reinterpret_cast<status_code_e (*)(amf_context_t*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             amf_context));
   } else {
@@ -235,7 +234,7 @@ int ue_state_handle_message_initial(m5gmm_state_t cur_state, int event,
  * state,ue_context,ue_id,smf_msg,amf_cause,decode_status
  * @return int for success or failure
  */
-int ue_state_handle_message_reg_conn(
+status_code_e ue_state_handle_message_reg_conn(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id,
     bstring smf_msg_pP, int amf_cause,
@@ -246,8 +245,9 @@ int ue_state_handle_message_reg_conn(
         ue_state_matrix[cur_state][event][session_state].next_state;
     OAILOG_FUNC_RETURN(
         LOG_AMF_APP,
-        reinterpret_cast<int (*)(amf_ue_ngap_id_t, bstring, int,
-                                 const amf_nas_message_decode_status_t)>(
+        reinterpret_cast<status_code_e (*)(
+            amf_ue_ngap_id_t, bstring, int,
+            const amf_nas_message_decode_status_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             ue_id, smf_msg_pP, amf_cause, decode_status));
   } else {
@@ -264,10 +264,9 @@ int ue_state_handle_message_reg_conn(
  * state,ue_context,ue_id
  * @return int for success or failure
  */
-int ue_state_handle_message_dereg(m5gmm_state_t cur_state, int event,
-                                  SMSessionFSMState session_state,
-                                  ue_m5gmm_context_s* ue_m5gmm_context,
-                                  amf_ue_ngap_id_t ue_id) {
+status_code_e ue_state_handle_message_dereg(
+    m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     ue_m5gmm_context->mm_state =
@@ -275,7 +274,7 @@ int ue_state_handle_message_dereg(m5gmm_state_t cur_state, int event,
 
     OAILOG_FUNC_RETURN(
         LOG_AMF_APP,
-        reinterpret_cast<int (*)(amf_ue_ngap_id_t)>(
+        reinterpret_cast<status_code_e (*)(amf_ue_ngap_id_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             ue_id));
   } else {
@@ -292,7 +291,7 @@ int ue_state_handle_message_dereg(m5gmm_state_t cur_state, int event,
  * state,ue_context,amf_smf_msg,imsi,pdu_session_resp,ue_id
  * @return int for success or failure
  */
-int pdu_state_handle_message(
+status_code_e pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
@@ -318,14 +317,14 @@ int pdu_state_handle_message(
       case STATE_PDU_SESSION_ESTABLISHMENT_REQUEST:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
+        return reinterpret_cast<status_code_e (*)(amf_smf_establish_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
         break;
       case STATE_PDU_SESSION_RELEASE_COMPLETE:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        return reinterpret_cast<int (*)(amf_smf_release_t*, char*)>(
+        return reinterpret_cast<status_code_e (*)(amf_smf_release_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.release, imsi);
         break;
@@ -333,30 +332,30 @@ int pdu_state_handle_message(
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
 
-        return reinterpret_cast<int (*)(itti_n11_create_pdu_session_response_t*,
-                                        uint32_t)>(
+        return reinterpret_cast<status_code_e (*)(
+            itti_n11_create_pdu_session_response_t*, uint32_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             pdu_session_resp, ue_id);
         break;
       case STATE_PDU_SESSION_MODIFICATION_REQUEST:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        return reinterpret_cast<int (*)(itti_n11_create_pdu_session_response_t*,
-                                        uint32_t)>(
+        return reinterpret_cast<status_code_e (*)(
+            itti_n11_create_pdu_session_response_t*, uint32_t)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             pdu_session_resp, ue_id);
         break;
       case STATE_PDU_SESSION_MODIFICATION_COMPLETE:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
+        return reinterpret_cast<status_code_e (*)(amf_smf_establish_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
         break;
       case STATE_PDU_SESSION_MODIFICATION_COMMAND_REJECT:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
-        return reinterpret_cast<int (*)(amf_smf_establish_t*, char*)>(
+        return reinterpret_cast<status_code_e (*)(amf_smf_establish_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.establish, imsi);
         break;

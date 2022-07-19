@@ -112,6 +112,7 @@ nginx:
   spec:
     hostname: localhost
 nms:
+  enabled: false
   nginx:
     deployment:
       spec:

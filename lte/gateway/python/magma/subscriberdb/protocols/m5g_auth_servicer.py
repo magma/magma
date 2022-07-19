@@ -14,7 +14,7 @@ limitations under the License.
 import logging
 
 from grpc import StatusCode
-from lte.protos import (
+from lte.protos import (  # type: ignore[attr-defined]
     diam_errors_pb2,
     subscriberauth_pb2,
     subscriberauth_pb2_grpc,
@@ -175,7 +175,7 @@ class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
                 profile = 'B'
 
             home_network_info = ECIES_HN(
-                suciprofile.home_net_private_key,
+                suciprofile.home_network_private_key,
                 profile,
             )
 

@@ -31,12 +31,15 @@ import sequelizeConfig from './sequelizeConfig';
 const env = process.env.NODE_ENV || 'development';
 const config = sequelizeConfig[env];
 
-export const sequelize: Sequelize = new Sequelize(
-  config.database || '',
-  config.username || '',
-  config.password,
-  config,
-);
+export const sequelize: Sequelize =
+  env === 'test'
+    ? new Sequelize('sqlite::memory:')
+    : new Sequelize(
+        config.database || '',
+        config.username || '',
+        config.password,
+        config,
+      );
 
 const SequelizeTables = [
   'AuditLogEntries',

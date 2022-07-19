@@ -40,15 +40,15 @@ namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 AmfMsg amf_msg_obj;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
-static int subs_auth_retry(zloop_t* loop, int timer_id, void* output);
-int nas_proc_establish_ind(const amf_ue_ngap_id_t ue_id,
-                           const bool is_mm_ctx_new,
-                           const tai_t originating_tai, const ecgi_t ecgi,
-                           const m5g_rrc_establishment_cause_t as_cause,
-                           const s_tmsi_m5_t s_tmsi, bstring msg) {
+static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg);
+status_code_e nas_proc_establish_ind(
+    const amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
+    const tai_t originating_tai, const ecgi_t ecgi,
+    const m5g_rrc_establishment_cause_t as_cause, const s_tmsi_m5_t s_tmsi,
+    bstring msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_sap_t amf_sap = {};
-  uint32_t rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   if (msg) {
     /*
      * Notify the AMF procedure call manager that NAS signaling
@@ -325,6 +325,8 @@ static void nas5g_delete_cn_procedures(struct amf_context_s* amf_context) {
           nas5g_delete_auth_info_procedure(amf_context,
                                            (nas5g_auth_info_proc_t**)&p1->proc);
           break;
+        default:
+          break;
       }
       LIST_REMOVE(p1, entries);
       delete (p1);
@@ -464,10 +466,11 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
 ** Outputs:        None                                                   **
 **      Return:    None                                                   **
 ***************************************************************************/
-static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
+static status_code_e amf_identification_request(
+    nas_amf_ident_proc_t* const proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   amf_sap_t amf_sap = {};
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
   OAILOG_DEBUG(LOG_AMF_APP, "Sending AS IDENTITY_REQUEST\n");
   /*
@@ -570,12 +573,13 @@ static int identification_t3570_handler(zloop_t* loop, int timer_id,
 }
 
 //-------------------------------------------------------------------------------------
-int amf_proc_identification(amf_context_t* const amf_context,
-                            nas_amf_proc_t* const amf_proc,
-                            const identity_type2_t type, success_cb_t success,
-                            failure_cb_t failure) {
+status_code_e amf_proc_identification(amf_context_t* const amf_context,
+                                      nas_amf_proc_t* const amf_proc,
+                                      const identity_type2_t type,
+                                      success_cb_t success,
+                                      failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_context->amf_fsm_state = AMF_REGISTERED;
   if ((amf_context) && ((AMF_DEREGISTERED == amf_context->amf_fsm_state) ||
                         (AMF_REGISTERED == amf_context->amf_fsm_state))) {
@@ -626,8 +630,8 @@ int amf_proc_identification(amf_context_t* const amf_context,
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
-  int rc = RETURNerror;
+status_code_e amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
+  status_code_e rc = RETURNerror;
   amf_sap_t amf_sap = {};
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -646,11 +650,12 @@ int amf_nas_proc_implicit_deregister_ue_ind(amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-int amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
-                                uint8_t nb_vectors, m5gauth_vector_t* vectors) {
+status_code_e amf_nas_proc_auth_param_res(amf_ue_ngap_id_t amf_ue_ngap_id,
+                                          uint8_t nb_vectors,
+                                          m5gauth_vector_t* vectors) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_sap_t amf_sap = {};
   amf_cn_auth_res_t amf_cn_auth_res = {};
 
@@ -736,10 +741,10 @@ static int subs_auth_retry(zloop_t* loop, int timer_id, void* arg) {
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
-int amf_nas_proc_authentication_info_answer(
+status_code_e amf_nas_proc_authentication_info_answer(
     itti_amf_subs_auth_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
   int amf_cause = -1;
@@ -832,14 +837,13 @@ int amf_nas_proc_authentication_info_answer(
 
 int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_context_t* amf_ctxt_p = NULL;
   ue_m5gmm_context_s* ue_context = NULL;
 
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
-  guti_and_amf_id_t guti_and_amf_id;
   const bool is_amf_ctx_new = true;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
@@ -931,7 +935,7 @@ int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
-int amf_handle_s6a_update_location_ans(
+status_code_e amf_handle_s6a_update_location_ans(
     const s6a_update_location_ans_t* ula_pP) {
   imsi64_t imsi64 = INVALID_IMSI64;
   amf_context_t* amf_ctxt_p = NULL;

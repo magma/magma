@@ -121,4 +121,5 @@ compile_commands.json
 
 # Domain Proxy
 dp/cloud/helm/dp/charts/domain-proxy/certificates/**/*
+dp/tools/deployment/certificates/certs
 orc8r/cloud/helm/orc8r/charts/secrets

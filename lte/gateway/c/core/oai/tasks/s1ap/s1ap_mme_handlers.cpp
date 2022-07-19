@@ -3212,9 +3212,8 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
     s1ap_remove_ue(state, src_ue_ref_p);
 
     /* Mapping between mme_ue_s1ap_id, assoc_id and enb_ue_s1ap_id */
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        &state->mmeid2associd, (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
-        (void*)(uintptr_t)assoc_id);
+    magma::proto_map_rc_t rc =
+        state->mmeid2associd.insert(new_ue_ref_p->mme_ue_s1ap_id, assoc_id);
 
     target_enb->ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id,
                                   new_ue_ref_p->comp_s1ap_id);
@@ -3224,7 +3223,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
         "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
-        hashtable_rc_code2string(h_rc));
+        magma::map_rc_code2string(rc));
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -3458,9 +3457,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
     s1ap_remove_ue(state, ue_ref_p);
 
     /* Mapping between mme_ue_s1ap_id, assoc_id and enb_ue_s1ap_id */
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        &state->mmeid2associd, (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
-        (void*)(uintptr_t)assoc_id);
+    magma::proto_map_rc_t rc =
+        state->mmeid2associd.insert(new_ue_ref_p->mme_ue_s1ap_id, assoc_id);
 
     enb_association->ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id,
                                        new_ue_ref_p->comp_s1ap_id);
@@ -3470,7 +3468,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
         "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
-        hashtable_rc_code2string(h_rc));
+        magma::map_rc_code2string(rc));
 
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_PathSwitchRequestIEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList,

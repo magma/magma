@@ -111,7 +111,7 @@ const useStyles = makeStyles<Theme>(theme => ({
 }));
 
 type ApnRowType = {
-  apnID: string;
+  id: string;
   classID: number;
   arpPriorityLevel: number;
   maxReqdULBw: number;
@@ -133,7 +133,7 @@ function ApnOverview(props: WithAlert) {
     ? Object.keys(apns).map((apn: string) => {
         const cfg = apns[apn].apn_configuration;
         return {
-          apnID: apn,
+          id: apn,
           classID: cfg?.qos_profile.class_id ?? 0,
           arpPriorityLevel: cfg?.qos_profile.priority_level ?? 0,
           maxReqdULBw: cfg?.ambr.max_bandwidth_ul ?? 0,
@@ -158,7 +158,7 @@ function ApnOverview(props: WithAlert) {
         <ApnEditDialog
           open={open}
           onClose={() => setOpen(false)}
-          apn={Object.keys(currRow).length ? apns[currRow.apnID] : undefined}
+          apn={Object.keys(currRow).length ? apns[currRow.id] : undefined}
         />
         {Object.keys(ctx.state).length > 0 ? (
           <>
@@ -168,7 +168,7 @@ function ApnOverview(props: WithAlert) {
               columns={[
                 {
                   title: 'Apn ID',
-                  field: 'apnID',
+                  field: 'id',
                   render: currRow => (
                     <Link
                       variant="body2"
@@ -177,7 +177,7 @@ function ApnOverview(props: WithAlert) {
                         setCurrRow(currRow);
                         setOpen(true);
                       }}>
-                      {currRow.apnID}
+                      {currRow.id}
                     </Link>
                   ),
                 },
@@ -215,7 +215,7 @@ function ApnOverview(props: WithAlert) {
                 {
                   name: 'Edit JSON',
                   handleFunc: () => {
-                    navigate(currRow.apnID + '/json');
+                    navigate(currRow.id + '/json');
                   },
                 },
                 {name: 'Deactivate'},
@@ -223,9 +223,7 @@ function ApnOverview(props: WithAlert) {
                   name: 'Remove',
                   handleFunc: () => {
                     void props
-                      .confirm(
-                        `Are you sure you want to delete ${currRow.apnID}?`,
-                      )
+                      .confirm(`Are you sure you want to delete ${currRow.id}?`)
                       .then(async confirmed => {
                         if (!confirmed) {
                           return;
@@ -233,14 +231,11 @@ function ApnOverview(props: WithAlert) {
 
                         try {
                           // trigger deletion
-                          await ctx.setState(currRow.apnID);
+                          await ctx.setState(currRow.id);
                         } catch (e) {
-                          enqueueSnackbar(
-                            'failed deleting APN ' + currRow.apnID,
-                            {
-                              variant: 'error',
-                            },
-                          );
+                          enqueueSnackbar('failed deleting APN ' + currRow.id, {
+                            variant: 'error',
+                          });
                         }
                       });
                   },

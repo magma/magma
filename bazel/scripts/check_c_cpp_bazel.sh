@@ -44,7 +44,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
   "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.cpp"
   "./lte/gateway/c/core/oai/test/s1ap_task/test_s1ap_mme_handlers_with_injected_state.cpp"
-  "./lte/gateway/c/session_manager/test/test_async_service.cpp"
   "./lte/gateway/c/session_manager/test/test_session_state_5g.cpp"
   "./lte/gateway/c/session_manager/test/SessionStateTester5g.hpp"
   # TODO: GH12776 dead code

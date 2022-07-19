@@ -208,7 +208,7 @@ func getCbsdWriteFields() []string {
 		"preferred_bandwidth_mhz", "preferred_frequencies_mhz", "single_step_enabled",
 		"cbsd_category", "latitude_deg", "longitude_deg", "height_m", "height_type", "horizontal_accuracy_m",
 		"antenna_azimuth_deg", "antenna_downtilt_deg", "antenna_beamwidth_deg", "antenna_model", "eirp_capability_dbm_mhz",
-		"indoor_deployment", "cpi_digital_signature",
+		"indoor_deployment", "cpi_digital_signature", "carrier_aggregation_enabled", "max_ibw_mhz", "grant_redundancy",
 	}
 }
 

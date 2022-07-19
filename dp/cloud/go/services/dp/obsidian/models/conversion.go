@@ -14,10 +14,6 @@ limitations under the License.
 package models
 
 import (
-	"context"
-	"fmt"
-
-	oerrors "github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 
 	"magma/dp/cloud/go/protos"
@@ -77,21 +73,6 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		CbsdCategory:              details.Data.CbsdCategory,
 		InstallationParam:         getModelInstallationParam(details.Data.InstallationParam),
 	}
-}
-
-func (m *MutableCbsd) ValidateModel(ctx context.Context) error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	var res []error
-	if !*m.GrantRedundancy && *m.CarrierAggregationEnabled {
-		err := fmt.Errorf("grant_redundancy cannot be set to false when carrier_aggregation_enabled is enabled")
-		res = append(res, err)
-	}
-	if len(res) > 0 {
-		return oerrors.CompositeValidationError(res...)
-	}
-	return nil
 }
 
 func makeSliceNotNil(s []int64) []int64 {

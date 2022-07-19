@@ -497,7 +497,7 @@ function SubscribersTable(props: WithAlert) {
               filter={() => (
                 <Grid
                   container
-                  justify="flex-end"
+                  justifyContent="flex-end"
                   alignItems="center"
                   spacing={2}>
                   <Grid item>
@@ -593,6 +593,8 @@ function SubscribersTable(props: WithAlert) {
                 },
               ]}
               options={{
+                idSynonym: 'imsi',
+                sorting: false,
                 actionsColumnIndex: -1,
                 pageSize: DEFAULT_PAGE_SIZE,
                 pageSizeOptions: [],
@@ -601,7 +603,7 @@ function SubscribersTable(props: WithAlert) {
             />
           </>
         ) : (
-          <Grid container justify="space-between" spacing={3}>
+          <Grid container justifyContent="space-between" spacing={3}>
             <SubscriberActionsMenu
               addDialog={addDialog}
               hideButton={true}
