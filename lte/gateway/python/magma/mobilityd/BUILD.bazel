@@ -75,5 +75,6 @@ py_library(
         requirement("netifaces"),
         requirement("scapy"),
         requirement("prometheus_client"),
+        requirement("dpkt"),
     ],
 )

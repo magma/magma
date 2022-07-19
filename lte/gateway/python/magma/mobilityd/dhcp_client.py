@@ -20,6 +20,8 @@ from ipaddress import IPv4Network, ip_address
 from threading import Condition
 from typing import MutableMapping, Optional
 
+import dpkt as dpkt
+
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.mac import MacAddress, hex_to_mac
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
@@ -144,16 +146,37 @@ class DHCPClient:
         with self._dhcp_notify:
             self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
 
-        pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
-        if vlan and vlan != 0:
-            pkt /= Dot1Q(vlan=vlan)
-        pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
-        pkt /= UDP(sport=68, dport=67)
-        pkt /= BOOTP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
-        pkt /= DHCP(options=dhcp_opts)
-        LOG.debug("DHCP pkt xmit %s", pkt.show(dump=True))
+        # pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
+        # if vlan and vlan != 0:
+        #     pkt /= Dot1Q(vlan=vlan)
+        # pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
+        # pkt /= UDP(sport=68, dport=67)
+        # pkt /= BOOTP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
+        # pkt /= DHCP(options=dhcp_opts)
+        # LOG.debug("DHCP pkt xmit %s", pkt.show(dump=True))
+        #
+        # sendp(pkt, iface=self._dhcp_interface, verbose=0)
 
-        sendp(pkt, iface=self._dhcp_interface, verbose=0)
+        DHCP_OPT_MSGTYPE = 53  # B: message type
+        DHCPDISCOVER = 1
+
+        dhcp_pkt = dpkt.dhcp.DHCP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=_ip_to_bytes(ciaddr) if ciaddr is not None else b'', opts=((DHCP_OPT_MSGTYPE, chr(DHCPDISCOVER)),))
+        udp_pkt = dpkt.udp.UDP(sport=68, dport=67, data=dhcp_pkt)
+        ip_pkt = dpkt.ip.IP(src=_ip_to_bytes("0.0.0.0"), dst=_ip_to_bytes("255.255.255.255"), data=udp_pkt)
+        if vlan and vlan != 0:
+            v = dpkt.ethernet.VLANtag8021Q(id=vlan)
+        pkt = dpkt.ethernet.Ethernet(src=mac.as_hex(), dst=_mac_to_bytes("ff:ff:ff:ff:ff:ff"), vlan_tags=[v] if vlan and vlan != 0 else [], data=ip_pkt)
+        LOG.debug("DHCP pkt xmit ", pkt.pprint())
+
+        import socket
+        ETH_P_ALL = 3
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, 25, b'dhcp0')
+        # s.bind((self._dhcp_interface, ETH_P_ALL)) # seems like this is done in sendp, but unsure, since this looks like a server socket now. where am I sending stuff?
+        s.send(bytes(pkt))
+        s.close()
+
+
 
     def get_dhcp_desc(
         self, mac: MacAddress,
@@ -331,3 +354,16 @@ class DHCPClient:
             self._process_dhcp_pkt(packet, DHCPState.ACK)
 
         # TODO handle other DHCP protocol events.
+
+
+def _ip_to_bytes(ip: str) -> bytes:
+    """ Convert IP address to bytes. """
+    return bytes(map(int, ip.split(".")))
+    # return socket.inet_aton(ip)
+
+
+from functools import partial
+def _mac_to_bytes(mac: str) -> bytes:
+    """ Convert mac address to bytes."""
+    int_base16 = partial(int, base=16)
+    return bytes(map(int_base16, mac.split(":")))

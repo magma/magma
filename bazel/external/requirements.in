@@ -17,11 +17,12 @@ python-redis-lock
 jsonpickle
 netifaces
 scapy
+dpkt
 wsgiserver
 flask
 bravado_core
 #  jsonschema version 4 not compatible with magma swagger specs
-jsonschema==3.1.0 
+jsonschema==3.1.0
 psutil
 systemd
 cryptography
