@@ -23,8 +23,8 @@ import {
   RatingGroup,
 } from '../../../generated';
 import {FEG_LTE, NetworkId, PolicyId} from '../../../shared/types/network';
-import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {omit} from 'lodash';
+import {updateFegNetworkState} from './FEGNetworkContext';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 export type PolicyContextType = {
@@ -446,7 +446,7 @@ export function PolicyProvider(props: PolicyProviderProps) {
               if (!fegRuleNames.includes(key)) {
                 fegRuleNames.push(key);
                 if (networkType === FEG_LTE && fegNetwork) {
-                  void UpdateFegNetworkState({
+                  void updateFegNetworkState({
                     networkId: fegNetwork.id,
                     subscriberConfig: {
                       network_wide_base_names:
@@ -491,7 +491,7 @@ export function PolicyProvider(props: PolicyProviderProps) {
               });
 
               if (networkType === FEG_LTE && fegNetwork) {
-                void UpdateFegNetworkState({
+                void updateFegNetworkState({
                   networkId: fegNetwork.id,
                   subscriberConfig: {
                     network_wide_base_names:

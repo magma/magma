@@ -13,19 +13,11 @@
 
 import * as React from 'react';
 import FEGGatewayContext from '../context/FEGGatewayContext';
-import FEGNetworkContext from '../context/FEGNetworkContext';
 import FEGSubscriberContext from '../context/FEGSubscriberContext';
 import LoadingFiller from '../LoadingFiller';
-import useMagmaAPI from '../../api/useMagmaAPI';
+import {FEGNetworkContextProvider} from '../context/FEGNetworkContext';
+import {useEffect, useState} from 'react';
 
-import type {
-  FederationGateway,
-  FegNetwork,
-  SubscriberState,
-} from '../../../generated';
-import type {FederationGatewayHealthStatus} from '../GatewayUtils';
-
-import MagmaAPI from '../../api/MagmaAPI';
 import {
   FetchFegGateway,
   FetchFegGateways,
@@ -34,9 +26,9 @@ import {
 } from '../../state/feg/EquipmentState';
 import {FetchFegSubscriberState} from '../../state/feg/SubscriberState';
 import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
-import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
-import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import type {FederationGateway, SubscriberState} from '../../../generated';
+import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
 type Props = {
   networkId: NetworkId;
@@ -187,52 +179,6 @@ export function FEGGatewayContextProvider(props: Props) {
   );
 }
 
-/**
- * Fetches and returns information about the federation network inside
- * a context provider.
- * @param {object} props: contains the network id and its type
- */
-export function FEGNetworkContextProvider(props: Props) {
-  const {networkId} = props;
-  const [fegNetwork, setFegNetwork] = useState<Partial<FegNetwork>>({});
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const {error, isLoading} = useMagmaAPI(
-    MagmaAPI.federationNetworks.fegNetworkIdGet,
-    {networkId: networkId},
-    useCallback((response: Partial<FegNetwork>) => setFegNetwork(response), []),
-  );
-
-  if (error) {
-    enqueueSnackbar?.('failed fetching network information', {
-      variant: 'error',
-    });
-  }
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <FEGNetworkContext.Provider
-      value={{
-        state: fegNetwork,
-        updateNetworks: props => {
-          let refreshState = true;
-          if (networkId !== props.networkId) {
-            refreshState = false;
-          }
-          return UpdateFegNetworkState({
-            networkId,
-            setFegNetwork,
-            refreshState,
-            ...props,
-          });
-        },
-      }}>
-      {props.children}
-    </FEGNetworkContext.Provider>
-  );
-}
 /**
  * A context provider for federation networks. It is used in sharing
  * information like the network information or the gateways information.
