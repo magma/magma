@@ -11,32 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package containers
+package grant
 
-type MinQueue []*minQueueItem
+import "magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 
-func (m *MinQueue) Push(value int) {
-	i := len(*m) - 1
-	cnt := 1
-	for ; i >= 0 && (*m)[i].value >= value; i-- {
-		cnt += (*m)[i].count
+func GetFrequencyGrantMapping(grants []*active_mode.Grant) map[int64]*active_mode.Grant {
+	m := make(map[int64]*active_mode.Grant, len(grants))
+	for _, g := range grants {
+		m[(g.HighFrequencyHz+g.LowFrequencyHz)/2] = g
 	}
-	item := &minQueueItem{value: value, count: cnt}
-	*m = append((*m)[:i+1], item)
-}
-
-func (m *MinQueue) Pop() {
-	(*m)[0].count--
-	if (*m)[0].count == 0 {
-		*m = (*m)[1:]
-	}
-}
-
-func (m MinQueue) Top() int {
-	return m[0].value
-}
-
-type minQueueItem struct {
-	value int
-	count int
+	return m
 }

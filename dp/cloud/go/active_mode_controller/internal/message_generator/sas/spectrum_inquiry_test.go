@@ -22,7 +22,7 @@ import (
 
 func TestSpectrumInquiryRequestGenerator(t *testing.T) {
 	cbsd := &active_mode.Cbsd{CbsdId: "some_id"}
-	g := sas.NewSpectrumInquiryRequestGenerator()
+	g := &sas.SpectrumInquiryRequestGenerator{}
 	actual := g.GenerateRequests(cbsd)
 	expected := []*request{{
 		requestType: "spectrumInquiryRequest",

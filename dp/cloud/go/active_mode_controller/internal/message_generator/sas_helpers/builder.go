@@ -22,7 +22,9 @@ import (
 func Build(reqs []*sas.Request) []string {
 	byType := [sas.RequestTypeCount][]json.RawMessage{}
 	for _, r := range reqs {
-		byType[r.Type] = append(byType[r.Type], r.Data)
+		if r != nil {
+			byType[r.Type] = append(byType[r.Type], r.Data)
+		}
 	}
 	payloads := make([]string, 0, len(byType))
 	for k, v := range byType {
