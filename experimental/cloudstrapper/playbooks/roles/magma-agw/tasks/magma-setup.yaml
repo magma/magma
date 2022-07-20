@@ -18,13 +18,6 @@
     groups: magma
     append: yes
 
-- name: github repo values
-  debug:
-    msg:
-      - "{{ magmaRepo }}"
-      - "{{ usrHome }}"
-      - "{{ buildAgwVersion }}"
-
 - name: download github repo
   git:
     repo: "{{ magmaRepo }}"
