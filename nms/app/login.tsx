@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-import './common/axiosConfig';
-import './common/polyfill';
+import './util/axiosConfig';
+import './util/polyfill';
 
 import LoginForm from './views/login/LoginForm';
 import React from 'react';

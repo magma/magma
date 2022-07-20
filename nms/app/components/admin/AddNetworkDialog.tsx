@@ -39,7 +39,7 @@ import {
 } from '../../../shared/types/network';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-import {triggerAlertSync} from '../../state/SyncAlerts';
+import {triggerAlertSync} from '../../util/SyncAlerts';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';
 

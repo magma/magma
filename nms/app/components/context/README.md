@@ -1,7 +1,6 @@
-This directory contains Magma API specific code across all resources.
-This contains all the calls to perform CRUD operations on a resource.
-Every resource will have a set operation. The set or update method will take following
-attributes as props.
+This directory contains context providers for global state.
+
+Most contexts have set or update methods which take the following parameters.
 - networkID
 - current state
 - method to set current state

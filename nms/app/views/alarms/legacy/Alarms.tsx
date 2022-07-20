@@ -16,7 +16,7 @@ import AppContext from '../../../components/context/AppContext';
 import FBCAlarms from '../components/Alarms';
 import TopBar from '../../../components/TopBar';
 
-import {MagmaAlarmsApiUtil} from '../../../state/AlarmsApiUtil';
+import {MagmaAlarmsApiUtil} from '../../../util/AlarmsApiUtil';
 import type {Labels} from '../components/AlarmAPIType';
 
 export default function Alarms() {

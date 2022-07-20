@@ -12,7 +12,7 @@
  */
 
 import axios from 'axios';
-import {getErrorMessage} from '../util/ErrorUtils';
+import {getErrorMessage} from './ErrorUtils';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export async function triggerAlertSync(
