@@ -16,9 +16,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
@@ -55,10 +56,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   enb_association->s1_state = S1AP_READY;
 
   // filling ue_id_coll
-  hashtable_uint64_ts_insert(&enb_association->ue_id_coll, (const hash_key_t)1,
-                             17);
-  hashtable_uint64_ts_insert(&enb_association->ue_id_coll, (const hash_key_t)2,
-                             25);
+  enb_association->ue_id_coll.insert(1, 17);
+  enb_association->ue_id_coll.insert(2, 25);
 
   // filling supported_tai_items
   supported_ta_list_t* enb_ta_list = &enb_association->supported_ta_list;
@@ -73,13 +72,10 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   enb_ta_list->supported_tai_items[0].bplmns[0].mnc_digit3 = 1;
 
   // Inserting 1 enb association
-  hashtable_ts_insert(&init_state->enbs,
-                      (const hash_key_t)enb_association->sctp_assoc_id,
-                      (void*)enb_association);
+  init_state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
   init_state->num_enbs = 1;
 
-  hashtable_ts_insert(&init_state->mmeid2associd, (const hash_key_t)1,
-                      (void**)&assoc_id);
+  init_state->mmeid2associd.insert(1, assoc_id);
 
   oai::S1apState state_proto;
   S1apStateConverter::state_to_proto(init_state, &state_proto);
@@ -88,12 +84,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   EXPECT_EQ(init_state->num_enbs, final_state->num_enbs);
   enb_description_t* enbd = nullptr;
   enb_description_t* enbd_final = nullptr;
-  EXPECT_EQ(hashtable_ts_get(&init_state->enbs, (const hash_key_t)assoc_id,
-                             reinterpret_cast<void**>(&enbd)),
-            HASH_TABLE_OK);
-  EXPECT_EQ(hashtable_ts_get(&final_state->enbs, (const hash_key_t)assoc_id,
-                             reinterpret_cast<void**>(&enbd_final)),
-            HASH_TABLE_OK);
+  EXPECT_EQ(init_state->enbs.get(assoc_id, &enbd), magma::PROTO_MAP_OK);
+  EXPECT_EQ(final_state->enbs.get(assoc_id, &enbd_final), magma::PROTO_MAP_OK);
 
   EXPECT_EQ(enbd->sctp_assoc_id, enbd_final->sctp_assoc_id);
   EXPECT_EQ(enbd->enb_id, enbd_final->enb_id);
@@ -118,9 +110,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   enb_association->enb_id = 0xFFFFFFFF;
   enb_association->s1_state = S1AP_READY;
   // Inserting 1 enb association
-  hashtable_ts_insert(&init_state->enbs,
-                      (const hash_key_t)enb_association->sctp_assoc_id,
-                      (void*)enb_association);
+  init_state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
   // state_to_proto should update num_enbs to match expected eNB count on the
   // hashtable
   init_state->num_enbs = 5;

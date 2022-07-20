@@ -16,7 +16,7 @@ import datetime
 import logging
 import threading
 import time
-from ipaddress import IPv4Network
+from ipaddress import IPv4Network, ip_address
 from threading import Condition
 from typing import MutableMapping, Optional
 
@@ -272,7 +272,7 @@ class DHCPClient:
                         ip_offered + "/" + "32", strict=False,
                     )
 
-                dhcp_server_ip = None
+                dhcp_server_ip: Optional[str] = None
                 if IP in packet:
                     dhcp_server_ip = packet[IP].src
 
@@ -292,8 +292,8 @@ class DHCPClient:
                     vlan=vlan,
                     state_requested=state_requested,
                     subnet=str(ip_subnet),
-                    server_ip=dhcp_server_ip,
-                    router_ip=router_ip_addr,
+                    server_ip=ip_address(dhcp_server_ip) if dhcp_server_ip else None,
+                    router_ip=ip_address(router_ip_addr) if router_ip_addr else None,
                     lease_expiration_time=lease_expiration_time,
                     xid=packet[BOOTP].xid,
                 )

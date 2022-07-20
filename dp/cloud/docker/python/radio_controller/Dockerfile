@@ -28,6 +28,8 @@ FROM python:3.9.2-slim-buster as standard-version
 ENV RC_DIRECTORY=dp/cloud/python/magma/radio_controller
 ENV DB_DIRECTORY=dp/cloud/python/magma/db_service
 ENV FC_DIRECTORY=dp/cloud/python/magma/fluentd_client
+ENV MC_DIRECTORY=dp/cloud/python/magma/metricsd_client
+ENV GW_COMMON_DIRECTORY=orc8r/gateway/python/magma/common
 COPY $RC_DIRECTORY/requirements.txt \
      /$RC_DIRECTORY/requirements.txt
 RUN pip3 install --upgrade pip --no-cache-dir -r /$RC_DIRECTORY/requirements.txt
@@ -42,11 +44,14 @@ RUN pip3 install --upgrade pip --no-cache-dir -r /$RC_DIRECTORY/requirements.txt
 # hadolint ignore=DL3006
 FROM ${ENV}-version as final
 
-ENV PYTHONPATH=/magma/build/gen:/dp/cloud/python
+ENV PYTHONPATH=/magma/build/gen:/dp/cloud/python:/orc8r/gateway/python
 COPY $RC_DIRECTORY /$RC_DIRECTORY/
 COPY $DB_DIRECTORY /$DB_DIRECTORY/
 COPY $FC_DIRECTORY /$FC_DIRECTORY/
+COPY $MC_DIRECTORY /$MC_DIRECTORY/
 COPY dp/cloud/python/magma/mappings /dp/cloud/python/magma/mappings/
+COPY $GW_COMMON_DIRECTORY/metrics_export.py /$GW_COMMON_DIRECTORY/metrics_export.py
+COPY $GW_COMMON_DIRECTORY/__init__.py /$GW_COMMON_DIRECTORY/__init__.py
 COPY --from=protos-generator /magma/build/gen /magma/build/gen
 WORKDIR /$RC_DIRECTORY
 EXPOSE 50053

@@ -29,15 +29,32 @@ namespace magma5g {
 
 #define M5GSMobileIdentityMsg_GUTI_LENGTH 11
 
+// Checks PLMNs equality
+#define PLMN_ARE_EQUAL(p1, p2) \
+  ((MCCS_ARE_EQUAL((p1), (p2))) && (MNCS_ARE_EQUAL((p1), (p2))))
+
+// Checks MCC equality
+#define MCCS_ARE_EQUAL(n1, n2)             \
+  (((n1).mcc_digit1 == (n2).mcc_digit1) && \
+   ((n1).mcc_digit2 == (n2).mcc_digit2) && \
+   ((n1).mcc_digit3 == (n2).mcc_digit3))
+
+// Checks Mobile Network Code equality
+#define MNCS_ARE_EQUAL(n1, n2)             \
+  (((n1).mnc_digit1 == (n2).mnc_digit1) && \
+   ((n1).mnc_digit2 == (n2).mnc_digit2) && \
+   ((n1).mnc_digit3 == (n2).mnc_digit3))
+
 // AMF_AS Service Access point primitive
-int amf_as_send(amf_as_t* msg);
+status_code_e amf_as_send(amf_as_t* msg);
 
 // Builds NAS message according to the given AMFAS Service Access Point
 // primitive
-int amf_as_send_ng(const amf_as_t* msg);
+status_code_e amf_as_send_ng(const amf_as_t* msg);
 
-int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                  amf_context_t* amf_ctx, bstring nas_msg);
+status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
+                                            amf_context_t* amf_ctx,
+                                            bstring nas_msg);
 
 // For _AMFAS_DATA_REQ primitive
 uint16_t amf_as_data_req(const amf_as_data_t* msg,

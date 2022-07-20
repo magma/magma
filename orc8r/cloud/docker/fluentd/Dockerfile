@@ -1,4 +1,4 @@
-FROM fluent/fluentd:v1.7-1
+FROM fluent/fluentd:v1.14.6-debian-1.0
 USER root
 RUN gem install \
     elasticsearch:7.13.0 \

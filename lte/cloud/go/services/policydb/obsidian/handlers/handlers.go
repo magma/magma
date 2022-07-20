@@ -17,7 +17,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 )
 

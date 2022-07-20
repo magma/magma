@@ -8,25 +8,34 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
+ * @typedef { import("sequelize").DataTypes } DataTypes
  */
-'use strict';
-
-import type {DataTypes, QueryInterface} from 'sequelize';
 
 module.exports = {
-  up: (queryInterface: QueryInterface, Sequelize: DataTypes) => {
+  /**
+   * @param {QueryInterface} queryInterface
+   * @param {DataTypes} Sequelize
+   */
+  up: (queryInterface, Sequelize) => {
     return queryInterface.addColumn('Users', 'verificationType', {
       allowNull: false,
       defaultValue: 0,
       type: Sequelize.INTEGER,
     });
   },
-
-  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
+  /**
+   * @param {QueryInterface} queryInterface
+   */
+  down: queryInterface => {
     return queryInterface.removeColumn('Users', 'verificationType');
   },
 };

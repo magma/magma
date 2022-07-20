@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -26,6 +27,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdb_protos "magma/lte/cloud/go/services/subscriberdb/protos"
 	subscriberdb_state "magma/lte/cloud/go/services/subscriberdb/state"
+	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
@@ -37,10 +39,12 @@ const (
 )
 
 var (
-	indexerTypes = []string{lte.MobilitydStateType}
+	indexerTypes = []string{lte.MobilitydStateType, lte.GatewaySubscriberStateType}
 )
 
-type indexerServicer struct{}
+type indexerServicer struct {
+	subscriberStore storage.SubscriberStorage
+}
 
 // NewIndexerServicer returns the state indexer for subscriberdb.
 //
@@ -59,8 +63,14 @@ type indexerServicer struct{}
 //	- an {IP -> IMSI} mapping may be missing even though the IMSI is assigned
 //	  that IP
 //	- an {IP -> IMSI} mapping may be stale (caller should check for staleness)
-func NewIndexerServicer() protos.IndexerServer {
-	return &indexerServicer{}
+//
+// Gateway Subscriber State is reported as a map IMSI to arbitrary JSON (reported
+// state for that IMSI).
+// The indexer updates gateway subscriber state in SubscriberStorage.
+// It deletes all entries for the gateway ID and writes the current
+// IMSI,state pairs into the SubscriberStorage.
+func NewIndexerServicer(ss storage.SubscriberStorage) protos.IndexerServer {
+	return &indexerServicer{subscriberStore: ss}
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
@@ -68,7 +78,7 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	if err != nil {
 		return nil, err
 	}
-	stErrs, err := indexImpl(ctx, req.NetworkId, states)
+	stErrs, err := i.indexImpl(ctx, req.NetworkId, states)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +101,31 @@ func (i *indexerServicer) CompleteReindex(ctx context.Context, req *protos.Compl
 	return nil, status.Errorf(codes.InvalidArgument, "unsupported from/to for CompleteReindex: %v to %v", req.FromVersion, req.ToVersion)
 }
 
-func indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
-	return setIPMappings(ctx, networkID, states)
+func (i *indexerServicer) indexImpl(ctx context.Context, networkID string, states state_types.StatesByID) (state_types.StateErrors, error) {
+	statesMobilityD := state_types.StatesByID{}
+	statesSubscribers := state_types.StatesByID{}
+	for id, st := range states {
+		switch id.Type {
+		case lte.MobilitydStateType:
+			statesMobilityD[id] = st
+		case lte.GatewaySubscriberStateType:
+			statesSubscribers[id] = st
+		default:
+			glog.Errorf("Unsupported state type %s", id.Type)
+		}
+	}
+	var stErrs state_types.StateErrors
+	errs := &multierror.Error{}
+	if len(statesMobilityD) > 0 {
+		stErrsMobilityD, err := setIPMappings(ctx, networkID, statesMobilityD)
+		stErrs = stErrsMobilityD
+		errs = multierror.Append(errs, err)
+	}
+	if len(statesSubscribers) > 0 {
+		err := i.setGatewaySubscriberStates(networkID, statesSubscribers)
+		errs = multierror.Append(errs, err)
+	}
+	return stErrs, errs.ErrorOrNil()
 }
 
 // setIPMappings maps {IP -> IMSI}.
@@ -128,4 +161,16 @@ func setIPMappings(ctx context.Context, networkID string, states state_types.Sta
 	}
 
 	return stateErrors, nil
+}
+
+func (i *indexerServicer) setGatewaySubscriberStates(networkID string, states state_types.StatesByID) *multierror.Error {
+	errs := &multierror.Error{}
+	for id, st := range states {
+		err := i.subscriberStore.SetAllSubscribersForGateway(networkID, id.DeviceID, st.ReportedState.(*storage.GatewaySubscriberState))
+		if err != nil {
+			glog.Errorf("Error setting subscriber state for gateway %s: %s", id.DeviceID, err)
+			errs = multierror.Append(errs, err)
+		}
+	}
+	return errs
 }

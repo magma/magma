@@ -1,6 +1,6 @@
 ---
 name: Cloud Unit Test Results
-on:  # yamllint disable-line rule:truthy
+on:
   workflow_run:
     workflows:
       - cloud-workflow
@@ -20,7 +20,7 @@ jobs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - name: 'Download artifact'
-        uses: actions/github-script@v3.1.0
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:
           script: |
             var artifacts = await github.actions.listWorkflowRunArtifacts({
@@ -42,7 +42,7 @@ jobs:
       - run: unzip pr.zip
       - name: Check if the workflow is skipped
         id: skip_check
-        uses: actions/github-script@v3
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:
           script: |
             var fs = require('fs');
@@ -67,16 +67,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-           mkdir -p artifacts && cd artifacts
-           artifacts_url=${{ github.event.workflow_run.artifacts_url }}
-           gh api "$artifacts_url" -q '.artifacts[] | [.name, .archive_download_url] | @tsv' | while read artifact
-           do
-             IFS=$'\t' read name url <<< "$artifact"
-             gh api $url > "$name.zip"
-             unzip -d "$name" "$name.zip"
-           done
+          mkdir -p artifacts && cd artifacts
+          artifacts_url=${{ github.event.workflow_run.artifacts_url }}
+          gh api "$artifacts_url" -q '.artifacts[] | [.name, .archive_download_url] | @tsv' | while read artifact
+          do
+            IFS=$'\t' read name url <<< "$artifact"
+            gh api $url > "$name.zip"
+            unzip -d "$name" "$name.zip"
+          done
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@7377632048da85434c30810c38353542d3162dc4 # pin@v1
         with:
           check_name: ${{ github.event.workflow.name }}
           commit: ${{ github.event.workflow_run.head_sha }}

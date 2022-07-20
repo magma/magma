@@ -9,6 +9,7 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
+---
 name: "CodeQL"
 
 on:
@@ -39,58 +40,54 @@ jobs:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-        # queries: ./path/to/local/query, your-org/your-repo/queries@main
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@a6611b86918424d4588efe7d6dbe18fe52d42518 # pin@v1
+        with:
+          languages: ${{ matrix.language }}
+          # If you wish to specify custom queries, you can do so here or in a config file.
+          # By default, queries listed here will override any specified in a config file.
+          # Prefix the list here with "+" to use these queries and those in the config file.
+          # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+          # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+          # If this step fails, then you should remove it and run the build manually (see below)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@a6611b86918424d4588efe7d6dbe18fe52d42518 # pin@v1
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 https://git.io/JvXDl
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
+      #    and modify them (or add more) to build your code if your project
+      #    uses a compiled language
+      #   - run: |
+      #   make bootstrap
+      #   make release
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@a6611b86918424d4588efe7d6dbe18fe52d42518 # pin@v1
+        env:
+          NODE_OPTIONS: --max-old-space-size=5120
 
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
 
-    #- run: |
-    #   make bootstrap
-    #   make release
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
-      env:
-        NODE_OPTIONS: --max-old-space-size=5120
-
-    - name: Extract commit title
-      if: failure() && github.ref == 'refs/heads/master'
-      id: commit
-      run: |
-        str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-        echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-
-    # Notify ci-info channel when failing
-    # Plugin info: https://github.com/marketplace/actions/slack-notify
-
-    - name: Notify failure to slack
-      if: failure() && github.ref == 'refs/heads/master'
-      uses: rtCamp/action-slack-notify@v2.2.0
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-        SLACK_TITLE: "Github action CodeQL-analysis ${{ matrix.language }} failed"
-        SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-        SLACK_USERNAME: "CodeQL-analysis ${{ matrix.language }} "
-        SLACK_ICON_EMOJI: ":boom:"
-        SLACK_COLOR: "#FF0000"
-        SLACK_FOOTER: ' '
+      # Notify ci-info channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action CodeQL-analysis ${{ matrix.language }} failed"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: "CodeQL-analysis ${{ matrix.language }} "
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

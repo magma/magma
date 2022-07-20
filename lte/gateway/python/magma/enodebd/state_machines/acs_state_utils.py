@@ -280,7 +280,7 @@ def get_obj_param_values_to_set(
     data_model: DataModel,
 ) -> Dict[ParameterName, Dict[ParameterName, Any]]:
     """ Returns a map from object name to (a map of param name to value) """
-    param_values = {}
+    param_values: Dict[ParameterName, Dict[ParameterName, Any]] = {}
     objs = desired_cfg.get_object_names()
     for obj_name in objs:
         param_values[obj_name] = {}

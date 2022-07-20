@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import asyncio
+from typing import Optional
 from xml.etree import ElementTree
 
 from aiohttp import web
@@ -72,7 +73,7 @@ class StatsManager:
         self.enb_manager = enb_acs_manager
         self.loop = asyncio.get_event_loop()
         self._prev_rf_tx = False
-        self.mme_timeout_handler = None
+        self.mme_timeout_handler: Optional[asyncio.TimerHandle] = None
 
     def run(self) -> None:
         """ Create and start HTTP server """
@@ -152,11 +153,10 @@ class StatsManager:
             logger.error("Couldn't find serial for ip", ip)
         return label
 
-    @asyncio.coroutine
-    def _post_and_put_handler(self, request) -> web.Response:
+    async def _post_and_put_handler(self, request) -> web.Response:
         """ HTTP POST handler """
         # Read request body and convert to XML tree
-        body = yield from request.read()
+        body = await request.read()
 
         root = ElementTree.fromstring(body)
         label = self._get_enb_label_from_request(request)

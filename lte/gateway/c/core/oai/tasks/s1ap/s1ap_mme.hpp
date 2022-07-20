@@ -23,6 +23,8 @@
 */
 
 #pragma once
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,22 +33,11 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
-#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 
 #define S1AP_ZMQ_LATENCY_TH \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages
 
 extern bool hss_associated;
-
-/** \brief S1AP layer top init
- * @returns -1 in case of failure
- **/
-status_code_e s1ap_mme_init(const mme_config_t* mme_config);
-
-/** \brief S1AP layer top exit
- **/
-void s1ap_mme_exit(void);
 
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
@@ -71,7 +62,6 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref);
  * \param enb_ref eNB structure reference to remove
  **/
 void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
-
 #ifdef __cplusplus
 }
 #endif

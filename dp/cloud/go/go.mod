@@ -29,7 +29,7 @@ require (
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang/glog v1.0.0
 	github.com/golang/protobuf v1.5.2
-	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/echo/v4 v4.7.2
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.43.0

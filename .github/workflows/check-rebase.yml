@@ -1,7 +1,7 @@
 ---
 name: "Check Rebase"
 
-on:  # yamllint disable-line rule:truthy
+on:
   pull_request:
     branches:
       - master
@@ -17,12 +17,12 @@ jobs:
       BASE_SHA: "${{ github.event.pull_request.base.sha }}"
     steps:
       - name: Checkout Head
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
           repository: "${{env.HEAD_FULL_NAME}}"
           fetch-depth: 0
       - name: Checkout Base
-        uses: actions/checkout@v2
+        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
           repository: "${{env.BASE_FULL_NAME}}"
           fetch-depth: 0

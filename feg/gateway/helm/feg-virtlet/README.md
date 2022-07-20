@@ -13,7 +13,7 @@ feg:
     docker_registry: docker.io/feg_
     tag: latest
   repo:
-    url: https://github.com/facebookincubator/magma.git
+    url: https://github.com/magma/magma.git
     branch: master
 
 image:
@@ -65,54 +65,54 @@ This chart installs the Magma Federated Gateway.
 
 The following table list the configurable parameters of the orchestrator chart and their default values.
 
-| Parameter        | Description     | Default   |
-| ---              | ---             | ---       |
-| `manifests.configmap_env` | Enable feg configmap env. | `True` |
-| `manifests.deployment` | Enable feg deployment. | `True` |
-| `manifests.service` | Enable feg service. | `True` |
-| `manifests.rbac` | Enable feg rbac. | `True` |
-| `secrets.create` | Enable feg secret creation | `False` |
-| `secret.gwinfo`   | Secret name containing feg gwinfo | `feg-secrets-gwinfo` |
-| `feg.type` | Gateway type agrument. | `feg` |
-| `feg.image.docker_registry` | FeG docker registry host. | `docker.io` |
-| `feg.image.tag` | FeG docker images tag. | `latest` |
-| `feg.image.username` | Docker registry username. | `` |
-| `feg.image.password` | Docker registry password. | `` |
-| `feg.proxy.local_port` | FeG proxy local port. | `8443` |
-| `feg.proxy.cloud_address` | FeG proxy cloud address. | `orc8r-proxy` |
-| `feg.proxy.cloud_port` | FeG proxy Cloud port. | `9443` |
-| `feg.proxy.bootstrap_address` | FeG proxy bootstrap address. | `orc8r-bootstrap` |
-| `feg.proxy.bootstrap_port` | FeG proxy bootstrap port. | `9444` |
-| `feg.repo.url` | FeG magma repo url. | `https://github.com/facebookincubator/magma/` |
-| `feg.repo.branch` | FeG magma repo branch. | `master` |
-| `feg.bind.S6A_LOCAL_PORT` | FeG S6A local port. | `3868` |
-| `feg.bind.S6A_HOST_PORT` | FeG S6A host port. | `3869` |
-| `feg.bind.S6A_NETWORK` | FeG S6A network type. | `sctp` |
-| `feg.bind.SWX_LOCAL_PORT` | FeG SWX local port. | `3868` |
-| `feg.bind.SWX_HOST_PORT` | FeG SWX host port. | `3868` |
-| `feg.bind.SWX_NETWORK` | FeG SWX network type. | `sctp` |
-| `feg.bind.GX_LOCAL_PORT` | FeG GX local port. | `3907` |
-| `feg.bind.GX_HOST_PORT` | FeG GX host port. | `0` |
-| `feg.bind.GX_NETWORK` | FeG GX network type. | `tcp` |
-| `feg.bind.GY_LOCAL_PORT` | FeG GY local port. | `3906` |
-| `feg.bind.GY_HOST_PORT` | FeG GY host port. | `0` |
-| `feg.bind.GY_NETWORK` | FeG GY network type. | `tcp` |
-| `image.repository` | Virtlet image path | `virtlet.cloud/<image_path>` |
-| `image.pullPolicy` | Virtlet Image pullpolicy | `IfNotPresent` |
-| `labels.node_selector_key` | Target Node selector label Key. | `extraRuntime` |
-| `labels.node_selector_value` | Target Node selector label value. | `virtlet` |
-| `pod.replicas.server` | Number of instances to deploy for FeG server. | `1` |
-| `pod.resources.enabled` | Enable resources requests and limits for Pods. | `False` |
-| `pod.resources.server.requests` | Define resources requests and limits for FeG Pods. | `{}` |
-| `nodeSelector` | Define which Nodes the Pods are scheduled on. | `{}` |
-| `tolerations` | If specified, the pod's tolerations. | `[]` |
-| `affinity` | Assign the FeG to run on specific nodes. | `{}` |
-| `virtlet.vcpuCount` | Number of vcpu assigned to FeG VM. | `1` |
-| `virtlet.rootVolumeSize` | Size of root volume assigned to FeG VM. | `10Gi` |
-| `virtlet.diskDriver` | Virtlet disk driver type. | `virtio` |
-| `virtlet.sshKeys` | default user ssh key for user ubuntu | `` |
-| `virtlet.ssh_pwauth` | To Enable/Disable password auth. | `True` |
-| `virtlet.user` | Add New user. | `` |
+| Parameter                       | Description                                        | Default                           |
+| ---                             | ---                                                | ---                               |
+| `manifests.configmap_env`       | Enable feg configmap env.                          | `True`                            |
+| `manifests.deployment`          | Enable feg deployment.                             | `True`                            |
+| `manifests.service`             | Enable feg service.                                | `True`                            |
+| `manifests.rbac`                | Enable feg rbac.                                   | `True`                            |
+| `secrets.create`                | Enable feg secret creation                         | `False`                           |
+| `secret.gwinfo`                 | Secret name containing feg gwinfo                  | `feg-secrets-gwinfo`              |
+| `feg.type`                      | Gateway type agrument.                             | `feg`                             |
+| `feg.image.docker_registry`     | FeG docker registry host.                          | `docker.io`                       |
+| `feg.image.tag`                 | FeG docker images tag.                             | `latest`                          |
+| `feg.image.username`            | Docker registry username.                          | ``                                |
+| `feg.image.password`            | Docker registry password.                          | ``                                |
+| `feg.proxy.local_port`          | FeG proxy local port.                              | `8443`                            |
+| `feg.proxy.cloud_address`       | FeG proxy cloud address.                           | `orc8r-proxy`                     |
+| `feg.proxy.cloud_port`          | FeG proxy Cloud port.                              | `9443`                            |
+| `feg.proxy.bootstrap_address`   | FeG proxy bootstrap address.                       | `orc8r-bootstrap`                 |
+| `feg.proxy.bootstrap_port`      | FeG proxy bootstrap port.                          | `9444`                            |
+| `feg.repo.url`                  | FeG magma repo url.                                | `https://github.com/magma/magma/` |
+| `feg.repo.branch`               | FeG magma repo branch.                             | `master`                          |
+| `feg.bind.S6A_LOCAL_PORT`       | FeG S6A local port.                                | `3868`                            |
+| `feg.bind.S6A_HOST_PORT`        | FeG S6A host port.                                 | `3869`                            |
+| `feg.bind.S6A_NETWORK`          | FeG S6A network type.                              | `sctp`                            |
+| `feg.bind.SWX_LOCAL_PORT`       | FeG SWX local port.                                | `3868`                            |
+| `feg.bind.SWX_HOST_PORT`        | FeG SWX host port.                                 | `3868`                            |
+| `feg.bind.SWX_NETWORK`          | FeG SWX network type.                              | `sctp`                            |
+| `feg.bind.GX_LOCAL_PORT`        | FeG GX local port.                                 | `3907`                            |
+| `feg.bind.GX_HOST_PORT`         | FeG GX host port.                                  | `0`                               |
+| `feg.bind.GX_NETWORK`           | FeG GX network type.                               | `tcp`                             |
+| `feg.bind.GY_LOCAL_PORT`        | FeG GY local port.                                 | `3906`                            |
+| `feg.bind.GY_HOST_PORT`         | FeG GY host port.                                  | `0`                               |
+| `feg.bind.GY_NETWORK`           | FeG GY network type.                               | `tcp`                             |
+| `image.repository`              | Virtlet image path                                 | `virtlet.cloud/<image_path>`      |
+| `image.pullPolicy`              | Virtlet Image pullpolicy                           | `IfNotPresent`                    |
+| `labels.node_selector_key`      | Target Node selector label Key.                    | `extraRuntime`                    |
+| `labels.node_selector_value`    | Target Node selector label value.                  | `virtlet`                         |
+| `pod.replicas.server`           | Number of instances to deploy for FeG server.      | `1`                               |
+| `pod.resources.enabled`         | Enable resources requests and limits for Pods.     | `False`                           |
+| `pod.resources.server.requests` | Define resources requests and limits for FeG Pods. | `{}`                              |
+| `nodeSelector`                  | Define which Nodes the Pods are scheduled on.      | `{}`                              |
+| `tolerations`                   | If specified, the pod's tolerations.               | `[]`                              |
+| `affinity`                      | Assign the FeG to run on specific nodes.           | `{}`                              |
+| `virtlet.vcpuCount`             | Number of vcpu assigned to FeG VM.                 | `1`                               |
+| `virtlet.rootVolumeSize`        | Size of root volume assigned to FeG VM.            | `10Gi`                            |
+| `virtlet.diskDriver`            | Virtlet disk driver type.                          | `virtio`                          |
+| `virtlet.sshKeys`               | default user ssh key for user ubuntu               | ``                                |
+| `virtlet.ssh_pwauth`            | To Enable/Disable password auth.                   | `True`                            |
+| `virtlet.user`                  | Add New user.                                      | ``                                |
 
 
 ## Installation steps

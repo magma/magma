@@ -25,6 +25,7 @@ from magma.db_service.models import (
 )
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.types import CbsdStates
+from magma.radio_controller.metrics import INSERT_TO_DB_PROCESSING_TIME
 from magma.radio_controller.services.radio_controller.strategies.strategies_mapping import (
     get_cbsd_filter_strategies,
 )
@@ -42,6 +43,7 @@ class RadioControllerService(RadioControllerServicer):
     def __init__(self, session_manager: SessionManager):
         self.session_manager = session_manager
 
+    @INSERT_TO_DB_PROCESSING_TIME.time()
     def UploadRequests(self, request_payload: RequestPayload, context) -> RequestDbIds:
         """
         Insert uploaded requests to the database

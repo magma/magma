@@ -120,6 +120,7 @@ void AmfUeContext::StopPduTimer(int timer_id) {
   amf_pdu_timers.erase(it);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
+
 //------------------------------------------------------------------------------
 bool AmfUeContext::PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
