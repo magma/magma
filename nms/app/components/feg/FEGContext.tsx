@@ -13,9 +13,9 @@
 
 import * as React from 'react';
 import FEGGatewayContext from '../context/FEGGatewayContext';
-import FEGSubscriberContext from '../context/FEGSubscriberContext';
 import LoadingFiller from '../LoadingFiller';
 import {FEGNetworkContextProvider} from '../context/FEGNetworkContext';
+import {FEGSubscriberContextProvider} from '../context/FEGSubscriberContext';
 import {useEffect, useState} from 'react';
 
 import {
@@ -25,9 +25,8 @@ import {
   SetGatewayState,
 } from '../../state/feg/EquipmentState';
 import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
-import {fetchFegSubscriberState} from '../../util/SubscriberState';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {FederationGateway, SubscriberState} from '../../../generated';
+import type {FederationGateway} from '../../../generated';
 import type {FederationGatewayHealthStatus} from '../GatewayUtils';
 
 type Props = {
@@ -35,60 +34,6 @@ type Props = {
   networkType: NetworkType;
   children: React.ReactNode;
 };
-
-/**
- * Fetches and saves the subscriber session states of networks
- * serviced by this federation network and whose subscriber
- * information is not managed by the HSS.
- *
- * @param {network_id} networkId Id of the network
- * @param {network_type} networkType Type of the network
- */
-export function FEGSubscriberContextProvider(props: Props) {
-  const {networkId} = props;
-  const [sessionState, setSessionState] = useState<
-    Record<NetworkId, Record<string, SubscriberState>>
-  >({});
-  const [isLoading, setIsLoading] = useState(false);
-  const enqueueSnackbar = useEnqueueSnackbar();
-  useEffect(() => {
-    const fetchFegState = async () => {
-      if (networkId == null) {
-        return;
-      }
-      const sessionState = await fetchFegSubscriberState({
-        networkId,
-        enqueueSnackbar,
-      });
-      setSessionState(sessionState);
-      setIsLoading(false);
-    };
-    void fetchFegState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <FEGSubscriberContext.Provider
-      value={{
-        refetch: () => {
-          void fetchFegSubscriberState({networkId}).then(fegSubscriberState => {
-            setSessionState(fegSubscriberState);
-            if (fegSubscriberState) {
-            }
-          });
-        },
-        sessionState: sessionState,
-        setSessionState: newSessionState => {
-          return setSessionState(newSessionState);
-        },
-      }}>
-      {props.children}
-    </FEGSubscriberContext.Provider>
-  );
-}
 
 /**
  * Fetches and returns the federation gateways, their health status and
