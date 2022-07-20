@@ -22,7 +22,7 @@ ARG BUILD_ESSENTIAL_VERSION=12.8ubuntu1.1
 ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 ARG EVENTLET_VERSION=0.25.1-2ubuntu1.1
-ARG GIT_VERSION=1:2.25.1-1ubuntu3.4
+ARG GIT_VERSION=1:2.25.1-1ubuntu3.5
 ARG JDK_VERSION=8u312-b07-0ubuntu1~20.04
 ARG LIBIPERF0_VERSION=3.7-3
 ARG LIBMYSQL_VERSION=8.0.29-0ubuntu0.20.04.3
@@ -113,5 +113,5 @@ RUN make && \
   $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh && \
   pip3 install --cache-dir $PIP_CACHE_HOME pyparsing && \
   python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py && \
-  sed -i 's/magtivate_cmd + " && " + //g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py && \
+  sed -i 's/magtivate_cmd =.*/magtivate_cmd = ":"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py && \
   sed -i 's/"vagrant"/"ubuntu"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
