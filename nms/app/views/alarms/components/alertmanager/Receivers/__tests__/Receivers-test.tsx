@@ -14,13 +14,7 @@
 import * as React from 'react';
 import Receivers from '../Receivers';
 import {MockApiUtil, alarmTestUtil} from '../../../../test/testHelpers';
-import {
-  act,
-  fireEvent,
-  render,
-  wait,
-  waitForElement,
-} from '@testing-library/react';
+import {act, fireEvent, render} from '@testing-library/react';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 
 describe('Receivers', () => {
@@ -61,7 +55,7 @@ describe('Receivers', () => {
         },
       ],
     });
-    const {getByText, getAllByText, queryByText, getAllByTitle} = render(
+    const {getByText, getAllByText, getAllByTitle, findByText} = render(
       <AlarmsWrapper>
         <Receivers />
       </AlarmsWrapper>,
@@ -75,16 +69,14 @@ describe('Receivers', () => {
       fireEvent.click(getAllByText('View')[0]);
     });
     // clicking View should open the dialog
-    await waitForElement(() => getByText(/View Receiver/i));
-    expect(getByText(/View Receiver/i)).toBeInTheDocument();
+    // await waitForElement(() => getByText(/View Receiver/i));
+    expect(await findByText('View Receiver')).toBeVisible();
 
     // clicking Close should close the dialog
     act(() => {
       fireEvent.click(getByText(/close/i));
     });
-    await wait(() => {
-      expect(queryByText(/View Receiver/i)).not.toBeInTheDocument();
-    });
+    expect(await findByText('View Receiver')).not.toBeVisible();
   });
 
   it('clicking edit button should show AddEditReceiver in edit mode', () => {
