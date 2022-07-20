@@ -50,33 +50,33 @@ const lteNetworkIdGatewayPoolsGetMock = {
 };
 
 const lteNetworkIdGatewaysGatewayIdCellularPoolingGetMock = [
+  // gw1
   {
     gateway_pool_id: 'pool1',
-    //gateway_id: 'gw1',
     mme_code: 1,
     mme_relative_capacity: 255,
   },
+  // gw2
   {
     gateway_pool_id: 'pool1',
-    //gateway_id: 'gw2',
     mme_code: 2,
     mme_relative_capacity: 255,
   },
+  // gw5
   {
     gateway_pool_id: 'pool1',
-    //gateway_id: 'gw5',
     mme_code: 3,
     mme_relative_capacity: 1,
   },
+  // gw3
   {
     gateway_pool_id: 'pool2',
-    //gateway_id: 'gw3',
     mme_code: 1,
     mme_relative_capacity: 255,
   },
+  // gw4
   {
     gateway_pool_id: 'pool2',
-    //gateway_id: 'gw4',
     mme_code: 2,
     mme_relative_capacity: 1,
   },

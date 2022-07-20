@@ -428,8 +428,6 @@ describe('<AddSubscriberButton />', () => {
         },
       ],
     });
-
-    // await wait(undefined, {timeout: 42});
   });
 
   it('Verify Subscriber edit', async () => {

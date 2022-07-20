@@ -106,7 +106,7 @@ type GatewayStateParams = {
  * then makes sure to sync the health status of the gateways and update the active gateway id
  * in case it changed.
  *
- * @param {GatewayStateParams} params an object containing the neccessary values to change the gateway state
+ * @param {GatewayStateParams} params an object containing the necessary values to change the gateway state
  */
 async function setGatewayState(params: GatewayStateParams) {
   const {

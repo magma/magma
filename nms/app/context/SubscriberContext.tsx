@@ -31,14 +31,14 @@ export type Metrics = {
   dailyAvg: string;
 };
 
-/* SubscriberContextType
-state: paginated subscribers
-sessionState: paginated subscribers session state
-metrics: subscriber metrics
-gwSubscriberMap: gateway subscriber map
-totalCount: total count of subscribers
-setState: POST, PUT, DELETE subscriber
-*/
+/** SubscriberContextType
+ * state: paginated subscribers
+ * sessionState: paginated subscribers session state
+ * metrics: subscriber metrics
+ * gwSubscriberMap: gateway subscriber map
+ * totalCount: total count of subscribers
+ * setState: POST, PUT, DELETE subscriber
+ */
 export type SubscriberContextType = {
   state: Record<string, Subscriber>;
   sessionState: Record<string, SubscriberState>;
