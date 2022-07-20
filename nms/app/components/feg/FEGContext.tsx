@@ -12,130 +12,26 @@
  */
 
 import * as React from 'react';
-import FEGGatewayContext from '../context/FEGGatewayContext';
-import LoadingFiller from '../LoadingFiller';
+import {FEGGatewayContextProvider} from '../context/FEGGatewayContext';
 import {FEGNetworkContextProvider} from '../context/FEGNetworkContext';
 import {FEGSubscriberContextProvider} from '../context/FEGSubscriberContext';
-import {useEffect, useState} from 'react';
-
-import {
-  FetchFegGateway,
-  FetchFegGateways,
-  InitGatewayState,
-  SetGatewayState,
-} from '../../state/feg/EquipmentState';
-import {GatewayId, NetworkId, NetworkType} from '../../../shared/types/network';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {FederationGateway} from '../../../generated';
-import type {FederationGatewayHealthStatus} from '../GatewayUtils';
-
-type Props = {
-  networkId: NetworkId;
-  networkType: NetworkType;
-  children: React.ReactNode;
-};
-
-/**
- * Fetches and returns the federation gateways, their health status and
- * the active federation gateway id.
- * @param {network_id} networkId Id of the network
- * @param {network_type} networkType Type of the network
- */
-export function FEGGatewayContextProvider(props: Props) {
-  const {networkId} = props;
-  const [fegGateways, setFegGateways] = useState<
-    Record<GatewayId, FederationGateway>
-  >({});
-  const [fegGatewaysHealthStatus, setFegGatewaysHealthStatus] = useState<
-    Record<GatewayId, FederationGatewayHealthStatus>
-  >({});
-  const [activeFegGatewayId, setActiveFegGatewayId] = useState<GatewayId>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchState = async () => {
-      await InitGatewayState({
-        networkId,
-        setFegGateways,
-        setFegGatewaysHealthStatus,
-        setActiveFegGatewayId,
-        enqueueSnackbar,
-      });
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, enqueueSnackbar]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  return (
-    <FEGGatewayContext.Provider
-      value={{
-        state: fegGateways,
-        setState: (key, value?) => {
-          return SetGatewayState({
-            networkId,
-            fegGateways,
-            fegGatewaysHealthStatus,
-            setFegGateways,
-            setFegGatewaysHealthStatus,
-            setActiveFegGatewayId,
-            key,
-            value,
-            enqueueSnackbar,
-          });
-        },
-        refetch: (id?: GatewayId) => {
-          if (id) {
-            void FetchFegGateway({id, networkId, enqueueSnackbar}).then(
-              response => {
-                if (response) {
-                  setFegGateways(gateways => ({
-                    ...gateways,
-                    [id]: response.fegGateway,
-                  }));
-                  setFegGatewaysHealthStatus(healthStatus => ({
-                    ...healthStatus,
-                    [id]: response.healthStatus,
-                  }));
-                }
-              },
-            );
-          } else {
-            void FetchFegGateways({networkId, enqueueSnackbar}).then(
-              response => {
-                if (response) {
-                  setFegGateways(response.fegGateways);
-                  setFegGatewaysHealthStatus(response.fegGatewaysHealthStatus);
-                  setActiveFegGatewayId(response.activeFegGatewayId);
-                }
-              },
-            );
-          }
-        },
-        health: fegGatewaysHealthStatus,
-        activeFegGatewayId,
-      }}>
-      {props.children}
-    </FEGGatewayContext.Provider>
-  );
-}
+import {NetworkId} from '../../../shared/types/network';
 
 /**
  * A context provider for federation networks. It is used in sharing
  * information like the network information or the gateways information.
  * @param {object} props contains the network id and its type
  */
-export function FEGContextProvider(props: Props) {
-  const {networkId, networkType} = props;
+export function FEGContextProvider(props: {
+  networkId: NetworkId;
+  children: React.ReactNode;
+}) {
+  const {networkId} = props;
 
   return (
     <FEGNetworkContextProvider networkId={networkId}>
-      <FEGSubscriberContextProvider {...{networkId, networkType}}>
-        <FEGGatewayContextProvider {...{networkId, networkType}}>
+      <FEGSubscriberContextProvider networkId={networkId}>
+        <FEGGatewayContextProvider networkId={networkId}>
           {props.children}
         </FEGGatewayContextProvider>
       </FEGSubscriberContextProvider>

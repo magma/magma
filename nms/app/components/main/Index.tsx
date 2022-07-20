@@ -113,7 +113,7 @@ function NetworkContextProvider(props: Props) {
     <VersionContextProvider>
       <NetworkContext.Provider value={{networkId, networkType}}>
         {networkType === FEG ? (
-          <FEGContextProvider networkId={networkId} networkType={networkType}>
+          <FEGContextProvider networkId={networkId}>
             {props.children}
           </FEGContextProvider>
         ) : (
