@@ -27,7 +27,7 @@ import React, {useContext, useState} from 'react';
 import withAlert from '../../components/Alert/withAlert';
 import {GatewayId} from '../../../shared/types/network';
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useInterval} from '../../hooks';
 import {useNavigate} from 'react-router-dom';

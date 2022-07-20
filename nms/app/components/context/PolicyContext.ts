@@ -32,6 +32,7 @@ export type PolicyContextType = {
     val?: PolicyRule,
     isNetworkWide?: boolean,
   ) => Promise<void>;
+  refetch: () => void;
 };
 
 export default React.createContext<PolicyContextType>({} as PolicyContextType);

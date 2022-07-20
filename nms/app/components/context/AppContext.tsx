@@ -20,6 +20,8 @@ import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import type {FeatureID} from '../../../shared/types/features';
 import type {SSOSelectedType} from '../../../shared/types/auth';
 
+export const REFRESH_INTERVAL = 30000;
+
 export type AppContextType = {
   csrfToken: string | null | undefined;
   version: string | null | undefined;

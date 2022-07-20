@@ -27,6 +27,8 @@ py_library(
     deps = [
         "//lte/gateway/python/magma/pipelined:service_manager",
         "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
         requirement("fakeredis"),
     ],
 )
@@ -854,4 +856,23 @@ pytest_test(
         ORC8R_ROOT,
     ],
     deps = ["//lte/gateway/python/magma/pipelined:gtp_stats_collector"],
+)
+
+pytest_test(
+    name = "test_non_nat",
+    size = "small",
+    srcs = ["test_non_nat.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
 )

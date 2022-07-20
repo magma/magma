@@ -21,6 +21,7 @@ import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import TopBar from '../../components/TopBar';
 
 import {
   Navigate,
@@ -68,6 +69,7 @@ export default function () {
 
   return (
     <>
+      <TopBar header="Metrics" tabs={[]} />
       <AppBar position="static" color="default" className={classes.bar}>
         <Tabs
           value={currentTab !== -1 ? currentTab : 0}

@@ -138,8 +138,7 @@ setup(
             # If you update this version here, you probably also want to
             # update it in lte/gateway/python/Makefile
             'grpcio-tools>=1.16.1',
-            'nose==1.3.7',
-            'coverage',
+            'coverage==6.4.1',
             'iperf3',
             'parameterized==0.8.1',
             'pytest==7.1.2',

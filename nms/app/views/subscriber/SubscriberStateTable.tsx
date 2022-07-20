@@ -24,20 +24,15 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '../../../shared/util/nullthrows';
 
 import {Column} from '@material-table/core';
 import {JsonDialog, RenderLink} from './SubscriberUtils';
-import {
-  REFRESH_INTERVAL,
-  useRefreshingContext,
-} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useParams} from 'react-router-dom';
+import {useInterval} from '../../hooks';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
@@ -135,12 +130,10 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
 }
 
 export default function SubscriberStateTable() {
-  const params = useParams();
   const [currRow, setCurrRow] = useState<SubscriberRowType>(
     {} as SubscriberRowType,
   );
   const classes = useStyles();
-  const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(SubscriberContext);
   const subscriberMap: Record<string, Subscriber> = ctx.state;
   const sessionState: Record<string, SubscriberState> = ctx.sessionState;
@@ -148,24 +141,18 @@ export default function SubscriberStateTable() {
   const [jsonDialog, setJsonDialog] = useState(false);
   const subscribersIds = Object.keys(sessionState);
   const [refresh, setRefresh] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
   // Auto refresh subscribers sessions every 30 seconds
-  const refreshingSessionState = useRefreshingContext({
-    context: SubscriberContext,
-    networkId,
-    type: 'subscriber',
-    interval: REFRESH_INTERVAL,
-    enqueueSnackbar,
-    refresh,
-  });
+  useInterval(
+    () => ctx.refetchSessionState(),
+    refresh ? REFRESH_INTERVAL : null,
+  );
 
   const tableData: Array<SubscriberRowType> = subscribersIds.map(
     (imsi: string) => {
       const subscriberInfo = subscriberMap[imsi] || {};
       const metrics = subscriberMetrics?.[`${imsi}`];
       const subscriber: Record<string, any> =
-        refreshingSessionState.sessionState?.[imsi]?.subscriber_state || {};
+        ctx.sessionState?.[imsi]?.subscriber_state || {};
       const ipAddresses: Array<string> = [];
       const activeApns: Array<string> = [];
       let activeSessions = 0;

@@ -75,8 +75,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   init_state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
   init_state->num_enbs = 1;
 
-  hashtable_ts_insert(&init_state->mmeid2associd, (const hash_key_t)1,
-                      (void**)&assoc_id);
+  init_state->mmeid2associd.insert(1, assoc_id);
 
   oai::S1apState state_proto;
   S1apStateConverter::state_to_proto(init_state, &state_proto);

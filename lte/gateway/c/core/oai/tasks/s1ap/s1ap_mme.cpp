@@ -460,7 +460,7 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_s1ap_id);
-  hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
+  state->mmeid2associd.remove(mme_ue_s1ap_id);
   enb_ref->ue_id_coll.remove(mme_ue_s1ap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;

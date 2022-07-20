@@ -24,6 +24,7 @@ import NetworkContext from '../context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 import TraceContext from '../context/TraceContext';
+import {omit} from 'lodash';
 import type {
   Apn,
   BaseNameRecord,
@@ -41,6 +42,8 @@ import type {
   PolicyQosProfile,
   PolicyRule,
   RatingGroup,
+  Subscriber,
+  SubscriberState,
   Tier,
 } from '../../../generated';
 import type {EnodebInfo} from './EnodebUtils';
@@ -68,6 +71,11 @@ import {
   UpdateGatewayPoolRecords,
   UpdateGatewayProps,
 } from '../../state/lte/EquipmentState';
+import {
+  FetchSubscriberState,
+  getGatewaySubscriberMap,
+  setSubscriberState,
+} from '../../state/lte/SubscriberState';
 import {InitTraceState, SetCallTraceState} from '../../state/TraceState';
 import {SetApnState} from '../../state/lte/ApnState';
 import {
@@ -79,10 +87,6 @@ import {
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
-import {
-  getGatewaySubscriberMap,
-  setSubscriberState,
-} from '../../state/lte/SubscriberState';
 import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -402,8 +406,12 @@ export function TraceContextProvider(props: Props) {
 
 export function SubscriberContextProvider(props: Props) {
   const {networkId} = props;
-  const [subscriberMap, setSubscriberMap] = useState({});
-  const [sessionState, setSessionState] = useState({});
+  const [subscriberMap, setSubscriberMap] = useState<
+    Record<string, Subscriber>
+  >({});
+  const [sessionState, setSessionState] = useState<
+    Record<string, SubscriberState>
+  >({});
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -443,7 +451,6 @@ export function SubscriberContextProvider(props: Props) {
           key: SubscriberId,
           value?: MutableSubscriber | Array<MutableSubscriber>,
           newState?,
-          newSessionState?,
         ) =>
           setSubscriberState({
             networkId,
@@ -453,8 +460,21 @@ export function SubscriberContextProvider(props: Props) {
             key,
             value,
             newState,
-            newSessionState,
           }),
+        refetchSessionState: (id?: SubscriberId) => {
+          void FetchSubscriberState({networkId, id}).then(sessions => {
+            if (sessions) {
+              setSessionState(currentSessionState =>
+                id
+                  ? {
+                      ...currentSessionState,
+                      ...sessions,
+                    }
+                  : sessions,
+              );
+            }
+          });
+        },
       }}>
       {props.children}
     </SubscriberContext.Provider>
@@ -595,79 +615,76 @@ export function PolicyProvider(props: Props) {
     fegNetworkId = lteNetworkCtx.state?.federation?.feg_network_id;
   }
 
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        setPolicies(
-          (
-            await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
-              networkId,
-            })
-          ).data,
-        );
-
-        // Base Names
-        const baseNameIDs: Array<string> = (
-          await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesGet({
+  const fetchState = useCallback(async () => {
+    try {
+      setPolicies(
+        (
+          await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
             networkId,
           })
-        ).data;
-        const baseNameRecords = await Promise.all(
-          baseNameIDs.map(baseNameID =>
-            MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
-              networkId,
-              baseName: baseNameID,
-            }),
-          ),
-        );
-        const newBaseNames: Record<string, BaseNameRecord> = {};
-        baseNameRecords.map(({data: record}) => {
-          newBaseNames[record.name] = record;
-        });
-        setBaseNames(newBaseNames);
+        ).data,
+      );
 
-        setRatingGroups(
-          // TODO[TS-migration] What is the actual type here?
-          ((
-            await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
-              networkId,
-            })
-          ).data as unknown) as Record<string, RatingGroup>,
-        );
-        setQosProfiles(
+      // Base Names
+      const baseNameIDs: Array<string> = (
+        await MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesGet({
+          networkId,
+        })
+      ).data;
+      const baseNameRecords = await Promise.all(
+        baseNameIDs.map(baseNameID =>
+          MagmaAPI.policies.networksNetworkIdPoliciesBaseNamesBaseNameGet({
+            networkId,
+            baseName: baseNameID,
+          }),
+        ),
+      );
+      const newBaseNames: Record<string, BaseNameRecord> = {};
+      baseNameRecords.map(({data: record}) => {
+        newBaseNames[record.name] = record;
+      });
+      setBaseNames(newBaseNames);
+
+      setRatingGroups(
+        // TODO[TS-migration] What is the actual type here?
+        ((
+          await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
+            networkId,
+          })
+        ).data as unknown) as Record<string, RatingGroup>,
+      );
+      setQosProfiles(
+        (
+          await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet({
+            networkId,
+          })
+        ).data,
+      );
+      if (fegNetworkId) {
+        setFegNetwork(
           (
-            await MagmaAPI.policies.lteNetworkIdPolicyQosProfilesGet({
-              networkId,
+            await MagmaAPI.federationNetworks.fegNetworkIdGet({
+              networkId: fegNetworkId,
             })
           ).data,
         );
-        if (fegNetworkId) {
-          setFegNetwork(
-            (
-              await MagmaAPI.federationNetworks.fegNetworkIdGet({
-                networkId: fegNetworkId,
-              })
-            ).data,
-          );
-          setFegPolicies(
-            (
-              await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet(
-                {
-                  networkId: fegNetworkId,
-                },
-              )
-            ).data,
-          );
-        }
-      } catch (e) {
-        enqueueSnackbar?.('failed fetching policy information', {
-          variant: 'error',
-        });
+        setFegPolicies(
+          (
+            await MagmaAPI.policies.networksNetworkIdPoliciesRulesviewfullGet({
+              networkId: fegNetworkId,
+            })
+          ).data,
+        );
       }
-      setIsLoading(false);
-    };
-    void fetchState();
-  }, [networkId, fegNetworkId, networkType, enqueueSnackbar]);
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching policy information', {
+        variant: 'error',
+      });
+    }
+    setIsLoading(false);
+  }, [networkId, fegNetworkId, enqueueSnackbar]);
+
+  useEffect(() => void fetchState(), [fetchState, networkType]);
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -727,7 +744,7 @@ export function PolicyProvider(props: Props) {
                 setPolicies: setFegPolicies,
                 networkId: fegNetworkID,
                 key,
-                value,
+                value: omit(value, 'qos_profile'),
               });
             }
           } else {
@@ -827,6 +844,7 @@ export function PolicyProvider(props: Props) {
             }
           }
         },
+        refetch: () => void fetchState(),
       }}>
       {props.children}
     </PolicyContext.Provider>

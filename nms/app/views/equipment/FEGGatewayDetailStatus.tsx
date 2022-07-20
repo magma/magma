@@ -24,7 +24,7 @@ import {
   GatewayTypeEnum,
   HEALTHY_STATUS,
 } from '../../components/GatewayUtils';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 
