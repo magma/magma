@@ -96,6 +96,7 @@ describe('<SubscriberDashboard />', () => {
       gwSubscriberMap: {},
       sessionState: {},
       totalCount: 2,
+      refetchSessionState: () => {},
     };
 
     return (
