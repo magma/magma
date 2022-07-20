@@ -53,8 +53,8 @@ ENV S1AP_TESTER_SRC=/S1APTester
 ENV PYTHON_BUILD=/build
 ENV PIP_CACHE_HOME="~/.pipcache"
 ENV TZ=Europe/Paris
-ENV SWAGGER_CODEGEN_JAR=/var/tmp/codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
 ENV SWAGGER_CODEGEN_DIR=/var/tmp/codegen/
+ENV SWAGGER_CODEGEN_JAR=${SWAGGER_CODEGEN_DIR}modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
 ENV S1AP_TESTER_CFG=$MAGMA_ROOT/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
 ENV GRPC_POLL_STRATEGY=poll
 
@@ -97,7 +97,7 @@ RUN DIRECTORY="/tmp/aioeventlet" && \
   /magma/third_party/build/bin/aioeventlet_build.sh ${DIRECTORY} && \
   dpkg -i ${DIRECTORY}/python3-aioeventlet* && \
   rm -rf ${DIRECTORY} && \
-  mkdir -p ${SWAGGER_CODEGEN_DIR}modules/swagger-codegen-cli/target/; \
+  mkdir -p ${SWAGGER_CODEGEN_DIR}modules/swagger-codegen-cli/target/ && \
   wget -q https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
 
 WORKDIR $MAGMA_ROOT/lte/gateway/python
