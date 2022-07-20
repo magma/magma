@@ -12,11 +12,11 @@
  */
 
 import ActionTable from '../../components/ActionTable';
-import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
+import FEGSubscriberContext from '../../context/FEGSubscriberContext';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {fetchSubscribers} from '../../util/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
 import {useInterval} from '../../hooks';

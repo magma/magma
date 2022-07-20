@@ -12,15 +12,15 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
 import {
   CellularGatewayPool,
   CellularGatewayPoolRecord,
   MutableCellularGatewayPool,
-} from '../../../generated';
-import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {GatewayPoolId, NetworkId} from '../../../shared/types/network';
+} from '../../generated';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
+import {GatewayPoolId, NetworkId} from '../../shared/types/network';
 import {useEffect, useState} from 'react';
 
 // add gateway ID to gateway pool records (gateway primary/secondary)

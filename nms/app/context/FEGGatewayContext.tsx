@@ -12,15 +12,15 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
-import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {FederationGateway, MutableFederationGateway} from '../../../generated';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
+import {FederationGateway, MutableFederationGateway} from '../../generated';
 import {
   FederationGatewayHealthStatus,
   getFederationGatewayHealthStatus,
-} from '../GatewayUtils';
-import {GatewayId, NetworkId} from '../../../shared/types/network';
+} from '../components/GatewayUtils';
+import {GatewayId, NetworkId} from '../../shared/types/network';
 import {useEffect, useState} from 'react';
 
 export type FEGGatewayContextType = {

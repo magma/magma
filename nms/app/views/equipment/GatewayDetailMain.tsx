@@ -22,7 +22,7 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
 import GatewayConfigYml from './GatewayYMLConfig';
-import GatewayContext from '../../components/context/GatewayContext';
+import GatewayContext from '../../context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayDetailSubscribers from './GatewayDetailSubscribers';

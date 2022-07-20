@@ -11,27 +11,23 @@
  * limitations under the License.
  */
 
-import ApnContext from '../../../components/context/ApnContext';
-import EnodebContext, {
-  EnodebContextType,
-} from '../../../components/context/EnodebContext';
-import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
+import ApnContext from '../../../context/ApnContext';
+import EnodebContext, {EnodebContextType} from '../../../context/EnodebContext';
+import FEGNetworkContext from '../../../context/FEGNetworkContext';
 import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext, {
   GatewayContextType,
-} from '../../../components/context/GatewayContext';
+} from '../../../context/GatewayContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
-import PolicyContext, {
-  PolicyContextType,
-} from '../../../components/context/PolicyContext';
+import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
 import SubscriberContext, {
   SubscriberContextType,
-} from '../../../components/context/SubscriberContext';
+} from '../../../context/SubscriberContext';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
-import {LteNetworkContextProvider} from '../../../components/context/LteNetworkContext';
+import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -39,7 +35,7 @@ import {fireEvent, render, wait} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../../subscriber/SubscriberUtils';
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import NetworkContext from '../../../components/context/NetworkContext';
+import NetworkContext from '../../../context/NetworkContext';
 import axios from 'axios';
 import {LTE} from '../../../../shared/types/network';
 import {mockAPI} from '../../../util/TestUtils';

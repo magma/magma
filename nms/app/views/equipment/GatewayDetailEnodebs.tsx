@@ -14,10 +14,10 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {GatewayDetailType} from './GatewayDetailMain';
 
 import ActionTable from '../../components/ActionTable';
-import EnodebContext from '../../components/context/EnodebContext';
+import EnodebContext from '../../context/EnodebContext';
 import Link from '@material-ui/core/Link';
 import React, {useContext} from 'react';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {useInterval} from '../../hooks';
 import {useNavigate, useResolvedPath} from 'react-router-dom';

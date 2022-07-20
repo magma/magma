@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import NetworkContext from '../../../components/context/NetworkContext';
+import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
@@ -26,10 +26,10 @@ import {
   RatingGroup,
   RedirectInformation,
 } from '../../../../generated';
-import {LteNetworkContextProvider} from '../../../components/context/LteNetworkContext';
+import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {PolicyProvider} from '../../../components/context/PolicyContext';
+import {PolicyProvider} from '../../../context/PolicyContext';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';

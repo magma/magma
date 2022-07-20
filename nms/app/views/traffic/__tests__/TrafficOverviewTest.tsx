@@ -15,8 +15,8 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
-import {ApnContextProvider} from '../../../components/context/ApnContext';
-import {PolicyProvider} from '../../../components/context/PolicyContext';
+import {ApnContextProvider} from '../../../context/ApnContext';
+import {PolicyProvider} from '../../../context/PolicyContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';

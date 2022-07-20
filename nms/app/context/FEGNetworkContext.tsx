@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
-import useMagmaAPI from '../../api/useMagmaAPI';
-import {FegNetwork, NetworkSubscriberConfig} from '../../../generated';
-import {NetworkId} from '../../../shared/types/network';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
+import useMagmaAPI from '../api/useMagmaAPI';
+import {FegNetwork, NetworkSubscriberConfig} from '../../generated';
+import {NetworkId} from '../../shared/types/network';
 import {useCallback, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export type FEGNetworkContextType = {
   state: Partial<FegNetwork>;

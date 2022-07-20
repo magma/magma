@@ -18,7 +18,7 @@ import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';
 import nullthrows from '../../shared/util/nullthrows';
 import {NetworkId} from '../../shared/types/network';
-import {fetchGateways} from './context/GatewayContext';
+import {fetchGateways} from '../context/GatewayContext';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

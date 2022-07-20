@@ -12,7 +12,7 @@
  */
 
 import * as React from 'react';
-import AppContext from '../../../components/context/AppContext';
+import AppContext from '../../../context/AppContext';
 import FBCAlarms from '../components/Alarms';
 import TopBar from '../../../components/TopBar';
 

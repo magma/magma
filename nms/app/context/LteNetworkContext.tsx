@@ -18,14 +18,14 @@ import {
   NetworkEpcConfigs,
   NetworkRanConfigs,
   NetworkSubscriberConfig,
-} from '../../../generated';
+} from '../../generated';
 
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
 import NetworkContext from './NetworkContext';
 import React, {useContext, useEffect, useState} from 'react';
-import {FEG_LTE, NetworkId} from '../../../shared/types/network';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {FEG_LTE, NetworkId} from '../../shared/types/network';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 // TODO[TS-migration] This should probably be something like Partial<UpdateLteNetworkParams> | Partial<UpdateFegLteNetworkParams>
 export type UpdateNetworkContextParams = Partial<

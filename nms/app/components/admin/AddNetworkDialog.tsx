@@ -27,7 +27,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import AppContext from '../context/AppContext';
+import AppContext from '../../context/AppContext';
 import nullthrows from '../../../shared/util/nullthrows';
 import {
   AllNetworkTypes,

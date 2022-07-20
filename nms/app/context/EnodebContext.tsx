@@ -12,16 +12,16 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
 import {
   Enodeb,
   EnodebState as EnodebStateResponse,
   NetworkRanConfigs,
-} from '../../../generated';
-import {EnodebInfo} from '../lte/EnodebUtils';
-import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {NetworkId} from '../../../shared/types/network';
+} from '../../generated';
+import {EnodebInfo} from '../components/lte/EnodebUtils';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
+import {NetworkId} from '../../shared/types/network';
 import {useEffect, useState} from 'react';
 
 type EnodebState = {

@@ -10,9 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '../components/LoadingFiller';
 import LteNetworkContext from './LteNetworkContext';
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import NetworkContext from './NetworkContext';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
@@ -21,11 +21,11 @@ import {
   PolicyQosProfile,
   PolicyRule,
   RatingGroup,
-} from '../../../generated';
-import {FEG_LTE, NetworkId, PolicyId} from '../../../shared/types/network';
+} from '../../generated';
+import {FEG_LTE, NetworkId, PolicyId} from '../../shared/types/network';
 import {omit} from 'lodash';
 import {updateFegNetworkState} from './FEGNetworkContext';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export type PolicyContextType = {
   state: Record<string, PolicyRule>;

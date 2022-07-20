@@ -12,12 +12,12 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import {NetworkId, SubscriberId} from '../../../shared/types/network';
-import {SubscriberState} from '../../../generated';
-import {fetchFegSubscriberState} from '../../util/SubscriberState';
+import LoadingFiller from '../components/LoadingFiller';
+import {NetworkId, SubscriberId} from '../../shared/types/network';
+import {SubscriberState} from '../../generated';
+import {fetchFegSubscriberState} from '../util/SubscriberState';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 type FEGSubscriberContextType = {
   refetch: () => void;

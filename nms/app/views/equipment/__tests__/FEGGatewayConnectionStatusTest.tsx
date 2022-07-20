@@ -12,7 +12,7 @@
  */
 
 import FEGGatewayConnectionStatus from '../FEGGatewayConnectionStatus';
-import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../../context/FEGGatewayContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';

@@ -27,7 +27,7 @@ import React, {
   useState,
 } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';

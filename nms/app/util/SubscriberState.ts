@@ -20,7 +20,7 @@ import type {ActionQuery} from '../components/ActionTable';
 import type {
   Metrics,
   SubscriberContextType,
-} from '../components/context/SubscriberContext';
+} from '../context/SubscriberContext';
 import type {PaginatedSubscribers, Subscriber} from '../../generated';
 
 export type SubscriberRowType = {

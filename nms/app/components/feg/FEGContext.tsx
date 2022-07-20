@@ -12,9 +12,9 @@
  */
 
 import * as React from 'react';
-import {FEGGatewayContextProvider} from '../context/FEGGatewayContext';
-import {FEGNetworkContextProvider} from '../context/FEGNetworkContext';
-import {FEGSubscriberContextProvider} from '../context/FEGSubscriberContext';
+import {FEGGatewayContextProvider} from '../../context/FEGGatewayContext';
+import {FEGNetworkContextProvider} from '../../context/FEGNetworkContext';
+import {FEGSubscriberContextProvider} from '../../context/FEGSubscriberContext';
 import {NetworkId} from '../../../shared/types/network';
 
 /**

@@ -13,11 +13,11 @@
 import * as React from 'react';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
-import MagmaAPI from '../../api/MagmaAPI';
-import {NetworkId} from '../../../shared/types/network';
+import MagmaAPI from '../api/MagmaAPI';
+import {NetworkId} from '../../shared/types/network';
 import {OptionsObject} from 'notistack';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {Cbsd, MutableCbsd, PaginatedCbsds} from '../../../generated';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
+import type {Cbsd, MutableCbsd, PaginatedCbsds} from '../../generated';
 
 export type CbsdContextType = {
   state: {

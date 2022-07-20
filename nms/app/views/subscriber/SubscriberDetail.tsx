@@ -25,14 +25,14 @@ import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberChart from './SubscriberChart';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {Theme} from '@material-ui/core/styles';
 import {colors, typography} from '../../theme/default';

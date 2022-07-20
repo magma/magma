@@ -12,11 +12,11 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
-import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {NetworkId} from '../../../shared/types/network';
-import {Tier} from '../../../generated';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
+import {NetworkId} from '../../shared/types/network';
+import {Tier} from '../../generated';
 import {useEffect, useState} from 'react';
 
 type GatewayTierState = {

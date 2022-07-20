@@ -21,7 +21,7 @@ import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-import TraceContext from '../../components/context/TraceContext';
+import TraceContext from '../../context/TraceContext';
 import TypedSelect from '../../components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 import {AltFormField} from '../../components/FormField';

@@ -17,7 +17,7 @@ import defaultTheme from '../../../theme/default';
 import {AddEditCbsdButton, CbsdAddEditDialog} from '../CbsdEdit';
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import {CbsdContextProvider} from '../../../components/context/CbsdContext';
+import {CbsdContextProvider} from '../../../context/CbsdContext';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {mockAPI, mockAPIError} from '../../../util/TestUtils';

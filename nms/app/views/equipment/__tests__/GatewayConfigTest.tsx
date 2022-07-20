@@ -12,15 +12,15 @@
  */
 
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
-import ApnContext from '../../../components/context/ApnContext';
+import ApnContext from '../../../context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
-import LteNetworkContext from '../../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../../context/LteNetworkContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {DynamicServices} from '../../../components/GatewayUtils';
-import {GatewayContextProvider} from '../../../components/context/GatewayContext';
+import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';

@@ -22,12 +22,12 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 
 import {Column} from '@material-table/core';
 import {JsonDialog, RenderLink} from './SubscriberUtils';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

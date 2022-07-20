@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
-import GatewayContext from '../../../components/context/GatewayContext';
+import GatewayContext from '../../../context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {GatewayPoolsContextProvider} from '../../../components/context/GatewayPoolsContext';
+import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait, waitFor} from '@testing-library/react';

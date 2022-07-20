@@ -18,7 +18,7 @@ import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import LteNetworkContext, {
   UpdateNetworkContextParams,
-} from '../../components/context/LteNetworkContext';
+} from '../../context/LteNetworkContext';
 import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
 import NetworkKPI from './NetworkKPIs';

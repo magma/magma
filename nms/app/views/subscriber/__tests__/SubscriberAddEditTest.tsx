@@ -10,19 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApnContext from '../../../components/context/ApnContext';
+import ApnContext from '../../../context/ApnContext';
 import LteNetworkContext, {
   LteNetworkContextType,
-} from '../../../components/context/LteNetworkContext';
+} from '../../../context/LteNetworkContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import PolicyContext, {
-  PolicyContextType,
-} from '../../../components/context/PolicyContext';
+import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
 import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default';
-import {SubscriberContextProvider} from '../../../components/context/SubscriberContext';
+import {SubscriberContextProvider} from '../../../context/SubscriberContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';

@@ -12,7 +12,7 @@
  */
 import type {PromqlReturnObject} from '../../../../generated';
 
-import EnodebContext from '../../../components/context/EnodebContext';
+import EnodebContext from '../../../context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';

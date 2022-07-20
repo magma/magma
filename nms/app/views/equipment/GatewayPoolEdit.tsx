@@ -13,7 +13,7 @@
 import type {
   GatewayPoolRecordsType,
   GatewayPoolsStateType,
-} from '../../components/context/GatewayPoolsContext';
+} from '../../context/GatewayPoolsContext';
 import type {MutableCellularGatewayPool} from '../../../generated';
 
 import Button from '@material-ui/core/Button';

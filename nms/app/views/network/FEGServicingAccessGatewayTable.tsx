@@ -24,7 +24,7 @@ import {
   NetworkName,
 } from '../../../shared/types/network';
 import {GatewayTypeEnum} from '../../components/GatewayUtils';
-import {fetchGateways} from '../../components/context/GatewayContext';
+import {fetchGateways} from '../../context/GatewayContext';
 import {getServicedAccessNetworks} from '../../components/FEGServicingAccessGatewayKPIs';
 import {useParams} from 'react-router-dom';
 import type {FegLteNetwork} from '../../../generated';

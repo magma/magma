@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import {ApnContextProvider} from '../context/ApnContext';
-import {CbsdContextProvider} from '../context/CbsdContext';
-import {EnodebContextProvider} from '../context/EnodebContext';
+import {ApnContextProvider} from '../../context/ApnContext';
+import {CbsdContextProvider} from '../../context/CbsdContext';
+import {EnodebContextProvider} from '../../context/EnodebContext';
 import {FEG_LTE, LTE, NetworkId} from '../../../shared/types/network';
-import {GatewayContextProvider} from '../context/GatewayContext';
-import {GatewayPoolsContextProvider} from '../context/GatewayPoolsContext';
-import {GatewayTierContextProvider} from '../context/GatewayTierContext';
-import {LteNetworkContextProvider} from '../context/LteNetworkContext';
-import {PolicyProvider} from '../context/PolicyContext';
-import {SubscriberContextProvider} from '../context/SubscriberContext';
-import {TraceContextProvider} from '../context/TraceContext';
+import {GatewayContextProvider} from '../../context/GatewayContext';
+import {GatewayPoolsContextProvider} from '../../context/GatewayPoolsContext';
+import {GatewayTierContextProvider} from '../../context/GatewayTierContext';
+import {LteNetworkContextProvider} from '../../context/LteNetworkContext';
+import {PolicyProvider} from '../../context/PolicyContext';
+import {SubscriberContextProvider} from '../../context/SubscriberContext';
+import {TraceContextProvider} from '../../context/TraceContext';
 
 type Props = {
   networkId: NetworkId;

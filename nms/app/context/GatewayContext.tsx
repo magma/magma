@@ -12,14 +12,10 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
-import {
-  EnodebSerial,
-  GatewayId,
-  NetworkId,
-} from '../../../shared/types/network';
-import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
+import {EnodebSerial, GatewayId, NetworkId} from '../../shared/types/network';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {
   GatewayCellularConfigs,
   GatewayDnsConfigs,
@@ -28,7 +24,7 @@ import {
   LteGateway,
   MagmadGatewayConfigs,
   MutableLteGateway,
-} from '../../../generated';
+} from '../../generated';
 import {useEffect, useState} from 'react';
 
 export type GatewayContextType = {

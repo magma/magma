@@ -11,27 +11,20 @@
  * limitations under the License.
  */
 
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
 import React, {useEffect, useState} from 'react';
-import {EnqueueSnackbar, useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {
-  GatewayId,
-  NetworkId,
-  SubscriberId,
-} from '../../../shared/types/network';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
+import {GatewayId, NetworkId, SubscriberId} from '../../shared/types/network';
 import {
   MutableSubscriber,
   PaginatedSubscribers,
   Subscriber,
   SubscriberForbiddenNetworkTypesEnum,
   SubscriberState,
-} from '../../../generated';
-import {
-  fetchSubscriberState,
-  fetchSubscribers,
-} from '../../util/SubscriberState';
-import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
+} from '../../generated';
+import {fetchSubscriberState, fetchSubscribers} from '../util/SubscriberState';
+import {getLabelUnit} from '../views/subscriber/SubscriberUtils';
 
 export type Metrics = {
   currentUsage: string;

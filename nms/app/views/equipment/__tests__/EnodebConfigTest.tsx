@@ -14,7 +14,7 @@ import AddEditEnodeButton from '../EnodebDetailConfigEdit';
 import EnodebConfig from '../EnodebDetailConfig';
 import EnodebContext, {
   EnodebContextProvider,
-} from '../../../components/context/EnodebContext';
+} from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

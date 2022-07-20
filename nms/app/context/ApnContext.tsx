@@ -12,12 +12,12 @@
  */
 
 import * as React from 'react';
-import LoadingFiller from '../LoadingFiller';
-import MagmaAPI from '../../api/MagmaAPI';
-import {Apn} from '../../../generated';
-import {NetworkId} from '../../../shared/types/network';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
+import {Apn} from '../../generated';
+import {NetworkId} from '../../shared/types/network';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export type ApnContextType = {
   state: Record<string, Apn>;
