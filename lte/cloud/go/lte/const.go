@@ -86,13 +86,14 @@ const (
 	SubscriberStreamName       = "subscriberdb"
 
 	// EnodebStateType etc. denote types of state replicated from AGWs.
-	EnodebStateType     = "single_enodeb"
-	ICMPStateType       = "icmp_monitoring"
-	MMEStateType        = "MME"
-	MobilitydStateType  = "mobilityd_ipdesc_record"
-	S1APStateType       = "S1AP"
-	SPGWStateType       = "SPGW"
-	SubscriberStateType = "subscriber_state"
+	EnodebStateType            = "single_enodeb"
+	ICMPStateType              = "icmp_monitoring"
+	MMEStateType               = "MME"
+	MobilitydStateType         = "mobilityd_ipdesc_record"
+	S1APStateType              = "S1AP"
+	SPGWStateType              = "SPGW"
+	SubscriberStateType        = "subscriber_state"
+	GatewaySubscriberStateType = "gateway_subscriber_state"
 
 	// MSISDNBlobstoreType etc. denote blob types stored in blobstore tables.
 	MSISDNBlobstoreType = "msisdn"

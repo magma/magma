@@ -64,8 +64,8 @@ cc_test(
         "//lte/gateway/c/session_manager:session_store",
         "//orc8r/gateway/c/common/logging",
         "//orc8r/gateway/c/common/service303",
-        "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -281,5 +281,33 @@ cc_test(
         ":sessiond_mocks",
         "//lte/gateway/c/session_manager:set_message_manager_handler",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "operational_states_handler",
+    size = "small",
+    srcs = ["test_operational_states_handler.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:operational_states_handler",
+        "@com_google_googletest//:gtest_main",
+        "@github_nlohmann_json//:json",
+    ],
+)
+
+cc_test(
+    name = "session_state_5g_test",
+    size = "small",
+    srcs = [
+        "SessionStateTester5g.hpp",
+        "test_session_state_5g.cpp",
+    ],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//orc8r/gateway/c/common/logging",
     ],
 )

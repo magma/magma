@@ -14,7 +14,7 @@ limitations under the License.
 import logging
 
 from grpc import StatusCode
-from lte.protos import (
+from lte.protos import (  # type: ignore[attr-defined]
     diam_errors_pb2,
     subscriberauth_pb2,
     subscriberauth_pb2_grpc,
@@ -52,6 +52,9 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
         )
 
     def M5GAuthenticationInformation(self, request, context):
+        """
+        Process M5GAuthenticationInformation Request
+        """
         print_grpc(
             request, self._print_grpc_payload,
             "M5GAuthenticationInformation Request:",
@@ -146,13 +149,13 @@ class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
             self, server,
         )
 
-    def M5GDecryptImsiSUCIRegistration(self, request, context):
+    def M5GDecryptMsinSUCIRegistration(self, request, context):
         """
-        M5GDecryptImsiSUCIRegistration
+        M5GDecryptMsinSUCIRegistration
         """
         print_grpc(
             request, self._print_grpc_payload,
-            "M5GDecryptImsiSUCIRegistration Request:",
+            "M5GDecryptMsinSUCIRegistration Request:",
         )
         aia = subscriberdb_pb2.M5GSUCIRegistrationAnswer()
 
@@ -172,17 +175,31 @@ class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
                 profile = 'B'
 
             home_network_info = ECIES_HN(
-                suciprofile.home_net_private_key,
+                suciprofile.home_network_private_key,
                 profile,
             )
 
-            msin_recv = home_network_info.unprotect(
-                request.ue_pubkey, request.ue_ciphertext,
-                request.ue_encrypted_mac,
-            )
+            if len(request.ue_pubkey) != 32:
+                set_grpc_err(
+                    context,
+                    StatusCode.INVALID_ARGUMENT,
+                    f"public key {request.ue_pubkey} is not 32 bytes long",
+                )
+            else:
+                msin_recv = home_network_info.unprotect(
+                    request.ue_pubkey, request.ue_ciphertext,
+                    request.ue_encrypted_mac,
+                )
 
-            aia.ue_msin_recv = msin_recv[:10]
-            logging.info("Deconcealed IMSI: %s", aia.ue_msin_recv)
+                if msin_recv is not None:
+                    aia.ue_msin_recv = msin_recv[:10]
+                    logging.info("Deconcealed MSIN: %s", aia.ue_msin_recv)
+                else:
+                    set_grpc_err(
+                        context,
+                        StatusCode.INVALID_ARGUMENT,
+                        "Deconcealing MSIN failed.",
+                    )
             return aia
 
         except SuciProfileNotFoundError as e:
@@ -192,5 +209,5 @@ class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
         finally:
             print_grpc(
                 aia, self._print_grpc_payload,
-                "M5GDecryptImsiSUCIRegistration Response:",
+                "M5GDecryptMsinSUCIRegistration Response:",
             )

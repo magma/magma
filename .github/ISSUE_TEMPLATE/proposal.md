@@ -1,5 +1,5 @@
 ---
-name: "💡 Proposal"
+name: "\U0001F4A1 Proposal"
 about: Propose a change to the Magma project
 title: ''
 labels: 'type: proposal'
@@ -23,16 +23,14 @@ For non-trivial proposals, consider following this standard pitch template, repr
 
 -->
 
-# TITLE OF YOUR PROPOSAL
-
-## Problem
+### Problem
 
 The raw idea, a use case, or something that motivates acting on this proposal
 
-## Solution
+### Solution
 
 The core elements of the solution, presented concisely, targeting an audience with high-breadth but low-depth understanding of Magma
 
-## Non-goals
+### Non-goals
 
 Anything specifically excluded from the concept

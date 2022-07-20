@@ -8,7 +8,7 @@ FILES=$1
 bazel clean
 
 # shellcheck disable=SC2086
-bazel build --color=no //orc8r/gateway/c/... //lte/gateway/c/... --config=max_gcc_warnings 2>&1 | tee compile.log
+bazel build --color=no //orc8r/gateway/c/... //lte/gateway/c/... --config=max_gcc_warnings --profile=Bazel_build_gcc_problems_profile 2>&1 | tee compile.log
 
 rm -f filtered-compile.log
 echo "$FILES" | tr , '\n' | while read f

@@ -168,7 +168,7 @@ class SqliteStore(BaseStore):
         try:
             with conn:
                 res = conn.execute(
-                    "SELECT data FROM subscriberdb WHERE " "subscriber_id = ?",
+                    "SELECT data FROM subscriberdb WHERE subscriber_id = ?",
                     (subscriber_id,),
                 )
                 row = res.fetchone()

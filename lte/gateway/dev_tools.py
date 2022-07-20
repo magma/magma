@@ -175,7 +175,7 @@ def check_agw_cloud_connectivity(timeout=10):
     """
     vagrant_setup("magma", destroy_vm=False, force_provision=False)
     with cd("/home/vagrant/build/python/bin/"):
-        dev_utils.run_fab_command_with_repetition("./checkin_cli.py", timeout)
+        dev_utils.run_remote_command_with_repetition("./checkin_cli.py", timeout)
 
 
 def check_agw_feg_connectivity(timeout=10):
@@ -186,14 +186,13 @@ def check_agw_feg_connectivity(timeout=10):
     """
     vagrant_setup("magma", destroy_vm=False, force_provision=False)
     with cd("/home/vagrant/build/python/bin/"):
-        dev_utils.run_fab_command_with_repetition("./feg_hello_cli.py m 0", timeout)
+        dev_utils.run_remote_command_with_repetition("./feg_hello_cli.py m 0", timeout)
 
 
 def _register_network(network_type: str, payload: Any):
     network_id = NIDS_BY_TYPE[network_type]
     if not dev_utils.does_network_exist(network_id):
         dev_utils.cloud_post(network_type, payload)
-
     dev_utils.create_tier_if_not_exists(network_id, 'default')
 
 

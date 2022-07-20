@@ -26,7 +26,7 @@ import (
 
 	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 
 	"magma/orc8r/cloud/go/orc8r"

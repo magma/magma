@@ -50,13 +50,13 @@ amf_as_data_t amf_data_de_reg_sec;
  *        switch-off or normal de-registration.
  *        re-registration required is out of mvc scope now.
  */
-int amf_handle_deregistration_ue_origin_req(
+status_code_e amf_handle_deregistration_ue_origin_req(
     amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(LOG_NAS_AMF,
                "UE originated deregistration procedures started\n");
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_deregistration_request_ies_t params;
   if (msg->m5gs_de_reg_type.switchoff) {
     params.de_reg_type = AMF_SWITCHOFF_DEREGISTRATION;
@@ -104,19 +104,19 @@ int amf_handle_deregistration_ue_origin_req(
  *
  * Description : Process the UE originated De-Registration request
  */
-int amf_proc_deregistration_request(amf_ue_ngap_id_t ue_id,
-                                    amf_deregistration_request_ies_t* params) {
+status_code_e amf_proc_deregistration_request(
+    amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(LOG_NAS_AMF,
                "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT
                " type = %d",
                ue_id, params->de_reg_type);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
-    return -1;
+    return RETURNerror;
   }
 
   amf_context_t* amf_ctx = amf_context_get(ue_id);
@@ -186,9 +186,9 @@ int amf_proc_deregistration_request(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
+status_code_e amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   ue_m5gmm_context_s* ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -248,7 +248,7 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
   amf_smf_release_t smf_message;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   memset(&smf_message, 0, sizeof(amf_smf_release_t));
 
   for (auto& it : ue_context->amf_context.smf_ctxt_map) {
@@ -280,10 +280,12 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
   }
 
   ue_context->amf_context.smf_ctxt_map.clear();
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 //------------------------------------------------------------------------------
 void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   // Stop Mobile reachability timer,if running
 
   // Stop Implicit deregistration timer,if running
@@ -293,6 +295,7 @@ void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
   ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
 
   amf_smf_context_cleanup_pdu_session(ue_context_p);
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void clear_amf_ctxt(amf_context_t* amf_context) {
@@ -300,9 +303,6 @@ void clear_amf_ctxt(amf_context_t* amf_context) {
   if (!amf_context) {
     return;
   }
-  amf_ue_ngap_id_t ue_id =
-      PARENT_STRUCT(amf_context, struct ue_m5gmm_context_s, amf_context)
-          ->amf_ue_ngap_id;
 
   nas_delete_all_amf_procedures(amf_context);
 

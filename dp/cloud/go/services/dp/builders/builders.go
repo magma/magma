@@ -19,10 +19,12 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"magma/dp/cloud/go/protos"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
 	"magma/dp/cloud/go/services/dp/obsidian/to_pointer"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
+	"magma/orc8r/cloud/go/clock"
 )
 
 const (
@@ -44,16 +46,19 @@ type DBCbsdBuilder struct {
 func NewDBCbsdBuilder() *DBCbsdBuilder {
 	return &DBCbsdBuilder{
 		Cbsd: &storage.DBCbsd{
-			UserId:                  db.MakeString(someUserId),
-			FccId:                   db.MakeString(someFccId),
-			CbsdSerialNumber:        db.MakeString(someSerialNumber),
-			PreferredBandwidthMHz:   db.MakeInt(20),
-			PreferredFrequenciesMHz: db.MakeString("[3600]"),
-			MinPower:                db.MakeFloat(10),
-			MaxPower:                db.MakeFloat(20),
-			NumberOfPorts:           db.MakeInt(2),
-			CbsdCategory:            db.MakeString(catB),
-			SingleStepEnabled:       db.MakeBool(false),
+			UserId:                    db.MakeString(someUserId),
+			FccId:                     db.MakeString(someFccId),
+			CbsdSerialNumber:          db.MakeString(someSerialNumber),
+			PreferredBandwidthMHz:     db.MakeInt(20),
+			PreferredFrequenciesMHz:   db.MakeString("[3600]"),
+			MinPower:                  db.MakeFloat(10),
+			MaxPower:                  db.MakeFloat(20),
+			NumberOfPorts:             db.MakeInt(2),
+			CbsdCategory:              db.MakeString(catB),
+			SingleStepEnabled:         db.MakeBool(false),
+			CarrierAggregationEnabled: db.MakeBool(false),
+			GrantRedundancy:           db.MakeBool(true),
+			MaxIbwMhx:                 db.MakeInt(150),
 		},
 	}
 }
@@ -165,6 +170,21 @@ func (b *DBCbsdBuilder) WithSingleStepEnabled(enabled bool) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithCarrierAggregationEnabled(enabled bool) *DBCbsdBuilder {
+	b.Cbsd.CarrierAggregationEnabled = db.MakeBool(enabled)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithGrantRedundancy(enabled bool) *DBCbsdBuilder {
+	b.Cbsd.GrantRedundancy = db.MakeBool(enabled)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithMaxIbwMhx(ibw int64) *DBCbsdBuilder {
+	b.Cbsd.MaxIbwMhx = db.MakeInt(ibw)
+	return b
+}
+
 func (b *DBCbsdBuilder) WithShouldDeregister(should bool) *DBCbsdBuilder {
 	b.Cbsd.ShouldDeregister = db.MakeBool(should)
 	return b
@@ -183,10 +203,6 @@ func (b *DBCbsdBuilder) WithPreferredFrequenciesMHz(freq string) *DBCbsdBuilder 
 func (b *DBCbsdBuilder) WithCbsdCategory(cat string) *DBCbsdBuilder {
 	b.Cbsd.CbsdCategory = db.MakeString(cat)
 	return b
-}
-
-func (b *DBCbsdBuilder) WithDefaulValues() *DBCbsdBuilder {
-	return b.WithCbsdCategory(catB).WithSingleStepEnabled(false).WithIndoorDeployment(false)
 }
 
 type DBGrantBuilder struct {
@@ -244,10 +260,14 @@ func NewCbsdProtoPayloadBuilder() *CbsdProtoPayloadBuilder {
 				MinPower:         10,
 				MaxPower:         20,
 				NumberOfAntennas: 2,
+				MaxIbwMhz:        150,
 			},
-			DesiredState:      registered,
-			CbsdCategory:      catB,
-			SingleStepEnabled: false,
+			DesiredState:              registered,
+			CbsdCategory:              catB,
+			SingleStepEnabled:         false,
+			InstallationParam:         &protos.InstallationParam{},
+			CarrierAggregationEnabled: false,
+			GrantRedundancy:           true,
 		},
 	}
 }
@@ -441,10 +461,11 @@ type CbsdModelPayloadBuilder struct {
 
 func NewCbsdModelPayloadBuilder() *CbsdModelPayloadBuilder {
 	return &CbsdModelPayloadBuilder{Payload: &models.Cbsd{
-		Capabilities: &models.Capabilities{
+		Capabilities: models.Capabilities{
 			MaxPower:         to_pointer.Float(20),
 			MinPower:         to_pointer.Float(10),
 			NumberOfAntennas: 2,
+			MaxIbwMhz:        150,
 		},
 		SingleStepEnabled: false,
 		CbsdCategory:      catB,
@@ -453,11 +474,13 @@ func NewCbsdModelPayloadBuilder() *CbsdModelPayloadBuilder {
 			BandwidthMhz:   20,
 			FrequenciesMhz: []int64{3600},
 		},
-		FccID:        someFccId,
-		SerialNumber: someSerialNumber,
-		UserID:       someUserId,
-		CbsdID:       someCbsdId,
-		State:        registered,
+		FccID:                     someFccId,
+		SerialNumber:              someSerialNumber,
+		UserID:                    someUserId,
+		CbsdID:                    someCbsdId,
+		State:                     registered,
+		CarrierAggregationEnabled: false,
+		GrantRedundancy:           true,
 	}}
 }
 
@@ -496,14 +519,17 @@ type MutableCbsdModelBuilder struct {
 
 func NewMutableCbsdModelPayloadBuilder() *MutableCbsdModelBuilder {
 	return &MutableCbsdModelBuilder{Payload: &models.MutableCbsd{
-		Capabilities: &models.Capabilities{
+		Capabilities: models.Capabilities{
 			MaxPower:         to_pointer.Float(20),
 			MinPower:         to_pointer.Float(10),
 			NumberOfAntennas: 2,
+			MaxIbwMhz:        150,
 		},
-		DesiredState:      registered,
-		SingleStepEnabled: to_pointer.Bool(false),
-		CbsdCategory:      catB,
+		DesiredState:              registered,
+		SingleStepEnabled:         to_pointer.Bool(false),
+		CarrierAggregationEnabled: to_pointer.Bool(false),
+		GrantRedundancy:           to_pointer.Bool(true),
+		CbsdCategory:              catB,
 		FrequencyPreferences: models.FrequencyPreferences{
 			BandwidthMhz:   20,
 			FrequenciesMhz: []int64{3600},
@@ -530,22 +556,11 @@ func (b *MutableCbsdModelBuilder) WithFccId(id string) *MutableCbsdModelBuilder 
 }
 
 func (b *MutableCbsdModelBuilder) WithEmptyInstallationParam() *MutableCbsdModelBuilder {
-	b.Payload.InstallationParam = &models.InstallationParam{}
-	return b
-}
-
-func (b *MutableCbsdModelBuilder) WithHeightType(heightType string) *MutableCbsdModelBuilder {
-	if b.Payload.InstallationParam == nil {
-		b.Payload.InstallationParam = &models.InstallationParam{}
-	}
-	b.Payload.InstallationParam.HeightType = to_pointer.String(heightType)
+	b.Payload.InstallationParam = models.MutableInstallationParam{}
 	return b
 }
 
 func (b *MutableCbsdModelBuilder) WithAntennaGain(gain float64) *MutableCbsdModelBuilder {
-	if b.Payload.InstallationParam == nil {
-		b.Payload.InstallationParam = &models.InstallationParam{}
-	}
 	b.Payload.InstallationParam.AntennaGain = to_pointer.Float(gain)
 	return b
 }
@@ -570,6 +585,11 @@ func (b *MutableCbsdModelBuilder) WithNumberOfAntennas(number int64) *MutableCbs
 	return b
 }
 
+func (b *MutableCbsdModelBuilder) WithMaxIbwMhz(number int64) *MutableCbsdModelBuilder {
+	b.Payload.Capabilities.MaxIbwMhz = number
+	return b
+}
+
 func (b *MutableCbsdModelBuilder) WithSingleStepEnabled(enabled *bool) *MutableCbsdModelBuilder {
 	if enabled == nil {
 		b.Payload.SingleStepEnabled = nil
@@ -579,14 +599,20 @@ func (b *MutableCbsdModelBuilder) WithSingleStepEnabled(enabled *bool) *MutableC
 	return b
 }
 
-func (b *MutableCbsdModelBuilder) WithIndoorDeployment(indoor *bool) *MutableCbsdModelBuilder {
-	if b.Payload.InstallationParam == nil {
-		b.Payload.InstallationParam = &models.InstallationParam{}
-	}
-	if indoor == nil {
-		b.Payload.InstallationParam.IndoorDeployment = nil
+func (b *MutableCbsdModelBuilder) WithCarrierAggregationEnabled(enabled *bool) *MutableCbsdModelBuilder {
+	if enabled == nil {
+		b.Payload.CarrierAggregationEnabled = nil
 	} else {
-		b.Payload.InstallationParam.IndoorDeployment = to_pointer.Bool(*indoor)
+		b.Payload.CarrierAggregationEnabled = to_pointer.Bool(*enabled)
+	}
+	return b
+}
+
+func (b *MutableCbsdModelBuilder) WithGrantRedundancy(enabled *bool) *MutableCbsdModelBuilder {
+	if enabled == nil {
+		b.Payload.GrantRedundancy = nil
+	} else {
+		b.Payload.GrantRedundancy = to_pointer.Bool(*enabled)
 	}
 	return b
 }
@@ -611,5 +637,27 @@ func (b *MutableCbsdModelBuilder) WithMaxPower(power *float64) *MutableCbsdModel
 
 func (b *MutableCbsdModelBuilder) WithCbsdCategory(c string) *MutableCbsdModelBuilder {
 	b.Payload.CbsdCategory = c
+	return b
+}
+
+type DPLogBuilder struct {
+	Log *logs_pusher.DPLog
+}
+
+func NewDPLogBuilder() *DPLogBuilder {
+	return &DPLogBuilder{Log: &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().Unix(),
+		LogFrom:          "CBSD",
+		LogTo:            "DP",
+		LogName:          "EnodebdUpdateCbsd",
+		LogMessage:       "some log message",
+		CbsdSerialNumber: "some_serial_number",
+		NetworkId:        "some_network",
+		FccId:            "some_fcc_id",
+	}}
+}
+
+func (b *DPLogBuilder) WithLogMessage(m string) *DPLogBuilder {
+	b.Log.LogMessage = m
 	return b
 }

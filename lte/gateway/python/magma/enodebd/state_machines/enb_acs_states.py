@@ -282,7 +282,7 @@ class WaitForFirmwareUpgradeDownloadResponse(EnodebAcsState):
     This state reacts to a reply from the eNB after a Download request has been sent.
 
     When a DownloadReponse object is received, that means the Download request was accepted
-    and a firmware download is in progress. 
+    and a firmware download is in progress.
     However, if there is already a download requested pending on the eNB, issuing a Download request
     may cause the eNB to return a Fault code 9017. It is a generic download failure code that
     seemed to indicate on FreedomFi One/Sercomm eNBs that a download of the same CommandKey is already
@@ -399,7 +399,7 @@ class BaicellsRemWaitState(EnodebAcsState):
         return AcsReadMsgResult(True, None)
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
-        if self.rem_timer.is_done():
+        if self.rem_timer and self.rem_timer.is_done():
             return AcsMsgAndTransition(
                 models.DummyInput(),
                 self.done_transition,
@@ -407,9 +407,11 @@ class BaicellsRemWaitState(EnodebAcsState):
         return AcsMsgAndTransition(models.DummyInput(), None)
 
     def state_description(self) -> str:
-        remaining = self.rem_timer.seconds_remaining()
-        return 'Waiting for eNB REM to run for %d more seconds before ' \
-               'resuming with configuration.' % remaining
+        if self.rem_timer:
+            remaining = self.rem_timer.seconds_remaining()
+            return 'Waiting for eNB REM to run for %d more seconds before ' \
+                   'resuming with configuration.' % remaining
+        return 'rem_timer is None'
 
 
 class WaitEmptyMessageState(EnodebAcsState):
@@ -445,7 +447,7 @@ class WaitEmptyMessageState(EnodebAcsState):
             next_state=self.done_transition,
         )
 
-    def get_msg(self, message: Any) -> AcsReadMsgResult:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
         Return a dummy message waiting for the empty message from CPE
         """
@@ -1351,7 +1353,7 @@ class WaitInformMRebootState(EnodebAcsState):
         self.timeout_timer = StateMachineTimer(self.REBOOT_TIMEOUT)
 
         def check_timer() -> None:
-            if self.timeout_timer.is_done():
+            if self.timeout_timer and self.timeout_timer.is_done():
                 self.acs.transition(self.timeout_transition)
                 raise Tr069Error(
                     'Did not receive Inform response after '
@@ -1407,7 +1409,7 @@ class WaitRebootDelayState(EnodebAcsState):
         self.config_timer = StateMachineTimer(self.SHORT_CONFIG_DELAY)
 
         def check_timer() -> None:
-            if self.config_timer.is_done():
+            if self.config_timer and self.config_timer.is_done():
                 self.acs.transition(self.done_transition)
 
         self.timer_handle = \

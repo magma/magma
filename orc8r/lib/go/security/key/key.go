@@ -94,6 +94,8 @@ func ReadKey(keyFile string) (priv interface{}, err error) {
 		priv, err = x509.ParsePKCS1PrivateKey(pemKey.Bytes)
 	case "EC PRIVATE KEY":
 		priv, err = x509.ParseECPrivateKey(pemKey.Bytes)
+	case "PRIVATE KEY":
+		priv, err = x509.ParsePKCS8PrivateKey(pemKey.Bytes)
 	default:
 		err = fmt.Errorf("Key type %s is not supported.", pemKey.Type)
 		priv = nil

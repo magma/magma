@@ -47,7 +47,7 @@ class Job(abc.ABC):
         self._timeout = cast(Optional[float], None)
         # Condition variable used to control how long the job waits until
         # executing its task again.
-        self._cond = self._cond = asyncio.Condition(loop=self._loop)
+        self._cond = asyncio.Condition(loop=self._loop)
 
     @abc.abstractmethod
     async def _run(self):

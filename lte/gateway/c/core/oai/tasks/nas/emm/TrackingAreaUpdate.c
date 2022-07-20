@@ -90,7 +90,7 @@ static int send_tau_accept_and_check_for_neaf_flag(
 
 status_code_e emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_tracking_area_update_accept(tau_proc);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -287,7 +287,7 @@ status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
     tai_t tai) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_context = NULL;
 
@@ -550,10 +550,9 @@ status_code_e emm_proc_tracking_area_update_request(
  ***************************************************************************/
 status_code_e emm_proc_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
                                                    const int emm_cause) {
-  int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  rc = emm_tracking_area_update_reject(ue_id, emm_cause);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM,
+                     emm_tracking_area_update_reject(ue_id, emm_cause));
 }
 
 /****************************************************************************/

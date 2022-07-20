@@ -29,7 +29,7 @@ echo -en "\nCreate the version $VERSION..."
 curl --header "Content-Type: application/json" --header "Authorization: Bearer $VAGRANT_CLOUD_TOKEN" https://app.vagrantup.com/api/v1/box/$USER/$BOX/versions --data '{ "version": { "version": "'$VERSION'" } }'
 #{"errors":["Version has already been taken"],"success":false}
 
-echo -en "\nCreating the $provider provider..."
+echo -en "\nCreating the $BOX_PROVIDER provider..."
 curl --header "Content-Type: application/json" --header "Authorization: Bearer $VAGRANT_CLOUD_TOKEN" https://app.vagrantup.com/api/v1/box/$USER/$BOX/version/$VERSION/providers --data "{ \"provider\": { \"name\": \"$BOX_PROVIDER\" }  }"
 #{"errors":["Metadata provider must be unique for version"],"success":false}
 

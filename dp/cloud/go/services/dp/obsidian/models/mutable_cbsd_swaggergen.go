@@ -22,7 +22,11 @@ type MutableCbsd struct {
 
 	// capabilities
 	// Required: true
-	Capabilities *Capabilities `json:"capabilities"`
+	Capabilities Capabilities `json:"capabilities"`
+
+	// this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+	// Required: true
+	CarrierAggregationEnabled *bool `json:"carrier_aggregation_enabled"`
 
 	// is the radio type A (only) or B (also applies to A/B type radios)
 	// Required: true
@@ -44,8 +48,12 @@ type MutableCbsd struct {
 	// Required: true
 	FrequencyPreferences FrequencyPreferences `json:"frequency_preferences"`
 
+	// Tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+	// Required: true
+	GrantRedundancy *bool `json:"grant_redundancy"`
+
 	// installation param
-	InstallationParam *InstallationParam `json:"installation_param,omitempty"`
+	InstallationParam MutableInstallationParam `json:"installation_param,omitempty"`
 
 	// serial number
 	// Example: some_serial_number
@@ -72,6 +80,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateCarrierAggregationEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
@@ -85,6 +97,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFrequencyPreferences(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGrantRedundancy(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -112,19 +128,22 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 
 func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 
-	if err := validate.Required("capabilities", "body", m.Capabilities); err != nil {
+	if err := m.Capabilities.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("capabilities")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("capabilities")
+		}
 		return err
 	}
 
-	if m.Capabilities != nil {
-		if err := m.Capabilities.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("capabilities")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("capabilities")
-			}
-			return err
-		}
+	return nil
+}
+
+func (m *MutableCbsd) validateCarrierAggregationEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("carrier_aggregation_enabled", "body", m.CarrierAggregationEnabled); err != nil {
+		return err
 	}
 
 	return nil
@@ -243,20 +262,27 @@ func (m *MutableCbsd) validateFrequencyPreferences(formats strfmt.Registry) erro
 	return nil
 }
 
+func (m *MutableCbsd) validateGrantRedundancy(formats strfmt.Registry) error {
+
+	if err := validate.Required("grant_redundancy", "body", m.GrantRedundancy); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *MutableCbsd) validateInstallationParam(formats strfmt.Registry) error {
 	if swag.IsZero(m.InstallationParam) { // not required
 		return nil
 	}
 
-	if m.InstallationParam != nil {
-		if err := m.InstallationParam.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("installation_param")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("installation_param")
-			}
-			return err
+	if err := m.InstallationParam.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
 		}
+		return err
 	}
 
 	return nil
@@ -321,15 +347,13 @@ func (m *MutableCbsd) ContextValidate(ctx context.Context, formats strfmt.Regist
 
 func (m *MutableCbsd) contextValidateCapabilities(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.Capabilities != nil {
-		if err := m.Capabilities.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("capabilities")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("capabilities")
-			}
-			return err
+	if err := m.Capabilities.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("capabilities")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("capabilities")
 		}
+		return err
 	}
 
 	return nil
@@ -351,15 +375,13 @@ func (m *MutableCbsd) contextValidateFrequencyPreferences(ctx context.Context, f
 
 func (m *MutableCbsd) contextValidateInstallationParam(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.InstallationParam != nil {
-		if err := m.InstallationParam.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("installation_param")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("installation_param")
-			}
-			return err
+	if err := m.InstallationParam.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("installation_param")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("installation_param")
 		}
+		return err
 	}
 
 	return nil

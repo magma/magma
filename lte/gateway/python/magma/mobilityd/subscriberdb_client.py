@@ -28,7 +28,7 @@ class NetworkInfo:
     ):
         gw_ip_parsed = None
         try:
-            gw_ip_parsed = ipaddress.ip_address(gw_ip)
+            gw_ip_parsed = ipaddress.ip_address(gw_ip)  # type: ignore
         except ValueError:
             logging.debug("invalid internet gw ip: %s", gw_ip)
 
@@ -37,11 +37,7 @@ class NetworkInfo:
         self.vlan = vlan
 
     def __str__(self):
-        return "GW-IP: {} GW-MAC: {} VLAN: {}".format(
-            self.gw_ip,
-            self.gw_mac,
-            self.vlan,
-        )
+        return f"GW-IP: {self.gw_ip} GW-MAC: {self.gw_mac} VLAN: {self.vlan}"
 
 
 class StaticIPInfo:
@@ -57,14 +53,14 @@ class StaticIPInfo:
         gw_mac: Optional[str],
         vlan: int,
     ):
+        self.ip = None
         if ip:
             self.ip = ipaddress.ip_address(ip)
-        else:
-            self.ip = None
+
         self.net_info = NetworkInfo(gw_ip, gw_mac, vlan)
 
     def __str__(self):
-        return "IP: {} NETWORK: {}".format(self.ip, self.net_info)
+        return f"IP: {self.ip} NETWORK: {self.net_info}"
 
 
 class SubscriberDbClient:
@@ -143,7 +139,7 @@ class SubscriberDbClient:
     # use same API to retrieve IP address and related config.
     def _find_ip_and_apn_config(
             self, sid: str,
-    ) -> (Optional[APNConfiguration]):
+    ) -> Optional[APNConfiguration]:
         if '.' in sid:
             imsi, apn_name_part = sid.split('.', maxsplit=1)
             apn_name, _ = apn_name_part.split(',', maxsplit=1)

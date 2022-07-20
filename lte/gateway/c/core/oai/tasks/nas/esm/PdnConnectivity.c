@@ -124,7 +124,7 @@ status_code_e esm_proc_pdn_connectivity_request(
     bearer_qos_t* default_qos, protocol_configuration_options_t* const pco,
     esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -207,7 +207,7 @@ status_code_e esm_proc_pdn_connectivity_reject(bool is_standalone,
                                                STOLEN_REF bstring* msg,
                                                bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;

@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #ifdef __cplusplus
@@ -36,11 +37,15 @@ struct enb_description_s;
 #define S1AP_TIMER_INACTIVE_ID (-1)
 #define S1AP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
 
+// Map- Key: uint32_t , Data: enb_description_t*
+typedef magma::proto_map_s<uint32_t, struct enb_description_s*>
+    map_uint32_enb_description_t;
 typedef struct s1ap_state_s {
-  // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)
-  hash_table_ts_t enbs;
+  // key:sctp_assoc_id, value: pointer to eNB_description_s
+  map_uint32_enb_description_t enbs;
   // contains sctp association id, key is mme_ue_s1ap_id
-  hash_table_ts_t mmeid2associd;
+  magma::proto_map_uint32_uint32_t mmeid2associd;
+
   uint32_t num_enbs;
 } s1ap_state_t;
 
@@ -164,8 +169,8 @@ typedef struct enb_description_s {
   /** UE list for this eNB **/
   /*@{*/
   uint32_t nb_ue_associated;  ///< Number of NAS associated UE on this eNB
-  hash_table_uint64_ts_t ue_id_coll;  ///< Contains comp_s1ap_id assoc to
-                                      ///< enodeb, key is mme_ue_s1ap_id;
+  magma::proto_map_uint32_uint64_t
+      ue_id_coll;  ///< key: mme_ue_s1ap_id, value: comp_s1ap_id
   /*@}*/
   /** SCTP stuff **/
   /*@{*/

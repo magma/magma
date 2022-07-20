@@ -9,6 +9,16 @@
   set_fact:
     factSecgroup: "{{ reg_secgroup.security_groups[0].group_id }}"
 
+- name: Find out Ubuntu 20.04 AMI ID
+  amazon.aws.ec2_ami_info:
+    filters:
+      name: "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220610"
+  register: ubuntuAmiSearchResult
+
+- name: Set Ubuntu AMI fact
+  set_fact:
+    factUbuntuAmi: "{{ ubuntuAmiSearchResult.images[0].image_id }}"
+
 - name: instantiate ec2 instance using cloudformation
   cloudformation:
     stack_name: "{{ stackDevOpsCloudstrapper }}"
@@ -21,4 +31,4 @@
       paramSecGroup: "{{ factSecgroup }}"
       paramTagId: "Mantle"
       paramTagName: "{{ devOpsCloudstrapper }}"
-      paramImageId: "{{ buildUbuntuAmi }}"
+      paramImageId: "{{ factUbuntuAmi }}"

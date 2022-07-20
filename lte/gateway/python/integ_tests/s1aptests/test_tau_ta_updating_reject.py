@@ -101,7 +101,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEquals(
+        self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value,
         )
         tau_rej = response.cast(s1ap_types.ueTauRejInd_t)

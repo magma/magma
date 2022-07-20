@@ -101,7 +101,10 @@ py_library(
     name = "dp_client",
     srcs = ["dp_client.py"],
     visibility = ["//visibility:public"],
-    deps = ["//dp/protos:enodebd_dp_python_grpc"],
+    deps = [
+        "//dp/protos:cbsd_python_grpc",
+        "//dp/protos:enodebd_dp_python_grpc",
+    ],
 )
 
 py_library(

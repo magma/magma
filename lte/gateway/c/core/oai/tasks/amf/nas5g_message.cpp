@@ -65,14 +65,14 @@ static int _nas5g_message_protected_encode(
 
 /* Functions used to decrypt and encrypt layer 3 NAS messages */
 static int _nas5g_message_decrypt(
-    unsigned char* const dest, unsigned char* const src, uint8_t type,
-    uint32_t code, uint8_t seq, uint32_t length,
+    unsigned char* const dest, unsigned char* const src,
+    uint8_t security_header_type, uint32_t code, uint8_t seq, uint32_t length,
     amf_security_context_t* const amf_security_context,
     amf_nas_message_decode_status_t* status);
 
 static int _nas5g_message_encrypt(
-    unsigned char* dest, const unsigned char* src, uint8_t type, uint32_t code,
-    uint8_t seq, int const direction, uint32_t length,
+    unsigned char* dest, const unsigned char* src, uint8_t security_header_type,
+    uint32_t code, uint8_t seq, int const direction, uint32_t length,
     amf_security_context_t* const amf_security_context);
 
 /* Functions used for integrity protection of layer 3 NAS messages */
@@ -1034,6 +1034,7 @@ static uint32_t _nas5g_message_get_mac(
 }
 
 std::string get_message_type_str(uint8_t type) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   std::string msgtype_str;
   switch (static_cast<M5GMessageType>(type)) {
     case M5GMessageType::REG_REQUEST:
@@ -1127,20 +1128,19 @@ std::string get_message_type_str(uint8_t type) {
       msgtype_str = "UNKNOWN";
       break;
   }
-  return msgtype_str;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, msgtype_str);
 }
 
 std::string uint8_to_hex_string(const uint8_t* v, const size_t s) {
   std::stringstream ss;
-
-  if (!v || (0 == s)) return ss.str();
-
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  if (!v || (0 == s)) OAILOG_FUNC_RETURN(LOG_AMF_APP, ss.str());
   ss << std::hex << std::setfill('0');
   for (unsigned int i = 0; i < s; i++) {
     ss << std::hex << std::setw(2) << static_cast<int>(v[i]) << " ";
     if ((i + 1) % 8 == 0) ss << " ";
     if ((i + 1) % 16 == 0) ss << "\n";
   }
-  return ss.str();
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, ss.str());
 }
 }  // namespace magma5g

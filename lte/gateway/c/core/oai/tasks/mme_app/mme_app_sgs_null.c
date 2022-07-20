@@ -64,7 +64,7 @@
  **                                                                        **
  ***************************************************************************/
 status_code_e sgs_null_handler(const sgs_fsm_t* evt) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_NULL) {

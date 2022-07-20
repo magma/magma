@@ -19,6 +19,10 @@ else
 .DEFAULT_GOAL=local
 endif
 
+ifdef DP_METRICS
+APPEND_METRICS_PROFILE=,metrics
+endif
+
 .PHONY: local
 local: init dev
 
@@ -32,13 +36,13 @@ integration_tests: init _ci_init cleanup_test_db
 orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: dev_integration_tests
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-dev --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -81,7 +85,7 @@ clean:
 
 .PHONY: dev_orc8r
 dev_orc8r:
-	skaffold dev -p orc8r-deployment --trigger=manual
+	skaffold dev -p orc8r-deployment,nms-deployment$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: dev
 dev:
@@ -153,7 +157,7 @@ _generate_harness_config:
 .PHONY: _ci_integration_tests_no_orc8r
 _ci_integration_tests_no_orc8r: _install_skaffold_ci
 	skaffold run -p integration-tests-no-orc8
-	kubectl logs test-runner -f | tee /tmp/integration-tests-results/$@.txt
+	kubectl logs test-runner --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner -o jsonpath='{.status.phase}');\
@@ -161,8 +165,8 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
-	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only
-	kubectl logs test-runner-orc8r -f | tee /tmp/integration-tests-results/$@.txt
+	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_METRICS_PROFILE)
+	kubectl logs test-runner-orc8r --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
 	SUCCESS=$$(kubectl get pods test-runner-orc8r -o jsonpath='{.status.phase}');\
@@ -186,6 +190,7 @@ _postgres_db_delete: _switch_k8s_context
 .PHONY: _ci_chart_smoke_tests
 _ci_chart_smoke_tests: _install_skaffold_ci
 	skaffold run
+	sleep 5
 	helm test --timeout 10m domain-proxy
 
 .PHONY: migration
@@ -216,13 +221,11 @@ build_db:
 
 .PHONY: cleanup_test_db
 cleanup_test_db: _switch_k8s_context
-	kubectl exec -it postgres-database-0 \
-		--container postgres-test -- \
-		psql -p 5433 -U postgres -c \
+	kubectl exec -it postgres-database-0 -- \
+		psql -U postgres -c \
 		"drop database dp_test with (force);" || true ;\
-	kubectl exec -it postgres-database-0 \
-		--container postgres-test -- \
-		psql -p 5433 -U postgres -c \
+	kubectl exec -it postgres-database-0 -- \
+		psql -U postgres -c \
 		"create database dp_test;" || true;
 
 LOGS_COUNT ?= 1000

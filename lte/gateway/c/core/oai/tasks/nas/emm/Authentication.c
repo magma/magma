@@ -156,7 +156,7 @@ status_code_e emm_proc_authentication_ksi(
     const uint8_t* const rand, const uint8_t* const autn, success_cb_t success,
     failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   if ((emm_context) && ((EMM_DEREGISTERED == emm_context->_emm_fsm_state) ||
                         (EMM_REGISTERED == emm_context->_emm_fsm_state))) {
@@ -249,7 +249,7 @@ status_code_e emm_proc_authentication(
     nas_emm_specific_proc_t* const emm_specific_proc, success_cb_t success,
     failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -596,7 +596,7 @@ status_code_e emm_proc_authentication_failure(mme_ue_s1ap_id_t ue_id,
   // Get the UE context
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   emm_context_t* emm_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   if (!ue_mm_context) {
     OAILOG_WARNING_UE(
@@ -848,7 +848,7 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
                                                int emm_cause,
                                                const_bstring const res) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   int idx;
   bool is_val_fail = false;
 

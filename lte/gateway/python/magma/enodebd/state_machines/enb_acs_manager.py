@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from magma.common.service import MagmaService
 from magma.enodebd.device_config.configuration_util import is_enb_registered
@@ -40,7 +40,7 @@ class StateMachineManager:
     ):
         self._ip_serial_mapping = IpToSerialMapping()
         self._service = service
-        self._state_machine_by_ip = {}
+        self._state_machine_by_ip: Dict[str, Optional[EnodebAcsStateMachine]] = {}
 
     def handle_tr069_message(
         self,
@@ -166,7 +166,7 @@ class StateMachineManager:
     def _parse_msg_for_serial(tr069_message: models.Inform) -> Optional[str]:
         """ Return the eNodeB serial ID if it's found in the message """
         if not isinstance(tr069_message, models.Inform):
-            return
+            return None
 
         # Mikrotik Intercell does not return serial in ParameterList
         if hasattr(tr069_message, 'DeviceId') and \
@@ -213,8 +213,8 @@ class IpToSerialMapping:
     """ Bidirectional map between <eNodeB IP> and <eNodeB serial ID> """
 
     def __init__(self) -> None:
-        self.ip_by_enb_serial = {}
-        self.enb_serial_by_ip = {}
+        self.ip_by_enb_serial: Dict[str, str] = {}
+        self.enb_serial_by_ip: Dict[str, str] = {}
 
     def del_ip(self, ip: str) -> None:
         if ip not in self.enb_serial_by_ip:

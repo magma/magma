@@ -14,6 +14,7 @@ limitations under the License.
 import logging
 
 from magma.configuration_controller.custom_types.custom_types import RequestsMap
+from magma.configuration_controller.metrics import PENDING_REQUESTS_FETCH_TIME
 from magma.db_service.models import DBRequest, DBRequestType
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class RequestDBConsumer(object):
         self.request_type = request_type
         self.request_processing_limit = request_processing_limit
 
+    @PENDING_REQUESTS_FETCH_TIME.time()
     def get_pending_requests(self, session) -> RequestsMap:
         """
         Get requests in pending state and acquiring lock on them if they weren't previously locked

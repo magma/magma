@@ -30,7 +30,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"magma/orc8r/cloud/go/obsidian/swagger/spec"
+	"magma/orc8r/cloud/go/services/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/swaggergen/combine_swagger/combine"
 	"magma/orc8r/cloud/go/tools/swaggergen/combine_swagger/generate"
 )

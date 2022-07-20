@@ -84,7 +84,8 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
-    MAX_RESP_WAIT_TIME = 900
+    # Default maximum wait time is 180 sec (3 min)
+    MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
@@ -210,7 +211,6 @@ class S1ApUtil(object):
             AssertionError: Assert if timeout occurs
         """
         if timeout is None:
-            # Default maximum wait time is 900 sec (15 min)
             timeout = S1ApUtil.MAX_RESP_WAIT_TIME
 
         # Wait until callback is invoked or timeout occurred
@@ -222,7 +222,7 @@ class S1ApUtil(object):
                     "Timeout ("
                     + str(timeout)
                     + " sec) occurred while waiting for response message",
-                )
+                ) from None
 
     def populate_pco(
         self,
@@ -408,6 +408,46 @@ class S1ApUtil(object):
             elif S1ApUtil.CM_ESM_PDN_IPV4V6 == pdn_type:
                 print("IPv4v6 PDN type received")
         return msg
+
+    def receive_initial_ctxt_setup_and_attach_accept(self) -> Msg:
+        """Receive initial cntxt setup and attach accept indication from TFW"""
+        # The MME actually sends INT_CTX_SETUP_IND and UE_ATTACH_ACCEPT_IND
+        # in one message, but the S1APTester splits it and sends the tests 2
+        # messages. Usually initial context setup comes before attach accept,
+        # but it's possible that it may happen the other way
+        response = self.get_response()
+        if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
+            response = self.get_response()
+        elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
+            context_setup = self.get_response()
+            assert (
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
+        assert s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type
+
+        # Return attach accept response for parsing ue details wherever needed
+        return response
+
+    def receive_initial_ctxt_setup_and_tau_accept(self) -> Msg:
+        """Receive initial context setup and TAU accept indication from TFW"""
+        # The MME actually sends INT_CTX_SETUP_IND and UE_TAU_ACCEPT_IND
+        # in one message, but the S1APTester splits it and sends the tests 2
+        # messages. Usually initial context setup comes before TAU accept,
+        # but it's possible that it may happen the other way
+        response = self.get_response()
+        if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
+            response = self.get_response()
+        elif s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value == response.msg_type:
+            context_setup = self.get_response()
+            assert (
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
+        assert s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value == response.msg_type
+
+        # Return TAU accept response for parsing ue details wherever needed
+        return response
 
     def receive_emm_info(self):
         """Receive EMM Info message from TFW"""
@@ -780,6 +820,7 @@ class MagmadUtil(object):
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
+    config_ipv6_iface_cmds = Enum("config_ipv6_iface_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -1215,24 +1256,46 @@ class MagmadUtil(object):
             mme_ueip_imsi_map_entries,
         )
 
-    def enable_nat(self):
+    def enable_nat(self, ip_version=4):
         """Enable Nat"""
         self._set_agw_nat(True)
-        self._validate_nated_datapath()
-        self.exec_command("sudo ip route del default via 192.168.129.42")
-        self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        self._validate_nated_datapath(ip_version)
+        if ip_version == 4:
+            self.exec_command("sudo ip route del default via 192.168.129.42")
+            self.exec_command("sudo ip route add default via 10.0.2.2 dev eth0")
+        else:
+            self.exec_command("sudo ip route del default via 3001::2")
+            self.exec_command("sudo ip route add default via 2020::10 dev eth0")
 
-    def disable_nat(self):
-        """Disable Nat"""
-        self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
-        self.exec_command(
-            "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
-        )
-        self.exec_command(
-            "sudo ip route add default via 192.168.129.42 dev uplink_br0",
-        )
+    def disable_nat(self, ip_version=4):
+        """
+        Disable Nat
+
+        ip config details:
+               vm     ip                intf
+               =============================
+               dev    192.168.129.1     eth2
+               dev    3001::10          eth3
+               test   192.168.128.11    eth2
+               test   3001::3           eth3
+               trf    192.168.129.42    eth2
+               trf    3001::2           eth3
+        """
+        if ip_version == 4:
+            self.exec_command("sudo ip route del default via 10.0.2.2 dev eth0")
+            self.exec_command(
+                "sudo ip addr replace 192.168.129.1/24 dev uplink_br0",
+            )
+            self.exec_command(
+                "sudo ip route add default via 192.168.129.42 dev uplink_br0",
+            )
+        else:
+            self.exec_command("sudo ip route del default via  2020::10 dev eth0")
+            self.exec_command("sudo ip addr replace 3001::10 dev uplink_br0")
+            self.exec_command("sudo ip route -A inet6 add default via 3001::2 dev uplink_br0")
+
         self._set_agw_nat(False)
-        self._validate_non_nat_datapath()
+        self._validate_non_nat_datapath(ip_version)
 
     def _set_agw_nat(self, enable: bool):
         mconfig_conf = (
@@ -1250,17 +1313,50 @@ class MagmadUtil(object):
         self.restart_sctpd()
         self.restart_all_services()
 
-    def _validate_non_nat_datapath(self):
+    def _validate_non_nat_datapath(self, ip_version=4):
         # validate SGi interface is part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
-        assert "eth2" in str(out1)
+        iface = "eth2" if ip_version == 4 else "eth3"
+        assert iface in str(out1)
         print("NAT is disabled")
 
-    def _validate_nated_datapath(self):
+    def _validate_nated_datapath(self, ip_version=4):
         # validate SGi interface is not part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
-        assert "eth2" not in str(out1)
+        iface = "eth2" if ip_version == 4 else "eth3"
+        assert iface not in str(out1)
         print("NAT is enabled")
+
+    def config_ipv6_iface(self, cmd):
+        """
+        Configure eth3 interface for ipv6 data on the access gateway
+
+        Args:
+            cmd: Enable or disable eth3 iface on AGW,
+            should be one of
+              enable: Enable eth3 as nat_iface, do nothing if already configured
+              disable: Disable eth3 as nat_iface, do nothing if already configured
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
+        config_ipv6_iface_script = "/usr/local/bin/config_iface_for_ipv6.py"
+
+        ret_code = self.exec_command(
+            magtivate_cmd
+            + " && "
+            + venvsudo_cmd
+            + " python3 "
+            + config_ipv6_iface_script
+            + " "
+            + cmd.name.lower(),
+        )
+
+        if ret_code == 0:
+            print("Configuration successful")
+        elif ret_code == 1:
+            print("Configuration not changed")
+        else:
+            print("Failed to configure")
 
 
 class MobilityUtil(object):

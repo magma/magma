@@ -102,9 +102,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       force_ue_write = true;
       break;
 
-    case AMF_APP_DECRYPT_IMSI_INFO_RESP:
-      amf_decrypt_imsi_info_answer(
-          &AMF_APP_DECRYPT_IMSI_RESPONSE_DATA(received_message_p));
+    case AMF_APP_DECRYPT_MSIN_INFO_RESP:
+      amf_decrypt_msin_info_answer(
+          &AMF_APP_DECRYPT_MSIN_RESPONSE_DATA(received_message_p));
       is_task_state_same = true;
       force_ue_write = true;
       break;
@@ -118,7 +118,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
 
     case S6A_UPDATE_LOCATION_ANS: {
-      OAILOG_INFO(LOG_MME_APP,
+      OAILOG_INFO(LOG_AMF_APP,
                   "Received S6A Update Location Answer from subscriberd\n");
       amf_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);
@@ -133,6 +133,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_resource_setup_response(
           NGAP_PDUSESSIONRESOURCE_SETUP_RSP(received_message_p));
       is_task_state_same = true;
+      break;
+
+    /* Handle PDU session resource modify response */
+    case NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP:
+      /* This is non-nas message and can be handled directly to check if failure
+       * or success messages are coming from NGAP
+       */
+      amf_app_handle_resource_modify_response(
+          NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(received_message_p));
       break;
     /* Handle PDU session resource release response */
     case NGAP_PDUSESSIONRESOURCE_REL_RSP:
@@ -172,6 +181,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_gnb_deregister_ind(
           &received_message_p->ittiMsg.ngap_gNB_deregistered_ind);
       break;
+
+    case NGAP_GNB_INITIATED_RESET_REQ: {
+      amf_app_handle_gnb_reset_req(
+          &NGAP_GNB_INITIATED_RESET_REQ(received_message_p));
+      is_task_state_same = true;
+    } break;
 
     /* Handle Terminate message */
     case TERMINATE_MESSAGE:

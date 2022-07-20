@@ -49,16 +49,25 @@ py_library(
     srcs = [
         "check_quota_server.py",
         "datapath_setup.py",
-        "gtp_stats_collector.py",
         "ifaces.py",
     ],
     deps = [
+        ":gtp_stats_collector",
         ":rpc_servicer",
         ":service_manager",
         "//lte/gateway/python/magma/pipelined/app:uplink_bridge",
-        "//orc8r/gateway/python/magma/magmad/check:subprocess_workflow",
         requirement("flask"),
         requirement("wsgiserver"),
+    ],
+)
+
+py_library(
+    name = "gtp_stats_collector",
+    srcs = ["gtp_stats_collector.py"],
+    deps = [
+        ":metrics",
+        "//orc8r/gateway/python/magma/common:job",
+        "//orc8r/gateway/python/magma/magmad/check:subprocess_workflow",
     ],
 )
 

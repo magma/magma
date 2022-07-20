@@ -28,10 +28,10 @@
       - dh-autoreconf
       - libssl-dev
       - libtool
+      - net-tools
       - openssl
       - procps
       - python-all
-      - python-twisted-conch
       - python-zope.interface
       - python-six
       - build-essential

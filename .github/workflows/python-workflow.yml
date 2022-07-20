@@ -1,6 +1,6 @@
 ---
 name: Python Format Check
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -26,9 +26,9 @@ jobs:
       files_changed: ${{ steps.changes.outputs.filesChanged_files }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
         with:
           filters: |
@@ -43,7 +43,7 @@ jobs:
           echo -n ${{ github.event.number }} > ./pr/pr_number
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
           echo -n "false" > ./pr/is_reverted_pr
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr
@@ -55,18 +55,18 @@ jobs:
     name: Python Format Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
           fetch-depth: 0
       - name: Build the python-precommit Docker base image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a # pin@v2
         with:
           context: .
           file: ./lte/gateway/docker/python-precommit/Dockerfile
           push: false
           tags: magma/py-lint:latest
       - name: Format and check for leftover changes
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: magma/py-lint:latest
           options: -u 0 -v ${{ github.workspace }}:/code
@@ -89,7 +89,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: pr

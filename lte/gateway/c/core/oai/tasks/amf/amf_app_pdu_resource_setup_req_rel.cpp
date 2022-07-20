@@ -37,14 +37,15 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 uint64_t get_bit_rate(uint8_t ambr_unit) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ambr_unit < 6) {
-    return (1000);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 1000);
   } else if (ambr_unit < 11) {
-    return (1000 * 1000);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 1000 * 1000);
   } else if (ambr_unit < 16) {
-    return (1000 * 1000 * 1000);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 1000 * 1000 * 1000);
   }
-  return (0);
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
 }
 
 /*
@@ -56,11 +57,13 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
                                   M5GSessionAmbrUnit ul_ambr_unit,
                                   uint64_t* dl_pdu_ambr,
                                   uint64_t* ul_pdu_ambr) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   *dl_pdu_ambr =
       (*dl_session_ambr) * get_bit_rate(static_cast<uint8_t>(dl_ambr_unit));
 
   *ul_pdu_ambr =
       (*ul_session_ambr) * get_bit_rate(static_cast<uint8_t>(ul_ambr_unit));
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 /*
@@ -68,9 +71,10 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
  * information in smf_context or default. No NAS message is involved and direct
  * itti_message is sent to NGAP.
  */
-int pdu_session_resource_setup_request(
+status_code_e pdu_session_resource_setup_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   pdu_session_resource_setup_request_transfer_t*
       amf_pdu_ses_setup_transfer_req = nullptr;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
@@ -110,7 +114,6 @@ int pdu_session_resource_setup_request(
   ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0].Pdu_Session_ID =
       (Ngap_PDUSessionID_t)smf_context->smf_proc_data.pdu_session_id;
 
-  ngap_pdu_ses_setup_req->pduSessionResource_setup_list.no_of_items = 1;
   // Adding respective header to amf_pdu_ses_setup_transfer_request
   amf_pdu_ses_setup_transfer_req =
       &ngap_pdu_ses_setup_req->pduSessionResource_setup_list.item[0]
@@ -132,12 +135,86 @@ int pdu_session_resource_setup_request(
   amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type =
       smf_context->pdu_address.pdn_type;
 
-  memcpy(&amf_pdu_ses_setup_transfer_req->qos_flow_setup_request_list
-              .qos_flow_req_item,
-         &smf_context->subscribed_qos_profile.qos_flow_req_item,
-         sizeof(qos_flow_setup_request_item));
+  qos_flow_list_t* pti_flow_list = smf_context->get_proc_flow_list();
+
+  memcpy(&amf_pdu_ses_setup_transfer_req->qos_flow_add_or_mod_request_list,
+         pti_flow_list, sizeof(qos_flow_list_t));
 
   ngap_pdu_ses_setup_req->nas_pdu = nas_msg;
+
+  // Send message to NGAP task
+  amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
+}
+
+/*
+ * the function to be called before sending gRPC message to SMF with available
+ * information in smf_context or default. No NAS message is involved and direct
+ * itti_message is sent to NGAP.
+ */
+int pdu_session_resource_modify_request(
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
+  pdu_session_resource_modify_request_transfer_t* amf_pdu_ses_mod_transfer_req =
+      nullptr;
+  itti_ngap_pdu_session_resource_modify_request_t* ngap_pdu_ses_mod_req =
+      nullptr;
+  qos_flow_add_or_modify_request_list_t* qos_Flow_Add_Or_Modify_List = nullptr;
+  MessageDef* message_p = nullptr;
+
+  message_p = itti_alloc_new_message(TASK_AMF_APP,
+                                     NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ);
+  ngap_pdu_ses_mod_req =
+      &message_p->ittiMsg.ngap_pdu_session_resource_modify_req;
+  // start filling message in DL to NGAP
+  ngap_pdu_ses_mod_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
+  ngap_pdu_ses_mod_req->amf_ue_ngap_id = amf_ue_ngap_id;
+
+  // Hardcoded number of pdu sessions as 1
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].Pdu_Session_ID =
+      (Ngap_PDUSessionID_t)smf_context->smf_proc_data.pdu_session_id;
+
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0].nas_pdu = nas_msg;
+
+  ngap_pdu_ses_mod_req->pduSessResourceModReqList.no_of_items = 1;
+  // Adding respective header to amf_pdu_ses_setup_transfer_request
+  amf_pdu_ses_mod_transfer_req =
+      &ngap_pdu_ses_mod_req->pduSessResourceModReqList.item[0]
+           .PDU_Session_Resource_Modify_Request_Transfer;
+
+  qos_Flow_Add_Or_Modify_List =
+      &amf_pdu_ses_mod_transfer_req->qos_flow_add_or_mod_request_list;
+  qos_flow_list_cause_t* qos_flow_list_to_release =
+      &amf_pdu_ses_mod_transfer_req->qos_flow_to_release_list;
+  qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows = 0;
+  qos_flow_list_to_release->numOfItems = 0;
+
+  qos_flow_list_t* pti_flow_list = smf_context->get_proc_flow_list();
+  for (int i = 0; i < pti_flow_list->maxNumOfQosFlows; i++) {
+    if (pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
+            policy_action_add ||
+        pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
+            policy_action_mod) {
+      memcpy(&qos_Flow_Add_Or_Modify_List
+                  ->item[qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows]
+                  .qos_flow_req_item,
+             (const void*)&pti_flow_list->item[i].qos_flow_req_item,
+             sizeof(qos_flow_setup_request_item));
+      qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows++;
+    } else if (pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
+               policy_action_del) {
+      qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
+          .qos_flow_identifier =
+          pti_flow_list->item[i].qos_flow_req_item.qos_flow_identifier;
+      qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
+          .cause.cause_group.u_group.nas.cause = NORMAL_RELEASE;
+      qos_flow_list_to_release->item[qos_flow_list_to_release->numOfItems]
+          .cause.cause_group.cause_group_type = NAS_GROUP;
+      qos_flow_list_to_release->numOfItems++;
+    }
+  }
 
   // Send message to NGAP task
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
@@ -150,6 +227,7 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
                                          amf_ue_ngap_id_t amf_ue_ngap_id,
                                          std::shared_ptr<smf_context_t> smf_ctx,
                                          bool retransmit) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
   bstring buffer;
   uint32_t bytes = 0;
   DLNASTransportMsg* encode_msg = NULL;
@@ -246,7 +324,7 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
       OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");
       bdestroy_wrapper(&buffer);
     }
-    return rc;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
@@ -290,9 +368,9 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
   } else {
     bdestroy(buffer);
     OAILOG_ERROR(LOG_AMF_APP, "NAS encode failed for PDU Release Command\n");
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-  return RETURNok;
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 }  // namespace magma5g

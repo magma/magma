@@ -77,7 +77,7 @@ RUN echo "Install general purpose packages" && \
 
 # Install golang 1.18
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.18"
+ARG GOLANG_VERSION="1.18.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
@@ -277,7 +277,5 @@ RUN for SWAGGER_SRC in lte orc8r; \
     rmdir ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/swagger_client && \
     rm -r ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/test; \
     done
-
-RUN ln -fs $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
 WORKDIR $MAGMA_ROOT

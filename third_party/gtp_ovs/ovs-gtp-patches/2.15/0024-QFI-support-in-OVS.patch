@@ -1,12 +1,13 @@
-From 62df00660e72faaaef504709d198e8d2f9824202 Mon Sep 17 00:00:00 2001
-From: Prabina Pattnaik <prabinak@wavelabs.ai>
-Date: Thu, 5 May 2022 12:08:27 +0000
+From a92b39e7031fdf856e7d29bd8eeb301d307930ea Mon Sep 17 00:00:00 2001
+From: prabina pattnaik <prabinak@wavelabs.ai>
+Date: Thu, 14 Jul 2022 12:21:35 +0000
 Subject: [PATCH 24/24] QFI support in OVS
 
-Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
+Signed-off-by: prabina pattnaik <prabinak@wavelabs.ai>
 ---
  datapath/linux/compat/gtp.c               | 149 ++++++++++++----------
  datapath/linux/compat/include/linux/gtp.h |   1 +
+ debian/changelog                          |   2 +-
  include/openvswitch/match.h               |   2 +
  include/openvswitch/meta-flow.h           |  17 +++
  include/openvswitch/ofp-actions.h         |  13 ++
@@ -22,7 +23,7 @@ Signed-off-by: Prabina Pattnaik <prabinak@wavelabs.ai>
  tests/ofproto.at                          |   4 +-
  tests/system-layer3-tunnels.at            | 108 ++++++++++++++++
  tests/tunnel.at                           |  21 +++
- 17 files changed, 394 insertions(+), 74 deletions(-)
+ 18 files changed, 395 insertions(+), 75 deletions(-)
 
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
 index a7033031d..d4d49920d 100644
@@ -255,6 +256,16 @@ index 57d7a128e..04e26ef55 100644
  };
  
  enum {
+diff --git a/debian/changelog b/debian/changelog
+index 78fe2ab32..327e5e019 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,4 +1,4 @@
+-openvswitch (2.15.4-8) unstable; urgency=low
++openvswitch (2.15.4-9-magma) unstable; urgency=low
+    [ Open vSwitch team ]
+    * New upstream version
+ 
 diff --git a/include/openvswitch/match.h b/include/openvswitch/match.h
 index 2e8812048..45c6ca5ba 100644
 --- a/include/openvswitch/match.h

@@ -64,6 +64,7 @@ s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_failure_incorrect_plmn.py \
 s1aptests/test_s1setup_failure_incorrect_tac.py \
+s1aptests/test_s1setup_success_secondary_plmn.py \
 s1aptests/test_sctp_abort_after_auth_req.py \
 s1aptests/test_sctp_abort_after_identity_req.py \
 s1aptests/test_sctp_abort_after_smc.py \
@@ -255,8 +256,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 # Sanity: Failure/Stuck/Crashing Test Cases
 # s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \ GitHubIssue 12779
-# Re-enable this test case after S1APTester PR #74 is merged
-# s1aptests/test_s1setup_success_secondary_plmn.py
 
 # Sanity: Flaky Test Cases
 # s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583

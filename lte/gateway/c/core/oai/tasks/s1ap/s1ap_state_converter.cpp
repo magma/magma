@@ -31,40 +31,22 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   proto->Clear();
 
   // copy over enbs
-  hashtable_ts_to_proto<enb_description_t, EnbDescription>(
-      &state->enbs, proto->mutable_enbs(), enb_to_proto, LOG_S1AP);
+  state_map_to_proto<map_uint32_enb_description_t, enb_description_t,
+                     EnbDescription>(state->enbs, proto->mutable_enbs(),
+                                     enb_to_proto, LOG_S1AP);
 
   // copy over mmeid2associd
-  hashtable_rc_t ht_rc;
   mme_ue_s1ap_id_t mmeid;
-  // Helper ptr so sctp_assoc_id can be casted from double ptr on
-  // hashtable_ts_get
-  void* sctp_id_ptr = nullptr;
+  sctp_assoc_id_t sctp_assoc_id = 0;
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
-  hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->mmeid2associd);
-  if (!keys) {
-    OAILOG_DEBUG(LOG_S1AP, "No keys in mmeid2associd hashtable");
+  if (state->mmeid2associd.isEmpty()) {
+    OAILOG_DEBUG(LOG_S1AP, "No entries in mmeid2associd map");
   } else {
-    for (int i = 0; i < keys->num_keys; i++) {
-      mmeid = (mme_ue_s1ap_id_t)keys->keys[i];
-      ht_rc = hashtable_ts_get(&state->mmeid2associd, (hash_key_t)mmeid,
-                               (void**)&sctp_id_ptr);
-      AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
-      if (sctp_id_ptr) {
-        sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)sctp_id_ptr;
-        (*mmeid2associd)[mmeid] = sctp_assoc_id;
-      }
-    }
-    FREE_HASHTABLE_KEY_ARRAY(keys);
+    *(proto->mutable_mmeid2associd()) = *(state->mmeid2associd.map);
   }
 
-  keys = hashtable_ts_get_keys(&state->enbs);
-  uint32_t expected_enb_count = 0;
-  if (keys) {
-    expected_enb_count = keys->num_keys;
-    FREE_HASHTABLE_KEY_ARRAY(keys);
-  }
+  uint32_t expected_enb_count = state->enbs.size();
   if (expected_enb_count != state->num_enbs) {
     OAILOG_ERROR(LOG_S1AP,
                  "Updating num_eNBs from maintained to actual count %u->%u",
@@ -76,27 +58,15 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
 
 void S1apStateConverter::proto_to_state(const S1apState& proto,
                                         s1ap_state_t* state) {
-  proto_to_hashtable_ts<EnbDescription, enb_description_t>(
-      proto.enbs(), &state->enbs, proto_to_enb, LOG_S1AP);
+  proto_to_state_map<map_uint32_enb_description_t, EnbDescription,
+                     enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
+                                        LOG_S1AP);
 
-  hashtable_rc_t ht_rc;
-  auto mmeid2associd = proto.mmeid2associd();
-  for (auto const& kv : mmeid2associd) {
-    mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t)kv.first;
-    sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
-
-    ht_rc = hashtable_ts_insert(&state->mmeid2associd, (hash_key_t)mmeid,
-                                (void*)(uintptr_t)associd);
-    AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
-  }
-
+  *(state->mmeid2associd.map) = proto.mmeid2associd();
   state->num_enbs = proto.num_enbs();
-  hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->enbs);
-  uint32_t expected_enb_count = 0;
-  if (keys) {
-    expected_enb_count = keys->num_keys;
-    FREE_HASHTABLE_KEY_ARRAY(keys);
-  }
+  uint32_t expected_enb_count = state->enbs.size();
+  OAILOG_WARNING(LOG_S1AP, "expected_enb_count:%d state->num_enbs :%d \n",
+                 expected_enb_count, state->num_enbs);
   if (expected_enb_count != state->num_enbs) {
     OAILOG_WARNING(LOG_S1AP,
                    "Updating num_eNBs from maintained to actual count %u->%u",
@@ -122,7 +92,7 @@ void S1apStateConverter::enb_to_proto(enb_description_t* enb,
   proto->set_ran_cp_ipaddr_sz(enb->ran_cp_ipaddr_sz);
 
   // store ue_ids
-  hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
+  *(proto->mutable_ue_id_map()) = *(enb->ue_id_coll.map);
   supported_ta_list_to_proto(&enb->supported_ta_list,
                              proto->mutable_supported_ta_list());
 }
@@ -145,25 +115,12 @@ void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
   enb->ran_cp_ipaddr_sz = proto.ran_cp_ipaddr_sz();
 
   // load ues
-  hashtable_rc_t ht_rc;
-  auto ht_name = bfromcstr("s1ap_ue_coll");
+  char S1AP_UE_MAP_NAME[] = "s1ap_ue_coll";
+  proto_map_rc_t rc = {PROTO_MAP_OK};
+  enb->ue_id_coll.map = new google::protobuf::Map<uint32_t, uint64_t>();
+  enb->ue_id_coll.set_name(S1AP_UE_MAP_NAME);
+  *(enb->ue_id_coll.map) = proto.ue_id_map();
 
-  hashtable_uint64_ts_init(&enb->ue_id_coll, mme_config.max_ues, nullptr,
-                           ht_name);
-  bdestroy(ht_name);
-
-  auto ue_ids = proto.ue_ids();
-  for (auto const& kv : ue_ids) {
-    mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
-    uint64_t comp_s1ap_id = kv.second;
-
-    ht_rc = hashtable_uint64_ts_insert(
-        &enb->ue_id_coll, (hash_key_t)mme_ue_s1ap_id, comp_s1ap_id);
-    if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(LOG_S1AP,
-                   "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
-    }
-  }
   proto_to_supported_ta_list(&enb->supported_ta_list,
                              proto.supported_ta_list());
 }
