@@ -14,7 +14,7 @@ import type {DataRows} from '../../components/DataGrid';
 import type {LteGateway, PromqlReturnObject} from '../../../generated';
 
 import DataGrid from '../../components/DataGrid';
-import GatewayContext from '../../components/context/GatewayContext';
+import GatewayContext from '../../context/GatewayContext';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';

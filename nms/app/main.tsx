@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-import './common/axiosConfig';
-import './common/polyfill';
+import './util/axiosConfig';
+import './util/polyfill';
 
 import ApplicationMain from './components/ApplicationMain';
 import Main from './components/Main';

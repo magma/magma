@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../../context/FEGGatewayContext';
 import FEGGatewaySummary from '../FEGGatewaySummary';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

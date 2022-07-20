@@ -32,7 +32,7 @@ import AutorefreshCheckbox, {
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import MagmaAPI from '../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {Theme} from '@material-ui/core/styles/createTheme';
 import {colors} from '../../theme/default';
 

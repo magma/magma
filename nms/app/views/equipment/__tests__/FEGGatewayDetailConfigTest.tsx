@@ -11,20 +11,16 @@
  * limitations under the License.
  */
 
-import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
+import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {SetGatewayState} from '../../../state/feg/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
-import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import {useState} from 'react';
 import type {
   Csfb,
   FederationGateway,
@@ -151,16 +147,26 @@ const fegGateways = {
   [mockGw0.id]: mockGw0,
 };
 
-const fegGatewaysHealth = {
-  [mockGw0.id]: {status: 'HEALTHY'},
-} as Record<string, FederationGatewayHealthStatus>;
-
 describe('<FEGGatewayDetailConfig />', () => {
   beforeEach(() => {
     // Mocking value because it is called by FEGGatewayDialogue / Edit Gateway Page
     mockAPI(MagmaAPI.upgrades, 'networksNetworkIdTiersGet', []);
     mockAPI(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdGet');
     mockAPI(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdPut');
+
+    mockAPI(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysGet',
+      fegGateways,
+    );
+    mockAPI(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysGatewayIdHealthStatusGet',
+      {status: 'HEALTHY', description: ''},
+    );
+    mockAPI(MagmaAPI.federationNetworks, 'fegNetworkIdClusterStatusGet', {
+      active_gateway: mockGw0.id,
+    });
   });
 
   const Wrapper = () => (
@@ -171,33 +177,20 @@ describe('<FEGGatewayDetailConfig />', () => {
       initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <FEGGatewayContext.Provider
-            value={{
-              state: fegGateways,
-              setState: async () => {},
-              refetch: () => {},
-              health: fegGatewaysHealth,
-              activeFegGatewayId: mockGw0.id,
-            }}>
+          <FEGGatewayContextProvider networkId="mynetwork">
             <Routes>
               <Route
                 path="/nms/:networkId/equipment/overview/gateway/:gatewayId/config"
                 element={<FEGGatewayDetailConfig />}
               />
             </Routes>
-          </FEGGatewayContext.Provider>
+          </FEGGatewayContextProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
   );
 
   const EditWrapper = () => {
-    const [fegGateways, setFegGateways] = useState({[mockGw0.id]: mockGw0});
-    const [fegGatewaysHealthStatus, setFegGatewaysHealthStatus] = useState(
-      fegGatewaysHealth,
-    );
-    const [activeFegGatewayId, setActiveFegGatewayId] = useState(mockGw0.id);
-    const enqueueSnackbar = useEnqueueSnackbar();
     return (
       <MemoryRouter
         initialEntries={[
@@ -206,33 +199,14 @@ describe('<FEGGatewayDetailConfig />', () => {
         initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGGatewayContext.Provider
-              value={{
-                state: fegGateways,
-                setState: async (key, value?) => {
-                  return SetGatewayState({
-                    networkId: 'mynetwork',
-                    fegGateways,
-                    fegGatewaysHealthStatus,
-                    setFegGateways,
-                    setFegGatewaysHealthStatus,
-                    setActiveFegGatewayId,
-                    key,
-                    value,
-                    enqueueSnackbar,
-                  });
-                },
-                refetch: () => {},
-                health: fegGatewaysHealthStatus,
-                activeFegGatewayId: activeFegGatewayId,
-              }}>
+            <FEGGatewayContextProvider networkId="mynetwork">
               <Routes>
                 <Route
                   path="/nms/:networkId/equipment/overview/gateway/:gatewayId/config"
                   element={<FEGGatewayDetailConfig />}
                 />
               </Routes>
-            </FEGGatewayContext.Provider>
+            </FEGGatewayContextProvider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MemoryRouter>

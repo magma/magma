@@ -12,26 +12,20 @@
  */
 
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
-import ApnContext from '../../../components/context/ApnContext';
+import ApnContext from '../../../context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
-import GatewayContext from '../../../components/context/GatewayContext';
-import LteNetworkContext from '../../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../../context/LteNetworkContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {DynamicServices} from '../../../components/GatewayUtils';
+import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {
-  SetGatewayState,
-  UpdateGateway,
-  UpdateGatewayProps,
-} from '../../../state/lte/EquipmentState';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import {useState} from 'react';
 import type {Apn, LteGateway, LteNetwork} from '../../../../generated';
 
 jest.mock('axios');
@@ -179,12 +173,12 @@ const mockApns: Record<string, Apn> = {
 describe('<AddEditGatewayButton />', () => {
   beforeEach(() => {
     (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
+    mockAPI(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet', {
+      testGatewayId0: mockGw0,
+    });
   });
 
   const AddWrapper = () => {
-    const [lteGateways, setLteGateways] = useState<Record<string, LteGateway>>({
-      testGatewayId0: mockGw0,
-    });
     return (
       <MemoryRouter initialEntries={['/nms/test/gateway']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
@@ -199,25 +193,7 @@ describe('<AddEditGatewayButton />', () => {
                   state: mockNw,
                   updateNetworks: async () => {},
                 }}>
-                <GatewayContext.Provider
-                  value={{
-                    state: lteGateways,
-                    setState: async (key, value?) =>
-                      SetGatewayState({
-                        lteGateways: lteGateways,
-                        setLteGateways: setLteGateways,
-                        networkId: 'test',
-                        key: key,
-                        value: value,
-                      }),
-                    updateGateway: props =>
-                      UpdateGateway({
-                        networkId: 'test',
-                        setLteGateways,
-                        ...props,
-                      } as UpdateGatewayProps),
-                    refetch: () => {},
-                  }}>
+                <GatewayContextProvider networkId="test">
                   <Routes>
                     <Route
                       path="/nms/:networkId/gateway"
@@ -229,7 +205,7 @@ describe('<AddEditGatewayButton />', () => {
                       }
                     />
                   </Routes>
-                </GatewayContext.Provider>
+                </GatewayContextProvider>
               </LteNetworkContext.Provider>
             </ApnContext.Provider>
           </MuiStylesThemeProvider>
@@ -239,34 +215,20 @@ describe('<AddEditGatewayButton />', () => {
   };
 
   const DetailWrapper = () => {
-    const [lteGateways, setLteGateways] = useState<Record<string, LteGateway>>({
-      testGatewayId0: mockGw0,
-    });
     return (
       <MemoryRouter
         initialEntries={['/nms/test/gateway/testGatewayId0/config']}
         initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContext.Provider
-              value={{
-                state: lteGateways,
-                setState: async () => {},
-                updateGateway: props =>
-                  UpdateGateway({
-                    networkId: 'test',
-                    setLteGateways: setLteGateways,
-                    ...props,
-                  } as UpdateGatewayProps),
-                refetch: () => {},
-              }}>
+            <GatewayContextProvider networkId={'test'}>
               <Routes>
                 <Route
                   path="/nms/:networkId/gateway/:gatewayId/config"
                   element={<GatewayConfig />}
                 />
               </Routes>
-            </GatewayContext.Provider>
+            </GatewayContextProvider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MemoryRouter>

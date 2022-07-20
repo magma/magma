@@ -18,7 +18,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EnodeConfigEditFdd from './EnodebDetailConfigFdd';
 import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
-import EnodebContext from '../../components/context/EnodebContext';
+import EnodebContext from '../../context/EnodebContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';

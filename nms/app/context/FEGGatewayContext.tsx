@@ -11,27 +11,33 @@
  * limitations under the License.
  */
 
-import type {
-  FederationGateway,
-  MutableFederationGateway,
-} from '../../../generated';
-import type {FederationGatewayHealthStatus} from '../../components/GatewayUtils';
-import type {OptionsObject} from 'notistack';
+import * as React from 'react';
+import LoadingFiller from '../components/LoadingFiller';
+import MagmaAPI from '../api/MagmaAPI';
+import {EnqueueSnackbar, useEnqueueSnackbar} from '../hooks/useSnackbar';
+import {FederationGateway, MutableFederationGateway} from '../../generated';
+import {
+  FederationGatewayHealthStatus,
+  getFederationGatewayHealthStatus,
+} from '../components/GatewayUtils';
+import {GatewayId, NetworkId} from '../../shared/types/network';
+import {useEffect, useState} from 'react';
 
-import MagmaAPI from '../../api/MagmaAPI';
-import {EnqueueSnackbar} from '../../hooks/useSnackbar';
-import {GatewayId, NetworkId} from '../../../shared/types/network';
-import {getFederationGatewayHealthStatus} from '../../components/GatewayUtils';
-
-type InitGatewayStateProps = {
-  networkId: NetworkId;
-  setFegGateways: (fegGateways: Record<string, FederationGateway>) => void;
-  setFegGatewaysHealthStatus: (
-    gatewayHealthStatuses: Record<string, FederationGatewayHealthStatus>,
-  ) => void;
-  setActiveFegGatewayId: (gatewayId: GatewayId) => void;
-  enqueueSnackbar: EnqueueSnackbar;
+export type FEGGatewayContextType = {
+  state: Record<string, FederationGateway>;
+  setState: (
+    key: GatewayId,
+    val?: MutableFederationGateway,
+    newState?: Record<string, FederationGateway>,
+  ) => Promise<void>;
+  refetch: (id?: GatewayId) => void;
+  health: Record<GatewayId, FederationGatewayHealthStatus>;
+  activeFegGatewayId: GatewayId;
 };
+
+const FEGGatewayContext = React.createContext<FEGGatewayContextType>(
+  {} as FEGGatewayContextType,
+);
 
 /**
  * Initializes the federation gateway state which is going to have a maximum of
@@ -43,15 +49,23 @@ type InitGatewayStateProps = {
  * @param {(gatewayId:gateway_id) => void} setActiveFegGatewayId Sets the active gateway id.
  * @param {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error
  */
-export async function InitGatewayState(props: InitGatewayStateProps) {
+async function initGatewayState(params: {
+  networkId: NetworkId;
+  setFegGateways: (fegGateways: Record<string, FederationGateway>) => void;
+  setFegGatewaysHealthStatus: (
+    gatewayHealthStatuses: Record<string, FederationGatewayHealthStatus>,
+  ) => void;
+  setActiveFegGatewayId: (gatewayId: GatewayId) => void;
+  enqueueSnackbar: EnqueueSnackbar;
+}) {
   const {
     networkId,
     setFegGateways,
     setFegGatewaysHealthStatus,
     setActiveFegGatewayId,
     enqueueSnackbar,
-  } = props;
-  const result = await FetchFegGateways({networkId, enqueueSnackbar});
+  } = params;
+  const result = await fetchFegGateways({networkId, enqueueSnackbar});
   if (result) {
     setFegGateways(result.fegGateways);
     setFegGatewaysHealthStatus(result.fegGatewaysHealthStatus);
@@ -73,7 +87,7 @@ export async function InitGatewayState(props: InitGatewayStateProps) {
  * @property {[gateway_id]: federation_gateway} newState New State of the Federation Gateway.
  * @property {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error
  */
-type GatewayStateProps = {
+type GatewayStateParams = {
   networkId: NetworkId;
   fegGateways: Record<GatewayId, FederationGateway>;
   fegGatewaysHealthStatus: Record<GatewayId, FederationGatewayHealthStatus>;
@@ -84,10 +98,7 @@ type GatewayStateProps = {
   setActiveFegGatewayId: (activeGwId: GatewayId) => void;
   key: GatewayId;
   value?: MutableFederationGateway;
-  enqueueSnackbar: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined;
+  enqueueSnackbar: EnqueueSnackbar;
 };
 
 /**
@@ -95,9 +106,9 @@ type GatewayStateProps = {
  * then makes sure to sync the health status of the gateways and update the active gateway id
  * in case it changed.
  *
- * @param {GatewayStateProps} props an object containing the neccessary values to change the gateway state
+ * @param {GatewayStateParams} params an object containing the necessary values to change the gateway state
  */
-export async function SetGatewayState(props: GatewayStateProps) {
+async function setGatewayState(params: GatewayStateParams) {
   const {
     networkId,
     fegGateways,
@@ -108,7 +119,7 @@ export async function SetGatewayState(props: GatewayStateProps) {
     key,
     value,
     enqueueSnackbar,
-  } = props;
+  } = params;
   if (value) {
     if (!(key in fegGateways)) {
       await MagmaAPI.federationGateways.fegNetworkIdGatewaysPost({
@@ -161,10 +172,7 @@ export async function SetGatewayState(props: GatewayStateProps) {
 async function getFegGatewaysHealthStatus(
   networkId: NetworkId,
   fegGateways: Record<GatewayId, FederationGateway>,
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined,
+  enqueueSnackbar?: EnqueueSnackbar,
 ): Promise<Record<GatewayId, FederationGatewayHealthStatus>> {
   const fegGatewaysHealthStatus: Record<
     GatewayId,
@@ -194,10 +202,7 @@ async function getFegGatewaysHealthStatus(
 async function getActiveFegGatewayId(
   networkId: NetworkId,
   fegGateways: Record<GatewayId, FederationGateway>,
-  enqueueSnackbar?: (
-    msg: string,
-    cfg: OptionsObject,
-  ) => string | number | null | undefined,
+  enqueueSnackbar?: EnqueueSnackbar,
 ): Promise<string> {
   try {
     const response = (
@@ -216,11 +221,6 @@ async function getActiveFegGatewayId(
   }
 }
 
-interface FetchAllGatewaysProps {
-  networkId: NetworkId;
-  enqueueSnackbar: EnqueueSnackbar;
-}
-
 /**
  * Fetches and returns the list of gateways under the federation network or
  * the specific gateway if the id is provided.
@@ -232,8 +232,11 @@ interface FetchAllGatewaysProps {
  *   gateways in the network or the federation gateway with the given id. It returns an empty
  *   object and displays any error encountered on the snackbar when it fails to fetch the gateways.
  */
-export async function FetchFegGateways(props: FetchAllGatewaysProps) {
-  const {networkId, enqueueSnackbar} = props;
+async function fetchFegGateways(params: {
+  networkId: NetworkId;
+  enqueueSnackbar: EnqueueSnackbar;
+}) {
+  const {networkId, enqueueSnackbar} = params;
   try {
     const fegGateways = (
       await MagmaAPI.federationGateways.fegNetworkIdGatewaysGet({
@@ -254,14 +257,12 @@ export async function FetchFegGateways(props: FetchAllGatewaysProps) {
   }
 }
 
-interface FetchSingleGatewayProps {
+async function fetchFegGateway(params: {
   networkId: NetworkId;
   enqueueSnackbar: EnqueueSnackbar;
   id: GatewayId;
-}
-
-export async function FetchFegGateway(props: FetchSingleGatewayProps) {
-  const {networkId, enqueueSnackbar, id} = props;
+}) {
+  const {networkId, enqueueSnackbar, id} = params;
 
   try {
     const [gatewayResponse, healthStatus] = await Promise.all([
@@ -281,3 +282,96 @@ export async function FetchFegGateway(props: FetchSingleGatewayProps) {
     );
   }
 }
+
+/**
+ * Fetches and returns the federation gateways, their health status and
+ * the active federation gateway id.
+ * @param {network_id} networkId Id of the network
+ */
+export function FEGGatewayContextProvider(props: {
+  networkId: NetworkId;
+  children: React.ReactNode;
+}) {
+  const {networkId} = props;
+  const [fegGateways, setFegGateways] = useState<
+    Record<GatewayId, FederationGateway>
+  >({});
+  const [fegGatewaysHealthStatus, setFegGatewaysHealthStatus] = useState<
+    Record<GatewayId, FederationGatewayHealthStatus>
+  >({});
+  const [activeFegGatewayId, setActiveFegGatewayId] = useState<GatewayId>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  useEffect(() => {
+    const fetchState = async () => {
+      await initGatewayState({
+        networkId,
+        setFegGateways,
+        setFegGatewaysHealthStatus,
+        setActiveFegGatewayId,
+        enqueueSnackbar,
+      });
+      setIsLoading(false);
+    };
+    void fetchState();
+  }, [networkId, enqueueSnackbar]);
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <FEGGatewayContext.Provider
+      value={{
+        state: fegGateways,
+        setState: (key, value?) => {
+          return setGatewayState({
+            networkId,
+            fegGateways,
+            fegGatewaysHealthStatus,
+            setFegGateways,
+            setFegGatewaysHealthStatus,
+            setActiveFegGatewayId,
+            key,
+            value,
+            enqueueSnackbar,
+          });
+        },
+        refetch: (id?: GatewayId) => {
+          if (id) {
+            void fetchFegGateway({id, networkId, enqueueSnackbar}).then(
+              response => {
+                if (response) {
+                  setFegGateways(gateways => ({
+                    ...gateways,
+                    [id]: response.fegGateway,
+                  }));
+                  setFegGatewaysHealthStatus(healthStatus => ({
+                    ...healthStatus,
+                    [id]: response.healthStatus,
+                  }));
+                }
+              },
+            );
+          } else {
+            void fetchFegGateways({networkId, enqueueSnackbar}).then(
+              response => {
+                if (response) {
+                  setFegGateways(response.fegGateways);
+                  setFegGatewaysHealthStatus(response.fegGatewaysHealthStatus);
+                  setActiveFegGatewayId(response.activeFegGatewayId);
+                }
+              },
+            );
+          }
+        },
+        health: fegGatewaysHealthStatus,
+        activeFegGatewayId,
+      }}>
+      {props.children}
+    </FEGGatewayContext.Provider>
+  );
+}
+
+export default FEGGatewayContext;

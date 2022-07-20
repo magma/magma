@@ -12,18 +12,18 @@
  */
 import type {DataRows} from '../../components/DataGrid';
 
-import ApnContext from '../../components/context/ApnContext';
+import ApnContext from '../../context/ApnContext';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from '../../components/DataGrid';
-import EnodebContext from '../../components/context/EnodebContext';
-import GatewayContext from '../../components/context/GatewayContext';
+import EnodebContext from '../../context/EnodebContext';
+import GatewayContext from '../../context/GatewayContext';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import PeopleIcon from '@material-ui/icons/People';
-import PolicyContext from '../../components/context/PolicyContext';
+import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 
 import {useContext} from 'react';
 

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import Gateway from '../EquipmentGateway';
-import GatewayContext from '../../../components/context/GatewayContext';
+import GatewayContext from '../../../context/GatewayContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

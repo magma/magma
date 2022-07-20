@@ -12,10 +12,10 @@
  */
 
 import * as React from 'react';
-import MagmaAPI from '../../api/MagmaAPI';
+import MagmaAPI from '../api/MagmaAPI';
 import axios from 'axios';
 import {useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 export type VersionContextType = {
   nmsVersion: string;

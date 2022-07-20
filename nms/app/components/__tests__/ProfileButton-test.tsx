@@ -15,7 +15,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
 import defaultTheme from '../../theme/default';
-import {AppContextProvider} from '../context/AppContext';
+import {AppContextProvider} from '../../context/AppContext';
 import {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
+import FEGNetworkContext from '../../../context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

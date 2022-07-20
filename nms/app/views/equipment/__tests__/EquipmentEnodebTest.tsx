@@ -13,7 +13,7 @@
 import type {PromqlReturnObject} from '../../../../generated';
 
 import Enodeb from '../EquipmentEnodeb';
-import EnodebContext from '../../../components/context/EnodebContext';
+import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

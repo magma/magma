@@ -15,7 +15,7 @@ import type {DataRows} from '../../components/DataGrid';
 
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../context/FEGGatewayContext';
 import GroupWorkIcon from '@material-ui/icons/GroupWork';
 import MagmaAPI from '../../api/MagmaAPI';
 import Paper from '@material-ui/core/Paper';

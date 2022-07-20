@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import ActionTable from '../../components/ActionTable';
-import ApnContext from '../../components/context/ApnContext';
+import ApnContext from '../../context/ApnContext';
 import ApnEditDialog from './ApnEdit';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EmptyState from '../../components/EmptyState';

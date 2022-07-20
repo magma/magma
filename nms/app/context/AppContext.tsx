@@ -13,12 +13,12 @@
 'use strict';
 
 import * as React from 'react';
-import {NetworkId} from '../../../shared/types/network';
+import {NetworkId} from '../../shared/types/network';
 import {noop, sortBy} from 'lodash';
 import {useState} from 'react';
-import type {EmbeddedData, User} from '../../../shared/types/embeddedData';
-import type {FeatureID} from '../../../shared/types/features';
-import type {SSOSelectedType} from '../../../shared/types/auth';
+import type {EmbeddedData, User} from '../../shared/types/embeddedData';
+import type {FeatureID} from '../../shared/types/features';
+import type {SSOSelectedType} from '../../shared/types/auth';
 
 export const REFRESH_INTERVAL = 30000;
 
