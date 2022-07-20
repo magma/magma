@@ -24,6 +24,7 @@ ARG IPERF3_VERSION=3.7-3
 ARG PYTHON3_PIP_VERSION=20.0.2-5ubuntu1.6
 ARG PYTHON3_VENV_VERSION=3.8.2-0ubuntu2
 ARG VIRTUALENV_VERSION=20.0.17-1ubuntu0.4
+ARG PYTHON_VERSION=3.8
 
 ENV MAGMA_ROOT=/magma
 
@@ -41,9 +42,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   pip3 install --no-cache-dir git+https://github.com/illu89/iperf3-python#egg=iperf3-python \
   pyroute2 \
   scapy-python3 && \
-  mkdir -p /usr/lib/python3.8/util && \
+  mkdir -p /usr/lib/python${PYTHON_VERSION}/util && \
   cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/traffic_server.py /usr/local/bin/traffic_server.py && \
-  cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/util/traffic_messages.py /usr/lib/python3.8/util/
+  cp $MAGMA_ROOT/lte/gateway/deploy/roles/trfserver/files/util/traffic_messages.py /usr/lib/python${PYTHON_VERSION}/util/
 
 ENTRYPOINT ["/usr/local/bin/traffic_server.py"]
 CMD ["192.168.60.144", "62462"]

@@ -53,8 +53,8 @@ ENV S1AP_TESTER_SRC=/S1APTester
 ENV PYTHON_BUILD=/build
 ENV PIP_CACHE_HOME="~/.pipcache"
 ENV TZ=Europe/Paris
-ENV SWAGGER_CODEGEN_DIR=/var/tmp/codegen/
-ENV SWAGGER_CODEGEN_JAR=${SWAGGER_CODEGEN_DIR}modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
+ENV SWAGGER_CODEGEN_DIR=/var/tmp/codegen/modules/swagger-codegen-cli/target/
+ENV SWAGGER_CODEGEN_JAR=${SWAGGER_CODEGEN_DIR}swagger-codegen-cli.jar
 ENV S1AP_TESTER_CFG=$MAGMA_ROOT/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
 ENV GRPC_POLL_STRATEGY=poll
 

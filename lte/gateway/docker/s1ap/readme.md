@@ -96,13 +96,16 @@ ssh -A ubuntu@${YOUR_AWS_IP}
 # Download containerized AGW bootstrap script
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_docker.sh
 
+# Make bootstrap script executable
+chmod +x agw_install_docker.sh
+
 # Create certs directory and populate with your orc8r rootCA. Note that the certificate contents here have been omitted.
 sudo mkdir -p /var/opt/magma/certs
 sudo su root -c 'sudo echo "-----BEGIN CERTIFICATE-----
 -----END CERTIFICATE-----" > /var/opt/magma/certs/rootCA.pem'
 
 # Run bootstrap script and reboot
-sudo bash agw_install_docker.sh
+sudo agw_install_docker.sh
 sudo reboot
 ```
 
