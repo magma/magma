@@ -40,7 +40,7 @@ import TypedSelect from '../../components/TypedSelect';
 import withAlert from '../../components/Alert/withAlert';
 import {GatewayEditDialog} from './GatewayDetailConfigEdit';
 import {GatewayId} from '../../../shared/types/network';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';

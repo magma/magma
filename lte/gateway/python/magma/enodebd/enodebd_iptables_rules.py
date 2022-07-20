@@ -98,7 +98,7 @@ def check_rules(
     port: str,
     enodebd_public_ip: str,
     private_ip: str,
-) -> None:
+) -> bool:
     unexpected_rules = []
     expected_rules_present = False
     pattern = r'DNAT\s+tcp\s+--\s+anywhere\s+{pub_ip}\s+tcp\s+dpt:{dport} to:{ip}'.format(

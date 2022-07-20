@@ -48,8 +48,8 @@ export type SubscriberContextType = {
     key: string,
     val?: MutableSubscriber | Array<MutableSubscriber>,
     newState?: Record<string, Subscriber>,
-    newSessionState?: Record<string, SubscriberState>,
   ) => Promise<void>;
+  refetchSessionState: (subscriberId?: SubscriberId) => void;
 };
 
 export default React.createContext<SubscriberContextType>(

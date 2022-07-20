@@ -21,6 +21,8 @@ definitions:
         description: this is the maximum allowed difference in MHz between leftmost end of leftmost channel and rightmost end of rightmost channel used by a Base Station (eNB)
         type: integer
         x-nullable: false
+        maximum: 150
+        multipleOf: 5
       min_power:
         description: min tx power available on cbsd
         type: number

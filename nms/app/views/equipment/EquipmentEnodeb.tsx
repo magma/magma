@@ -28,7 +28,7 @@ import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '../../components/Alert/withAlert';
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../components/context/AppContext';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
