@@ -20,7 +20,11 @@ else
 endif
 
 ifdef DP_METRICS
-APPEND_METRICS_PROFILE=,metrics
+APPEND_PROFILES=,metrics
+endif
+
+ifdef DP_CERTIFICATION
+APPEND_PROFILES:=$(APPEND_PROFILES),crl
 endif
 
 .PHONY: local
@@ -36,13 +40,13 @@ integration_tests: init _ci_init cleanup_test_db
 orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_METRICS_PROFILE) --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: dev_integration_tests
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev$(APPEND_METRICS_PROFILE) --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -82,10 +86,11 @@ _switch_k8s_context:
 .PHONY: clean
 clean:
 	minikube delete
+	rm -rf tools/deployment/certificates/certs
 
 .PHONY: dev_orc8r
 dev_orc8r:
-	skaffold dev -p orc8r-deployment,nms-deployment$(APPEND_METRICS_PROFILE) --trigger=manual
+	skaffold dev -p orc8r-deployment,nms-deployment$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: dev
 dev:
@@ -129,8 +134,29 @@ _ci_init: _generate_certificates _generate_harness_config
 		deployment/fake-sas-deployment \
 		--ignore-not-found
 	helm uninstall domain-proxy orc8r orc8r-lte || true
+ifdef DP_CERTIFICATION
+	kubectl delete secret private --ignore-not-found
+	kubectl create secret generic private --from-file=tools/deployment/certificates/certs/private
+	kubectl delete secret crl --ignore-not-found
+	kubectl create secret generic crl --from-file=tools/deployment/certificates/certs/crl
+	kubectl delete secret dbcbsd-ca --ignore-not-found
+	kubectl create secret generic dbcbsd-ca --from-file=tools/deployment/certificates/certs/db/cbsd_ca
+	kubectl delete secret dbproxy-ca --ignore-not-found
+	kubectl create secret generic dbproxy-ca --from-file=tools/deployment/certificates/certs/db/proxy_ca
+	kubectl delete secret dbrevoked-cbsd-ca --ignore-not-found
+	kubectl create secret generic dbrevoked-cbsd-ca --from-file=tools/deployment/certificates/certs/db/revoked_cbsd_ca
+	kubectl delete secret dbrevoked-proxy-ca --ignore-not-found
+	kubectl create secret generic dbrevoked-proxy-ca --from-file=tools/deployment/certificates/certs/db/revoked_proxy_ca
+	kubectl delete secret dbrevoked-sas-ca --ignore-not-found
+	kubectl create secret generic dbrevoked-sas-ca --from-file=tools/deployment/certificates/certs/db/revoked_sas_ca
+	kubectl delete secret dbroot-ca --ignore-not-found
+	kubectl create secret generic dbroot-ca --from-file=tools/deployment/certificates/certs/db/root_ca
+	kubectl delete secret dbsas-ca --ignore-not-found
+	kubectl create secret generic dbsas-ca --from-file=tools/deployment/certificates/certs/db/sas_ca
+endif
 	#kubectl apply -f ./tools/deployment/vendor/postgresql.yml
 	#kubectl rollout status --watch --timeout=600s statefulset/postgres-database
+
 
 .PHONY: _generate_certificates
 _generate_certificates:
@@ -165,7 +191,7 @@ _ci_integration_tests_no_orc8r: _install_skaffold_ci
 
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
-	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_METRICS_PROFILE)
+	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_PROFILES)
 	kubectl logs test-runner-orc8r --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
