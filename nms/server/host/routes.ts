@@ -117,10 +117,9 @@ router.post(
       res,
     ) => {
       const featureId = req.params.featureId;
-      const results: Record<FeatureID, FeatureConfig> & {
+      const result: FeatureConfig & {
         config?: FeatureFlagConfig;
-      } = {...featureConfigs};
-      results.config = {};
+      } = featureConfigs[featureId];
       const {toUpdate, toDelete, toCreate} = req.body;
       const featureFlags = await FeatureFlag.findAll({where: {featureId}});
       await Promise.all(
@@ -129,9 +128,10 @@ router.post(
             const newFlag = await flag.update({
               enabled: toUpdate[flag.id].enabled,
             });
-            results.config![flag.organization] = configFromFeatureFlag(newFlag);
+            result.config![flag.organization] = configFromFeatureFlag(newFlag);
           } else if (toDelete[flag.id] !== undefined) {
             await FeatureFlag.destroy({where: {id: flag.id}});
+            delete result.config![flag.organization];
           }
         }),
       );
@@ -143,12 +143,11 @@ router.post(
             organization: data.organization,
             enabled: data.enabled,
           });
-
-          results.config![flag.organization] = configFromFeatureFlag(flag);
+          result.config![flag.organization] = configFromFeatureFlag(flag);
         }),
       );
 
-      res.status(200).send(results);
+      res.status(200).send(result);
     },
   ),
 );
