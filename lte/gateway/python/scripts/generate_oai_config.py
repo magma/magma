@@ -251,7 +251,7 @@ def _get_congestion_control_config(service_mconfig):
     return True
 
 
-def _get_converged_core_config(service_mconfig: object) -> bool:
+def _get_converged_core_config(service_mconfig: MME) -> bool:
     """Retrieve enable5g_features config value. If it does not exist it defaults to False. It gives precedence to the service_mconfig file.
 
     Args:
@@ -273,7 +273,7 @@ def _get_converged_core_config(service_mconfig: object) -> bool:
     return False
 
 
-def _get_default_slice_service_type_config(service_mconfig: object) -> str:
+def _get_default_slice_service_type_config(service_mconfig: MME) -> str:
     """Retrieve default_slice_service_type config value. If it does not exist, it defaults to DEFAULT_NGAP_S_NSSAI_SST.
 
     Args:
@@ -294,7 +294,7 @@ def _get_default_slice_service_type_config(service_mconfig: object) -> str:
     return service_mconfig.amf_default_slice_service_type or DEFAULT_NGAP_S_NSSAI_SST
 
 
-def _get_default_slice_differentiator_type_config(service_mconfig: object) -> str:
+def _get_default_slice_differentiator_type_config(service_mconfig: MME) -> str:
     """Retrieve default_slice_differentiator config value. If it does not exist it defaults to DEFAULT_NGAP_S_NSSAI_SD.
 
     Args:
@@ -313,7 +313,7 @@ def _get_default_slice_differentiator_type_config(service_mconfig: object) -> st
     return service_mconfig.amf_default_slice_differentiator or DEFAULT_NGAP_S_NSSAI_SD
 
 
-def _get_amf_name_config(service_mconfig: object) -> str:
+def _get_amf_name_config(service_mconfig: MME) -> str:
     """Retrieve amf_name config value. If it does not exist, it defaults to DEFAULT_NGAP_AMF_NAME.
 
     Args:
@@ -360,7 +360,7 @@ def _get_default_auth_timer_expire_msec() -> str:
     )
 
 
-def _get_default_dnn_config(service_mconfig: object) -> str:
+def _get_default_dnn_config(service_mconfig: MME) -> str:
     """Retrieve default_dnn config value. If it does not exist, it defaults to DEFAULT_DEFAULT_DNN.
 
     Args:
@@ -379,7 +379,7 @@ def _get_default_dnn_config(service_mconfig: object) -> str:
     return DEFAULT_DEFAULT_DNN
 
 
-def _get_amf_region_id(service_mconfig: object) -> str:
+def _get_amf_region_id(service_mconfig: MME) -> str:
     """Retrieve amf_region_id config value. If it does not exist it defaults to DEFAULT_NGAP_AMF_REGION_ID.
 
     Args:
@@ -398,7 +398,7 @@ def _get_amf_region_id(service_mconfig: object) -> str:
     return service_mconfig.amf_region_id or DEFAULT_NGAP_AMF_REGION_ID
 
 
-def _get_amf_set_id(service_mconfig: object) -> str:
+def _get_amf_set_id(service_mconfig: MME) -> str:
     """Retrieve amf_set_id config value. If it does not exist it defaults to DEFAULT_NGAP_SET_ID.
 
     Args:
@@ -417,7 +417,7 @@ def _get_amf_set_id(service_mconfig: object) -> str:
     return service_mconfig.amf_set_id or DEFAULT_NGAP_SET_ID
 
 
-def _get_amf_pointer(service_mconfig: object) -> str:
+def _get_amf_pointer(service_mconfig: MME) -> str:
     """Retrieve amf_pointer config value. If it does not exist it defaults to DEFAULT_NGAP_AMF_POINTER.
 
     Args:

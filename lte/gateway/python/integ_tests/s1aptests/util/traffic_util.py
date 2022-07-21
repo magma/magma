@@ -32,7 +32,7 @@ from util.traffic_messages import (
 )
 
 # Tests shouldn't take longer than a few minutes
-TRAFFIC_TEST_TIMEOUT_SEC = 60
+TRAFFIC_TEST_TIMEOUT_SEC = 180
 # For verify function to run properly, setting 5 sec less iperf data timeout
 IPERF_DATA_TIMEOUT_SEC = TRAFFIC_TEST_TIMEOUT_SEC - 5
 

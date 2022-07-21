@@ -21,7 +21,7 @@ import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import FormLabel from '@material-ui/core/FormLabel';
-import GatewayTierContext from '../../components/context/GatewayTierContext';
+import GatewayTierContext from '../../context/GatewayTierContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';

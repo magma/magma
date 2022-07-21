@@ -27,7 +27,7 @@ import React, {
   useState,
 } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
@@ -53,13 +53,13 @@ import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import {Column} from '@material-table/core';
-import {
-  FetchSubscribers,
-  handleSubscriberQuery,
-} from '../../state/lte/SubscriberState';
 import {MenuProps} from '@material-ui/core/Menu/Menu';
 import {Theme} from '@material-ui/core/styles';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
+import {
+  fetchSubscribers,
+  handleSubscriberQuery,
+} from '../../util/SubscriberState';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -136,7 +136,7 @@ async function exportSubscribers(props: ExportProps) {
   try {
     // last page next_page_token is an empty string
     while (token !== '') {
-      const subscriberRows = (await FetchSubscribers({
+      const subscriberRows = (await fetchSubscribers({
         networkId,
         token,
       })) as PaginatedSubscribers;

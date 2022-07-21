@@ -27,7 +27,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import AppContext from '../context/AppContext';
+import AppContext from '../../context/AppContext';
 import nullthrows from '../../../shared/util/nullthrows';
 import {
   AllNetworkTypes,
@@ -39,7 +39,7 @@ import {
 } from '../../../shared/types/network';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
-import {triggerAlertSync} from '../../state/SyncAlerts';
+import {triggerAlertSync} from '../../util/SyncAlerts';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';
 

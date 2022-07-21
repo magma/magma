@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AppContext from '../components/context/AppContext';
+import AppContext from '../context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import MenuButton from './MenuButton';
 import MenuItem from '@material-ui/core/MenuItem';
-import NetworkContext from './context/NetworkContext';
+import NetworkContext from '../context/NetworkContext';
 import React, {useContext, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import {LTE} from '../../shared/types/network';

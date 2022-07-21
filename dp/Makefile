@@ -85,7 +85,7 @@ clean:
 
 .PHONY: dev_orc8r
 dev_orc8r:
-	skaffold dev -p orc8r-deployment$(APPEND_METRICS_PROFILE) --trigger=manual
+	skaffold dev -p orc8r-deployment,nms-deployment$(APPEND_METRICS_PROFILE) --trigger=manual
 
 .PHONY: dev
 dev:
