@@ -36,6 +36,7 @@ def get_certificate(
         x509.Certificate
     """
     context = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
 
     sock = socket.create_connection((hostname, port))
     sock = context.wrap_socket(sock, server_hostname=hostname)
