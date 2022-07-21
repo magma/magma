@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from getmac import get_mac_address
 import ipaddress
 import logging
 
@@ -18,7 +19,6 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from scapy.arch import get_if_addr, get_if_hwaddr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
-from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import ARP, Dot1Q, Ether
 from scapy.sendrecv import srp1
 
@@ -105,7 +105,7 @@ def _get_gw_mac_address_v4(ip: IPAddress, vlan: str, non_nat_arp_egress_port: st
 def _get_gw_mac_address_v6(ip: IPAddress) -> str:
     try:
         gw_ip = ipaddress.ip_address(ip.address)
-        mac = getmacbyip6(str(gw_ip))
+        mac = get_mac_address(ip6=str(gw_ip))
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
         return mac
 

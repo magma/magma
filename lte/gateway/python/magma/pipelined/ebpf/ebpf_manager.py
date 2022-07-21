@@ -14,6 +14,7 @@ limitations under the License.
 from __future__ import annotations
 
 import ctypes
+from getmac import get_mac_address
 import logging
 import socket
 import struct
@@ -24,8 +25,6 @@ from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
 from pyroute2 import IPRoute, NetlinkError
-from scapy.layers.inet6 import getmacbyip6
-from scapy.layers.l2 import getmacbyip
 
 LOG = logging.getLogger("pipelined.ebpf")
 
@@ -313,10 +312,10 @@ class EbpfManager:
     def _get_mac_address_of_ip(self, ip_addr: IPAddress):
         if ip_addr.version == IPAddress.IPV4:
             ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
-            addr_str = getmacbyip(ip_str)
+            addr_str = get_mac_address(ip=ip_str)
         else:
             ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
-            addr_str = getmacbyip6(ip_str)
+            addr_str = get_mac_address(ip6=ip_str)
         if not addr_str:
             LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % (ip_str))
             return None

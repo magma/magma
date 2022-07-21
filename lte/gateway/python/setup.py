@@ -104,6 +104,7 @@ setup(
         'ryu>=4.34',
         'spyne>=2.13.15',
         'scapy==2.4.4',
+        'getmac==0.8.3'
         'flask>=1.0.2',
         'sentry_sdk>=1.5.0',
         'aiodns>=1.1.1',
