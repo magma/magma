@@ -21,7 +21,7 @@ import {ApnContextProvider} from '../../../context/ApnContext';
 import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
@@ -113,28 +113,29 @@ describe('<TrafficDashboard />', () => {
   it('verify apn add', async () => {
     jest.setTimeout(30000);
     const networkId = 'test';
-    const {queryByTestId, getByTestId, getByText} = render(<ApnWrapper />);
-    await wait();
+    const {
+      queryByTestId,
+      getByTestId,
+      findByTestId,
+      getByText,
+      findByText,
+    } = render(<ApnWrapper />);
 
-    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
-      networkId,
-    });
-    expect(MagmaAPI.apns.lteNetworkIdApnsGet).toHaveBeenCalledWith({
-      networkId,
+    await waitFor(() => {
+      expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
+        networkId,
+      });
+      expect(MagmaAPI.apns.lteNetworkIdApnsGet).toHaveBeenCalledWith({
+        networkId,
+      });
     });
 
     expect(queryByTestId('editDialog')).toBeNull();
-    await wait();
+    const newAPNButton = await findByTestId('newApnButton');
 
-    const newAPNButton = queryByTestId('newApnButton');
-    expect(newAPNButton).not.toBeNull();
+    fireEvent.click(newAPNButton);
 
-    if (newAPNButton) {
-      fireEvent.click(newAPNButton);
-      await wait();
-    }
-    expect(queryByTestId('editDialog')).not.toBeNull();
-
+    expect(await findByTestId('editDialog')).not.toBeNull();
     expect(queryByTestId('apnEditDialog')).not.toBeNull();
 
     const apnID = getByTestId('apnID').firstChild;
@@ -155,9 +156,8 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
 
-    expect(getByTestId('configEditError')).toHaveTextContent(
+    expect(await findByTestId('configEditError')).toHaveTextContent(
       'APN apn_0 already exists',
     );
 
@@ -181,14 +181,12 @@ describe('<TrafficDashboard />', () => {
         fireEvent.click(preemptionVulnerability.firstChild);
       }
       fireEvent.mouseDown(pdnType);
-      await wait();
-      fireEvent.click(getByText('IPv6'));
+      fireEvent.click(await findByText('IPv6'));
     } else {
       throw 'invalid type';
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
 
     const newApn = {
       apn_configuration: {
@@ -203,31 +201,35 @@ describe('<TrafficDashboard />', () => {
       },
       apn_name: 'apn_2',
     };
-
-    expect(MagmaAPI.apns.lteNetworkIdApnsPost).toHaveBeenCalledWith({
-      networkId,
-      apn: newApn,
+    await waitFor(() => {
+      expect(MagmaAPI.apns.lteNetworkIdApnsPost).toHaveBeenCalledWith({
+        networkId,
+        apn: newApn,
+      });
     });
   });
 
   it('verify apn edit', async () => {
     const networkId = 'test';
-    const {queryByTestId, getByTestId, getByText} = render(<ApnWrapper />);
-    await wait();
+    const {queryByTestId, getByTestId, getByText, findByText} = render(
+      <ApnWrapper />,
+    );
 
-    // verify if lte api calls are invoked
-    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
-      networkId,
-    });
-    expect(MagmaAPI.apns.lteNetworkIdApnsGet).toHaveBeenCalledWith({
-      networkId,
+    await waitFor(() => {
+      // verify if lte api calls are invoked
+      expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledWith({
+        networkId,
+      });
+      expect(MagmaAPI.apns.lteNetworkIdApnsGet).toHaveBeenCalledWith({
+        networkId,
+      });
     });
 
     expect(queryByTestId('editDialog')).toBeNull();
 
     // click on apns tab
-    fireEvent.click(getByText('apn_0'));
-    await wait();
+    fireEvent.click(await findByText('apn_0'));
+
     expect(queryByTestId('editDialog')).not.toBeNull();
     expect(queryByTestId('apnEditDialog')).not.toBeNull();
 
@@ -245,7 +247,6 @@ describe('<TrafficDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
 
     const newApn = {
       apn_configuration: {
@@ -261,10 +262,12 @@ describe('<TrafficDashboard />', () => {
       apn_name: 'apn_0',
     };
 
-    expect(MagmaAPI.apns.lteNetworkIdApnsApnNamePut).toHaveBeenCalledWith({
-      networkId: 'test',
-      apn: newApn,
-      apnName: newApn.apn_name,
+    await waitFor(() => {
+      expect(MagmaAPI.apns.lteNetworkIdApnsApnNamePut).toHaveBeenCalledWith({
+        networkId: 'test',
+        apn: newApn,
+        apnName: newApn.apn_name,
+      });
     });
   });
 });
