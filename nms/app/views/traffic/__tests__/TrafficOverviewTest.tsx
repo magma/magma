@@ -10,32 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import PolicyContext, {
-  PolicyContextType,
-} from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
+import {ApnContextProvider} from '../../../context/ApnContext';
+import {PolicyProvider} from '../../../context/PolicyContext';
 
-import {
-  Apn,
-  PolicyQosProfile,
-  PolicyRule,
-  RatingGroup,
-} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {PolicyId} from '../../../../shared/types/network';
-import {SetApnState} from '../../../state/lte/ApnState';
-import {
-  SetPolicyState,
-  SetQosProfileState,
-  SetRatingGroupState,
-} from '../../../state/PolicyState';
+import {PolicyQosProfile, PolicyRule, RatingGroup} from '../../../../generated';
 import {fireEvent, render, wait} from '@testing-library/react';
+import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
 jest.mock('../../../../app/hooks/useSnackbar');
@@ -135,54 +122,22 @@ const ratingGroups: Record<string, RatingGroup> = {
 
 describe('<TrafficDashboard />', () => {
   const networkId = 'test';
-  const policyCtx: PolicyContextType = {
-    state: policies,
-    baseNames: {},
-    qosProfiles,
-    ratingGroups,
-    setBaseNames: () => Promise.resolve(),
-    setRatingGroups: (key: string, value?: RatingGroup) => {
-      return SetRatingGroupState({
-        ratingGroups,
-        setRatingGroups: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    setQosProfiles: (key: string, value?: PolicyQosProfile) => {
-      return SetQosProfileState({
-        qosProfiles,
-        setQosProfiles: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    setState: (key: PolicyId, value?: PolicyRule) => {
-      return SetPolicyState({
-        policies,
-        setPolicies: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    refetch: () => {},
-  };
 
-  const apnCtx = {
-    state: apns,
-    setState: (key: string, value?: Apn) => {
-      return SetApnState({
-        apns,
-        setApns: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-  };
+  beforeEach(() => {
+    mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsGet', apns);
+    mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesRulesviewfullGet',
+      policies,
+    );
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet', []);
+    mockAPI(
+      MagmaAPI.ratingGroups,
+      'networksNetworkIdRatingGroupsGet',
+      (ratingGroups as unknown) as Array<RatingGroup>,
+    );
+    mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
+  });
 
   const Wrapper = () => (
     <MemoryRouter
@@ -190,16 +145,16 @@ describe('<TrafficDashboard />', () => {
       initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <PolicyContext.Provider value={policyCtx}>
-            <ApnContext.Provider value={apnCtx}>
+          <PolicyProvider networkId={networkId}>
+            <ApnContextProvider networkId={networkId}>
               <Routes>
                 <Route
                   path="/nms/:networkId/traffic/*"
                   element={<TrafficDashboard />}
                 />
               </Routes>
-            </ApnContext.Provider>
-          </PolicyContext.Provider>
+            </ApnContextProvider>
+          </PolicyProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
@@ -372,63 +327,47 @@ describe('<TrafficDashboard />', () => {
 
 describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
+  const networkId = 'test';
 
-  beforeAll((): void => {
+  beforeEach((): void => {
     window.location = {
       pathname: '/nms/test/traffic/apn',
     } as Location;
+
+    mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsGet', apns);
+
+    mockAPI(
+      MagmaAPI.policies,
+      'networksNetworkIdPoliciesRulesviewfullGet',
+      policies,
+    );
+    mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesBaseNamesGet', []);
+    mockAPI(
+      MagmaAPI.ratingGroups,
+      'networksNetworkIdRatingGroupsGet',
+      (ratingGroups as unknown) as Array<RatingGroup>,
+    );
+    mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });
 
-  afterAll((): void => {
+  afterEach((): void => {
     window.location = location;
   });
 
-  const networkId = 'test';
-  const policyCtx: PolicyContextType = {
-    state: policies,
-    baseNames: {},
-    qosProfiles: {},
-    ratingGroups: {},
-    setBaseNames: async () => {},
-    setRatingGroups: async () => {},
-    setQosProfiles: async () => {},
-    setState: (key: PolicyId, value?: PolicyRule) => {
-      return SetPolicyState({
-        policies,
-        setPolicies: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-    refetch: () => {},
-  };
-  const apnCtx = {
-    state: apns,
-    setState: (key: string, value?: Apn) => {
-      return SetApnState({
-        apns,
-        setApns: () => {},
-        networkId,
-        key,
-        value,
-      });
-    },
-  };
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <PolicyContext.Provider value={policyCtx}>
-            <ApnContext.Provider value={apnCtx}>
+          <PolicyProvider networkId={networkId}>
+            <ApnContextProvider networkId={networkId}>
               <Routes>
                 <Route
                   path="/nms/:networkId/traffic/*"
                   element={<TrafficDashboard />}
                 />
               </Routes>
-            </ApnContext.Provider>
-          </PolicyContext.Provider>
+            </ApnContextProvider>
+          </PolicyProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>

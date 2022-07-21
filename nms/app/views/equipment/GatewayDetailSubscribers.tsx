@@ -13,9 +13,9 @@
 import ActionTable from '../../components/ActionTable';
 import Link from '@material-ui/core/Link';
 import React from 'react';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {useContext} from 'react';
 import {useInterval} from '../../hooks';
 import {useNavigate, useResolvedPath} from 'react-router-dom';

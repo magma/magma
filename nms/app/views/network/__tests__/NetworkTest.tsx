@@ -11,42 +11,33 @@
  * limitations under the License.
  */
 
-import ApnContext from '../../../components/context/ApnContext';
-import EnodebContext, {
-  EnodebContextType,
-} from '../../../components/context/EnodebContext';
-import FEGNetworkContext from '../../../components/context/FEGNetworkContext';
+import ApnContext from '../../../context/ApnContext';
+import EnodebContext, {EnodebContextType} from '../../../context/EnodebContext';
+import FEGNetworkContext from '../../../context/FEGNetworkContext';
 import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext, {
   GatewayContextType,
-} from '../../../components/context/GatewayContext';
-import LteNetworkContext, {
-  LteNetworkContextType,
-  UpdateNetworkContextProps,
-} from '../../../components/context/LteNetworkContext';
+} from '../../../context/GatewayContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
-import PolicyContext, {
-  PolicyContextType,
-} from '../../../components/context/PolicyContext';
+import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
 import SubscriberContext, {
   SubscriberContextType,
-} from '../../../components/context/SubscriberContext';
+} from '../../../context/SubscriberContext';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default';
+import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {
-  UpdateNetworkProps,
-  UpdateNetworkState,
-} from '../../../state/lte/NetworkState';
 import {fireEvent, render, wait} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../../subscriber/SubscriberUtils';
 
 import MagmaAPI from '../../../api/MagmaAPI';
+import NetworkContext from '../../../context/NetworkContext';
 import axios from 'axios';
+import {LTE} from '../../../../shared/types/network';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {FegNetwork, NetworkEpcConfigs} from '../../../../generated';
@@ -262,6 +253,8 @@ describe('<NetworkDashboard />', () => {
     },
   };
 
+  let lteNetworkIdGetMock: jest.SpyInstance;
+
   beforeEach(() => {
     (useEnqueueSnackbar as jest.MockedFunction<
       typeof useEnqueueSnackbar
@@ -270,7 +263,15 @@ describe('<NetworkDashboard />', () => {
     (axiosMock as jest.Mocked<typeof axios>).post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
-    mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGet');
+
+    lteNetworkIdGetMock = mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdGet', {
+      ...testNetwork,
+      cellular: {
+        epc: epc,
+        ran: ran,
+      },
+    });
+
     mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdPut');
 
     mockAPI(MagmaAPI.lteNetworks, 'lteNetworkIdCellularEpcPut');
@@ -284,6 +285,7 @@ describe('<NetworkDashboard />', () => {
       state: apns,
       setState: async () => {},
     };
+
     const policyCtx = {
       state: policies,
       baseNames: {},
@@ -295,6 +297,7 @@ describe('<NetworkDashboard />', () => {
       setState: async () => {},
       refetch: () => {},
     } as PolicyContextType;
+
     const enodebCtx = {
       state: {enbInfo},
       setState: async () => {},
@@ -318,46 +321,34 @@ describe('<NetworkDashboard />', () => {
       refetchSessionState: () => {},
     } as SubscriberContextType;
 
-    const networkCtx = {
-      state: {
-        ...testNetwork,
-
-        cellular: {
-          epc: epc,
-          ran: ran,
-        },
-      },
-      updateNetworks: async (props: UpdateNetworkContextProps) => {
-        return UpdateNetworkState({
-          setLteNetwork: () => {},
-          refreshState: testNetwork.id === props.networkId,
-          ...props,
-        } as UpdateNetworkProps); // TODO[TS-migration] Broken LteNetworkContext type
-      },
-    } as LteNetworkContextType;
-
     return (
       <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <LteNetworkContext.Provider value={networkCtx}>
-              <PolicyContext.Provider value={policyCtx}>
-                <ApnContext.Provider value={apnCtx}>
-                  <GatewayContext.Provider value={gatewayCtx}>
-                    <EnodebContext.Provider value={enodebCtx}>
-                      <SubscriberContext.Provider value={subscriberCtx}>
-                        <Routes>
-                          <Route
-                            path="/nms/:networkId/network/*"
-                            element={<NetworkDashboard />}
-                          />
-                        </Routes>
-                      </SubscriberContext.Provider>
-                    </EnodebContext.Provider>
-                  </GatewayContext.Provider>
-                </ApnContext.Provider>
-              </PolicyContext.Provider>
-            </LteNetworkContext.Provider>
+            <NetworkContext.Provider
+              value={{
+                networkId: testNetwork.id,
+                networkType: LTE,
+              }}>
+              <LteNetworkContextProvider networkId={testNetwork.id}>
+                <PolicyContext.Provider value={policyCtx}>
+                  <ApnContext.Provider value={apnCtx}>
+                    <GatewayContext.Provider value={gatewayCtx}>
+                      <EnodebContext.Provider value={enodebCtx}>
+                        <SubscriberContext.Provider value={subscriberCtx}>
+                          <Routes>
+                            <Route
+                              path="/nms/:networkId/network/*"
+                              element={<NetworkDashboard />}
+                            />
+                          </Routes>
+                        </SubscriberContext.Provider>
+                      </EnodebContext.Provider>
+                    </GatewayContext.Provider>
+                  </ApnContext.Provider>
+                </PolicyContext.Provider>
+              </LteNetworkContextProvider>
+            </NetworkContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MemoryRouter>
@@ -421,6 +412,8 @@ describe('<NetworkDashboard />', () => {
   it('Verify Network Add', async () => {
     const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
     await wait();
+    lteNetworkIdGetMock.mockClear();
+
     expect(queryByTestId('editDialog')).toBeNull();
 
     fireEvent.click(getByText('Add Network'));
@@ -584,12 +577,14 @@ describe('<NetworkDashboard />', () => {
       },
       networkId: 'testNetworkID',
     });
-    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(0);
+    expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(0);
   });
 
   it('Verify Network Edit Info', async () => {
     const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
     await wait();
+    lteNetworkIdGetMock.mockClear();
+
     expect(queryByTestId('editDialog')).toBeNull();
 
     fireEvent.click(getByTestId('infoEditButton'));
@@ -636,12 +631,14 @@ describe('<NetworkDashboard />', () => {
         },
       },
     });
-    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(1);
+    expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit EPC', async () => {
     const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
     await wait();
+    lteNetworkIdGetMock.mockClear();
+
     expect(queryByTestId('editDialog')).toBeNull();
 
     fireEvent.click(getByTestId('epcEditButton'));
@@ -666,12 +663,14 @@ describe('<NetworkDashboard />', () => {
       config: {...epc, mnc: '03'},
       networkId: 'test_network',
     });
-    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(1);
+    expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit Ran', async () => {
     const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
     await wait();
+    lteNetworkIdGetMock.mockClear();
+
     expect(queryByTestId('editDialog')).toBeNull();
 
     fireEvent.click(getByTestId('ranEditButton'));
@@ -702,7 +701,7 @@ describe('<NetworkDashboard />', () => {
       },
       networkId: 'test_network',
     });
-    expect(MagmaAPI.lteNetworks.lteNetworkIdGet).toHaveBeenCalledTimes(1);
+    expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(1);
   });
 });
 

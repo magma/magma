@@ -10,9 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import EnodebContext, {EnodebContextType} from '../context/EnodebContext';
+import EnodebContext, {EnodebContextType} from '../../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
-import GatewayContext from '../context/GatewayContext';
+import GatewayContext from '../../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPI from '../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

@@ -18,7 +18,7 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {AxiosResponse} from 'axios';
-import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
+import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
@@ -281,7 +281,7 @@ describe('<FEGEquipmentGateway />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <FEGGatewayContextProvider networkId="mynetwork" networkType="feg">
+          <FEGGatewayContextProvider networkId="mynetwork">
             <Routes>
               <Route
                 path="/nms/:networkId/gateway/"

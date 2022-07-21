@@ -18,7 +18,7 @@ import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
-import FEGGatewayContext from '../context/FEGGatewayContext';
+import FEGGatewayContext from '../../context/FEGGatewayContext';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
 import NestedRouteLink from '../NestedRouteLink';

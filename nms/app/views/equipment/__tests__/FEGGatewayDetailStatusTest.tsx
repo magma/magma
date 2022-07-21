@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import FEGGatewayContext from '../../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../../context/FEGGatewayContext';
 import FEGGatewayDetailStatus from '../FEGGatewayDetailStatus';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

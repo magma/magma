@@ -12,16 +12,13 @@
  */
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import NetworkContext from '../../../components/context/NetworkContext';
+import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
-import {LTE} from '../../../../shared/types/network';
 
-import {
-  ApnProvider,
-  LteNetworkContextProvider,
-} from '../../../components/lte/LteContext';
+import {ApnContextProvider} from '../../../context/ApnContext';
+import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, wait} from '@testing-library/react';
@@ -94,15 +91,15 @@ describe('<TrafficDashboard />', () => {
             value={{
               networkId: 'test',
             }}>
-            <LteNetworkContextProvider networkId={'test'} networkType={LTE}>
-              <ApnProvider networkId={'test'} networkType={LTE}>
+            <LteNetworkContextProvider networkId={'test'}>
+              <ApnContextProvider networkId={'test'}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/traffic/*"
                     element={<TrafficDashboard />}
                   />
                 </Routes>
-              </ApnProvider>
+              </ApnContextProvider>
             </LteNetworkContextProvider>
           </NetworkContext.Provider>
         </MuiStylesThemeProvider>

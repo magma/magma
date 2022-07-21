@@ -10,9 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import CbsdContext, {
-  CbsdContextType,
-} from '../../../components/context/CbsdContext';
+import CbsdContext, {CbsdContextType} from '../../../context/CbsdContext';
 import CbsdsTable from '../CbsdsTable';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

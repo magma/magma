@@ -15,7 +15,7 @@ import ProfileButton from './ProfileButton';
 import React, {useContext, useState} from 'react';
 import SidebarItem from './SidebarItem';
 import Text from '../theme/design-system/Text';
-import VersionContext from './context/VersionContext';
+import VersionContext from '../context/VersionContext';
 import classNames from 'classnames';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
