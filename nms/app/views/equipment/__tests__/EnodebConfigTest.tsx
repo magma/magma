@@ -252,11 +252,15 @@ describe('<AddEditEnodeButton />', () => {
   });
 
   it('Verify Enode Add', async () => {
-    const {findByTestId, getByTestId, getByText, queryByTestId} = render(
-      <AddWrapper />,
-    );
+    const {
+      findByTestId,
+      getByTestId,
+      getByText,
+      queryByTestId,
+      findByText,
+    } = render(<AddWrapper />);
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByText('Add Enodeb'));
+    fireEvent.click(await findByText('Add Enodeb'));
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
     expect(queryByTestId('ranEdit')).toBeNull();
@@ -448,9 +452,11 @@ describe('<AddEditEnodeButton />', () => {
   });
 
   it('Verify Enode Edit Config', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByTestId('configEditButton'));
+    fireEvent.click(await findByTestId('configEditButton'));
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
     expect(queryByTestId('ranEdit')).toBeNull();
@@ -520,9 +526,11 @@ describe('<AddEditEnodeButton />', () => {
   });
 
   it('Verify Enode Edit Ran', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByTestId('ranEditButton'));
+    fireEvent.click(await findByTestId('ranEditButton'));
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
 
@@ -586,10 +594,12 @@ describe('<AddEditEnodeButton />', () => {
   });
 
   it('Verify Enode Edit unmanaged eNodeB', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByTestId('ranEditButton'));
+    fireEvent.click(await findByTestId('ranEditButton'));
 
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
