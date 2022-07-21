@@ -10,21 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApnContext from '../../../components/context/ApnContext';
+import ApnContext from '../../../context/ApnContext';
 import LteNetworkContext, {
   LteNetworkContextType,
-} from '../../../components/context/LteNetworkContext';
+} from '../../../context/LteNetworkContext';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import PolicyContext, {
-  PolicyContextType,
-} from '../../../components/context/PolicyContext';
+import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
-import SubscriberContext, {
-  SubscriberContextType,
-} from '../../../components/context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default';
+import {SubscriberContextProvider} from '../../../context/SubscriberContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -38,9 +34,7 @@ import {
 import {fireEvent, render, wait} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
-import {setSubscriberState} from '../../../state/lte/SubscriberState';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -214,33 +208,21 @@ const ran: NetworkRanConfigs = {
 
 describe('<AddSubscriberButton />', () => {
   beforeEach(() => {
+    jest.setTimeout(60000);
+
     (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
     mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost');
     mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdPut');
+
+    mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersGet', {
+      subscribers: subscribersMock,
+      next_page_token: 'foo',
+      total_count: 42,
+    });
+    mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscriberStateGet', {});
   });
 
   const AddWrapper = () => {
-    const [subscribers, setSubscribers] = useState(subscribersMock);
-    const [sessionState, setSessionState] = useState({});
-    const [forbiddenNetworkTypes] = useState({});
-
-    const subscriberCtx: SubscriberContextType = {
-      state: subscribers,
-      forbiddenNetworkTypes: forbiddenNetworkTypes,
-      gwSubscriberMap: {},
-      sessionState: sessionState,
-      totalCount: 2,
-      setState: async (key, value?) =>
-        setSubscriberState({
-          networkId: 'test',
-          subscriberMap: subscribers,
-          setSubscriberMap: setSubscribers,
-          key: key,
-          value: value,
-          setSessionState: setSessionState,
-        }),
-      refetchSessionState: () => {},
-    };
     const policyCtx: PolicyContextType = {
       state: policies,
       baseNames: {},
@@ -276,14 +258,14 @@ describe('<AddSubscriberButton />', () => {
             <LteNetworkContext.Provider value={networkCtx}>
               <PolicyContext.Provider value={policyCtx}>
                 <ApnContext.Provider value={apnCtx}>
-                  <SubscriberContext.Provider value={subscriberCtx}>
+                  <SubscriberContextProvider networkId="test">
                     <Routes>
                       <Route
                         path="/nms/:networkId/subscribers/*"
                         element={<SubscriberDashboard />}
                       />
                     </Routes>
-                  </SubscriberContext.Provider>
+                  </SubscriberContextProvider>
                 </ApnContext.Provider>
               </PolicyContext.Provider>
             </LteNetworkContext.Provider>
@@ -294,9 +276,6 @@ describe('<AddSubscriberButton />', () => {
   };
 
   const DetailWrapper = () => {
-    const [subscribers, setSubscribers] = useState(subscribersMock);
-    const [sessionState, setSessionState] = useState({});
-    const [forbiddenNetworkTypes] = useState({});
     const policyCtx: PolicyContextType = {
       state: policies,
       baseNames: {},
@@ -335,33 +314,14 @@ describe('<AddSubscriberButton />', () => {
             <LteNetworkContext.Provider value={networkCtx}>
               <PolicyContext.Provider value={policyCtx}>
                 <ApnContext.Provider value={apnCtx}>
-                  <SubscriberContext.Provider
-                    value={{
-                      state: {
-                        IMSI00000000001002: subscribers['IMSI00000000001002'],
-                      },
-                      gwSubscriberMap: {},
-                      forbiddenNetworkTypes: forbiddenNetworkTypes,
-                      sessionState: sessionState,
-                      totalCount: 1,
-                      setState: (key, value?) =>
-                        setSubscriberState({
-                          networkId: 'test',
-                          subscriberMap: subscribers,
-                          setSubscriberMap: setSubscribers,
-                          setSessionState,
-                          key: key,
-                          value: value,
-                        }),
-                      refetchSessionState: () => {},
-                    }}>
+                  <SubscriberContextProvider networkId="test">
                     <Routes>
                       <Route
                         path="/nms/:networkId/subscribers/overview/:subscriberId/config"
                         element={<SubscriberDetailConfig />}
                       />
                     </Routes>
-                  </SubscriberContext.Provider>
+                  </SubscriberContextProvider>
                 </ApnContext.Provider>
               </PolicyContext.Provider>
             </LteNetworkContext.Provider>
@@ -378,6 +338,9 @@ describe('<AddSubscriberButton />', () => {
       queryByTestId,
       getByTitle,
       getAllByRole,
+      findByTitle,
+      findAllByRole,
+      findByTestId,
     } = render(<AddWrapper />);
     await wait();
 
@@ -401,9 +364,10 @@ describe('<AddSubscriberButton />', () => {
     expect(rowHeader[0]).toHaveTextContent('Active Policies');
 
     //Add subscriber
-    fireEvent.click(getByTitle('Add'));
+    fireEvent.click(await findByTitle('Add'));
     await wait();
-    const name = getByTestId('name').firstChild;
+
+    const name = (await findByTestId('name')).firstChild;
     const IMSI = getByTestId('IMSI').firstChild;
     const authKey = getByTestId('authKey').firstChild;
     const authOpc = getByTestId('authOpc').firstChild;
@@ -435,7 +399,7 @@ describe('<AddSubscriberButton />', () => {
     await wait();
 
     // Verify new subscriber row before saving
-    const rowItems = getAllByRole('row');
+    const rowItems = await findAllByRole('row');
     expect(rowItems[1]).toHaveTextContent('IMSI00000000001004');
     expect(rowItems[1]).toHaveTextContent('8baf473f2f8fd09487cccbd7097c6862');
     expect(rowItems[1]).toHaveTextContent('8e27b6af0e692e750f32667a3b14605d');
@@ -467,12 +431,14 @@ describe('<AddSubscriberButton />', () => {
   });
 
   it('Verify Subscriber edit', async () => {
-    const {getByTestId, queryByTestId} = render(<DetailWrapper />);
+    const {getByTestId, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     await wait();
     expect(queryByTestId('editDialog')).toBeNull();
 
     // Edit tab 1 : subscriber info
-    fireEvent.click(getByTestId('subscriber'));
+    fireEvent.click(await findByTestId('subscriber'));
     await wait();
     expect(queryByTestId('editDialog')).not.toBeNull();
 

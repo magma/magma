@@ -44,8 +44,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
   "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.cpp"
   "./lte/gateway/c/core/oai/test/s1ap_task/test_s1ap_mme_handlers_with_injected_state.cpp"
-  # TODO: GH12776 dead code
-  "./lte/gateway/c/session_manager/upf-demo-struct.h"
 )
 
 DENY_LIST=( "${DENY_LIST_NOT_RELEVANT[@]}" "${DENY_LIST_NOT_YET_BAZELIFIED[@]}" )

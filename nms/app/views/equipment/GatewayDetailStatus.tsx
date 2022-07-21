@@ -14,14 +14,14 @@
 import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
-import GatewayContext from '../../components/context/GatewayContext';
+import GatewayContext from '../../context/GatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React, {useContext} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {DynamicServices} from '../../components/GatewayUtils';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 

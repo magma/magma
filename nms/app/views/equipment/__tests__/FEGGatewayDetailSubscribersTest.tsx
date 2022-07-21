@@ -12,7 +12,7 @@
  */
 
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
-import FEGSubscriberContext from '../../../components/context/FEGSubscriberContext';
+import FEGSubscriberContext from '../../../context/FEGSubscriberContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';

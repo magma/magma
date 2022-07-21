@@ -18,10 +18,10 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
-import GatewayContext from '../../components/context/GatewayContext';
+import GatewayContext from '../../context/GatewayContext';
 import GatewayPoolsContext, {
   GatewayPoolRecordsType,
-} from '../../components/context/GatewayPoolsContext';
+} from '../../context/GatewayPoolsContext';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import ApnContext from '../../components/context/ApnContext';
+import ApnContext from '../../context/ApnContext';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import List from '@material-ui/core/List';
@@ -20,7 +20,7 @@ import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import PolicyContext from '../../components/context/PolicyContext';
+import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import nullthrows from '../../../shared/util/nullthrows';

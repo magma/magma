@@ -20,7 +20,7 @@ import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import nullthrows from '../../../shared/util/nullthrows';
 import {EditSubscriberButton} from './SubscriberEditDialog';
 import {
