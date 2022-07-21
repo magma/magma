@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import AppContext from '../../../app/components/context/AppContext';
+import AppContext from '../../context/AppContext';
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import ExploreIcon from '@material-ui/icons/Explore';
 import Explorer from '../../views/metrics/Explorer';

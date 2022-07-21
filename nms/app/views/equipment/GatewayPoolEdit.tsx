@@ -12,8 +12,8 @@
  */
 import type {
   GatewayPoolRecordsType,
-  gatewayPoolsStateType,
-} from '../../components/context/GatewayPoolsContext';
+  GatewayPoolsStateType,
+} from '../../context/GatewayPoolsContext';
 import type {MutableCellularGatewayPool} from '../../../generated';
 
 import Button from '@material-ui/core/Button';
@@ -60,7 +60,7 @@ const useStyles = makeStyles({
 type DialogProps = {
   open: boolean;
   onClose: () => void;
-  pool?: gatewayPoolsStateType;
+  pool?: GatewayPoolsStateType;
   isAdd: boolean;
 };
 

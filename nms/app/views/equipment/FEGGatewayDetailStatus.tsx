@@ -13,7 +13,7 @@
 import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
-import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../context/FEGGatewayContext';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React, {useContext} from 'react';
@@ -24,7 +24,7 @@ import {
   GatewayTypeEnum,
   HEALTHY_STATUS,
 } from '../../components/GatewayUtils';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {useInterval} from '../../hooks';
 import {useParams} from 'react-router-dom';
 

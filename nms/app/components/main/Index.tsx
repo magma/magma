@@ -18,14 +18,14 @@ import {
 } from '../../../shared/types/network';
 import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
-import {VersionContextProvider} from '../context/VersionContext';
+import {VersionContextProvider} from '../../context/VersionContext';
 import type {NetworkType} from '../../../shared/types/network';
 import type {Theme} from '@material-ui/core';
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
-import NetworkContext from '../context/NetworkContext';
+import NetworkContext from '../../context/NetworkContext';
 import SectionRoutes from '../layout/SectionRoutes';
 import {useEffect, useState} from 'react';
 
@@ -113,7 +113,7 @@ function NetworkContextProvider(props: Props) {
     <VersionContextProvider>
       <NetworkContext.Provider value={{networkId, networkType}}>
         {networkType === FEG ? (
-          <FEGContextProvider networkId={networkId} networkType={networkType}>
+          <FEGContextProvider networkId={networkId}>
             {props.children}
           </FEGContextProvider>
         ) : (

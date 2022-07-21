@@ -30,7 +30,7 @@ import Select from '@material-ui/core/Select';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-import CbsdContext from '../../components/context/CbsdContext';
+import CbsdContext from '../../context/CbsdContext';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {Theme} from '@material-ui/core/styles';

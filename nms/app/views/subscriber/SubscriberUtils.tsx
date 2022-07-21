@@ -17,9 +17,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Link from '@material-ui/core/Link';
 import React, {useContext} from 'react';
 import ReactJson from 'react-json-view';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import {MutableSubscriber, Subscriber} from '../../../generated';
-import {SubscriberRowType} from '../../state/lte/SubscriberState';
+import {SubscriberRowType} from '../../util/SubscriberState';
 import {isValidHex} from '../../util/strings';
 import {useNavigate} from 'react-router-dom';
 import type {

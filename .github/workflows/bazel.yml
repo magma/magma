@@ -59,20 +59,11 @@ jobs:
     name: Bazel Build & Test Job
     runs-on: ubuntu-latest
     steps:
-      - name: Maximize build space
-        shell: bash
-        run: |
-          echo "Available storage before:"
-          df -h
-          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          echo "Available storage after:"
-          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
@@ -157,20 +148,11 @@ jobs:
     name: Bazel Package Job
     runs-on: ubuntu-latest
     steps:
-      - name: Maximize build space
-        shell: bash
-        run: |
-          echo "Available storage before:"
-          df -h
-          echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          echo "Available storage after:"
-          df -h
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:

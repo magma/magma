@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import AppContext from '../../../app/components/context/AppContext';
+import AppContext from '../../context/AppContext';
 import Grid from '@material-ui/core/Grid';
 import LteMetrics from '../lte/LteMetrics';
 import Paper from '@material-ui/core/Paper';

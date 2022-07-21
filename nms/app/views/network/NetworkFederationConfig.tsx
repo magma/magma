@@ -25,7 +25,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemText from '@material-ui/core/ListItemText';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
