@@ -1,6 +1,7 @@
 APScheduler==3.7.0
 certifi==2020.12.5
 click==7.1.2
+cryptography==37.0.2
 grpcio==1.37.1
 grpcio-tools==1.37.1
 idna==2.10
