@@ -22,7 +22,7 @@ from magma.configuration_controller.crl_validator.crl_validator import (
 from magma.configuration_controller.request_router.request_router import (
     RequestRouter,
 )
-from magma.configuration_controller.tests.unit.fixtures.crl import (
+from magma.configuration_controller.tests.unit.fixtures.crl.certs import (
     CERTIFICATES_DATE,
     NO_CRL_CERT,
     REVOKED_CERT_CRLS_DATA,
