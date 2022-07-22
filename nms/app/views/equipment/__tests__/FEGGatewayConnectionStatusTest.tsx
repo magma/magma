@@ -19,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {render, wait} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import type {FederationGateway} from '../../../../generated';
 
 const mockGw0: FederationGateway = {
@@ -106,10 +106,9 @@ describe('<FEGGatewayConnectionStatus />', () => {
   );
 
   it('renders federation gateway connection status correctly', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
+    const {findByTestId, getByTestId} = render(<Wrapper />);
     // verify gateway connection status
-    expect(getByTestId('Gx/Gy Watchdog')).toHaveTextContent('N/A');
+    expect(await findByTestId('Gx/Gy Watchdog')).toHaveTextContent('N/A');
     expect(getByTestId('SWx Watchdog')).toHaveTextContent('Down');
     expect(getByTestId('S6a Watchdog')).toHaveTextContent('Not Enabled');
   });
