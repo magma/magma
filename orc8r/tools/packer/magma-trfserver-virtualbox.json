@@ -73,9 +73,9 @@
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
       "expect_disconnect": true,
       "scripts": [
-        "scripts/update_ubuntu.sh",
-        "scripts/cleanup_ubuntu.sh",
-        "scripts/minimize_ubuntu.sh"
+        "scripts/third_party/update_ubuntu.sh",
+        "scripts/third_party/cleanup_ubuntu.sh",
+        "scripts/third_party/minimize_ubuntu.sh"
       ],
       "type": "shell"
     },

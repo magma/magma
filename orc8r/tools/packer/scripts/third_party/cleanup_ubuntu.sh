@@ -1,5 +1,7 @@
 #!/bin/sh -eux
 ################################################################################
+# Chef Bento Copyright 2012-2019, Chef Software, Inc.
+
 # Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the

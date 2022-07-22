@@ -1,5 +1,7 @@
 #!/bin/sh -eux
 ################################################################################
+# Copyright (c) 2021 Alexander Pyatkin
+
 # Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
