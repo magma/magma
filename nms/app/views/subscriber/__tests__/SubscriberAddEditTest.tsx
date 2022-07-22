@@ -469,7 +469,5 @@ describe('<AddSubscriberButton />', () => {
         },
       });
     });
-
-    // TODO: Test other tabs
   });
 });

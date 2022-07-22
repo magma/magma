@@ -409,20 +409,16 @@ describe('<AddEditGatewayPoolButton />', () => {
         ],
       }),
     );
-
-    await waitFor(() =>
-      lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
-        data: {
-          config: {mme_group_id: 4},
-          gateway_ids: ['testGatewayId0'],
-          gateway_pool_id: 'pool4',
-          gateway_pool_name: 'pool4',
-        },
-      }),
-    );
-
-    // check if only third tab (SecondaryEdit) is active
-    expect(queryByTestId('configEdit')).toBeNull();
+    lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
+      data: {
+        config: {mme_group_id: 4},
+        gateway_ids: ['testGatewayId0'],
+        gateway_pool_id: 'pool4',
+        gateway_pool_name: 'pool4',
+      },
+    }),
+      // check if only third tab (SecondaryEdit) is active
+      expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('PrimaryEdit')).toBeNull();
     expect(queryByTestId('SecondaryEdit')).not.toBeNull();
 
