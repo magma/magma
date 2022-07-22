@@ -300,6 +300,20 @@ profiles:
       - op: add
         path: /deploy/helm/releases/2/valuesFiles/-
         value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
+  - name: crl
+    patches:
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: fake_crl
+          context: tools/fake_crl
+          docker:
+            dockerfile: Dockerfile
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/vendor/fake_crl.yml"
   - name: remote-push
     patches:
       - op: remove
