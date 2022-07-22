@@ -20,7 +20,7 @@ import defaultTheme from '../../../theme/default';
 import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {LteGateway} from '../../../../generated';
@@ -171,12 +171,16 @@ describe('<GatewayPools />', () => {
       )
       .mockImplementation();
 
-    const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
-      <Wrapper />,
-    );
-    await wait();
+    const {
+      findAllByRole,
+      findByTestId,
+      findByText,
+      getByTestId,
+      getByText,
+      getAllByTitle,
+    } = render(<Wrapper />);
 
-    const rowItems = getAllByRole('row');
+    const rowItems = await findAllByRole('row');
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
@@ -207,22 +211,22 @@ describe('<GatewayPools />', () => {
     const actionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(actionList[2]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+
+    expect(await findByTestId('actions-menu')).toBeVisible();
     fireEvent.click(getByText('Remove'));
-    await wait();
     expect(
-      getByText('Are you sure you want to delete pool3?'),
+      await findByText('Are you sure you want to delete pool3?'),
     ).toBeInTheDocument();
     fireEvent.click(getByText('Confirm'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGatewayPoolIdDelete,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      gatewayPoolId: 'pool3',
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGatewayPoolIdDelete,
+      ).toHaveBeenCalledWith({
+        networkId: 'test',
+        gatewayPoolId: 'pool3',
+      }),
+    );
   });
 
   it('verify gateway pool edit', async () => {
@@ -330,12 +334,11 @@ describe('<AddEditGatewayPoolButton />', () => {
 
   it('verify gateway pool add', async () => {
     const networkId = 'test';
-    const {queryByTestId, getByTestId, getByText} = render(<AddWrapper />);
-    await wait();
-
+    const {findByText, queryByTestId, getByTestId, getByText} = render(
+      <AddWrapper />,
+    );
     expect(queryByTestId('gatewayPoolEditDialog')).toBeNull();
-    fireEvent.click(getByText('Add Gateway Pool'));
-    await wait();
+    fireEvent.click(await findByText('Add Gateway Pool'));
 
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
@@ -351,7 +354,6 @@ describe('<AddEditGatewayPoolButton />', () => {
     fireEvent.change(mmeGroupId, {target: {value: '4'}});
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
     const newGatewayPool = {
       config: {mme_group_id: 4},
@@ -359,25 +361,26 @@ describe('<AddEditGatewayPoolButton />', () => {
       gateway_pool_name: 'pool_4',
     };
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsPost,
-    ).toHaveBeenCalledWith({
-      networkId,
-      hAGatewayPool: newGatewayPool,
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsPost,
+      ).toHaveBeenCalledWith({
+        networkId,
+        hAGatewayPool: newGatewayPool,
+      }),
+    );
 
-    await wait();
+    await waitFor(() =>
+      lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
+        data: {
+          config: {mme_group_id: 4},
+          gateway_ids: [],
+          gateway_pool_id: 'pool4',
+          gateway_pool_name: 'pool4',
+        },
+      }),
+    );
 
-    lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
-      data: {
-        config: {mme_group_id: 4},
-        gateway_ids: [],
-        gateway_pool_id: 'pool4',
-        gateway_pool_name: 'pool4',
-      },
-    });
-
-    await wait();
     // check if only second tab (PrimaryEdit) is active
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('PrimaryEdit')).not.toBeNull();
@@ -387,28 +390,25 @@ describe('<AddEditGatewayPoolButton />', () => {
     const PrimaryId = getByTestId('gwIdPrimary').firstChild as HTMLElement;
 
     fireEvent.mouseDown(PrimaryId);
-    await wait();
-    fireEvent.click(getByText('testGatewayId0'));
+    fireEvent.click(await findByText('testGatewayId0'));
     fireEvent.change(mmeCode, {target: {value: '4'}});
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
-    ).toHaveBeenCalledWith({
-      networkId: networkId,
-      gatewayId: 'testGatewayId0',
-      resource: [
-        {
-          gateway_pool_id: 'pool4',
-          mme_code: 4,
-          mme_relative_capacity: 255,
-        },
-      ],
-    });
-
-    await wait();
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
+      ).toHaveBeenCalledWith({
+        networkId: networkId,
+        gatewayId: 'testGatewayId0',
+        resource: [
+          {
+            gateway_pool_id: 'pool4',
+            mme_code: 4,
+            mme_relative_capacity: 255,
+          },
+        ],
+      }),
+    );
     lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
       data: {
         config: {mme_group_id: 4},
@@ -416,11 +416,9 @@ describe('<AddEditGatewayPoolButton />', () => {
         gateway_pool_id: 'pool4',
         gateway_pool_name: 'pool4',
       },
-    });
-
-    await wait();
-    // check if only third tab (SecondaryEdit) is active
-    expect(queryByTestId('configEdit')).toBeNull();
+    }),
+      // check if only third tab (SecondaryEdit) is active
+      expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('PrimaryEdit')).toBeNull();
     expect(queryByTestId('SecondaryEdit')).not.toBeNull();
 
@@ -429,25 +427,25 @@ describe('<AddEditGatewayPoolButton />', () => {
     const secondaryId = getByTestId('gwIdSecondary').firstChild as HTMLElement;
 
     fireEvent.mouseDown(secondaryId);
-    await wait();
-    fireEvent.click(getByText('testGatewayId1'));
+    fireEvent.click(await findByText('testGatewayId1'));
     fireEvent.change(mmeCodeSecondary, {target: {value: '5'}});
 
     fireEvent.click(getByText('Save'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
-    ).toHaveBeenCalledWith({
-      networkId: networkId,
-      gatewayId: 'testGatewayId1',
-      resource: [
-        {
-          gateway_pool_id: 'pool4',
-          mme_code: 5,
-          mme_relative_capacity: 1,
-        },
-      ],
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
+      ).toHaveBeenCalledWith({
+        networkId: networkId,
+        gatewayId: 'testGatewayId1',
+        resource: [
+          {
+            gateway_pool_id: 'pool4',
+            mme_code: 5,
+            mme_relative_capacity: 1,
+          },
+        ],
+      }),
+    );
   });
 });

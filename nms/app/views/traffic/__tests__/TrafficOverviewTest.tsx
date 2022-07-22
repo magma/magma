@@ -21,7 +21,7 @@ import {PolicyProvider} from '../../../context/PolicyContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PolicyQosProfile, PolicyRule, RatingGroup} from '../../../../generated';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 
 jest.mock('axios');
@@ -161,12 +161,16 @@ describe('<TrafficDashboard />', () => {
   );
   it('renders', async () => {
     jest.setTimeout(30000);
-    const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
-      <Wrapper />,
-    );
-    await wait();
+    const {
+      getByTestId,
+      findAllByRole,
+      findByTestId,
+      getByText,
+      getAllByTitle,
+    } = render(<Wrapper />);
+
     // Policy tables rows
-    const rowItemsPolicy = getAllByRole('row');
+    const rowItemsPolicy = await findAllByRole('row');
     // first row is the header
     expect(rowItemsPolicy[0]).toHaveTextContent('Policy ID');
     expect(rowItemsPolicy[0]).toHaveTextContent('Flows');
@@ -197,13 +201,12 @@ describe('<TrafficDashboard />', () => {
     const policyActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(policyActionList[0]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+
+    expect(await findByTestId('actions-menu')).toBeVisible();
 
     // Profiles tab
     fireEvent.click(getByText('Profiles'));
-    await wait();
-    const rowItemsProfile = getAllByRole('row');
+    const rowItemsProfile = await findAllByRole('row');
     // first row is the header
     expect(rowItemsProfile[0]).toHaveTextContent('Profile ID');
     expect(rowItemsProfile[0]).toHaveTextContent('Class ID');
@@ -223,8 +226,7 @@ describe('<TrafficDashboard />', () => {
 
     //Rating Groups Tab
     fireEvent.click(getByText('Rating Groups'));
-    await wait();
-    const rowItemsRatingGroups = getAllByRole('row');
+    const rowItemsRatingGroups = await findAllByRole('row');
     // first row is the header
     expect(rowItemsRatingGroups[0]).toHaveTextContent('Rating Group ID');
     expect(rowItemsRatingGroups[0]).toHaveTextContent('Limit type');
@@ -238,59 +240,63 @@ describe('<TrafficDashboard />', () => {
     const ratingGroupActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(ratingGroupActionList[0]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+    expect(await findByTestId('actions-menu')).toBeVisible();
   });
 
   it('shows prompt when remove policy is clicked', async () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdDelete')
       .mockImplementation();
-    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
-    await wait();
+    const {getByText, getByTestId, findAllByTitle, findByText} = render(
+      <Wrapper />,
+    );
+
     // click remove action for policy 0
-    const policyActionList = getAllByTitle('Actions');
+    const policyActionList = await findAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(policyActionList[0]);
-    await wait();
-    fireEvent.click(getByText('Remove'));
-    await wait();
+
+    fireEvent.click(await findByText('Remove'));
+
     expect(
-      getByText('Are you sure you want to delete policy_0?'),
+      await findByText('Are you sure you want to delete policy_0?'),
     ).toBeInTheDocument();
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
-    await wait();
-    expect(deleteMock).toHaveBeenCalledWith({
-      networkId: 'test',
-      ruleId: 'policy_0',
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalledWith({
+        networkId: 'test',
+        ruleId: 'policy_0',
+      });
     });
   });
   it('shows prompt when remove profile is clicked', async () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesProfileIdDelete')
       .mockImplementation();
-    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
-    await wait();
+    const {getByText, getByTestId, findAllByTitle, findByText} = render(
+      <Wrapper />,
+    );
     // Profiles tab
-    fireEvent.click(getByText('Profiles'));
-    await wait();
+    fireEvent.click(await findByText('Profiles'));
+
     // click remove action for profile_1
-    const profileActionList = getAllByTitle('Actions');
+    const profileActionList = await findAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(profileActionList[0]);
-    await wait();
-    fireEvent.click(getByText('Remove'));
-    await wait();
+
+    fireEvent.click(await findByText('Remove'));
+
     expect(
-      getByText('Are you sure you want to delete profile_1?'),
+      await findByText('Are you sure you want to delete profile_1?'),
     ).toBeInTheDocument();
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
-    await wait();
-    expect(deleteMock).toHaveBeenCalledWith({
-      networkId: 'test',
-      profileId: 'profile_1',
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalledWith({
+        networkId: 'test',
+        profileId: 'profile_1',
+      });
     });
   });
   it('shows prompt when remove rating group is clicked', async () => {
@@ -300,27 +306,29 @@ describe('<TrafficDashboard />', () => {
         'networksNetworkIdRatingGroupsRatingGroupIdDelete',
       )
       .mockImplementation();
-    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
-    await wait();
+    const {getByText, getByTestId, findAllByTitle, findByText} = render(
+      <Wrapper />,
+    );
+
     // Rating Groups tab
-    fireEvent.click(getByText('Rating Groups'));
-    await wait();
+    fireEvent.click(await findByText('Rating Groups'));
+
     // click remove action for rating group 0
-    const ratingGroupActionList = getAllByTitle('Actions');
+    const ratingGroupActionList = await findAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(ratingGroupActionList[0]);
-    await wait();
-    fireEvent.click(getByText('Remove'));
-    await wait();
+
+    fireEvent.click(await findByText('Remove'));
     expect(
-      getByText('Are you sure you want to delete Rating Group 0?'),
+      await findByText('Are you sure you want to delete Rating Group 0?'),
     ).toBeInTheDocument();
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
-    await wait();
-    expect(deleteMock).toHaveBeenCalledWith({
-      networkId: 'test',
-      ratingGroupId: 0,
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalledWith({
+        networkId: 'test',
+        ratingGroupId: 0,
+      });
     });
   });
 });
@@ -373,12 +381,15 @@ describe('<TrafficDashboard APNs/>', () => {
     </MemoryRouter>
   );
   it('renders', async () => {
-    const {getAllByText, getByTestId, getAllByRole, getAllByTitle} = render(
-      <Wrapper />,
-    );
-    await wait();
+    const {
+      findAllByText,
+      findByTestId,
+      getByTestId,
+      getAllByRole,
+      getAllByTitle,
+    } = render(<Wrapper />);
 
-    const apnTitles = getAllByText('APNs');
+    const apnTitles = await findAllByText('APNs');
     expect(apnTitles.length).toBe(2);
 
     // Apn tables rows
@@ -414,32 +425,33 @@ describe('<TrafficDashboard APNs/>', () => {
     const apnActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(apnActionList[0]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+
+    expect(await findByTestId('actions-menu')).toBeVisible();
   });
 
   it('shows prompt when remove apn is clicked', async () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNameDelete')
       .mockImplementation();
-    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
-    await wait();
+    const {getByText, getByTestId, findAllByTitle, findByText} = render(
+      <Wrapper />,
+    );
 
-    const apnActionList = getAllByTitle('Actions');
+    const apnActionList = await findAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(apnActionList[0]);
-    await wait();
-    fireEvent.click(getByText('Remove'));
-    await wait();
+
+    fireEvent.click(await findByText('Remove'));
     expect(
-      getByText('Are you sure you want to delete apn_0?'),
+      await findByText('Are you sure you want to delete apn_0?'),
     ).toBeInTheDocument();
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
-    await wait();
-    expect(deleteMock).toHaveBeenCalledWith({
-      networkId: 'test',
-      apnName: 'apn_0',
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalledWith({
+        networkId: 'test',
+        apnName: 'apn_0',
+      });
     });
   });
 });

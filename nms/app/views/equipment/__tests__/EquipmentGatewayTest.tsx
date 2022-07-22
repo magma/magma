@@ -18,7 +18,7 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import type {LteGateway, PromqlReturnObject} from '../../../../generated';
 
@@ -153,13 +153,15 @@ describe('<Gateway />', () => {
   );
 
   it('renders', async () => {
-    const {getByTestId, getAllByRole, getAllByTitle} = render(<Wrapper />);
-    await wait();
+    const {findByTestId, getByTestId, getAllByRole, getAllByTitle} = render(
+      <Wrapper />,
+    );
 
-    expect(
-      MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
-    ).toHaveBeenCalledTimes(1);
-
+    await waitFor(() =>
+      expect(
+        MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
+      ).toHaveBeenCalledTimes(1),
+    );
     expect(
       MagmaAPI.metrics.networksNetworkIdPrometheusQueryGet,
     ).toHaveBeenCalledTimes(3);
@@ -204,7 +206,6 @@ describe('<Gateway />', () => {
     const actionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(actionList[0]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+    expect(await findByTestId('actions-menu')).toBeVisible();
   });
 });
