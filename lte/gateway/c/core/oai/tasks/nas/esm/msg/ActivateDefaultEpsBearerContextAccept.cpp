@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextAccept.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -27,7 +29,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextAccept.hpp"
 
 int decode_activate_default_eps_bearer_context_accept(
     activate_default_eps_bearer_context_accept_msg*

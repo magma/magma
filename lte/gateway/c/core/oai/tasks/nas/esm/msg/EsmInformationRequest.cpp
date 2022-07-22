@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -26,7 +28,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationRequest.hpp"
 
 int decode_esm_information_request(
     esm_information_request_msg* esm_information_request, uint8_t* buffer,

@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -27,7 +29,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextRequest.hpp"
 
 int decode_deactivate_eps_bearer_context_request(
     deactivate_eps_bearer_context_request_msg*

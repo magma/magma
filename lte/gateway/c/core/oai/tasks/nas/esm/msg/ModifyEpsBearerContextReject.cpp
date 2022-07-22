@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextReject.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -28,7 +30,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextReject.hpp"
 
 int decode_modify_eps_bearer_context_reject(
     modify_eps_bearer_context_reject_msg* modify_eps_bearer_context_reject,

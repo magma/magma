@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -28,8 +30,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.hpp"
 
 int decode_pdn_disconnect_reject(
     pdn_disconnect_reject_msg* pdn_disconnect_reject, uint8_t* buffer,

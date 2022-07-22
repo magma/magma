@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -27,7 +29,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.hpp"
 
 int decode_bearer_resource_allocation_request(
     bearer_resource_allocation_request_msg* bearer_resource_allocation_request,

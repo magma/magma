@@ -31,6 +31,8 @@
   Description Defines EPS Session Management messages
 
 *****************************************************************************/
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -65,7 +67,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
