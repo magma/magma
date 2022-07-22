@@ -168,8 +168,6 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
 
     if response.response_code != ResponseCodes.SUCCESS.value:
         cbsd = response.request.cbsd
-        if cbsd:
-            cbsd.grant_attempts += 1
 
     grant = _get_or_create_grant_from_response(obj, response, session)
     if not grant:
@@ -363,8 +361,6 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     if not cbsd_id:
         return
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
-    if cbsd:
-        cbsd.grant_attempts = 0
     logger.info(f'Terminating all grants for {cbsd_id=}')
     session.query(DBGrant).filter(DBGrant.cbsd == cbsd).delete()
     logger.info(f"Deleting all channels for {cbsd_id=}")

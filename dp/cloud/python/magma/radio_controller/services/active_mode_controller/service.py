@@ -257,7 +257,6 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
         channels=channels,
         last_seen_timestamp=last_seen,
         eirp_capabilities=eirp_capabilities,
-        grant_attempts=cbsd.grant_attempts,
         db_data=db_data,
         preferences=preferences,
         sas_settings=sas_settings,
