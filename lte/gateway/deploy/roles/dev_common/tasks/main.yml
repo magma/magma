@@ -49,7 +49,10 @@
     state: restarted
 
 - name: Install ansible community collection
-  shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
+  become: yes
+  become_method: su
+  become_user: "{{ ansible_user }}"
+  command: ansible-galaxy collection install community.general
   ignore_errors: yes
 
 - name: Set build environment variables

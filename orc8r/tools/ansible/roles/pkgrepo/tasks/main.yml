@@ -10,9 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 - name: Remove all old registries
-  shell: rm -rf /etc/apt/sources.list.d/*.list
   become: yes
   ignore_errors: yes
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/*.list
+    state: absent
 
 - name: Wait for APT Lock
   shell: |
