@@ -89,7 +89,7 @@ deploy:
   kubectl:
     defaultNamespace: default
 profiles:
-  - name: integration-tests-no-orc8
+  - name: integration-tests
     patches:
       - op: add
         path: /build/artifacts/-
@@ -123,15 +123,6 @@ profiles:
         value:
           apply:
             - "--force=true"
-      - op: add
-        path: /deploy/kubectl
-        value:
-          manifests:
-            - "./tools/deployment/tests/test_runner_deployment.yml"
-    activation:
-      - env: CI=true
-  - name: integration-tests-orc8r-only
-    patches:
       - op: add
         path: /deploy/kubectl
         value:
