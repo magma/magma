@@ -353,20 +353,6 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-  integration_tests_no_orc8r:
-    name: "Domain proxy integration tests without orc8r"
-    runs-on: ubuntu-latest
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.integration_tests_no_orc8r == 'true' }}
-    continue-on-error: false
-    steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Run DP integration test (without orc8r)
-        uses: ./.github/workflows/composite/dp-integ-tests
-        with:
-          make_tests_target: _ci_integration_tests_no_orc8r
-
   integration_tests_orc8r:
     name: "Domain proxy integration tests with orc8r"
     runs-on: ubuntu-latest

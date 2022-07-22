@@ -31,22 +31,19 @@ endif
 local: init dev
 
 .PHONY: integration_tests
-integration_tests: init _ci_init cleanup_test_db
-	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
-	kubectl delete pods test-runner --ignore-not-found=true
-	skaffold dev -p integration-tests-no-orc8 --trigger=manual
+integration_tests: orc8r_integration_tests
 
 .PHONY: orc8r_integration_tests
 orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_PROFILES) --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: dev_integration_tests
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
+	skaffold dev -p orc8r-deployment,integration-tests,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -180,18 +177,9 @@ _generate_harness_config:
 	kubectl create configmap harness-config \
 	--from-file=tools/deployment/vendor/sas.cfg;
 
-.PHONY: _ci_integration_tests_no_orc8r
-_ci_integration_tests_no_orc8r: _install_skaffold_ci
-	skaffold run -p integration-tests-no-orc8
-	kubectl logs test-runner --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
-	@set -e;\
-	sleep 2;\
-	SUCCESS=$$(kubectl get pods test-runner -o jsonpath='{.status.phase}');\
-	if [[ $$SUCCESS != 'Succeeded' ]]; then kubectl get pods test-runner -o yaml && exit 1; fi
-
 .PHONY: _ci_integration_tests_orc8r
 _ci_integration_tests_orc8r: _install_skaffold_ci
-	skaffold run -p orc8r-deployment,integration-tests-no-orc8,integration-tests-orc8r-only$(APPEND_PROFILES)
+	skaffold run -p orc8r-deployment,integration-tests$(APPEND_PROFILES)
 	kubectl logs test-runner-orc8r --timestamps=true -f | tee /tmp/integration-tests-results/$@.txt
 	@set -e;\
 	sleep 2;\
