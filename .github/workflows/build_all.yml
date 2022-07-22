@@ -11,6 +11,8 @@ on:  # yamllint disable-line rule:truthy
       - master
       - 'v1.*'
     types: [opened, reopened, synchronize]
+env:
+  MAGMA_VERSION: "1.7.0"
 
 jobs:
   build_publish_helm_charts:
@@ -943,12 +945,7 @@ jobs:
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          echo TAG="${{ env.MAGMA_VERSION }}-${{ github.sha }}" >> $GITHUB_ENV
       - name: Tag and push to Jfrog Registry
         if: github.event_name == 'push'
         working-directory: "${{ github.workspace }}/dp"
