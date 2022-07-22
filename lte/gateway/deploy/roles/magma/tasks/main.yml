@@ -11,7 +11,11 @@
 # limitations under the License.
 
 - name: Fix resolve conf
-  shell: ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+  ansible.builtin.file:
+    src: /var/run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: yes
 
 - name: Include vars of all.yaml
   include_vars:
