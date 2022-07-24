@@ -310,4 +310,4 @@ profiles:
       - op: remove
         path: /build/artifacts/4  # remove fake sas image
       - op: remove
-        path: /build/artifacts/7  # remove postgresql image
+        path: /build/artifacts/6  # remove postgresql image
