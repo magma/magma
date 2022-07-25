@@ -16,7 +16,7 @@ bazel build lte/gateway/release:sctpd_deb_pkg --config=production
 """
 
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
-load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 SCTPD_PKGNAME = "magma-sctpd"
@@ -92,9 +92,19 @@ pkg_filegroup(
     prefix = "/etc/systemd/system",
 )
 
+pkg_filegroup(
+    name = "magma_ebpf",
+    srcs = [
+        "//lte/gateway/python/magma/kernsnoopd/ebpf:magma_ebpf_kernsnoopd",
+        "//lte/gateway/python/magma/pipelined/ebpf:magma_ebpf_pipelined",
+    ],
+    prefix = "/var/opt/magma/ebpf",
+)
+
 pkg_tar(
     name = "magma_content",
     srcs = [
+        ":magma_ebpf",
         ":magma_service_definitions",
     ],
     package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),

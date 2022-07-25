@@ -21,10 +21,6 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 py_binary(
     name = "kernsnoopd",
     srcs = ["main.py"],
-    data = [
-        "ebpf/byte_count.bpf.c",
-        "ebpf/common.bpf.h",
-    ],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
