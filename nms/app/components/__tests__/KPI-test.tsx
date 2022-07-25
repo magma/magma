@@ -23,7 +23,7 @@ import {EnodebInfo} from '../lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI, mockAPIOnce} from '../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 import type {EnodebState, FegLteNetwork, LteGateway} from '../../../generated';
 
 const mockFegLteNetworks: Array<string> = [
@@ -151,11 +151,9 @@ describe('<GatewaysKPIs />', () => {
     );
   };
   it('renders', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
-
-    expect(getByTestId('Connected')).toHaveTextContent('1');
-    expect(getByTestId('Disconnected')).toHaveTextContent('2');
+    const {findByTestId} = render(<Wrapper />);
+    expect(await findByTestId('Connected')).toHaveTextContent('1');
+    expect(await findByTestId('Disconnected')).toHaveTextContent('2');
   });
 });
 
@@ -281,9 +279,11 @@ describe('<ServicingAccessGatewaysKPI />', () => {
   };
   it('renders gateway count correctly', async () => {
     const {getByTestId} = render(<Wrapper />);
-    await wait();
-    // first get list of feg_lte networks
-    expect(MagmaAPI.federatedLTENetworks.fegLteGet).toHaveBeenCalledTimes(1);
+
+    await waitFor(() =>
+      // first get list of feg_lte networks
+      expect(MagmaAPI.federatedLTENetworks.fegLteGet).toHaveBeenCalledTimes(1),
+    );
     // get info about each feg_lte network
     expect(
       MagmaAPI.federatedLTENetworks.fegLteNetworkIdGet,

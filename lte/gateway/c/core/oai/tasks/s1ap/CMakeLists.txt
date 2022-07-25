@@ -25,13 +25,21 @@ set(ENV{ASN1C_PREFIX} "S1ap_")
 file(MAKE_DIRECTORY ${GENERATED_FULL_DIR})
 set(s1ap_generate_code_done_flag ${GENERATED_FULL_DIR}/S1AP_GENERATE_CODE_DONE)
 
+# TODO: GH13021 this is a mitigation for excessive logging that should be handled more clean
+set(ASN1_ERR_FILTER "2> >(grep -v \"Parameterized type\" | grep -v \"Compiled \" | grep -v \"Copied \" >&2)")
+
 if (${ASN1_SOURCE_DIR} IS_NEWER_THAN ${s1ap_generate_code_done_flag})
-  file(REMOVE ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.c ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.h)
-  execute_process(COMMAND asn1c -pdu=all -fcompound-names -gen-PER -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} RESULT_VARIABLE ret)
-  if (NOT ${ret} STREQUAL 0)
-    message(FATAL_ERROR "${ret}")
-  endif (NOT ${ret} STREQUAL 0)
-  execute_process(COMMAND bash "-c" "egrep -lRZ \"18446744073709551615\" ${GENERATED_FULL_DIR} | xargs -0 -l sed -i -e \"s/18446744073709551615/18446744073709551615u/g\"")
+    file(REMOVE ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.c ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.h)
+    execute_process(
+        COMMAND bash "-c" "asn1c -pdu=all -fcompound-names -gen-PER -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} ${ASN1_ERR_FILTER}"
+        RESULT_VARIABLE ret
+    )
+    if (NOT ${ret} STREQUAL 0)
+        message(FATAL_ERROR "${ret}")
+    endif (NOT ${ret} STREQUAL 0)
+    execute_process(
+        COMMAND bash "-c" "egrep -lRZ \"18446744073709551615\" ${GENERATED_FULL_DIR} | xargs -0 -l sed -i -e \"s/18446744073709551615/18446744073709551615u/g\""
+    )
 endif ()
 # TOUCH not in cmake 3.10
 file(WRITE ${s1ap_generate_code_done_flag})

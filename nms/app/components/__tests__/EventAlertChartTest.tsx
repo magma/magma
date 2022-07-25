@@ -20,7 +20,7 @@ import moment from 'moment';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI} from '../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 import type {PromqlReturnObject} from '../../../generated';
 
 const mockMetricSt: PromqlReturnObject = {
@@ -97,12 +97,13 @@ describe('<EventAlertChart/>', () => {
     );
 
     render(<Wrapper />);
-    await wait();
-
     const currentStep = tc.valid ? tc.step : '5m';
-    expect(
-      MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
-    ).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(
+        MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
+      ).toHaveBeenCalledTimes(1),
+    );
+
     expect(
       MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
     ).toBeCalledWith({

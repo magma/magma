@@ -20,7 +20,7 @@ import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI} from '../../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -148,20 +148,22 @@ describe('<EventsTable />', () => {
 
   it('Verify Subscriber Events Table', async () => {
     const {getAllByRole} = render(<Wrapper />);
-    await wait();
     const mockQuery = {
       networkId: 'test',
       tags: 'IMSI001011234560000,001011234560000',
       streams: '',
       hwIds: undefined,
     };
-    // verify that API is called with the correct tag
-    expect(MagmaAPI.events.eventsNetworkIdAboutCountGet).toHaveBeenCalledWith(
-      expect.objectContaining(mockQuery),
-    );
-    expect(MagmaAPI.events.eventsNetworkIdGet).toHaveBeenCalledWith(
-      expect.objectContaining(mockQuery),
-    );
+
+    await waitFor(() => {
+      // verify that API is called with the correct tag
+      expect(MagmaAPI.events.eventsNetworkIdAboutCountGet).toHaveBeenCalledWith(
+        expect.objectContaining(mockQuery),
+      );
+      expect(MagmaAPI.events.eventsNetworkIdGet).toHaveBeenCalledWith(
+        expect.objectContaining(mockQuery),
+      );
+    });
 
     const rowItems = getAllByRole('row');
     // first row is the header

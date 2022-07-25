@@ -22,7 +22,7 @@ import defaultTheme from '../../../theme/default';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
@@ -156,15 +156,14 @@ describe('<AddEditEnodeButton />', () => {
   };
 
   it('Verify Enode Configs', async () => {
-    const {getByTestId} = render(<DetailWrapper />);
-    await wait();
+    const {findByTestId} = render(<DetailWrapper />);
 
-    const config = getByTestId('config');
+    const config = await findByTestId('config');
     expect(config).toHaveTextContent('testEnodeb0');
     expect(config).toHaveTextContent('testEnodeb0Serial');
     expect(config).toHaveTextContent('test enodeb description');
 
-    const ran = getByTestId('ran');
+    const ran = await findByTestId('ran');
     expect(ran).toHaveTextContent('20');
     expect(ran).toHaveTextContent('TDD');
     expect(ran).toHaveTextContent('44290');
@@ -241,26 +240,27 @@ describe('<AddEditEnodeButton />', () => {
       );
     };
 
-    const {getByTestId} = render(<UnmanagedEnodeWrapper />);
-    await wait();
-    const config = getByTestId('config');
+    const {findByTestId} = render(<UnmanagedEnodeWrapper />);
+    const config = await findByTestId('config');
     expect(config).toHaveTextContent('testEnodeb1');
     expect(config).toHaveTextContent('testEnodebSerial1');
     expect(config).toHaveTextContent('test enodeb description');
 
-    const ran = getByTestId('ran');
+    const ran = await findByTestId('ran');
     expect(ran).toHaveTextContent('1');
     expect(ran).toHaveTextContent('1.1.1.2');
   });
 
   it('Verify Enode Add', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<AddWrapper />);
-    await wait();
+    const {
+      findByTestId,
+      getByTestId,
+      getByText,
+      queryByTestId,
+      findByText,
+    } = render(<AddWrapper />);
     expect(queryByTestId('editDialog')).toBeNull();
-
-    fireEvent.click(getByText('Add Enodeb'));
-    await wait();
-
+    fireEvent.click(await findByText('Add Enodeb'));
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
     expect(queryByTestId('ranEdit')).toBeNull();
@@ -281,12 +281,10 @@ describe('<AddEditEnodeButton />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(getByTestId('configEditError')).toHaveTextContent(
+    expect(await findByTestId('configEditError')).toHaveTextContent(
       'eNodeB testEnodebSerial0 already exists',
     );
-
     // test adding new enodeb
     if (
       enbSerial instanceof HTMLInputElement &&
@@ -311,47 +309,44 @@ describe('<AddEditEnodeButton />', () => {
     } else {
       throw 'invalid type';
     }
-
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(MagmaAPI.enodebs.lteNetworkIdEnodebsPost).toHaveBeenCalledWith({
-      enodeb: {
-        config: {
-          cell_id: 0,
-          device_class: 'Baicells Nova-233 G2 OD FDD',
-          transmit_enabled: false,
-        },
-        enodeb_config: {
-          config_type: 'MANAGED',
-          managed_config: {
+    await waitFor(() =>
+      expect(MagmaAPI.enodebs.lteNetworkIdEnodebsPost).toHaveBeenCalledWith({
+        enodeb: {
+          config: {
             cell_id: 0,
             device_class: 'Baicells Nova-233 G2 OD FDD',
             transmit_enabled: false,
           },
+          enodeb_config: {
+            config_type: 'MANAGED',
+            managed_config: {
+              cell_id: 0,
+              device_class: 'Baicells Nova-233 G2 OD FDD',
+              transmit_enabled: false,
+            },
+          },
+          description: 'Enode1 Description',
+          name: 'Test Enodeb 1',
+          serial: 'TestEnodebSerial1',
         },
-        description: 'Enode1 Description',
-        name: 'Test Enodeb 1',
-        serial: 'TestEnodebSerial1',
-      },
-      networkId: 'test',
-    });
+        networkId: 'test',
+      }),
+    );
 
     // now tab should move to ran edit component
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
-
     // switch tab to config and verify editing of recently created enodeb
     fireEvent.click(getByTestId('configTab'));
-    await wait();
 
-    expect(queryByTestId('configEdit')).not.toBeNull();
+    expect(await findByTestId('configEdit')).not.toBeNull();
     expect(queryByTestId('ranEdit')).toBeNull();
 
     enbSerial = getByTestId('serial').firstChild;
     enbName = getByTestId('name').firstChild;
     enbDesc = getByTestId('description').firstChild;
-
     if (
       enbSerial instanceof HTMLInputElement &&
       enbName instanceof HTMLInputElement &&
@@ -373,31 +368,33 @@ describe('<AddEditEnodeButton />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(
-      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
-    ).toHaveBeenCalledWith({
-      enodeb: {
-        config: {
-          cell_id: 0,
-          device_class: 'Baicells Nova-233 G2 OD FDD',
-          transmit_enabled: false,
-        },
-        description: 'Enode1 New Description',
-        name: 'Test Enodeb 1',
-        serial: 'TestEnodebSerial1',
-        enodeb_config: {
-          config_type: 'MANAGED',
-          managed_config: {
+
+    await waitFor(() =>
+      expect(
+        MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
+      ).toHaveBeenCalledWith({
+        enodeb: {
+          config: {
             cell_id: 0,
             device_class: 'Baicells Nova-233 G2 OD FDD',
             transmit_enabled: false,
           },
+          description: 'Enode1 New Description',
+          name: 'Test Enodeb 1',
+          serial: 'TestEnodebSerial1',
+          enodeb_config: {
+            config_type: 'MANAGED',
+            managed_config: {
+              cell_id: 0,
+              device_class: 'Baicells Nova-233 G2 OD FDD',
+              transmit_enabled: false,
+            },
+          },
         },
-      },
-      enodebSerial: 'TestEnodebSerial1',
-      networkId: 'test',
-    });
+        enodebSerial: 'TestEnodebSerial1',
+        networkId: 'test',
+      }),
+    );
 
     // now tab should move to ran edit component
     expect(queryByTestId('configEdit')).toBeNull();
@@ -420,22 +417,12 @@ describe('<AddEditEnodeButton />', () => {
     }
 
     fireEvent.click(getByText('Save And Add eNodeB'));
-    await wait();
-    expect(
-      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
-    ).toHaveBeenCalledWith({
-      enodeb: {
-        config: {
-          bandwidth_mhz: 20,
-          cell_id: 2,
-          earfcndl: 44000,
-          pci: 8,
-          device_class: 'Baicells Nova-233 G2 OD FDD',
-          transmit_enabled: false,
-        },
-        enodeb_config: {
-          config_type: 'MANAGED',
-          managed_config: {
+    await waitFor(() =>
+      expect(
+        MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
+      ).toHaveBeenCalledWith({
+        enodeb: {
+          config: {
             bandwidth_mhz: 20,
             cell_id: 2,
             earfcndl: 44000,
@@ -443,24 +430,33 @@ describe('<AddEditEnodeButton />', () => {
             device_class: 'Baicells Nova-233 G2 OD FDD',
             transmit_enabled: false,
           },
+          enodeb_config: {
+            config_type: 'MANAGED',
+            managed_config: {
+              bandwidth_mhz: 20,
+              cell_id: 2,
+              earfcndl: 44000,
+              pci: 8,
+              device_class: 'Baicells Nova-233 G2 OD FDD',
+              transmit_enabled: false,
+            },
+          },
+          description: 'Enode1 New Description',
+          name: 'Test Enodeb 1',
+          serial: 'TestEnodebSerial1',
         },
-        description: 'Enode1 New Description',
-        name: 'Test Enodeb 1',
-        serial: 'TestEnodebSerial1',
-      },
-      enodebSerial: 'TestEnodebSerial1',
-      networkId: 'test',
-    });
+        enodebSerial: 'TestEnodebSerial1',
+        networkId: 'test',
+      }),
+    );
   });
 
   it('Verify Enode Edit Config', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
-
-    fireEvent.click(getByTestId('configEditButton'));
-    await wait();
-
+    fireEvent.click(await findByTestId('configEditButton'));
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
     expect(queryByTestId('ranEdit')).toBeNull();
@@ -485,25 +481,12 @@ describe('<AddEditEnodeButton />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
-    expect(
-      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
-    ).toHaveBeenCalledWith({
-      enodeb: {
-        config: {
-          bandwidth_mhz: 20,
-          cell_id: 1,
-          device_class: 'Baicells ID TDD/FDD',
-          earfcndl: 44290,
-          pci: 36,
-          special_subframe_pattern: 7,
-          subframe_assignment: 2,
-          tac: 1,
-          transmit_enabled: true,
-        },
-        enodeb_config: {
-          config_type: 'MANAGED',
-          managed_config: {
+    await waitFor(() =>
+      expect(
+        MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
+      ).toHaveBeenCalledWith({
+        enodeb: {
+          config: {
             bandwidth_mhz: 20,
             cell_id: 1,
             device_class: 'Baicells ID TDD/FDD',
@@ -514,28 +497,40 @@ describe('<AddEditEnodeButton />', () => {
             tac: 1,
             transmit_enabled: true,
           },
-          unmanaged_config: undefined,
+          enodeb_config: {
+            config_type: 'MANAGED',
+            managed_config: {
+              bandwidth_mhz: 20,
+              cell_id: 1,
+              device_class: 'Baicells ID TDD/FDD',
+              earfcndl: 44290,
+              pci: 36,
+              special_subframe_pattern: 7,
+              subframe_assignment: 2,
+              tac: 1,
+              transmit_enabled: true,
+            },
+            unmanaged_config: undefined,
+          },
+          description: 'test enodeb new description',
+          name: 'testEnodeb0',
+          serial: 'testEnodebSerial0',
         },
-        description: 'test enodeb new description',
-        name: 'testEnodeb0',
-        serial: 'testEnodebSerial0',
-      },
-      enodebSerial: 'testEnodebSerial0',
-      networkId: 'mynetwork',
-    });
+        enodebSerial: 'testEnodebSerial0',
+        networkId: 'mynetwork',
+      }),
+    );
 
     const config = getByTestId('config');
     expect(config).toHaveTextContent('test enodeb new description');
   });
 
   it('Verify Enode Edit Ran', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
-
-    fireEvent.click(getByTestId('ranEditButton'));
-    await wait();
-
+    fireEvent.click(await findByTestId('ranEditButton'));
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
 
@@ -557,26 +552,12 @@ describe('<AddEditEnodeButton />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
-    expect(
-      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
-    ).toHaveBeenCalledWith({
-      enodeb: {
-        config: {
-          bandwidth_mhz: 20,
-          cell_id: 1,
-          device_class: 'Baicells ID TDD/FDD',
-          earfcndl: 40000,
-          pci: 36,
-          special_subframe_pattern: 7,
-          subframe_assignment: 2,
-          tac: 1,
-          transmit_enabled: true,
-        },
-        enodeb_config: {
-          config_type: 'MANAGED',
-          unmanaged_config: undefined,
-          managed_config: {
+    await waitFor(() =>
+      expect(
+        MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
+      ).toHaveBeenCalledWith({
+        enodeb: {
+          config: {
             bandwidth_mhz: 20,
             cell_id: 1,
             device_class: 'Baicells ID TDD/FDD',
@@ -587,23 +568,38 @@ describe('<AddEditEnodeButton />', () => {
             tac: 1,
             transmit_enabled: true,
           },
+          enodeb_config: {
+            config_type: 'MANAGED',
+            unmanaged_config: undefined,
+            managed_config: {
+              bandwidth_mhz: 20,
+              cell_id: 1,
+              device_class: 'Baicells ID TDD/FDD',
+              earfcndl: 40000,
+              pci: 36,
+              special_subframe_pattern: 7,
+              subframe_assignment: 2,
+              tac: 1,
+              transmit_enabled: true,
+            },
+          },
+          description: 'test enodeb description',
+          name: 'testEnodeb0',
+          serial: 'testEnodebSerial0',
         },
-        description: 'test enodeb description',
-        name: 'testEnodeb0',
-        serial: 'testEnodebSerial0',
-      },
-      enodebSerial: 'testEnodebSerial0',
-      networkId: 'mynetwork',
-    });
+        enodebSerial: 'testEnodebSerial0',
+        networkId: 'mynetwork',
+      }),
+    );
   });
 
   it('Verify Enode Edit unmanaged eNodeB', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByTestId('ranEditButton'));
-    await wait();
+    fireEvent.click(await findByTestId('ranEditButton'));
 
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
@@ -618,8 +614,6 @@ describe('<AddEditEnodeButton />', () => {
     } else {
       throw 'invalid type';
     }
-
-    await wait();
 
     const ipAddress = getByTestId('ipAddress').firstChild;
     const cellId = getByTestId('cellId').firstChild;
@@ -638,31 +632,32 @@ describe('<AddEditEnodeButton />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
-    expect(
-      MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
-    ).toHaveBeenCalledWith({
-      enodeb: {
-        config: {
-          cell_id: 0,
-          device_class: 'Baicells Nova-233 G2 OD FDD',
-          transmit_enabled: false,
-        },
-        enodeb_config: {
-          config_type: 'UNMANAGED',
-          managed_config: undefined,
-          unmanaged_config: {
-            cell_id: 1,
-            ip_address: '1.1.1.1',
-            tac: 1,
+    await waitFor(() =>
+      expect(
+        MagmaAPI.enodebs.lteNetworkIdEnodebsEnodebSerialPut,
+      ).toHaveBeenCalledWith({
+        enodeb: {
+          config: {
+            cell_id: 0,
+            device_class: 'Baicells Nova-233 G2 OD FDD',
+            transmit_enabled: false,
           },
+          enodeb_config: {
+            config_type: 'UNMANAGED',
+            managed_config: undefined,
+            unmanaged_config: {
+              cell_id: 1,
+              ip_address: '1.1.1.1',
+              tac: 1,
+            },
+          },
+          description: 'test enodeb description',
+          name: 'testEnodeb0',
+          serial: 'testEnodebSerial0',
         },
-        description: 'test enodeb description',
-        name: 'testEnodeb0',
-        serial: 'testEnodebSerial0',
-      },
-      enodebSerial: 'testEnodebSerial0',
-      networkId: 'mynetwork',
-    });
+        enodebSerial: 'testEnodebSerial0',
+        networkId: 'mynetwork',
+      }),
+    );
   });
 });
