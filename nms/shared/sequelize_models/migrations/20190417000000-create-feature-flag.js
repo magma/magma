@@ -17,48 +17,48 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} types
+   * @param {{ context: QueryInterface}} params
    */
-  up: (queryInterface, types) => {
+  up: ({context: queryInterface}) => {
     return queryInterface.createTable('FeatureFlags', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: types.INTEGER,
+        type: DataTypes.INTEGER,
       },
       featureId: {
         allowNull: false,
-        type: types.STRING,
+        type: DataTypes.STRING,
       },
       organization: {
         allowNull: false,
-        type: types.STRING,
+        type: DataTypes.STRING,
       },
       enabled: {
         allowNull: false,
-        type: types.BOOLEAN,
+        type: DataTypes.BOOLEAN,
       },
       createdAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
     });
   },
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     return queryInterface.dropTable('FeatureFlags');
   },
 };
