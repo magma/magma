@@ -40,10 +40,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   # TODO: GH12771 add MME_BENCHMARK support and bazelify files
   "./lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
   "./lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.cpp"
-  # TODO: GH12775 tests that need to be bazelified
-  "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
-  "./lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.cpp"
-  "./lte/gateway/c/core/oai/test/s1ap_task/test_s1ap_mme_handlers_with_injected_state.cpp"
 )
 
 DENY_LIST=( "${DENY_LIST_NOT_RELEVANT[@]}" "${DENY_LIST_NOT_YET_BAZELIFIED[@]}" )
