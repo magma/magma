@@ -447,7 +447,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
 
   return (
     <>
-      <DialogContent>
+      <DialogContent data-testid="subscriber-details-table">
         {(addError.length > 0 || props.error) && (
           <Grid item>
             <Alert severity="error">

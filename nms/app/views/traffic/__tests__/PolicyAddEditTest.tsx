@@ -519,7 +519,6 @@ describe('<TrafficDashboard />', () => {
   });
 
   it('verify lte policy full add', async () => {
-    jest.setTimeout(30000);
     const networkId = 'test';
     const {queryByTestId, getByTestId, getByText} = render(
       <PolicyWrapper networkType={LTE} />,

@@ -200,7 +200,7 @@ describe('<CbsdAddEditDialog />', () => {
     const fillMuiSelect = (testId: string, optionText: string | number) => {
       const select = getByTestId(testId);
       fireEvent.mouseDown(within(select).getByRole('button'));
-      const listbox = within(getByRole('listbox'));
+      const listbox = within(getByRole('listbox', {hidden: false}));
       fireEvent.click(listbox.getByText(new RegExp(`^${optionText}`, 'i')));
     };
 
