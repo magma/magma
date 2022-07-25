@@ -16,7 +16,7 @@ import FEGGateway from './FEGEquipmentGateway';
 import FEGGatewayDetail from './FEGGatewayDetailMain';
 import React from 'react';
 import TopBar from '../../components/TopBar';
-
+import {FEGAddGatewayButton} from '../../components/feg/FEGGatewayDialog';
 import {Navigate, Route, Routes} from 'react-router-dom';
 
 /**
@@ -52,6 +52,7 @@ function EquipmentDashboardInternal() {
             label: 'Federation Gateways',
             to: 'gateway',
             icon: CellWifiIcon,
+            filters: <FEGAddGatewayButton />,
           },
         ]}
       />
