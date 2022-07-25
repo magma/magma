@@ -25,7 +25,7 @@ VERSION = "1.8.0"
 
 ARCH = "amd64"
 
-FILE_NAME = "{name}_{ver}_{arch}".format(
+SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = SCTPD_PKGNAME,
     arch = ARCH,
     ver = VERSION,
@@ -44,12 +44,6 @@ pkg_files(
 )
 
 pkg_files(
-    name = "sctpd_service_definition",
-    srcs = ["//lte/gateway/deploy/roles/magma/files/systemd:sctpd.service"],
-    prefix = "/etc/systemd/system/",
-)
-
-pkg_files(
     name = "sctpd_binary",
     srcs = ["//lte/gateway/c/sctpd/src:sctpd"],
     attributes = pkg_attributes(mode = "0755"),
@@ -60,11 +54,10 @@ pkg_tar(
     name = "sctpd_content",
     srcs = [
         ":sctpd_binary",
-        ":sctpd_service_definition",
         ":sctpd_version",
+        "//lte/gateway/deploy/roles/magma/files/systemd:sctpd_service_definition",
     ],
-    package_dir = "./",
-    package_file_name = "{fname}.tar".format(fname = FILE_NAME),
+    package_file_name = "{fname}.tar".format(fname = SCTPD_FILE_NAME),
 )
 
 pkg_deb(
@@ -73,6 +66,6 @@ pkg_deb(
     description = "Magma SCTPD",
     maintainer = "Copyright (c) 2022 The Magma Authors",
     package = SCTPD_PKGNAME,
-    package_file_name = "{fname}.deb".format(fname = FILE_NAME),
+    package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
     version = VERSION,
 )

@@ -9,4 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-exports_files(["sctpd.service"])
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
+
+pkg_files(
+    name = "sctpd_service_definition",
+    srcs = ["sctpd.service"],
+    prefix = "/etc/systemd/system/",
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
