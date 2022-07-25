@@ -82,10 +82,20 @@ pkg_deb(
 
 ### MAGMA BUILD
 
+pkg_filegroup(
+    name = "magma_service_definitions",
+    srcs = [
+        "//lte/gateway/deploy/roles/magma/files/systemd:magma_lte_service_definitions",
+        "//orc8r/tools/ansible/roles/fluent_bit/files:magma_fluent_bit_service_definition",
+        "//orc8r/tools/ansible/roles/gateway_services/files:magma_orc8r_service_definitions",
+    ],
+    prefix = "/etc/systemd/system",
+)
+
 pkg_tar(
     name = "magma_content",
     srcs = [
-
+        ":magma_service_definitions",
     ],
     package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
 )
