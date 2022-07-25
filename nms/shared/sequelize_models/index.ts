@@ -254,7 +254,9 @@ async function migrateMeta(source: Sequelize, target: Sequelize) {
   await targetInterface.bulkInsert('SequelizeMeta', rows);
 }
 
-function getDataValues(sequelizeModels: Array<Model>): Array<object> {
+function getDataValues<M extends Model>(
+  sequelizeModels: Array<M>,
+): M extends Model<infer K> ? Array<K> : never {
   // @ts-ignore
   return sequelizeModels.map(model => model.dataValues); // eslint-disable-line @typescript-eslint/no-unsafe-return
 }

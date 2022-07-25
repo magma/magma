@@ -27,9 +27,10 @@ module.exports = {
    * @param {QueryInterface} queryInterface
    */
   up: queryInterface => {
-    return queryInterface.addConstraint('Organizations', ['name'], {
+    return queryInterface.addConstraint('Organizations', {
       type: 'unique',
       name: CONSTRAINT_NAME,
+      fields: ['name'],
     });
   },
 
