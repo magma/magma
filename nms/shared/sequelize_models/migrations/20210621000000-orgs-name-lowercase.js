@@ -17,7 +17,6 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
 
 /**
@@ -46,9 +45,9 @@ const TableOrgNameColumn = {
  */
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  up: queryInterface => {
+  up: ({context: queryInterface}) => {
     return queryInterface.sequelize.transaction(async transaction => {
       // Postgres needs capitalized table names surrounded by quotations
       // This would cause an error in MySQL

@@ -17,16 +17,15 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
 
 const CONSTRAINT_NAME = 'unique_organization_name';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  up: queryInterface => {
+  up: ({context: queryInterface}) => {
     return queryInterface.addConstraint('Organizations', {
       type: 'unique',
       name: CONSTRAINT_NAME,
@@ -35,9 +34,9 @@ module.exports = {
   },
 
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     return queryInterface.removeConstraint('Organizations', CONSTRAINT_NAME);
   },
 };

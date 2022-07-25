@@ -72,7 +72,7 @@
     "react-textarea-autosize": "^6.1.0",
     "sequelize": "^6.21.3",
     "style-loader": "^2.0.0",
-    "umzug": "^2.1.0",
+    "umzug": "^3.1.1",
     "url": "^0.11.0",
     "winston": "^3.0.0",
     "yarn": "^1.12.3"
@@ -115,7 +115,6 @@
     "@types/react-textarea-autosize": "^4.3.6",
     "@types/supertest": "^2.0.12",
     "@types/terser-webpack-plugin": "^2.2.0",
-    "@types/umzug": "^2.3.3",
     "@types/validator": "^13.7.3",
     "@types/webpack": "^4.41.32",
     "@types/webpack-bundle-analyzer": "3.9.0",
