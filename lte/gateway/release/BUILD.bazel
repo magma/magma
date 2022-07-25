@@ -114,10 +114,28 @@ pkg_files(
     renames = {"//lte/gateway/c/core:agw_of": "mme"},
 )
 
+pkg_filegroup(
+    name = "magma_configs",
+    srcs = [
+        "//lte/gateway/configs:magma_config_files",
+        "//lte/gateway/configs/templates:magma_lte_config_template_files",
+        "//orc8r/gateway/configs/templates:magma_orc8r_config_template_files",
+    ],
+    prefix = "/etc/magma",
+)
+
+pkg_files(
+    name = "magma_config_stretch_snapshot",
+    srcs = [":stretch_snapshot"],
+    prefix = "/usr/local/share/magma",
+)
+
 pkg_tar(
     name = "magma_content",
     srcs = [
         ":magma_c_binaries",
+        ":magma_config_stretch_snapshot",
+        ":magma_configs",
         ":magma_ebpf",
         ":magma_service_definitions",
     ],
