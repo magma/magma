@@ -101,9 +101,23 @@ pkg_filegroup(
     prefix = "/var/opt/magma/ebpf",
 )
 
+pkg_files(
+    name = "magma_c_binaries",
+    srcs = [
+        "//lte/gateway/c/connection_tracker/src:connectiond",
+        "//lte/gateway/c/core:agw_of",
+        "//lte/gateway/c/li_agent/src:liagentd",
+        "//lte/gateway/c/session_manager:sessiond",
+    ],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+    renames = {"//lte/gateway/c/core:agw_of": "mme"},
+)
+
 pkg_tar(
     name = "magma_content",
     srcs = [
+        ":magma_c_binaries",
         ":magma_ebpf",
         ":magma_service_definitions",
     ],
