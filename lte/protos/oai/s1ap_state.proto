@@ -21,6 +21,17 @@ message SupportedTaList {
   repeated SupportedTaiItems supported_tai_items = 2;
 }
 
+message ERabAdmittedItem {
+  uint32 e_rab_id = 1;
+  bytes transport_layer_address = 2;
+  uint32 gtp_teid = 3;
+}
+
+message ERabAdmittedList {
+  uint32 no_of_items = 1;
+  repeated ERabAdmittedItem item = 2;
+}
+
 message EnbDescription {
   uint32 enb_id = 1;
 
@@ -53,6 +64,7 @@ message UeDescription {
   uint32 sctp_assoc_id = 8; // sctp_assoc_id_t
 
   S1apHandoverState s1ap_handover_state = 9; // s1ap_handover_state_t
+  uint64 comp_s1ap_id = 10; // sctp_assoc_id & enb_ue_s1ap_id
 }
 
 message S1apState {
@@ -72,4 +84,8 @@ message S1apHandoverState {
   uint32 target_enb_ue_s1ap_id = 4; // enb_ue_s1ap_id_t
   uint32 target_sctp_stream_recv = 5; // sctp_stream_id_t
   uint32 target_sctp_stream_send = 6; // sctp_stream_id_t
+  uint32 source_enb_ue_s1ap_id = 7;
+  uint32 source_sctp_stream_recv = 8;
+  uint32 source_sctp_stream_send = 9;
+  ERabAdmittedList e_rab_admitted_list = 10;
 }

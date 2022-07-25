@@ -221,6 +221,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(
           &message_p->ittiMsg.s1ap_handover_request_ack.tgt_src_container);
       break;
+    case S1AP_HANDOVER_NOTIFY: {
+      e_rab_admitted_list_t e_rab_admitted_list = {0};
+      e_rab_admitted_list =
+          message_p->ittiMsg.s1ap_handover_notify.e_rab_admitted_list;
+      for (int idx = 0; idx < e_rab_admitted_list.no_of_items; idx++) {
+        bdestroy_wrapper(
+            &e_rab_admitted_list.item[idx].transport_layer_address);
+      }
+    } break;
     case S6A_UPDATE_LOCATION_REQ:
     case S6A_UPDATE_LOCATION_ANS:
     case S6A_AUTH_INFO_REQ:

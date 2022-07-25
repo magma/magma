@@ -84,11 +84,11 @@ class S1apStateConverter : StateConverter {
   static void proto_to_enb(const oai::EnbDescription& proto,
                            enb_description_t* enb);
 
-  static void ue_to_proto(const ue_description_t* ue,
+  static void ue_to_proto(const oai::UeDescription* ue,
                           oai::UeDescription* proto);
 
   static void proto_to_ue(const oai::UeDescription& proto,
-                          ue_description_t* ue);
+                          oai::UeDescription* ue);
 
  private:
   S1apStateConverter();

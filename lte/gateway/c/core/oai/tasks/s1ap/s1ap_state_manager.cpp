@@ -83,9 +83,10 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
 
-  state_ue_map.map = new google::protobuf::Map<uint64_t, ue_description_s*>();
+  state_ue_map.map =
+      new google::protobuf::Map<uint64_t, magma::lte::oai::UeDescription*>();
   state_ue_map.set_name(S1AP_ENB_COLL);
-  state_ue_map.bind_callback(free_enb_description);
+  state_ue_map.bind_callback(free_ue_description);
 
   create_s1ap_imsi_map();
 }
@@ -150,7 +151,7 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    auto* ue_context = new ue_description_t();
+    auto* ue_context = new UeDescription();
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
@@ -158,22 +159,22 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
     S1apStateConverter::proto_to_ue(ue_proto, ue_context);
 
     proto_map_rc_t rc =
-        state_ue_map.insert(ue_context->comp_s1ap_id, ue_context);
+        state_ue_map.insert(ue_context->comp_s1ap_id(), ue_context);
     if (PROTO_MAP_OK != rc) {
       OAILOG_ERROR(
           log_task,
           "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
           ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
           ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
-          ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
-          ue_context->mme_ue_s1ap_id, magma::map_rc_code2string(rc));
+          ue_context->comp_s1ap_id(), ue_context->enb_ue_s1ap_id(),
+          ue_context->mme_ue_s1ap_id(), magma::map_rc_code2string(rc));
     } else {
       OAILOG_DEBUG(log_task,
                    "Inserted UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
                    ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
                    ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT,
-                   ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
-                   ue_context->mme_ue_s1ap_id);
+                   ue_context->comp_s1ap_id(), ue_context->enb_ue_s1ap_id(),
+                   ue_context->mme_ue_s1ap_id());
     }
   }
 #endif

@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 using magma::lte::oai::S1apState;
 using magma::lte::oai::UeDescription;
@@ -68,16 +69,17 @@ status_code_e mock_read_s1ap_ue_state_db(
       return RETURNerror;
     }
 
-    ue_description_t* ue_context_p = new ue_description_t();
+    UeDescription* ue_context_p = new UeDescription();
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
     proto_map_rc_t rc =
-        state_ue_map->insert(ue_context_p->comp_s1ap_id,
-                             reinterpret_cast<ue_description_t*>(ue_context_p));
+        state_ue_map->insert(ue_context_p->comp_s1ap_id(),
+                             reinterpret_cast<UeDescription*>(ue_context_p));
 
     if (magma::PROTO_MAP_OK != rc) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
+      free_ue_description(reinterpret_cast<void**>(&ue_context_p));
       return RETURNerror;
     }
   }

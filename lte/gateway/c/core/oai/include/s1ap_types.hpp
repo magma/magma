@@ -29,6 +29,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/protos/oai/s1ap_state.pb.h"
 
 // Forward declarations
 struct enb_description_s;
@@ -130,8 +131,8 @@ typedef struct ue_description_s {
   s1ap_handover_state_t s1ap_handover_state;
 } ue_description_t;
 
-// Map- Key:uint64_t, Data:ue_description_s*
-typedef magma::proto_map_s<uint64_t, struct ue_description_s*>
+// Map- Key:uint64_t, Data: pointer to protobuf object, UeDescription
+typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>
     map_uint64_ue_description_t;
 
 /* Maximum no. of Broadcast PLMNs. Value is 6

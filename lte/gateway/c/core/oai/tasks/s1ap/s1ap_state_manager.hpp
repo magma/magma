@@ -56,7 +56,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p);
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager
-    : public StateManager<s1ap_state_t, ue_description_t,
+    : public StateManager<s1ap_state_t, magma::lte::oai::UeDescription,
                           magma::lte::oai::S1apState,
                           magma::lte::oai::UeDescription, S1apStateConverter> {
  public:

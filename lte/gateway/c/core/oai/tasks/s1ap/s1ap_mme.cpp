@@ -70,6 +70,7 @@ bool s1ap_congestion_control_enabled = true;
 long s1ap_last_msg_latency = 0;
 long s1ap_zmq_th = LONG_MAX;
 
+using magma::lte::oai::UeDescription;
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void) {
   // Create and alloc new message
@@ -395,32 +396,33 @@ enb_description_t* s1ap_new_enb(void) {
 }
 
 //------------------------------------------------------------------------------
-ue_description_t* s1ap_new_ue(s1ap_state_t* state,
-                              const sctp_assoc_id_t sctp_assoc_id,
-                              enb_ue_s1ap_id_t enb_ue_s1ap_id) {
+UeDescription* s1ap_new_ue(s1ap_state_t* state,
+                           const sctp_assoc_id_t sctp_assoc_id,
+                           enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   enb_description_t* enb_ref = NULL;
-  ue_description_t* ue_ref = NULL;
+  UeDescription* ue_ref = nullptr;
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
-  ue_ref = new ue_description_t();
+  ue_ref = new UeDescription();
   /*
    * Something bad happened during malloc...
    * * * * May be we are running out of memory.
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
-  if (ue_ref == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for ue context");
+  if (ue_ref == nullptr) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Failed to allocate memory for protobuf object UeDescription");
     return NULL;
   }
-  ue_ref->sctp_assoc_id = sctp_assoc_id;
-  ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
-  ue_ref->comp_s1ap_id =
-      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
+  ue_ref->set_sctp_assoc_id(sctp_assoc_id);
+  ue_ref->set_enb_ue_s1ap_id(enb_ue_s1ap_id);
+  ue_ref->set_comp_s1ap_id(
+      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id));
 
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
   magma::proto_map_rc_t rc =
-      s1ap_ue_state->insert(ue_ref->comp_s1ap_id, ue_ref);
+      s1ap_ue_state->insert(ue_ref->comp_s1ap_id(), ue_ref);
 
   if (magma::PROTO_MAP_OK != rc) {
     OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
@@ -436,14 +438,14 @@ ue_description_t* s1ap_new_ue(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
+void s1ap_remove_ue(s1ap_state_t* state, UeDescription* ue_ref) {
   enb_description_t* enb_ref = NULL;
 
   // NULL reference...
   if (ue_ref == NULL) return;
 
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
-  enb_ref = s1ap_state_get_enb(state, ue_ref->sctp_assoc_id);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id();
+  enb_ref = s1ap_state_get_enb(state, ue_ref->sctp_assoc_id());
   DevAssert(enb_ref->nb_ue_associated > 0);
   // Updating number of UE
   enb_ref->nb_ue_associated--;
@@ -451,16 +453,17 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   OAILOG_TRACE(LOG_S1AP,
                "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
                " mme_ue_s1ap_id:" MME_UE_S1AP_ID_FMT " in eNB id : %d\n",
-               ue_ref->enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, enb_ref->enb_id);
+               ue_ref->enb_ue_s1ap_id(), ue_ref->mme_ue_s1ap_id(),
+               enb_ref->enb_id);
 
-  ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
-  if (ue_ref->s1ap_ue_context_rel_timer.id != S1AP_TIMER_INACTIVE_ID) {
-    s1ap_stop_timer(ue_ref->s1ap_ue_context_rel_timer.id);
-    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+  ue_ref->set_s1_ue_state(S1AP_UE_INVALID_STATE);
+  if (ue_ref->s1ap_ue_context_rel_timer().id() != S1AP_TIMER_INACTIVE_ID) {
+    s1ap_stop_timer(ue_ref->s1ap_ue_context_rel_timer().id());
+    ue_ref->mutable_s1ap_ue_context_rel_timer()->set_id(S1AP_TIMER_INACTIVE_ID);
   }
 
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
-  s1ap_ue_state->remove(ue_ref->comp_s1ap_id);
+  s1ap_ue_state->remove(ue_ref->comp_s1ap_id());
   state->mmeid2associd.remove(mme_ue_s1ap_id);
   enb_ref->ue_id_coll.remove(mme_ue_s1ap_id);
 

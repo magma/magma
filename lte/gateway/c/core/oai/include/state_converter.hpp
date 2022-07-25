@@ -244,25 +244,26 @@ class StateConverter {
 
   template <typename state_map_t, typename proto_map_t>
   static void copy_int_protomap_to_proto(state_map_t state_map,
-                                               proto_map_t* proto_map) {
-    for (auto elm = state_map.map->begin(); elm != state_map.map->end(); ++elm) {
+                                         proto_map_t* proto_map) {
+    for (auto elm = state_map.map->begin(); elm != state_map.map->end();
+         ++elm) {
       (*proto_map)[elm->first] = elm->second;
     }
   }
 
   template <typename proto_map_t, typename state_map_t>
-  static void copy_int_protomap_to_state(const proto_map_t &proto_map, state_map_t state_map){
-  for (auto const& kv : proto_map) {
-    proto_map_rc_t rc =
-        state_map.insert(kv.first, kv.second);
-    if (rc != PROTO_MAP_OK) {
-      OAILOG_ERROR(LOG_UTIL,
-                   "Failed to insert value %lu in table %s: error: %s\n", kv.second,
-                   state_map.get_name(),magma::map_rc_code2string(rc));
+  static void copy_int_protomap_to_state(const proto_map_t& proto_map,
+                                         state_map_t state_map) {
+    for (auto const& kv : proto_map) {
+      proto_map_rc_t rc = state_map.insert(kv.first, kv.second);
+      if (rc != PROTO_MAP_OK) {
+        OAILOG_ERROR(
+            LOG_UTIL, "Failed to insert value %lu in table %s: error: %s\n",
+            kv.second, state_map.get_name(), magma::map_rc_code2string(rc));
+      }
     }
   }
 
-}
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
   static void chars_to_plmn(const char* plmn_array, plmn_t* state_plmn);

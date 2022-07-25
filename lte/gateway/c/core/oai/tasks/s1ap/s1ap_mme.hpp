@@ -25,6 +25,7 @@
 #pragma once
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
+#include "lte/protos/oai/s1ap_state.pb.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,6 +38,9 @@ extern "C" {
 #define S1AP_ZMQ_LATENCY_TH \
   s1ap_zmq_th  // absolute threshold to be used for initial UE messages
 
+#ifdef __cplusplus
+}
+#endif
 extern bool hss_associated;
 
 /** \brief Allocate and add to the list a new eNB descriptor
@@ -49,14 +53,15 @@ enb_description_t* s1ap_new_enb(void);
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-ue_description_t* s1ap_new_ue(s1ap_state_t* state,
-                              sctp_assoc_id_t sctp_assoc_id,
-                              enb_ue_s1ap_id_t enb_ue_s1ap_id);
+magma::lte::oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
+                                            sctp_assoc_id_t sctp_assoc_id,
+                                            enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/
-void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref);
+void s1ap_remove_ue(s1ap_state_t* state,
+                    magma::lte::oai::UeDescription* ue_ref);
 
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
@@ -64,6 +69,5 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref);
 void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
 
 void free_enb_description(void** ptr);
-#ifdef __cplusplus
-}
-#endif
+
+void free_ue_description(void** ptr);
