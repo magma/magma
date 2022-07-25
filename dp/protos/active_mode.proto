@@ -37,13 +37,12 @@ message Cbsd {
   repeated Grant grants = 4;
   repeated Channel channels = 5;
   int64 last_seen_timestamp = 6;
-  int32 grant_attempts = 7;
-  SasSettings sas_settings = 8;
-  InstallationParams installation_params = 9;
-  EirpCapabilities eirp_capabilities = 10;
-  DatabaseCbsd db_data = 11;
-  FrequencyPreferences preferences = 12;
-  GrantSettings grant_settings = 13;
+  SasSettings sas_settings = 7;
+  InstallationParams installation_params = 8;
+  EirpCapabilities eirp_capabilities = 9;
+  DatabaseCbsd db_data = 10;
+  FrequencyPreferences preferences = 11;
+  GrantSettings grant_settings = 12;
 }
 
 message SasSettings {
