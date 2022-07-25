@@ -31,6 +31,16 @@ SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
     ver = VERSION,
 )
 
+MAGMA_PKGNAME = "magma"
+
+MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
+    name = MAGMA_PKGNAME,
+    arch = ARCH,
+    ver = VERSION,
+)
+
+### SCTPD BUILD
+
 genrule(
     name = "gen_sctpd_version",
     outs = ["version"],
@@ -67,5 +77,28 @@ pkg_deb(
     maintainer = "Copyright (c) 2022 The Magma Authors",
     package = SCTPD_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
+    version = VERSION,
+)
+
+### MAGMA BUILD
+
+pkg_tar(
+    name = "magma_content",
+    srcs = [
+
+    ],
+    package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
+)
+
+pkg_deb(
+    name = "magma_deb_pkg",
+    data = ":magma_content",
+    depends = [],
+    description = "Magma Access Gateway",
+    maintainer = "Copyright (c) 2022 The Magma Authors",
+    package = MAGMA_PKGNAME,
+    package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
+    provides = [MAGMA_PKGNAME],
+    replaces = [MAGMA_PKGNAME],
     version = VERSION,
 )
