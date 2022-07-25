@@ -1142,6 +1142,9 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
   transfer_request_ie->value.present =
       Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_QosFlowSetupRequestList;
 
+  asn_set_empty(
+      &transfer_request_ie->value.choice.QosFlowSetupRequestList.list);
+
   for (int i = 0; i < qos_list->maxNumOfQosFlows; i++) {
     Ngap_QosFlowSetupRequestItem_t* qos_item =
         (Ngap_QosFlowSetupRequestItem_t*)calloc(
@@ -1155,8 +1158,6 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
         &(qos_item->qosFlowLevelQosParameters);
     ngap_fill_qos_flow_level_qos_parameters(qos_list, qos_flow_params, i);
 
-    asn_set_empty(
-        &transfer_request_ie->value.choice.QosFlowSetupRequestList.list);
     ASN_SEQUENCE_ADD(
         &transfer_request_ie->value.choice.QosFlowSetupRequestList.list,
         qos_item);
@@ -1268,6 +1269,9 @@ int ngap_fill_pdu_session_resource_modify_request_transfer(
   qos_flow_add_or_modify_request_list_t* qos_list =
       &session_transfer->qos_flow_add_or_mod_request_list;
 
+  asn_set_empty(
+      &transfer_request_ie->value.choice.QosFlowAddOrModifyRequestList.list);
+
   for (int i = 0; i < qos_list->maxNumOfQosFlows; i++) {
     Ngap_QosFlowAddOrModifyRequestItem_t* qos_item =
         (Ngap_QosFlowAddOrModifyRequestItem_t*)calloc(
@@ -1285,8 +1289,6 @@ int ngap_fill_pdu_session_resource_modify_request_transfer(
 
     ngap_fill_qos_flow_level_qos_parameters(qos_list, qos_flow_params, i);
 
-    asn_set_empty(
-        &transfer_request_ie->value.choice.QosFlowAddOrModifyRequestList.list);
     ASN_SEQUENCE_ADD(
         &transfer_request_ie->value.choice.QosFlowAddOrModifyRequestList.list,
         qos_item);

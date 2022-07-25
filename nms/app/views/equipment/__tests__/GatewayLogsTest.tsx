@@ -22,7 +22,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI} from '../../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 
 jest.mock('../../../../app/hooks/useSnackbar');
 jest.spyOn(customHistogram, 'default').mockImplementation(() => <></>);
@@ -129,17 +129,19 @@ describe('<GatewayLogs />', () => {
   });
 
   it('verify gateway logs rendering', async () => {
-    const {getAllByRole} = render(<LogTableWrapper />);
-    await wait();
-    const rowItems = getAllByRole('row');
+    const {findAllByRole} = render(<LogTableWrapper />);
 
-    // can get called multiple times from the histogram component
-    // as well
-    expect(MagmaAPI.logs.networksNetworkIdLogsCountGet).toHaveBeenCalled();
+    await waitFor(() => {
+      // can get called multiple times from the histogram component
+      // as well
+      expect(MagmaAPI.logs.networksNetworkIdLogsCountGet).toHaveBeenCalled();
 
-    expect(MagmaAPI.logs.networksNetworkIdLogsSearchGet).toHaveBeenCalledTimes(
-      1,
-    );
+      expect(
+        MagmaAPI.logs.networksNetworkIdLogsSearchGet,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    const rowItems = await findAllByRole('row');
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Date');

@@ -23,7 +23,7 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PromqlReturnObject} from '../../../../generated';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -135,9 +135,9 @@ describe('<SubscriberChart />', () => {
   };
 
   it('Verify Subscribers Data KPI', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
-    expect(getByTestId('Hourly Usage MB/s')).toHaveTextContent('12.11');
+    const {getByTestId, findByTestId} = render(<Wrapper />);
+
+    expect(await findByTestId('Hourly Usage MB/s')).toHaveTextContent('12.11');
     expect(getByTestId('Daily Avg MB/s')).toHaveTextContent('2.21');
     expect(getByTestId('Monthly Avg Mb/s')).toHaveTextContent('0.05');
     expect(getByTestId('Yearly Avg Mb/s')).toHaveTextContent('0.00');
