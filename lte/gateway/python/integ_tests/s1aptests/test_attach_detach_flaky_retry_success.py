@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ipaddress
+import time
 import unittest
 
 import s1ap_types
@@ -52,12 +54,14 @@ class TestAttachDetachFlakyRetrySuccess(unittest.TestCase):
                 req.ue_id,
             )
             # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
+            attach = self._s1ap_wrapper._s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait for EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -65,12 +69,29 @@ class TestAttachDetachFlakyRetrySuccess(unittest.TestCase):
                 "************************* Running UE detach for UE id ",
                 req.ue_id,
             )
+
+            print("Waiting for 3 seconds for the flow rules creation")
+            time.sleep(3)
+            # Verify if flow rules are created
+            # 1 UL flow for default bearer
+            num_ul_flows = 1
+            dl_flow_rules = {default_ip: []}
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows,
+                dl_flow_rules,
+            )
+
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
                 req.ue_id,
                 detach_type[i],
                 wait_for_s1[i],
             )
+
+            print("Waiting for 5 seconds for the flow rules deletion")
+            time.sleep(5)
+            # Verify that all UL/DL flows are deleted
+            self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":
