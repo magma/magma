@@ -114,7 +114,6 @@ require (
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/moriyoshi/routewrapper v0.0.0-20180228100351-e52d8d14cf39 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olivere/elastic/v7 v7.0.6 // indirect
 	github.com/ory/viper v1.7.5 // indirect
@@ -134,6 +133,8 @@ require (
 	github.com/tklauser/numcpus v0.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
+	github.com/vishvananda/netlink v1.1.0 // indirect
+	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	go.mongodb.org/mongo-driver v1.8.2 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/mod v0.5.1 // indirect
