@@ -50,8 +50,8 @@ export function mockAPIOnce<
   apiMethod: API_METHOD,
   data: Response<SERVICE, API_METHOD>,
 ): jest.SpyInstance<AxiosResponse<{data: Response<SERVICE, API_METHOD>}>> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return jest.spyOn(service, apiMethod).mockResolvedValueOnce({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-return
+  return jest.spyOn(service as any, apiMethod as any).mockResolvedValueOnce({
     data,
   } as any);
 }
@@ -71,7 +71,8 @@ export function mockAPIError<
   apiMethod: API_METHOD,
   errorResponse?: unknown,
 ): jest.SpyInstance<AxiosResponse<{data: Response<SERVICE, API_METHOD>}>> {
-  return jest.spyOn(service, apiMethod).mockRejectedValue(
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-return
+  return jest.spyOn(service as any, apiMethod as any).mockRejectedValue(
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     errorResponse
       ? new MockAxiosError({data: errorResponse})
