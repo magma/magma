@@ -138,6 +138,8 @@ pkg_tar(
         ":magma_configs",
         ":magma_ebpf",
         ":magma_service_definitions",
+        "//lte/gateway/deploy/roles/magma/files:ansible_configs",
+        "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
     ],
     package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
 )

@@ -17,3 +17,10 @@ pkg_files(
     renames = {":magma_td-agent-bit.service": "magma@td-agent-bit.service"},
     visibility = ["//lte/gateway/release:__pkg__"],
 )
+
+pkg_files(
+    name = "magma_config_fluent_bit",
+    srcs = [":60-fluent-bit.conf"],
+    prefix = "/etc/rsyslog.d",
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
