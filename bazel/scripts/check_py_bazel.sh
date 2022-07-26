@@ -46,6 +46,7 @@ DENY_LIST_NOT_RELEVANT=(
   "./show-tech"
   "./third_party"
   "./hil_testing"
+  "./.git"
 )
 
 # Folders and files that are relevant for building with bazel.
@@ -53,10 +54,6 @@ DENY_LIST_NOT_RELEVANT=(
 DENY_LIST_NOT_YET_BAZELIFIED=(
   # TODO: GH12752 tests should be bazelified
   "./lte/gateway/python/integ_tests"
-  # TODO: GH12754 move to (lte|orc8r)/gateway/python/scripts/
-  "./orc8r/gateway/python/magma/common/health/docker_health_service.py"
-  "./orc8r/gateway/python/magma/common/health/health_service.py"
-  "./orc8r/gateway/python/magma/common/health/entities.py"
   # TODO: GH12755 access via absolut path on the VM,
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"

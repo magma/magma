@@ -51,6 +51,8 @@ envoy>=0.0.3
 jinja2>=2.8
 fire>=0.2.0
 python-dateutil==2.8.1
+docker>=4.0.2
+pystemd>=0.5.0
 
 # bazelbase container requirements
 hiredis

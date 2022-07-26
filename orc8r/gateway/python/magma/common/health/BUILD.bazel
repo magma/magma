@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -19,5 +20,24 @@ py_library(
     deps = [
         "//orc8r/gateway/python/magma/common/redis:client",
         "//orc8r/protos:service_status_python_proto",
+    ],
+)
+
+py_library(
+    name = "docker_health_service",
+    srcs = [
+        "docker_health_service.py",
+        "entities.py",
+        "health_service.py",
+    ],
+    deps = [
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/magmad:metrics",
+        "//orc8r/gateway/python/magma/magmad:service_poller",
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:magmad_python_grpc",
+        requirement("python-dateutil"),
+        requirement("docker"),
+        requirement("pystemd"),
     ],
 )
