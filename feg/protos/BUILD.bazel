@@ -72,6 +72,17 @@ cpp_grpc_library(
     deps = [":csfb_cpp_proto"],
 )
 
+python_proto_library(
+    name = "csfb_python_proto",
+    protos = [":csfb_proto"],
+)
+
+python_grpc_library(
+    name = "csfb_python_grpc",
+    protos = [":csfb_proto"],
+    deps = ["//orc8r/protos:common_python_proto"],
+)
+
 proto_library(
     name = "s8_proxy_proto",
     srcs = ["s8_proxy.proto"],
@@ -123,4 +134,41 @@ python_grpc_library(
     name = "hss_service_python_grpc",
     protos = [":hss_service_proto"],
     deps = [":hss_service_python_proto"],
+)
+
+proto_library(
+    name = "hello_proto",
+    srcs = ["hello.proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+python_grpc_library(
+    name = "hello_python_grpc",
+    protos = [":hello_proto"],
+)
+
+proto_library(
+    name = "mock_core_proto",
+    srcs = ["mock_core.proto"],
+    deps = [
+        ":csfb_proto",
+        "//lte/protos:policydb_proto",
+        "//lte/protos:session_manager_proto",
+        "//lte/protos:subscriberdb_proto",
+        "//orc8r/protos:common_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "mock_core_python_grpc",
+    protos = [":mock_core_proto"],
+    deps = [
+        ":csfb_python_proto",
+        "//lte/protos:policydb_python_proto",
+        "//lte/protos:session_manager_python_proto",
+        "//lte/protos:subscriberdb_python_proto",
+        "//orc8r/protos:common_python_proto",
+    ],
 )

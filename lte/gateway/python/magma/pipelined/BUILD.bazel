@@ -247,3 +247,8 @@ py_library(
     name = "gw_mac_address",
     srcs = ["gw_mac_address.py"],
 )
+
+py_library(
+    name = "pg_set_session_msg",
+    srcs = ["pg_set_session_msg.py"],
+)

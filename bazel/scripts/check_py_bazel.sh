@@ -57,9 +57,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   "./orc8r/gateway/python/magma/common/health/docker_health_service.py"
   "./orc8r/gateway/python/magma/common/health/health_service.py"
   "./orc8r/gateway/python/magma/common/health/entities.py"
-  "./lte/gateway/python/magma/health/health_service.py"
-  "./lte/gateway/python/magma/health/entities.py"
-  "./lte/gateway/python/magma/pipelined/pg_set_session_msg.py"
   # TODO: GH12755 access via absolut path on the VM,
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"

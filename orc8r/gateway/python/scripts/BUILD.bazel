@@ -9,17 +9,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
-package(default_visibility = ["//visibility:public"])
-
 py_library(
-    name = "constants",
-    srcs = ["__init__.py"],
-)
-
-py_library(
-    name = "rest_api",
-    srcs = ["rest_api.py"],
-    deps = [":constants"],
+    name = "generate_service_config",
+    srcs = ["generate_service_config.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:serialization_utils",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+        requirement("jinja2"),
+    ],
 )

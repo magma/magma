@@ -321,6 +321,11 @@ python_proto_library(
 python_grpc_library(
     name = "pipelined_python_grpc",
     protos = [":pipelined_proto"],
+    deps = [
+        ":policydb_python_proto",
+        ":session_manager_python_proto",
+        "//orc8r/protos:common_python_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -375,6 +380,11 @@ proto_library(
         ":policydb_proto",
         ":subscriberdb_proto",
     ],
+)
+
+python_grpc_library(
+    name = "spgw_service_python_grpc",
+    protos = [":spgw_service_proto"],
 )
 
 proto_library(
@@ -536,12 +546,19 @@ proto_library(
 python_proto_library(
     name = "enodebd_python_proto",
     protos = [":enodebd_proto"],
-    deps = ["//orc8r/protos:service303_python_proto"],
+    deps = [
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:service303_python_proto",
+    ],
 )
 
 python_grpc_library(
     name = "enodebd_python_grpc",
     protos = [":enodebd_proto"],
+    deps = [
+        "//orc8r/protos:common_python_proto",
+        "//orc8r/protos:service303_python_proto",
+    ],
 )
 
 python_grpc_library(

@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 MAGMA_ROOT = "../../../../../"
@@ -45,5 +46,21 @@ py_library(
         "//orc8r/gateway/python/magma/common:job",
         "//orc8r/gateway/python/magma/common/health:service_state_wrapper",
         "//orc8r/gateway/python/magma/magmad/check:subprocess_workflow",
+    ],
+)
+
+py_library(
+    name = "health_service",
+    srcs = [
+        "entities.py",
+        "health_service.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lte/protos:enodebd_python_grpc",
+        "//lte/protos:mobilityd_python_grpc",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        requirement("python-dateutil"),
     ],
 )
