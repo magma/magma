@@ -36,4 +36,3 @@ accept_combined_attach_tau_wo_csfb: true
 
 # Enable IPv6 support for S1AP SCTP endpoint
 s1ap_ipv6_enabled: true
-enable_IMS_VoPS_3GPP: false
