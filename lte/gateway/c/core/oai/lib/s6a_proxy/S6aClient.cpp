@@ -223,13 +223,14 @@ void S6aClient::update_location_request(
 }
 
 void S6aClient::convert_ula_to_subscriber_data(
-    feg::UpdateLocationAnswer response, magma::lte::SubscriberData& sub_data) {
+    feg::UpdateLocationAnswer response, magma::lte::SubscriberData* sub_data) {
   if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
   } else {
+    std::cout << "CONVERTING ULA TO SUBSCRIBER DATA" << std::endl;
     for (int i = 0; i < response.apn_size(); i++) {
       auto apn = response.apn(i);
-      auto sub_apn_config = sub_data.mutable_non_3gpp()->add_apn_config();
+      auto sub_apn_config = sub_data->mutable_non_3gpp()->add_apn_config();
       if (apn.context_id() != 0) {
         sub_apn_config->set_context_id(apn.context_id());
       }
@@ -264,20 +265,16 @@ void S6aClient::convert_ula_to_subscriber_data(
         if (apn.ambr().max_bandwidth_ul() != 0) {
           ambr->set_max_bandwidth_ul(apn.ambr().max_bandwidth_ul());
         }
-        if (apn.ambr().unit() != 0) {
-          ambr->set_br_unit(
-              (magma::lte::AggregatedMaximumBitrate_BitrateUnitsAMBR)apn.ambr()
-                  .unit());
-        }
-        // sub_apn_config->set_allocated_ambr(
-        // (magma::lte::AggregatedMaximumBitrate*)apn.mutable_ambr());
+
+        ambr->set_br_unit(
+            (magma::lte::AggregatedMaximumBitrate_BitrateUnitsAMBR)apn.ambr()
+                .unit());
       }
 
-      if (apn.pdn() != 0) {
-        sub_apn_config->set_pdn(
-            (magma::lte::APNConfiguration_PDNType)apn.pdn());
-      }
+      sub_apn_config->set_pdn((magma::lte::APNConfiguration_PDNType)apn.pdn());
 
+      // Only the first IP is assigned in to the subscriber in the current
+      // implementation
       if (apn.served_party_ip_address_size() > 0) {
         sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
       }

@@ -1,25 +1,21 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
+ * Copyright 2022 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
-#include "lte/gateway/c/core/oai/lib/store/sqlite.hpp"
-#include "lte/protos/subscriberdb.pb.h"
 
+#include <sqlite3.h>
 #include <cmath>
 #include <vector>
-#include <sqlite3.h>
+#include "lte/protos/subscriberdb.pb.h"
+#include "lte/gateway/c/core/oai/lib/store/sqlite.hpp"
 
 using google::protobuf::Message;
 namespace magma {
@@ -61,7 +57,8 @@ void SqliteStore::_create_store() {
     if (rc) {
       std::cout << "Cannot open database " << sqlite3_errmsg(db) << std::endl;
     } else {
-      std::cout << "Database opened successfully" << std::endl;
+      std::cout << "Database opened successfully at" << db_location
+                << std::endl;
     }
 
     const char* sql =
@@ -81,11 +78,14 @@ void SqliteStore::_create_store() {
   }
 }
 
-void SqliteStore::add_subscriber(SubscriberData& subscriber_data) {
+void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   std::string sid_s = _to_str(subscriber_data);
   const char* sid = sid_s.c_str();
-  std::string data_str;
-  subscriber_data.SerializeToString(&data_str);  // TODO: serialize to string
+  std::string data_str_s;
+  subscriber_data.SerializeToString(&data_str_s);
+  std::cout << "Serialized subscriber data: " << data_str_s << std::endl;
+  const char* data_str = data_str_s.c_str();
+
   std::string db_location_s = _db_locations[_sid2bucket(sid)];
   const char* db_location = db_location_s.c_str();
   sqlite3* db;
@@ -93,27 +93,30 @@ void SqliteStore::add_subscriber(SubscriberData& subscriber_data) {
   if (rc) {
     std::cout << "Cannot open database " << sqlite3_errmsg(db) << std::endl;
   } else {
-    std::cout << "Database opened successfully" << std::endl;
+    std::cout << "Database " << db_location << " opened successfully "
+              << std::endl;
   }
-  const char* sql = "SELECT data FROM subscriberdb WHERE subscriber_id = ?";
+  const char* sql =
+      "INSERT INTO subscriberdb(subscriber_id, data) "
+      "VALUES (?, ?)";
   sqlite3_stmt* stmt;
   const char* pzTail;
-  int rc2 = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
-  if (rc2 == SQLITE_OK) {
-    sqlite3_bind_text(
-        stmt, 1, sid, 4 * strlen(sid),
-        SQLITE_STATIC);  // REVIEW THAT THE PARAMETERS HERE ARE CORRECT
+  int rc_prep = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
+  if (rc_prep == SQLITE_OK) {
+    sqlite3_bind_text(stmt, 1, sid, strlen(sid), NULL);
+    sqlite3_bind_blob(stmt, 2, data_str, strlen(data_str), NULL);
     std::cout << "Successful data binding" << std::endl;
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+    std::cout << "Finalized the sqlite write operation" << std::endl;
   } else {
     std::cout << "SQL Error " << std::endl;
   }
 }
 
-// function is hardcoded for now, will fix
 std::string SqliteStore::_to_str(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
+    std::cout << "Valid sid " << std::endl;
     return "IMSI" + subscriber_data.sid().id();
   } else {
     std::cout << "Invalid sid " << subscriber_data.sid().id() << " type "
