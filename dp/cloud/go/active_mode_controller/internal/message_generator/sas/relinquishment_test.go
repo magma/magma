@@ -22,19 +22,36 @@ import (
 
 func TestRelinquishmentRequestGenerator(t *testing.T) {
 	cbsd := &active_mode.Cbsd{
-		CbsdId: "some_id",
+		CbsdId: "some_cbsd_id",
 		Grants: []*active_mode.Grant{{
 			Id: "some_grant_id",
 		}},
 	}
-	g := sas.NewRelinquishmentRequestGenerator()
+	g := &sas.RelinquishmentRequestGenerator{}
 	actual := g.GenerateRequests(cbsd)
-	expected := []*request{{
+	expected := []*request{getRelinquishmentRequest()}
+	assertRequestsEqual(t, expected, actual)
+}
+
+func TestRelinquishmentProcessor(t *testing.T) {
+	const frequency = 3600e6
+	p := &sas.RelinquishmentProcessor{
+		CbsdId: "some_cbsd_id",
+		Grants: map[int64]*active_mode.Grant{
+			frequency: {Id: "some_grant_id"},
+		},
+	}
+	actual := p.ProcessGrant(frequency, 20e6)
+	expected := getRelinquishmentRequest()
+	assertRequestEqual(t, expected, actual)
+}
+
+func getRelinquishmentRequest() *request {
+	return &request{
 		requestType: "relinquishmentRequest",
 		data: `{
-	"cbsdId": "some_id",
+	"cbsdId": "some_cbsd_id",
 	"grantId": "some_grant_id"
 }`,
-	}}
-	assertRequestsEqual(t, expected, actual)
+	}
 }

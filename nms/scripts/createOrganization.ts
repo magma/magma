@@ -58,12 +58,10 @@ async function createOrUpdateOrganization(
   organizationObject: OrganizationObject,
 ) {
   const organization = await Organization.findOne({
-    where: {
-      name: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', organizationObject.name),
-      ),
-    },
+    where: Sequelize.where(
+      Sequelize.fn('lower', Sequelize.col('name')),
+      Sequelize.fn('lower', organizationObject.name),
+    ),
   });
   if (!organization) {
     await Promise.all([createOrganization(organizationObject)]);

@@ -28,6 +28,7 @@ import (
 
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/app"
+	"magma/dp/cloud/go/active_mode_controller/internal/test_utils/builders"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
@@ -37,7 +38,6 @@ const (
 	timeout          = time.Millisecond * 50
 	heartbeatTimeout = time.Second * 10
 	pollingTimeout   = time.Second * 20
-	currentTime      = 10000
 )
 
 func TestAppTestSuite(t *testing.T) {
@@ -84,18 +84,16 @@ func (s *AppTestSuite) TestGetStateAndSendRequests() {
 	s.thenRequestsWereEventuallyReceived(getExpectedRequests("some"))
 }
 
+// TODO cleanup this
 func (s *AppTestSuite) TestCalculateHeartbeatDeadline() {
 	const interval = 50 * time.Second
 	const delta = heartbeatTimeout + pollingTimeout
 	now := s.clock.Now()
 	base := now.Add(delta - interval)
-	timestamps := []time.Time{
-		base.Add(2 * time.Second), base.Add(time.Second),
-		base, base.Add(-time.Second),
-	}
+	timestamps := []time.Time{base.Add(time.Second), base}
 	s.givenState(buildStateWithAuthorizedGrants("some", interval, timestamps...))
 	s.whenTickerFired()
-	s.thenRequestsWereEventuallyReceived(getExpectedHeartbeatRequests("some", "2", "3"))
+	s.thenRequestsWereEventuallyReceived(getExpectedHeartbeatRequests("some", "1"))
 }
 
 func (s *AppTestSuite) TestAppWorkInALoop() {
@@ -220,38 +218,31 @@ func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 func buildSomeState(names ...string) *active_mode.State {
 	cbsds := make([]*active_mode.Cbsd, len(names))
 	for i, name := range names {
-		cbsds[i] = &active_mode.Cbsd{
-			DesiredState: active_mode.CbsdState_Registered,
-			SasSettings: &active_mode.SasSettings{
-				UserId:       name,
-				FccId:        name,
-				SerialNumber: name,
-			},
-			State:             active_mode.CbsdState_Unregistered,
-			LastSeenTimestamp: currentTime,
-		}
+		cbsds[i] = builders.NewCbsdBuilder().
+			WithState(active_mode.CbsdState_Unregistered).
+			WithName(name).
+			Build()
 	}
 	return &active_mode.State{Cbsds: cbsds}
 }
 
 func buildStateWithAuthorizedGrants(name string, interval time.Duration, timestamps ...time.Time) *active_mode.State {
-	grants := make([]*active_mode.Grant, len(timestamps))
+	b := builders.NewCbsdBuilder().
+		WithName(name).
+		WithChannel(builders.SomeChannel).
+		WithAvailableFrequencies(builders.NoAvailableFrequencies).
+		WithCarrierAggregation()
 	for i, timestamp := range timestamps {
-		grants[i] = &active_mode.Grant{
+		b.WithGrant(&active_mode.Grant{
 			Id:                     fmt.Sprintf("%d", i),
 			State:                  active_mode.GrantState_Authorized,
 			HeartbeatIntervalSec:   int64(interval / time.Second),
 			LastHeartbeatTimestamp: timestamp.Unix(),
-		}
+			LowFrequencyHz:         int64(3550+10*i) * 1e6,
+			HighFrequencyHz:        int64(3550+10*(i+1)) * 1e6,
+		})
 	}
-	cbsds := []*active_mode.Cbsd{{
-		DesiredState:      active_mode.CbsdState_Registered,
-		CbsdId:            name,
-		State:             active_mode.CbsdState_Registered,
-		Grants:            grants,
-		LastSeenTimestamp: currentTime,
-	}}
-	return &active_mode.State{Cbsds: cbsds}
+	return &active_mode.State{Cbsds: []*active_mode.Cbsd{b.Build()}}
 }
 
 func getExpectedRequests(name string) []*requests.RequestPayload {
@@ -294,7 +285,7 @@ type stubClock struct {
 }
 
 func (s *stubClock) Now() time.Time {
-	return time.Unix(currentTime, 0)
+	return time.Unix(builders.Now, 0)
 }
 
 func (s *stubClock) Tick(_ time.Duration) *time.Ticker {

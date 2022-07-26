@@ -14,7 +14,7 @@
 import type {DataRows} from '../../components/DataGrid';
 
 import DataGrid from '../../components/DataGrid';
-import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../context/FEGGatewayContext';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 

@@ -32,7 +32,9 @@ export interface OrganizationRawType {
   ssoOidcConfigurationURL: string;
 }
 
-export interface OrganizationModel extends OrganizationRawType, Model {
+export interface OrganizationModel
+  extends OrganizationRawType,
+    Model<OrganizationRawType, Partial<OrganizationRawType>> {
   isHostOrg: boolean;
 }
 
@@ -42,7 +44,7 @@ type OrganizationModelStatic = typeof Model & {
 
 const HOST_ORG = 'host';
 
-export default (sequelize: sequelize.Sequelize) => {
+export default (sequelize: sequelize.Sequelize): OrganizationModelStatic => {
   const attributes: sequelize.ModelAttributes<OrganizationModel> = {
     name: DataTypes.STRING,
     csvCharset: DataTypes.STRING,

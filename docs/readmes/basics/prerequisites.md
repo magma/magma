@@ -7,7 +7,7 @@ hide_title: true
 # Prerequisites
 
 These are the prerequisites to setting up a full private LTE Magma deployment.
-Additional prerequisites for developers can be found in the [developer's guide](../contributing/contribute_onboarding.md).
+Additional prerequisites for developers can be found in the [contributor guide on Github](https://github.com/magma/magma/wiki/Contributor-Guide).
 
 ## Operating System
 

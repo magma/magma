@@ -17,7 +17,7 @@ import defaultTheme from '../../../theme/default';
 import {AddEditCbsdButton, CbsdAddEditDialog} from '../CbsdEdit';
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import {CbsdContextProvider} from '../../../components/lte/LteContext';
+import {CbsdContextProvider} from '../../../context/CbsdContext';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {mockAPI, mockAPIError} from '../../../util/TestUtils';
@@ -67,9 +67,7 @@ const renderWithProviders = (jsx: React.ReactNode) => {
   return render(
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
-        <CbsdContextProvider networkId={networkId} networkType="test">
-          {jsx}
-        </CbsdContextProvider>
+        <CbsdContextProvider networkId={networkId}>{jsx}</CbsdContextProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>,
   );

@@ -17,7 +17,6 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
 
 const SequelizeTables = [
@@ -38,9 +37,9 @@ const SequenceColumn = 'id';
  */
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  up: queryInterface => {
+  up: ({context: queryInterface}) => {
     return queryInterface.sequelize.transaction(async transaction => {
       try {
         for (const table of SequelizeTables) {

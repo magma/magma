@@ -13,7 +13,7 @@
 
 import APMetrics from './APMetrics';
 import AppBar from '@material-ui/core/AppBar';
-import AppContext from '../context/AppContext';
+import AppContext from '../../context/AppContext';
 import CWFNetworkMetrics from './CWFNetworkMetrics';
 import Grafana from '../Grafana';
 import IMSIMetrics from './IMSIMetrics';

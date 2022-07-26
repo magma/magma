@@ -15,11 +15,11 @@ import ApplicationMain from '../ApplicationMain';
 import MagmaAPI from '../../api/MagmaAPI';
 import Main, {NO_NETWORK_MESSAGE} from '../Main';
 import React from 'react';
-import {AppContextProvider} from '../context/AppContext';
+import {AppContextProvider} from '../../context/AppContext';
 import {EmbeddedData} from '../../../shared/types/embeddedData';
 import {MemoryRouter} from 'react-router-dom';
 import {mockAPI} from '../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('../main/Index', () => ({
@@ -75,15 +75,13 @@ describe.each`
         } as unknown) as EmbeddedData,
       };
 
-      const {getByText} = render(
+      const {findByText} = render(
         <Wrapper path={path}>
           <Main />
         </Wrapper>,
       );
 
-      await wait();
-
-      expect(getByText(text)).toBeInTheDocument();
+      expect(await findByText(text)).toBeInTheDocument();
     });
   },
 );

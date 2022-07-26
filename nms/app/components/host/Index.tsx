@@ -25,7 +25,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '../UsersSettings';
-import {AppContextProvider} from '../context/AppContext';
+import {AppContextProvider} from '../../context/AppContext';
 import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 

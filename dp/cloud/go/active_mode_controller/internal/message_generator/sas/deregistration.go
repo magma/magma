@@ -15,15 +15,11 @@ package sas
 
 import "magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 
-type deregistrationRequestGenerator struct{}
+type DeregistrationRequestGenerator struct{}
 
-func NewDeregistrationRequestGenerator() *deregistrationRequestGenerator {
-	return &deregistrationRequestGenerator{}
-}
-
-func (*deregistrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
+func (*DeregistrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &deregistrationRequest{
-		CbsdId: cbsd.GetCbsdId(),
+		CbsdId: cbsd.CbsdId,
 	}
 	return []*Request{asRequest(Deregistration, req)}
 }

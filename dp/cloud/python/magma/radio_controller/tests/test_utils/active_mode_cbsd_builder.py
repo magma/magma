@@ -38,7 +38,6 @@ class ActiveModeCbsdBuilder:
         self.grants = []
         self.channels = []
         self.last_seen_timestamp = None
-        self.grant_attempts = None
         self.eirp_capabilities = EirpCapabilities()
         self.sas_settings = SasSettings()
         self.preferences = FrequencyPreferences()
@@ -55,7 +54,6 @@ class ActiveModeCbsdBuilder:
             grants=self.grants,
             channels=self.channels,
             last_seen_timestamp=self.last_seen_timestamp,
-            grant_attempts=self.grant_attempts,
             eirp_capabilities=self.eirp_capabilities,
             db_data=self.db_data,
             preferences=self.preferences,
@@ -177,8 +175,4 @@ class ActiveModeCbsdBuilder:
 
     def with_last_seen(self, last_seen_timestamp: int) -> ActiveModeCbsdBuilder:
         self.last_seen_timestamp = last_seen_timestamp
-        return self
-
-    def with_grant_attempts(self, grant_attempts: int) -> ActiveModeCbsdBuilder:
-        self.grant_attempts = grant_attempts
         return self

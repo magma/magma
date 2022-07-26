@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {NetworkContextType} from '../context/NetworkContext';
+import type {NetworkContextType} from '../../context/NetworkContext';
 import type {NetworkType} from '../../../shared/types/network';
 import type {SectionsConfigs} from './Section';
 
-import AppContext from '../../../app/components/context/AppContext';
-import NetworkContext from '../context/NetworkContext';
+import AppContext from '../../context/AppContext';
+import NetworkContext from '../../context/NetworkContext';
 import {
   CWF,
   FEG,

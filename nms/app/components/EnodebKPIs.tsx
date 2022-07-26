@@ -12,7 +12,7 @@
  */
 
 import DataGrid from './DataGrid';
-import EnodebContext from './context/EnodebContext';
+import EnodebContext from '../context/EnodebContext';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import {useContext} from 'react';

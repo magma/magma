@@ -18,49 +18,49 @@
  *
  * @ts-check
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} Sequelize
+   * @param {{ context: QueryInterface}} params
    */
-  up: (queryInterface, Sequelize) => {
+  up: ({context: queryInterface}) => {
     return queryInterface.createTable('Users', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
       },
       email: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
       },
       password: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
       },
       role: {
         allowNull: false,
         defaultValue: 0,
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
       },
     });
   },
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     return queryInterface.dropTable('Users');
   },
 };

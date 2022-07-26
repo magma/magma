@@ -94,6 +94,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     mock_read_s1ap_ue_state_db(name_of_ue_samples);
 
     state = S1apStateManager::getInstance().get_state(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   virtual void TearDown() {

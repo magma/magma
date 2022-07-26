@@ -12,12 +12,12 @@
  */
 
 import ActionTable from '../../components/ActionTable';
-import FEGSubscriberContext from '../../components/context/FEGSubscriberContext';
+import FEGSubscriberContext from '../../context/FEGSubscriberContext';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
-import {FetchSubscribers} from '../../state/lte/SubscriberState';
-import {REFRESH_INTERVAL} from '../../components/context/AppContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
+import {fetchSubscribers} from '../../util/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
 import {useInterval} from '../../hooks';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
@@ -77,7 +77,7 @@ export default function GatewayDetailSubscribers(props: FEGGatewayDetailType) {
       //TODO: - @andreilee bulk fetch from a paginated api endpoint
       await Promise.all(
         Object.keys(subscriberToNetworkIdMap).map(async subscriberImsi => {
-          const subscriberInfo = (await FetchSubscribers({
+          const subscriberInfo = (await fetchSubscribers({
             networkId: subscriberToNetworkIdMap[subscriberImsi],
             id: subscriberImsi,
           })) as Subscriber;
