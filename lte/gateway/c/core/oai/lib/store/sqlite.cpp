@@ -79,7 +79,7 @@ void SqliteStore::_create_store() {
   }
 }
 
-void SqliteStore::add_subscriber(SubscriberData& subscriber_data) {
+void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   std::string sid_s = _to_str(subscriber_data);
   const char* sid = sid_s.c_str();
   std::string data_str_s;

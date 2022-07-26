@@ -150,11 +150,10 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
       // convert ULA response to SubscriberData and write to subscriberdb
       if (S6aClient::get_cloud_subscriberdb_enabled()) {
         magma::lte::SubscriberData sub_data = magma::lte::SubscriberData();
-        magma::lte::SubscriberID sub_id = magma::lte::SubscriberID();
-        sub_id.set_id(imsi);
-        sub_id.set_type(magma::lte::SubscriberID::IMSI);
-        sub_data.set_allocated_sid(&sub_id);
-        magma::S6aClient::convert_ula_to_subscriber_data(response, sub_data);
+        auto sub_id = sub_data.mutable_sid();
+        sub_id->set_id(imsi);
+        sub_id->set_type(magma::lte::SubscriberID::IMSI);
+        magma::S6aClient::convert_ula_to_subscriber_data(response, &sub_data);
         magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore(
             "", 2);  // hardcoded here, todo get the db location for the sqlite
                      // from somewhere?

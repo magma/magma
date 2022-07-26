@@ -79,7 +79,7 @@ class S6aClient : public GRPCReceiver {
       std::function<void(Status, feg::UpdateLocationAnswer)> callback);
 
   static void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
-                                             lte::SubscriberData& sub_data);
+                                             lte::SubscriberData* sub_data);
 
  public:
   S6aClient(S6aClient const&) = delete;

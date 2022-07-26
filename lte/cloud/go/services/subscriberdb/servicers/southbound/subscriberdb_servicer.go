@@ -45,6 +45,8 @@ func NewSubscriberdbServicer(config subscriberdb.Config, store syncstore.SyncSto
 	return &subscriberdbServicer{store: store, Config: config}
 }
 
+
+
 func (s *subscriberdbServicer) CheckInSync(
 	ctx context.Context,
 	req *lte_protos.CheckInSyncRequest,
@@ -110,7 +112,7 @@ func (s *subscriberdbServicer) Sync(
 		return &lte_protos.SyncResponse{Resync: true}, nil
 	}
 
-	resync, renewed, deleted, err := s.getSubscribersChangeset(networkID, req.LeafDigests, digestTree.LeafDigests)
+	resync, renewed, deleted, err := s.getSubscribersChangeset(ctx, networkID, req.LeafDigests, digestTree.LeafDigests)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +206,15 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 			LeafDigests: digest.LeafDigests,
 		},
 	}
-	return listRes, nil
+	cloudflag := CloudSubscriberDbEnabled(ctx)
+	if cloudflag {
+		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		return nil, nil
+	} else {
+		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		return listRes, nil
+	}
+
 }
 
 func (s *subscriberdbServicer) ListSuciProfiles(ctx context.Context, req *protos.Void) (*lte_protos.SuciProfileList, error) {
@@ -234,7 +244,7 @@ func (s *subscriberdbServicer) ListSuciProfiles(ctx context.Context, req *protos
 // 2. If no resync, the list of subscriber configs to be renewed.
 // 3. If no resync, the list of subscriber IDs to be deleted.
 // 4. Any error that occurred.
-func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientDigests []*protos.LeafDigest, cloudDigests []*protos.LeafDigest) (bool, []*lte_protos.SubscriberData, []string, error) {
+func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, networkID string, clientDigests []*protos.LeafDigest, cloudDigests []*protos.LeafDigest) (bool, []*lte_protos.SubscriberData, []string, error) {
 	toRenew, deleted := syncstore.GetLeafDigestsDiff(clientDigests, cloudDigests)
 	if len(toRenew) > s.ChangesetSizeThreshold || len(toRenew) > int(s.MaxProtosLoadSize) {
 		return true, nil, nil, nil
@@ -250,6 +260,14 @@ func (s *subscriberdbServicer) getSubscribersChangeset(networkID string, clientD
 		return true, nil, nil, err
 	}
 	return false, renewed, deleted, nil
+	cloudflag := CloudSubscriberDbEnabled(ctx)
+	if cloudflag {
+		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		return false , nil, nil, nil
+	} else {
+		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		return false, renewed, deleted, nil
+	}
 }
 
 func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context, networkID string, req *lte_protos.ListSubscribersRequest, gateway *protos.Identity_Gateway) ([]*lte_protos.SubscriberData, string, error) {
@@ -271,7 +289,16 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context,
 		return nil, "", err
 	}
 
-	return subProtos, nextToken, nil
+	cloudflag := CloudSubscriberDbEnabled(ctx)
+	if cloudflag {
+		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		return nil, "", nil
+	} else {
+		glog.Infof("Cloud Authenitcation NOT enabled,  streaming subscriber data")
+		return subProtos, nextToken, nil
+	}
+
+
 }
 
 // getDigest returns the digest tree for the network.
@@ -307,6 +334,23 @@ func (s *subscriberdbServicer) shouldResync(network string, gateway string) bool
 	// Jitter the AGW sync interval by a fraction in the range of [0, 0.5] to ameliorate the thundering herd effect
 	shouldResync := time.Now().Unix()-lastResyncTime > math.JitterInt64(s.ResyncIntervalSecs, gateway, 0.5)
 	return shouldResync
+}
+
+func CloudSubscriberDbEnabled(ctx context.Context) bool {
+	gateway := protos.GetClientGateway(ctx)
+	networkID := gateway.NetworkId
+	network, err := configurator.LoadNetwork(ctx, networkID, false, true,serdes.Network)
+	if err != nil {
+		fmt.Errorf("Load network for network %s: %w", networkID, err)
+	}
+	nwCellularConfigType, ok := network.Configs[lte.CellularNetworkConfigType]
+	if (!ok){
+		fmt.Errorf("Error fetching cellular configs")
+	}
+	nwCellularConfig := nwCellularConfigType.(*lte_models.NetworkCellularConfigs)
+	EpcConfig := nwCellularConfig.Epc
+	flag := EpcConfig.CloudSubscriberdbEnabled
+	return flag
 }
 
 func loadAPNs(ctx context.Context, gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

@@ -1,3 +1,15 @@
+/*
+ * Copyright 2022 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <string.h>
 #include <gtest/gtest.h>
 
@@ -16,8 +28,8 @@ class ULA2SubDataTest : public ::testing::Test {
   virtual void TearDown() { free_mme_config(&mme_config); }
 };
 
-static magma::feg::UpdateLocationAnswer create_ula_object(
-    magma::feg::UpdateLocationAnswer &ula_object,
+void create_ula_object(
+    magma::feg::UpdateLocationAnswer *ula_object,
     google::protobuf::uint32 context_id, std::string service_selection,
     google::protobuf::int32 class_id, google::protobuf::uint32 priority_level,
     bool preemption_capability, bool preemption_vulnerability,
@@ -34,7 +46,7 @@ static magma::feg::UpdateLocationAnswer create_ula_object(
   // create UpdateLocationAnswer object
 
   magma::feg::UpdateLocationAnswer_APNConfiguration *apn_config =
-      ula_object.add_apn();
+      ula_object->add_apn();
   apn_config->set_context_id(context_id);
   apn_config->set_service_selection(service_selection);
   auto qos_profile_msg = apn_config->mutable_qos_profile();
@@ -60,13 +72,10 @@ static magma::feg::UpdateLocationAnswer create_ula_object(
   resource_msg->set_vlan_id(vlan_id);
 
   apn_config->add_served_party_ip_address(served_party_ip_address);
-
-  return ula_object;
 }
 
 void initSubscriber(magma::lte::SubscriberData &sub_data) {
   // initialize subscriberData object
-
   auto sub_id = sub_data.mutable_sid();
   sub_id->set_id("IMSI123123123");
   sub_id->set_type(magma::lte::SubscriberID::IMSI);
@@ -98,7 +107,7 @@ TEST(ULA2SubDataTest, TestULAallFields) {
 
   std::string served_party_ip_address = "123.123.123.123";
 
-  create_ula_object(ula_object, context_id, service_selection, class_id,
+  create_ula_object(&ula_object, context_id, service_selection, class_id,
                     priority_level, preemption_capability,
                     preemption_vulnerability, apn_name, gateway_mac, gateway_ip,
                     vlan_id, max_bandwidth_ul, max_bandwidth_dl, unit, pdn,
@@ -107,7 +116,7 @@ TEST(ULA2SubDataTest, TestULAallFields) {
 
   // call data converting function
 
-  S6aClient::convert_ula_to_subscriber_data(ula_object, sub_data);
+  S6aClient::convert_ula_to_subscriber_data(ula_object, &sub_data);
 
   // test equality for each of the fields in the subscriberdata object
 
@@ -142,5 +151,4 @@ TEST(ULA2SubDataTest, TestULAallFields) {
   EXPECT_EQ(sub_data.non_3gpp().apn_config(0).assigned_static_ip(),
             served_party_ip_address);
 }
-
 }  // namespace magma
