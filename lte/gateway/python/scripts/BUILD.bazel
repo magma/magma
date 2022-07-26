@@ -270,6 +270,7 @@ py_binary(
         ORC8R_ROOT,
     ],
     legacy_create_init = False,
+    visibility = ["//lte/gateway/python/load_tests:__pkg__"],
     deps = [
         "//lte/gateway/python/magma/pipelined:ng_set_session_msg",
         "//lte/gateway/python/magma/pipelined:pg_set_session_msg",
