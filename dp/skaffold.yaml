@@ -305,6 +305,14 @@ profiles:
         value:
           manifests:
             - "./tools/deployment/vendor/fake_crl.yml"
+  - name: harness
+    patches:
+      - op: replace
+        path: /build/artifacts/4/context
+        value: tools/harness
+      - op: replace
+        path: /deploy/helm/hooks/before/4/host/command/3
+        value: "./tools/deployment/vendor/harness.yml"
   - name: remote-push
     patches:
       - op: remove
