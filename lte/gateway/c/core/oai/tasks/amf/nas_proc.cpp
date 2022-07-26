@@ -930,7 +930,8 @@ int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
       get_5g_nas_common_procedure_identification(amf_ctxt_p);
   if (ident_proc != NULL) {
     rc = amf_proc_identification_complete(aia->ue_id, p_imsi, p_imei, p_imeisv,
-                                          (uint32_t*)(p_tmsi), amf_ctx_guti);
+                                          reinterpret_cast<uint32_t*>(p_tmsi),
+                                          amf_ctx_guti);
     delete (params->imsi);
     delete (params);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
