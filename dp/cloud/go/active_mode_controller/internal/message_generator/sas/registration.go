@@ -20,13 +20,9 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
-type registrationRequestGenerator struct{}
+type RegistrationRequestGenerator struct{}
 
-func NewRegistrationRequestGenerator() *registrationRequestGenerator {
-	return &registrationRequestGenerator{}
-}
-
-func (*registrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
+func (*RegistrationRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := buildRegistrationRequest(cbsd)
 	return []*Request{asRequest(Registration, req)}
 }

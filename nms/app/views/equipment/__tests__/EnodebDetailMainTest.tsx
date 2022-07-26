@@ -24,7 +24,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI} from '../../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 jest.mock('../../../hooks/useSnackbar');
 
@@ -163,10 +163,8 @@ describe('<Enodeb />', () => {
         </MuiPickersUtilsProvider>
       </MemoryRouter>
     );
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
-
-    expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
+    const {findByTestId, getByTestId} = render(<Wrapper />);
+    expect(await findByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial0',
     );
     expect(getByTestId('eNodeB Externally Managed')).toHaveTextContent('False');
@@ -202,10 +200,9 @@ describe('<Enodeb />', () => {
         </MuiPickersUtilsProvider>
       </MemoryRouter>
     );
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
+    const {findByTestId, getByTestId} = render(<Wrapper />);
 
-    expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
+    expect(await findByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial1',
     );
     expect(getByTestId('eNodeB Externally Managed')).toHaveTextContent('True');

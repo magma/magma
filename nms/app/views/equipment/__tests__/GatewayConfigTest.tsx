@@ -23,7 +23,7 @@ import {DynamicServices} from '../../../components/GatewayUtils';
 import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {Apn, LteGateway, LteNetwork} from '../../../../generated';
@@ -267,12 +267,16 @@ describe('<AddEditGatewayButton />', () => {
       .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdCellularPut')
       .mockImplementation();
 
-    const {getByTestId, getByText, queryByTestId} = render(<AddWrapper />);
-    await wait();
+    const {
+      getByTestId,
+      getByText,
+      queryByTestId,
+      findByTestId,
+      findByText,
+    } = render(<AddWrapper />);
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByText('Add Gateway'));
-    await wait();
+    fireEvent.click(await findByText('Add Gateway'));
 
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
@@ -296,9 +300,8 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(getByTestId('configEditError')).toHaveTextContent(
+    expect(await findByTestId('configEditError')).toHaveTextContent(
       'Gateway testGatewayId0 already exists',
     );
 
@@ -323,60 +326,63 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(MagmaAPI.lteGateways.lteNetworkIdGatewaysPost).toHaveBeenCalledWith({
-      gateway: {
-        apn_resources: {},
-        id: 'testGatewayID1',
-        name: 'testGatewayName',
-        cellular: {
-          epc: {
-            dns_primary: '',
-            dns_secondary: '',
-            ip_block: '192.168.128.0/24',
-            nat_enabled: true,
-            sgi_management_iface_gw: '',
-            sgi_management_iface_static_ip: '',
-            sgi_management_iface_vlan: '',
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysPost,
+      ).toHaveBeenCalledWith({
+        gateway: {
+          apn_resources: {},
+          id: 'testGatewayID1',
+          name: 'testGatewayName',
+          cellular: {
+            epc: {
+              dns_primary: '',
+              dns_secondary: '',
+              ip_block: '192.168.128.0/24',
+              nat_enabled: true,
+              sgi_management_iface_gw: '',
+              sgi_management_iface_static_ip: '',
+              sgi_management_iface_vlan: '',
+            },
+            ran: {
+              pci: 260,
+              transmit_enabled: true,
+            },
           },
-          ran: {
-            pci: 260,
-            transmit_enabled: true,
+          checked_in_recently: false,
+          connected_enodeb_serials: [],
+          description: 'Test Gateway Description',
+          device: {
+            hardware_id: 'testHwId',
+            key: {
+              key: 'testChallenge',
+              key_type: 'SOFTWARE_ECDSA_SHA256',
+            },
           },
-        },
-        checked_in_recently: false,
-        connected_enodeb_serials: [],
-        description: 'Test Gateway Description',
-        device: {
-          hardware_id: 'testHwId',
-          key: {
-            key: 'testChallenge',
-            key_type: 'SOFTWARE_ECDSA_SHA256',
-          },
-        },
 
-        magmad: {
-          autoupgrade_enabled: true,
-          autoupgrade_poll_interval: 60,
-          checkin_interval: 60,
-          checkin_timeout: 30,
-          dynamic_services: [
-            DynamicServices.EVENTD,
-            DynamicServices.TD_AGENT_BIT,
-          ],
-        },
-        status: {
-          platform_info: {
-            packages: [
-              {
-                version: '1.0',
-              },
+          magmad: {
+            autoupgrade_enabled: true,
+            autoupgrade_poll_interval: 60,
+            checkin_interval: 60,
+            checkin_timeout: 30,
+            dynamic_services: [
+              DynamicServices.EVENTD,
+              DynamicServices.TD_AGENT_BIT,
             ],
           },
+          status: {
+            platform_info: {
+              packages: [
+                {
+                  version: '1.0',
+                },
+              ],
+            },
+          },
+          tier: 'default',
         },
-        tier: 'default',
-      },
-      networkId: 'test',
+        networkId: 'test',
+      });
     });
 
     // mock adding test gatewayID1 to ensure we invoke the put method
@@ -401,32 +407,32 @@ describe('<AddEditGatewayButton />', () => {
       throw 'invalid type';
     }
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdMagmadPut,
-    ).toHaveBeenCalledWith({
-      gatewayId: 'testGatewayID1',
-      networkId: 'test',
-      magmad: {
-        autoupgrade_enabled: true,
-        autoupgrade_poll_interval: 60,
-        checkin_interval: 60,
-        checkin_timeout: 30,
-        dynamic_services: [
-          DynamicServices.EVENTD,
-          DynamicServices.TD_AGENT_BIT,
-          DynamicServices.MONITORD,
-        ],
-        logging: {
-          aggregation: {
-            target_files_by_tag: {
-              mme: 'var/log/mme.log',
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdMagmadPut,
+      ).toHaveBeenCalledWith({
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+        magmad: {
+          autoupgrade_enabled: true,
+          autoupgrade_poll_interval: 60,
+          checkin_interval: 60,
+          checkin_timeout: 30,
+          dynamic_services: [
+            DynamicServices.EVENTD,
+            DynamicServices.TD_AGENT_BIT,
+            DynamicServices.MONITORD,
+          ],
+          logging: {
+            aggregation: {
+              target_files_by_tag: {
+                mme: 'var/log/mme.log',
+              },
             },
+            log_level: 'DEBUG',
           },
-          log_level: 'DEBUG',
         },
-      },
+      });
     });
 
     expect(queryByTestId('configEdit')).toBeNull();
@@ -461,25 +467,26 @@ describe('<AddEditGatewayButton />', () => {
       throw 'invalid type';
     }
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularEpcPut,
-    ).toHaveBeenCalledWith({
-      gatewayId: 'testGatewayID1',
-      networkId: 'test',
-      config: {
-        ip_block: '192.168.128.0/24',
-        ipv6_block: 'fdee:5:6c::/48',
-        nat_enabled: false,
-        dns_primary: '',
-        dns_secondary: '',
-        sgi_management_iface_gw: '',
-        sgi_management_iface_static_ip: '',
-        sgi_management_iface_vlan: '',
-        sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
-        sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
-      },
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularEpcPut,
+      ).toHaveBeenCalledWith({
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+        config: {
+          ip_block: '192.168.128.0/24',
+          ipv6_block: 'fdee:5:6c::/48',
+          nat_enabled: false,
+          dns_primary: '',
+          dns_secondary: '',
+          sgi_management_iface_gw: '',
+          sgi_management_iface_static_ip: '',
+          sgi_management_iface_vlan: '',
+          sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+          sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+        },
+      });
     });
 
     expect(queryByTestId('configEdit')).toBeNull();
@@ -505,37 +512,37 @@ describe('<AddEditGatewayButton />', () => {
     } else {
       throw 'invalid type';
     }
-    await wait();
 
-    pci = getByTestId('pci').firstChild;
+    pci = (await findByTestId('pci')).firstChild;
     expect(pci).toBeDisabled();
 
     const registeredEnodeb = getByTestId('registeredEnodeb').firstChild;
     expect(registeredEnodeb).not.toHaveAttribute('aria-disabled');
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        dhcp_server_enabled: false,
-        enable_caching: false,
-        local_ttl: 0,
-        records: [],
-      },
-      gatewayId: 'testGatewayID1',
-      networkId: 'test',
-    });
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularRanPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        pci: 260,
-        transmit_enabled: true,
-      },
-      gatewayId: 'testGatewayID1',
-      networkId: 'test',
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          dhcp_server_enabled: false,
+          enable_caching: false,
+          local_ttl: 0,
+          records: [],
+        },
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+      });
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularRanPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          pci: 260,
+          transmit_enabled: true,
+        },
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+      });
     });
 
     expect(queryByTestId('configEdit')).toBeNull();
@@ -567,77 +574,79 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdPut,
-    ).toHaveBeenCalledWith({
-      gateway: {
-        apn_resources: {'': {apn_name: '', id: '1', vlan_id: 1}},
-        cellular: {
-          dns: {
-            dhcp_server_enabled: false,
-            enable_caching: false,
-            local_ttl: 0,
-            records: [],
-          },
-          epc: {
-            ip_block: '192.168.128.0/24',
-            ipv6_block: 'fdee:5:6c::/48',
-            nat_enabled: false,
-            dns_primary: '',
-            dns_secondary: '',
-            sgi_management_iface_gw: '',
-            sgi_management_iface_static_ip: '',
-            sgi_management_iface_vlan: '',
-            sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
-            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
-          },
-          ran: {pci: 260, transmit_enabled: true},
-        },
-        checked_in_recently: false,
-        connected_enodeb_serials: [],
-        description: 'Test Gateway Description',
-        device: {
-          hardware_id: 'testHwId',
-          key: {key: 'testChallenge', key_type: 'SOFTWARE_ECDSA_SHA256'},
-        },
-        id: 'testGatewayID1',
-        magmad: {
-          autoupgrade_enabled: true,
-          autoupgrade_poll_interval: 60,
-          checkin_interval: 60,
-          checkin_timeout: 30,
-          dynamic_services: [
-            DynamicServices.EVENTD,
-            DynamicServices.TD_AGENT_BIT,
-            DynamicServices.MONITORD,
-          ],
-          logging: {
-            aggregation: {
-              target_files_by_tag: {
-                mme: 'var/log/mme.log',
-              },
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdPut,
+      ).toHaveBeenCalledWith({
+        gateway: {
+          apn_resources: {'': {apn_name: '', id: '1', vlan_id: 1}},
+          cellular: {
+            dns: {
+              dhcp_server_enabled: false,
+              enable_caching: false,
+              local_ttl: 0,
+              records: [],
             },
-            log_level: 'DEBUG',
+            epc: {
+              ip_block: '192.168.128.0/24',
+              ipv6_block: 'fdee:5:6c::/48',
+              nat_enabled: false,
+              dns_primary: '',
+              dns_secondary: '',
+              sgi_management_iface_gw: '',
+              sgi_management_iface_static_ip: '',
+              sgi_management_iface_vlan: '',
+              sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+              sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+            },
+            ran: {pci: 260, transmit_enabled: true},
           },
-        },
-        name: 'testGatewayName',
-
-        status: {
-          platform_info: {
-            packages: [
-              {
-                version: '1.0',
-              },
+          checked_in_recently: false,
+          connected_enodeb_serials: [],
+          description: 'Test Gateway Description',
+          device: {
+            hardware_id: 'testHwId',
+            key: {key: 'testChallenge', key_type: 'SOFTWARE_ECDSA_SHA256'},
+          },
+          id: 'testGatewayID1',
+          magmad: {
+            autoupgrade_enabled: true,
+            autoupgrade_poll_interval: 60,
+            checkin_interval: 60,
+            checkin_timeout: 30,
+            dynamic_services: [
+              DynamicServices.EVENTD,
+              DynamicServices.TD_AGENT_BIT,
+              DynamicServices.MONITORD,
             ],
+            logging: {
+              aggregation: {
+                target_files_by_tag: {
+                  mme: 'var/log/mme.log',
+                },
+              },
+              log_level: 'DEBUG',
+            },
           },
+          name: 'testGatewayName',
+
+          status: {
+            platform_info: {
+              packages: [
+                {
+                  version: '1.0',
+                },
+              ],
+            },
+          },
+          tier: 'default',
         },
-        tier: 'default',
-      },
-      gatewayId: 'testGatewayID1',
-      networkId: 'test',
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+      });
     });
+
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('dynamicServicesEdit')).toBeNull();
     expect(queryByTestId('epcEdit')).toBeNull();
@@ -664,50 +673,50 @@ describe('<AddEditGatewayButton />', () => {
     } else {
       throw 'invalid type';
     }
-    await wait();
     // Encryption fields are visible if encryption is enabled
-    expect(queryByTestId('encryptionEdit')).not.toBeNull();
+    expect(await findByTestId('encryptionEdit')).not.toBeNull();
 
     fireEvent.click(getByText('Save And Close'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        dns: {
-          dhcp_server_enabled: false,
-          enable_caching: false,
-          local_ttl: 0,
-          records: [],
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          dns: {
+            dhcp_server_enabled: false,
+            enable_caching: false,
+            local_ttl: 0,
+            records: [],
+          },
+          epc: {
+            ip_block: '192.168.128.0/24',
+            ipv6_block: 'fdee:5:6c::/48',
+            nat_enabled: false,
+            dns_primary: '',
+            dns_secondary: '',
+            sgi_management_iface_gw: '',
+            sgi_management_iface_static_ip: '',
+            sgi_management_iface_vlan: '',
+            sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+          },
+          ran: {
+            pci: 260,
+            transmit_enabled: true,
+          },
+          he_config: {
+            enable_encryption: true,
+            enable_header_enrichment: true,
+            he_encoding_type: 'BASE64',
+            he_encryption_algorithm: 'RC4',
+            he_hash_function: 'MD5',
+            encryption_key: '',
+          },
         },
-        epc: {
-          ip_block: '192.168.128.0/24',
-          ipv6_block: 'fdee:5:6c::/48',
-          nat_enabled: false,
-          dns_primary: '',
-          dns_secondary: '',
-          sgi_management_iface_gw: '',
-          sgi_management_iface_static_ip: '',
-          sgi_management_iface_vlan: '',
-          sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
-          sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
-        },
-        ran: {
-          pci: 260,
-          transmit_enabled: true,
-        },
-        he_config: {
-          enable_encryption: true,
-          enable_header_enrichment: true,
-          he_encoding_type: 'BASE64',
-          he_encryption_algorithm: 'RC4',
-          he_hash_function: 'MD5',
-          encryption_key: '',
-        },
-      },
-      gatewayId: 'testGatewayID1',
-      networkId: 'test',
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+      });
     });
   });
 
@@ -719,17 +728,17 @@ describe('<AddEditGatewayButton />', () => {
       )
       .mockImplementation();
 
-    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <DetailWrapper />,
+    );
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByTestId('ranEditButton'));
-    await wait();
+    fireEvent.click(await findByTestId('ranEditButton'));
 
+    expect(await findByTestId('ranEdit')).not.toBeNull();
     expect(queryByTestId('infoEdit')).toBeNull();
     expect(queryByTestId('epcEdit')).toBeNull();
     expect(queryByTestId('dynamicServicesEdit')).toBeNull();
-    expect(queryByTestId('ranEdit')).not.toBeNull();
 
     let pci = getByTestId('pci').firstChild;
     if (pci instanceof HTMLInputElement) {
@@ -747,9 +756,8 @@ describe('<AddEditGatewayButton />', () => {
     } else {
       throw 'invalid type';
     }
-    await wait();
 
-    pci = getByTestId('pci').firstChild;
+    pci = (await findByTestId('pci')).firstChild;
     if (pci instanceof HTMLInputElement) {
       expect(pci.disabled).toBe(true);
     } else {
@@ -757,18 +765,19 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        dhcp_server_enabled: false,
-        enable_caching: false,
-        local_ttl: 0,
-        records: [],
-      },
-      gatewayId: ' testGatewayId0',
-      networkId: 'test',
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularDnsPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          dhcp_server_enabled: false,
+          enable_caching: false,
+          local_ttl: 0,
+          records: [],
+        },
+        gatewayId: ' testGatewayId0',
+        networkId: 'test',
+      });
     });
   });
 });

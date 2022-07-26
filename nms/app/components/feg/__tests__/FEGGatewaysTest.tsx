@@ -19,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import type {FederationGateway} from '../../../../generated';
 
@@ -118,9 +118,8 @@ describe('<FEGGatewaysTest />', () => {
     </MemoryRouter>
   );
   it('test gateway table rendered correctly', async () => {
-    const {getAllByRole} = render(<Wrapper />);
-    await wait();
-    const rowItems = getAllByRole('row');
+    const {findAllByRole} = render(<Wrapper />);
+    const rowItems = await findAllByRole('row');
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
     expect(rowItems[0]).toHaveTextContent('Hardware UUID');
@@ -141,18 +140,18 @@ describe('<FEGGatewaysTest />', () => {
       'fegNetworkIdGatewaysGatewayIdDelete',
     );
 
-    const {getByTestId, getByText} = render(<Wrapper />);
-    await wait();
-    fireEvent.click(getByTestId(`delete ${mockGw0.id}`));
-    await wait();
-    fireEvent.click(getByText('Confirm'));
-    await wait();
-    // make sure gateway was deleted
-    expect(
-      MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdDelete,
-    ).toHaveBeenCalledWith({
-      networkId: 'mynetwork',
-      gatewayId: mockGw0.id,
-    });
+    const {findByTestId, findByText} = render(<Wrapper />);
+    fireEvent.click(await findByTestId(`delete ${mockGw0.id}`));
+    fireEvent.click(await findByText('Confirm'));
+
+    await waitFor(() =>
+      // make sure gateway was deleted
+      expect(
+        MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdDelete,
+      ).toHaveBeenCalledWith({
+        networkId: 'mynetwork',
+        gatewayId: mockGw0.id,
+      }),
+    );
   });
 });
