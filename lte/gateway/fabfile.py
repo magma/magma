@@ -566,6 +566,7 @@ def get_test_logs(
     local('mkdir /tmp/build_logs/trfserver')
     dev_files = [
         '/var/log/mme.log',
+        '/var/log/MME.magma*log*',
         '/var/log/syslog',
         '/var/log/envoy.log',
         '/var/log/openvswitch/ovs*.log',
