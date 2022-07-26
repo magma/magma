@@ -64,7 +64,7 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
+s1ap_state_t* create_s1ap_state(void) {
   bstring ht_name;
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
@@ -82,7 +82,7 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
 }
 
 void S1apStateManager::create_state() {
-  state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
+  state_cache_p = create_s1ap_state();
 
   bstring ht_name = bfromcstr(S1AP_ENB_COLL);
   state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
