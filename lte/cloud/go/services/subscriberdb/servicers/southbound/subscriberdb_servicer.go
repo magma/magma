@@ -208,10 +208,10 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	}
 	cloudflag := CloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return listRes, nil
 	}
 
@@ -262,10 +262,10 @@ func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, netw
 	return false, renewed, deleted, nil
 	cloudflag := CloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return false , nil, nil, nil
 	} else {
-		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return false, renewed, deleted, nil
 	}
 }
@@ -291,10 +291,10 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context,
 
 	cloudflag := CloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Infof("Cloud Authenitcation enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, "", nil
 	} else {
-		glog.Infof("Cloud Authenitcation NOT enabled,  streaming subscriber data")
+		glog.Infof("Cloud Authentication NOT enabled,  streaming subscriber data")
 		return subProtos, nextToken, nil
 	}
 
