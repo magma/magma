@@ -21,11 +21,12 @@ export interface FeatureFlagRawType {
   featureId: FeatureID;
   organization: string;
   enabled: boolean;
-}
-
-export interface FeatureFlagModel extends FeatureFlagRawType, Model {
   readonly id: number;
 }
+
+export interface FeatureFlagModel
+  extends FeatureFlagRawType,
+    Model<FeatureFlagRawType, Partial<FeatureFlagRawType>> {}
 
 type FeatureFlagModelStatic = typeof Model & {
   new (values?: object, options?: BuildOptions): FeatureFlagModel;

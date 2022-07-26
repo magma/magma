@@ -17,15 +17,15 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} Sequelize
+   * @param {{ context: QueryInterface}} params
    */
-  up: (queryInterface, Sequelize) => {
+  up: ({context: queryInterface}) => {
     return queryInterface.sequelize.transaction(transaction =>
       Promise.all([
         queryInterface.addColumn(
@@ -34,7 +34,7 @@ module.exports = {
           {
             allowNull: false,
             defaultValue: '',
-            type: Sequelize.TEXT,
+            type: DataTypes.TEXT,
           },
           {transaction},
         ),
@@ -44,7 +44,7 @@ module.exports = {
           {
             allowNull: false,
             defaultValue: '',
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
           },
           {transaction},
         ),
@@ -54,7 +54,7 @@ module.exports = {
           {
             allowNull: false,
             defaultValue: '',
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
           },
           {transaction},
         ),
@@ -63,9 +63,9 @@ module.exports = {
   },
 
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     return queryInterface.sequelize.transaction(transaction =>
       Promise.all([
         queryInterface.removeColumn('Organizations', 'ssoEntrypoint', {

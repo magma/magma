@@ -75,6 +75,7 @@ const config: {[config: string]: Options} = {
     database: 'db',
     dialect: 'sqlite',
     logging: false,
+    storage: ':memory:',
   },
   development: {
     username: MYSQL_USER,

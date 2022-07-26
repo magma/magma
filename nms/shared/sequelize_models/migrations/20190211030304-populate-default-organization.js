@@ -23,9 +23,9 @@
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  up: queryInterface => {
+  up: ({context: queryInterface}) => {
     return queryInterface.bulkInsert(
       'Organizations',
       [
@@ -62,9 +62,9 @@ module.exports = {
   },
 
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     // @ts-ignore
     return queryInterface.bulkDelete('Organizations', null, {});
   },

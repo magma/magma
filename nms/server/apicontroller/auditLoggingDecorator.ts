@@ -215,11 +215,11 @@ const PATHS: Array<{
   },
 ];
 
-const MUTATION_TYPE_MAP: Record<string, string> = {
+const MUTATION_TYPE_MAP = {
   POST: 'CREATE',
   PUT: 'UPDATE',
   DELETE: 'DELETE',
-};
+} as const;
 
 function getObjectIdAndType(req: Request): Resolved {
   const parsed = url.parse(
@@ -242,7 +242,7 @@ export default async function auditLoggingDecorator(
   proxyResData: Buffer,
   userReq: Request,
 ) {
-  if (!MUTATION_TYPE_MAP[userReq.method]) {
+  if (!MUTATION_TYPE_MAP[userReq.method as keyof typeof MUTATION_TYPE_MAP]) {
     return proxyResData;
   }
 
@@ -261,7 +261,8 @@ export default async function auditLoggingDecorator(
     actingUserId: userReq.user.id,
     actingUserEmail: userReq.user.email,
     organization: organizationName,
-    mutationType: MUTATION_TYPE_MAP[userReq.method],
+    mutationType:
+      MUTATION_TYPE_MAP[userReq.method as keyof typeof MUTATION_TYPE_MAP],
     objectId,
     objectType,
     objectDisplayName: objectId,
@@ -271,7 +272,7 @@ export default async function auditLoggingDecorator(
     ipAddress: userReq.ip,
     status: proxyRes.statusCode! < 300 ? 'SUCCESS' : 'FAILURE',
     statusCode: `${proxyRes.statusCode!}`,
-  };
+  } as const;
 
   try {
     await AuditLogEntry.create(data);
