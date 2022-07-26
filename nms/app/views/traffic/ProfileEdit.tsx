@@ -22,7 +22,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import PolicyContext from '../../components/context/PolicyContext';
+import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
 
 import {AltFormField} from '../../components/FormField';

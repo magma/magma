@@ -14,6 +14,7 @@ containerized AGW on AWS](#deploying-the-containerized-agw-on-aws).
 ## Building the images
 
 The images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker-compose build`.
+On Arm architecture with 5.4 kernel:The images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64`.
 
 ## Deploying the containerized AGW on AWS
 

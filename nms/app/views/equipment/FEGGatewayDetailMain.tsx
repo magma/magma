@@ -19,7 +19,7 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import FEGClusterStatus from './FEGClusterStatus';
 import FEGGatewayConnectionStatus from './FEGGatewayConnectionStatus';
-import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+import FEGGatewayContext from '../../context/FEGGatewayContext';
 import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
 import FEGGatewayDetailSubscribers from './FEGGatewayDetailSubscribers';

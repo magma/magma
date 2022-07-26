@@ -22,7 +22,7 @@ import (
 
 func TestDeregistrationRequestGenerator(t *testing.T) {
 	cbsd := &active_mode.Cbsd{CbsdId: "some_id"}
-	g := sas.NewDeregistrationRequestGenerator()
+	g := &sas.DeregistrationRequestGenerator{}
 	actual := g.GenerateRequests(cbsd)
 	expected := []*request{{
 		requestType: "deregistrationRequest",

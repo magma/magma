@@ -17,17 +17,18 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 /**
  * This migration removes 'tabs' from organizations and users.
  */
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  up: async queryInterface => {
+  up: ({context: queryInterface}) => {
     return queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.removeColumn('Users', 'tabs', {transaction});
       await queryInterface.removeColumn('Organizations', 'tabs', {
@@ -36,10 +37,9 @@ module.exports = {
     });
   },
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} types
+   * @param {{ context: QueryInterface}} params
    */
-  down: async (queryInterface, types) => {
+  down: ({context: queryInterface}) => {
     return queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.addColumn(
         'Users',
@@ -47,7 +47,7 @@ module.exports = {
         {
           allowNull: true,
           defaultValue: ['nms'],
-          type: types.JSON,
+          type: DataTypes.JSON,
         },
         {transaction},
       );
@@ -58,7 +58,7 @@ module.exports = {
         {
           allowNull: true,
           defaultValue: ['nms'],
-          type: types.JSON,
+          type: DataTypes.JSON,
         },
         {transaction},
       );

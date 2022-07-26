@@ -155,7 +155,6 @@ func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
 
 		cbsd := expected
 		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.GrantAttempts = db.MakeInt(0)
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.ShouldDeregister = db.MakeBool(false)
 		expected := []db.Model{
@@ -235,7 +234,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
 			Select(db.NewExcludeMask("id", "state_id",
-				"cbsd_id", "grant_attempts", "is_deleted")).
+				"cbsd_id", "is_deleted")).
 			Where(sq.Eq{"id": someCbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -372,7 +371,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					WithBuilder(s.resourceManager.GetBuilder()).
 					From(&storage.DBCbsd{}).
 					Select(db.NewExcludeMask("id", "state_id",
-						"cbsd_id", "grant_attempts", "is_deleted")).
+						"cbsd_id", "is_deleted")).
 					Where(sq.Eq{"cbsd_serial_number": tc.input.CbsdSerialNumber}).
 					Fetch()
 				s.Require().NoError(err)

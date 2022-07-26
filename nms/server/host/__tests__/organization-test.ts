@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+import appMiddleware from '../../middleware/appMiddleware';
 import express from 'express';
 import request from 'supertest';
 import router from '../routes';
@@ -18,7 +19,7 @@ import {AccessRoles} from '../../../shared/roles';
 import {Organization, User} from '../../../shared/sequelize_models';
 
 describe('Organization routes', () => {
-  const app = express().use('', router);
+  const app = express().use(appMiddleware()).use('', router);
 
   beforeEach(async () => {
     await Organization.sync();
@@ -38,6 +39,40 @@ describe('Organization routes', () => {
       password: '1234',
     });
   }
+
+  it('a new organization can be created', async () => {
+    const orgName = 'new-org';
+
+    let newOrganization = await Organization.findOne({where: {name: orgName}});
+    expect(newOrganization).toBeNull();
+
+    await request(app)
+      .post('/organization/async')
+      .send({name: orgName, networkIDs: ['test'], customDomains: []})
+      .expect(200);
+
+    newOrganization = await Organization.findOne({where: {name: orgName}});
+
+    expect(newOrganization).not.toBeNull();
+    expect(newOrganization!.name).toBe(orgName);
+    expect(newOrganization!.networkIDs).toEqual(['test']);
+  });
+
+  it('an organization can updated', async () => {
+    const organization = await Organization.create({name: 'test'});
+    expect(organization.networkIDs).toEqual([]);
+
+    await request(app)
+      .put(`/organization/async/${organization.name}`)
+      .send({name: 'test', networkIDs: ['aaa', 'bbb', 'ccc']})
+      .expect(200);
+
+    const updatedOrganization = await Organization.findOne({
+      where: {id: organization.id},
+    });
+
+    expect(updatedOrganization!.networkIDs).toEqual(['aaa', 'bbb', 'ccc']);
+  });
 
   it('deleting an organization also deletes its users', async () => {
     const organization = await Organization.create({name: 'test'});

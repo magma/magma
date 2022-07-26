@@ -80,7 +80,7 @@ func TestRegistrationRequestGenerator(t *testing.T) {
 	"measCapability": []
 }`,
 	}}
-	g := sas.NewRegistrationRequestGenerator()
+	g := &sas.RegistrationRequestGenerator{}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := g.GenerateRequests(tt.cbsd)
@@ -101,9 +101,16 @@ type request struct {
 func assertRequestsEqual(t *testing.T, expected []*request, actual []*sas.Request) {
 	require.Len(t, actual, len(expected))
 	for i := range actual {
-		args := []interface{}{"at %d", i}
-		x, y := expected[i], actual[i]
-		assert.Equal(t, x.requestType, y.Type.String(), args...)
-		assert.JSONEq(t, x.data, string(y.Data), args...)
+		args := []any{"at %d", i}
+		assertRequestEqual(t, expected[i], actual[i], args...)
 	}
+}
+
+func assertRequestEqual(t *testing.T, expected *request, actual *sas.Request, args ...any) {
+	if expected == nil {
+		assert.Nil(t, actual, args...)
+		return
+	}
+	assert.Equal(t, expected.requestType, actual.Type.String(), args...)
+	assert.JSONEq(t, expected.data, string(actual.Data), args...)
 }

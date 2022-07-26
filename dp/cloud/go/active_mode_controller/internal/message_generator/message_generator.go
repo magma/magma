@@ -20,6 +20,8 @@ import (
 
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/message"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas/eirp"
+	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas/grant"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas_helpers"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
@@ -27,13 +29,17 @@ import (
 type messageGenerator struct {
 	heartbeatTimeout  time.Duration
 	inactivityTimeout time.Duration
-	rng               sas.RNG
+	rng               RNG
+}
+
+type RNG interface {
+	Int() int
 }
 
 func NewMessageGenerator(
 	heartbeatTimeout time.Duration,
 	inactivityTimeout time.Duration,
-	rng sas.RNG,
+	rng RNG,
 ) *messageGenerator {
 	return &messageGenerator{
 		heartbeatTimeout:  heartbeatTimeout,
@@ -54,7 +60,7 @@ func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.T
 		g := m.getPerCbsdMessageGenerator(cbsd, now)
 		reqs := g.sas.GenerateRequests(cbsd)
 		requests = append(requests, reqs...)
-		msgs = append(msgs, g.crud.generateMessages(cbsd.GetDbData())...)
+		msgs = append(msgs, g.action.generateActions(cbsd)...)
 	}
 	payloads := sas_helpers.Build(requests)
 	for _, payload := range payloads {
@@ -64,70 +70,85 @@ func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.T
 }
 
 func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, now time.Time) *perCbsdMessageGenerator {
-	if cbsd.GetState() == active_mode.CbsdState_Unregistered {
-		data := cbsd.GetDbData()
-		if data.GetIsDeleted() {
-			return &perCbsdMessageGenerator{
-				sas:  &noRequestGenerator{},
-				crud: &deleteMessageGenerator{},
-			}
+	generator := &perCbsdMessageGenerator{
+		sas:    &noRequestGenerator{},
+		action: &noMessageGenerator{},
+	}
+	isActive := cbsd.LastSeenTimestamp >= now.Add(-m.inactivityTimeout).Unix()
+	if cbsd.State == active_mode.CbsdState_Unregistered {
+		if cbsd.DbData.IsDeleted {
+			generator.action = &deleteMessageGenerator{}
+		} else if cbsd.DbData.ShouldDeregister {
+			generator.action = &updateMessageGenerator{}
+		} else if isActive && cbsd.DesiredState == active_mode.CbsdState_Registered {
+			generator.sas = &sas.RegistrationRequestGenerator{}
 		}
-		if data.GetShouldDeregister() {
-			return &perCbsdMessageGenerator{
-				sas:  &noRequestGenerator{},
-				crud: &updateMessageGenerator{},
-			}
+	} else if cbsd.DbData.IsDeleted ||
+		cbsd.DbData.ShouldDeregister ||
+		cbsd.DesiredState == active_mode.CbsdState_Unregistered {
+		generator.sas = &sas.DeregistrationRequestGenerator{}
+	} else if !isActive {
+		generator.sas = &sas.RelinquishmentRequestGenerator{}
+	} else if len(cbsd.Channels) == 0 {
+		generator.sas = &sas.SpectrumInquiryRequestGenerator{}
+	} else if len(cbsd.GrantSettings.AvailableFrequencies) == 0 {
+		generator.action = &availableFrequenciesMessageGenerator{}
+	} else {
+		nextSend := now.Add(m.heartbeatTimeout).Unix()
+		generator.sas = &grantManager{
+			nextSendTimestamp: nextSend,
+			rng:               m.rng,
 		}
 	}
-	return &perCbsdMessageGenerator{
-		sas:  m.getPerCbsdSasRequestGenerator(cbsd, now),
-		crud: &noMessageGenerator{},
-	}
+	return generator
 }
 
-func (m *messageGenerator) getPerCbsdSasRequestGenerator(cbsd *active_mode.Cbsd, now time.Time) sasRequestGenerator {
-	if requiresDeregistration(cbsd.GetDbData()) && cbsd.GetState() == active_mode.CbsdState_Registered {
-		return sas.NewDeregistrationRequestGenerator()
-	}
-	if cbsd.GetDesiredState() == active_mode.CbsdState_Unregistered {
-		if cbsd.GetState() == active_mode.CbsdState_Registered {
-			return sas.NewDeregistrationRequestGenerator()
-		}
-		return &noRequestGenerator{}
-	}
-	if cbsd.GetLastSeenTimestamp() < now.Add(-m.inactivityTimeout).Unix() {
-		return sas.NewRelinquishmentRequestGenerator()
-	}
-	if cbsd.GetState() == active_mode.CbsdState_Unregistered {
-		return sas.NewRegistrationRequestGenerator()
-	}
-	if len(cbsd.GetGrants()) != 0 {
-		nextSend := now.Add(m.heartbeatTimeout).Unix()
-		return sas.NewHeartbeatRequestGenerator(nextSend)
-	}
-	return &firstNotNullRequestGenerator{
-		generators: []sasRequestGenerator{
-			sas.NewGrantRequestGenerator(m.rng),
-			sas.NewSpectrumInquiryRequestGenerator(),
+type grantManager struct {
+	nextSendTimestamp int64
+	rng               RNG
+}
+
+func (g *grantManager) GenerateRequests(cbsd *active_mode.Cbsd) []*sas.Request {
+	grants := grant.GetFrequencyGrantMapping(cbsd.Grants)
+	calc := eirp.NewCalculator(cbsd.InstallationParams.AntennaGainDbi, cbsd.EirpCapabilities)
+	processors := grant.Processors[*sas.Request]{
+		Del: &sas.RelinquishmentProcessor{
+			CbsdId: cbsd.CbsdId,
+			Grants: grants,
+		},
+		Keep: &sas.HeartbeatProcessor{
+			NextSendTimestamp: g.nextSendTimestamp,
+			CbsdId:            cbsd.CbsdId,
+			Grants:            grants,
+		},
+		Add: &sas.GrantProcessor{
+			CbsdId:   cbsd.CbsdId,
+			Calc:     calc,
+			Channels: cbsd.Channels,
 		},
 	}
-}
-
-func requiresDeregistration(data *active_mode.DatabaseCbsd) bool {
-	return data.GetIsDeleted() || data.GetShouldDeregister()
+	requests := grant.ProcessGrants(
+		cbsd.Grants, cbsd.Preferences, cbsd.GrantSettings,
+		processors, g.rng.Int(),
+	)
+	if len(requests) > 0 {
+		return requests
+	}
+	gen := sas.SpectrumInquiryRequestGenerator{}
+	return gen.GenerateRequests(cbsd)
 }
 
 type perCbsdMessageGenerator struct {
-	sas  sasRequestGenerator
-	crud crudMessageGenerator
+	sas    sasRequestGenerator
+	action actionMessageGenerator
 }
 
 type sasRequestGenerator interface {
 	GenerateRequests(cbsd *active_mode.Cbsd) []*sas.Request
 }
 
-type crudMessageGenerator interface {
-	generateMessages(*active_mode.DatabaseCbsd) []Message
+type actionMessageGenerator interface {
+	generateActions(cbsd *active_mode.Cbsd) []Message
 }
 
 type noRequestGenerator struct{}
@@ -136,34 +157,29 @@ func (*noRequestGenerator) GenerateRequests(_ *active_mode.Cbsd) []*sas.Request 
 	return nil
 }
 
-type firstNotNullRequestGenerator struct {
-	generators []sasRequestGenerator
-}
-
-func (f *firstNotNullRequestGenerator) GenerateRequests(config *active_mode.Cbsd) []*sas.Request {
-	for _, g := range f.generators {
-		messages := g.GenerateRequests(config)
-		if len(messages) > 0 {
-			return messages
-		}
-	}
-	return nil
-}
-
 type noMessageGenerator struct{}
 
-func (*noMessageGenerator) generateMessages(_ *active_mode.DatabaseCbsd) []Message {
+func (*noMessageGenerator) generateActions(_ *active_mode.Cbsd) []Message {
 	return nil
 }
 
 type deleteMessageGenerator struct{}
 
-func (*deleteMessageGenerator) generateMessages(data *active_mode.DatabaseCbsd) []Message {
-	return []Message{message.NewDeleteMessage(data.GetId())}
+func (*deleteMessageGenerator) generateActions(data *active_mode.Cbsd) []Message {
+	return []Message{message.NewDeleteMessage(data.DbData.Id)}
 }
 
 type updateMessageGenerator struct{}
 
-func (*updateMessageGenerator) generateMessages(data *active_mode.DatabaseCbsd) []Message {
-	return []Message{message.NewUpdateMessage(data.GetId())}
+func (*updateMessageGenerator) generateActions(data *active_mode.Cbsd) []Message {
+	return []Message{message.NewUpdateMessage(data.DbData.Id)}
+}
+
+type availableFrequenciesMessageGenerator struct{}
+
+func (*availableFrequenciesMessageGenerator) generateActions(data *active_mode.Cbsd) []Message {
+	calc := eirp.NewCalculator(data.InstallationParams.AntennaGainDbi, data.EirpCapabilities)
+	frequencies := grant.CalcAvailableFrequencies(data.Channels, calc)
+	msg := message.NewStoreAvailableFrequenciesMessage(data.DbData.Id, frequencies)
+	return []Message{msg}
 }
