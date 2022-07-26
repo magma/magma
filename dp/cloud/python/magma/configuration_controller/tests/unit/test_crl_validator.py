@@ -85,9 +85,13 @@ class CRLValidatorTestCase(TestCase):
         valid = validator.is_valid(url=self.sas_url)
         self.assertIs(valid, True)
 
-        # When
+        # When / Then
         self._set_mocket_cert(certificate=REVOKED_CRL_CERT)
         self._set_mocker_CRL(mocker=mocker, crls=REVOKED_CERT_CRLS_DATA)
+
+        # Ensure certs are not instant updated
+        valid = validator.is_valid(url=self.sas_url)
+        self.assertIs(valid, True)
         time.sleep(update_rate + 1)  # Wait for certs update.
 
         # Then

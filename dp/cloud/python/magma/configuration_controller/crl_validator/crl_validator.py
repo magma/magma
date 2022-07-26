@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import threading
-import time
 from typing import Dict, List
 from urllib.parse import urlparse
 
@@ -35,7 +34,7 @@ def get_host(url: str) -> str:
     return urlparse(url=url).netloc
 
 
-class CertificatesUpdaterThread(threading.Thread):
+class CertificatesUpdater(object):
     """
     This class is responsible for periodical update of certificates and CRLs for SSLValidator
     using shared certificates and CRL dicts. Data is updated in the background to not delay the main application.
@@ -58,20 +57,30 @@ class CertificatesUpdaterThread(threading.Thread):
             **kwargs: kwargs
         """
         super().__init__(*args, **kwargs)
-        self.daemon = True  # Die if main app exits.
 
         self._certificates = certificates
         self._crls = crls
+
         self._update_rate = update_rate
+        self._timer: threading.Timer
 
     def run(self) -> None:
-        """ Start thread.
+        """ Update certificates and set timer for the next update.
+        The timer calls this exact method, so it automatically sets new timer after each update.
 
         Returns: None
         """
-        while True:
-            self._update_certificates()
-            time.sleep(self._update_rate)
+        self._update_certificates()
+        self._set_update_timer()
+
+    def _set_update_timer(self) -> None:
+        """ Set up and start Timer to update certificates after given time interval.
+
+        Returns: None
+        """
+        self._timer = threading.Timer(interval=self._update_rate, function=self.run)
+        self._timer.daemon = True  # Die if main app exits.
+        self._timer.start()
 
     def _update_certificates(self) -> None:
         """ Fetch new certificates and CRLs for all hosts
@@ -107,16 +116,16 @@ class CRLValidator(object):
         self._certificates = dict.fromkeys(hosts)
         self._crls = {}
 
-        # Start updater thread to update certificates and CRLs in the background.
-        self._updater_thread = CertificatesUpdaterThread(
+        # Start updater to update certificates and CRLs in the background.
+        self._updater_thread = CertificatesUpdater(
             certificates=self._certificates,
             crls=self._crls,
             update_rate=certificates_update_rate,
         )
-        self._updater_thread.start()
+        self._updater_thread.run()
 
     def is_valid(self, url: str) -> bool:
-        """ Check if given url's SSL certificate is not revoked by its Certificate Revocation Lists.
+        """ Check if given url SSL certificate is not revoked by its Certificate Revocation Lists.
 
         Args:
             url: url string
@@ -148,7 +157,7 @@ class CRLValidator(object):
     def _get_certificate_crls(
             self, certificate: x509.Certificate,
     ) -> List[x509.CertificateRevocationList]:
-        """ Get cached CertificateRevocationLists for given certificate, fetch new if they does not exist.
+        """ Get cached CertificateRevocationLists for given certificate, fetch new if they do not exist.
 
         Args:
             certificate: certificate that CRLs were attached to

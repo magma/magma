@@ -38,11 +38,10 @@ def get_certificate(
     context = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
 
-    sock = socket.create_connection((hostname, port))
-    sock = context.wrap_socket(sock, server_hostname=hostname)
-    binary_certificate = sock.getpeercert(binary_form=True)
-    sock.shutdown(socket.SHUT_RDWR)
-    sock.close()
+    with socket.create_connection((hostname, port)) as sock:
+        sock = context.wrap_socket(sock, server_hostname=hostname)
+        binary_certificate = sock.getpeercert(binary_form=True)
+        sock.shutdown(socket.SHUT_RDWR)
 
     return x509.load_der_x509_certificate(data=binary_certificate, backend=_x509_backend)
 
