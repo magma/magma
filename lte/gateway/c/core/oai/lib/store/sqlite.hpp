@@ -30,7 +30,7 @@ class SqliteStore {
   void add_subscriber(const SubscriberData& subscriber_data);
 
   // Delete subscriber
-  void delete_subscriber();  // TODO:(vroon2703) add the parameters
+  void delete_subscriber();  // TODO(vroon2703): add the parameters
 
  private:
   int _sid_digits;
