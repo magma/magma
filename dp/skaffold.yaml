@@ -31,10 +31,6 @@ build:
       context: tools/fake_sas
       docker:
         dockerfile: Dockerfile
-    - image: fluentd
-      context: ..
-      docker:
-        dockerfile: dp/cloud/docker/fluentd/Dockerfile
     - image: fluentd_forward
       context: ..
       docker:
@@ -82,8 +78,6 @@ deploy:
             image: radio-controller
           dp.db_service:
             image: db-service
-          dp.fluentd:
-            image: fluentd
         imageStrategy:
           helm: {}
   kubectl:
@@ -318,4 +312,6 @@ profiles:
       - op: remove
         path: /build/artifacts/4  # remove fake sas image
       - op: remove
-        path: /build/artifacts/6  # remove postgresql image
+        path: /build/artifacts/4  # remove fluentd-forward image
+      - op: remove
+        path: /build/artifacts/4  # remove postgresql image
