@@ -63,6 +63,7 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
   nas_conf->force_reject_tau = true;
   nas_conf->force_reject_sr = true;
   nas_conf->disable_esm_information = false;
+  nas_conf->enable_IMS_VoPS_3GPP = false;
 }
 
 /***************************************************************************
@@ -573,6 +574,8 @@ void amf_config_display(amf_config_t* config_pP) {
   OAILOG_DEBUG(LOG_CONFIG, "- PARTIAL TAIs\n");
   OAILOG_DEBUG(LOG_CONFIG, "- Num of partial lists=%d\n",
                config_pP->num_par_lists);
+  OAILOG_INFO(LOG_CONFIG, " ENABLE_IMS_VoPS_3GPP .......: %s\n",
+              config_pP->nas_config.enable_IMS_VoPS_3GPP ? "true" : "false");
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
     if (config_pP->partial_list) {
       switch (config_pP->partial_list[itr].list_type) {
