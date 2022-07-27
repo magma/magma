@@ -217,11 +217,6 @@ dp:
       name: ""
 
   fluentd:
-    image:
-      repository: fluentd
-      tag: ""
-      pullPolicy: IfNotPresent
-
     env:
       output_host: orc8r-fluentd-forward
       output_flush_interval: 1s

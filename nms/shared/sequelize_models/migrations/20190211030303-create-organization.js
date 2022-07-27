@@ -17,56 +17,56 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} types
+   * @param {{ context: QueryInterface}} params
    */
-  up: (queryInterface, types) => {
+  up: ({context: queryInterface}) => {
     return queryInterface.createTable('Organizations', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: types.INTEGER,
+        type: DataTypes.INTEGER,
       },
       customDomains: {
         allowNull: false,
         defaultValue: '[]',
-        type: types.JSON,
+        type: DataTypes.JSON,
       },
       name: {
         allowNull: false,
-        type: types.STRING,
+        type: DataTypes.STRING,
       },
       networkIDs: {
         allowNull: true,
         defaultValue: '[]',
-        type: types.JSON,
+        type: DataTypes.JSON,
       },
       tabs: {
         allowNull: false,
         defaultValue: '[]',
-        type: types.JSON,
+        type: DataTypes.JSON,
       },
       createdAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
     });
   },
 
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     return queryInterface.dropTable('Organizations');
   },
 };

@@ -31,15 +31,12 @@ import sequelizeConfig from './sequelizeConfig';
 const env = process.env.NODE_ENV || 'development';
 const config = sequelizeConfig[env];
 
-export const sequelize: Sequelize =
-  env === 'test'
-    ? new Sequelize('sqlite::memory:')
-    : new Sequelize(
-        config.database || '',
-        config.username || '',
-        config.password,
-        config,
-      );
+export const sequelize = new Sequelize(
+  config.database || '',
+  config.username || '',
+  config.password,
+  config,
+);
 
 const SequelizeTables = [
   'AuditLogEntries',
@@ -254,7 +251,9 @@ async function migrateMeta(source: Sequelize, target: Sequelize) {
   await targetInterface.bulkInsert('SequelizeMeta', rows);
 }
 
-function getDataValues(sequelizeModels: Array<Model>): Array<object> {
+function getDataValues<M extends Model>(
+  sequelizeModels: Array<M>,
+): M extends Model<infer K> ? Array<K> : never {
   // @ts-ignore
   return sequelizeModels.map(model => model.dataValues); // eslint-disable-line @typescript-eslint/no-unsafe-return
 }

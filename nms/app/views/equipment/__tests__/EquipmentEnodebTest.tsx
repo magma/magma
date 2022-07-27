@@ -13,7 +13,7 @@
 import type {PromqlReturnObject} from '../../../../generated';
 
 import Enodeb from '../EquipmentEnodeb';
-import EnodebContext from '../../../components/context/EnodebContext';
+import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -25,7 +25,7 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PaginatedEnodebs} from '../../../../generated';
 import {mockAPI} from '../../../util/TestUtils';
-import {render, wait, waitFor} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -177,7 +177,5 @@ describe('<Enodeb />', () => {
         new Date(currTime).toLocaleDateString(),
       );
     });
-    // TODO: The wait was needed as this test seems to be blinking.
-    await wait(undefined, {timeout: 42});
   });
 });

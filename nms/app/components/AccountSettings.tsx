@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import AppContext from './context/AppContext';
+import AppContext from '../context/AppContext';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import React, {useContext, useState} from 'react';

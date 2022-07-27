@@ -15,13 +15,9 @@ package sas
 
 import "magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 
-type spectrumInquiryRequestGenerator struct{}
+type SpectrumInquiryRequestGenerator struct{}
 
-func NewSpectrumInquiryRequestGenerator() *spectrumInquiryRequestGenerator {
-	return &spectrumInquiryRequestGenerator{}
-}
-
-func (*spectrumInquiryRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
+func (*SpectrumInquiryRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
 	req := &spectrumInquiryRequest{
 		CbsdId: cbsd.GetCbsdId(),
 		InquiredSpectrum: []*frequencyRange{{

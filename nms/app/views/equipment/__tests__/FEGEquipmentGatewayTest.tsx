@@ -18,12 +18,12 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {AxiosResponse} from 'axios';
-import {FEGGatewayContextProvider} from '../../../components/feg/FEGContext';
+import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
-import {render, wait, waitFor} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 import type {
   Csfb,
   FederationGateway,
@@ -281,7 +281,7 @@ describe('<FEGEquipmentGateway />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <FEGGatewayContextProvider networkId="mynetwork" networkType="feg">
+          <FEGGatewayContextProvider networkId="mynetwork">
             <Routes>
               <Route
                 path="/nms/:networkId/gateway/"
@@ -295,10 +295,10 @@ describe('<FEGEquipmentGateway />', () => {
   );
 
   it('renders federation gateway KPIs correctly', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
+    const {findByTestId, getByTestId} = render(<Wrapper />);
+
     // verify KPI metrics
-    expect(getByTestId('Max Latency')).toHaveTextContent('8');
+    expect(await findByTestId('Max Latency')).toHaveTextContent('8');
     expect(getByTestId('Min Latency')).toHaveTextContent('6');
     expect(getByTestId('Avg Latency')).toHaveTextContent('7');
     expect(getByTestId('Federation Gateway Count')).toHaveTextContent('2');
@@ -343,10 +343,9 @@ describe('<FEGEquipmentGateway />', () => {
   });
 
   it('renders cluster status correctly', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
+    const {findByTestId, getByTestId} = render(<Wrapper />);
     // verify health status of the primary and secondary gateways
-    expect(getByTestId('Primary Health')).toHaveTextContent('Good');
+    expect(await findByTestId('Primary Health')).toHaveTextContent('Good');
     expect(getByTestId('Secondary Health')).toHaveTextContent('Bad');
     // verify that primary/active gateway's name is rendered
     expect(getByTestId('Primary Gateway Name')).toHaveTextContent(

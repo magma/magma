@@ -17,31 +17,30 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} types
+   * @param {{ context: QueryInterface}} params
    */
-  up: (queryInterface, types) => {
+  up: ({context: queryInterface}) => {
     return queryInterface.changeColumn('Users', 'tabs', {
       allowNull: true,
       defaultValue: [],
-      type: types.JSON,
+      type: DataTypes.JSON,
     });
   },
 
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} types
+   * @param {{ context: QueryInterface}} params
    */
-  down: (queryInterface, types) => {
+  down: ({context: queryInterface}) => {
     return queryInterface.changeColumn('Users', 'tabs', {
       allowNull: true,
       defaultValue: '[]',
-      type: types.JSON,
+      type: DataTypes.JSON,
     });
   },
 };

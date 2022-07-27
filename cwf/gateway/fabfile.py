@@ -427,30 +427,6 @@ def _run_gateway():
         )
 
 
-def _restart_docker_services(services):
-    with cd(CWAG_ROOT + "/docker"):
-        sudo(
-            " docker-compose"
-            " -f docker-compose.yml"
-            " -f docker-compose.override.yml"
-            " -f docker-compose.nginx.yml"
-            " -f docker-compose.integ-test.yml"
-            " restart {}".format(" ".join(services)),
-        )
-
-
-def _stop_docker_services(services):
-    with cd(CWAG_ROOT + "/docker"):
-        sudo(
-            " docker-compose"
-            " -f docker-compose.yml"
-            " -f docker-compose.override.yml"
-            " -f docker-compose.nginx.yml"
-            " -f docker-compose.integ-test.yml"
-            " stop {}".format(" ".join(services)),
-        )
-
-
 def _check_docker_services(ignore_list):
     with cd(CWAG_ROOT + "/docker"), settings(warn_only=True), hide("warnings"):
 

@@ -13,7 +13,7 @@
 
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import FEGNetworkContext from '../../components/context/FEGNetworkContext';
+import FEGNetworkContext from '../../context/FEGNetworkContext';
 import FEGNetworkInfo from './FEGNetworkInfo';
 import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
 import Grid from '@material-ui/core/Grid';

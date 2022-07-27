@@ -13,7 +13,7 @@
 
 import AccountSettings from '../AccountSettings';
 import Admin from '../admin/Admin';
-import AppContext from '../../../app/components/context/AppContext';
+import AppContext from '../../context/AppContext';
 import LoadingFiller from '../LoadingFiller';
 import React, {useContext} from 'react';
 import useSections from './useSections';

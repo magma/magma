@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import NetworkContext from '../../../components/context/NetworkContext';
+import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
-import SubscriberContext from '../../../components/context/SubscriberContext';
+import SubscriberContext from '../../../context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import defaultTheme from '../../../theme/default';
 
@@ -96,6 +96,7 @@ describe('<SubscriberDashboard />', () => {
       gwSubscriberMap: {},
       sessionState: {},
       totalCount: 2,
+      refetchSessionState: () => {},
     };
 
     return (
