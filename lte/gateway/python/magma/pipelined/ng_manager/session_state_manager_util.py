@@ -35,6 +35,8 @@ class PDRRuleEntry(NamedTuple):
     add_qos_enforce_rule: ActivateFlowsRequest
     far_action: Optional[FARRuleEntry]
     ue_ipv6_addr: Optional[str]
+    session_qfi: Optional[int]
+
 
 # Create the Named tuple for the FAR entry
 
@@ -64,6 +66,7 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     deactivate_flow_req = None
     activate_flow_req = None
     ue_ipv6_addr = None
+    session_qfi = 0
 
     # get local teid
     if pdr_entry.pdi.local_f_teid:
@@ -86,11 +89,14 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     if pdr_entry.HasField('activate_flow_req') == True:
         activate_flow_req = pdr_entry.activate_flow_req
 
+    if pdr_entry.session_qfi:
+        session_qfi = pdr_entry.session_qfi
+
     pdr_rule = PDRRuleEntry(
         pdr_entry.pdr_id, pdr_entry.pdr_version,
         pdr_entry.pdr_state, pdr_entry.precedence,
         local_f_teid, ue_ip_addr,
         deactivate_flow_req, activate_flow_req,
-        far_entry, ue_ipv6_addr,
+        far_entry, ue_ipv6_addr, session_qfi,
     )
     return pdr_rule

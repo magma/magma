@@ -1,0 +1,3 @@
+ cookie=0x0, table=classifier(main_table), n_packets=3, n_bytes=250, priority=0 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=0,in_port=15578 actions=resubmit(,201)
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=0,in_port=15579 actions=resubmit(,202)

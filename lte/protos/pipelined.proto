@@ -347,6 +347,7 @@ message SetGroupPDR {
   SetGroupFAR set_gr_far = 8;
   DeactivateFlowsRequest deactivate_flow_req = 9;
   ActivateFlowsRequest activate_flow_req = 10;
+  QCI session_qfi = 11;
 }
 
 // FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
