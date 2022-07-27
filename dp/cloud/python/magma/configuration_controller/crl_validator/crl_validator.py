@@ -74,8 +74,10 @@ class CRLValidator(object):
                 certificate = self._certificates[host]
                 crls = self._crls[certificate.serial_number]
         except KeyError:
-            raise KeyError(f'{host} certificates unavailable, host was not given upon initialization'
-                           f'so it was not prefetched. Available certificates: {self._hosts}')
+            raise KeyError(
+                f'{host} certificates unavailable, host was not given upon initialization'
+                f'so it was not prefetched. Available certificates: {self._hosts}',
+            )
 
         return not is_certificate_revoked(certificate=certificate, crls=crls)
 
