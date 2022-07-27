@@ -135,10 +135,10 @@ const EMPTY_STATE_OVERVIEW =
 const EMPTY_STATE_INSTRUCTIONS_STEP_2 =
   'The Access Gateway (AGW) is configured and managed via the orchestrator and is part of a specific organization.' +
   'This configuration is made through the NMS as part of adding a new gateway to the system. ';
-const VIEW_DOCUMENTATION_LINK =
-  'https://docs.magmacore.org/docs/next/lte/deploy_install';
-const LEARN_MORE_LINK =
-  'https://docs.magmacore.org/docs/next/lte/deploy_config_agw';
+const INSTALL_AGW_LINK = 'https://docs.magmacore.org/docs/lte/deploy_install';
+const CONFIGURE_AGW_LINK =
+  'https://docs.magmacore.org/docs/lte/deploy_config_agw#access-gateway-configuration';
+const LEARN_MORE_LINK = 'https://docs.magmacore.org/docs/lte/deploy_config_agw';
 
 export default function Gateway() {
   const classes = useStyles();
@@ -184,19 +184,17 @@ function InstallGatewayList() {
   return (
     <ul className={classes.bulletList}>
       <li>
-        Create bootable USB with OS (Ubuntu).
-        <Link href={VIEW_DOCUMENTATION_LINK} target="_blank">
+        Create bootable USB with OS (Ubuntu).{' '}
+        <Link href={INSTALL_AGW_LINK} target="_blank">
           View documentation
         </Link>
       </li>
       <li>Install Magma service</li>
       <li>
-        Download <Link href={''}>rootca.pem</Link> and{' '}
-        <Link href={''}>control_proxy.yml</Link> and install in
-        <code>/var/opt/magma/tmp/certs</code> and{' '}
-        <code>/var/opt/magma/configs</code> respectively. The rootCA.pem
-        validates server credentials and the control_proxy.yml file provides
-        orchestrator information to the gateway.
+        Install <code>rootca.pem</code> and <code>control_proxy.yml</code>.{' '}
+        <Link href={CONFIGURE_AGW_LINK} target="_blank">
+          View documentation
+        </Link>
       </li>
       <li>Restart Magma services</li>
       <li>
