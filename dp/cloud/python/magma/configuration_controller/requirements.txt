@@ -10,6 +10,7 @@ psycopg2-binary==2.8.6
 pytz==2021.1
 PyYAML==5.4.1
 requests==2.25.1
+rwmutex==1.1
 six==1.15.0
 sqlalchemy==1.4.15
 tzlocal==2.1

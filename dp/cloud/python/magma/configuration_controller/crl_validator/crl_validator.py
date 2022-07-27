@@ -10,16 +10,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import threading
-from typing import Dict, List
+from typing import List
 from urllib.parse import urlparse
 
-from cryptography import x509
 from magma.configuration_controller.crl_validator.certificate import (
     get_certificate,
     get_certificate_crls,
     is_certificate_revoked,
 )
+from rwmutex import RWLock
 
 
 def get_host(url: str) -> str:
@@ -34,95 +33,26 @@ def get_host(url: str) -> str:
     return urlparse(url=url).netloc
 
 
-class CertificatesUpdater(object):
-    """
-    This class is responsible for periodical update of certificates and CRLs for SSLValidator
-    using shared certificates and CRL dicts. Data is updated in the background to not delay the main application.
-    """
-
-    def __init__(
-            self,
-            certificates: Dict[str, x509.Certificate],
-            crls: Dict[int, List[x509.CertificateRevocationList]],
-            update_rate: int,
-            *args,
-            **kwargs,
-    ) -> None:
-        """
-        Args:
-            certificates: certificates dict that will be updated by this class
-            crls: CRLs dict that will be updated by this class
-            update_rate: time in seconds between each update
-            *args: args
-            **kwargs: kwargs
-        """
-        super().__init__(*args, **kwargs)
-
-        self._certificates = certificates
-        self._crls = crls
-
-        self._update_rate = update_rate
-        self._timer: threading.Timer
-
-    def run(self) -> None:
-        """ Update certificates and set timer for the next update.
-        The timer calls this exact method, so it automatically sets new timer after each update.
-
-        Returns: None
-        """
-        self._update_certificates()
-        self._set_update_timer()
-
-    def _set_update_timer(self) -> None:
-        """ Set up and start Timer to update certificates after given time interval.
-
-        Returns: None
-        """
-        self._timer = threading.Timer(interval=self._update_rate, function=self.run)
-        self._timer.daemon = True  # Die if main app exits.
-        self._timer.start()
-
-    def _update_certificates(self) -> None:
-        """ Fetch new certificates and CRLs for all hosts
-        and update self._certificates and self._crls dicts.
-
-        Returns: None
-        """
-        for host in self._certificates.keys():
-            certificate = get_certificate(hostname=host)
-            crls = get_certificate_crls(certificate=certificate)
-
-            self._certificates[host] = certificate
-            self._crls[certificate.serial_number] = crls
-
-
 class CRLValidator(object):
     """
     This class is responsible for validating given urls' SSL certs with their respective CRLs.
     """
 
-    def __init__(
-            self, urls: List[str], certificates_update_rate: int = 300,
-    ) -> None:
+    def __init__(self, urls: List[str]) -> None:
         """
         Args:
-            urls: list of urls that we should prefetch certificates and CRLs for
-            certificates_update_rate: time in seconds between certificates and CRLs update
+            urls: list of urls that we should download certificates and CRLs for
         """
         hosts = [get_host(url=url) for url in urls]
-
-        # Certificates and CRLs dicts are shared with separate updater thread.
-        # All we want is to have recent certs for given hosts, so usual thread related issues don't really bother us.
         self._certificates = dict.fromkeys(hosts)
         self._crls = {}
+        self._lock = RWLock()
 
-        # Start updater to update certificates and CRLs in the background.
-        self._updater_thread = CertificatesUpdater(
-            certificates=self._certificates,
-            crls=self._crls,
-            update_rate=certificates_update_rate,
-        )
-        self._updater_thread.run()
+        self.update_certificates()
+
+    @property
+    def _hosts(self) -> list:
+        return list(self._certificates.keys())
 
     def is_valid(self, url: str) -> bool:
         """ Check if given url SSL certificate is not revoked by its Certificate Revocation Lists.
@@ -135,37 +65,31 @@ class CRLValidator(object):
 
         Raises:
             SSLError: if certificate is revoked
+            KeyError: if asked for validity of a host that was not given on initialization
         """
         host = get_host(url=url)
-        certificate = self._get_certificate(hostname=host)
-        crls = self._get_certificate_crls(certificate=certificate)
+
+        try:
+            with self._lock.read:
+                certificate = self._certificates[host]
+                crls = self._crls[certificate.serial_number]
+        except KeyError:
+            raise KeyError(f'{host} certificates unavailable, host was not given upon initialization'
+                           f'so it was not prefetched. Available certificates: {self._hosts}')
+
         return not is_certificate_revoked(certificate=certificate, crls=crls)
 
-    def _get_certificate(self, hostname: str) -> x509.Certificate:
-        """ Get cached certificate for given host, fetch new if it does not exist.
+    def update_certificates(self) -> None:
+        """ Download new certificates and CRLs for all hosts and update self._certificates
+        and self._crls dicts. This method should be called periodically by some
+        cron or scheduler to ensure that recent certificates are always fetched.
 
-        Args:
-            hostname: host for which certificate was issued
-
-        Returns:
-            SSL certificate
+        Returns: None
         """
-        if not self._certificates.get(hostname):
-            self._certificates[hostname] = get_certificate(hostname=hostname)
-        return self._certificates[hostname]
+        for host in self._hosts:
+            certificate = get_certificate(hostname=host)
+            crls = get_certificate_crls(certificate=certificate)
 
-    def _get_certificate_crls(
-            self, certificate: x509.Certificate,
-    ) -> List[x509.CertificateRevocationList]:
-        """ Get cached CertificateRevocationLists for given certificate, fetch new if they do not exist.
-
-        Args:
-            certificate: certificate that CRLs were attached to
-
-        Returns:
-            list of Certificate Revocation Lists
-        """
-        serial_number = certificate.serial_number
-        if not self._crls.get(serial_number):
-            self._crls[serial_number] = get_certificate_crls(certificate=certificate)
-        return self._crls[serial_number]
+            with self._lock.write:
+                self._certificates[host] = certificate
+                self._crls[certificate.serial_number] = crls

@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import time
 from typing import Dict, List
 from unittest import TestCase, mock
 
@@ -74,14 +73,21 @@ class CRLValidatorTestCase(TestCase):
         with self.assertRaises(SSLError):
             validator.is_valid(url=self.sas_url)
 
+    def test_not_prefetched_certificate(self, _) -> None:
+        # Given
+        validator = self._create_validator(urls=[])
+
+        # When / Then
+        with self.assertRaises(KeyError):
+            validator.is_valid(url=self.sas_url)
+
     @mocket.mocketize
     def test_certificates_are_updated_in_the_background(self, mocker: requests_mock.Mocker) -> None:
         # Given
         self._set_mocket_cert(certificate=VALID_CRL_CERT)
         self._set_mocker_CRL(mocker=mocker, crls=VALID_CERT_CRLS_DATA)
 
-        update_rate = 1  # seconds
-        validator = self._create_validator(urls=[self.sas_url], update_rate=update_rate)
+        validator = self._create_validator(urls=[self.sas_url])
         valid = validator.is_valid(url=self.sas_url)
         self.assertIs(valid, True)
 
@@ -92,14 +98,16 @@ class CRLValidatorTestCase(TestCase):
         # Ensure certs are not instant updated
         valid = validator.is_valid(url=self.sas_url)
         self.assertIs(valid, True)
-        time.sleep(update_rate + 1)  # Wait for certs update.
+
+        # Simulate BackgroundScheduler running update job.
+        validator.update_certificates()
 
         # Then
         with self.assertRaises(SSLError):
             validator.is_valid(url=self.sas_url)
 
     @staticmethod
-    def _create_validator(urls: List[str], update_rate: int = 3600) -> CRLValidator:
+    def _create_validator(urls: List[str]) -> CRLValidator:
         """ Due to CRLValidator fetching certificates automatically in the background it is critical
         for it to be created after sockets and requests are mocked, and not on tests set up.
 
@@ -109,7 +117,7 @@ class CRLValidatorTestCase(TestCase):
         Returns:
             CRLValidator instance
         """
-        return CRLValidator(urls=urls, certificates_update_rate=update_rate)
+        return CRLValidator(urls=urls)
 
     @staticmethod
     def _set_mocket_cert(certificate: bytes) -> None:

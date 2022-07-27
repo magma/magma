@@ -69,7 +69,7 @@ class Config(object):
         'SAS_CERT_PATH', '/backend/configuration_controller/certs/ca.crt',
     )
     VERIFY_SAS_CRL = os.environ.get('VERIFY_SAS_CRL') == '1'
-    CRL_CACHE_TIME = int(os.environ.get('CRL_CACHE_TIME', '300'))
+    CRL_CACHE_TIME = int(os.environ.get('CRL_CACHE_TIME', '3600'))
 
 
 class DevelopmentConfig(Config):
