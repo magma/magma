@@ -255,6 +255,7 @@ function GatewayEmptyStateList(props: GatewayInstructionsProps) {
           }}
           primary="Install and configure an Access Gateway"
           secondary={<InstallGatewayList />}
+          secondaryTypographyProps={{component: 'div'}}
         />
       </ListItem>
       <ListItem classes={{root: classes.listItem}} disableGutters>
@@ -269,6 +270,7 @@ function GatewayEmptyStateList(props: GatewayInstructionsProps) {
           }}
           primary="Add an Access Gateway"
           secondary={<AddGatewayInstructions setOpen={() => props.setOpen()} />}
+          secondaryTypographyProps={{component: 'div'}}
         />
       </ListItem>
     </List>

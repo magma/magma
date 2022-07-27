@@ -466,7 +466,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
 
                 {cbsdFormData.frequenciesMhz.map((value, index) => {
                   return (
-                    <>
+                    <React.Fragment key={index}>
                       <Grid item xs={11}>
                         <OutlinedInput
                           fullWidth
@@ -510,7 +510,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
                           </IconButton>
                         )}
                       </Grid>
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </Grid>
