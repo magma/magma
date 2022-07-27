@@ -12,36 +12,51 @@
  */
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import FEGGateway from './FEGEquipmentGateway';
+import FEGClusterStatus from './FEGClusterStatus';
+import FEGEquipmentGatewayKPIs from './FEGEquipmentGatewayKPIs';
 import FEGGatewayDetail from './FEGGatewayDetailMain';
+import FEGGatewayTable from './FEGGatewayTable';
+import GatewayCheckinChart from './GatewayCheckinChart';
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import {FEGAddGatewayButton} from '../../components/feg/FEGGatewayDialog';
 import {Navigate, Route, Routes} from 'react-router-dom';
+import {Theme} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
 
-/**
- * Returns the full equipment dashboard of the federation network.
- * It consists of an internal equipment dashboard component to display
- * the useful information about the federation gateways.
- */
-function FEGEquipmentDashboard() {
+const useStyles = makeStyles<Theme>(theme => ({
+  dashboardRoot: {
+    margin: theme.spacing(3),
+  },
+}));
+
+function FEGEquipmentGateways() {
+  const classes = useStyles();
+
   return (
-    <>
-      <Routes>
-        <Route
-          path="/overview/gateway/:gatewayId/*"
-          element={<FEGGatewayDetail />}
-        />
-        <Route path="/overview/*" element={<EquipmentDashboardInternal />} />
-        <Route index element={<Navigate to="overview" replace />} />
-      </Routes>
-    </>
+    <div className={classes.dashboardRoot}>
+      <Grid container justifyContent="space-between" spacing={4}>
+        <Grid item xs={12}>
+          <GatewayCheckinChart />
+        </Grid>
+        <Grid item xs={12}>
+          <Paper elevation={0}>
+            <FEGEquipmentGatewayKPIs />
+          </Paper>
+        </Grid>
+        <Grid item xs={12}>
+          <FEGClusterStatus />
+        </Grid>
+        <Grid item xs={12}>
+          <FEGGatewayTable />
+        </Grid>
+      </Grid>
+    </div>
   );
 }
-/**
- * It consists of a top bar to navigate and a federation gateway component
- * to provide information about the federation gateways.
- */
+
 function EquipmentDashboardInternal() {
   return (
     <>
@@ -57,8 +72,23 @@ function EquipmentDashboardInternal() {
         ]}
       />
       <Routes>
-        <Route path="/gateway" element={<FEGGateway />} />
+        <Route path="/gateway" element={<FEGEquipmentGateways />} />
         <Route index element={<Navigate to="gateway" replace />} />
+      </Routes>
+    </>
+  );
+}
+
+function FEGEquipmentDashboard() {
+  return (
+    <>
+      <Routes>
+        <Route
+          path="/overview/gateway/:gatewayId/*"
+          element={<FEGGatewayDetail />}
+        />
+        <Route path="/overview/*" element={<EquipmentDashboardInternal />} />
+        <Route index element={<Navigate to="overview" replace />} />
       </Routes>
     </>
   );
