@@ -260,6 +260,14 @@ s1aptests/test_restore_config_after_non_sanity.py
 # Sanity: Flaky Test Cases
 # s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
 #---------------
+# Scalability Testing: These testcases are not supposed to be part of regular
+# sanity testing because they will take too much time to execute, however they
+# should run under CI automation on regular basis for load testing, with lesser
+# frequency compared to sanity testing
+#
+# TODO: Add these testcases as part of CI automation
+# s1aptests/test_scalability_attach_detach_multi_ue.py
+#---------------
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
