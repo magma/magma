@@ -187,7 +187,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
       - name: Run mypy with reviewdog
-        uses: tsuyoshicho/action-mypy@631cb44fa199efd4ed132c5005d4f5b08d7ac1e6 # pin@v3.6.0
+        uses: tsuyoshicho/action-mypy@176f65a2ad781202baffaf870e5715d768d799a8 # pin@v3.9.2
         with:
           github_token: ${{ secrets.github_token }}
           filter_mode: added
