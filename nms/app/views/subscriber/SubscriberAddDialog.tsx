@@ -54,10 +54,6 @@ import type {
 } from './SubscriberUtils';
 
 const useStyles = makeStyles(() => ({
-  dialogTitle: {
-    textTransform: 'capitalize',
-    backgroundColor: colors.primary.brightGray,
-  },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
@@ -108,15 +104,15 @@ type ActionDialogProps = {
  * Dialog used to Add/Delete/Update subscribers
  */
 export function AddSubscriberDialog(props: ActionDialogProps) {
-  const classes = useStyles();
-
   return (
     <>
       <Dialog data-testid="addSubscriberDialog" open={props.open} maxWidth="xl">
         <DialogTitle
-          classes={{root: classes.dialogTitle}}
           onClose={props.onClose}
-          label={`${props.subscriberAction} Subscriber(s)`}
+          label={`${
+            props.subscriberAction[0].toUpperCase() +
+            props.subscriberAction.slice(1)
+          } Subscriber(s)`}
         />
 
         <SubscriberDetailsDialogContent {...props} />
@@ -567,6 +563,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
                   {
                     icon: (forwardRef<SVGSVGElement>((props, ref) => (
                       <Button
+                        component="span"
                         startIcon={<CloudUploadIcon {...props} ref={ref} />}
                         variant="outlined"
                         color="primary">

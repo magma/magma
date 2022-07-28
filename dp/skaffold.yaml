@@ -269,12 +269,6 @@ profiles:
   - name: nms-deployment
     patches:
       - op: add
-        path: /deploy/helm/releases/2/artifactOverrides
-        value:
-          nms:
-            magmalte:
-              image: magmalte
-      - op: add
         path: /deploy/helm/releases/2/valuesFiles/-
         value: ./cloud/helm/dp/charts/domain-proxy/examples/nms_overrides.yaml
   - name: metrics
