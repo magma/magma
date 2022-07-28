@@ -12,8 +12,8 @@
  */
 
 import CloseIcon from '@material-ui/icons/Close';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
+import MaterialUiDialogTitle from '@material-ui/core/DialogTitle';
 import React from 'react';
 import Text from './Text';
 import {colors} from '../default';
@@ -33,10 +33,10 @@ type Props = {
   classes?: Record<string, any>;
 };
 
-export default function CustomDialogTitle(props: Props) {
+export default function DialogTitle(props: Props) {
   const classes = useStyles(props);
   return (
-    <DialogTitle>
+    <MaterialUiDialogTitle>
       <Text variant="subtitle1">{props.label}</Text>
       <IconButton
         aria-label="close"
@@ -44,6 +44,6 @@ export default function CustomDialogTitle(props: Props) {
         onClick={props.onClose}>
         <CloseIcon />
       </IconButton>
-    </DialogTitle>
+    </MaterialUiDialogTitle>
   );
 }

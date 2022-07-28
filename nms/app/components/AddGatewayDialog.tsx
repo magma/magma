@@ -16,28 +16,18 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFillerBackdrop from './LoadingFillerBackdrop';
 import MagmaAPI from '../api/MagmaAPI';
 import MenuItem from '@material-ui/core/MenuItem';
+import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
+import {AltFormField} from './FormField';
 import {getErrorMessage} from '../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-}));
 
 type GatewayData = {
   gatewayID: string;
@@ -108,7 +98,7 @@ export default function AddGatewayDialog(props: Props) {
   };
 
   return (
-    <Dialog open={true} onClose={props.onClose}>
+    <Dialog open={true} onClose={props.onClose} maxWidth="md" scroll="body">
       <DialogTitle>Add Gateway</DialogTitle>
       <DialogContent>
         <AddGatewayFields onChange={setValues} values={values} tiers={tiers} />
@@ -128,60 +118,63 @@ export const AddGatewayFields = (props: {
   onChange: (data: GatewayData) => void;
   tiers: Array<string>;
 }) => {
-  const classes = useStyles();
-
   return (
     <>
-      <TextField
-        label="Gateway Name"
-        className={classes.input}
-        value={props.values.name}
-        onChange={({target}) =>
-          props.onChange({...props.values, name: target.value})
-        }
-        placeholder="Gateway 1"
-      />
-      <TextField
-        label="Gateway Description"
-        className={classes.input}
-        value={props.values.description}
-        onChange={({target}) =>
-          props.onChange({...props.values, description: target.value})
-        }
-        placeholder="Sample Gateway description"
-      />
-      <TextField
-        label="Hardware UUID"
-        className={classes.input}
-        value={props.values.hardwareID}
-        onChange={({target}) =>
-          props.onChange({...props.values, hardwareID: target.value})
-        }
-        placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
-      />
-      <TextField
-        label="Gateway ID"
-        className={classes.input}
-        value={props.values.gatewayID}
-        onChange={({target}) =>
-          props.onChange({...props.values, gatewayID: target.value})
-        }
-        placeholder="<country>_<org>_<location>_<sitenumber>"
-      />
-      <TextField
-        label="Challenge Key"
-        className={classes.input}
-        value={props.values.challengeKey}
-        onChange={({target}) =>
-          props.onChange({...props.values, challengeKey: target.value})
-        }
-        placeholder="A base64 bytestring of the key in DER format"
-      />
-      <FormControl className={classes.input}>
-        <InputLabel htmlFor="types">Upgrade Tier</InputLabel>
+      <AltFormField label="Gateway Name">
+        <OutlinedInput
+          fullWidth={true}
+          value={props.values.name}
+          onChange={({target}) =>
+            props.onChange({...props.values, name: target.value})
+          }
+          placeholder="Gateway 1"
+        />
+      </AltFormField>
+      <AltFormField label="Gateway Description">
+        <OutlinedInput
+          fullWidth={true}
+          value={props.values.description}
+          onChange={({target}) =>
+            props.onChange({...props.values, description: target.value})
+          }
+          placeholder="Sample Gateway description"
+        />
+      </AltFormField>
+      <AltFormField label="Hardware UUID">
+        <OutlinedInput
+          fullWidth={true}
+          value={props.values.hardwareID}
+          onChange={({target}) =>
+            props.onChange({...props.values, hardwareID: target.value})
+          }
+          placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
+        />
+      </AltFormField>
+      <AltFormField label="Gateway ID">
+        <OutlinedInput
+          fullWidth={true}
+          value={props.values.gatewayID}
+          onChange={({target}) =>
+            props.onChange({...props.values, gatewayID: target.value})
+          }
+          placeholder="<country>_<org>_<location>_<sitenumber>"
+        />
+      </AltFormField>
+      <AltFormField label="Challenge Key">
+        <OutlinedInput
+          fullWidth={true}
+          value={props.values.challengeKey}
+          onChange={({target}) =>
+            props.onChange({...props.values, challengeKey: target.value})
+          }
+          placeholder="A base64 bytestring of the key in DER format"
+        />
+      </AltFormField>
+      <AltFormField label="Upgrade Tier">
         <Select
+          fullWidth={true}
+          variant={'outlined'}
           inputProps={{'data-testid': 'upgradeTier'}}
-          className={classes.input}
           value={props.values.tier}
           onChange={({target}) =>
             props.onChange({...props.values, tier: target.value as string})
@@ -192,7 +185,7 @@ export const AddGatewayFields = (props: {
             </MenuItem>
           ))}
         </Select>
-      </FormControl>
+      </AltFormField>
     </>
   );
 };
