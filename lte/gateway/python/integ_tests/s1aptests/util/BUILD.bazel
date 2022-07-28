@@ -9,19 +9,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
 py_library(
-    name = "constants",
-    testonly = 1,
-    srcs = ["__init__.py"],
-)
-
-py_library(
-    name = "rest_api",
-    testonly = 1,
-    srcs = ["rest_api.py"],
-    deps = [":constants"],
+    name = "traffic_util",
+    testonly = True,
+    srcs = [
+        "traffic_messages.py",
+        "traffic_util.py",
+    ],
+    deps = [
+        requirement("iperf3"),
+        requirement("pyroute2"),
+    ],
 )

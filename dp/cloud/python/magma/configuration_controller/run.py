@@ -20,6 +20,9 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from magma.configuration_controller.config import get_config
+from magma.configuration_controller.crl_validator.crl_validator import (
+    CRLValidator,
+)
 from magma.configuration_controller.request_consumer.request_db_consumer import (
     RequestDBConsumer,
 )
@@ -80,6 +83,7 @@ def run():
         max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine=db_engine)
+    ssl_validator = CRLValidator(urls=[config.SAS_URL]) if config.VERIFY_SAS_CRL else None
     router = RequestRouter(
         sas_url=config.SAS_URL,
         rc_ingest_url=config.RC_INGEST_URL,
@@ -87,6 +91,7 @@ def run():
         ssl_key_path=config.CC_SSL_KEY_PATH,
         request_mapping=request_mapping,
         ssl_verify=config.SAS_CERT_PATH,
+        crl_validator=ssl_validator,
     )
     fluentd_client = FluentdClient()
     metricsd_client = get_metricsd_client()
@@ -123,6 +128,15 @@ def run():
         max_instances=1,
         name="metrics_processing_job",
     )
+    if config.VERIFY_SAS_CRL:
+        scheduler.add_job(
+            CRLValidator.update_certificates,
+            trigger=IntervalTrigger(
+                seconds=config.CRL_CACHE_TIME,
+            ),
+            max_instances=1,
+            name="crl_validator_certs_update_job",
+        )
     scheduler.start()
 
     while True:
