@@ -3,7 +3,7 @@
 name: Federated integ test
 
 on:  # yamllint disable-line rule:truthy
-  workflow_dispatch:
+  workflow_dispatch: null
   workflow_run:
     workflows:
       - build-all
@@ -16,6 +16,7 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   # Build images on ubuntu which is faster than MacOs.
   docker-build-orc8r:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -41,6 +42,7 @@ jobs:
           path: images
 
   docker-build-feg:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
