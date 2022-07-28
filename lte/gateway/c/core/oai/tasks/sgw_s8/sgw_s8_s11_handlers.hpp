@@ -22,7 +22,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 #define CP_TEID 1
 #define UP_TEID 2
