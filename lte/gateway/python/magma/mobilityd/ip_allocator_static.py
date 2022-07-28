@@ -129,7 +129,7 @@ class IPAllocatorStaticWrapper(IPAllocator):
         if ip_addr_info.ip.version != self._ip_version:
             logging.debug("IP version mismatch, expected version: %d", self._ip_version)
             return None
-        # Validate static IP is not in any of IP pool.
+#Validate static IP is not in any of IP pool.
         for ip_pool in self._store.assigned_ip_blocks:
             if ip_addr_info.ip in ip_pool:
                 log_error_and_raise(
@@ -138,14 +138,15 @@ class IPAllocatorStaticWrapper(IPAllocator):
                     ip_addr_info.ip,
                     ip_pool,
                 )
+                return IPDesc()
 
-        # update gw info if available.
+#update gw info if available.
         if ip_addr_info.net_info.gw_ip:
             self._store.dhcp_gw_info.update_ip(
                 ip_addr_info.net_info.gw_ip,
                 ip_addr_info.net_info.vlan,
             )
-            # update mac if IP is present.
+#update mac if IP is present.
             if ip_addr_info.net_info.gw_mac != "":
                 self._store.dhcp_gw_info.update_mac(
                     ip_addr_info.net_info.gw_ip,

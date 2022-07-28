@@ -956,7 +956,7 @@ status_code_e amf_smf_handle_ip_address_response(
       }
     }
 
-    if (response_p->paa.pdn_type == IPv6) {
+    else if (response_p->paa.pdn_type == IPv6) {
       char ip_v6_str[INET6_ADDRSTRLEN] = {};
 
       inet_ntop(AF_INET6, &(response_p->paa.ipv6_address.s6_addr), ip_v6_str,
@@ -971,7 +971,7 @@ status_code_e amf_smf_handle_ip_address_response(
       }
     }
 
-    if (response_p->paa.pdn_type == IPv4_AND_v6) {
+    else if (response_p->paa.pdn_type == IPv4_AND_v6) {
       char ip_v4_str[INET_ADDRSTRLEN] = {};
       char ip_v6_str[INET6_ADDRSTRLEN] = {};
 
@@ -991,6 +991,11 @@ status_code_e amf_smf_handle_ip_address_response(
         OAILOG_ERROR(LOG_AMF_APP, "Create IPV4V6 Session \n");
       }
     }
+  } else {
+    amf_ue_ngap_id_t ue_id = ue_context->amf_ue_ngap_id;
+    int amf_cause = AMF_CAUSE_PROTOCOL_ERROR;
+    rc = amf_pdu_session_establishment_reject(ue_id, response_p->pdu_session_id,
+                                              response_p->pti, amf_cause);
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
