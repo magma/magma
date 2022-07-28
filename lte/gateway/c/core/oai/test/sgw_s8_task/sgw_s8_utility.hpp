@@ -13,9 +13,13 @@
 
 #include <gtest/gtest.h>
 #include <string>
+
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -26,9 +30,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/include/spgw_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
 }
 
 void fill_imsi(char* imsi);
