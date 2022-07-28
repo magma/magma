@@ -55,6 +55,7 @@ const tableIcons = {
   Add: forwardRef<SVGSVGElement>((props, ref) => (
     <Button
       startIcon={<AddCircleOutlined {...props} ref={ref} />}
+      component="span"
       variant="outlined"
       color="primary">
       {'Add New Row'}
