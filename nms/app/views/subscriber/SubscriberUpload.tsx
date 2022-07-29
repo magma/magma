@@ -18,23 +18,14 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import Text from '../../theme/design-system/Text';
-import {DropzoneArea} from 'material-ui-dropzone';
 import {
   SUBSCRIBER_ACTION_TYPE,
-  SubscriberInfo,
-  forbiddenNetworkTypes,
-} from './SubscriberUtils';
-import {
   SubscribersDialogDetailProps,
-  validateSubscribers,
 } from './SubscriberUtils';
 import {colors} from '../../theme/default';
-import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   uploadDialog: {
@@ -45,17 +36,17 @@ const useStyles = makeStyles(() => ({
     color: colors.primary.comet,
   },
 }));
-const SUB_NAME_OFFSET = 0;
-const SUB_IMSI_OFFSET = 1;
-const SUB_AUTH_KEY_OFFSET = 2;
-const SUB_AUTH_OPC_OFFSET = 3;
-const SUB_STATE_OFFSET = 4;
-const SUB_FORBIDDEN_NETWORK_TYPE_OFFSET = 5;
-const SUB_DATAPLAN_OFFSET = 6;
-const SUB_APN_OFFSET = 7;
-const SUB_POLICY_OFFSET = 8;
-const SUB_MAX_FIELDS = 9;
-const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
+// const SUB_NAME_OFFSET = 0;
+// const SUB_IMSI_OFFSET = 1;
+// const SUB_AUTH_KEY_OFFSET = 2;
+// const SUB_AUTH_OPC_OFFSET = 3;
+// const SUB_STATE_OFFSET = 4;
+// const SUB_FORBIDDEN_NETWORK_TYPE_OFFSET = 5;
+// const SUB_DATAPLAN_OFFSET = 6;
+// const SUB_APN_OFFSET = 7;
+// const SUB_POLICY_OFFSET = 8;
+// const SUB_MAX_FIELDS = 9;
+// const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
 const UPLOAD_DOC_LINK =
   'https://docs.magmacore.org/docs/nms/subscriber#uploading-a-subscriber-csv-file';
 const ADD_INSTRUCTIONS =
@@ -65,100 +56,100 @@ const DELETE_INSTRUCTIONS =
 const EDIT_INSTRUCTIONS =
   'You can export all subscribers to edit and upload the file. Find more instruction in ';
 
-function parseSubscriber(line: string): SubscriberInfo {
-  const items = line.split(',').map(item => item.trim());
+// function parseSubscriber(line: string): SubscriberInfo {
+//   const items = line.split(',').map(item => item.trim());
+//
+//   if (items.length > SUB_MAX_FIELDS) {
+//     throw new Error(
+//       `Too many fields to parse, expected ${SUB_MAX_FIELDS} fields, received ${items.length} fields`,
+//     );
+//   }
+//
+//   return {
+//     name: items[SUB_NAME_OFFSET],
+//     imsi: items[SUB_IMSI_OFFSET],
+//     authKey: items[SUB_AUTH_KEY_OFFSET],
+//     authOpc: items[SUB_AUTH_OPC_OFFSET],
+//     state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+//     forbiddenNetworkTypes: forbiddenNetworkTypes.filter((value: string) =>
+//       items[SUB_FORBIDDEN_NETWORK_TYPE_OFFSET]?.split('|')
+//         .map(item => item.trim())
+//         .filter(Boolean)
+//         .includes(value),
+//     ),
+//     dataPlan: items[SUB_DATAPLAN_OFFSET],
+//     apns: items[SUB_APN_OFFSET]?.split('|')
+//       .map(item => item.trim())
+//       .filter(Boolean),
+//     policies: items?.[SUB_POLICY_OFFSET]?.split('|')
+//       .map(item => item.trim())
+//       .filter(Boolean),
+//   };
+// }
 
-  if (items.length > SUB_MAX_FIELDS) {
-    throw new Error(
-      `Too many fields to parse, expected ${SUB_MAX_FIELDS} fields, received ${items.length} fields`,
-    );
-  }
-
-  return {
-    name: items[SUB_NAME_OFFSET],
-    imsi: items[SUB_IMSI_OFFSET],
-    authKey: items[SUB_AUTH_KEY_OFFSET],
-    authOpc: items[SUB_AUTH_OPC_OFFSET],
-    state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-    forbiddenNetworkTypes: forbiddenNetworkTypes.filter((value: string) =>
-      items[SUB_FORBIDDEN_NETWORK_TYPE_OFFSET]?.split('|')
-        .map(item => item.trim())
-        .filter(Boolean)
-        .includes(value),
-    ),
-    dataPlan: items[SUB_DATAPLAN_OFFSET],
-    apns: items[SUB_APN_OFFSET]?.split('|')
-      .map(item => item.trim())
-      .filter(Boolean),
-    policies: items?.[SUB_POLICY_OFFSET]?.split('|')
-      .map(item => item.trim())
-      .filter(Boolean),
-  };
-}
-
-function parseSubscriberFile(fileObj: File): Promise<Array<SubscriberInfo>> {
-  const reader = new FileReader();
-  const subscribers: Array<SubscriberInfo> = [];
-  return new Promise((resolve, reject) => {
-    if (fileObj.size > MAX_UPLOAD_FILE_SZ_BYTES) {
-      reject(
-        'file size exceeds max upload size of 10MB, please upload smaller file',
-      );
-      return;
-    }
-
-    reader.onload = e => {
-      try {
-        if (!(e.target instanceof FileReader)) {
-          reject('invalid target type');
-          return;
-        }
-
-        const text = e.target.result;
-
-        if (typeof text !== 'string') {
-          reject('invalid file content');
-          return;
-        }
-
-        for (const line of text
-          .split('\n')
-          .map(item => item.trim())
-          .filter(Boolean)) {
-          subscribers.push(parseSubscriber(line));
-        }
-      } catch (e) {
-        reject(
-          `Failed parsing the file ${fileObj.name}. ${getErrorMessage(e)}`,
-        );
-        return;
-      }
-
-      resolve(subscribers);
-    };
-
-    reader.readAsText(fileObj);
-  });
-}
+// function parseSubscriberFile(fileObj: File): Promise<Array<SubscriberInfo>> {
+//   const reader = new FileReader();
+//   const subscribers: Array<SubscriberInfo> = [];
+//   return new Promise((resolve, reject) => {
+//     if (fileObj.size > MAX_UPLOAD_FILE_SZ_BYTES) {
+//       reject(
+//         'file size exceeds max upload size of 10MB, please upload smaller file',
+//       );
+//       return;
+//     }
+//
+//     reader.onload = e => {
+//       try {
+//         if (!(e.target instanceof FileReader)) {
+//           reject('invalid target type');
+//           return;
+//         }
+//
+//         const text = e.target.result;
+//
+//         if (typeof text !== 'string') {
+//           reject('invalid file content');
+//           return;
+//         }
+//
+//         for (const line of text
+//           .split('\n')
+//           .map(item => item.trim())
+//           .filter(Boolean)) {
+//           subscribers.push(parseSubscriber(line));
+//         }
+//       } catch (e) {
+//         reject(
+//           `Failed parsing the file ${fileObj.name}. ${getErrorMessage(e)}`,
+//         );
+//         return;
+//       }
+//
+//       resolve(subscribers);
+//     };
+//
+//     reader.readAsText(fileObj);
+//   });
+// }
 
 export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
   const {
     setSubscribers,
-    setAddError,
+    // setAddError,
     setUpload,
     upload,
     subscribers,
     subscriberAction,
   } = props;
   const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const [fileName, setFileName] = useState('');
-
-  const DropzoneText = () => (
-    <div>
-      Drag and drop or <Link underline="hover">browse files</Link>
-    </div>
-  );
+  // const enqueueSnackbar = useEnqueueSnackbar();
+  const [fileName] = useState('');
+  //
+  // const DropzoneText = () => (
+  //   <div>
+  //     Drag and drop or <Link underline="hover">browse files</Link>
+  //   </div>
+  // );
 
   return (
     <>
@@ -178,46 +169,47 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
           </Grid>
           {!fileName ? (
             <Grid item xs={12}>
-              <DropzoneArea
-                dropzoneText={((<DropzoneText />) as unknown) as string}
-                useChipsForPreview
-                showPreviewsInDropzone={false}
-                filesLimit={1}
-                showAlerts={false}
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                onChange={async files => {
-                  if (files.length) {
-                    try {
-                      const newSubscribers: Array<SubscriberInfo> = await parseSubscriberFile(
-                        files[0],
-                      );
+              {/*  TODO[MUI5] remove */}
+              {/*<DropzoneArea*/}
+              {/*  dropzoneText={((<DropzoneText />) as unknown) as string}*/}
+              {/*  useChipsForPreview*/}
+              {/*  showPreviewsInDropzone={false}*/}
+              {/*  filesLimit={1}*/}
+              {/*  showAlerts={false}*/}
+              {/*  // eslint-disable-next-line @typescript-eslint/no-misused-promises*/}
+              {/*  onChange={async files => {*/}
+              {/*    if (files.length) {*/}
+              {/*      try {*/}
+              {/*        const newSubscribers: Array<SubscriberInfo> = await parseSubscriberFile(*/}
+              {/*          files[0],*/}
+              {/*        );*/}
 
-                      if (newSubscribers) {
-                        setSubscribers([...newSubscribers]);
-                        const errors = validateSubscribers(
-                          newSubscribers,
-                          subscriberAction,
-                        );
-                        setFileName(files[0].name);
+              {/*        if (newSubscribers) {*/}
+              {/*          setSubscribers([...newSubscribers]);*/}
+              {/*          const errors = validateSubscribers(*/}
+              {/*            newSubscribers,*/}
+              {/*            subscriberAction,*/}
+              {/*          );*/}
+              {/*          setFileName(files[0].name);*/}
 
-                        if (!(subscriberAction === 'delete')) {
-                          setUpload(false);
-                          setAddError(errors);
-                        }
-                      }
-                    } catch (e) {
-                      enqueueSnackbar(getErrorMessage(e), {
-                        variant: 'error',
-                      });
-                    }
-                  }
-                }}
-              />
+              {/*          if (!(subscriberAction === 'delete')) {*/}
+              {/*            setUpload(false);*/}
+              {/*            setAddError(errors);*/}
+              {/*          }*/}
+              {/*        }*/}
+              {/*      } catch (e) {*/}
+              {/*        enqueueSnackbar(getErrorMessage(e), {*/}
+              {/*          variant: 'error',*/}
+              {/*        });*/}
+              {/*      }*/}
+              {/*    }*/}
+              {/*  }}*/}
+              {/*/>*/}
               <UploadInstructions action={subscriberAction} />
             </Grid>
           ) : (
             <Grid item xs={12}>
-              <Alert severity="success">{`${fileName} is uploaded`}</Alert>
+              {/*<Alert severity="success">{`${fileName} is uploaded`}</Alert>*/}
             </Grid>
           )}
         </Grid>
