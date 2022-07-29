@@ -18,7 +18,6 @@ import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext, {
   GatewayContextType,
 } from '../../../context/GatewayContext';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
 import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
@@ -325,7 +324,7 @@ describe('<NetworkDashboard />', () => {
       <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <NetworkContext.Provider
                 value={{
                   networkId: testNetwork.id,
@@ -350,7 +349,7 @@ describe('<NetworkDashboard />', () => {
                   </PolicyContext.Provider>
                 </LteNetworkContextProvider>
               </NetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -754,7 +753,7 @@ describe('<FEGNetworkDashboard />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <FEGNetworkContext.Provider value={networkCtx}>
                 <Routes>
                   <Route
@@ -763,7 +762,7 @@ describe('<FEGNetworkDashboard />', () => {
                   />
                 </Routes>
               </FEGNetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

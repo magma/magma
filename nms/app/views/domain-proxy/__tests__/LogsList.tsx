@@ -12,7 +12,6 @@
  */
 
 import LogsList from '../LogsList';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
@@ -46,14 +45,14 @@ const renderWithProviders = (jsx: React.ReactNode) => {
       <LocalizationProvider dateAdapter={AdapterMoment}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <Routes>
                 <Route
                   path="/nms/:networkId/metrics/domain-proxy-logs"
                   element={jsx}
                 />
               </Routes>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </LocalizationProvider>

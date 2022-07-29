@@ -15,7 +15,6 @@ import type {PromqlReturnObject} from '../../../../generated';
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
@@ -126,13 +125,13 @@ describe('<Enodeb />', () => {
       <LocalizationProvider dateAdapter={AdapterMoment}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <EnodebContext.Provider value={enbCtx}>
                 <Routes>
                   <Route path="/nms/:networkId/enodeb/" element={<Enodeb />} />
                 </Routes>
               </EnodebContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </LocalizationProvider>

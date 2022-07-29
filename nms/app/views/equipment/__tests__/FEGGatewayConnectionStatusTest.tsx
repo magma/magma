@@ -13,7 +13,6 @@
 
 import FEGGatewayConnectionStatus from '../FEGGatewayConnectionStatus';
 import FEGGatewayContext from '../../../context/FEGGatewayContext';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
@@ -85,24 +84,21 @@ describe('<FEGGatewayConnectionStatus />', () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGGatewayContext.Provider
-              value={{
-                state: fegGateways,
-                setState: async () => {},
-                updateGateway: async () => {},
-                refetch: () => {},
-                health: fegGatewaysHealth,
-                activeFegGatewayId: mockGw0.id,
-              }}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
-                  element={<FEGGatewayConnectionStatus />}
-                />
-              </Routes>
-            </FEGGatewayContext.Provider>
-          </MuiStylesThemeProvider>
+          <FEGGatewayContext.Provider
+            value={{
+              state: fegGateways,
+              setState: async () => {},
+              updateGateway: async () => {},refetch: () => {},
+              health: fegGatewaysHealth,
+              activeFegGatewayId: mockGw0.id,
+            }}>
+            <Routes>
+              <Route
+                path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
+                element={<FEGGatewayConnectionStatus />}
+              />
+            </Routes>
+          </FEGGatewayContext.Provider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

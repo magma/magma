@@ -12,7 +12,6 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import OrganizationEdit from '../OrganizationEdit';
 import Organizations from '../Organizations';
 import axios from 'axios';
@@ -131,19 +130,17 @@ const WrappedOrganizations = () => {
     <MemoryRouter initialEntries={['/organizations']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <SnackbarProvider>
-              <AppContextProvider>
-                <Routes>
-                  <Route path="organizations/*" element={<Organizations />} />
-                  <Route
-                    path="organizations/detail/:name"
-                    element={<OrganizationEdit />}
-                  />
-                </Routes>
-              </AppContextProvider>
-            </SnackbarProvider>
-          </MuiStylesThemeProvider>
+          <SnackbarProvider>
+            <AppContextProvider>
+              <Routes>
+                <Route path="organizations/*" element={<Organizations />} />
+                <Route
+                  path="organizations/detail/:name"
+                  element={<OrganizationEdit />}
+                />
+              </Routes>
+            </AppContextProvider>
+          </SnackbarProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>
@@ -157,18 +154,16 @@ const WrappedOrganizationsEdit = () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <SnackbarProvider>
-              <AppContextProvider>
-                <Routes>
-                  <Route
-                    path="organizations/detail/:name"
-                    element={<OrganizationEdit />}
-                  />
-                </Routes>
-              </AppContextProvider>
-            </SnackbarProvider>
-          </MuiStylesThemeProvider>
+          <SnackbarProvider>
+            <AppContextProvider>
+              <Routes>
+                <Route
+                  path="organizations/detail/:name"
+                  element={<OrganizationEdit />}
+                />
+              </Routes>
+            </AppContextProvider>
+          </SnackbarProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

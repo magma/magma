@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
 import defaultTheme from '../../theme/default';
@@ -35,17 +34,15 @@ const WrappedProfileButton = (props: Props) => {
     <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <SnackbarProvider>
-              <AppContextProvider isOrganizations={props.isOrganizations}>
-                <ProfileButton
-                  isMenuOpen={isMenuOpen}
-                  setMenuOpen={setMenuOpen}
-                  expanded={props.expanded}
-                />
-              </AppContextProvider>
-            </SnackbarProvider>
-          </MuiStylesThemeProvider>
+          <SnackbarProvider>
+            <AppContextProvider isOrganizations={props.isOrganizations}>
+              <ProfileButton
+                isMenuOpen={isMenuOpen}
+                setMenuOpen={setMenuOpen}
+                expanded={props.expanded}
+              />
+            </AppContextProvider>
+          </SnackbarProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

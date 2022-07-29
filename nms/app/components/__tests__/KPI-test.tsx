@@ -15,7 +15,6 @@ import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPI from '../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
 import defaultTheme from '../../theme/default';
@@ -140,13 +139,13 @@ describe('<GatewaysKPIs />', () => {
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <GatewayContext.Provider value={gatewayCtx}>
                 <Routes>
                   <Route path="/nms/:networkId" element={<GatewayKPIs />} />
                 </Routes>
               </GatewayContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -211,13 +210,13 @@ describe('<EnodebKPIs />', () => {
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <EnodebContext.Provider value={enodebCtx}>
                 <Routes>
                   <Route path="/nms/:networkId" element={<EnodebKPIs />} />
                 </Routes>
               </EnodebContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -270,14 +269,14 @@ describe('<ServicingAccessGatewaysKPI />', () => {
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <Routes>
                 <Route
                   path="/nms/:networkId"
                   element={<ServicingAccessGatewaysKPI />}
                 />
               </Routes>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

@@ -12,7 +12,6 @@
  */
 import DashboardAlertTable from '../DashboardAlertTable';
 import MagmaAPI from '../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -126,14 +125,9 @@ describe('<DashboardAlertTable />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <Routes>
-              <Route
-                path="/nms/:networkId/*"
-                element={<DashboardAlertTable />}
-              />
-            </Routes>
-          </MuiStylesThemeProvider>
+          <Routes>
+            <Route path="/nms/:networkId/*" element={<DashboardAlertTable />} />
+          </Routes>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

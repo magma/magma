@@ -12,7 +12,6 @@
  */
 
 import DataGrid from '../DataGrid';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
@@ -42,9 +41,7 @@ const Wrapper = () => {
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <DataGrid data={data} />
-        </MuiStylesThemeProvider>
+        <DataGrid data={data} />
       </ThemeProvider>
     </StyledEngineProvider>
   );

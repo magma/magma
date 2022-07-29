@@ -14,7 +14,6 @@ import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
@@ -153,16 +152,11 @@ describe('<GatewayPools />', () => {
     <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayPoolsContextProvider networkId={networkId}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/pools/"
-                  element={<GatewayPools />}
-                />
-              </Routes>
-            </GatewayPoolsContextProvider>
-          </MuiStylesThemeProvider>
+          <GatewayPoolsContextProvider networkId={networkId}>
+            <Routes>
+              <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
+            </Routes>
+          </GatewayPoolsContextProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>
@@ -310,7 +304,7 @@ describe('<AddEditGatewayPoolButton />', () => {
       <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <GatewayContext.Provider
                 value={{
                   state: lteGateways,
@@ -332,7 +326,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                   </Routes>
                 </GatewayPoolsContextProvider>
               </GatewayContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

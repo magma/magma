@@ -13,7 +13,6 @@
 
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
@@ -177,16 +176,14 @@ describe('<FEGGatewayDetailConfig />', () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGGatewayContextProvider networkId="mynetwork">
-              <Routes>
-                <Route
-                  path="/nms/:networkId/equipment/overview/gateway/:gatewayId/config"
-                  element={<FEGGatewayDetailConfig />}
-                />
-              </Routes>
-            </FEGGatewayContextProvider>
-          </MuiStylesThemeProvider>
+          <FEGGatewayContextProvider networkId="mynetwork">
+            <Routes>
+              <Route
+                path="/nms/:networkId/equipment/overview/gateway/:gatewayId/config"
+                element={<FEGGatewayDetailConfig />}
+              />
+            </Routes>
+          </FEGGatewayContextProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>
@@ -201,7 +198,7 @@ describe('<FEGGatewayDetailConfig />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <FEGGatewayContextProvider networkId="mynetwork">
                 <Routes>
                   <Route
@@ -210,7 +207,7 @@ describe('<FEGGatewayDetailConfig />', () => {
                   />
                 </Routes>
               </FEGGatewayContextProvider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

@@ -12,7 +12,6 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import Organizations from '../Organizations';
 import axios from 'axios';
 import defaultTheme from '../../../theme/default';
@@ -129,15 +128,13 @@ const WrappedOrganizations = () => {
     <MemoryRouter initialEntries={['/organizations']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <SnackbarProvider>
-              <AppContextProvider>
-                <Routes>
-                  <Route path="organizations/*" element={<Organizations />} />
-                </Routes>
-              </AppContextProvider>
-            </SnackbarProvider>
-          </MuiStylesThemeProvider>
+          <SnackbarProvider>
+            <AppContextProvider>
+              <Routes>
+                <Route path="organizations/*" element={<Organizations />} />
+              </Routes>
+            </AppContextProvider>
+          </SnackbarProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

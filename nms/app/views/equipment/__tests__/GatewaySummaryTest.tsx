@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import GatewaySummary from '../GatewaySummary';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
@@ -66,9 +65,7 @@ describe('<GatewaySummary />', () => {
     const {container} = render(
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewaySummary gwInfo={mockGatewaySt} />
-          </MuiStylesThemeProvider>
+          <GatewaySummary gwInfo={mockGatewaySt} />
         </ThemeProvider>
       </StyledEngineProvider>,
     );

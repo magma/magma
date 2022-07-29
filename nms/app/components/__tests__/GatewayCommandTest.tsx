@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 
@@ -28,14 +27,12 @@ const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <Routes>
-            <Route
-              path="/nms/:networkId"
-              element={<TroubleshootingControl gatewayID={'test_gateway'} />}
-            />
-          </Routes>
-        </MuiStylesThemeProvider>
+        <Routes>
+          <Route
+            path="/nms/:networkId"
+            element={<TroubleshootingControl gatewayID={'test_gateway'} />}
+          />
+        </Routes>
       </ThemeProvider>
     </StyledEngineProvider>
   </MemoryRouter>

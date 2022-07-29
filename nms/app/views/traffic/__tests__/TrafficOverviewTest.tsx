@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
@@ -145,18 +144,16 @@ describe('<TrafficDashboard />', () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <PolicyProvider networkId={networkId}>
-              <ApnContextProvider networkId={networkId}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/traffic/*"
-                    element={<TrafficDashboard />}
-                  />
-                </Routes>
-              </ApnContextProvider>
-            </PolicyProvider>
-          </MuiStylesThemeProvider>
+          <PolicyProvider networkId={networkId}>
+            <ApnContextProvider networkId={networkId}>
+              <Routes>
+                <Route
+                  path="/nms/:networkId/traffic/*"
+                  element={<TrafficDashboard />}
+                />
+              </Routes>
+            </ApnContextProvider>
+          </PolicyProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>
@@ -367,18 +364,16 @@ describe('<TrafficDashboard APNs/>', () => {
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <PolicyProvider networkId={networkId}>
-              <ApnContextProvider networkId={networkId}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/traffic/*"
-                    element={<TrafficDashboard />}
-                  />
-                </Routes>
-              </ApnContextProvider>
-            </PolicyProvider>
-          </MuiStylesThemeProvider>
+          <PolicyProvider networkId={networkId}>
+            <ApnContextProvider networkId={networkId}>
+              <Routes>
+                <Route
+                  path="/nms/:networkId/traffic/*"
+                  element={<TrafficDashboard />}
+                />
+              </Routes>
+            </ApnContextProvider>
+          </PolicyProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

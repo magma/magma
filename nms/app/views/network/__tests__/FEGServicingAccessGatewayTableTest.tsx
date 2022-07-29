@@ -14,7 +14,6 @@
 import FEGNetworkContext from '../../../context/FEGNetworkContext';
 import FEGServicingAccessGatewaysTable from '../FEGServicingAccessGatewayTable';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AxiosResponse} from 'axios';
@@ -174,7 +173,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <FEGNetworkContext.Provider value={networkCtx}>
                 <Routes>
                   <Route
@@ -183,7 +182,7 @@ describe('<ServicingAccessGatewaysInfo />', () => {
                   />
                 </Routes>
               </FEGNetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AddEditCbsdButton, CbsdAddEditDialog} from '../CbsdEdit';
@@ -92,9 +91,7 @@ const renderWithProviders = (jsx: React.ReactNode) => {
   return render(
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <CbsdContextProvider networkId={networkId}>{jsx}</CbsdContextProvider>
-        </MuiStylesThemeProvider>
+        <CbsdContextProvider networkId={networkId}>{jsx}</CbsdContextProvider>
       </ThemeProvider>
     </StyledEngineProvider>,
   );

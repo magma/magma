@@ -16,7 +16,6 @@ import ApnContext from '../../../context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
 import LteNetworkContext from '../../../context/LteNetworkContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {DynamicServices} from '../../../components/GatewayUtils';
@@ -183,7 +182,7 @@ describe('<AddEditGatewayButton />', () => {
       <MemoryRouter initialEntries={['/nms/test/gateway']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <ApnContext.Provider
                 value={{
                   state: mockApns,
@@ -209,7 +208,7 @@ describe('<AddEditGatewayButton />', () => {
                   </GatewayContextProvider>
                 </LteNetworkContext.Provider>
               </ApnContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -223,7 +222,7 @@ describe('<AddEditGatewayButton />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <GatewayContextProvider networkId={'test'}>
                 <Routes>
                   <Route
@@ -232,7 +231,7 @@ describe('<AddEditGatewayButton />', () => {
                   />
                 </Routes>
               </GatewayContextProvider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

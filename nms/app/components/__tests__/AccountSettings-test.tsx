@@ -13,7 +13,6 @@
 
 import * as React from 'react';
 import AccountSettings from '../AccountSettings';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
@@ -24,16 +23,14 @@ const Wrapper = (props: {children: React.ReactNode}) => (
   <MemoryRouter initialEntries={['/nms/mynetwork/settings']} initialIndex={0}>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>
-            <Routes>
-              <Route
-                path="/nms/:networkId/settings"
-                element={<>{props.children}</>}
-              />
-            </Routes>
-          </SnackbarProvider>
-        </MuiStylesThemeProvider>
+        <SnackbarProvider>
+          <Routes>
+            <Route
+              path="/nms/:networkId/settings"
+              element={<>{props.children}</>}
+            />
+          </Routes>
+        </SnackbarProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   </MemoryRouter>

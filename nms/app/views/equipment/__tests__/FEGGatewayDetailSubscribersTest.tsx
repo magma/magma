@@ -14,7 +14,6 @@
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
 import FEGSubscriberContext from '../../../context/FEGSubscriberContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AxiosResponse} from 'axios';
@@ -140,29 +139,27 @@ describe('<FEGGatewayDetailSubscribers />', () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGSubscriberContext.Provider
-              value={{
-                refetch: () => {},
-                sessionState: {
-                  feg_lte_network1: mockSubscriberSessionState0,
-                  feg_lte_network2: mockSubscriberSessionState1,
-                },
-                setSessionState: () => {},
-              }}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
-                  element={
-                    <FEGGatewayDetailSubscribers
-                      refresh={false}
-                      gwInfo={mockGw0}
-                    />
-                  }
-                />
-              </Routes>
-            </FEGSubscriberContext.Provider>
-          </MuiStylesThemeProvider>
+          <FEGSubscriberContext.Provider
+            value={{
+              refetch: () => {},
+              sessionState: {
+                feg_lte_network1: mockSubscriberSessionState0,
+                feg_lte_network2: mockSubscriberSessionState1,
+              },
+              setSessionState: () => {},
+            }}>
+            <Routes>
+              <Route
+                path="/nms/:networkId/equipment/overview/gateway/:gatewayId/overview"
+                element={
+                  <FEGGatewayDetailSubscribers
+                    refresh={false}
+                    gwInfo={mockGw0}
+                  />
+                }
+              />
+            </Routes>
+          </FEGSubscriberContext.Provider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

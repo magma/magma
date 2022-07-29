@@ -12,7 +12,6 @@
  */
 
 import CWFGateways from '../CWFGateways';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
@@ -117,13 +116,11 @@ const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>
-            <Routes>
-              <Route path="/nms/:networkId/*" element={<CWFGateways />} />
-            </Routes>
-          </SnackbarProvider>
-        </MuiStylesThemeProvider>
+        <SnackbarProvider>
+          <Routes>
+            <Route path="/nms/:networkId/*" element={<CWFGateways />} />
+          </Routes>
+        </SnackbarProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   </MemoryRouter>

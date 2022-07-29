@@ -12,7 +12,6 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import SimpleTable, {LabelsCell} from '../SimpleTable';
 import defaultTheme from '../../../../../theme/default';
 import {ChipProps} from '@mui/material/Chip';
@@ -27,11 +26,7 @@ jest.mock('@mui/material/Chip', () => ({label, ...props}: ChipProps) => (
 function Wrapper(props: {route?: string; children: React.ReactNode}) {
   return (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          {props.children}
-        </MuiStylesThemeProvider>
-      </ThemeProvider>
+      <ThemeProvider theme={defaultTheme}>{props.children}</ThemeProvider>
     </StyledEngineProvider>
   );
 }

@@ -12,7 +12,6 @@
  */
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';
@@ -116,7 +115,7 @@ describe('<SubscriberChart />', () => {
         <LocalizationProvider dateAdapter={AdapterMoment}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={defaultTheme}>
-              <MuiStylesThemeProvider theme={defaultTheme}>
+              <ThemeProvider theme={defaultTheme}>
                 <NetworkContext.Provider
                   value={{
                     networkId: 'test',
@@ -128,7 +127,7 @@ describe('<SubscriberChart />', () => {
                     />
                   </Routes>
                 </NetworkContext.Provider>
-              </MuiStylesThemeProvider>
+              </ThemeProvider>
             </ThemeProvider>
           </StyledEngineProvider>
         </LocalizationProvider>

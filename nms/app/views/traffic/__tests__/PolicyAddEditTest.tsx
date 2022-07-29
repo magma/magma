@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
@@ -217,24 +216,22 @@ describe('<TrafficDashboard />', () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <NetworkContext.Provider
-              value={{
-                networkId: 'test',
-                networkType: networkType,
-              }}>
-              <LteNetworkContextProvider networkId={'test'}>
-                <PolicyProvider networkId={'test'}>
-                  <Routes>
-                    <Route
-                      path="/nms/:networkId/traffic/policy/*"
-                      element={<TrafficDashboard />}
-                    />
-                  </Routes>
-                </PolicyProvider>
-              </LteNetworkContextProvider>
-            </NetworkContext.Provider>
-          </MuiStylesThemeProvider>
+          <NetworkContext.Provider
+            value={{
+              networkId: 'test',
+              networkType: networkType,
+            }}>
+            <LteNetworkContextProvider networkId={'test'}>
+              <PolicyProvider networkId={'test'}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/policy/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
+              </PolicyProvider>
+            </LteNetworkContextProvider>
+          </NetworkContext.Provider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

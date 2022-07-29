@@ -14,12 +14,12 @@
 import * as React from 'react';
 import Alert from './Alert/Alert';
 import CssBaseline from '@mui/material/CssBaseline';
-import ThemeProvider from '@mui/styles/ThemeProvider';
 import axios, {AxiosError} from 'axios';
 import defaultTheme from '../theme/default';
 import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
 import {StyledEngineProvider} from '@mui/styled-engine';
+import {ThemeProvider} from '@mui/material/styles';
 import {useEffect, useState} from 'react';
 
 const DIALOG_MESSAGE =

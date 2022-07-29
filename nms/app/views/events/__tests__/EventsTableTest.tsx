@@ -13,7 +13,6 @@
 
 import EventsTable from '../EventsTable';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
@@ -119,7 +118,7 @@ describe('<EventsTable />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <NetworkContext.Provider
                 value={{
                   networkId: 'test',
@@ -137,7 +136,7 @@ describe('<EventsTable />', () => {
                   />
                 </Routes>
               </NetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

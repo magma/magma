@@ -13,7 +13,6 @@
 
 import EventAlertChart from '../EventAlertChart';
 import MagmaAPI from '../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 import moment from 'moment';
@@ -83,7 +82,7 @@ describe('<EventAlertChart/>', () => {
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <Routes>
                 <Route
                   path="/nms/:networkId"
@@ -92,7 +91,7 @@ describe('<EventAlertChart/>', () => {
                   }
                 />
               </Routes>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

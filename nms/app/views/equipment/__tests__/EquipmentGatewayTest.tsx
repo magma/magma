@@ -13,7 +13,6 @@
 import Gateway from '../EquipmentGateway';
 import GatewayContext from '../../../context/GatewayContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -136,19 +135,17 @@ describe('<Gateway />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContext.Provider
-              value={{
-                state: lteGateways,
-                setState: async () => {},
-                updateGateway: async () => {},
-                refetch: () => {},
-              }}>
-              <Routes>
-                <Route path="/nms/:networkId/gateway/" element={<Gateway />} />
-              </Routes>
-            </GatewayContext.Provider>
-          </MuiStylesThemeProvider>
+          <GatewayContext.Provider
+            value={{
+              state: lteGateways,
+              setState: async () => {},
+              updateGateway: async () => {},
+              refetch: () => {},
+            }}>
+            <Routes>
+              <Route path="/nms/:networkId/gateway/" element={<Gateway />} />
+            </Routes>
+          </GatewayContext.Provider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

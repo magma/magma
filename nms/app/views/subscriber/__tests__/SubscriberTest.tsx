@@ -10,7 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberContext from '../../../context/SubscriberContext';
@@ -105,7 +104,7 @@ describe('<SubscriberDashboard />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <NetworkContext.Provider
                 value={{
                   networkId: 'test',
@@ -119,7 +118,7 @@ describe('<SubscriberDashboard />', () => {
                   </Routes>
                 </SubscriberContext.Provider>
               </NetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

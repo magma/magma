@@ -16,7 +16,6 @@ import EnodebContext, {
   EnodebContextProvider,
 } from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
@@ -118,7 +117,7 @@ describe('<AddEditEnodeButton />', () => {
       <MemoryRouter initialEntries={['/nms/test/enode']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <EnodebContextProvider networkId="test">
                 <Routes>
                   <Route
@@ -129,7 +128,7 @@ describe('<AddEditEnodeButton />', () => {
                   />
                 </Routes>
               </EnodebContextProvider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -143,7 +142,7 @@ describe('<AddEditEnodeButton />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <EnodebContextProvider networkId="mynetwork">
                 <Routes>
                   <Route
@@ -152,7 +151,7 @@ describe('<AddEditEnodeButton />', () => {
                   />
                 </Routes>
               </EnodebContextProvider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -223,7 +222,7 @@ describe('<AddEditEnodeButton />', () => {
           initialIndex={0}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={defaultTheme}>
-              <MuiStylesThemeProvider theme={defaultTheme}>
+              <ThemeProvider theme={defaultTheme}>
                 <EnodebContext.Provider
                   value={{
                     state: {
@@ -239,7 +238,7 @@ describe('<AddEditEnodeButton />', () => {
                     />
                   </Routes>
                 </EnodebContext.Provider>
-              </MuiStylesThemeProvider>
+              </ThemeProvider>
             </ThemeProvider>
           </StyledEngineProvider>
         </MemoryRouter>

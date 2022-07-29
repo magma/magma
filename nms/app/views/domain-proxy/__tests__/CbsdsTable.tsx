@@ -12,7 +12,6 @@
  */
 import CbsdContext, {CbsdContextType} from '../../../context/CbsdContext';
 import CbsdsTable from '../CbsdsTable';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 
@@ -105,11 +104,9 @@ const renderTable = () => {
   return render(
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <CbsdContext.Provider value={cbsdState}>
-            <CbsdsTable />
-          </CbsdContext.Provider>
-        </MuiStylesThemeProvider>
+        <CbsdContext.Provider value={cbsdState}>
+          <CbsdsTable />
+        </CbsdContext.Provider>
       </ThemeProvider>
     </StyledEngineProvider>,
   );

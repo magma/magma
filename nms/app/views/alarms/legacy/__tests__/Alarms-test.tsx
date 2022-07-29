@@ -13,7 +13,6 @@
 
 import * as React from 'react';
 import Alarms from '../Alarms';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import defaultTheme from '../../../../theme/default';
 
 import useMagmaAPI from '../../../../api/useMagmaAPI';
@@ -28,9 +27,7 @@ const Wrapper = (props: {route: string; children: React.ReactNode}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>{props.children}</SnackbarProvider>
-        </MuiStylesThemeProvider>
+        <SnackbarProvider>{props.children}</SnackbarProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   </MemoryRouter>

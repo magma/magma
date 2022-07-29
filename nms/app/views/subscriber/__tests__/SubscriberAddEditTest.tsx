@@ -14,7 +14,6 @@ import ApnContext from '../../../context/ApnContext';
 import LteNetworkContext, {
   LteNetworkContextType,
 } from '../../../context/LteNetworkContext';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
 import SubscriberDashboard from '../SubscriberOverview';
@@ -252,7 +251,7 @@ describe('<AddSubscriberButton />', () => {
       <MemoryRouter initialEntries={['/nms/test/subscribers']} initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <LteNetworkContext.Provider value={networkCtx}>
                 <PolicyContext.Provider value={policyCtx}>
                   <ApnContext.Provider value={apnCtx}>
@@ -267,7 +266,7 @@ describe('<AddSubscriberButton />', () => {
                   </ApnContext.Provider>
                 </PolicyContext.Provider>
               </LteNetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>
@@ -310,7 +309,7 @@ describe('<AddSubscriberButton />', () => {
         initialIndex={0}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
               <LteNetworkContext.Provider value={networkCtx}>
                 <PolicyContext.Provider value={policyCtx}>
                   <ApnContext.Provider value={apnCtx}>
@@ -325,7 +324,7 @@ describe('<AddSubscriberButton />', () => {
                   </ApnContext.Provider>
                 </PolicyContext.Provider>
               </LteNetworkContext.Provider>
-            </MuiStylesThemeProvider>
+            </ThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
       </MemoryRouter>

@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
@@ -87,23 +86,21 @@ describe('<TrafficDashboard />', () => {
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <NetworkContext.Provider
-              value={{
-                networkId: 'test',
-              }}>
-              <LteNetworkContextProvider networkId={'test'}>
-                <ApnContextProvider networkId={'test'}>
-                  <Routes>
-                    <Route
-                      path="/nms/:networkId/traffic/*"
-                      element={<TrafficDashboard />}
-                    />
-                  </Routes>
-                </ApnContextProvider>
-              </LteNetworkContextProvider>
-            </NetworkContext.Provider>
-          </MuiStylesThemeProvider>
+          <NetworkContext.Provider
+            value={{
+              networkId: 'test',
+            }}>
+            <LteNetworkContextProvider networkId={'test'}>
+              <ApnContextProvider networkId={'test'}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
+              </ApnContextProvider>
+            </LteNetworkContextProvider>
+          </NetworkContext.Provider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

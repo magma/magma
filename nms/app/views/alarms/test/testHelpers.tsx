@@ -13,7 +13,6 @@
 
 import * as React from 'react';
 import AlarmContext from '../components/AlarmContext';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import defaultTheme from '../../../theme/default';
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
 import {MemoryRouter} from 'react-router-dom';
@@ -114,9 +113,7 @@ export function AlarmsTestWrapper({
     <MemoryRouter initialEntries={[route || '/']} initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <SnackbarProvider>{children}</SnackbarProvider>
-          </MuiStylesThemeProvider>
+          <SnackbarProvider>{children}</SnackbarProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

@@ -13,7 +13,6 @@
 
 import FEGEquipmentDashboard from '../FEGEquipmentDashboard';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
@@ -286,16 +285,14 @@ describe('<FEGEquipmentDashboard />', () => {
       initialIndex={0}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGGatewayContextProvider networkId="mynetwork">
-              <Routes>
-                <Route
-                  path="/nms/:networkId/*"
-                  element={<FEGEquipmentDashboard />}
-                />
-              </Routes>
-            </FEGGatewayContextProvider>
-          </MuiStylesThemeProvider>
+          <FEGGatewayContextProvider networkId="mynetwork">
+            <Routes>
+              <Route
+                path="/nms/:networkId/*"
+                element={<FEGEquipmentDashboard />}
+              />
+            </Routes>
+          </FEGGatewayContextProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </MemoryRouter>

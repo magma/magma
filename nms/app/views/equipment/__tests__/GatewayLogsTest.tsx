@@ -14,7 +14,6 @@
 import * as customHistogram from '../../../components/CustomMetrics';
 import GatewayLogs from '../GatewayLogs';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
@@ -34,14 +33,12 @@ const LogTableWrapper = () => (
     <LocalizationProvider dateAdapter={AdapterMoment}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <Routes>
-              <Route
-                path="/nms/:networkId/gateway/:gatewayId/logs"
-                element={<GatewayLogs />}
-              />
-            </Routes>
-          </MuiStylesThemeProvider>
+          <Routes>
+            <Route
+              path="/nms/:networkId/gateway/:gatewayId/logs"
+              element={<GatewayLogs />}
+            />
+          </Routes>
         </ThemeProvider>
       </StyledEngineProvider>
     </LocalizationProvider>
