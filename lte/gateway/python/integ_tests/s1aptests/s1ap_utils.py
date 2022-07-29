@@ -788,6 +788,19 @@ class SubscriberUtil(object):
         self._ue_id += 1
         return ue_cfg
 
+    def add_sub_cloud(self, num_ues=1):
+        print("not adding subscriber again")
+        subscribers = []
+        for _ in range(num_ues):
+            sid = self._gen_next_sid()
+            # self._subscriber_client.add_subscriber(sid)
+            imei = self._generate_imei()
+            subscribers.append(self._get_s1ap_sub(sid, imei))
+
+
+        self._subscriber_client.wait_for_changes()
+        return subscribers
+
     def add_sub(self, num_ues=1):
         """Add subscribers to the EPC, is blocking"""
         # Add the default IMSI used for the tests

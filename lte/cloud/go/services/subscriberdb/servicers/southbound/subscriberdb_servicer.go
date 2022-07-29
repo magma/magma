@@ -77,6 +77,7 @@ func (s *subscriberdbServicer) Sync(
 	ctx context.Context,
 	req *lte_protos.SyncRequest,
 ) (*lte_protos.SyncResponse, error) {
+	cloudflag := CloudSubscriberDbEnabled(ctx)
 	if !s.DigestsEnabled {
 		return &lte_protos.SyncResponse{Resync: true}, nil
 	}
@@ -117,7 +118,14 @@ func (s *subscriberdbServicer) Sync(
 		return nil, err
 	}
 	if resync {
-		return &lte_protos.SyncResponse{Resync: true}, nil
+
+		if cloudflag{
+			return nil, nil
+		} else {
+			return &lte_protos.SyncResponse{Resync: true}, nil
+		}
+
+
 	}
 
 	// Since the cached protos don't contain gateway-specific information, inject
@@ -143,7 +151,16 @@ func (s *subscriberdbServicer) Sync(
 		},
 		Resync: false,
 	}
-	return res, nil
+
+
+
+	if cloudflag {
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		return nil, nil
+	} else {
+		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		return res, nil
+	}
 }
 
 // ListSubscribers returns a page of subscribers and a token to be used on

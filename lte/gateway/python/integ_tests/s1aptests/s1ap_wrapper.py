@@ -221,13 +221,16 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues, req_data=None, static_ips=None):
+    def configUEDevice(self, num_ues, req_data=None, static_ips=None, cloud=False):
         """ Configure the device on the UE side """
         if req_data is None:
             req_data = []
         if static_ips is None:
             static_ips = []
-        reqs = self._sub_util.add_sub(num_ues=num_ues)
+        if cloud:
+            reqs = self._sub_util.add_sub_cloud(num_ues=num_ues)
+        else:
+            reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
                 "************************* UE device config for ue_id ",
@@ -266,12 +269,14 @@ class TestWrapper(object):
                 ue_ip = static_ips[i]
             else:
                 ue_ip = None
-            self.configAPN(
-                imsi="IMSI" + "".join([str(j) for j in reqs[i].imsi]),
-                apn_list=None,
-                default=True,
-                static_ip=ue_ip,
-            )
+            if not cloud:
+                self.configAPN(
+                    imsi="IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                    apn_list=None,
+                    default=True,
+                    static_ip=ue_ip,
+                )
+
             self._configuredUes.append(reqs[i])
 
         self.check_gw_health_after_ue_load()
@@ -368,7 +373,7 @@ class TestWrapper(object):
                 apn_list.insert(0, magma_default_apn)
             else:
                 apn_list = [magma_default_apn]
-        self._sub_util.config_apn_data(imsi, apn_list)
+        # self._sub_util.config_apn_data(imsi, apn_list)
 
     def check_gw_health_after_ue_load(self):
         """ Wait for the MME only after adding entries to HSS """
