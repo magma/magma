@@ -22,10 +22,11 @@ import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CustomLineChart, DatasetType} from '../../components/CustomMetrics';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
 import {convertBitToMbit, getPromValue} from './SubscriberUtils';
@@ -234,12 +235,11 @@ export default function SubscriberChart() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             maxDate={end}
             disableFuture
             value={start}
-            onChange={date => setStart(date!)}
+            onChange={date => setStart(date as moment.Moment)}
           />
         </Grid>
         <Grid item>
@@ -249,11 +249,10 @@ export default function SubscriberChart() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             disableFuture
             value={end}
-            onChange={date => setEnd(date!)}
+            onChange={date => setEnd(date as moment.Moment)}
           />
         </Grid>
       </Grid>

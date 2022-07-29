@@ -15,13 +15,13 @@ import type {PromqlReturnObject} from '../../../../generated';
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
@@ -123,7 +123,7 @@ describe('<Enodeb />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
-      <MuiPickersUtilsProvider utils={MomentUtils}>
+      <LocalizationProvider dateAdapter={AdapterMoment}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
             <MuiStylesThemeProvider theme={defaultTheme}>
@@ -135,7 +135,7 @@ describe('<Enodeb />', () => {
             </MuiStylesThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
-      </MuiPickersUtilsProvider>
+      </LocalizationProvider>
     </MemoryRouter>
   );
 

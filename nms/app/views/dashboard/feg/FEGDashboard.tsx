@@ -18,9 +18,10 @@ import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
 import Grid from '@mui/material/Grid';
 import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {EVENT_STREAM} from '../../events/EventsTable';
 import {Navigate, Route, Routes} from 'react-router-dom';
 import {NetworkCheck} from '@mui/icons-material';
@@ -147,13 +148,11 @@ function FEGNetworkTab(props: Props) {
         </Text>
       </Grid>
       <DateTimePicker
-        autoOk
-        variant="inline"
-        inputVariant="outlined"
+        renderInput={props => <TextField {...props} />}
         maxDate={endDate}
         disableFuture
         value={startDate}
-        onChange={date => setStartDate(date!)}
+        onChange={date => setStartDate(date as moment.Moment)}
       />
       <Grid item>
         <Text variant="body3" className={classes.dateTimeText}>
@@ -161,12 +160,10 @@ function FEGNetworkTab(props: Props) {
         </Text>
       </Grid>
       <DateTimePicker
-        autoOk
-        variant="inline"
-        inputVariant="outlined"
+        renderInput={props => <TextField {...props} />}
         disableFuture
         value={endDate}
-        onChange={date => setEndDate(date!)}
+        onChange={date => setEndDate(date as moment.Moment)}
       />
     </Grid>
   );

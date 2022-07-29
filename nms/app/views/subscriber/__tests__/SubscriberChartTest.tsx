@@ -12,14 +12,14 @@
  */
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {PromqlReturnObject} from '../../../../generated';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
@@ -113,7 +113,7 @@ describe('<SubscriberChart />', () => {
           '/nms/test/subscribers/overview/config/IMSI001011234560000/overview',
         ]}
         initialIndex={0}>
-        <MuiPickersUtilsProvider utils={MomentUtils}>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={defaultTheme}>
               <MuiStylesThemeProvider theme={defaultTheme}>
@@ -131,7 +131,7 @@ describe('<SubscriberChart />', () => {
               </MuiStylesThemeProvider>
             </ThemeProvider>
           </StyledEngineProvider>
-        </MuiPickersUtilsProvider>
+        </LocalizationProvider>
       </MemoryRouter>
     );
   };

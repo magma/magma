@@ -20,7 +20,7 @@ import React, {useCallback, useRef, useState} from 'react';
 import Select from '@mui/material/Select';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import {KeyboardDateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {isFinite} from 'lodash';
 import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
@@ -32,6 +32,7 @@ import AutorefreshCheckbox, {
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import MagmaAPI from '../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
@@ -306,18 +307,15 @@ function LogsList() {
                 </Text>
               </Grid>
               <Grid item>
-                <KeyboardDateTimePicker
-                  inputProps={{
-                    'data-testid': 'start-date-input',
-                  }}
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
+                <DateTimePicker
+                  renderInput={props => (
+                    <TextField data-testid="end-date-input" {...props} />
+                  )}
                   maxDate={endDate}
                   disableFuture
                   value={startDate}
                   onChange={newValue => setStartDate(newValue as moment.Moment)}
-                  format="yyyy/MM/DD HH:mm"
+                  inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>
             </Grid>
@@ -406,17 +404,14 @@ function LogsList() {
                 </Text>
               </Grid>
               <Grid item>
-                <KeyboardDateTimePicker
-                  inputProps={{
-                    'data-testid': 'end-date-input',
-                  }}
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
+                <DateTimePicker
+                  renderInput={props => (
+                    <TextField data-testid="end-date-input" {...props} />
+                  )}
                   disableFuture
                   value={endDate}
                   onChange={newValue => setEndDate(newValue as moment.Moment)}
-                  format="yyyy/MM/DD HH:mm"
+                  inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>
             </Grid>

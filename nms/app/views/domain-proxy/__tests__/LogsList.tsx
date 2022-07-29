@@ -12,12 +12,12 @@
  */
 
 import LogsList from '../LogsList';
-import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import moment from 'moment';
@@ -43,7 +43,7 @@ const renderWithProviders = (jsx: React.ReactNode) => {
     <MemoryRouter
       initialEntries={[`/nms/${networkId}/metrics/domain-proxy-logs`]}
       initialIndex={0}>
-      <MuiPickersUtilsProvider utils={MomentUtils}>
+      <LocalizationProvider dateAdapter={AdapterMoment}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
             <MuiStylesThemeProvider theme={defaultTheme}>
@@ -56,8 +56,7 @@ const renderWithProviders = (jsx: React.ReactNode) => {
             </MuiStylesThemeProvider>
           </ThemeProvider>
         </StyledEngineProvider>
-        ,
-      </MuiPickersUtilsProvider>
+      </LocalizationProvider>
     </MemoryRouter>,
   );
 };

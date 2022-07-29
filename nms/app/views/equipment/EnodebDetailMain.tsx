@@ -24,11 +24,12 @@ import Grid from '@mui/material/Grid';
 import React from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import TopBar from '../../components/TopBar';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
@@ -173,12 +174,11 @@ function Overview() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date!)}
+            onChange={date => setStartDate(date as moment.Moment)}
           />
         </Grid>
         <Grid item>
@@ -188,11 +188,10 @@ function Overview() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date!)}
+            onChange={date => setEndDate(date as moment.Moment)}
           />
         </Grid>
       </Grid>

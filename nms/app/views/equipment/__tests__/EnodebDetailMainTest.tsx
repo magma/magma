@@ -15,13 +15,14 @@ import type {PromqlReturnObject} from '../../../../generated';
 import EnodebContext from '../../../context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MomentUtils from '@date-io/moment';
 import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
+
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render} from '@testing-library/react';
@@ -142,7 +143,7 @@ describe('<Enodeb />', () => {
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
         initialIndex={0}>
-        <MuiPickersUtilsProvider utils={MomentUtils}>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={defaultTheme}>
               <MuiStylesThemeProvider theme={defaultTheme}>
@@ -162,7 +163,7 @@ describe('<Enodeb />', () => {
               </MuiStylesThemeProvider>
             </ThemeProvider>
           </StyledEngineProvider>
-        </MuiPickersUtilsProvider>
+        </LocalizationProvider>
       </MemoryRouter>
     );
     const {findByTestId, getByTestId} = render(<Wrapper />);
@@ -181,7 +182,7 @@ describe('<Enodeb />', () => {
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
         initialIndex={0}>
-        <MuiPickersUtilsProvider utils={MomentUtils}>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={defaultTheme}>
               <MuiStylesThemeProvider theme={defaultTheme}>
@@ -201,7 +202,7 @@ describe('<Enodeb />', () => {
               </MuiStylesThemeProvider>
             </ThemeProvider>
           </StyledEngineProvider>
-        </MuiPickersUtilsProvider>
+        </LocalizationProvider>
       </MemoryRouter>
     );
     const {findByTestId, getByTestId} = render(<Wrapper />);

@@ -22,9 +22,10 @@ import MagmaAPI from '../../api/MagmaAPI';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {MaterialTableProps} from '@material-table/core';
 import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
@@ -381,14 +382,12 @@ export default function EventsTable(props: EventTableProps) {
                   </Grid>
                   <Grid item>
                     <DateTimePicker
-                      autoOk
-                      variant="inline"
-                      inputVariant="outlined"
+                      renderInput={props => <TextField {...props} />}
                       maxDate={endDate}
                       disableFuture
                       value={startDate}
                       onChange={date => {
-                        setStartDate(date!);
+                        setStartDate(date as moment.Moment);
                         setIsAutoRefreshing(false);
                       }}
                     />
@@ -400,13 +399,11 @@ export default function EventsTable(props: EventTableProps) {
                   </Grid>
                   <Grid item>
                     <DateTimePicker
-                      autoOk
-                      variant="inline"
-                      inputVariant="outlined"
+                      renderInput={props => <TextField {...props} />}
                       disableFuture
                       value={endDate}
                       onChange={date => {
-                        setEndDate(date!);
+                        setEndDate(date as moment.Moment);
                         setIsAutoRefreshing(false);
                       }}
                     />
