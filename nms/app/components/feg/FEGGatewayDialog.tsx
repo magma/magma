@@ -394,7 +394,12 @@ export default function FEGGatewayDialog(props: Props) {
   }
 
   return (
-    <Dialog open={true} onClose={props.onClose} maxWidth="md" scroll="body">
+    <Dialog
+      open={true}
+      onClose={props.onClose}
+      maxWidth="md"
+      scroll="body"
+      data-testid="FEGGatewayDialog">
       <AppBar position="static" className={classes.appBar}>
         <Tabs
           indicatorColor="primary"
