@@ -142,7 +142,8 @@ export default function ServicingAccessGatewayInfo() {
                   window.open(
                     `${window.location.origin}/nms/${currRow.networkId}/equipment/overview/gateway/${currRow.gatewayId}`,
                   );
-                }}>
+                }}
+                underline="hover">
                 {currRow.gatewayName}
               </Link>
             ),

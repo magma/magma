@@ -110,7 +110,8 @@ function GatewayPoolsTableRaw(props: WithAlert) {
                         `gateway/${gw.gateway_id}`,
                       ),
                     );
-                  }}>
+                  }}
+                  underline="hover">
                   {gw.gateway_id}
                 </Link>
               </ListItem>

@@ -269,7 +269,8 @@ export function PolicyTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),
@@ -382,7 +383,8 @@ export function BaseNameTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),
@@ -485,7 +487,8 @@ export function ProfileTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),
@@ -580,7 +583,8 @@ export function RatingGroupTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),

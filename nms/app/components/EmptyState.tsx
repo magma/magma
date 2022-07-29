@@ -113,7 +113,8 @@ export default function (props: emptyStateProps) {
                   <Link
                     target="_blank"
                     className={classes.emptyStateLink}
-                    href={props.cardActions?.link}>
+                    href={props.cardActions?.link}
+                    underline="hover">
                     {props.cardActions?.linkText}
                   </Link>
                 </Grid>

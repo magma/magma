@@ -185,14 +185,14 @@ function InstallGatewayList() {
     <ul className={classes.bulletList}>
       <li>
         Create bootable USB with OS (Ubuntu).{' '}
-        <Link href={INSTALL_AGW_LINK} target="_blank">
+        <Link href={INSTALL_AGW_LINK} target="_blank" underline="hover">
           View documentation
         </Link>
       </li>
       <li>Install Magma service</li>
       <li>
         Install <code>rootca.pem</code> and <code>control_proxy.yml</code>.{' '}
-        <Link href={CONFIGURE_AGW_LINK} target="_blank">
+        <Link href={CONFIGURE_AGW_LINK} target="_blank" underline="hover">
           View documentation
         </Link>
       </li>
@@ -227,7 +227,8 @@ function AddGatewayInstructions(props: GatewayInstructionsProps) {
             <Link
               className={classes.emptyStateLink}
               href={LEARN_MORE_LINK}
-              target="_blank">
+              target="_blank"
+              underline="hover">
               Learn more about Access Gateway Configuration
             </Link>
           </Grid>
@@ -390,7 +391,8 @@ function UpgradeTable() {
             <Link
               variant="body2"
               component="button"
-              onClick={() => navigate(currRow.id)}>
+              onClick={() => navigate(currRow.id)}
+              underline="hover">
               {currRow.id}
             </Link>
           ),
@@ -506,7 +508,8 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => navigate(currRow.id)}>
+                onClick={() => navigate(currRow.id)}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),

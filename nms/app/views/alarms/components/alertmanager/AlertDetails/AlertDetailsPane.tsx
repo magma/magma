@@ -142,7 +142,8 @@ function MetricAlertViewer({alert}: AlertViewerProps) {
         <Link
           variant="subtitle1"
           component="button"
-          onClick={() => setShowDetails(!showDetails)}>
+          onClick={() => setShowDetails(!showDetails)}
+          underline="hover">
           {'Show More Details'}
         </Link>
       </Grid>
@@ -204,7 +205,8 @@ function AlertTroubleshootingLink({alertName}: {alertName: string}) {
                 variant="subtitle1"
                 href={troubleshootingLink?.link}
                 target="_blank"
-                rel="noopener">
+                rel="noopener"
+                underline="hover">
                 {troubleshootingLink?.title}
               </Link>
             </Grid>

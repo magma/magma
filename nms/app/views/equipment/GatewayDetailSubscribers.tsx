@@ -70,7 +70,8 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
                     `subscribers/overview/${currRow.id}`,
                   ),
                 );
-              }}>
+              }}
+              underline="hover">
               {currRow.id}
             </Link>
           ),

@@ -88,7 +88,8 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
                     `enodeb/${currRow.id}`,
                   ),
                 );
-              }}>
+              }}
+              underline="hover">
               {currRow.id}
             </Link>
           ),

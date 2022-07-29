@@ -156,7 +156,7 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
 
   const DropzoneText = () => (
     <div>
-      Drag and drop or <Link>browse files</Link>
+      Drag and drop or <Link underline="hover">browse files</Link>
     </div>
   );
 
@@ -280,7 +280,9 @@ function UploadInstructions({action}: {action: string}) {
   return (
     <Text variant="body2" className={classes.uploadInstructions}>
       {`Accepted file type: .csv (<10 MB).  ${instructions}`}
-      <Link href={UPLOAD_DOC_LINK}>documentation</Link>
+      <Link href={UPLOAD_DOC_LINK} underline="hover">
+        documentation
+      </Link>
     </Text>
   );
 }

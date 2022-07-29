@@ -145,7 +145,8 @@ function AddEnodebInstructions(props: {setOpen: () => void}) {
               <Grid item>
                 <Link
                   href="https://docs.magmacore.org/docs/next/lte/deploy_config_enodebd#configure-enodeb"
-                  target="_blank">
+                  target="_blank"
+                  underline="hover">
                   Learn more about the supported eNodeB and protocols
                 </Link>
               </Grid>
@@ -171,7 +172,8 @@ function AddEnodebInstructions(props: {setOpen: () => void}) {
           <CardActions disableSpacing={true}>
             <Link
               href="https://docs.magmacore.org/docs/next/lte/deploy_config_enodebd#manual-configuration"
-              target="_blank">
+              target="_blank"
+              underline="hover">
               How to configure an unmanaged eNodeB
             </Link>
           </CardActions>
@@ -306,7 +308,8 @@ function EnodebTableRaw(props: WithAlert) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => navigate(currRow.id)}>
+                onClick={() => navigate(currRow.id)}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),

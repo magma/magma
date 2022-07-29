@@ -248,7 +248,7 @@ function Organizations(props: WithAlert) {
 
   const renderLinkColumn = useCallback((rowData: OrganizationRowType) => {
     return (
-      <Link href={rowData.portalLink}>
+      <Link href={rowData.portalLink} underline="hover">
         {`Visit ${rowData.name} Organization Portal`}
       </Link>
     );

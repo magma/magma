@@ -141,7 +141,8 @@ function DataPlanOverview(props: WithAlert) {
                   onClick={() => {
                     setCurrRow(currRow);
                     setOpen(true);
-                  }}>
+                  }}
+                  underline="hover">
                   {currRow.id}
                 </Link>
               ),

@@ -239,7 +239,8 @@ function TabPanel(props: TabPanelProps) {
                       `alerts/alerts`,
                     ),
                   );
-                }}>
+                }}
+                underline="hover">
                 {' '}
                 alert settings
               </Link>

@@ -105,7 +105,7 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
               <List>
                 {currRow.activePolicies.map(policy => (
                   <ListItem key={policy.id}>
-                    <Link>{policy.id} </Link>
+                    <Link underline="hover">{policy.id} </Link>
                   </ListItem>
                 ))}
               </List>

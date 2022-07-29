@@ -219,7 +219,11 @@ function DataCollapse(data: Data) {
 }
 
 function DataLink(data: string) {
-  return <Link href={data}>{data}</Link>;
+  return (
+    <Link href={data} underline="hover">
+      {data}
+    </Link>
+  );
 }
 
 type Data = {

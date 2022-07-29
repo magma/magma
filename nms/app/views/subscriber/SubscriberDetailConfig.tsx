@@ -302,7 +302,8 @@ function SubscriberApnStaticIpsTable({
                     `traffic/apn`,
                   ),
                 );
-              }}>
+              }}
+              underline="hover">
               {currRow.apnName}
             </Link>
           ),

@@ -276,7 +276,8 @@ export function RenderLink(props: RenderLinkType) {
       <Link
         variant="body2"
         component="button"
-        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}>
+        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}
+        underline="hover">
         {imsi}
       </Link>
     </div>
