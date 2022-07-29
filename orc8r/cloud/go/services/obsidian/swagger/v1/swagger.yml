@@ -5247,11 +5247,11 @@ paths:
       - $ref: '#/parameters/network_id'
       responses:
         "200":
-          description: List all rating groups
+          description: Map of all rating groups by rating group ID
           schema:
-            items:
+            additionalProperties:
               $ref: '#/definitions/rating_group'
-            type: array
+            type: object
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List rating groups
