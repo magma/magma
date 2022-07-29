@@ -20,7 +20,7 @@ import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
 import {VersionContextProvider} from '../../context/VersionContext';
 import type {NetworkType} from '../../../shared/types/network';
-import type {Theme} from '@material-ui/core';
+import type {Theme} from '@mui/material';
 
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
@@ -32,7 +32,7 @@ import {useEffect, useState} from 'react';
 import LoadingFiller from '../LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import useSections from '../layout/useSections';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
 
 // These won't be considered networkIds

@@ -13,22 +13,22 @@
 
 import type {CwfGateway, MagmadGatewayConfigs} from '../../../generated';
 
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
+import AppBar from '@mui/material/AppBar';
+import Button from '@mui/material/Button';
 import CWFGatewayConfigFields from './CWFGatewayConfigFields';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import GatewayCommandFields from '../GatewayCommandFields';
 import MagmaDeviceFields from '../MagmaDeviceFields';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';

@@ -16,26 +16,27 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 import ActionTable from '../../components/ActionTable';
 import BaseNameEditDialog from './BaseNameEdit';
 import EmptyState from '../../components/EmptyState';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import LteNetworkContext from '../../context/LteNetworkContext';
 import PolicyContext from '../../context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
 import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Text from '../../theme/design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import withAlert from '../../components/Alert/withAlert';
-import {Checkbox} from '@material-ui/core';
-import {Theme, withStyles} from '@material-ui/core/styles';
+import withStyles from '@mui/styles/withStyles';
+import {Checkbox} from '@mui/material';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
@@ -55,7 +56,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
+    padding: `0 ${theme.spacing(5)}`,
   },
   tabs: {
     color: colors.primary.white,

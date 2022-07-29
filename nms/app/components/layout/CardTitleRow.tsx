@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React from 'react';
-import SvgIcon from '@material-ui/core/SvgIcon';
+import SvgIcon from '@mui/material/SvgIcon';
 import Text from '../../theme/design-system/Text';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
-import type {Theme} from '@material-ui/core/styles';
+import {makeStyles} from '@mui/styles';
+import type {Theme} from '@mui/material/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   cardTitleRow: {

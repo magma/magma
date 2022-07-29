@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import FormLabel from '@material-ui/core/FormLabel';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import FormLabel from '@mui/material/FormLabel';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import withStyles from '@mui/styles/withStyles';
 
+import TextField from '@mui/material/TextField';
 import {AltFormField} from '../../components/FormField';
 import {colors} from '../../theme/default';
-import {withStyles} from '@material-ui/core/styles';
 
 const ENTER_KEY = 13;
 const styles = {

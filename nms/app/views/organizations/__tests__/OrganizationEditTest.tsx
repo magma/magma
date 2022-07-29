@@ -12,7 +12,7 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import OrganizationEdit from '../OrganizationEdit';
 import Organizations from '../Organizations';
 import axios from 'axios';
@@ -21,8 +21,8 @@ import defaultTheme from '../../../theme/default';
 import {AppContextProvider} from '../../../context/AppContext';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockUseAxios} from '../useAxiosTestHelper';
 
@@ -129,21 +129,23 @@ window.CONFIG = {
 const WrappedOrganizations = () => {
   return (
     <MemoryRouter initialEntries={['/organizations']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>
-            <AppContextProvider>
-              <Routes>
-                <Route path="organizations/*" element={<Organizations />} />
-                <Route
-                  path="organizations/detail/:name"
-                  element={<OrganizationEdit />}
-                />
-              </Routes>
-            </AppContextProvider>
-          </SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <SnackbarProvider>
+              <AppContextProvider>
+                <Routes>
+                  <Route path="organizations/*" element={<Organizations />} />
+                  <Route
+                    path="organizations/detail/:name"
+                    element={<OrganizationEdit />}
+                  />
+                </Routes>
+              </AppContextProvider>
+            </SnackbarProvider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 };
@@ -153,20 +155,22 @@ const WrappedOrganizationsEdit = () => {
     <MemoryRouter
       initialEntries={['/organizations/detail/magma-test']}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>
-            <AppContextProvider>
-              <Routes>
-                <Route
-                  path="organizations/detail/:name"
-                  element={<OrganizationEdit />}
-                />
-              </Routes>
-            </AppContextProvider>
-          </SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <SnackbarProvider>
+              <AppContextProvider>
+                <Routes>
+                  <Route
+                    path="organizations/detail/:name"
+                    element={<OrganizationEdit />}
+                  />
+                </Routes>
+              </AppContextProvider>
+            </SnackbarProvider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 };

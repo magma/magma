@@ -13,17 +13,17 @@
 
 import type {NetworkEpcConfigsSubProfilesValue} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
+import FormLabel from '@mui/material/FormLabel';
+import InputAdornment from '@mui/material/InputAdornment';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';

@@ -13,17 +13,17 @@
 
 import type {DialogProps} from './OrganizationDialog';
 
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {UserRoles} from '../../../shared/roles';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   addButton: {

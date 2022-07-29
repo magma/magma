@@ -14,7 +14,7 @@
 import type {FederationGateway} from '../../../generated';
 import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import FEGGatewayDialog from '../../components/feg/FEGGatewayDialog';
 import React from 'react';
 

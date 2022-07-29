@@ -12,10 +12,10 @@
  */
 
 import * as React from 'react';
-import Chip from '@material-ui/core/Chip';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import MenuItem from '@mui/material/MenuItem';
+import Select, {SelectChangeEvent} from '@mui/material/Select';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 
@@ -39,8 +39,8 @@ export default function SelectReceiver({
     },
   );
   const handleChange = React.useCallback(
-    (e: React.ChangeEvent<{name?: string | undefined; value: unknown}>) => {
-      onChange(e.target.value as string);
+    (e: SelectChangeEvent<string>) => {
+      onChange(e.target.value);
     },
     [onChange],
   );
@@ -59,8 +59,8 @@ export default function SelectReceiver({
       inputProps={{'data-testid': 'select-receiver-input'}}
       renderValue={value => (
         <Chip
-          key={value as string}
-          label={value as string}
+          key={value}
+          label={value}
           variant="outlined"
           color="primary"
           size="small"

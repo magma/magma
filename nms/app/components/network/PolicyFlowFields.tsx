@@ -13,23 +13,23 @@
 
 import type {FlowDescription} from '../../../generated';
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import FormControl from '@material-ui/core/FormControl';
-import IconButton from '@material-ui/core/IconButton';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
 import React from 'react';
-import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import Text from '../../theme/design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import TypedSelect from '../TypedSelect';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {FlowDescriptionActionEnum, FlowMatch} from '../../../generated';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -82,13 +82,13 @@ export default function PolicyFlowFields(props: Props) {
 
   return (
     <div className={classes.flex}>
-      <ExpansionPanel className={classes.panel}>
-        <ExpansionPanelSummary
+      <Accordion className={classes.panel}>
+        <AccordionSummary
           classes={{root: classes.root, expanded: classes.expanded}}
           expandIcon={<ExpandMoreIcon />}>
           <Text variant="body2">Flow {props.index + 1}</Text>
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails classes={{root: classes.block}}>
+        </AccordionSummary>
+        <AccordionDetails classes={{root: classes.block}}>
           <div className={classes.flex}>
             <FormControl className={classes.input}>
               <InputLabel htmlFor="action">Action</InputLabel>
@@ -201,11 +201,12 @@ export default function PolicyFlowFields(props: Props) {
               />
             </div>
           )}
-        </ExpansionPanelDetails>
-      </ExpansionPanel>
+        </AccordionDetails>
+      </Accordion>
       <IconButton
         className={classes.removeIcon}
-        onClick={() => props.handleDelete(props.index)}>
+        onClick={() => props.handleDelete(props.index)}
+        size="large">
         <RemoveCircleOutline />
       </IconButton>
     </div>

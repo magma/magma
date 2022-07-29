@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
@@ -20,7 +20,7 @@ import defaultTheme from '../../../theme/default';
 import {ApnContextProvider} from '../../../context/ApnContext';
 import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 
@@ -85,25 +85,27 @@ describe('<TrafficDashboard />', () => {
 
   const ApnWrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <NetworkContext.Provider
-            value={{
-              networkId: 'test',
-            }}>
-            <LteNetworkContextProvider networkId={'test'}>
-              <ApnContextProvider networkId={'test'}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/traffic/*"
-                    element={<TrafficDashboard />}
-                  />
-                </Routes>
-              </ApnContextProvider>
-            </LteNetworkContextProvider>
-          </NetworkContext.Provider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <NetworkContext.Provider
+              value={{
+                networkId: 'test',
+              }}>
+              <LteNetworkContextProvider networkId={'test'}>
+                <ApnContextProvider networkId={'test'}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/traffic/*"
+                      element={<TrafficDashboard />}
+                    />
+                  </Routes>
+                </ApnContextProvider>
+              </LteNetworkContextProvider>
+            </NetworkContext.Provider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 

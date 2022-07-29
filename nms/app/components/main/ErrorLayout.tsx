@@ -14,7 +14,7 @@
 import * as React from 'react';
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   root: {

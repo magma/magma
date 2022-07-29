@@ -13,23 +13,23 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {NetworkEpcConfigs} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import DataGrid from '../../components/DataGrid';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import FormLabel from '@material-ui/core/FormLabel';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import List from '@material-ui/core/List';
-import ListItemText from '@material-ui/core/ListItemText';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormLabel from '@mui/material/FormLabel';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import List from '@mui/material/List';
+import ListItemText from '@mui/material/ListItemText';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import Switch from '@material-ui/core/Switch';
-import Visibility from '@material-ui/icons/Visibility';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 import {AltFormField} from '../../components/FormField';
 import {
@@ -223,7 +223,8 @@ export function NetworkEpcEdit(props: EditProps) {
                   <IconButton
                     aria-label="toggle password visibility"
                     onClick={() => setShowPassword(!showPassword)}
-                    onMouseDown={event => event.preventDefault()}>
+                    onMouseDown={event => event.preventDefault()}
+                    size="large">
                     {showPassword ? <Visibility /> : <VisibilityOff />}
                   </IconButton>
                 </InputAdornment>

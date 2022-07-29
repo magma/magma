@@ -11,37 +11,37 @@
  * limitations under the License.
  */
 
-import AddCircleOutlined from '@material-ui/icons/AddCircleOutlined';
-import ArrowDownward from '@material-ui/icons/ArrowDownward';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import Button from '@material-ui/core/Button';
+import AddCircleOutlined from '@mui/icons-material/AddCircleOutlined';
+import ArrowDownward from '@mui/icons-material/ArrowDownward';
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
 import CardTitleRow from './layout/CardTitleRow';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import Clear from '@material-ui/icons/Clear';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import Edit from '@material-ui/icons/Edit';
-import FilterList from '@material-ui/icons/FilterList';
-import FirstPage from '@material-ui/icons/FirstPage';
-import FormControl from '@material-ui/core/FormControl';
-import LastPage from '@material-ui/icons/LastPage';
+import Check from '@mui/icons-material/Check';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+import Clear from '@mui/icons-material/Clear';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import Edit from '@mui/icons-material/Edit';
+import FilterList from '@mui/icons-material/FilterList';
+import FirstPage from '@mui/icons-material/FirstPage';
+import FormControl from '@mui/material/FormControl';
+import LastPage from '@mui/icons-material/LastPage';
 import MaterialTable, {MaterialTableProps, Query} from '@material-table/core';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper, {PaperProps} from '@material-ui/core/Paper';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Paper, {PaperProps} from '@mui/material/Paper';
 import React from 'react';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import Remove from '@material-ui/icons/Remove';
-import SaveAlt from '@material-ui/icons/SaveAlt';
-import Search from '@material-ui/icons/Search';
-import Select from '@material-ui/core/Select';
-import SvgIcon from '@material-ui/core/SvgIcon';
-import TextField from '@material-ui/core/TextField';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import Remove from '@mui/icons-material/Remove';
+import SaveAlt from '@mui/icons-material/SaveAlt';
+import Search from '@mui/icons-material/Search';
+import Select from '@mui/material/Select';
+import SvgIcon from '@mui/material/SvgIcon';
+import TextField from '@mui/material/TextField';
 import {forwardRef, useState} from 'react';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   inputRoot: {
@@ -161,7 +161,7 @@ export function SelectEditComponent(props: SelectProps) {
       <Select
         data-testid={props.testId ?? ''}
         value={props.value}
-        onChange={({target}) => props.onChange(target.value as string)}
+        onChange={({target}) => props.onChange(target.value)}
         input={<OutlinedInput />}>
         {props.content.map((k: string, idx: number) => (
           <MenuItem key={idx} value={k}>

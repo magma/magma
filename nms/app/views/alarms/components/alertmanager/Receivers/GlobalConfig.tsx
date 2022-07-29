@@ -15,21 +15,21 @@
  */
 
 import * as React from 'react';
-import Checkbox from '@material-ui/core/Checkbox';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import Checkbox from '@mui/material/Checkbox';
+import CircularProgress from '@mui/material/CircularProgress';
 import Editor from '../../common/Editor';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import useForm from '../../../hooks/useForm';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
 import type {Props as EditorProps} from '../../common/Editor';

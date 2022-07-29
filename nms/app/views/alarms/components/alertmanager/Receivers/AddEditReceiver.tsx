@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Editor from '../../common/Editor';
 import EmailConfigEditor from './EmailConfigEditor';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
 import PagerDutyConfigEditor from './PagerDutyConfigEditor';
 import PushoverConfigEditor from './PushoverConfigEditor';
 import SlackConfigEditor from './SlackConfigEditor';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '../../../hooks/useForm';
 import {useAlarmContext} from '../../AlarmContext';
@@ -221,7 +221,8 @@ function ConfigSection({
                   edge="end"
                   onClick={onAddConfigClicked}
                   data-testid={`add-${title.replace(/\s/g, '')}`}
-                  aria-label="add new receiver configuration">
+                  aria-label="add new receiver configuration"
+                  size="large">
                   <AddCircleOutlineIcon color="primary" />
                 </IconButton>
               </Grid>

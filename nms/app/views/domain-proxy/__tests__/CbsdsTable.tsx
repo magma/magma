@@ -12,11 +12,11 @@
  */
 import CbsdContext, {CbsdContextType} from '../../../context/CbsdContext';
 import CbsdsTable from '../CbsdsTable';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, within} from '@testing-library/react';
 
 jest.mock('axios');
@@ -103,13 +103,15 @@ const cbsdState = {
 
 const renderTable = () => {
   return render(
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <CbsdContext.Provider value={cbsdState}>
-          <CbsdsTable />
-        </CbsdContext.Provider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>,
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <CbsdContext.Provider value={cbsdState}>
+            <CbsdsTable />
+          </CbsdContext.Provider>
+        </MuiStylesThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>,
   );
 };
 

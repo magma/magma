@@ -12,11 +12,11 @@
  */
 
 import CWFGateways from '../CWFGateways';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import type {CwfGateway, CwfHaPair} from '../../../../generated';
 
 import axiosMock from 'axios';
@@ -115,15 +115,17 @@ jest.mock('axios');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider>
-          <Routes>
-            <Route path="/nms/:networkId/*" element={<CWFGateways />} />
-          </Routes>
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <SnackbarProvider>
+            <Routes>
+              <Route path="/nms/:networkId/*" element={<CWFGateways />} />
+            </Routes>
+          </SnackbarProvider>
+        </MuiStylesThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </MemoryRouter>
 );
 

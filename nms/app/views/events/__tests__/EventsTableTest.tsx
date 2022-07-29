@@ -13,12 +13,12 @@
 
 import EventsTable from '../EventsTable';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
 
@@ -117,27 +117,29 @@ describe('<EventsTable />', () => {
           '/nms/test/subscribers/overview/config/IMSI0000000000/overview',
         ]}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <NetworkContext.Provider
-              value={{
-                networkId: 'test',
-              }}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
-                  element={
-                    <EventsTable
-                      eventStream={'SUBSCRIBER'}
-                      tags={'IMSI001011234560000'}
-                      sz={'md'}
-                    />
-                  }
-                />
-              </Routes>
-            </NetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <NetworkContext.Provider
+                value={{
+                  networkId: 'test',
+                }}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
+                    element={
+                      <EventsTable
+                        eventStream={'SUBSCRIBER'}
+                        tags={'IMSI001011234560000'}
+                        sz={'md'}
+                      />
+                    }
+                  />
+                </Routes>
+              </NetworkContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

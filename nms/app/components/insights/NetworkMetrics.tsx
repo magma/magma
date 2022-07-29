@@ -14,18 +14,18 @@
 import type {MetricGraphConfig} from './Metrics';
 import type {TimeRange} from './AsyncMetric';
 
-import AppBar from '@material-ui/core/AppBar';
+import AppBar from '@mui/material/AppBar';
 import AsyncMetric from './AsyncMetric';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import ImageList from '@mui/material/ImageList';
+import ImageListItem from '@mui/material/ImageListItem';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../insights/TimeRangeSelector';
 
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import {resolveQuery} from './Metrics';
 import {useState} from 'react';
 
@@ -52,9 +52,9 @@ export default function (props: {configs: Array<MetricGraphConfig>}) {
           onChange={setTimeRange}
         />
       </AppBar>
-      <GridList cols={2} cellHeight={300}>
+      <ImageList cols={2} rowHeight={300}>
         {props.configs.map((config, i) => (
-          <GridListTile key={i} cols={1}>
+          <ImageListItem key={i} cols={1}>
             <Card>
               <CardContent>
                 <Text variant="h6">{config.label}</Text>
@@ -69,9 +69,9 @@ export default function (props: {configs: Array<MetricGraphConfig>}) {
                 </div>
               </CardContent>
             </Card>
-          </GridListTile>
+          </ImageListItem>
         ))}
-      </GridList>
+      </ImageList>
     </>
   );
 }

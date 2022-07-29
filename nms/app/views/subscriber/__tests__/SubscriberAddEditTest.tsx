@@ -14,7 +14,7 @@ import ApnContext from '../../../context/ApnContext';
 import LteNetworkContext, {
   LteNetworkContextType,
 } from '../../../context/LteNetworkContext';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
 import SubscriberDashboard from '../SubscriberOverview';
@@ -24,13 +24,13 @@ import {SubscriberContextProvider} from '../../../context/SubscriberContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
   NetworkEpcConfigs,
   NetworkRanConfigs,
   PolicyRule,
   Subscriber,
 } from '../../../../generated';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
@@ -250,24 +250,26 @@ describe('<AddSubscriberButton />', () => {
 
     return (
       <MemoryRouter initialEntries={['/nms/test/subscribers']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <LteNetworkContext.Provider value={networkCtx}>
-              <PolicyContext.Provider value={policyCtx}>
-                <ApnContext.Provider value={apnCtx}>
-                  <SubscriberContextProvider networkId="test">
-                    <Routes>
-                      <Route
-                        path="/nms/:networkId/subscribers/*"
-                        element={<SubscriberDashboard />}
-                      />
-                    </Routes>
-                  </SubscriberContextProvider>
-                </ApnContext.Provider>
-              </PolicyContext.Provider>
-            </LteNetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <LteNetworkContext.Provider value={networkCtx}>
+                <PolicyContext.Provider value={policyCtx}>
+                  <ApnContext.Provider value={apnCtx}>
+                    <SubscriberContextProvider networkId="test">
+                      <Routes>
+                        <Route
+                          path="/nms/:networkId/subscribers/*"
+                          element={<SubscriberDashboard />}
+                        />
+                      </Routes>
+                    </SubscriberContextProvider>
+                  </ApnContext.Provider>
+                </PolicyContext.Provider>
+              </LteNetworkContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -306,24 +308,26 @@ describe('<AddSubscriberButton />', () => {
           '/nms/test/subscribers/overview/IMSI00000000001002/config',
         ]}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <LteNetworkContext.Provider value={networkCtx}>
-              <PolicyContext.Provider value={policyCtx}>
-                <ApnContext.Provider value={apnCtx}>
-                  <SubscriberContextProvider networkId="test">
-                    <Routes>
-                      <Route
-                        path="/nms/:networkId/subscribers/overview/:subscriberId/config"
-                        element={<SubscriberDetailConfig />}
-                      />
-                    </Routes>
-                  </SubscriberContextProvider>
-                </ApnContext.Provider>
-              </PolicyContext.Provider>
-            </LteNetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <LteNetworkContext.Provider value={networkCtx}>
+                <PolicyContext.Provider value={policyCtx}>
+                  <ApnContext.Provider value={apnCtx}>
+                    <SubscriberContextProvider networkId="test">
+                      <Routes>
+                        <Route
+                          path="/nms/:networkId/subscribers/overview/:subscriberId/config"
+                          element={<SubscriberDetailConfig />}
+                        />
+                      </Routes>
+                    </SubscriberContextProvider>
+                  </ApnContext.Provider>
+                </PolicyContext.Provider>
+              </LteNetworkContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

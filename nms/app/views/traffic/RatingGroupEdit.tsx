@@ -13,25 +13,25 @@
 
 import type {RatingGroup} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 
 import {AltFormField} from '../../components/FormField';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -149,7 +149,7 @@ export default function RatingGroupEditDialog(props: Props) {
               variant={'outlined'}
               value={ratingGroup.limit_type || 'FINITE'}
               onChange={({target}) => {
-                handleRatingGroupChange('limit_type', target.value as string);
+                handleRatingGroupChange('limit_type', target.value);
               }}
               input={<OutlinedInput />}>
               <MenuItem value={'FINITE'}>

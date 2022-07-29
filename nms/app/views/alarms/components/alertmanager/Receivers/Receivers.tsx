@@ -13,18 +13,18 @@
 
 import * as React from 'react';
 import AddEditReceiver from './AddEditReceiver';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import GlobalConfig from './GlobalConfig';
-import Grid from '@material-ui/core/Grid';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import SettingsIcon from '@material-ui/icons/Settings';
+import Grid from '@mui/material/Grid';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SimpleTable, {LabelsCell} from '../../table/SimpleTable';
 import TableActionDialog from '../../table/TableActionDialog';
 import TableAddButton from '../../table/TableAddButton';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';

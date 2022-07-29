@@ -10,32 +10,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Button from '@material-ui/core/Button';
-import Check from '@material-ui/icons/Check';
+import Button from '@mui/material/Button';
+import Check from '@mui/icons-material/Check';
 import DataGrid from './DataGrid';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import Divider from '@material-ui/core/Divider';
-import Fade from '@material-ui/core/Fade';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import Divider from '@mui/material/Divider';
+import Fade from '@mui/material/Fade';
 import FormField from './FormField';
-import FormLabel from '@material-ui/core/FormLabel';
-import Input from '@material-ui/core/Input';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
+import FormLabel from '@mui/material/FormLabel';
+import Input from '@mui/material/Input';
+import LinearProgress from '@mui/material/LinearProgress';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';
 import Text from '../theme/design-system/Text';
-import grey from '@material-ui/core/colors/grey';
+import grey from '@mui/material/colors/grey';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
 import {AltFormField} from './FormField';
 import {GenericCommandParams} from '../../generated';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

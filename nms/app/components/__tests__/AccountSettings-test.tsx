@@ -13,27 +13,29 @@
 
 import * as React from 'react';
 import AccountSettings from '../AccountSettings';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render} from '@testing-library/react';
 
 const Wrapper = (props: {children: React.ReactNode}) => (
   <MemoryRouter initialEntries={['/nms/mynetwork/settings']} initialIndex={0}>
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider>
-          <Routes>
-            <Route
-              path="/nms/:networkId/settings"
-              element={<>{props.children}</>}
-            />
-          </Routes>
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <SnackbarProvider>
+            <Routes>
+              <Route
+                path="/nms/:networkId/settings"
+                element={<>{props.children}</>}
+              />
+            </Routes>
+          </SnackbarProvider>
+        </MuiStylesThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </MemoryRouter>
 );
 

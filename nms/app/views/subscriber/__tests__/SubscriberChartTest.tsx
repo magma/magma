@@ -13,15 +13,15 @@
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PromqlReturnObject} from '../../../../generated';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {render} from '@testing-library/react';
 
@@ -114,21 +114,23 @@ describe('<SubscriberChart />', () => {
         ]}
         initialIndex={0}>
         <MuiPickersUtilsProvider utils={MomentUtils}>
-          <MuiThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
-              <NetworkContext.Provider
-                value={{
-                  networkId: 'test',
-                }}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
-                    element={<SubscriberChart />}
-                  />
-                </Routes>
-              </NetworkContext.Provider>
-            </MuiStylesThemeProvider>
-          </MuiThemeProvider>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={defaultTheme}>
+              <MuiStylesThemeProvider theme={defaultTheme}>
+                <NetworkContext.Provider
+                  value={{
+                    networkId: 'test',
+                  }}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
+                      element={<SubscriberChart />}
+                    />
+                  </Routes>
+                </NetworkContext.Provider>
+              </MuiStylesThemeProvider>
+            </ThemeProvider>
+          </StyledEngineProvider>
         </MuiPickersUtilsProvider>
       </MemoryRouter>
     );

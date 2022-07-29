@@ -15,18 +15,18 @@
  */
 
 import * as React from 'react';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardHeader from '@mui/material/CardHeader';
 import Editor from '../common/Editor';
-import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
+import Grid from '@mui/material/Grid';
+import InputLabel from '@mui/material/InputLabel';
 import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import useForm from '../../hooks/useForm';
 import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver} from '../hooks';

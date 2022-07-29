@@ -12,8 +12,8 @@
  */
 
 import * as React from 'react';
-import Popover from '@material-ui/core/Popover';
-import {makeStyles} from '@material-ui/styles';
+import Popover from '@mui/material/Popover';
+import {makeStyles} from '@mui/styles';
 
 type Props = {
   className?: string;

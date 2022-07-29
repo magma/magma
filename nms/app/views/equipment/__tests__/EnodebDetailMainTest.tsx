@@ -16,13 +16,13 @@ import EnodebContext from '../../../context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render} from '@testing-library/react';
 
@@ -143,23 +143,25 @@ describe('<Enodeb />', () => {
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
         initialIndex={0}>
         <MuiPickersUtilsProvider utils={MomentUtils}>
-          <MuiThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
-              <EnodebContext.Provider
-                value={{
-                  state: {enbInfo: enbInfo},
-                  setState: async () => {},
-                  refetch: () => {},
-                }}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
-                    element={<EnodebDetail />}
-                  />
-                </Routes>
-              </EnodebContext.Provider>
-            </MuiStylesThemeProvider>
-          </MuiThemeProvider>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={defaultTheme}>
+              <MuiStylesThemeProvider theme={defaultTheme}>
+                <EnodebContext.Provider
+                  value={{
+                    state: {enbInfo: enbInfo},
+                    setState: async () => {},
+                    refetch: () => {},
+                  }}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
+                      element={<EnodebDetail />}
+                    />
+                  </Routes>
+                </EnodebContext.Provider>
+              </MuiStylesThemeProvider>
+            </ThemeProvider>
+          </StyledEngineProvider>
         </MuiPickersUtilsProvider>
       </MemoryRouter>
     );
@@ -180,23 +182,25 @@ describe('<Enodeb />', () => {
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
         initialIndex={0}>
         <MuiPickersUtilsProvider utils={MomentUtils}>
-          <MuiThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
-              <EnodebContext.Provider
-                value={{
-                  state: {enbInfo: enbInfo},
-                  setState: async () => {},
-                  refetch: () => {},
-                }}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
-                    element={<EnodebDetail />}
-                  />
-                </Routes>
-              </EnodebContext.Provider>
-            </MuiStylesThemeProvider>
-          </MuiThemeProvider>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={defaultTheme}>
+              <MuiStylesThemeProvider theme={defaultTheme}>
+                <EnodebContext.Provider
+                  value={{
+                    state: {enbInfo: enbInfo},
+                    setState: async () => {},
+                    refetch: () => {},
+                  }}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/enodeb/:enodebSerial/overview/*"
+                      element={<EnodebDetail />}
+                    />
+                  </Routes>
+                </EnodebContext.Provider>
+              </MuiStylesThemeProvider>
+            </ThemeProvider>
+          </StyledEngineProvider>
         </MuiPickersUtilsProvider>
       </MemoryRouter>
     );

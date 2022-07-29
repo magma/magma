@@ -12,17 +12,17 @@
  */
 
 import AppContext from '../context/AppContext';
-import Button from '@material-ui/core/Button';
-import Paper from '@material-ui/core/Paper';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
 import React, {useContext, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import TopBar from './TopBar';
 import axios from 'axios';
 import {AltFormField, PasswordInput} from './FormField';
-import {List} from '@material-ui/core';
-import {Theme} from '@material-ui/core/styles';
+import {List} from '@mui/material';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 
 const TITLE = 'Account Settings';

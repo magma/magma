@@ -14,16 +14,16 @@
  */
 
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import InputLabel from '@material-ui/core/InputLabel';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardHeader from '@mui/material/CardHeader';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import InputLabel from '@mui/material/InputLabel';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import type {Labels} from '../AlarmAPIType';
 
 const filteredLabels = new Set(['networkID', 'severity']);
@@ -140,7 +140,8 @@ export default function LabelsEditor({labels, onChange}: Props) {
                   <IconButton
                     title="Remove Label"
                     aria-label="Remove Label"
-                    onClick={() => removeLabel(index)}>
+                    onClick={() => removeLabel(index)}
+                    size="large">
                     <DeleteIcon />
                   </IconButton>
                 </Grid>

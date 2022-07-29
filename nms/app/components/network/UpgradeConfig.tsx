@@ -14,22 +14,22 @@
 import type {MagmadGateway, Tier} from '../../../generated';
 import type {WithAlert} from '../Alert/withAlert';
 
-import Button from '@material-ui/core/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import IconButton from '@mui/material/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaAPI from '../../api/MagmaAPI';
 import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import Text from '../../theme/design-system/Text';
-import Toolbar from '@material-ui/core/Toolbar';
+import Toolbar from '@mui/material/Toolbar';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -37,7 +37,7 @@ import withAlert from '../Alert/withAlert';
 import {GatewayId} from '../../../shared/types/network';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {map, sortBy} from 'lodash';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -70,11 +70,13 @@ const UpgradeTiersTable = (props: {
             <TableCell>{row.version}</TableCell>
             <TableCell>
               <NestedRouteLink to={`tier/edit/${encodeURIComponent(row.id)}/`}>
-                <IconButton>
+                <IconButton size="large">
                   <EditIcon />
                 </IconButton>
               </NestedRouteLink>
-              <IconButton onClick={() => props.onTierDeleteClick(row.id)}>
+              <IconButton
+                onClick={() => props.onTierDeleteClick(row.id)}
+                size="large">
                 <DeleteIcon />
               </IconButton>
             </TableCell>

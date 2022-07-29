@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import CellWifiIcon from '@material-ui/icons/CellWifi';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import DataGrid from './DataGrid';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';

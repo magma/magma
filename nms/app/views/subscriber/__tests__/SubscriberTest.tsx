@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberContext from '../../../context/SubscriberContext';
@@ -19,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {Subscriber} from '../../../../generated';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
@@ -103,23 +103,25 @@ describe('<SubscriberDashboard />', () => {
       <MemoryRouter
         initialEntries={['/nms/test/subscribers/overview']}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <NetworkContext.Provider
-              value={{
-                networkId: 'test',
-              }}>
-              <SubscriberContext.Provider value={subscriberCtx}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/subscribers/overview/*"
-                    element={<SubscriberDashboard />}
-                  />
-                </Routes>
-              </SubscriberContext.Provider>
-            </NetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <NetworkContext.Provider
+                value={{
+                  networkId: 'test',
+                }}>
+                <SubscriberContext.Provider value={subscriberCtx}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/subscribers/overview/*"
+                      element={<SubscriberDashboard />}
+                    />
+                  </Routes>
+                </SubscriberContext.Provider>
+              </NetworkContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

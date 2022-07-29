@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import Alert from '@material-ui/lab/Alert';
-import Button from '@material-ui/core/Button';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import {DropzoneArea} from 'material-ui-dropzone';
@@ -32,7 +32,7 @@ import {
 } from './SubscriberUtils';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useMemo, useState} from 'react';
 

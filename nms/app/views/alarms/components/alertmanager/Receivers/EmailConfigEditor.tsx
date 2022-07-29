@@ -12,11 +12,11 @@
  */
 
 import * as React from 'react';
-import Checkbox from '@material-ui/core/Checkbox';
+import Checkbox from '@mui/material/Checkbox';
 import ConfigEditor from './ConfigEditor';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverEmailConfig} from '../../AlarmAPIType';
 

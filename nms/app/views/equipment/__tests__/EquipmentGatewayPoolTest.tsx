@@ -14,12 +14,12 @@ import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
@@ -151,15 +151,20 @@ describe('<GatewayPools />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <GatewayPoolsContextProvider networkId={networkId}>
-            <Routes>
-              <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
-            </Routes>
-          </GatewayPoolsContextProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <GatewayPoolsContextProvider networkId={networkId}>
+              <Routes>
+                <Route
+                  path="/nms/:networkId/pools/"
+                  element={<GatewayPools />}
+                />
+              </Routes>
+            </GatewayPoolsContextProvider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 
@@ -303,31 +308,33 @@ describe('<AddEditGatewayPoolButton />', () => {
   const AddWrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContext.Provider
-              value={{
-                state: lteGateways,
-                setState: async () => {},
-                updateGateway: async () => {},
-                refetch: () => {},
-              }}>
-              <GatewayPoolsContextProvider networkId={networkId}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/pools"
-                    element={
-                      <AddEditGatewayPoolButton
-                        title="Add Gateway Pool"
-                        isLink={false}
-                      />
-                    }
-                  />
-                </Routes>
-              </GatewayPoolsContextProvider>
-            </GatewayContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <GatewayContext.Provider
+                value={{
+                  state: lteGateways,
+                  setState: async () => {},
+                  updateGateway: async () => {},
+                  refetch: () => {},
+                }}>
+                <GatewayPoolsContextProvider networkId={networkId}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/pools"
+                      element={
+                        <AddEditGatewayPoolButton
+                          title="Add Gateway Pool"
+                          isLink={false}
+                        />
+                      }
+                    />
+                  </Routes>
+                </GatewayPoolsContextProvider>
+              </GatewayContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

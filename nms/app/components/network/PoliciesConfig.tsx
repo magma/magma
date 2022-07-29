@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import IconButton from '@mui/material/IconButton';
 import LoadingFiller from '../LoadingFiller';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaAPI from '../../api/MagmaAPI';
@@ -23,19 +23,19 @@ import NestedRouteLink from '../NestedRouteLink';
 import PolicyBaseNameDialog from './PolicyBaseNameDialog';
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import Text from '../../theme/design-system/Text';
-import Toolbar from '@material-ui/core/Toolbar';
+import Toolbar from '@mui/material/Toolbar';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import withAlert from '../Alert/withAlert';
 import {Route, Routes, useNavigate, useParams} from 'react-router-dom';
 import {findIndex} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useState} from 'react';
 import type {WithAlert} from '../Alert/withAlert';
 
@@ -193,11 +193,13 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
               <TableCell>{name}</TableCell>
               <TableCell>
                 <NestedRouteLink to={`edit_base_name/${name}`}>
-                  <IconButton>
+                  <IconButton size="large">
                     <EditIcon />
                   </IconButton>
                 </NestedRouteLink>
-                <IconButton onClick={() => void deleteBaseName(name)}>
+                <IconButton
+                  onClick={() => void deleteBaseName(name)}
+                  size="large">
                   <DeleteIcon />
                 </IconButton>
               </TableCell>
@@ -304,11 +306,11 @@ const RuleRow = withAlert((props: Props) => {
       </TableCell>
       <TableCell>
         <NestedRouteLink to={editPath}>
-          <IconButton>
+          <IconButton size="large">
             <EditIcon />
           </IconButton>
         </NestedRouteLink>
-        <IconButton onClick={() => void onDeleteRule()}>
+        <IconButton onClick={() => void onDeleteRule()} size="large">
           <DeleteIcon />
         </IconButton>
         <Routes>

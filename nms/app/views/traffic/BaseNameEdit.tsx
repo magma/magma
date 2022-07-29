@@ -13,21 +13,21 @@
 
 import type {BaseNameRecord} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import SubscriberContext from '../../context/SubscriberContext';
 import {AltFormField} from '../../components/FormField';
 import {getErrorMessage} from '../../util/ErrorUtils';
@@ -181,12 +181,10 @@ export function BaseNameEdit(props: Props) {
                   setEditedRuleNames(
                     typeof target.value === 'string'
                       ? target.value.split(',')
-                      : (target.value as Array<string>),
+                      : target.value,
                   );
                 }}
-                renderValue={selected =>
-                  `${(selected as Array<string>).length} rules`
-                }
+                renderValue={selected => `${selected.length} rules`}
                 input={<OutlinedInput id="ruleNames" />}>
                 {Object.keys(ctx.state).map(profileID => (
                   <MenuItem key={profileID} value={profileID}>
@@ -207,12 +205,10 @@ export function BaseNameEdit(props: Props) {
                   setEditedAssignedSubscribers(
                     typeof target.value === 'string'
                       ? target.value.split(',')
-                      : (target.value as Array<string>),
+                      : target.value,
                   );
                 }}
-                renderValue={selected =>
-                  `${(selected as Array<string>).length} subscribers`
-                }
+                renderValue={selected => `${selected.length} subscribers`}
                 input={<OutlinedInput id="assignedSubscribers" />}>
                 {subscriberIMSIs.map(imsi => (
                   <MenuItem key={imsi} value={imsi}>

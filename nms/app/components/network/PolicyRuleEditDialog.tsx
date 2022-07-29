@@ -12,22 +12,22 @@
  */
 import type {NetworkType} from '../../../shared/types/network';
 
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import IconButton from '@material-ui/core/IconButton';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
 import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 import TypedSelect from '../TypedSelect';
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -43,7 +43,7 @@ import {
 import {base64ToHex, decodeBase64} from '../../util/strings';
 import {coalesceNetworkType} from '../../../shared/types/network';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -375,7 +375,7 @@ export default function PolicyRuleEditDialog(props: Props) {
             className={classes.input}
             value={rule?.qos_profile ?? ''}
             onChange={({target}) =>
-              setRule({...rule, qos_profile: target.value as string})
+              setRule({...rule, qos_profile: target.value})
             }>
             {Object.keys(qosProfiles).map(profileID => (
               <MenuItem key={profileID} value={profileID}>
@@ -386,7 +386,7 @@ export default function PolicyRuleEditDialog(props: Props) {
         </FormControl>
         <Typography variant="h6">
           Flows
-          <IconButton onClick={handleAddFlow}>
+          <IconButton onClick={handleAddFlow} size="large">
             <AddCircleOutline />
           </IconButton>
         </Typography>

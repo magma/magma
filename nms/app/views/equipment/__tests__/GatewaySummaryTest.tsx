@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 import GatewaySummary from '../GatewaySummary';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {render} from '@testing-library/react';
 import type {LteGateway} from '../../../../generated';
 
@@ -64,11 +64,13 @@ const mockGatewaySt: LteGateway = {
 describe('<GatewaySummary />', () => {
   it('renders', () => {
     const {container} = render(
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <GatewaySummary gwInfo={mockGatewaySt} />
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>,
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <GatewaySummary gwInfo={mockGatewaySt} />
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>,
     );
     expect(container).toHaveTextContent('mpk_dogfooding');
     expect(container).toHaveTextContent('1.1.0-1590005479-e6e781a9');

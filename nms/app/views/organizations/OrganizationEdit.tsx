@@ -11,19 +11,19 @@
  * limitations under the License.
  */
 
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
 import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
 import OrganizationSummary from './OrganizationSummary';
 import OrganizationUsersTable from './OrganizationUsersTable';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import axios, {AxiosResponse} from 'axios';
@@ -32,7 +32,7 @@ import {AltFormField} from '../../components/FormField';
 import {OrganizationUser} from './types';
 import {TableRef} from '../../components/ActionTable';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAxios} from '../../hooks';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -266,7 +266,8 @@ function OrganizationEdit(props: WithAlert & Props) {
                   <IconButton
                     onClick={() => navigate(-1)}
                     className={classes.arrowBack}
-                    color="primary">
+                    color="primary"
+                    size="large">
                     <ArrowBackIcon />
                   </IconButton>
                 </Grid>

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
@@ -19,8 +19,8 @@ import {ApnContextProvider} from '../../../context/ApnContext';
 import {PolicyProvider} from '../../../context/PolicyContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PolicyQosProfile, PolicyRule, RatingGroup} from '../../../../generated';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 
@@ -143,20 +143,22 @@ describe('<TrafficDashboard />', () => {
     <MemoryRouter
       initialEntries={['/nms/test/traffic/policy']}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <PolicyProvider networkId={networkId}>
-            <ApnContextProvider networkId={networkId}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/traffic/*"
-                  element={<TrafficDashboard />}
-                />
-              </Routes>
-            </ApnContextProvider>
-          </PolicyProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <PolicyProvider networkId={networkId}>
+              <ApnContextProvider networkId={networkId}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
+              </ApnContextProvider>
+            </PolicyProvider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
   it('renders', async () => {
@@ -363,20 +365,22 @@ describe('<TrafficDashboard APNs/>', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <PolicyProvider networkId={networkId}>
-            <ApnContextProvider networkId={networkId}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/traffic/*"
-                  element={<TrafficDashboard />}
-                />
-              </Routes>
-            </ApnContextProvider>
-          </PolicyProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <PolicyProvider networkId={networkId}>
+              <ApnContextProvider networkId={networkId}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/traffic/*"
+                    element={<TrafficDashboard />}
+                  />
+                </Routes>
+              </ApnContextProvider>
+            </PolicyProvider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
   it('renders', async () => {

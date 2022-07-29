@@ -15,13 +15,13 @@ import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPI from '../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
 import defaultTheme from '../../theme/default';
 import {EnodebInfo} from '../lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI, mockAPIOnce} from '../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
 import type {EnodebState, FegLteNetwork, LteGateway} from '../../../generated';
@@ -138,15 +138,17 @@ describe('<GatewaysKPIs />', () => {
 
     return (
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContext.Provider value={gatewayCtx}>
-              <Routes>
-                <Route path="/nms/:networkId" element={<GatewayKPIs />} />
-              </Routes>
-            </GatewayContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <GatewayContext.Provider value={gatewayCtx}>
+                <Routes>
+                  <Route path="/nms/:networkId" element={<GatewayKPIs />} />
+                </Routes>
+              </GatewayContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -207,15 +209,17 @@ describe('<EnodebKPIs />', () => {
   const Wrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContext.Provider value={enodebCtx}>
-              <Routes>
-                <Route path="/nms/:networkId" element={<EnodebKPIs />} />
-              </Routes>
-            </EnodebContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider value={enodebCtx}>
+                <Routes>
+                  <Route path="/nms/:networkId" element={<EnodebKPIs />} />
+                </Routes>
+              </EnodebContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -264,16 +268,18 @@ describe('<ServicingAccessGatewaysKPI />', () => {
   const Wrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <Routes>
-              <Route
-                path="/nms/:networkId"
-                element={<ServicingAccessGatewaysKPI />}
-              />
-            </Routes>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <Routes>
+                <Route
+                  path="/nms/:networkId"
+                  element={<ServicingAccessGatewaysKPI />}
+                />
+              </Routes>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

@@ -13,11 +13,11 @@
 import Gateway from '../EquipmentGateway';
 import GatewayContext from '../../../context/GatewayContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import type {LteGateway, PromqlReturnObject} from '../../../../generated';
@@ -134,21 +134,23 @@ describe('<Gateway />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <GatewayContext.Provider
-            value={{
-              state: lteGateways,
-              setState: async () => {},
-              updateGateway: async () => {},
-              refetch: () => {},
-            }}>
-            <Routes>
-              <Route path="/nms/:networkId/gateway/" element={<Gateway />} />
-            </Routes>
-          </GatewayContext.Provider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <GatewayContext.Provider
+              value={{
+                state: lteGateways,
+                setState: async () => {},
+                updateGateway: async () => {},
+                refetch: () => {},
+              }}>
+              <Routes>
+                <Route path="/nms/:networkId/gateway/" element={<Gateway />} />
+              </Routes>
+            </GatewayContext.Provider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 

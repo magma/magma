@@ -12,9 +12,9 @@
  */
 
 import React from 'react';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 type Props = {
   isGrey: boolean;

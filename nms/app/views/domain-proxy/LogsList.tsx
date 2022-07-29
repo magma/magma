@@ -10,19 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Button from '@material-ui/core/Button';
-import FormControl from '@material-ui/core/FormControl';
-import Grid from '@material-ui/core/Grid';
-import ListIcon from '@material-ui/icons/ListAlt';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
+import ListIcon from '@mui/icons-material/ListAlt';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useCallback, useRef, useState} from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {KeyboardDateTimePicker} from '@material-ui/pickers';
 import {isFinite} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
 
 import ActionTable, {TableRef} from '../../components/ActionTable';
@@ -33,7 +33,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import MagmaAPI from '../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
-import {Theme} from '@material-ui/core/styles/createTheme';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
 
 const useStyles = makeStyles<Theme>(theme => ({

@@ -16,13 +16,13 @@ import type {GenericConfig} from './GenericNetworkDialog';
 import * as React from 'react';
 import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {CwfNetwork} from '../../../generated';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 

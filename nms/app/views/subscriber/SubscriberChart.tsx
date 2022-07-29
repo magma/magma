@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
+import DataUsageIcon from '@mui/icons-material/DataUsage';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
@@ -30,7 +30,7 @@ import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
 import {convertBitToMbit, getPromValue} from './SubscriberUtils';
 import {getStep, getStepString} from '../../components/CustomMetrics';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

@@ -13,12 +13,12 @@
 
 import type {ComponentType} from 'react';
 
-import AppBar from '@material-ui/core/AppBar';
+import AppBar from '@mui/material/AppBar';
 import NestedRouteLink from '../NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
+import Paper from '@mui/material/Paper';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TopBar from '../../components/TopBar';
 
 import {
@@ -28,9 +28,9 @@ import {
   useLocation,
   useResolvedPath,
 } from 'react-router-dom';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {findIndex} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({

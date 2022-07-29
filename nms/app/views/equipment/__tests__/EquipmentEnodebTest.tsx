@@ -16,13 +16,13 @@ import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
 
@@ -124,15 +124,17 @@ describe('<Enodeb />', () => {
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
       <MuiPickersUtilsProvider utils={MomentUtils}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContext.Provider value={enbCtx}>
-              <Routes>
-                <Route path="/nms/:networkId/enodeb/" element={<Enodeb />} />
-              </Routes>
-            </EnodebContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider value={enbCtx}>
+                <Routes>
+                  <Route path="/nms/:networkId/enodeb/" element={<Enodeb />} />
+                </Routes>
+              </EnodebContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MuiPickersUtilsProvider>
     </MemoryRouter>
   );

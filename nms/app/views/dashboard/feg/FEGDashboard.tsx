@@ -15,7 +15,7 @@ import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import EventAlertChart from '../../../components/EventAlertChart';
 import EventsTable from '../../events/EventsTable';
 import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
 import TopBar from '../../../components/TopBar';
@@ -23,10 +23,10 @@ import moment from 'moment';
 import {DateTimePicker} from '@material-ui/pickers';
 import {EVENT_STREAM} from '../../events/EventsTable';
 import {Navigate, Route, Routes} from 'react-router-dom';
-import {NetworkCheck} from '@material-ui/icons';
-import {Theme} from '@material-ui/core/styles';
+import {NetworkCheck} from '@mui/icons-material';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {

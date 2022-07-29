@@ -11,22 +11,22 @@
  * limitations under the License.
  */
 
-import CellWifiIcon from '@material-ui/icons/CellWifi';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import FEGClusterStatus from './FEGClusterStatus';
 import FEGEquipmentGatewayKPIs from './FEGEquipmentGatewayKPIs';
 import FEGGatewayDetail from './FEGGatewayDetailMain';
 import FEGGatewayTable from './FEGGatewayTable';
 import GatewayCheckinChart from './GatewayCheckinChart';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
 
 import {FEGAddGatewayButton} from '../../components/feg/FEGGatewayDialog';
 import {Navigate, Route, Routes} from 'react-router-dom';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {

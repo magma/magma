@@ -11,25 +11,25 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
 import React, {useCallback, useMemo, useState} from 'react';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 import renderList from '../util/renderList';
 import {NetworkId} from '../../shared/types/network';
 import {UserRoles} from '../../shared/roles';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 export type EditUser = {
   id: string;
@@ -183,9 +183,7 @@ export default function EditUserDialog(props: Props) {
               onChange={({target}) =>
                 setNetworkIds(new Set(target.value as Array<string>))
               }
-              renderValue={networkIds =>
-                renderList(networkIds as Array<string>)
-              }
+              renderValue={networkIds => renderList(networkIds)}
               input={<Input id="network_ids" />}>
               {allNetworkIDs.map(network => (
                 <MenuItem key={network} value={network}>

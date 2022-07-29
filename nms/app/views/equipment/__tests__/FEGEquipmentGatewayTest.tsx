@@ -13,7 +13,7 @@
 
 import FEGEquipmentDashboard from '../FEGEquipmentDashboard';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import moment from 'moment';
@@ -24,7 +24,7 @@ import {
   FederationGatewaysApiFegNetworkIdGatewaysPostRequest,
 } from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import type {
@@ -284,18 +284,20 @@ describe('<FEGEquipmentDashboard />', () => {
     <MemoryRouter
       initialEntries={['/nms/mynetwork/overview/gateway']}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <FEGGatewayContextProvider networkId="mynetwork">
-            <Routes>
-              <Route
-                path="/nms/:networkId/*"
-                element={<FEGEquipmentDashboard />}
-              />
-            </Routes>
-          </FEGGatewayContextProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <FEGGatewayContextProvider networkId="mynetwork">
+              <Routes>
+                <Route
+                  path="/nms/:networkId/*"
+                  element={<FEGEquipmentDashboard />}
+                />
+              </Routes>
+            </FEGGatewayContextProvider>
+          </MuiStylesThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 

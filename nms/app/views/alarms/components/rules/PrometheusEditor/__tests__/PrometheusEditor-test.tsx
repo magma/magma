@@ -17,15 +17,15 @@ import {MockApiUtil, alarmTestUtil} from '../../../../test/testHelpers';
 import {parseTimeString} from '../PrometheusEditor';
 import {render} from '@testing-library/react';
 
-import {TextFieldProps} from '@material-ui/core/TextField/TextField';
+import {TextFieldProps} from '@mui/material/TextField/TextField';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 import type {AlertConfig} from '../../../AlarmAPIType';
 import type {GenericRule} from '../../RuleInterface';
 
 // TextField select is difficult to test so replace it with an Input
-jest.mock('@material-ui/core/TextField', () => {
+jest.mock('@mui/material/TextField', () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-  const Input = jest.requireActual('@material-ui/core/Input').default;
+  const Input = jest.requireActual('@mui/material/Input').default;
   return ({children, InputProps, label, ...props}: TextFieldProps) => (
     <label>
       {label}

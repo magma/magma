@@ -12,10 +12,10 @@
  */
 
 import DataGrid from '../DataGrid';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {render} from '@testing-library/react';
 import type {DataRows} from '../DataGrid';
 
@@ -40,11 +40,13 @@ const data: Array<DataRows> = [
 
 const Wrapper = () => {
   return (
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <DataGrid data={data} />
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <DataGrid data={data} />
+        </MuiStylesThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   );
 };
 

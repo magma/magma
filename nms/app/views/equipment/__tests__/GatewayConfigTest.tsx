@@ -16,13 +16,13 @@ import ApnContext from '../../../context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
 import LteNetworkContext from '../../../context/LteNetworkContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {DynamicServices} from '../../../components/GatewayUtils';
 import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
@@ -181,35 +181,37 @@ describe('<AddEditGatewayButton />', () => {
   const AddWrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/test/gateway']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <ApnContext.Provider
-              value={{
-                state: mockApns,
-                setState: async () => {},
-              }}>
-              <LteNetworkContext.Provider
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <ApnContext.Provider
                 value={{
-                  state: mockNw,
-                  updateNetworks: async () => {},
+                  state: mockApns,
+                  setState: async () => {},
                 }}>
-                <GatewayContextProvider networkId="test">
-                  <Routes>
-                    <Route
-                      path="/nms/:networkId/gateway"
-                      element={
-                        <AddEditGatewayButton
-                          title="Add Gateway"
-                          isLink={false}
-                        />
-                      }
-                    />
-                  </Routes>
-                </GatewayContextProvider>
-              </LteNetworkContext.Provider>
-            </ApnContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+                <LteNetworkContext.Provider
+                  value={{
+                    state: mockNw,
+                    updateNetworks: async () => {},
+                  }}>
+                  <GatewayContextProvider networkId="test">
+                    <Routes>
+                      <Route
+                        path="/nms/:networkId/gateway"
+                        element={
+                          <AddEditGatewayButton
+                            title="Add Gateway"
+                            isLink={false}
+                          />
+                        }
+                      />
+                    </Routes>
+                  </GatewayContextProvider>
+                </LteNetworkContext.Provider>
+              </ApnContext.Provider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -219,18 +221,20 @@ describe('<AddEditGatewayButton />', () => {
       <MemoryRouter
         initialEntries={['/nms/test/gateway/testGatewayId0/config']}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContextProvider networkId={'test'}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/gateway/:gatewayId/config"
-                  element={<GatewayConfig />}
-                />
-              </Routes>
-            </GatewayContextProvider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <GatewayContextProvider networkId={'test'}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/gateway/:gatewayId/config"
+                    element={<GatewayConfig />}
+                  />
+                </Routes>
+              </GatewayContextProvider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

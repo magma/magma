@@ -13,9 +13,9 @@
 
 import * as React from 'react';
 import ConfigEditor from './ConfigEditor';
-import Grid from '@material-ui/core/Grid';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverPushoverConfig} from '../../AlarmAPIType';
 

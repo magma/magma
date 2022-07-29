@@ -16,12 +16,12 @@ import EnodebContext, {
   EnodebContextProvider,
 } from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
@@ -116,20 +116,22 @@ describe('<AddEditEnodeButton />', () => {
   const AddWrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/test/enode']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContextProvider networkId="test">
-              <Routes>
-                <Route
-                  path="/nms/:networkId/enode"
-                  element={
-                    <AddEditEnodeButton title="Add Enodeb" isLink={false} />
-                  }
-                />
-              </Routes>
-            </EnodebContextProvider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContextProvider networkId="test">
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/enode"
+                    element={
+                      <AddEditEnodeButton title="Add Enodeb" isLink={false} />
+                    }
+                  />
+                </Routes>
+              </EnodebContextProvider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -139,18 +141,20 @@ describe('<AddEditEnodeButton />', () => {
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContextProvider networkId="mynetwork">
-              <Routes>
-                <Route
-                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                  element={<EnodebConfig />}
-                />
-              </Routes>
-            </EnodebContextProvider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContextProvider networkId="mynetwork">
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                    element={<EnodebConfig />}
+                  />
+                </Routes>
+              </EnodebContextProvider>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -217,25 +221,27 @@ describe('<AddEditEnodeButton />', () => {
         <MemoryRouter
           initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
           initialIndex={0}>
-          <MuiThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
-              <EnodebContext.Provider
-                value={{
-                  state: {
-                    enbInfo: enbInf,
-                  },
-                  setState: async () => {},
-                  refetch: () => {},
-                }}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                    element={<EnodebConfig />}
-                  />
-                </Routes>
-              </EnodebContext.Provider>
-            </MuiStylesThemeProvider>
-          </MuiThemeProvider>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={defaultTheme}>
+              <MuiStylesThemeProvider theme={defaultTheme}>
+                <EnodebContext.Provider
+                  value={{
+                    state: {
+                      enbInfo: enbInf,
+                    },
+                    setState: async () => {},
+                    refetch: () => {},
+                  }}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                      element={<EnodebConfig />}
+                    />
+                  </Routes>
+                </EnodebContext.Provider>
+              </MuiStylesThemeProvider>
+            </ThemeProvider>
+          </StyledEngineProvider>
         </MemoryRouter>
       );
     };

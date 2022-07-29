@@ -13,15 +13,15 @@
 
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import Grid from '@material-ui/core/Grid';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
+import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
+import FormHelperText from '@mui/material/FormHelperText';
+import Grid from '@mui/material/Grid';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
 import RuleEditorBase from '../RuleEditorBase';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
   thresholdToPromQL,
@@ -30,7 +30,7 @@ import useForm from '../../../hooks/useForm';
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../severity/Severity';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
@@ -39,7 +39,7 @@ import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
 import type {RuleEditorBaseFields} from '../RuleEditorBase';
-import type {Theme} from '@material-ui/core/styles';
+import type {Theme} from '@mui/material/styles';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
 type MenuItemProps = {key: string; value: string; children: string};
@@ -52,7 +52,7 @@ const useStyles = makeStyles<Theme>(theme => ({
     margin: theme.spacing(1.5),
   },
   divider: {
-    margin: `${theme.spacing(2)}px 0`,
+    margin: `${theme.spacing(2)} 0`,
   },
 }));
 

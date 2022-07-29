@@ -16,11 +16,11 @@ import type {DataRows} from '../../components/DataGrid';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../context/FEGGatewayContext';
-import GroupWorkIcon from '@material-ui/icons/GroupWork';
+import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import MagmaAPI from '../../api/MagmaAPI';
-import Paper from '@material-ui/core/Paper';
+import Paper from '@mui/material/Paper';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
@@ -31,7 +31,7 @@ import {
   HEALTHY_STATUS,
 } from '../../components/GatewayUtils';
 import {GatewayId} from '../../../shared/types/network';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 

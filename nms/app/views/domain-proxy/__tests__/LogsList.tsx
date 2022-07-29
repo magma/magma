@@ -13,7 +13,7 @@
 
 import LogsList from '../LogsList';
 import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import MuiStylesThemeProvider from '@mui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -21,7 +21,7 @@ import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import moment from 'moment';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {
   fireEvent,
   render,
@@ -44,16 +44,18 @@ const renderWithProviders = (jsx: React.ReactNode) => {
       initialEntries={[`/nms/${networkId}/metrics/domain-proxy-logs`]}
       initialIndex={0}>
       <MuiPickersUtilsProvider utils={MomentUtils}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <Routes>
-              <Route
-                path="/nms/:networkId/metrics/domain-proxy-logs"
-                element={jsx}
-              />
-            </Routes>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <Routes>
+                <Route
+                  path="/nms/:networkId/metrics/domain-proxy-logs"
+                  element={jsx}
+                />
+              </Routes>
+            </MuiStylesThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
         ,
       </MuiPickersUtilsProvider>
     </MemoryRouter>,
