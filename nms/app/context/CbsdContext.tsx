@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 import * as React from 'react';
+import {AxiosError} from 'axios';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import MagmaAPI from '../api/MagmaAPI';
@@ -58,6 +59,33 @@ async function fetch(params: {
   } = params;
   if (networkId == null) return;
 
+  /**
+   * Temporary hotfix for https://github.com/magma/domain-proxy/issues/469.
+   * Ignore error when domain proxy module is disabled,
+   * so that an error is not shown on the main page.
+   */
+  const handleError = (error: unknown) => {
+    const status = (error as AxiosError)?.response?.status;
+
+    if (status === 404) {
+      console.error(
+        'CBSD endpoint not found. Is Domain Proxy module enabled in orc8r deployment?',
+      );
+      return;
+    }
+
+    if (status === 502) {
+      console.error(
+        'CBSD endpoint returns 502. Is Domain Proxy module up and running?',
+      );
+      return;
+    }
+
+    enqueueSnackbar?.('failed fetching CBSDs information', {
+      variant: 'error',
+    });
+  };
+
   try {
     setIsLoading(true);
 
@@ -69,10 +97,8 @@ async function fetch(params: {
       })
     ).data;
     setFetchResponse(response);
-  } catch {
-    enqueueSnackbar?.('failed fetching CBSDs information', {
-      variant: 'error',
-    });
+  } catch (error) {
+    handleError(error);
   } finally {
     setIsLoading(false);
   }
