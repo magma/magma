@@ -13,7 +13,7 @@
 
 //  NOTE: Color Names generated from hex code at http://chir.ag/projects/name-that-color/
 
-import {adaptV4Theme, createTheme} from '@mui/material/styles';
+import {createTheme} from '@mui/material/styles';
 
 export const colors = {
   primary: {
@@ -209,47 +209,49 @@ export const shadows = {
     '0px 24px 38px 0px rgba(0, 0, 0, 0.14), 0px 9px 46px 0px rgba(0, 0, 0, 0.12), 0px 11px 15px 0px rgba(0, 0, 0, 0.20)',
 };
 
-export default createTheme(
-  adaptV4Theme({
-    palette: {
-      primary: {
-        light: colors.secondary.malibu,
-        main: colors.secondary.dodgerBlue,
-        dark: colors.secondary.mariner,
-      },
+export default createTheme({
+  palette: {
+    primary: {
+      light: colors.secondary.malibu,
+      main: colors.secondary.dodgerBlue,
+      dark: colors.secondary.mariner,
     },
-    typography: {
-      ...typography,
-    },
-    props: {
-      MuiDialogTitle: {
-        // TODO[MUI5] https://mui.com/material-ui/migration/v5-component-changes/#%E2%9C%85-remove-disabletypography-prop
-        // disableTypography: true, // No more wrapping children in typography component for dialog title
-      },
-    },
-    overrides: {
-      MuiAppBar: {
+  },
+
+  typography: {
+    ...typography,
+  },
+  components: {
+    MuiAppBar: {
+      styleOverrides: {
         colorPrimary: {
-          color: colors.primary.white,
+          color: '#FFFFFF',
         },
       },
-      MuiAccordionSummary: {
+    },
+    MuiAccordionSummary: {
+      styleOverrides: {
         content: {
           margin: '0px',
         },
       },
-      // @ts-ignore
-      MuiAlert: {
+    },
+    MuiAlert: {
+      styleOverrides: {
         root: {
           marginBottom: '16px',
         },
       },
-      MuiBackdrop: {
+    },
+    MuiBackdrop: {
+      styleOverrides: {
         root: {
-          backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
+          backgroundColor: 'rgba(50, 56, 69, 0.8)',
         },
       },
-      MuiButton: {
+    },
+    MuiButton: {
+      styleOverrides: {
         root: {
           borderRadius: 4,
           cursor: 'pointer',
@@ -263,187 +265,255 @@ export default createTheme(
           boxShadow: 'none',
         },
         containedPrimary: {
-          backgroundColor: colors.primary.comet,
+          backgroundColor: '#545F77',
           '&:hover, &:focus': {
-            backgroundColor: colors.primary.brightGray,
+            backgroundColor: '#323845',
             boxShadow: 'none',
           },
         },
         outlinedPrimary: {
-          border: `1px solid ${colors.primary.comet}`,
-
-          backgroundColor: colors.primary.white,
+          border: '1px solid #545F77',
+          backgroundColor: '#FFFFFF',
           '&:hover, &:focus': {
-            backgroundColor: colors.primary.white,
+            backgroundColor: '#FFFFFF',
             boxShadow: 'none',
-            border: `1px solid ${colors.primary.comet}`,
+            border: '1px solid #545F77',
           },
-          color: colors.primary.comet,
+          color: '#545F77',
         },
       },
-      MuiCheckbox: {
+    },
+    MuiCheckbox: {
+      styleOverrides: {
         colorSecondary: {
-          '&$checked': {
-            color: colors.secondary.dodgerBlue,
+          '&.Mui-checked': {
+            color: '#3984FF',
           },
         },
       },
-      MuiDivider: {
+    },
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          fontSize: '0.875rem',
+          lineHeight: 1.43,
+          letterSpacing: '0.01071em',
+        },
+      },
+    },
+    MuiDivider: {
+      styleOverrides: {
         root: {
-          backgroundColor: colors.primary.concrete,
+          backgroundColor: '#F2F2F2',
           height: '2px',
         },
       },
-      MuiDialog: {
+    },
+    MuiDialog: {
+      styleOverrides: {
         paper: {
-          backgroundColor: colors.primary.concrete,
+          backgroundColor: '#F2F2F2',
         },
       },
-      MuiDialogActions: {
+    },
+    MuiDialogActions: {
+      styleOverrides: {
         root: {
-          backgroundColor: colors.primary.white,
-          boxShadow: shadows.DP3,
+          backgroundColor: '#FFFFFF',
+          boxShadow:
+            '0px 2px 4px 0px rgba(0, 0, 0, 0.14), 0px 4px 5px 0px rgba(0, 0, 0, 0.12), 0px 1px 10px 0px rgba(0, 0, 0, 0.20)',
           padding: '20px',
           zIndex: 1,
         },
       },
-      MuiDialogContent: {
+    },
+    MuiDialogContent: {
+      styleOverrides: {
         root: {
           padding: '32px',
           minHeight: '480px',
         },
       },
-      MuiDialogTitle: {
+    },
+    MuiDialogTitle: {
+      defaultProps: {},
+      styleOverrides: {
         root: {
-          backgroundColor: colors.primary.mirage,
+          backgroundColor: '#171B25',
           padding: '16px 24px',
-          color: colors.primary.white,
+          color: '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           width: '100%',
         },
       },
-      // TODO[MUI5]
-      // MuiDropzoneArea: {
-      //   root: {
-      //     color: colors.primary.gullGray,
-      //     backgroundColor: colors.primary.concrete,
-      //     marginBottom: '16px',
-      //   },
-      //   icon: {
-      //     color: colors.primary.gullGray,
-      //   },
-      // },
-      MuiFormControl: {
+    },
+
+    // TODO[MUI5]
+    // MuiDropzoneArea: {
+    //   root: {
+    //     color: colors.primary.gullGray,
+    //     backgroundColor: colors.primary.concrete,
+    //     marginBottom: '16px',
+    //   },
+    //   icon: {
+    //     color: colors.primary.gullGray,
+    //   },
+    // },
+    MuiFormControl: {
+      styleOverrides: {
         marginDense: {
           marginTop: '0px',
           marginBottom: '0px',
         },
       },
-      MuiFormLabel: {
+    },
+    MuiFormLabel: {
+      styleOverrides: {
         root: {
-          '&$error': {...typography.overline, color: colors.state.error},
-        },
-      },
-      MuiToggleButton: {
-        root: {
-          color: colors.secondary.dodgerBlue,
-          backgroundColor: colors.primary.white,
-          textTransform: 'none',
-          '&$selected': {
-            color: colors.primary.white,
-            backgroundColor: colors.secondary.dodgerBlue,
+          '&.Mui-error': {
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: 500,
+            fontSize: '12px',
+            lineHeight: 0.66,
+            letterSpacing: '0.4px',
+            color: '#E52240',
           },
         },
       },
-      MuiListItem: {
+    },
+    MuiToggleButton: {
+      styleOverrides: {
+        root: {
+          color: '#3984FF',
+          backgroundColor: '#FFFFFF',
+          textTransform: 'none',
+          '&.Mui-selected': {
+            color: '#FFFFFF',
+            backgroundColor: '#3984FF',
+          },
+        },
+      },
+    },
+    MuiListItem: {
+      styleOverrides: {
         root: {
           paddingTop: '16px',
           paddingBottom: '16px',
         },
       },
-      MuiListItemText: {
+    },
+    MuiListItemText: {
+      styleOverrides: {
         root: {
           marginBottom: '0px',
           marginTop: '0px',
-          ...typography.body3,
+          fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+          fontWeight: 500,
+          fontSize: '12px',
+          lineHeight: 1,
         },
       },
-      MuiSelect: {
-        // TODO[MUI5] ??? https://mui.com/material-ui/migration/v5-component-changes/#remove-selectmenu-slot
+    },
+    MuiSelect: {
+      styleOverrides: {
         select: {
           display: 'flex',
           alignItems: 'center',
         },
         outlined: {
           '&:focus': {
-            backgroundColor: colors.primary.white,
+            backgroundColor: '#FFFFFF',
           },
           '&:read-only': {
             opacity: 1,
           },
         },
       },
-      MuiSwitch: {
+    },
+    MuiSwitch: {
+      styleOverrides: {
         colorSecondary: {
-          '&$checked': {
-            color: colors.secondary.dodgerBlue,
+          '&.Mui-checked': {
+            color: '#3984FF',
           },
-          '&$checked + .MuiSwitch-track': {
-            backgroundColor: colors.secondary.dodgerBlue,
+          '&.Mui-checked + .MuiSwitch-track': {
+            backgroundColor: '#3984FF',
             opacity: 0.5,
           },
         },
       },
-      MuiTabs: {
+    },
+    MuiTabs: {
+      styleOverrides: {
         indicator: {
           height: '4px',
         },
       },
-      MuiTab: {
+    },
+    MuiTab: {
+      styleOverrides: {
         root: {
           textTransform: 'none',
-          ...typography.body1,
+          fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+          fontWeight: 500,
+          fontSize: '18px',
+          lineHeight: 1.5,
+          letterSpacing: '0.5px',
           padding: '12px 24px',
         },
       },
-      MuiTableRow: {
+    },
+    MuiTableRow: {
+      styleOverrides: {
         root: {
           backgroundColor: 'white',
         },
       },
-      MuiIconButton: {
+    },
+    MuiIconButton: {
+      styleOverrides: {
         root: {
-          color: colors.secondary.dodgerBlue,
+          color: '#3984FF',
         },
       },
-      MuiAvatar: {
+    },
+    MuiAvatar: {
+      styleOverrides: {
         colorDefault: {
           backgroundColor: '#e4f0f6',
-          color: colors.secondary.dodgerBlue,
+          color: '#3984FF',
         },
       },
-      MuiInputLabel: {
+    },
+    MuiInputLabel: {
+      styleOverrides: {
         outlined: {
           transform: 'translate(14px, 16px) scale(1)',
         },
       },
-      MuiOutlinedInput: {
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
         root: {
           minHeight: '36px',
           borderRadius: '2px',
           boxSizing: 'border-box',
           padding: '8px 16px',
-          color: colors.primary.brightGray,
-          backgroundColor: colors.primary.white,
+          color: '#323845',
+          backgroundColor: '#FFFFFF',
         },
         multiline: {
           padding: '8px 16px',
         },
         input: {
           padding: 0,
-          ...typography.button,
+          fontFamily: '"Inter", sans-serif',
+          fontWeight: 600,
+          fontSize: '12px',
+          lineHeight: 1.33,
+          letterSpacing: '0.5px',
           '&::-webkit-input-placeholder': {
             opacity: 0.5,
           },
@@ -475,5 +545,5 @@ export default createTheme(
         },
       },
     },
-  }),
-);
+  },
+});
