@@ -159,7 +159,7 @@ class DPTestCase(LocalDBTestCase):
         mock_log_request.return_value = mock_log_result.return_value = None
         cbsd = self._given_cbsd()
         grant = self._build_grant(
-            cbsd, self.grant_states[GrantStates.IDLE.value],
+            cbsd, self.grant_states[GrantStates.UNSYNC.value],
         )
         self.session.add_all([cbsd, grant])
         self.session.commit()

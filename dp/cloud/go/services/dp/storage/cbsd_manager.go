@@ -394,10 +394,7 @@ func buildDetailedGrantQuery(builder sq.StatementBuilderType) *db.Query {
 			"low_frequency", "high_frequency", "max_eirp")).
 		Join(db.NewQuery().
 			From(&DBGrantState{}).
-			On(sq.And{
-				db.On(GrantTable, "state_id", GrantStateTable, "id"),
-				sq.NotEq{GrantStateTable + ".name": "idle"},
-			}).
+			On(db.On(GrantTable, "state_id", GrantStateTable, "id")).
 			Select(db.NewIncludeMask("name")))
 }
 
