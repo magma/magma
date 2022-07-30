@@ -676,38 +676,6 @@ status_code_e amf_send_registration_accept(amf_context_t* amf_context) {
                                  new_imsi64);
         }
       }
-      if (registration_proc->ies->guti) {
-        if (!(registration_proc->registration_accept_sent) &&
-            (registration_proc->ies->m5gsregistrationtype !=
-             AMF_REGISTRATION_TYPE_PERIODIC_UPDATING)) {
-          supi_as_imsi_t supi_imsi;
-          amf_guti_m5g_t amf_guti;
-          ue_m5gmm_context_s* ue_context =
-              amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-          if (ue_context == NULL) {
-            OAILOG_DEBUG(
-                LOG_NAS_AMF,
-                "ue context not found for the ue_id=" AMF_UE_NGAP_ID_FMT "\n",
-                ue_id);
-            OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-          }
-          supi_imsi.plmn.mcc_digit1 =
-              registration_proc->ies->guti->guamfi.plmn.mcc_digit1;
-          supi_imsi.plmn.mcc_digit2 =
-              registration_proc->ies->guti->guamfi.plmn.mcc_digit2;
-          supi_imsi.plmn.mcc_digit3 =
-              registration_proc->ies->guti->guamfi.plmn.mcc_digit3;
-          supi_imsi.plmn.mnc_digit1 =
-              registration_proc->ies->guti->guamfi.plmn.mnc_digit1;
-          supi_imsi.plmn.mnc_digit2 =
-              registration_proc->ies->guti->guamfi.plmn.mnc_digit2;
-          supi_imsi.plmn.mnc_digit3 =
-              registration_proc->ies->guti->guamfi.plmn.mnc_digit3;
-          amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-          amf_ue_context_on_new_guti(ue_context,
-                                     reinterpret_cast<guti_m5_t*>(&amf_guti));
-        }
-      }
 
       m5gmm_state_t state =
           PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)->mm_state;
