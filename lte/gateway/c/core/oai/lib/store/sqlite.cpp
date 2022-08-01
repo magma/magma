@@ -49,7 +49,11 @@ std::vector<std::string> SqliteStore::_create_db_locations(
 
 void SqliteStore::_create_store() {
   int rc;
+<<<<<<< HEAD
   for (std::string db_location_s : _db_locations) {
+=======
+  for (auto db_location_s : _db_locations) {
+>>>>>>> 1d3b73753b (merge conflcts)
     sqlite3* db;
     int rc;
     const char* db_location = db_location_s.c_str();
@@ -89,8 +93,8 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   std::string db_location_s = _db_locations[_sid2bucket(sid)];
   const char* db_location = db_location_s.c_str();
   sqlite3* db;
-  int rc = sqlite3_open(db_location, &db);
-  if (rc) {
+  int rc_open = sqlite3_open(db_location, &db);
+  if (rc_open) {
     std::cout << "Cannot open database " << sqlite3_errmsg(db) << std::endl;
   } else {
     std::cout << "Database " << db_location << " opened successfully "
