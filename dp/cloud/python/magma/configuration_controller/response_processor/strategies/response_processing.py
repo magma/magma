@@ -19,7 +19,13 @@ from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.db_service.models import DBCbsd, DBCbsdState, DBChannel, DBGrant
+from magma.db_service.models import (
+    DBCbsd,
+    DBCbsdState,
+    DBChannel,
+    DBGrant,
+    DBGrantState,
+)
 from magma.db_service.session_manager import Session
 from magma.mappings.types import CbsdStates, GrantStates, ResponseCodes
 
@@ -166,27 +172,28 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
         None
     """
 
-    if response.response_code != ResponseCodes.SUCCESS.value:
-        cbsd = response.request.cbsd
-
-    grant = _get_or_create_grant_from_response(obj, response, session)
-    if not grant:
-        return
-    _update_grant_from_response(response, grant)
+    grant = _get_grant_from_response(response, session)
 
     # Grant response codes worth considering here also are:
     # 400 - INTERFERENCE
     # 401 - GRANT_CONFLICT
     # Might need better processing, for now we set the state to IDLE in all cases other than SUCCESS
-    if response.response_code == ResponseCodes.SUCCESS.value:
-        new_state = obj.grant_states_map[GrantStates.GRANTED.value]
+    if response.response_code != ResponseCodes.SUCCESS.value:
+        if grant:
+            unset_frequency(grant)
+            session.delete(grant)
+            logger.info(f'process_grant_responses: Terminated grant')
+        return
+
+    new_state = obj.grant_states_map[GrantStates.GRANTED.value]
+    if not grant:
+        grant = _create_grant_from_response(response, new_state, session)
     else:
-        new_state = obj.grant_states_map[GrantStates.IDLE.value]
-        unset_frequency(grant)
-    logger.info(
-        f'process_grant_responses: Updating grant state from {grant.state} to {new_state}',
-    )
-    grant.state = new_state
+        logger.info(
+            f'process_grant_responses: Updating grant state from {grant.state} to {new_state}',
+        )
+        grant.state = new_state
+    _update_grant_from_response(response, grant)
 
 
 @unregister_cbsd_on_response_condition
@@ -202,11 +209,14 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
     Returns:
         None
     """
+    grant = _get_grant_from_response(response, session)
 
-    grant = _get_or_create_grant_from_response(obj, response, session)
-    if not grant:
+    if response.response_code == ResponseCodes.TERMINATED_GRANT.value:
+        if grant:
+            unset_frequency(grant)
+            session.delete(grant)
+            logger.info(f'process_heartbeat_responses: Terminated grant')
         return
-    _update_grant_from_response(response, grant)
 
     if response.response_code == ResponseCodes.SUCCESS.value:
         new_state = obj.grant_states_map[GrantStates.AUTHORIZED.value]
@@ -214,18 +224,18 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
         new_state = obj.grant_states_map[GrantStates.GRANTED.value]
     elif response.response_code == ResponseCodes.UNSYNC_OP_PARAM.value:
         new_state = obj.grant_states_map[GrantStates.UNSYNC.value]
-    elif response.response_code == ResponseCodes.TERMINATED_GRANT.value:
-        new_state = obj.grant_states_map[GrantStates.IDLE.value]
-        unset_frequency(grant)
-    elif response.response_code == ResponseCodes.DEREGISTER.value:
-        _terminate_all_grants_from_response(response, session)
-        return
     else:
-        new_state = grant.state
-    logger.info(
-        f'process_heartbeat_responses: Updating grant state from {grant.state} to {new_state}',
-    )
-    grant.state = new_state
+        return
+
+    if not grant:
+        grant = _create_grant_from_response(response, new_state, session)
+    else:
+        logger.info(
+            f'process_heartbeat_responses: Updating grant state from {grant.state} to {new_state}',
+        )
+        grant.state = new_state
+
+    _update_grant_from_response(response, grant)
     grant.last_heartbeat_request_time = datetime.now()
 
 
@@ -242,20 +252,14 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
     Returns:
         None
     """
-
-    grant = _get_or_create_grant_from_response(obj, response, session)
-    if not grant:
-        return
-    _update_grant_from_response(response, grant)
+    grant = _get_grant_from_response(response, session)
 
     if response.response_code == ResponseCodes.SUCCESS.value:
-        new_state = obj.grant_states_map[GrantStates.IDLE.value]
-    else:
-        new_state = grant.state
-    logger.info(
-        f'process_relinquishment_responses: Updating grant state from {grant.state} to {new_state}',
-    )
-    grant.state = new_state
+        if grant:
+            session.delete(grant)
+            logger.info(f'process_relinquishment_responses: Terminated grant')
+        return
+    _update_grant_from_response(response, grant)
 
 
 def process_deregistration_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
@@ -299,31 +303,37 @@ def unset_frequency(grant: DBGrant):
     frequencies[bw_index] = frequencies[bw_index] & ~(1 << int(bit_to_unset))  # noqa: WPS465
 
 
-def _get_or_create_grant_from_response(
-    obj: ResponseDBProcessor,
-    response: DBResponse,
-    session: Session,
+def _get_grant_from_response(
+        response: DBResponse,
+        session: Session,
 ) -> Optional[DBGrant]:
-    cbsd_id = response.payload.get(
-        CBSD_ID,
-    ) or response.request.payload.get(CBSD_ID)
-    grant_id = response.payload.get(
-        GRANT_ID,
-    ) or response.request.payload.get(GRANT_ID)
-    cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
-    grant = None
-    if grant_id:
-        logger.info(f'Getting grant by: {cbsd_id=} {grant_id=}')
-        grant = session.query(DBGrant).filter(
-            DBGrant.cbsd_id == cbsd.id, DBGrant.grant_id == grant_id,
-        ).scalar()
+    cbsd_id = response.payload.get(CBSD_ID) or response.request.payload.get(CBSD_ID)
+    grant_id = response.payload.get(GRANT_ID) or response.request.payload.get(GRANT_ID)
+    if not grant_id:
+        return None
 
-    if grant_id and not grant:
-        grant_idle_state = obj.grant_states_map[GrantStates.IDLE.value]
-        grant = DBGrant(cbsd=cbsd, grant_id=grant_id, state=grant_idle_state)
-        _update_grant_from_request(response, grant)
-        session.add(grant)
-        logger.info(f'Created new grant: {grant}')
+    logger.info(f'Getting grant by {cbsd_id=} {grant_id=}')
+    cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+    grant = session.query(DBGrant).filter(DBGrant.cbsd_id == cbsd.id, DBGrant.grant_id == grant_id).scalar()
+    return grant
+
+
+def _create_grant_from_response(
+        response: DBResponse,
+        state: DBGrantState,
+        session: Session,
+) -> Optional[DBGrant]:
+    cbsd_id = response.payload.get(CBSD_ID) or response.request.payload.get(CBSD_ID)
+    grant_id = response.payload.get(GRANT_ID) or response.request.payload.get(GRANT_ID)
+    if not grant_id:
+        return None
+
+    cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+    grant = DBGrant(cbsd=cbsd, grant_id=grant_id, state=state)
+    _update_grant_from_request(response, grant)
+    session.add(grant)
+
+    logger.info(f'Created new grant {grant}')
     return grant
 
 
