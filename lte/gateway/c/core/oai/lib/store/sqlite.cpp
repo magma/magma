@@ -66,8 +66,7 @@ void SqliteStore::_create_store() {
         "(subscriber_id text PRIMARY KEY, data text)";
     char* zErrMsg;
 
-    rc = sqlite3_exec(db, sql, NULL, 0,
-                      &zErrMsg);
+    rc = sqlite3_exec(db, sql, NULL, 0, &zErrMsg);
     if (rc != SQLITE_OK) {
       std::cout << "SQL Error " << zErrMsg << std::endl;
       sqlite3_free(zErrMsg);
@@ -139,5 +138,5 @@ int SqliteStore::_sid2bucket(std::string sid) {
   }
   return bucket;
 }
-} //namespace lte
-} //namespace magma
+}  // namespace lte
+}  // namespace magma
