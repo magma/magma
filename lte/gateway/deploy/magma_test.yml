@@ -22,3 +22,4 @@
         go_build: /home/{{ ansible_user }}/go/bin/
     - role: magma_test
       become: no
+    - role: bazel

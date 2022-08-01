@@ -305,11 +305,11 @@ function GatewayOverview() {
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Grid container spacing={4} direction="column">
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
               <CardTitleRow icon={CellWifiIcon} label={gatewayId} />
               <GatewaySummary gwInfo={gwInfo} />
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
                 eventStream="GATEWAY"

@@ -128,6 +128,12 @@ new_local_repository(
     path = "/",
 )
 
+new_local_repository(
+    name = "s1ap_test_util",
+    build_file = "//bazel/external:s1ap_test_util.BUILD",
+    path = "/",
+)
+
 load("//bazel:python_dependencies.bzl", "configure_python_dependencies")
 
 configure_python_dependencies()

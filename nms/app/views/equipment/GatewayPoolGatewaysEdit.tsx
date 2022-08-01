@@ -160,7 +160,10 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
           )}
           {gateways.length > 0 &&
             gateways.map((gw, index) => (
-              <ListItem component={Paper} className={classes.gatewayPrimary}>
+              <ListItem
+                component={Paper}
+                className={classes.gatewayPrimary}
+                key={index}>
                 <AltFormField
                   label={`${isPrimary ? 'Primary' : 'Secondary'} Gateway ID`}>
                   <Select

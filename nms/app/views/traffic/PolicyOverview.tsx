@@ -189,7 +189,7 @@ export default function PolicyOverview() {
         rule={undefined}
       />
       {isEmpty ? (
-        <Grid container justify="space-between" spacing={3}>
+        <Grid container justifyContent="space-between" spacing={3}>
           <EmptyState
             title={'Set up a Policy'}
             instructions={

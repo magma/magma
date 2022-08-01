@@ -116,7 +116,7 @@ function AddEnodebInstructions(props: {setOpen: () => void}) {
       className={classes.customIntructions}
       spacing={3}
       container
-      justify="space-between">
+      justifyContent="space-between">
       <Grid item xs={6}>
         <Card className={classes.instructions}>
           <CardHeader
