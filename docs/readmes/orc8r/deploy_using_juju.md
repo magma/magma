@@ -54,7 +54,7 @@ applications:
       ca-certificate: <your base64 encoded ca certificate>
 ```
 
-Replace `<your domain name>` with your domain name.
+Replace the values in angle brackets.
 
 Deploy Orchestrator:
 
