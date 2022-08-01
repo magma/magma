@@ -147,10 +147,6 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
 
 
 def _list_cbsds(session: Session) -> State:
-    # It might be possible to use join instead of nested queries
-    # however it requires some serious investigation on how to use it
-    # with eager_contains and filter (aliases)
-
     # Selectively load sqlalchemy object relations using a single query to avoid commit races.
     return (
         session.query(DBCbsd).

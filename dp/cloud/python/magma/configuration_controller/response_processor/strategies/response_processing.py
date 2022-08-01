@@ -172,7 +172,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
         None
     """
 
-    grant = _get_grant_from_response(response=response, session=session)
+    grant = _get_grant_from_response(response, session)
 
     # Grant response codes worth considering here also are:
     # 400 - INTERFERENCE
@@ -187,7 +187,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
 
     new_state = obj.grant_states_map[GrantStates.GRANTED.value]
     if not grant:
-        grant = _create_grant_from_response(response=response, state=new_state, session=session)
+        grant = _create_grant_from_response(response, new_state, session)
     else:
         logger.info(
             f'process_grant_responses: Updating grant state from {grant.state} to {new_state}',
@@ -209,12 +209,12 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
     Returns:
         None
     """
-    grant = _get_grant_from_response(response=response, session=session)
+    grant = _get_grant_from_response(response, session)
 
     if response.response_code == ResponseCodes.TERMINATED_GRANT.value:
         if grant:
-            unset_frequency(grant=grant)
-            session.delete(instance=grant)
+            unset_frequency(grant)
+            session.delete(grant)
             logger.info(f'process_heartbeat_responses: Terminated grant')
         return
 
@@ -228,14 +228,14 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
         return
 
     if not grant:
-        grant = _create_grant_from_response(response=response, state=new_state, session=session)
+        grant = _create_grant_from_response(response, new_state, session)
     else:
         logger.info(
             f'process_heartbeat_responses: Updating grant state from {grant.state} to {new_state}',
         )
         grant.state = new_state
 
-    _update_grant_from_response(response=response, grant=grant)
+    _update_grant_from_response(response, grant)
     grant.last_heartbeat_request_time = datetime.now()
 
 
@@ -252,11 +252,11 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
     Returns:
         None
     """
-    grant = _get_grant_from_response(response=response, session=session)
+    grant = _get_grant_from_response(response, session)
 
     if response.response_code == ResponseCodes.SUCCESS.value:
         if grant:
-            session.delete(instance=grant)
+            session.delete(grant)
             logger.info(f'process_relinquishment_responses: Terminated grant')
         return
     _update_grant_from_response(response, grant)
