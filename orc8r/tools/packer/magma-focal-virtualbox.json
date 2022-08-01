@@ -55,25 +55,6 @@
           "{{.Name}}",
           "--cpus",
           "4"
-        ],
-        [
-          "modifyvm",
-          "{{.Name}}",
-          "--uart1",
-          "0x3F8",
-          "4"
-        ],
-        [
-          "modifyvm",
-          "{{.Name}}",
-          "--nestedpaging",
-          "off"
-        ],
-        [
-          "modifyvm",
-          "{{.Name}}",
-          "--paravirtprovider",
-          "hyperv"
         ]
       ],
       "virtualbox_version_file": ".vbox_version",
