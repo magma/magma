@@ -73,10 +73,9 @@ void create_ula_object(
 
   apn_config->add_served_party_ip_address(served_party_ip_address);
 }
-
-void initSubscriber(magma::lte::SubscriberData &sub_data) {
+void initSubscriber(magma::lte::SubscriberData *sub_data) {
   // initialize subscriberData object
-  auto sub_id = sub_data.mutable_sid();
+  auto sub_id = sub_data->mutable_sid();
   sub_id->set_id("IMSI123123123");
   sub_id->set_type(magma::lte::SubscriberID::IMSI);
 }
@@ -112,7 +111,7 @@ TEST(ULA2SubDataTest, TestULAallFields) {
                     preemption_vulnerability, apn_name, gateway_mac, gateway_ip,
                     vlan_id, max_bandwidth_ul, max_bandwidth_dl, unit, pdn,
                     served_party_ip_address);
-  initSubscriber(sub_data);
+  initSubscriber(&sub_data);
 
   // call data converting function
 

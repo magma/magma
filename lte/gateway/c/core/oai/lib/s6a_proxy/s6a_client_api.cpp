@@ -155,8 +155,7 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
         sub_id->set_type(magma::lte::SubscriberID::IMSI);
         magma::S6aClient::convert_ula_to_subscriber_data(response, &sub_data);
         magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore(
-            "", 2);  // hardcoded here, todo get the db location for the sqlite
-                     // from somewhere?
+            "/var/opt/magma/", 2);  // location is same as SubscriberDB
         sqlObj->add_subscriber(sub_data);
       }
 
