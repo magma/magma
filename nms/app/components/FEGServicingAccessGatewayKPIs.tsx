@@ -17,8 +17,8 @@ import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';
 import nullthrows from '../../shared/util/nullthrows';
-import {FetchGateways} from '../state/lte/EquipmentState';
 import {NetworkId} from '../../shared/types/network';
+import {fetchGateways} from '../context/GatewayContext';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -89,7 +89,7 @@ export default function ServicingAccessGatewayKPIs() {
       let totalServicedAccessGateways = 0;
 
       for (const servicedAccessNetwork of servicedAccessNetworks) {
-        const servicedAccessGateways = await FetchGateways({
+        const servicedAccessGateways = await fetchGateways({
           networkId: servicedAccessNetwork.id,
           enqueueSnackbar,
         });

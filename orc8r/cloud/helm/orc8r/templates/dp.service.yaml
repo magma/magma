@@ -10,8 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 */}}
-
+{{- if .Values.dp.enabled -}}
 {{- include "orc8rlib.service" (list . "dp.service") -}}
+{{- end -}}
 {{- define "dp.service" -}}
 metadata:
   name: orc8r-dp

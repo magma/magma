@@ -11,93 +11,77 @@
  * limitations under the License.
  */
 import AddEditGatewayPoolButton from '../GatewayPoolEdit';
-import GatewayContext from '../../../components/context/GatewayContext';
+import GatewayContext from '../../../context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
-import GatewayPoolsContext, {
-  GatewayPoolRecordsType,
-} from '../../../components/context/GatewayPoolsContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {GatewayPoolId} from '../../../../shared/types/network';
+import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {MutableCellularGatewayPool} from '../../../../generated';
-import {
-  SetGatewayPoolsState,
-  UpdateGatewayPoolRecords,
-} from '../../../state/lte/EquipmentState';
-import {fireEvent, render, wait, waitFor} from '@testing-library/react';
-import {mockAPI} from '../../../util/TestUtils';
+import {fireEvent, render, waitFor} from '@testing-library/react';
+import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import {useState} from 'react';
 import type {LteGateway} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
-const gwPoolStateMock = {
+const lteNetworkIdGatewayPoolsGetMock = {
   pool1: {
-    gatewayPool: {
-      config: {mme_group_id: 1},
-      gateway_ids: ['gw1', 'gw2', 'gw5'],
-      gateway_pool_id: 'pool1',
-      gateway_pool_name: 'pool_1',
-    },
-    gatewayPoolRecords: [
-      {
-        gateway_pool_id: 'pool1',
-        gateway_id: 'gw1',
-        mme_code: 1,
-        mme_relative_capacity: 255,
-      },
-      {
-        gateway_pool_id: 'pool1',
-        gateway_id: 'gw2',
-        mme_code: 2,
-        mme_relative_capacity: 255,
-      },
-      {
-        gateway_pool_id: 'pool1',
-        gateway_id: 'gw5',
-        mme_code: 3,
-        mme_relative_capacity: 1,
-      },
-    ],
+    config: {mme_group_id: 1},
+    gateway_ids: ['gw1', 'gw2', 'gw5'],
+    gateway_pool_id: 'pool1',
+    gateway_pool_name: 'pool_1',
   },
   pool2: {
-    gatewayPool: {
-      config: {mme_group_id: 2},
-      gateway_ids: ['gw3', 'gw4'],
-      gateway_pool_id: 'pool2',
-      gateway_pool_name: 'pool_2',
-    },
-    gatewayPoolRecords: [
-      {
-        gateway_pool_id: 'pool2',
-        gateway_id: 'gw3',
-        mme_code: 1,
-        mme_relative_capacity: 255,
-      },
-      {
-        gateway_pool_id: 'pool2',
-        gateway_id: 'gw4',
-        mme_code: 2,
-        mme_relative_capacity: 1,
-      },
-    ],
+    config: {mme_group_id: 2},
+    gateway_ids: ['gw3', 'gw4'],
+    gateway_pool_id: 'pool2',
+    gateway_pool_name: 'pool_2',
   },
   pool3: {
-    gatewayPool: {
-      config: {mme_group_id: 3},
-      gateway_ids: [],
-      gateway_pool_id: 'pool3',
-      gateway_pool_name: 'pool_3',
-    },
-    gatewayPoolRecords: [],
+    config: {mme_group_id: 3},
+    gateway_ids: [],
+    gateway_pool_id: 'pool3',
+    gateway_pool_name: 'pool_3',
   },
 };
+
+const lteNetworkIdGatewaysGatewayIdCellularPoolingGetMock = [
+  // gw1
+  {
+    gateway_pool_id: 'pool1',
+    mme_code: 1,
+    mme_relative_capacity: 255,
+  },
+  // gw2
+  {
+    gateway_pool_id: 'pool1',
+    mme_code: 2,
+    mme_relative_capacity: 255,
+  },
+  // gw5
+  {
+    gateway_pool_id: 'pool1',
+    mme_code: 3,
+    mme_relative_capacity: 1,
+  },
+  // gw3
+  {
+    gateway_pool_id: 'pool2',
+    mme_code: 1,
+    mme_relative_capacity: 255,
+  },
+  // gw4
+  {
+    gateway_pool_id: 'pool2',
+    mme_code: 2,
+    mme_relative_capacity: 1,
+  },
+];
+
 const networkId = 'test';
 const mockGw0: LteGateway = {
   apn_resources: {},
@@ -150,27 +134,30 @@ const lteGateways = {
   testGatewayId1: mockGw1,
 };
 describe('<GatewayPools />', () => {
+  beforeEach(() => {
+    mockAPI(
+      MagmaAPI.lteNetworks,
+      'lteNetworkIdGatewayPoolsGet',
+      lteNetworkIdGatewayPoolsGetMock,
+    );
+    for (const element of lteNetworkIdGatewaysGatewayIdCellularPoolingGetMock) {
+      mockAPIOnce(
+        MagmaAPI.lteGateways,
+        'lteNetworkIdGatewaysGatewayIdCellularPoolingGet',
+        [element],
+      );
+    }
+  });
+
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <GatewayPoolsContext.Provider
-            value={{
-              state: gwPoolStateMock,
-              setState: (key, value?) =>
-                SetGatewayPoolsState({
-                  networkId,
-                  gatewayPools: gwPoolStateMock,
-                  setGatewayPools: () => {},
-                  key,
-                  value,
-                }),
-              updateGatewayPoolRecords: async () => {},
-            }}>
+          <GatewayPoolsContextProvider networkId={networkId}>
             <Routes>
               <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
             </Routes>
-          </GatewayPoolsContext.Provider>
+          </GatewayPoolsContextProvider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
@@ -184,12 +171,16 @@ describe('<GatewayPools />', () => {
       )
       .mockImplementation();
 
-    const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
-      <Wrapper />,
-    );
-    await wait();
+    const {
+      findAllByRole,
+      findByTestId,
+      findByText,
+      getByTestId,
+      getByText,
+      getAllByTitle,
+    } = render(<Wrapper />);
 
-    const rowItems = getAllByRole('row');
+    const rowItems = await findAllByRole('row');
 
     // first row is the header
     expect(rowItems[0]).toHaveTextContent('Name');
@@ -220,22 +211,22 @@ describe('<GatewayPools />', () => {
     const actionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(actionList[2]);
-    await wait();
-    expect(getByTestId('actions-menu')).toBeVisible();
+
+    expect(await findByTestId('actions-menu')).toBeVisible();
     fireEvent.click(getByText('Remove'));
-    await wait();
     expect(
-      getByText('Are you sure you want to delete pool3?'),
+      await findByText('Are you sure you want to delete pool3?'),
     ).toBeInTheDocument();
     fireEvent.click(getByText('Confirm'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGatewayPoolIdDelete,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      gatewayPoolId: 'pool3',
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsGatewayPoolIdDelete,
+      ).toHaveBeenCalledWith({
+        networkId: 'test',
+        gatewayPoolId: 'pool3',
+      }),
+    );
   });
 
   it('verify gateway pool edit', async () => {
@@ -310,7 +301,6 @@ describe('<AddEditGatewayPoolButton />', () => {
     );
   });
   const AddWrapper = () => {
-    const [gwPoolsState, setGatewayPoolsState] = useState({});
     return (
       <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
@@ -322,32 +312,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                 updateGateway: async () => {},
                 refetch: () => {},
               }}>
-              <GatewayPoolsContext.Provider
-                value={{
-                  state: {},
-                  setState: async (
-                    key: GatewayPoolId,
-                    value: MutableCellularGatewayPool | undefined,
-                    resources?: Array<GatewayPoolRecordsType>,
-                  ) =>
-                    SetGatewayPoolsState({
-                      networkId,
-                      gatewayPools: gwPoolsState,
-                      setGatewayPools: setGatewayPoolsState,
-                      key,
-                      value,
-                      resources,
-                    }),
-                  updateGatewayPoolRecords: (key, value, resources) =>
-                    UpdateGatewayPoolRecords({
-                      networkId,
-                      gatewayPools: gwPoolsState,
-                      setGatewayPools: setGatewayPoolsState,
-                      key,
-                      value,
-                      resources,
-                    }),
-                }}>
+              <GatewayPoolsContextProvider networkId={networkId}>
                 <Routes>
                   <Route
                     path="/nms/:networkId/pools"
@@ -359,7 +324,7 @@ describe('<AddEditGatewayPoolButton />', () => {
                     }
                   />
                 </Routes>
-              </GatewayPoolsContext.Provider>
+              </GatewayPoolsContextProvider>
             </GatewayContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
@@ -369,12 +334,11 @@ describe('<AddEditGatewayPoolButton />', () => {
 
   it('verify gateway pool add', async () => {
     const networkId = 'test';
-    const {queryByTestId, getByTestId, getByText} = render(<AddWrapper />);
-    await wait();
-
+    const {findByText, queryByTestId, getByTestId, getByText} = render(
+      <AddWrapper />,
+    );
     expect(queryByTestId('gatewayPoolEditDialog')).toBeNull();
-    fireEvent.click(getByText('Add Gateway Pool'));
-    await wait();
+    fireEvent.click(await findByText('Add Gateway Pool'));
 
     // check if only first tab (config) is active
     expect(queryByTestId('configEdit')).not.toBeNull();
@@ -390,7 +354,6 @@ describe('<AddEditGatewayPoolButton />', () => {
     fireEvent.change(mmeGroupId, {target: {value: '4'}});
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
     const newGatewayPool = {
       config: {mme_group_id: 4},
@@ -398,25 +361,26 @@ describe('<AddEditGatewayPoolButton />', () => {
       gateway_pool_name: 'pool_4',
     };
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsPost,
-    ).toHaveBeenCalledWith({
-      networkId,
-      hAGatewayPool: newGatewayPool,
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdGatewayPoolsPost,
+      ).toHaveBeenCalledWith({
+        networkId,
+        hAGatewayPool: newGatewayPool,
+      }),
+    );
 
-    await wait();
+    await waitFor(() =>
+      lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
+        data: {
+          config: {mme_group_id: 4},
+          gateway_ids: [],
+          gateway_pool_id: 'pool4',
+          gateway_pool_name: 'pool4',
+        },
+      }),
+    );
 
-    lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
-      data: {
-        config: {mme_group_id: 4},
-        gateway_ids: [],
-        gateway_pool_id: 'pool4',
-        gateway_pool_name: 'pool4',
-      },
-    });
-
-    await wait();
     // check if only second tab (PrimaryEdit) is active
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('PrimaryEdit')).not.toBeNull();
@@ -426,28 +390,25 @@ describe('<AddEditGatewayPoolButton />', () => {
     const PrimaryId = getByTestId('gwIdPrimary').firstChild as HTMLElement;
 
     fireEvent.mouseDown(PrimaryId);
-    await wait();
-    fireEvent.click(getByText('testGatewayId0'));
+    fireEvent.click(await findByText('testGatewayId0'));
     fireEvent.change(mmeCode, {target: {value: '4'}});
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
-    ).toHaveBeenCalledWith({
-      networkId: networkId,
-      gatewayId: 'testGatewayId0',
-      resource: [
-        {
-          gateway_pool_id: 'pool4',
-          mme_code: 4,
-          mme_relative_capacity: 255,
-        },
-      ],
-    });
-
-    await wait();
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
+      ).toHaveBeenCalledWith({
+        networkId: networkId,
+        gatewayId: 'testGatewayId0',
+        resource: [
+          {
+            gateway_pool_id: 'pool4',
+            mme_code: 4,
+            mme_relative_capacity: 255,
+          },
+        ],
+      }),
+    );
     lteNetworkIdGatewayPoolsGatewayPoolIdGet.mockResolvedValue({
       data: {
         config: {mme_group_id: 4},
@@ -455,11 +416,9 @@ describe('<AddEditGatewayPoolButton />', () => {
         gateway_pool_id: 'pool4',
         gateway_pool_name: 'pool4',
       },
-    });
-
-    await wait();
-    // check if only third tab (SecondaryEdit) is active
-    expect(queryByTestId('configEdit')).toBeNull();
+    }),
+      // check if only third tab (SecondaryEdit) is active
+      expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('PrimaryEdit')).toBeNull();
     expect(queryByTestId('SecondaryEdit')).not.toBeNull();
 
@@ -468,25 +427,25 @@ describe('<AddEditGatewayPoolButton />', () => {
     const secondaryId = getByTestId('gwIdSecondary').firstChild as HTMLElement;
 
     fireEvent.mouseDown(secondaryId);
-    await wait();
-    fireEvent.click(getByText('testGatewayId1'));
+    fireEvent.click(await findByText('testGatewayId1'));
     fireEvent.change(mmeCodeSecondary, {target: {value: '5'}});
 
     fireEvent.click(getByText('Save'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
-    ).toHaveBeenCalledWith({
-      networkId: networkId,
-      gatewayId: 'testGatewayId1',
-      resource: [
-        {
-          gateway_pool_id: 'pool4',
-          mme_code: 5,
-          mme_relative_capacity: 1,
-        },
-      ],
-    });
+    await waitFor(() =>
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPoolingPut,
+      ).toHaveBeenCalledWith({
+        networkId: networkId,
+        gatewayId: 'testGatewayId1',
+        resource: [
+          {
+            gateway_pool_id: 'pool4',
+            mme_code: 5,
+            mme_relative_capacity: 1,
+          },
+        ],
+      }),
+    );
   });
 });

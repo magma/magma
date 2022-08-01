@@ -124,7 +124,7 @@ message CbsdDetails {
   string cbsd_id = 3;
   string state = 4;
   bool is_active = 5;
-  GrantDetails grant = 6;
+  repeated GrantDetails grants = 6;
 }
 
 message GrantDetails {

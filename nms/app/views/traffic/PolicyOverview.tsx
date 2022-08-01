@@ -20,8 +20,8 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
-import PolicyContext from '../../components/context/PolicyContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
+import PolicyContext from '../../context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
 import RatingGroupEditDialog from './RatingGroupEdit';
@@ -189,7 +189,7 @@ export default function PolicyOverview() {
         rule={undefined}
       />
       {isEmpty ? (
-        <Grid container justify="space-between" spacing={3}>
+        <Grid container justifyContent="space-between" spacing={3}>
           <EmptyState
             title={'Set up a Policy'}
             instructions={

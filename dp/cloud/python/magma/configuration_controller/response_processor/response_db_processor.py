@@ -73,9 +73,6 @@ class ResponseDBProcessor(object):
 
     def _populate_grant_states_map(self, session):
         self.grant_states_map = {
-            GrantStates.IDLE.value: session.query(DBGrantState).filter(
-                DBGrantState.name == GrantStates.IDLE.value,
-            ).scalar(),
             GrantStates.GRANTED.value: session.query(DBGrantState).filter(
                 DBGrantState.name == GrantStates.GRANTED.value,
             ).scalar(),

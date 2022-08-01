@@ -297,28 +297,24 @@ func (s *CbsdManagerTestSuite) TestFetchCbsd() {
 		input    *storage.DetailedCbsd
 		expected *protos.CbsdDetails
 	}{{
-		name: "fetch cbsd with default installation param",
-		input: b.NewDetailedDBCbsdBuilder(
-			b.NewDBCbsdBuilder()).
-			WithDefaultTestData().Details,
+		name:  "fetch cbsd with default installation param",
+		input: getDefaultCbsdDetails(b.NewDBCbsdBuilder().Cbsd),
 		expected: b.NewDetailedProtoCbsdBuilder(
 			b.NewCbsdProtoPayloadBuilder().
 				WithEmptyInstallationParam()).
 			WithGrant().Details,
 	}, {
 		name: "fetch cbsd with full installation param",
-		input: b.NewDetailedDBCbsdBuilder(b.NewDBCbsdBuilder().
-			WithFullInstallationParam()).
-			WithDefaultTestData().Details,
+		input: getDefaultCbsdDetails(b.NewDBCbsdBuilder().
+			WithFullInstallationParam().Cbsd),
 		expected: b.NewDetailedProtoCbsdBuilder(
 			b.NewCbsdProtoPayloadBuilder().
 				WithFullInstallationParam()).
 			WithGrant().Details,
 	}, {
 		name: "fetch cbsd with incomplete installation param",
-		input: b.NewDetailedDBCbsdBuilder(b.NewDBCbsdBuilder().
-			WithIncompleteInstallationParam()).
-			WithDefaultTestData().Details,
+		input: getDefaultCbsdDetails(b.NewDBCbsdBuilder().
+			WithIncompleteInstallationParam().Cbsd),
 		expected: b.NewDetailedProtoCbsdBuilder(
 			b.NewCbsdProtoPayloadBuilder().
 				WithIncompleteInstallationParam()).
@@ -345,13 +341,12 @@ func (s *CbsdManagerTestSuite) TestFetchCbsd() {
 func (s *CbsdManagerTestSuite) TestFetchNonActiveCbsd() {
 	now := time.Unix(lastSeenTimestamp, 0).Add(interval)
 	clock.SetAndFreezeClock(s.T(), now)
-	cbsdBuilder := b.NewDBCbsdBuilder().
+	cbsd := b.NewDBCbsdBuilder().
 		WithId(cbsdId).
 		WithCbsdId(someCbsdId).
-		WithLastSeen(lastSeenTimestamp)
-	s.store.details = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
-		WithDefaultTestData().
-		Details
+		WithLastSeen(lastSeenTimestamp).
+		Cbsd
+	s.store.details = getDefaultCbsdDetails(cbsd)
 
 	request := &protos.FetchCbsdRequest{
 		NetworkId: networkId,
@@ -371,13 +366,13 @@ func (s *CbsdManagerTestSuite) TestFetchNonActiveCbsd() {
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	builder := b.NewDBCbsdBuilder()
 	s.store.details = &storage.DetailedCbsd{
-		Cbsd:      builder.Cbsd,
-		CbsdState: &storage.DBCbsdState{},
+		Cbsd: builder.Cbsd,
+		CbsdState: &storage.DBCbsdState{
+			Name: db.MakeString(registered),
+		},
 		DesiredState: &storage.DBCbsdState{
 			Name: db.MakeString(registered),
 		},
-		Grant:      &storage.DBGrant{},
-		GrantState: &storage.DBGrantState{},
 	}
 
 	request := &protos.FetchCbsdRequest{
@@ -389,11 +384,8 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
-	expected := &protos.CbsdDetails{
-		Data: b.NewCbsdProtoPayloadBuilder().
-			WithEmptyInstallationParam().
-			Payload,
-	}
+	expected := b.NewDetailedProtoCbsdBuilder(b.NewCbsdProtoPayloadBuilder().
+		WithEmptyInstallationParam()).Details
 	s.Assert().Equal(expected, actual.Details)
 }
 
@@ -412,12 +404,12 @@ func (s *CbsdManagerTestSuite) TestFetchNonexistentCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsd() {
-	dbCbsdBuilder := b.NewDBCbsdBuilder().
+	cbsd := b.NewDBCbsdBuilder().
 		WithId(cbsdId).
 		WithCbsdId(someCbsdId).
-		WithLastSeen(lastSeenTimestamp)
-	s.store.list = b.GetDetailedDBCbsdList(b.NewDetailedDBCbsdBuilder(dbCbsdBuilder).
-		WithDefaultTestData())
+		WithLastSeen(lastSeenTimestamp).
+		Cbsd
+	s.store.list = b.GetDetailedDBCbsdList(getDefaultCbsdDetails(cbsd))
 
 	request := &protos.ListCbsdRequest{
 		NetworkId:  networkId,
@@ -438,12 +430,12 @@ func (s *CbsdManagerTestSuite) TestListCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
-	dbCbsdBuilder := b.NewDBCbsdBuilder().
+	cbsd := b.NewDBCbsdBuilder().
 		WithId(cbsdId).
 		WithCbsdId(someCbsdId).
-		WithLastSeen(lastSeenTimestamp)
-	s.store.list = b.GetDetailedDBCbsdList(b.NewDetailedDBCbsdBuilder(dbCbsdBuilder).
-		WithDefaultTestData())
+		WithLastSeen(lastSeenTimestamp).
+		Cbsd
+	s.store.list = b.GetDetailedDBCbsdList(getDefaultCbsdDetails(cbsd))
 
 	request := &protos.ListCbsdRequest{
 		NetworkId: networkId,
@@ -470,14 +462,12 @@ func (s *CbsdManagerTestSuite) TestListCbsdWithPagination() {
 }
 
 func (s *CbsdManagerTestSuite) TestListCbsdWithFilter() {
-	dbCbsdBuilder := b.NewDBCbsdBuilder().
+	cbsd := b.NewDBCbsdBuilder().
 		WithId(cbsdId).
 		WithCbsdId(someCbsdId).
-		WithLastSeen(lastSeenTimestamp)
-	s.store.list = b.GetDetailedDBCbsdList(
-		b.NewDetailedDBCbsdBuilder(dbCbsdBuilder).
-			WithDefaultTestData(),
-	)
+		WithLastSeen(lastSeenTimestamp).
+		Cbsd
+	s.store.list = b.GetDetailedDBCbsdList(getDefaultCbsdDetails(cbsd))
 
 	request := &protos.ListCbsdRequest{
 		NetworkId:  networkId,
@@ -583,4 +573,11 @@ func (p *LogPusher) pushLogs(_ context.Context, log *logs_pusher.DPLog, consumer
 	assert.Equal(p.t, p.expectedLogConsumerUrl, consumerUrl)
 	assert.Equal(p.t, p.expectedLog, *log)
 	return nil
+}
+
+func getDefaultCbsdDetails(cbsd *storage.DBCbsd) *storage.DetailedCbsd {
+	return b.NewDetailedDBCbsdBuilder().
+		WithCbsd(cbsd, registered, registered).
+		WithGrant("authorized", 3610).
+		Details
 }

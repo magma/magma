@@ -17,7 +17,7 @@ import IndexWithoutNetwork from './IndexWithoutNetwork';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from './NoNetworksMessage';
 import React from 'react';
-import {AppContextProvider} from './context/AppContext';
+import {AppContextProvider} from '../context/AppContext';
 import {
   Navigate,
   Route,

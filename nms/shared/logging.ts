@@ -34,7 +34,9 @@ function getLabel(callingModule: NodeModule) {
 
 const myFormat = printf(info => {
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  return `${info.timestamp} [${info.label}] ${info.level}: ${info.message}`;
+  return `${info.timestamp} [${info.label}] ${info.level}: ${JSON.stringify(
+    info.message,
+  )}`;
 });
 
 type Options = {

@@ -76,8 +76,6 @@ HEARTBEAT_REQ = RequestTypes.HEARTBEAT.value
 GRANT_REQ = RequestTypes.GRANT.value
 SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
 
-INITIAL_GRANT_ATTEMPTS = 1
-
 _fake_requests_map = {
     REGISTRATION_REQ: registration_requests,
     SPECTRUM_INQ_REQ: spectrum_inquiry_requests,
@@ -132,15 +130,15 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         ),
         (
             GRANT_REQ, ResponseCodes.INTERFERENCE.value,
-            GrantStates.IDLE.value,
+            None,
         ),
         (
             GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value,
-            GrantStates.IDLE.value,
+            None,
         ),
         (
             GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value,
-            GrantStates.IDLE.value,
+            None,
         ),
         (
             HEARTBEAT_REQ, ResponseCodes.SUCCESS.value,
@@ -148,7 +146,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         ),
         (
             HEARTBEAT_REQ,
-            ResponseCodes.TERMINATED_GRANT.value, GrantStates.IDLE.value,
+            ResponseCodes.TERMINATED_GRANT.value, None,
         ),
         (
             HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value,
@@ -160,7 +158,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         ),
         (
             RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value,
-            GrantStates.IDLE.value,
+            None,
         ),
     ])
     @responses.activate
@@ -180,55 +178,15 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self._process_response(
             request_type_name=request_type_name, response=response, db_requests=db_requests,
         )
+        expected_grant_state = [expected_grant_state_name] if expected_grant_state_name else []
         nr_of_requests = len(db_requests)
 
         # Then
         self._verify_processed_requests_were_deleted()
         self.assertListEqual(
-            [expected_grant_state_name] * nr_of_requests,
+            expected_grant_state * nr_of_requests,
             [g.state.name for g in self.session.query(DBGrant).all()],
         )
-
-    @parameterized.expand([
-        (0, GRANT_REQ, INITIAL_GRANT_ATTEMPTS),
-        (400, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
-        (401, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
-        (0, RELINQUISHMENT_REQ, INITIAL_GRANT_ATTEMPTS),
-        (0, DEREGISTRATION_REQ, 0),
-        (0, SPECTRUM_INQ_REQ, 0),
-    ])
-    @responses.activate
-    def test_grant_attempts_after_response(self, code, message_type, expected):
-        cbsd = DBCbsd(
-            cbsd_id=CBSD_ID,
-            user_id=USER_ID,
-            fcc_id=FCC_ID,
-            cbsd_serial_number=CBSD_SERIAL_NR,
-            grant_attempts=INITIAL_GRANT_ATTEMPTS,
-            state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
-            desired_state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
-        )
-        request = DBRequest(
-            type=self._get_db_enum(DBRequestType, message_type),
-            cbsd=cbsd,
-            payload={'cbsdId': CBSD_ID},
-        )
-
-        response = self._prepare_response_from_db_requests(
-            db_requests=[request],
-            response_code=code,
-        )
-
-        self.session.add(request)
-        self.session.commit()
-
-        self._process_response(
-            request_type_name=message_type,
-            response=response,
-            db_requests=[request],
-        )
-
-        self.assertEqual(expected, cbsd.grant_attempts)
 
     @parameterized.expand([
         (0, CbsdStates.REGISTERED),

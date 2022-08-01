@@ -50,13 +50,17 @@ def _construct_asn1c_commands(ctx, dir_path):
     """Return a string of command that runs asn1c"""
     flags = ctx.attr.flags
     asn1_file = ctx.attr.asn1_file.files.to_list()[0].path
-    asn1c_command_template = "{asn1c} {flags} -D {dir} {input}"
+
+    # TODO: GH13021 this is a mitigation for excessive logging that should be handled more clean
+    output_filter = '2> >(grep -v "Parameterized type" | grep -v "Compiled " | grep -v "Copied " >&2)'
+    asn1c_command_template = "{asn1c} {flags} -D {dir} {input} {output_filter}"
     return [
         asn1c_command_template.format(
             asn1c = ctx.executable._asn1c.path,
             flags = flags,
             dir = dir_path,
             input = asn1_file,
+            output_filter = output_filter,
         ),
     ]
 

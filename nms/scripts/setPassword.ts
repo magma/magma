@@ -48,7 +48,6 @@ async function createUser(userObject: UserObject) {
     role,
     networkIDs: [],
     organization: org.name,
-    readOnly: false,
   });
 }
 
@@ -70,19 +69,16 @@ async function createOrFetchOrganization(
   organization: string,
 ): Promise<OrganizationModel> {
   let org = await Organization.findOne({
-    where: {
-      name: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', organization),
-      ),
-    },
+    where: Sequelize.where(
+      Sequelize.fn('lower', Sequelize.col('name')),
+      Sequelize.fn('lower', organization),
+    ),
   });
   if (!org) {
     console.log(`Creating a new Organization: name=${organization} `);
     const [o] = await Promise.all([
       Organization.create({
         name: organization,
-        tab: ['inventory', 'nms'],
         networkIDs: [],
         csvCharset: '',
         ssoCert: '',

@@ -29,12 +29,10 @@ async function getOrganizationFromHost(
   }
   const subdomain = host.split('.')[0];
   return await Organization.findOne({
-    where: {
-      name: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', subdomain),
-      ),
-    },
+    where: Sequelize.where(
+      Sequelize.fn('lower', Sequelize.col('name')),
+      Sequelize.fn('lower', subdomain),
+    ),
   });
 }
 

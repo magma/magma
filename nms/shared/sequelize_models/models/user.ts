@@ -13,7 +13,7 @@
  */
 
 import sequelize from 'sequelize';
-import {AccessRoles} from '../../../shared/roles';
+import {AccessRoles} from '../../roles';
 import {BuildOptions, DataTypes, Model} from 'sequelize';
 import {omit} from 'lodash';
 import type {AssociateProp} from './AssociateTypes';
@@ -29,7 +29,9 @@ export interface UserRawType {
   role: number;
 }
 
-export interface UserModel extends UserRawType, Model {
+export interface UserModel
+  extends UserRawType,
+    Model<UserRawType, Partial<UserRawType>> {
   readonly id: number;
 }
 

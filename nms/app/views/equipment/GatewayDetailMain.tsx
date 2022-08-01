@@ -22,7 +22,7 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
 import GatewayConfigYml from './GatewayYMLConfig';
-import GatewayContext from '../../components/context/GatewayContext';
+import GatewayContext from '../../context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayDetailSubscribers from './GatewayDetailSubscribers';
@@ -50,7 +50,7 @@ import {
   TroubleshootingControl,
 } from '../../components/GatewayCommandFields';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-import {RunGatewayCommands} from '../../state/lte/EquipmentState';
+import {RunGatewayCommands} from './RunGatewayCommands';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -305,11 +305,11 @@ function GatewayOverview() {
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Grid container spacing={4} direction="column">
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
               <CardTitleRow icon={CellWifiIcon} label={gatewayId} />
               <GatewaySummary gwInfo={gwInfo} />
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
                 eventStream="GATEWAY"

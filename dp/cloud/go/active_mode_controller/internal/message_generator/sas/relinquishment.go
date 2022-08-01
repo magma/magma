@@ -15,20 +15,16 @@ package sas
 
 import "magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 
-type relinquishmentRequestGenerator struct{}
+type RelinquishmentRequestGenerator struct{}
 
-func NewRelinquishmentRequestGenerator() *relinquishmentRequestGenerator {
-	return &relinquishmentRequestGenerator{}
-}
-
-func (*relinquishmentRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
-	grants := cbsd.GetGrants()
-	cbsdId := cbsd.GetCbsdId()
+func (*RelinquishmentRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) []*Request {
+	grants := cbsd.Grants
+	cbsdId := cbsd.CbsdId
 	reqs := make([]*Request, 0, len(grants))
 	for _, grant := range grants {
 		req := &relinquishmentRequest{
 			CbsdId:  cbsdId,
-			GrantId: grant.GetId(),
+			GrantId: grant.Id,
 		}
 		reqs = append(reqs, asRequest(Relinquishment, req))
 	}
@@ -38,4 +34,17 @@ func (*relinquishmentRequestGenerator) GenerateRequests(cbsd *active_mode.Cbsd) 
 type relinquishmentRequest struct {
 	CbsdId  string `json:"cbsdId"`
 	GrantId string `json:"grantId"`
+}
+
+type RelinquishmentProcessor struct {
+	CbsdId string
+	Grants map[int64]*active_mode.Grant
+}
+
+func (r *RelinquishmentProcessor) ProcessGrant(frequency int64, _ int64) *Request {
+	req := &relinquishmentRequest{
+		CbsdId:  r.CbsdId,
+		GrantId: r.Grants[frequency].Id,
+	}
+	return asRequest(Relinquishment, req)
 }

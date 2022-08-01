@@ -191,7 +191,7 @@ class DPService(DPServiceServicer):
             DBRequestType.name == RequestTypes.RELINQUISHMENT.value,
         ).scalar()
         grants = session.query(DBGrant).join(DBGrantState).filter(
-            DBGrant.cbsd_id == cbsd.id, DBGrantState.name != GrantStates.IDLE.value,
+            DBGrant.cbsd_id == cbsd.id,
         )
         for grant in grants:
             request_dict = {"cbsdId": cbsd.cbsd_id, "grantId": grant.grant_id}

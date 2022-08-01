@@ -692,17 +692,17 @@ export interface Cbsd {
      */
     'frequency_preferences': FrequencyPreferences;
     /**
-     * 
-     * @type {Grant}
-     * @memberof Cbsd
-     */
-    'grant'?: Grant;
-    /**
      * tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
      * @type {boolean}
      * @memberof Cbsd
      */
     'grant_redundancy': boolean;
+    /**
+     * 
+     * @type {Array<Grant>}
+     * @memberof Cbsd
+     */
+    'grants'?: Array<Grant>;
     /**
      * database id of cbsd
      * @type {number}
@@ -3127,7 +3127,8 @@ export interface Grant {
 
 export const GrantStateEnum = {
     Granted: 'granted',
-    Guthorized: 'guthorized'
+    Authorized: 'authorized',
+    Unsync: 'unsync'
 } as const;
 
 export type GrantStateEnum = typeof GrantStateEnum[keyof typeof GrantStateEnum];

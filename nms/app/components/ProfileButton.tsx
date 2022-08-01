@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
-import AppContext from './context/AppContext';
+import AppContext from '../context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import NetworkContext from './context/NetworkContext';
+import NetworkContext from '../context/NetworkContext';
 import PersonIcon from '@material-ui/icons/Person';
 import Popout from './Popout';
 import React, {useContext} from 'react';

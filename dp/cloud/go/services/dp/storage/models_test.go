@@ -79,7 +79,6 @@ func TestFields(t *testing.T) {
 				db.StringType{X: &dbCbsd.FccId},
 				db.StringType{X: &dbCbsd.CbsdSerialNumber},
 				db.TimeType{X: &dbCbsd.LastSeen},
-				db.IntType{X: &dbCbsd.GrantAttempts},
 				db.IntType{X: &dbCbsd.PreferredBandwidthMHz},
 				db.StringType{X: &dbCbsd.PreferredFrequenciesMHz},
 				db.FloatType{X: &dbCbsd.MinPower},
@@ -264,12 +263,6 @@ func TestGetMetadata(t *testing.T) {
 						Name:     "last_seen",
 						SqlType:  sqorc.ColumnTypeDatetime,
 						Nullable: true,
-					},
-					{
-						Name:         "grant_attempts",
-						SqlType:      sqorc.ColumnTypeInt,
-						HasDefault:   true,
-						DefaultValue: 0,
 					},
 					{
 						Name:    "preferred_bandwidth_mhz",
