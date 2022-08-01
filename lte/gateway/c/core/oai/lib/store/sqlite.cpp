@@ -49,11 +49,7 @@ std::vector<std::string> SqliteStore::_create_db_locations(
 
 void SqliteStore::_create_store() {
   int rc;
-<<<<<<< HEAD
-  for (std::string db_location_s : _db_locations) {
-=======
   for (auto db_location_s : _db_locations) {
->>>>>>> 1d3b73753b (merge conflcts)
     sqlite3* db;
     int rc;
     const char* db_location = db_location_s.c_str();
@@ -143,5 +139,5 @@ int SqliteStore::_sid2bucket(std::string sid) {
   }
   return bucket;
 }
-}  // namespace lte
-}  // namespace magma
+} //namespace lte
+} //namespace magma
