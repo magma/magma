@@ -46,5 +46,4 @@ bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p);
 
 #ifdef __cplusplus
 }
-
 #endif

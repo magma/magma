@@ -69,8 +69,9 @@ void SqliteStore::_create_store() {
         "CREATE TABLE IF NOT EXISTS subscriberdb"
         "(subscriber_id text PRIMARY KEY, data text)";
     char* zErrMsg;
-    rc = sqlite3_exec(db, sql, NULL, 0, &zErrMsg);
 
+    rc = sqlite3_exec(db, sql, NULL, 0,
+                      &zErrMsg);
     if (rc != SQLITE_OK) {
       std::cout << "SQL Error " << zErrMsg << std::endl;
       sqlite3_free(zErrMsg);
@@ -118,13 +119,15 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   }
 }
 
-std::string SqliteStore::_to_str(const SubscriberData& subscriber_data) {
+const char* SqliteStore::_to_str(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
-    std::cout << "Valid sid " << std::endl;
-    return "IMSI" + subscriber_data.sid().id();
+    std::cout << "Valid sid: " << subscriber_data.sid().id() << std::endl;
+    std::string sid_s = "IMSI" + subscriber_data.sid().id();
+    return sid_s.c_str();
   } else {
     std::cout << "Invalid sid " << subscriber_data.sid().id() << " type "
               << subscriber_data.sid().type() << std::endl;
+    return NULL;
   }
 }
 
