@@ -114,7 +114,7 @@ jobs:
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
-          key: vagrant-box-magma-trfserver
+          key: vagrant-box-magma-trfserver-v20220722
       - name: Build test vms
         run: |
           cd ${{ env.AGW_ROOT }} && fab build_test_vms

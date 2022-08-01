@@ -180,6 +180,7 @@ export const AddGatewayFields = (props: {
       <FormControl className={classes.input}>
         <InputLabel htmlFor="types">Upgrade Tier</InputLabel>
         <Select
+          inputProps={{'data-testid': 'upgradeTier'}}
           className={classes.input}
           value={props.values.tier}
           onChange={({target}) =>

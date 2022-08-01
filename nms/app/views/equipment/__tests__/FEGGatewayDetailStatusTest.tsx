@@ -21,7 +21,7 @@ import {FederationGatewayHealthStatus} from '../../../components/GatewayUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {mockAPI} from '../../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import type {
   FederationGateway,
   PromqlReturnObject,
@@ -155,10 +155,9 @@ describe('<FEGGatewayDetailStatus />', () => {
   );
 
   it('renders federation gateway status correctly', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
+    const {getByTestId, findByTestId} = render(<Wrapper />);
     // verify gateway status
-    expect(getByTestId('Health')).toHaveTextContent('Good');
+    expect(await findByTestId('Health')).toHaveTextContent('Good');
     expect(getByTestId('Last Check in')).toHaveTextContent(
       mockCheckinTime.toLocaleString(),
     );

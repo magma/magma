@@ -17,81 +17,81 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
+
+import {DataTypes} from 'sequelize';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
-   * @param {DataTypes} types
+   * @param {{ context: QueryInterface}} params
    */
-  up: (queryInterface, types) => {
+  up: ({context: queryInterface}) => {
     return queryInterface.createTable('AuditLogEntries', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: types.INTEGER,
+        type: DataTypes.INTEGER,
       },
       actingUserId: {
-        type: types.INTEGER,
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       organization: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       mutationType: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       objectId: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       objectDisplayName: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       objectType: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       mutationData: {
-        type: types.JSON,
+        type: DataTypes.JSON,
         allowNull: false,
       },
       url: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       ipAddress: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       status: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       statusCode: {
-        type: types.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       createdAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
     });
   },
 
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     return queryInterface.dropTable('AuditLogEntries');
   },
 };

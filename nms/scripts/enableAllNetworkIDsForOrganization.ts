@@ -21,12 +21,10 @@ async function enableNetworks(
   networkIDs: Array<string>,
 ) {
   const organization = await Organization.findOne({
-    where: {
-      name: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', organizationName),
-      ),
-    },
+    where: Sequelize.where(
+      Sequelize.fn('lower', Sequelize.col('name')),
+      Sequelize.fn('lower', organizationName),
+    ),
   });
   if (organization) {
     await organization.update({networkIDs});

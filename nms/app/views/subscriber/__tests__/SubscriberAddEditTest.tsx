@@ -31,12 +31,11 @@ import {
   PolicyRule,
   Subscriber,
 } from '../../../../generated';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
-jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
 const subscribersMock: Record<string, Subscriber> = {
@@ -208,8 +207,6 @@ const ran: NetworkRanConfigs = {
 
 describe('<AddSubscriberButton />', () => {
   beforeEach(() => {
-    jest.setTimeout(60000);
-
     (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
     mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost');
     mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdPut');
@@ -334,26 +331,24 @@ describe('<AddSubscriberButton />', () => {
   it('Verify Subscribers Add', async () => {
     const {
       getByTestId,
-      getByText,
       queryByTestId,
       getByTitle,
-      getAllByRole,
       findByTitle,
-      findAllByRole,
       findByTestId,
+      findByText,
     } = render(<AddWrapper />);
-    await wait();
 
     expect(queryByTestId('addSubscriberDialog')).toBeNull();
     // Add Subscriber
-    fireEvent.click(getByText('Manage Subscribers'));
-    await wait();
-    fireEvent.click(getByText('Add Subscribers'));
-    await wait();
-    expect(queryByTestId('addSubscriberDialog')).not.toBeNull();
+    fireEvent.click(await findByText('Manage Subscribers'));
+    fireEvent.click(await findByText('Add Subscribers'));
+
+    expect(await findByTestId('addSubscriberDialog')).not.toBeNull();
+
+    const detailsTable = getByTestId('subscriber-details-table');
 
     // first row is the header
-    const rowHeader = getAllByRole('row');
+    const rowHeader = within(detailsTable).getAllByRole('row', {hidden: true});
     expect(rowHeader[0]).toHaveTextContent('Subscriber Name');
     expect(rowHeader[0]).toHaveTextContent('IMSI');
     expect(rowHeader[0]).toHaveTextContent('Auth Key');
@@ -365,7 +360,6 @@ describe('<AddSubscriberButton />', () => {
 
     //Add subscriber
     fireEvent.click(await findByTitle('Add'));
-    await wait();
 
     const name = (await findByTestId('name')).firstChild;
     const IMSI = getByTestId('IMSI').firstChild;
@@ -396,10 +390,11 @@ describe('<AddSubscriberButton />', () => {
 
     // Add subscriber
     fireEvent.click(getByTitle('Save'));
-    await wait();
 
     // Verify new subscriber row before saving
-    const rowItems = await findAllByRole('row');
+    const rowItems = await within(detailsTable).findAllByRole('row', {
+      hidden: true,
+    });
     expect(rowItems[1]).toHaveTextContent('IMSI00000000001004');
     expect(rowItems[1]).toHaveTextContent('8baf473f2f8fd09487cccbd7097c6862');
     expect(rowItems[1]).toHaveTextContent('8e27b6af0e692e750f32667a3b14605d');
@@ -434,13 +429,11 @@ describe('<AddSubscriberButton />', () => {
     const {getByTestId, queryByTestId, findByTestId} = render(
       <DetailWrapper />,
     );
-    await wait();
     expect(queryByTestId('editDialog')).toBeNull();
 
     // Edit tab 1 : subscriber info
     fireEvent.click(await findByTestId('subscriber'));
-    await wait();
-    expect(queryByTestId('editDialog')).not.toBeNull();
+    expect(await findByTestId('editDialog')).not.toBeNull();
 
     const name = getByTestId('name').firstChild;
 
@@ -451,29 +444,29 @@ describe('<AddSubscriberButton />', () => {
     }
 
     fireEvent.click(getByTestId('subscriber-saveButton'));
-    await wait();
 
-    expect(
-      MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdPut,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      subscriberId: 'IMSI00000000001002',
-      subscriber: {
-        active_apns: ['apn_0'],
-        active_base_names: undefined,
-        forbidden_network_types: forbiddenNetworkTypes,
-        id: 'IMSI00000000001002',
-        lte: {
-          auth_algo: 'MILENAGE',
-          auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
-          auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
-          state: 'ACTIVE',
-          sub_profile: 'default',
+    await waitFor(() => {
+      expect(
+        MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdPut,
+      ).toHaveBeenCalledWith({
+        networkId: 'test',
+        subscriberId: 'IMSI00000000001002',
+        subscriber: {
+          active_apns: ['apn_0'],
+          active_base_names: undefined,
+          forbidden_network_types: forbiddenNetworkTypes,
+          id: 'IMSI00000000001002',
+          lte: {
+            auth_algo: 'MILENAGE',
+            auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+            auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+            state: 'ACTIVE',
+            sub_profile: 'default',
+          },
+          name: 'test_subscriber',
+          static_ips: {apn_0: '1.1.1.1'},
         },
-        name: 'test_subscriber',
-        static_ips: {apn_0: '1.1.1.1'},
-      },
+      });
     });
-    // TODO: Test other tabs
   });
 });

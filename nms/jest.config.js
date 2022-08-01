@@ -19,9 +19,10 @@ module.exports = {
     '!**/node_modules/**',
   ],
   coverageReporters: ['json', 'html'],
+  testTimeout: 10000,
   projects: [
     {
-      name: 'server',
+      displayName: 'server',
       testEnvironment: 'node',
       testMatch: [
         '<rootDir>/server/**/__tests__/*.[jt]s?(x)',
@@ -34,7 +35,7 @@ module.exports = {
       restoreMocks: true,
     },
     {
-      name: 'app',
+      displayName: 'app',
       testEnvironment: 'jsdom',
       testMatch: ['<rootDir>/app/**/__tests__/*.[jt]s?(x)'],
       transform: {

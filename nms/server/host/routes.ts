@@ -44,12 +44,10 @@ router.get(
   '/organization/async/:name',
   asyncHandler(async (req: Request<{name: string}>, res) => {
     const organization = await Organization.findOne({
-      where: {
-        name: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.params.name),
-        ),
-      },
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.params.name),
+      ),
     });
     res.status(200).send({organization});
   }),
@@ -117,10 +115,9 @@ router.post(
       res,
     ) => {
       const featureId = req.params.featureId;
-      const results: Record<FeatureID, FeatureConfig> & {
+      const result: FeatureConfig & {
         config?: FeatureFlagConfig;
-      } = {...featureConfigs};
-      results.config = {};
+      } = featureConfigs[featureId];
       const {toUpdate, toDelete, toCreate} = req.body;
       const featureFlags = await FeatureFlag.findAll({where: {featureId}});
       await Promise.all(
@@ -129,9 +126,10 @@ router.post(
             const newFlag = await flag.update({
               enabled: toUpdate[flag.id].enabled,
             });
-            results.config![flag.organization] = configFromFeatureFlag(newFlag);
+            result.config![flag.organization] = configFromFeatureFlag(newFlag);
           } else if (toDelete[flag.id] !== undefined) {
             await FeatureFlag.destroy({where: {id: flag.id}});
+            delete result.config![flag.organization];
           }
         }),
       );
@@ -143,12 +141,11 @@ router.post(
             organization: data.organization,
             enabled: data.enabled,
           });
-
-          results.config![flag.organization] = configFromFeatureFlag(flag);
+          result.config![flag.organization] = configFromFeatureFlag(flag);
         }),
       );
 
-      res.status(200).send(results);
+      res.status(200).send(result);
     },
   ),
 );
@@ -165,12 +162,10 @@ router.post(
       res,
     ) => {
       let organization = await Organization.findOne({
-        where: {
-          name: Sequelize.where(
-            Sequelize.fn('lower', Sequelize.col('name')),
-            Sequelize.fn('lower', req.body.name),
-          ),
-        },
+        where: Sequelize.where(
+          Sequelize.fn('lower', Sequelize.col('name')),
+          Sequelize.fn('lower', req.body.name),
+        ),
       });
       if (organization) {
         return res.status(404).send({error: 'Organization already exists'});
@@ -193,12 +188,10 @@ router.put(
   '/organization/async/:name',
   asyncHandler(async (req: Request<never, any, {name: string}>, res) => {
     const organization = await Organization.findOne({
-      where: {
-        name: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.body.name),
-        ),
-      },
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.body.name),
+      ),
     });
     if (!organization) {
       return res.status(404).send({error: 'Organization does not exist'});
@@ -221,12 +214,10 @@ router.post(
   asyncHandler(
     async (req: Request<{name: string}, any, Partial<UserRawType>>, res) => {
       const organization = await Organization.findOne({
-        where: {
-          name: Sequelize.where(
-            Sequelize.fn('lower', Sequelize.col('name')),
-            Sequelize.fn('lower', req.params.name),
-          ),
-        },
+        where: Sequelize.where(
+          Sequelize.fn('lower', Sequelize.col('name')),
+          Sequelize.fn('lower', req.params.name),
+        ),
       });
       if (!organization) {
         return res.status(404).send({error: 'Organization does not exist'});
@@ -250,12 +241,10 @@ router.post(
         // uses SSO for login, give it a random password
         if (props.password === undefined) {
           const organization = await Organization.findOne({
-            where: {
-              name: Sequelize.where(
-                Sequelize.fn('lower', Sequelize.col('name')),
-                Sequelize.fn('lower', req.params.name),
-              ),
-            },
+            where: Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col('name')),
+              Sequelize.fn('lower', req.params.name),
+            ),
           });
           if (organization && organization.ssoEntrypoint) {
             props.password = crypto.randomBytes(16).toString('hex');

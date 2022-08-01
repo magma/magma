@@ -31,7 +31,7 @@ import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../../subscriber/SubscriberUtils';
 
 import MagmaAPI from '../../../api/MagmaAPI';
@@ -356,10 +356,9 @@ describe('<NetworkDashboard />', () => {
   };
 
   it('Verify Network Dashboard', async () => {
-    const {getByTestId, getByLabelText} = render(<Wrapper />);
-    await wait();
+    const {getByTestId, getByLabelText, findByTestId} = render(<Wrapper />);
 
-    const info = getByTestId('info');
+    const info = await findByTestId('info');
     expect(info).toHaveTextContent('Test Network');
     expect(info).toHaveTextContent('test_network');
     expect(info).toHaveTextContent('Test Network Description');
@@ -391,8 +390,9 @@ describe('<NetworkDashboard />', () => {
     }
 
     fireEvent.click(getByLabelText('toggle password visibility'));
-    await wait();
-    epcPasswordInputElement = getByTestId('LTE Auth AMF obscure').firstChild;
+
+    epcPasswordInputElement = (await findByTestId('LTE Auth AMF obscure'))
+      .firstChild;
     if (
       epcPasswordInputElement instanceof HTMLInputElement &&
       epcPasswordInputElement.value &&
@@ -410,17 +410,21 @@ describe('<NetworkDashboard />', () => {
   });
 
   it('Verify Network Add', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
-    await wait();
+    const {
+      getByTestId,
+      getByText,
+      queryByTestId,
+      findByText,
+      findByTestId,
+    } = render(<Wrapper />);
     lteNetworkIdGetMock.mockClear();
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByText('Add Network'));
-    await wait();
+    fireEvent.click(await findByText('Add Network'));
 
     // check if only first tab (network) is active
-    expect(queryByTestId('networkInfoEdit')).not.toBeNull();
+    expect(await findByTestId('networkInfoEdit')).not.toBeNull();
     expect(queryByTestId('networkEpcEdit')).toBeNull();
     expect(queryByTestId('networkRanEdit')).toBeNull();
 
@@ -443,14 +447,15 @@ describe('<NetworkDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(axiosMock.post).toHaveBeenCalledWith('/nms/network/create', {
-      networkID: 'testNetworkID',
-      data: {
-        name: 'Test LTE Network',
-        description: 'LTE test network description',
-        networkType: 'lte',
-      },
+    await waitFor(() => {
+      expect(axiosMock.post).toHaveBeenCalledWith('/nms/network/create', {
+        networkID: 'testNetworkID',
+        data: {
+          name: 'Test LTE Network',
+          description: 'LTE test network description',
+          networkType: 'lte',
+        },
+      });
     });
 
     // now tab should move to epc edit component
@@ -460,9 +465,8 @@ describe('<NetworkDashboard />', () => {
 
     // switch tab to network and verify editing of recently created network
     fireEvent.click(getByTestId('networkTab'));
-    await wait();
 
-    expect(queryByTestId('networkInfoEdit')).not.toBeNull();
+    expect(await findByTestId('networkInfoEdit')).not.toBeNull();
     expect(queryByTestId('networkEpcEdit')).toBeNull();
     expect(queryByTestId('networkRanEdit')).toBeNull();
 
@@ -489,14 +493,15 @@ describe('<NetworkDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
-    expect(MagmaAPI.lteNetworks.lteNetworkIdPut).toHaveBeenCalledWith({
-      networkId: 'testNetworkID',
-      lteNetwork: {
-        name: 'Test LTE Network',
-        description: 'New LTE test network description',
-        id: 'testNetworkID',
-      },
+    await waitFor(() => {
+      expect(MagmaAPI.lteNetworks.lteNetworkIdPut).toHaveBeenCalledWith({
+        networkId: 'testNetworkID',
+        lteNetwork: {
+          name: 'Test LTE Network',
+          description: 'New LTE test network description',
+          id: 'testNetworkID',
+        },
+      });
     });
 
     // verify adding EPC parameters
@@ -515,30 +520,31 @@ describe('<NetworkDashboard />', () => {
       throw 'invalid type';
     }
     fireEvent.click(getByText('Save And Continue'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        cloud_subscriberdb_enabled: false,
-        default_rule_id: 'default_rule_1',
-        lte_auth_amf: 'gAA=',
-        lte_auth_op: 'EREREREREREREREREREREQ==',
-        mcc: '003',
-        mnc: '02',
-        network_services: ['policy_enforcement'],
-        hss_relay_enabled: false,
-        gx_gy_relay_enabled: false,
-        sub_profiles: {},
-        mobility: {
-          ip_allocation_mode: 'NAT',
-          enable_static_ip_assignments: false,
-          enable_multi_apn_ip_allocation: false,
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          cloud_subscriberdb_enabled: false,
+          default_rule_id: 'default_rule_1',
+          lte_auth_amf: 'gAA=',
+          lte_auth_op: 'EREREREREREREREREREREQ==',
+          mcc: '003',
+          mnc: '02',
+          network_services: ['policy_enforcement'],
+          hss_relay_enabled: false,
+          gx_gy_relay_enabled: false,
+          sub_profiles: {},
+          mobility: {
+            ip_allocation_mode: 'NAT',
+            enable_static_ip_assignments: false,
+            enable_multi_apn_ip_allocation: false,
+          },
+          tac: 1,
         },
-        tac: 1,
-      },
-      networkId: 'testNetworkID',
+        networkId: 'testNetworkID',
+      });
     });
 
     // now save and continue should move to Ran component
@@ -562,36 +568,37 @@ describe('<NetworkDashboard />', () => {
       throw 'invalid type';
     }
     fireEvent.click(getByText('Save And Add Network'));
-    await wait();
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        bandwidth_mhz: 20,
-        fdd_config: undefined,
-        tdd_config: {
-          earfcndl: 44000,
-          special_subframe_pattern: 8,
-          subframe_assignment: 2,
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          bandwidth_mhz: 20,
+          fdd_config: undefined,
+          tdd_config: {
+            earfcndl: 44000,
+            special_subframe_pattern: 8,
+            subframe_assignment: 2,
+          },
         },
-      },
-      networkId: 'testNetworkID',
+        networkId: 'testNetworkID',
+      });
     });
     expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(0);
   });
 
   it('Verify Network Edit Info', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <Wrapper />,
+    );
     lteNetworkIdGetMock.mockClear();
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByTestId('infoEditButton'));
-    await wait();
+    fireEvent.click(await findByTestId('infoEditButton'));
 
     // check if first tab (network) is active
-    expect(queryByTestId('networkInfoEdit')).not.toBeNull();
+    expect(await findByTestId('networkInfoEdit')).not.toBeNull();
     expect(queryByTestId('networkEpcEdit')).toBeNull();
     expect(queryByTestId('networkRanEdit')).toBeNull();
 
@@ -619,33 +626,34 @@ describe('<NetworkDashboard />', () => {
     }
 
     fireEvent.click(getByText('Save'));
-    await wait();
-    expect(MagmaAPI.lteNetworks.lteNetworkIdPut).toHaveBeenCalledWith({
-      networkId: 'test_network',
-      lteNetwork: {
-        ...testNetwork,
-        description: 'Edit LTE test network description',
-        cellular: {
-          epc: epc,
-          ran: ran,
+    await waitFor(() => {
+      expect(MagmaAPI.lteNetworks.lteNetworkIdPut).toHaveBeenCalledWith({
+        networkId: 'test_network',
+        lteNetwork: {
+          ...testNetwork,
+          description: 'Edit LTE test network description',
+          cellular: {
+            epc: epc,
+            ran: ran,
+          },
         },
-      },
+      });
     });
     expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit EPC', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <Wrapper />,
+    );
     lteNetworkIdGetMock.mockClear();
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByTestId('epcEditButton'));
-    await wait();
+    fireEvent.click(await findByTestId('epcEditButton'));
 
+    expect(await findByTestId('networkEpcEdit')).not.toBeNull();
     expect(queryByTestId('networkInfoEdit')).toBeNull();
-    expect(queryByTestId('networkEpcEdit')).not.toBeNull();
     expect(queryByTestId('networkRanEdit')).toBeNull();
 
     const mncField = getByTestId('mnc').firstChild;
@@ -655,30 +663,31 @@ describe('<NetworkDashboard />', () => {
       throw 'invalid type';
     }
     fireEvent.click(getByText('Save'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut,
-    ).toHaveBeenCalledWith({
-      config: {...epc, mnc: '03'},
-      networkId: 'test_network',
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdCellularEpcPut,
+      ).toHaveBeenCalledWith({
+        config: {...epc, mnc: '03'},
+        networkId: 'test_network',
+      });
     });
     expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit Ran', async () => {
-    const {getByTestId, getByText, queryByTestId} = render(<Wrapper />);
-    await wait();
+    const {getByTestId, getByText, queryByTestId, findByTestId} = render(
+      <Wrapper />,
+    );
     lteNetworkIdGetMock.mockClear();
 
     expect(queryByTestId('editDialog')).toBeNull();
 
-    fireEvent.click(getByTestId('ranEditButton'));
-    await wait();
+    fireEvent.click(await findByTestId('ranEditButton'));
 
-    expect(queryByTestId('networkInfoEdit')).toBeNull();
+    expect(await findByTestId('networkRanEdit')).not.toBeNull();
     expect(queryByTestId('networkEpcEdit')).toBeNull();
-    expect(queryByTestId('networkRanEdit')).not.toBeNull();
+    expect(queryByTestId('networkInfoEdit')).toBeNull();
 
     const earfcndl = getByTestId('earfcndl').firstChild;
     if (earfcndl instanceof HTMLElement) {
@@ -687,19 +696,20 @@ describe('<NetworkDashboard />', () => {
       throw 'invalid type';
     }
     fireEvent.click(getByText('Save'));
-    await wait();
 
-    expect(
-      MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut,
-    ).toHaveBeenCalledWith({
-      config: {
-        ...ran,
-        tdd_config: {
-          ...ran.tdd_config,
-          earfcndl: 40000,
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteNetworks.lteNetworkIdCellularRanPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          ...ran,
+          tdd_config: {
+            ...ran.tdd_config,
+            earfcndl: 40000,
+          },
         },
-      },
-      networkId: 'test_network',
+        networkId: 'test_network',
+      });
     });
     expect(lteNetworkIdGetMock).toHaveBeenCalledTimes(1);
   });
@@ -756,10 +766,9 @@ describe('<FEGNetworkDashboard />', () => {
     );
   };
   it('Verify Network Info shown correctly', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
+    const {findByTestId} = render(<Wrapper />);
 
-    const info = getByTestId('feg_info');
+    const info = await findByTestId('feg_info');
     expect(info).toHaveTextContent('Test Network');
     expect(info).toHaveTextContent('test_network');
     expect(info).toHaveTextContent('Test Network Description');
