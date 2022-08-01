@@ -51,8 +51,12 @@ type DetailedCbsd struct {
 	Cbsd         *DBCbsd
 	CbsdState    *DBCbsdState
 	DesiredState *DBCbsdState
-	Grant        *DBGrant
-	GrantState   *DBGrantState
+	Grants       []*DetailedGrant
+}
+
+type DetailedGrant struct {
+	Grant      *DBGrant
+	GrantState *DBGrantState
 }
 
 func NewCbsdManager(db *sql.DB, builder sqorc.StatementBuilder, errorChecker sqorc.ErrorChecker, locker sqorc.Locker) *cbsdManager {
@@ -316,22 +320,24 @@ func (c *cbsdManagerInTransaction) markCbsdAsUpdated(networkId string, id int64)
 }
 
 func (c *cbsdManagerInTransaction) fetchDetailedCbsd(networkId string, id int64) (*DetailedCbsd, error) {
-	res, err := buildDetailedCbsdQuery(c.builder).
+	rawCbsd, err := buildDetailedCbsdQuery(c.builder).
 		Where(getCbsdFiltersWithId(networkId, id)).
 		Fetch()
 	if err != nil {
 		return nil, err
 	}
-	return convertToDetails(res), nil
+	cbsd := convertCbsdToDetails(rawCbsd)
+	if err := getGrantsForCbsds(c.builder, cbsd); err != nil {
+		return nil, err
+	}
+	return cbsd, nil
 }
 
-func convertToDetails(models []db.Model) *DetailedCbsd {
+func convertCbsdToDetails(models []db.Model) *DetailedCbsd {
 	return &DetailedCbsd{
 		Cbsd:         models[0].(*DBCbsd),
 		CbsdState:    models[1].(*DBCbsdState),
 		DesiredState: models[2].(*DBCbsdState),
-		Grant:        models[3].(*DBGrant),
-		GrantState:   models[4].(*DBGrantState),
 	}
 }
 
@@ -339,7 +345,8 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 	return db.NewQuery().
 		WithBuilder(builder).
 		From(&DBCbsd{}).
-		Select(db.NewExcludeMask("network_id", "state_id", "desired_state_id",
+		Select(db.NewExcludeMask(
+			"network_id", "state_id", "desired_state_id",
 			"is_deleted", "should_deregister")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
@@ -350,21 +357,48 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 			From(&DBCbsdState{}).
 			As("t2").
 			On(db.On(CbsdTable, "desired_state_id", "t2", "id")).
-			Select(db.NewIncludeMask("name"))).
+			Select(db.NewIncludeMask("name")))
+}
+
+func getGrantsForCbsds(builder sq.StatementBuilderType, cbsds ...*DetailedCbsd) error {
+	idList, idMap := make([]int64, len(cbsds)), make(map[int64]*DetailedCbsd, len(cbsds))
+	for i, c := range cbsds {
+		idList[i] = c.Cbsd.Id.Int64
+		idMap[c.Cbsd.Id.Int64] = c
+	}
+	rawGrants, err := buildDetailedGrantQuery(builder).
+		Where(sq.Eq{"cbsd_id": idList}).
+		OrderBy(GrantTable+".id", db.OrderAsc).
+		List()
+	if err != nil {
+		return err
+	}
+	for _, models := range rawGrants {
+		g := &DetailedGrant{
+			Grant:      models[0].(*DBGrant),
+			GrantState: models[1].(*DBGrantState),
+		}
+		c := idMap[g.Grant.CbsdId.Int64]
+		g.Grant.CbsdId = sql.NullInt64{}
+		c.Grants = append(c.Grants, g)
+	}
+	return nil
+}
+
+func buildDetailedGrantQuery(builder sq.StatementBuilderType) *db.Query {
+	return db.NewQuery().
+		WithBuilder(builder).
+		From(&DBGrant{}).
+		Select(db.NewIncludeMask(
+			"cbsd_id", "grant_expire_time", "transmit_expire_time",
+			"low_frequency", "high_frequency", "max_eirp")).
 		Join(db.NewQuery().
-			From(&DBGrant{}).
-			On(db.On(CbsdTable, "id", GrantTable, "cbsd_id")).
-			Select(db.NewIncludeMask(
-				"grant_expire_time", "transmit_expire_time",
-				"low_frequency", "high_frequency", "max_eirp")).
-			Join(db.NewQuery().
-				From(&DBGrantState{}).
-				On(sq.And{
-					db.On(GrantTable, "state_id", GrantStateTable, "id"),
-					sq.NotEq{GrantStateTable + ".name": "idle"},
-				}).
-				Select(db.NewIncludeMask("name"))).
-			Nullable())
+			From(&DBGrantState{}).
+			On(sq.And{
+				db.On(GrantTable, "state_id", GrantStateTable, "id"),
+				sq.NotEq{GrantStateTable + ".name": "idle"},
+			}).
+			Select(db.NewIncludeMask("name")))
 }
 
 func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error) {
@@ -382,7 +416,10 @@ func (c *cbsdManagerInTransaction) listDetailedCbsd(networkId string, pagination
 	}
 	cbsds := make([]*DetailedCbsd, len(res))
 	for i, models := range res {
-		cbsds[i] = convertToDetails(models)
+		cbsds[i] = convertCbsdToDetails(models)
+	}
+	if err := getGrantsForCbsds(c.builder, cbsds...); err != nil {
+		return nil, err
 	}
 	return &DetailedCbsdList{
 		Cbsds: cbsds,

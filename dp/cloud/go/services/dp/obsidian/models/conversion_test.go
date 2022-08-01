@@ -42,11 +42,11 @@ func TestCbsdToBackend(t *testing.T) {
 	assert.Equal(t, data.GrantRedundancy, *cbsd.GrantRedundancy)
 }
 
-func TestCbsdFromBackendWithoutGrant(t *testing.T) {
+func TestCbsdFromBackendWithoutGrants(t *testing.T) {
 	details := b.NewDetailedProtoCbsdBuilder(
 		b.NewCbsdProtoPayloadBuilder()).Details
 	data := models.CbsdFromBackend(details)
-	assert.Nil(t, data.Grant)
+	assert.Empty(t, data.Grants)
 	assert.Equal(t, data.ID, details.Id)
 	assert.Equal(t, data.IsActive, details.IsActive)
 	assert.Equal(t, data.CbsdID, details.CbsdId)
@@ -66,6 +66,20 @@ func TestCbsdFromBackendWithoutGrant(t *testing.T) {
 	assert.Equal(t, data.GrantRedundancy, details.Data.GrantRedundancy)
 }
 
+func TestCbsdFromBackendWithGrants(t *testing.T) {
+	details := b.NewDetailedProtoCbsdBuilder(
+		b.NewCbsdProtoPayloadBuilder()).WithGrant().Details
+	data := models.CbsdFromBackend(details)
+	assert.Len(t, data.Grants, len(details.Grants))
+	expected, actual := data.Grants[0], details.Grants[0]
+	assert.Equal(t, expected.BandwidthMhz, actual.BandwidthMhz)
+	assert.Equal(t, expected.FrequencyMhz, actual.FrequencyMhz)
+	assert.Equal(t, expected.GrantExpireTime, to_pointer.TimeToDateTime(actual.GrantExpireTimestamp))
+	assert.Equal(t, expected.TransmitExpireTime, to_pointer.TimeToDateTime(actual.TransmitExpireTimestamp))
+	assert.Equal(t, expected.MaxEirp, actual.MaxEirp)
+	assert.Equal(t, expected.State, actual.State)
+}
+
 func TestCbsdFromBackendWithEmptyInstallationParam(t *testing.T) {
 	details := b.NewDetailedProtoCbsdBuilder(
 		b.NewCbsdProtoPayloadBuilder().WithEmptyInstallationParam()).Details
@@ -76,18 +90,6 @@ func TestCbsdFromBackendWithEmptyInstallationParam(t *testing.T) {
 	assert.Nil(t, data.InstallationParam.Heightm)
 	assert.Nil(t, data.InstallationParam.HeightType)
 	assert.Nil(t, data.InstallationParam.AntennaGain)
-}
-
-func TestCbsdFromBackendWithGrant(t *testing.T) {
-	details := b.NewDetailedProtoCbsdBuilder(
-		b.NewCbsdProtoPayloadBuilder()).WithGrant().Details
-	data := models.CbsdFromBackend(details)
-	assert.Equal(t, data.Grant.BandwidthMhz, details.Grant.BandwidthMhz)
-	assert.Equal(t, data.Grant.FrequencyMhz, details.Grant.FrequencyMhz)
-	assert.Equal(t, data.Grant.GrantExpireTime, to_pointer.TimeToDateTime(details.Grant.GrantExpireTimestamp))
-	assert.Equal(t, data.Grant.TransmitExpireTime, to_pointer.TimeToDateTime(details.Grant.TransmitExpireTimestamp))
-	assert.Equal(t, data.Grant.MaxEirp, details.Grant.MaxEirp)
-	assert.Equal(t, data.Grant.State, details.Grant.State)
 }
 
 func TestCbsdFromBackendWithoutInstallationParam(t *testing.T) {

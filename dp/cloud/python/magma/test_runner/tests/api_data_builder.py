@@ -37,6 +37,7 @@ class CbsdAPIDataBuilder:
             'single_step_enabled': False,
             'carrier_aggregation_enabled': False,
             'grant_redundancy': True,
+            'grants': [],
         }
 
     def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
@@ -124,15 +125,20 @@ class CbsdAPIDataBuilder:
         self.grant_state = grant_state
         return self
 
+    def without_grants(self) -> CbsdAPIDataBuilder:
+        self.payload['grants'] = []
+        return self
+
+    # TODO clean up this (two with grant methods)
     def with_grant(
             self, bandwidth_mhz: int = None, frequency_mhz: int = None, max_eirp: int = None, grant_state=None,
     ) -> CbsdAPIDataBuilder:
-        self.payload['grant'] = {
+        self.payload['grants'] = [{
             'bandwidth_mhz': bandwidth_mhz or self.bandwidth_mhz,
             'frequency_mhz': frequency_mhz or self.frequency_mhz,
             'max_eirp': max_eirp or self.max_eirp,
             'state': grant_state or self.grant_state,
-        }
+        }]
         return self
 
     def with_max_eirp(self, max_eirp: int = 28) -> CbsdAPIDataBuilder:

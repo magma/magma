@@ -23,7 +23,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import CbsdContext from '../../context/CbsdContext';
 import {CbsdAddEditDialog} from './CbsdEdit';
 import {Query} from '@material-table/core';
-import type {Cbsd} from '../../../generated';
+import type {Cbsd, Grant} from '../../../generated';
 
 type CbsdRowType = {
   id: number;
@@ -33,12 +33,44 @@ type CbsdRowType = {
   userId: string;
   fccId: string;
   cbsdId?: string;
-  maxEirp?: number;
-  bandwidth?: number;
-  frequency?: number;
-  grantExpireTime?: string;
-  transmitExpireTime?: string;
+  grantState?: React.ReactNode;
+  maxEirp?: React.ReactNode;
+  bandwidth?: React.ReactNode;
+  frequency?: React.ReactNode;
+  grantExpireTime?: React.ReactNode;
+  transmitExpireTime?: React.ReactNode;
 };
+
+type GrantFieldCellContentProps = {
+  grants: Cbsd['grants'];
+  field: keyof Grant;
+};
+
+/**
+ * Quick & dirty UX solution to display CBSDs with multiple grants for v1.8.
+ * Each grant has 5 fields, and we have columns for those fields.
+ * Previously we had 1 grant per CBSD, so it was easy.
+ * Now we have multiple grants, so each of 5 columns can have multiple values.
+ * As a quick solution display each value in the same cell, with <hr /> separator.
+ * The UX is planned to be improved after v1.8 release.
+ */
+function GrantFieldCellContent({grants, field}: GrantFieldCellContentProps) {
+  if (!grants?.length) {
+    return null;
+  }
+  const fieldValues = grants?.map(g => g[field]);
+
+  // Using index for key, because grants have no ids,
+  // and may have identical values for some fields.
+  const fragments = fieldValues.map((value, idx) => (
+    <React.Fragment key={idx}>
+      {value}
+      {idx !== fieldValues.length - 1 && <hr />}
+    </React.Fragment>
+  ));
+
+  return <>{fragments}</>;
+}
 
 function CbsdsTable(props: WithAlert) {
   const [isEditDialodOpen, setIsEditDialogOpen] = useState(false);
@@ -59,11 +91,36 @@ function CbsdsTable(props: WithAlert) {
               userId: item.user_id,
               fccId: item.fcc_id,
               cbsdId: item.cbsd_id,
-              maxEirp: item.grant?.max_eirp,
-              bandwidth: item.grant?.bandwidth_mhz,
-              frequency: item.grant?.frequency_mhz,
-              grantExpireTime: item.grant?.grant_expire_time,
-              transmitExpireTime: item.grant?.transmit_expire_time,
+              grantState: (
+                <GrantFieldCellContent grants={item.grants} field="state" />
+              ),
+              maxEirp: (
+                <GrantFieldCellContent grants={item.grants} field="max_eirp" />
+              ),
+              bandwidth: (
+                <GrantFieldCellContent
+                  grants={item.grants}
+                  field="bandwidth_mhz"
+                />
+              ),
+              frequency: (
+                <GrantFieldCellContent
+                  grants={item.grants}
+                  field="frequency_mhz"
+                />
+              ),
+              grantExpireTime: (
+                <GrantFieldCellContent
+                  grants={item.grants}
+                  field="grant_expire_time"
+                />
+              ),
+              transmitExpireTime: (
+                <GrantFieldCellContent
+                  grants={item.grants}
+                  field="transmit_expire_time"
+                />
+              ),
             };
           },
         )
@@ -136,6 +193,10 @@ function CbsdsTable(props: WithAlert) {
           {
             title: 'CBSD ID',
             field: 'cbsdId',
+          },
+          {
+            title: 'Grant state',
+            field: 'grantState',
           },
           {
             title: 'MAX EIRP(dBm/MHz)',
