@@ -46,7 +46,6 @@ func NewSubscriberdbServicer(config subscriberdb.Config, store syncstore.SyncSto
 }
 
 
-
 func (s *subscriberdbServicer) CheckInSync(
 	ctx context.Context,
 	req *lte_protos.CheckInSyncRequest,
@@ -158,7 +157,7 @@ func (s *subscriberdbServicer) Sync(
 		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication disabled, streaming subscriber data")
 		return res, nil
 	}
 }
@@ -228,7 +227,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return listRes, nil
 	}
 
@@ -282,7 +281,7 @@ func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, netw
 		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return false , nil, nil, nil
 	} else {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return false, renewed, deleted, nil
 	}
 }
@@ -311,7 +310,7 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context,
 		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, "", nil
 	} else {
-		glog.Infof("Cloud Authentication NOT enabled,  streaming subscriber data")
+		glog.Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return subProtos, nextToken, nil
 	}
 
@@ -358,16 +357,17 @@ func CloudSubscriberDbEnabled(ctx context.Context) bool {
 	networkID := gateway.NetworkId
 	network, err := configurator.LoadNetwork(ctx, networkID, false, true,serdes.Network)
 	if err != nil {
-		fmt.Errorf("Load network for network %s: %w", networkID, err)
+		fmt.Errorf("Load error for network %s: %w", networkID, err)
+		return true
 	}
 	nwCellularConfigType, ok := network.Configs[lte.CellularNetworkConfigType]
 	if (!ok){
 		fmt.Errorf("Error fetching cellular configs")
+		return true
 	}
 	nwCellularConfig := nwCellularConfigType.(*lte_models.NetworkCellularConfigs)
 	EpcConfig := nwCellularConfig.Epc
-	flag := EpcConfig.CloudSubscriberdbEnabled
-	return flag
+	return EpcConfig.CloudSubscriberdbEnabled
 }
 
 func loadAPNs(ctx context.Context, gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

@@ -80,8 +80,7 @@ void SqliteStore::_create_store() {
 }
 
 void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
-  std::string sid_s = _to_str(subscriber_data);
-  const char* sid = sid_s.c_str();
+  const char* sid = _to_str(subscriber_data);
   std::string data_str_s;
   subscriber_data.SerializeToString(&data_str_s);
   std::cout << "Serialized subscriber data: " << data_str_s << std::endl;
@@ -90,7 +89,7 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   const char* db_location = db_location_s.c_str();
   sqlite3* db;
   int rc_open = sqlite3_open(db_location, &db);
-  if (rc) {
+  if (rc_open) {
     std::cout << "Cannot open database " << sqlite3_errmsg(db) << std::endl;
   } else {
     std::cout << "Database " << db_location << " opened successfully "
@@ -114,13 +113,15 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   }
 }
 
-std::string SqliteStore::_to_str(const SubscriberData& subscriber_data) {
+const char* SqliteStore::_to_str(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
-    std::cout << "Valid sid " << std::endl;
-    return "IMSI" + subscriber_data.sid().id();
+    std::cout << "Valid sid: " << subscriber_data.sid().id()   << std::endl;
+    std::string sid_s =  "IMSI" + subscriber_data.sid().id();
+    return sid_s.c_str();
   } else {
     std::cout << "Invalid sid " << subscriber_data.sid().id() << " type "
               << subscriber_data.sid().type() << std::endl;
+    return NULL;
   }
 }
 

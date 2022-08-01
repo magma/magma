@@ -226,8 +226,9 @@ void S6aClient::convert_ula_to_subscriber_data(
     feg::UpdateLocationAnswer response, magma::lte::SubscriberData* sub_data) {
   if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
-  } else {
-    std::cout << "CONVERTING ULA TO SUBSCRIBER DATA" << std::endl;
+    return;
+  }
+    std::cout << "Converting ULA TO Subscriber Data object" << std::endl;
     for (int i = 0; i < response.apn_size(); i++) {
       auto apn = response.apn(i);
       auto sub_apn_config = sub_data->mutable_non_3gpp()->add_apn_config();
@@ -295,7 +296,7 @@ void S6aClient::convert_ula_to_subscriber_data(
         }
       }
     }
-  }
+
 }
 
 }  // namespace magma
