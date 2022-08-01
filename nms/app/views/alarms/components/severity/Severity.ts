@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-import grey from '@mui/material/colors/grey';
-import orange from '@mui/material/colors/orange';
-import red from '@mui/material/colors/red';
-import yellow from '@mui/material/colors/yellow';
+import {grey} from '@mui/material/colors';
+import {orange} from '@mui/material/colors';
+import {red} from '@mui/material/colors';
+import {yellow} from '@mui/material/colors';
 
 export const SEVERITY = {
   NOTICE: {
