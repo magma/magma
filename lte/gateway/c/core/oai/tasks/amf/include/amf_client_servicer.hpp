@@ -88,7 +88,7 @@ class AMFClientServicerBase {
                                      const struct in_addr* ipv4_addr,
                                      const struct in6_addr* ipv6_addr);
 
-  virtual int amf_smf_create_pdu_session(
+  virtual status_code_e amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
       uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
@@ -102,7 +102,7 @@ class AMFClientServicerBase {
                                      const std::string& mac_tag,
                                      amf_ue_ngap_id_t ue_id);
 
-  virtual int n11_update_location_req(
+  virtual status_code_e n11_update_location_req(
       const s6a_update_location_req_t* const ulr_p);
 
   virtual bool set_smf_notification(const SetSmNotificationContext& notify);
@@ -182,7 +182,7 @@ class AMFClientServicer : public AMFClientServicerBase {
     return RETURNok;
   }
 
-  int amf_smf_create_pdu_session(
+  status_code_e amf_smf_create_pdu_session(
       char* imsi, uint8_t* apn, uint32_t pdu_session_id,
       uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
       uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
@@ -200,7 +200,8 @@ class AMFClientServicer : public AMFClientServicerBase {
     return true;
   }
 
-  int n11_update_location_req(const s6a_update_location_req_t* const ulr_p) {
+  status_code_e n11_update_location_req(
+      const s6a_update_location_req_t* const ulr_p) {
     return RETURNok;
   }
 

@@ -20,8 +20,8 @@ import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import EnodebContext from '../../components/context/EnodebContext';
-import GatewayContext from '../../components/context/GatewayContext';
+import EnodebContext from '../../context/EnodebContext';
+import GatewayContext from '../../context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
@@ -121,8 +121,8 @@ export default function GatewayConfig() {
             />
           </Grid>
           <Grid container spacing={4}>
-            <Grid item xs={12} md={6} alignItems="center">
-              <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={4} alignItems="center">
                 <Grid item xs={12}>
                   <CardTitleRow
                     label="Gateway"
@@ -150,8 +150,8 @@ export default function GatewayConfig() {
                 )}
               </Grid>
             </Grid>
-            <Grid item xs={12} md={6} alignItems="center">
-              <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={4} alignItems="center">
                 <Grid item xs={12}>
                   <CardTitleRow
                     label="EPC"

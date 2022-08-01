@@ -133,15 +133,15 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
             esm_info_response,
         )
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
 
         # Trigger Attach Complete

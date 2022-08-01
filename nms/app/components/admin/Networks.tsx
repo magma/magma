@@ -34,8 +34,8 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import AppContext from '../context/AppContext';
-import NetworkContext from '../context/NetworkContext';
+import AppContext from '../../context/AppContext';
+import NetworkContext from '../../context/NetworkContext';
 import {Route, Routes, useNavigate} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -131,7 +131,7 @@ function Networks() {
   return (
     <div className={classes.paper}>
       {rows.length === 0 ? (
-        <Grid container justify="space-between" spacing={3}>
+        <Grid container justifyContent="space-between" spacing={3}>
           <EmptyState
             title={'Set up a Network'}
             instructions={

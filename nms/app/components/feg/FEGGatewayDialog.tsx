@@ -28,7 +28,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import FEGGatewayContext from '../context/FEGGatewayContext';
+import FEGGatewayContext from '../../context/FEGGatewayContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -177,6 +177,27 @@ function virtualApnRulesToObject(
     .map(pair => {
       return {apn_filter: pair[0], apn_overwrite: pair[1]};
     });
+}
+
+export function FEGAddGatewayButton() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleClose = () => setIsVisible(false);
+
+  return (
+    <>
+      <Button
+        onClick={() => setIsVisible(true)}
+        color="primary"
+        size="small"
+        variant="contained">
+        Add Gateway
+      </Button>
+      {isVisible && (
+        <FEGGatewayDialog onClose={handleClose} onSave={handleClose} />
+      )}
+    </>
+  );
 }
 
 export default function FEGGatewayDialog(props: Props) {
@@ -373,7 +394,12 @@ export default function FEGGatewayDialog(props: Props) {
   }
 
   return (
-    <Dialog open={true} onClose={props.onClose} maxWidth="md" scroll="body">
+    <Dialog
+      open={true}
+      onClose={props.onClose}
+      maxWidth="md"
+      scroll="body"
+      data-testid="FEGGatewayDialog">
       <AppBar position="static" className={classes.appBar}>
         <Tabs
           indicatorColor="primary"

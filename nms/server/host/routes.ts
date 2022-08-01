@@ -16,7 +16,11 @@ import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import featureConfigs, {FeatureConfig} from '../features';
 import logging from '../../shared/logging';
-import {FeatureFlag, Organization} from '../../shared/sequelize_models';
+import {
+  FeatureFlag,
+  Organization,
+  sequelize,
+} from '../../shared/sequelize_models';
 import {FeatureFlagModel} from '../../shared/sequelize_models/models/featureflag';
 import {Request, Router} from 'express';
 import {User} from '../../shared/sequelize_models';
@@ -40,12 +44,10 @@ router.get(
   '/organization/async/:name',
   asyncHandler(async (req: Request<{name: string}>, res) => {
     const organization = await Organization.findOne({
-      where: {
-        name: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.params.name),
-        ),
-      },
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.params.name),
+      ),
     });
     res.status(200).send({organization});
   }),
@@ -113,10 +115,9 @@ router.post(
       res,
     ) => {
       const featureId = req.params.featureId;
-      const results: Record<FeatureID, FeatureConfig> & {
+      const result: FeatureConfig & {
         config?: FeatureFlagConfig;
-      } = {...featureConfigs};
-      results.config = {};
+      } = featureConfigs[featureId];
       const {toUpdate, toDelete, toCreate} = req.body;
       const featureFlags = await FeatureFlag.findAll({where: {featureId}});
       await Promise.all(
@@ -125,9 +126,10 @@ router.post(
             const newFlag = await flag.update({
               enabled: toUpdate[flag.id].enabled,
             });
-            results.config![flag.organization] = configFromFeatureFlag(newFlag);
+            result.config![flag.organization] = configFromFeatureFlag(newFlag);
           } else if (toDelete[flag.id] !== undefined) {
             await FeatureFlag.destroy({where: {id: flag.id}});
+            delete result.config![flag.organization];
           }
         }),
       );
@@ -139,12 +141,11 @@ router.post(
             organization: data.organization,
             enabled: data.enabled,
           });
-
-          results.config![flag.organization] = configFromFeatureFlag(flag);
+          result.config![flag.organization] = configFromFeatureFlag(flag);
         }),
       );
 
-      res.status(200).send(results);
+      res.status(200).send(result);
     },
   ),
 );
@@ -161,12 +162,10 @@ router.post(
       res,
     ) => {
       let organization = await Organization.findOne({
-        where: {
-          name: Sequelize.where(
-            Sequelize.fn('lower', Sequelize.col('name')),
-            Sequelize.fn('lower', req.body.name),
-          ),
-        },
+        where: Sequelize.where(
+          Sequelize.fn('lower', Sequelize.col('name')),
+          Sequelize.fn('lower', req.body.name),
+        ),
       });
       if (organization) {
         return res.status(404).send({error: 'Organization already exists'});
@@ -189,12 +188,10 @@ router.put(
   '/organization/async/:name',
   asyncHandler(async (req: Request<never, any, {name: string}>, res) => {
     const organization = await Organization.findOne({
-      where: {
-        name: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.body.name),
-        ),
-      },
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.body.name),
+      ),
     });
     if (!organization) {
       return res.status(404).send({error: 'Organization does not exist'});
@@ -217,12 +214,10 @@ router.post(
   asyncHandler(
     async (req: Request<{name: string}, any, Partial<UserRawType>>, res) => {
       const organization = await Organization.findOne({
-        where: {
-          name: Sequelize.where(
-            Sequelize.fn('lower', Sequelize.col('name')),
-            Sequelize.fn('lower', req.params.name),
-          ),
-        },
+        where: Sequelize.where(
+          Sequelize.fn('lower', Sequelize.col('name')),
+          Sequelize.fn('lower', req.params.name),
+        ),
       });
       if (!organization) {
         return res.status(404).send({error: 'Organization does not exist'});
@@ -246,12 +241,10 @@ router.post(
         // uses SSO for login, give it a random password
         if (props.password === undefined) {
           const organization = await Organization.findOne({
-            where: {
-              name: Sequelize.where(
-                Sequelize.fn('lower', Sequelize.col('name')),
-                Sequelize.fn('lower', req.params.name),
-              ),
-            },
+            where: Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col('name')),
+              Sequelize.fn('lower', req.params.name),
+            ),
           });
           if (organization && organization.ssoEntrypoint) {
             props.password = crypto.randomBytes(16).toString('hex');
@@ -270,10 +263,25 @@ router.post(
 router.delete(
   '/organization/async/:id',
   asyncHandler(async (req: Request<{id: string}>, res) => {
-    await Organization.destroy({
+    const organization = await Organization.findOne({
       where: {id: req.params.id},
-      individualHooks: true,
     });
+
+    if (!organization) {
+      res.status(200).send({success: true});
+      return;
+    }
+
+    await sequelize.transaction(async transaction => {
+      await organization.destroy({transaction});
+
+      await User.destroy({
+        where: {organization: organization.name},
+        individualHooks: true,
+        transaction,
+      });
+    });
+
     res.status(200).send({success: true});
   }),
 );

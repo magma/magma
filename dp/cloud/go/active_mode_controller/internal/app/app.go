@@ -24,7 +24,6 @@ import (
 
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
-	"magma/dp/cloud/go/active_mode_controller/internal/message_generator/sas"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
@@ -32,7 +31,7 @@ import (
 type App struct {
 	additionalGrpcOpts []grpc.DialOption
 	clock              Clock
-	rng                sas.RNG
+	rng                message_generator.RNG
 	cfg                *config.Config
 }
 
@@ -59,7 +58,7 @@ func WithDialer(dialer Dialer) Option {
 	}
 }
 
-func WithRNG(rng sas.RNG) Option {
+func WithRNG(rng message_generator.RNG) Option {
 	return func(a *App) {
 		a.rng = rng
 	}
@@ -110,7 +109,7 @@ func (a *App) Run(ctx context.Context) error {
 	}
 }
 
-func newGenerator(cfg *config.Config, rng sas.RNG) messageGenerator {
+func newGenerator(cfg *config.Config, rng message_generator.RNG) messageGenerator {
 	return message_generator.NewMessageGenerator(
 		cfg.HeartbeatSendTimeout+cfg.PollingInterval+cfg.RequestProcessingInterval,
 		cfg.CbsdInactivityTimeout,

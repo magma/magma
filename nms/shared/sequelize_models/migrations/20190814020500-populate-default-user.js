@@ -17,16 +17,15 @@
  * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
  *
  * @typedef { import("sequelize").QueryInterface } QueryInterface
- * @typedef { import("sequelize").DataTypes } DataTypes
  */
 
 import bcrypt from 'bcryptjs';
 
 module.exports = {
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  up: async queryInterface => {
+  up: async ({context: queryInterface}) => {
     const email = process.env.FB_TEST_USER;
     if (!email) {
       return Promise.resolve(null);
@@ -73,9 +72,9 @@ module.exports = {
     );
   },
   /**
-   * @param {QueryInterface} queryInterface
+   * @param {{ context: QueryInterface}} params
    */
-  down: queryInterface => {
+  down: ({context: queryInterface}) => {
     if (process.env.FB_TEST_USER) {
       // @ts-ignore
       return queryInterface.bulkDelete('Users', null, {});

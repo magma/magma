@@ -12,7 +12,7 @@
  */
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
+import GatewayPoolsContext from '../../context/GatewayPoolsContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
@@ -28,7 +28,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
-import type {GatewayPoolRecordsType} from '../../components/context/GatewayPoolsContext';
+import type {GatewayPoolRecordsType} from '../../context/GatewayPoolsContext';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 const useStyles = makeStyles<Theme>(theme => ({

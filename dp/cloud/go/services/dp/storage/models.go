@@ -212,7 +212,6 @@ type DBCbsd struct {
 	FccId                     sql.NullString
 	CbsdSerialNumber          sql.NullString
 	LastSeen                  sql.NullTime
-	GrantAttempts             sql.NullInt64
 	PreferredBandwidthMHz     sql.NullInt64
 	PreferredFrequenciesMHz   sql.NullString
 	MinPower                  sql.NullFloat64
@@ -251,7 +250,6 @@ func (c *DBCbsd) Fields() []db.BaseType {
 		db.StringType{X: &c.FccId},
 		db.StringType{X: &c.CbsdSerialNumber},
 		db.TimeType{X: &c.LastSeen},
-		db.IntType{X: &c.GrantAttempts},
 		db.IntType{X: &c.PreferredBandwidthMHz},
 		db.StringType{X: &c.PreferredFrequenciesMHz},
 		db.FloatType{X: &c.MinPower},
@@ -327,12 +325,6 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 				Name:     "last_seen",
 				SqlType:  sqorc.ColumnTypeDatetime,
 				Nullable: true,
-			},
-			{
-				Name:         "grant_attempts",
-				SqlType:      sqorc.ColumnTypeInt,
-				HasDefault:   true,
-				DefaultValue: 0,
 			},
 			{
 				Name:    "preferred_bandwidth_mhz",

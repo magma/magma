@@ -13,7 +13,7 @@
 import ActionTable, {SelectEditComponent} from '../../components/ActionTable';
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
-import ApnContext from '../../components/context/ApnContext';
+import ApnContext from '../../context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
@@ -24,13 +24,13 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import ListItemText from '@material-ui/core/ListItemText';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import PolicyContext from '../../components/context/PolicyContext';
+import PolicyContext from '../../context/PolicyContext';
 import React, {forwardRef, useContext, useState} from 'react';
 import Select from '@material-ui/core/Select';
-import SubscriberContext from '../../components/context/SubscriberContext';
+import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -40,7 +40,7 @@ import {SubscriberDetailsUpload} from './SubscriberUpload';
 import {
   SubscriberRowType,
   handleSubscriberQuery,
-} from '../../state/lte/SubscriberState';
+} from '../../util/SubscriberState';
 import {colors} from '../../theme/default';
 import {forbiddenNetworkTypes, validateSubscribers} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -54,10 +54,6 @@ import type {
 } from './SubscriberUtils';
 
 const useStyles = makeStyles(() => ({
-  dialogTitle: {
-    textTransform: 'capitalize',
-    backgroundColor: colors.primary.brightGray,
-  },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
@@ -108,15 +104,15 @@ type ActionDialogProps = {
  * Dialog used to Add/Delete/Update subscribers
  */
 export function AddSubscriberDialog(props: ActionDialogProps) {
-  const classes = useStyles();
-
   return (
     <>
       <Dialog data-testid="addSubscriberDialog" open={props.open} maxWidth="xl">
         <DialogTitle
-          classes={{root: classes.dialogTitle}}
           onClose={props.onClose}
-          label={`${props.subscriberAction} Subscriber(s)`}
+          label={`${
+            props.subscriberAction[0].toUpperCase() +
+            props.subscriberAction.slice(1)
+          } Subscriber(s)`}
         />
 
         <SubscriberDetailsDialogContent {...props} />
@@ -447,7 +443,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
 
   return (
     <>
-      <DialogContent>
+      <DialogContent data-testid="subscriber-details-table">
         {(addError.length > 0 || props.error) && (
           <Grid item>
             <Alert severity="error">
@@ -567,6 +563,7 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
                   {
                     icon: (forwardRef<SVGSVGElement>((props, ref) => (
                       <Button
+                        component="span"
                         startIcon={<CloudUploadIcon {...props} ref={ref} />}
                         variant="outlined"
                         color="primary">

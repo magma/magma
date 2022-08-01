@@ -27,7 +27,7 @@ export default function Cbsds() {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <Grid container justify="space-between" spacing={3}>
+      <Grid container justifyContent="space-between" spacing={3}>
         <Grid item xs={12}>
           <CbsdsTable />
         </Grid>

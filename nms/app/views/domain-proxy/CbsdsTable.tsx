@@ -20,7 +20,7 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CbsdContext from '../../components/context/CbsdContext';
+import CbsdContext from '../../context/CbsdContext';
 import {CbsdAddEditDialog} from './CbsdEdit';
 import {Query} from '@material-table/core';
 import type {Cbsd} from '../../../generated';

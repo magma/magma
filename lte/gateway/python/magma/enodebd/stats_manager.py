@@ -153,11 +153,10 @@ class StatsManager:
             logger.error("Couldn't find serial for ip", ip)
         return label
 
-    @asyncio.coroutine
-    def _post_and_put_handler(self, request) -> web.Response:
+    async def _post_and_put_handler(self, request) -> web.Response:
         """ HTTP POST handler """
         # Read request body and convert to XML tree
-        body = yield from request.read()
+        body = await request.read()
 
         root = ElementTree.fromstring(body)
         label = self._get_enb_label_from_request(request)

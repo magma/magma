@@ -80,7 +80,8 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
         apn_list = [ims, internet]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
+            "IMSI" + "".join([str(i) for i in req.imsi]),
+            apn_list,
         )
         print(
             "************************* Running End to End attach for UE id ",
@@ -114,11 +115,13 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_ctxt_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            ue_id, act_ded_ber_ctxt_req.bearerId,
+            ue_id,
+            act_ded_ber_ctxt_req.bearerId,
         )
 
         # APNs of the secondary PDNs
@@ -129,7 +132,8 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
@@ -139,8 +143,7 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
                 ue_id,
             )
             print(
-                "********************** Added default bearer with "
-                "bearer id",
+                "********************** Added default bearer with bearer id:",
                 act_def_bearer_req.m.pdnInfo.epsBearerId,
             )
             addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -161,13 +164,15 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                ue_id, act_ded_ber_ctxt_req.bearerId,
+                ue_id,
+                act_ded_ber_ctxt_req.bearerId,
             )
 
             # Create 2nd dedicated bearer
@@ -185,13 +190,15 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                ue_id, act_ded_ber_ctxt_req.bearerId,
+                ue_id,
+                act_ded_ber_ctxt_req.bearerId,
             )
 
         print("Sleeping for 5 seconds")
@@ -205,7 +212,8 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
             # 1 UL flow is created per bearer
             num_ul_flows = 8
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules,
+                num_ul_flows,
+                dl_flow_rules,
             )
 
         print(
@@ -220,11 +228,13 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
             gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         )
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, cntxt_rel_req,
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+            cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print(" Sleeping for 2 seconds")
         time.sleep(2)
@@ -244,22 +254,19 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
         tau_req.epsBearerCtxSts = 0x5A0
         tau_req.ueMtmsi.pres = False
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_TAU_REQ, tau_req,
+            s1ap_types.tfwCmd.UE_TAU_REQ,
+            tau_req,
         )
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
-
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_tau_accept()
         )
         tau_acc = response.cast(s1ap_types.ueTauAccept_t)
         print(
             "************************* Received Tracking Area Update ",
-            "accept for UE id ",
+            "accept for UE Id:",
             tau_acc.ue_Id,
         )
 
@@ -272,7 +279,8 @@ class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
         # 1 UL flow is created per bearer
         num_ul_flows = 4
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules,
+            num_ul_flows,
+            dl_flow_rules,
         )
 
         print(

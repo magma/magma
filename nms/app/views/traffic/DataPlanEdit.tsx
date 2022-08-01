@@ -22,7 +22,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
@@ -30,7 +30,7 @@ import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
+import type {UpdateNetworkContextParams} from '../../context/LteNetworkContext';
 
 import {
   BITRATE_MULTIPLIER,
@@ -181,7 +181,7 @@ export function DataPlanEdit(props: Props) {
     };
 
     try {
-      const updateNetworkProps: UpdateNetworkContextProps = {
+      const updateNetworkProps: UpdateNetworkContextParams = {
         networkId: networkID,
         epcConfigs: newConfig,
       };

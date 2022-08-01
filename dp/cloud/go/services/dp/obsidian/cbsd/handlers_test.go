@@ -265,6 +265,14 @@ func (s *HandlersTestSuite) TestCreateCbsd() {
 		expectedStatus: http.StatusBadRequest,
 		expectedError:  "grant_redundancy cannot be set to false when carrier_aggregation_enabled is enabled",
 	}, {
+		name: "test create with max_ibw_mhz lesser than bandwidth_mhz",
+		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
+			WithBandwidth(10).
+			WithMaxIbwMhz(5).
+			Payload,
+		expectedStatus: http.StatusBadRequest,
+		expectedError:  "max_ibw_mhz cannot be less than bandwidth_mhz",
+	}, {
 		name: "test failed model validation raises 400",
 		inputPayload: b.NewMutableCbsdModelPayloadBuilder().
 			WithSingleStepEnabled(nil).

@@ -100,16 +100,17 @@ int AMFClientServicerBase::release_ipv4v6_address(
       subscriber_id, apn, ipv4_addr, ipv6_addr);
 }
 
-int AMFClientServicerBase::amf_smf_create_pdu_session(
+status_code_e AMFClientServicerBase::amf_smf_create_pdu_session(
     char* imsi, uint8_t* apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
     uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
     const ambr_t& state_ambr, uint32_t version,
     const eps_subscribed_qos_profile_t& qos_profile) {
-  return AsyncSmfServiceClient::getInstance().amf_smf_create_pdu_session(
-      imsi, apn, pdu_session_id, pdu_session_type, gnb_gtp_teid, pti,
-      gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr, state_ambr, version,
-      qos_profile);
+  return (status_code_e)AsyncSmfServiceClient::getInstance()
+      .amf_smf_create_pdu_session(imsi, apn, pdu_session_id, pdu_session_type,
+                                  gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr,
+                                  ue_ipv4_addr, ue_ipv6_addr, state_ambr,
+                                  version, qos_profile);
 }
 
 bool AMFClientServicerBase::set_smf_session(SetSMSessionContext& request) {
@@ -125,9 +126,12 @@ bool AMFClientServicerBase::get_decrypt_imsi_info(
                                      ciphertext, mac_tag, ue_id));
 }
 
-int AMFClientServicerBase::n11_update_location_req(
+status_code_e AMFClientServicerBase::n11_update_location_req(
     const s6a_update_location_req_t* const ulr_p) {
-  return AsyncSmfServiceClient::getInstance().n11_update_location_req(ulr_p);
+  if (AsyncSmfServiceClient::getInstance().n11_update_location_req(ulr_p))
+    return RETURNok;
+  else
+    return RETURNerror;
 }
 
 bool AMFClientServicerBase::set_smf_notification(

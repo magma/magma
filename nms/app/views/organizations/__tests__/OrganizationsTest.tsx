@@ -17,7 +17,7 @@ import Organizations from '../Organizations';
 import axios from 'axios';
 import defaultTheme from '../../../theme/default';
 
-import {AppContextProvider} from '../../../components/context/AppContext';
+import {AppContextProvider} from '../../../context/AppContext';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
