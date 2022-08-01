@@ -115,8 +115,8 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
 
 const char* SqliteStore::_to_str(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
-    std::cout << "Valid sid: " << subscriber_data.sid().id()   << std::endl;
-    std::string sid_s =  "IMSI" + subscriber_data.sid().id();
+    std::cout << "Valid sid: " << subscriber_data.sid().id() << std::endl;
+    std::string sid_s = "IMSI" + subscriber_data.sid().id();
     return sid_s.c_str();
   } else {
     std::cout << "Invalid sid " << subscriber_data.sid().id() << " type "

@@ -228,75 +228,74 @@ void S6aClient::convert_ula_to_subscriber_data(
     std::cout << "No APN configurations received" << std::endl;
     return;
   }
-    std::cout << "Converting ULA TO Subscriber Data object" << std::endl;
-    for (int i = 0; i < response.apn_size(); i++) {
-      auto apn = response.apn(i);
-      auto sub_apn_config = sub_data->mutable_non_3gpp()->add_apn_config();
-      if (apn.context_id() != 0) {
-        sub_apn_config->set_context_id(apn.context_id());
+  std::cout << "Converting ULA TO Subscriber Data object" << std::endl;
+  for (int i = 0; i < response.apn_size(); i++) {
+    auto apn = response.apn(i);
+    auto sub_apn_config = sub_data->mutable_non_3gpp()->add_apn_config();
+    if (apn.context_id() != 0) {
+      sub_apn_config->set_context_id(apn.context_id());
+    }
+
+    if (apn.service_selection().size() > 0) {
+      sub_apn_config->set_service_selection(apn.service_selection());
+    }
+
+    if (apn.has_qos_profile()) {
+      auto qos_profile = sub_apn_config->mutable_qos_profile();
+      if (apn.qos_profile().class_id()) {
+        qos_profile->set_class_id(apn.qos_profile().class_id());
       }
-
-      if (apn.service_selection().size() > 0) {
-        sub_apn_config->set_service_selection(apn.service_selection());
+      if (apn.qos_profile().priority_level()) {
+        qos_profile->set_priority_level(apn.qos_profile().priority_level());
       }
-
-      if (apn.has_qos_profile()) {
-        auto qos_profile = sub_apn_config->mutable_qos_profile();
-        if (apn.qos_profile().class_id()) {
-          qos_profile->set_class_id(apn.qos_profile().class_id());
-        }
-        if (apn.qos_profile().priority_level()) {
-          qos_profile->set_priority_level(apn.qos_profile().priority_level());
-        }
-        if (apn.qos_profile().preemption_capability()) {
-          qos_profile->set_preemption_capability(
-              apn.qos_profile().preemption_capability());
-        }
-        if (apn.qos_profile().preemption_vulnerability()) {
-          qos_profile->set_preemption_vulnerability(
-              apn.qos_profile().preemption_vulnerability());
-        }
+      if (apn.qos_profile().preemption_capability()) {
+        qos_profile->set_preemption_capability(
+            apn.qos_profile().preemption_capability());
       }
-
-      if (apn.has_ambr()) {
-        auto ambr = sub_apn_config->mutable_ambr();
-        if (apn.ambr().max_bandwidth_dl() != 0) {
-          ambr->set_max_bandwidth_dl(apn.ambr().max_bandwidth_dl());
-        }
-        if (apn.ambr().max_bandwidth_ul() != 0) {
-          ambr->set_max_bandwidth_ul(apn.ambr().max_bandwidth_ul());
-        }
-
-        ambr->set_br_unit(
-            (magma::lte::AggregatedMaximumBitrate_BitrateUnitsAMBR)apn.ambr()
-                .unit());
-      }
-
-      sub_apn_config->set_pdn((magma::lte::APNConfiguration_PDNType)apn.pdn());
-
-      // Only the first IP is assigned in to the subscriber in the current
-      // implementation
-      if (apn.served_party_ip_address_size() > 0) {
-        sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
-      }
-
-      if (apn.has_resource()) {
-        auto resource = sub_apn_config->mutable_resource();
-        if (apn.resource().apn_name().size() > 0) {
-          resource->set_apn_name(apn.resource().apn_name());
-        }
-        if (apn.resource().gateway_ip().size() > 0) {
-          resource->set_gateway_ip(apn.resource().gateway_ip());
-        }
-        if (apn.resource().gateway_mac().size() > 0) {
-          resource->set_gateway_mac(apn.resource().gateway_mac());
-        }
-        if (apn.resource().vlan_id() != 0) {
-          resource->set_vlan_id(apn.resource().vlan_id());
-        }
+      if (apn.qos_profile().preemption_vulnerability()) {
+        qos_profile->set_preemption_vulnerability(
+            apn.qos_profile().preemption_vulnerability());
       }
     }
 
+    if (apn.has_ambr()) {
+      auto ambr = sub_apn_config->mutable_ambr();
+      if (apn.ambr().max_bandwidth_dl() != 0) {
+        ambr->set_max_bandwidth_dl(apn.ambr().max_bandwidth_dl());
+      }
+      if (apn.ambr().max_bandwidth_ul() != 0) {
+        ambr->set_max_bandwidth_ul(apn.ambr().max_bandwidth_ul());
+      }
+
+      ambr->set_br_unit(
+          (magma::lte::AggregatedMaximumBitrate_BitrateUnitsAMBR)apn.ambr()
+              .unit());
+    }
+
+    sub_apn_config->set_pdn((magma::lte::APNConfiguration_PDNType)apn.pdn());
+
+    // Only the first IP is assigned in to the subscriber in the current
+    // implementation
+    if (apn.served_party_ip_address_size() > 0) {
+      sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
+    }
+
+    if (apn.has_resource()) {
+      auto resource = sub_apn_config->mutable_resource();
+      if (apn.resource().apn_name().size() > 0) {
+        resource->set_apn_name(apn.resource().apn_name());
+      }
+      if (apn.resource().gateway_ip().size() > 0) {
+        resource->set_gateway_ip(apn.resource().gateway_ip());
+      }
+      if (apn.resource().gateway_mac().size() > 0) {
+        resource->set_gateway_mac(apn.resource().gateway_mac());
+      }
+      if (apn.resource().vlan_id() != 0) {
+        resource->set_vlan_id(apn.resource().vlan_id());
+      }
+    }
+  }
 }
 
 }  // namespace magma
