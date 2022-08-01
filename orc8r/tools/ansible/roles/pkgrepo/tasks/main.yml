@@ -60,8 +60,7 @@
     state: present
 
 - name: Configuring the registry in sources.list.d
-  ansible.builtin.shell:
-    cmd: echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list
+  shell: "echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list"
 
 - name: Update apt
   apt:
