@@ -89,9 +89,7 @@
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
       "expect_disconnect": true,
       "scripts": [
-        "scripts/third_party/chef_bento/update_ubuntu.sh",
-        "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
-        "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
+        "scripts/third_party/chef_bento/update_ubuntu.sh"
       ],
       "type": "shell"
     },
@@ -116,6 +114,14 @@
         "../../../orc8r/tools/ansible/roles/test_certs"
       ],
       "type": "ansible-local"
+    },
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true,
+      "scripts": [
+        "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
+      ],
+      "type": "shell"
     }
   ]
 }
