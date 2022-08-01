@@ -33,7 +33,9 @@
       "http_directory": "http",
       "iso_checksum": "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2",
       "iso_url": "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
-      "memory": 2048,
+      "memory": 8192,
+      "cpus": 4,
+      "hard_drive_interface": "scsi",
       "name": "magma",
       "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
       "ssh_handshake_attempts": "20",
@@ -89,7 +91,10 @@
   "provisioners": [
     {
       "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
-      "script": "scripts/ubuntu_setup.sh",
+      "scripts": [
+        "scripts/ubuntu_setup.sh",
+        "scripts/vagrant_key.sh"
+      ],
       "type": "shell"
     },
     {
@@ -100,17 +105,10 @@
       "type": "shell"
     },
     {
-      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
-      "script": "scripts/vagrant_key.sh",
-      "type": "shell"
-    },
-    {
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
       "expect_disconnect": true,
       "scripts": [
-        "scripts/third_party/chef_bento/update_ubuntu.sh",
-        "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
-        "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
+        "scripts/third_party/chef_bento/update_ubuntu.sh"
       ],
       "type": "shell"
     },
@@ -135,6 +133,15 @@
         "../../../orc8r/tools/ansible/roles/test_certs"
       ],
       "type": "ansible-local"
+    },
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true,
+      "scripts": [
+        "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
+        "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
+      ],
+      "type": "shell"
     }
   ]
 }
