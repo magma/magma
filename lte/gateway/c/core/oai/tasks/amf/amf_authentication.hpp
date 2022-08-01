@@ -58,37 +58,41 @@ nas5g_auth_info_proc_t* get_nas5g_cn_procedure_auth_info(
 void nas5g_delete_cn_procedure(struct amf_context_s* amf_context,
                                nas5g_cn_proc_t* cn_proc);
 
-int amf_proc_authentication_ksi(
+status_code_e amf_proc_authentication_ksi(
     amf_context_t* amf_context,
     nas_amf_specific_proc_t* const amf_specific_proc, ksi_t ksi,
     const uint8_t* const rand, const uint8_t* const autn, success_cb_t success,
     failure_cb_t failure);
-int amf_proc_authentication(amf_context_t* amf_context,
-                            nas_amf_specific_proc_t* const amf_specific_proc,
-                            success_cb_t success, failure_cb_t failure);
-int amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
-                                     AuthenticationResponseMsg* msg,
-                                     int amf_cause, const unsigned char* res);
-int amf_proc_authentication_failure(amf_ue_ngap_id_t ue_id,
-                                    AuthenticationFailureMsg* msg,
-                                    int amf_cause);
+status_code_e amf_proc_authentication(
+    amf_context_t* amf_context,
+    nas_amf_specific_proc_t* const amf_specific_proc, success_cb_t success,
+    failure_cb_t failure);
+status_code_e amf_proc_authentication_complete(amf_ue_ngap_id_t ue_id,
+                                               AuthenticationResponseMsg* msg,
+                                               int amf_cause,
+                                               const unsigned char* res);
+status_code_e amf_proc_authentication_failure(amf_ue_ngap_id_t ue_id,
+                                              AuthenticationFailureMsg* msg,
+                                              int amf_cause);
 int amf_registration_security(amf_context_t* amf_context);
-int amf_send_authentication_request(amf_context_t* amf_context,
-                                    nas5g_amf_auth_proc_t* auth_proc);
+status_code_e amf_send_authentication_request(amf_context_t* amf_context,
+                                              nas5g_amf_auth_proc_t* auth_proc);
 
 // To be called when authentication is successful from subscriberdb
-int amf_authentication_proc_success(amf_context_t* amf_context);
+status_code_e amf_authentication_proc_success(amf_context_t* amf_context);
 status_code_e amf_authentication_request_sent(amf_ue_ngap_id_t ue_id);
-int amf_nas_proc_authentication_info_answer(itti_amf_subs_auth_info_ans_t* aia);
+status_code_e amf_nas_proc_authentication_info_answer(
+    itti_amf_subs_auth_info_ans_t* aia);
 nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
     const amf_context_t* const ctxt);
 
 void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc);
 
-int amf_start_registration_proc_authentication(
+status_code_e amf_start_registration_proc_authentication(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 
-int amf_handle_s6a_update_location_ans(const s6a_update_location_ans_t* ula_pP);
+status_code_e amf_handle_s6a_update_location_ans(
+    const s6a_update_location_ans_t* ula_pP);
 
 nas_amf_registration_proc_t* nas_new_registration_procedure(
     ue_m5gmm_context_s* ue_ctxt);

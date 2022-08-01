@@ -308,7 +308,10 @@ void itti_free_msg_content(MessageDef* const message_p) {
                .nas_pdu);
       break;
     }
-
+    case NGAP_GNB_INITIATED_RESET_REQ:
+      free_wrapper((void**)&message_p->ittiMsg.ngap_gnb_initiated_reset_req
+                       .ue_to_reset_list);
+      break;
     default:;
   }
 }

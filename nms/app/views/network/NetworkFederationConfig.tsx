@@ -25,7 +25,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemText from '@material-ui/core/ListItemText';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -72,7 +72,7 @@ function FederationMappingFields(props: FieldProps) {
             expanded: classes.expanded,
           }}
           expandIcon={<ExpandMoreIcon />}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item className={classes.title}>
               <Text weight="medium" variant="body2">
                 Mapping {props.index + 1}

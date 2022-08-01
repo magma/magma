@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
-import NetworkContext from '../../context/NetworkContext';
+import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import useSections from '../useSections';
 
-import {AppContextProvider} from '../../context/AppContext';
+import {AppContextProvider} from '../../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
 import MagmaAPI from '../../../api/MagmaAPI';
@@ -66,9 +66,8 @@ const testCases = {
     default: 'dashboard',
     sections: [
       'dashboard',
-      'gateways',
-      'network',
       'equipment',
+      'network',
       'configure',
       'alerts',
       'metrics',

@@ -17,34 +17,17 @@ const logger = Logging.getLogger(module);
 import sequelizerc from '../shared/sequelize_models/sequelizerc';
 import {sequelize} from '../shared/sequelize_models';
 
-import Umzug from 'umzug';
-import {DataTypes} from 'sequelize';
+import {SequelizeStorage, Umzug} from 'umzug';
 
 const umzug = new Umzug({
-  storage: 'sequelize',
-  storageOptions: {
-    sequelize,
-  },
-  // The logging function.
-  // A function that gets executed everytime migrations start and have ended.
-  logging: (msg: string) => logger.info(msg),
-  // The name of the positive method in migrations.
-  upName: 'up',
-  // The name of the negative method in migrations.
-  downName: 'down',
+  storage: new SequelizeStorage({sequelize}),
+  logger,
+
+  // The context gets passed to the migrations.
+  context: sequelize.getQueryInterface(),
+
   migrations: {
-    // The params that gets passed to the migrations.
-    // Might be an array or a synchronous function which returns an array.
-    params: [sequelize.getQueryInterface(), DataTypes],
-    // The path to the migrations directory.
-    path: sequelizerc['migrations-path'],
-    // The pattern that determines whether or not a file is a migration.
-    pattern: /^\d+[\w-]+\.[jt]s$/,
-    // A function that receives and returns the to be executed function.
-    // This can be used to modify the function.
-    wrap(func) {
-      return func;
-    },
+    glob: `${sequelizerc['migrations-path']}/*.{js,ts}`,
   },
 });
 

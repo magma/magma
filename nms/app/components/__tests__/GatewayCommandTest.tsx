@@ -20,7 +20,7 @@ import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {TroubleshootingControl} from '../GatewayCommandFields';
 import {mockAPI, mockAPIError} from '../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 jest.mock('../../../app/hooks/useSnackbar');
 
@@ -59,13 +59,11 @@ describe('<verify successful aggregation validation/>', () => {
   });
 
   it('', async () => {
-    const {getByTestId, getAllByTestId} = render(<Wrapper />);
-    await wait();
-    const controProxyValidationContent = getByTestId(
+    const {getByTestId, getAllByTestId, findByTestId} = render(<Wrapper />);
+    const controProxyValidationContent = await findByTestId(
       'Control Proxy Config Validation',
     );
     const apiValidationContent = getByTestId('API validation');
-
     expect(controProxyValidationContent).toHaveTextContent('Good');
     expect(getAllByTestId('fileContent')[0]).toHaveTextContent(
       'fluentd_address: fluentd.magma.io fluentd_port: 24224',
@@ -92,9 +90,8 @@ describe('<verify control proxy validation failure/>', () => {
   });
 
   it('', async () => {
-    const {getByTestId, getAllByTestId} = render(<Wrapper />);
-    await wait();
-    const controProxyValidationContent = getByTestId(
+    const {getByTestId, getAllByTestId, findByTestId} = render(<Wrapper />);
+    const controProxyValidationContent = await findByTestId(
       'Control Proxy Config Validation',
     );
     const apiValidationContent = getByTestId('API validation');
@@ -117,9 +114,8 @@ describe('<verify api validation failure/>', () => {
   });
 
   it('', async () => {
-    const {getByTestId} = render(<Wrapper />);
-    await wait();
-    const controProxyValidationContent = getByTestId(
+    const {getByTestId, findByTestId} = render(<Wrapper />);
+    const controProxyValidationContent = await findByTestId(
       'Control Proxy Config Validation',
     );
     const apiValidationContent = getByTestId('API validation');

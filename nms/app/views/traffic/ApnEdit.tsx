@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import ApnContext from '../../components/context/ApnContext';
+import ApnContext from '../../context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -275,7 +275,7 @@ export function ApnEdit(props: Props) {
                 onChange={({target}) => {
                   setPdnType(parseInt(target.value as string));
                 }}
-                input={<OutlinedInput data-testId="pdnType" />}>
+                input={<OutlinedInput data-testid="pdnType" />}>
                 <MenuItem value={0}>
                   <ListItemText primary={'IPv4'} />
                 </MenuItem>

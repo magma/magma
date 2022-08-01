@@ -463,12 +463,10 @@ export async function syncDashboards(
   const completedTasks: Array<Task> = [];
   const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
   const org = await Organization.findOne({
-    where: {
-      name: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', req.user.organization || ''),
-      ),
-    },
+    where: Sequelize.where(
+      Sequelize.fn('lower', Sequelize.col('name')),
+      Sequelize.fn('lower', req.user.organization || ''),
+    ),
   });
   let networks: Array<string> = [];
   if (org) {

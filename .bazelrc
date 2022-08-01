@@ -57,6 +57,7 @@ build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
 # Use MAGMA_ROOT from the host system in tests.
 # Needed by python tests (e.g. freedomfi_one_tests in enodebd)
 build --test_env=MAGMA_ROOT
+build --test_env=S1AP_TESTER_ROOT
 
 # MME specific compile time defines
 # Compile mme libraries with unit test flag

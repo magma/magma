@@ -51,6 +51,9 @@ MESSAGE_DEF(NGAP_UE_CONTEXT_MODIFICATION_FAILURE,
 MESSAGE_DEF(NGAP_GNB_INITIATED_RESET_REQ, itti_ngap_gnb_initiated_reset_req_t,
             ngap_gnb_initiated_reset_req)
 
+MESSAGE_DEF(NGAP_GNB_INITIATED_RESET_ACK, itti_ngap_gnb_initiated_reset_ack_t,
+            ngap_gnb_initiated_reset_ack)
+
 MESSAGE_DEF(NGAP_PDUSESSIONRESOURCE_SETUP_RSP,
             itti_ngap_pdusessionresource_setup_rsp_t,
             ngap_pdusessionresource_setup_rsp)

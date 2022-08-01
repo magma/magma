@@ -19,26 +19,32 @@ import s1ap_wrapper
 
 
 class TestAttachIpv4v6PdnType(unittest.TestCase):
+    """Integration Test: TestAttachIpv4v6PdnType"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_ipv4v6_pdn_type(self):
-        """ Test Attach for the UEs that are dual IP stack IPv4v6
-            capable """
+        """Test Attach for the UEs that are dual IP stack IPv4v6
+        capable"""
         # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
         resp_ipv4_ipv6 = self._create_attach_ipv4v6_pdn_type_req(
             pdn_type_value=3,
         )
         self.assertEqual(
-            resp_ipv4_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            resp_ipv4_ipv6.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         # IPv6 is equal to 2
         resp_ipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
         self.assertEqual(
-            resp_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            resp_ipv6.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
     def _create_attach_ipv4v6_pdn_type_req(self, pdn_type_value):
@@ -67,55 +73,64 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             pdn_type_value,
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = ue_req.ue_id
-        sqnRecvd = s1ap_types.ueSqnRcvd_t()
-        sqnRecvd.pres = 0
-        auth_res.sqnRcvd = sqnRecvd
+        sqn_recvd = s1ap_types.ueSqnRcvd_t()
+        sqn_recvd.pres = 0
+        auth_res.sqnRcvd = sqn_recvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = ue_req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
         # Attach Reject will be sent since IPv6 PDN Type is not configured
         if pdn_type_value == 2:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
             )
             return self._s1ap_wrapper.s1_util.get_response()
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = ue_req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+            attach_complete,
         )
 
         # Wait on EMM Information from MME
@@ -128,7 +143,8 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST,
+            detach_req,
         )
 
         # Wait for UE context release command

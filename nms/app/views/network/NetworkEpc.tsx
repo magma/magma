@@ -22,7 +22,7 @@ import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';

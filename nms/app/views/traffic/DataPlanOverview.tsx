@@ -15,7 +15,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataPlanEditDialog from './DataPlanEdit';
 import Link from '@material-ui/core/Link';
-import LteNetworkContext from '../../components/context/LteNetworkContext';
+import LteNetworkContext from '../../context/LteNetworkContext';
 import React from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
@@ -24,7 +24,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
-import type {UpdateNetworkContextProps} from '../../components/context/LteNetworkContext';
+import type {UpdateNetworkContextParams} from '../../context/LteNetworkContext';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import {
@@ -102,7 +102,7 @@ function DataPlanOverview(props: WithAlert) {
       ...epcConfig!,
       sub_profiles: subProfiles,
     };
-    const updateNetworkProps: UpdateNetworkContextProps = {
+    const updateNetworkProps: UpdateNetworkContextParams = {
       networkId: networkID,
       epcConfigs: newConfig,
     };

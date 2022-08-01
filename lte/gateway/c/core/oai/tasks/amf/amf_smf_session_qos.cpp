@@ -293,7 +293,6 @@ void amf_smf_session_set_default_qos_rule(qos_flow_list_t* pti_flow_list) {
 // For setting the default qos if nothing frmm sessiond
 void amf_smf_session_set_default_qos_info(
     std::shared_ptr<smf_context_t> smf_ctx) {
-  uint8_t procedure_trans_identity = smf_ctx->get_pti();
   qos_flow_list_t* pti_flow_list = smf_ctx->get_proc_flow_list();
 
   if (!pti_flow_list->maxNumOfQosFlows) {

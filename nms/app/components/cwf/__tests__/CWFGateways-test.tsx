@@ -24,7 +24,7 @@ import defaultTheme from '../../../theme/default';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {mockAPI} from '../../../util/TestUtils';
-import {render, wait} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 
 const CWF_HA_GATEWAY_1: CwfGateway = {
   magmad: {
@@ -144,11 +144,11 @@ describe('<CWFGateways />', () => {
   it('renders', async () => {
     const {getByTitle, getAllByTitle, getAllByRole} = render(<Wrapper />);
 
-    await wait();
-
-    expect(
-      MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGet,
-    ).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(
+        MagmaAPI.carrierWifiGateways.cwfNetworkIdGatewaysGet,
+      ).toHaveBeenCalledTimes(1),
+    );
     expect(
       MagmaAPI.carrierWifiNetworks.cwfNetworkIdHaPairsGet,
     ).toHaveBeenCalledTimes(1);

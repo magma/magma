@@ -21,14 +21,14 @@ import CardHeader from '@material-ui/core/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EmptyState from '../../components/EmptyState';
-import EnodebContext from '../../components/context/EnodebContext';
+import EnodebContext from '../../context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '../../components/Alert/withAlert';
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
-import {REFRESH_INTERVAL} from '../../components/context/RefreshContext';
+import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
@@ -116,7 +116,7 @@ function AddEnodebInstructions(props: {setOpen: () => void}) {
       className={classes.customIntructions}
       spacing={3}
       container
-      justify="space-between">
+      justifyContent="space-between">
       <Grid item xs={6}>
         <Card className={classes.instructions}>
           <CardHeader

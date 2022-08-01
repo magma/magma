@@ -22,142 +22,81 @@ import (
 )
 
 const (
-	someGrantId  = "some_grant_id"
-	otherGrantId = "other_grant_id"
+	someCbsdId  = "some_cbsd_id"
+	someGrantId = "some_grant_id"
 
 	granted    = "GRANTED"
 	authorized = "AUTHORIZED"
 
 	nextSend          = 1000
 	heartbeatInterval = 250
+
+	frequency int64 = 3600e6
+	bandwidth int64 = 20e6
 )
 
 func TestHeartbeatRequestGenerator(t *testing.T) {
 	data := []struct {
 		name     string
-		grants   []*active_mode.Grant
-		expected []*request
-	}{
-		{
-			name: "Should generate heartbeat immediately when grant is not authorized yet",
-			grants: []*active_mode.Grant{{
-				Id:                     "some_grant_id",
-				State:                  active_mode.GrantState_Granted,
-				HeartbeatIntervalSec:   heartbeatInterval,
-				LastHeartbeatTimestamp: nextSend,
-			}},
-			expected: []*request{
-				newHeartbeatParams(withState(granted)).toRequest(),
-			},
+		grant    *active_mode.Grant
+		expected *request
+	}{{
+		name: "Should generate heartbeat immediately when grant is not authorized yet",
+		grant: &active_mode.Grant{
+			Id:                     someGrantId,
+			State:                  active_mode.GrantState_Granted,
+			HeartbeatIntervalSec:   heartbeatInterval,
+			LastHeartbeatTimestamp: nextSend,
 		},
-		{
-			name: "Should generate heartbeat when timeout has expired",
-			grants: []*active_mode.Grant{{
-				Id:                     "some_grant_id",
-				State:                  active_mode.GrantState_Authorized,
-				HeartbeatIntervalSec:   heartbeatInterval,
-				LastHeartbeatTimestamp: nextSend - heartbeatInterval,
-			}},
-			expected: []*request{
-				newHeartbeatParams(withState(authorized)).toRequest(),
-			},
+		expected: getHeartbeatRequest(granted),
+	}, {
+		name: "Should generate heartbeat when timeout has expired",
+		grant: &active_mode.Grant{
+			Id:                     someGrantId,
+			State:                  active_mode.GrantState_Authorized,
+			HeartbeatIntervalSec:   heartbeatInterval,
+			LastHeartbeatTimestamp: nextSend - heartbeatInterval,
 		},
-		{
-			name: "Should not generate heartbeat request when timeout has not expired yet",
-			grants: []*active_mode.Grant{{
-				Id:                     "some_grant_id",
-				State:                  active_mode.GrantState_Authorized,
-				HeartbeatIntervalSec:   heartbeatInterval,
-				LastHeartbeatTimestamp: nextSend - heartbeatInterval + 1,
-			}},
-			expected: nil,
+		expected: getHeartbeatRequest(authorized),
+	}, {
+		name: "Should not generate heartbeat request when timeout has not expired yet",
+		grant: &active_mode.Grant{
+			Id:                     someGrantId,
+			State:                  active_mode.GrantState_Authorized,
+			HeartbeatIntervalSec:   heartbeatInterval,
+			LastHeartbeatTimestamp: nextSend - heartbeatInterval + 1,
 		},
-		{
-			name: "Should generate heartbeat requests for multiple grants",
-			grants: []*active_mode.Grant{{
-				Id:    "some_grant_id",
-				State: active_mode.GrantState_Granted,
-			}, {
-				Id:                     "other_grant_id",
-				State:                  active_mode.GrantState_Authorized,
-				HeartbeatIntervalSec:   heartbeatInterval,
-				LastHeartbeatTimestamp: nextSend - heartbeatInterval,
-			}},
-			expected: []*request{
-				newHeartbeatParams(
-					withGrantId(someGrantId),
-					withState(granted),
-				).toRequest(),
-				newHeartbeatParams(
-					withGrantId(otherGrantId),
-					withState(authorized),
-				).toRequest(),
-			},
+		expected: nil,
+	}, {
+		name: "Should generate relinquish request for unsync grant",
+		grant: &active_mode.Grant{
+			Id:    "some_grant_id",
+			State: active_mode.GrantState_Unsync,
 		},
-		{
-			name: "Should generate relinquish request for unsync grant",
-			grants: []*active_mode.Grant{{
-				Id:    "some_grant_id",
-				State: active_mode.GrantState_Unsync,
-			}},
-			expected: []*request{{
-				requestType: "relinquishmentRequest",
-				data: `{
-	"cbsdId": "some_cbsd_id",
-	"grantId": "some_grant_id"
-}`,
-			}},
-		},
-	}
+		expected: getRelinquishmentRequest(),
+	}}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
-			cbsd := &active_mode.Cbsd{
-				CbsdId: "some_cbsd_id",
-				Grants: tt.grants,
+			p := sas.HeartbeatProcessor{
+				NextSendTimestamp: nextSend,
+				CbsdId:            someCbsdId,
+				Grants: map[int64]*active_mode.Grant{
+					frequency: tt.grant,
+				},
 			}
-			g := sas.NewHeartbeatRequestGenerator(nextSend)
-			actual := g.GenerateRequests(cbsd)
-			assertRequestsEqual(t, tt.expected, actual)
+			actual := p.ProcessGrant(frequency, bandwidth)
+			assertRequestEqual(t, tt.expected, actual)
 		})
 	}
 }
 
-type heartbeatParams struct {
-	grantId string
-	state   string
-}
-
-type heartbeatOption func(*heartbeatParams)
-
-func withGrantId(grantId string) heartbeatOption {
-	return func(h *heartbeatParams) {
-		h.grantId = grantId
-	}
-}
-
-func withState(state string) heartbeatOption {
-	return func(h *heartbeatParams) {
-		h.state = state
-	}
-}
-
-func newHeartbeatParams(options ...heartbeatOption) *heartbeatParams {
-	h := &heartbeatParams{
-		grantId: someGrantId,
-	}
-	for _, o := range options {
-		o(h)
-	}
-	return h
-}
-
-func (h *heartbeatParams) toRequest() *request {
+func getHeartbeatRequest(state string) *request {
 	const requestTemplate = `{
-	"cbsdId": "some_cbsd_id",
+	"cbsdId": "%s",
 	"grantId": "%s",
 	"operationState": "%s"
 }`
-	payload := fmt.Sprintf(requestTemplate, h.grantId, h.state)
+	payload := fmt.Sprintf(requestTemplate, someCbsdId, someGrantId, state)
 	return &request{
 		requestType: "heartbeatRequest",
 		data:        payload,

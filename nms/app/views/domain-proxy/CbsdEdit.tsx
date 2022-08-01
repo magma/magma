@@ -30,7 +30,7 @@ import Select from '@material-ui/core/Select';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-import CbsdContext from '../../components/context/CbsdContext';
+import CbsdContext from '../../context/CbsdContext';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {Theme} from '@material-ui/core/styles';
@@ -117,6 +117,9 @@ type CbsdFormData = {
   frequenciesMhz: Array<number | string>;
   cbsdCategory: CbsdCategoryEnum;
   singleStepEnabled: boolean;
+  grantRedundancyEnabled: boolean;
+  carrierAggreGationEnabled: boolean;
+  maxIbw: number | string;
 };
 
 const convertToCbsdFormData = (cbsd?: Cbsd): CbsdFormData => {
@@ -134,6 +137,12 @@ const convertToCbsdFormData = (cbsd?: Cbsd): CbsdFormData => {
     frequenciesMhz: cbsd?.frequency_preferences?.frequencies_mhz || [0],
     cbsdCategory: cbsd?.cbsd_category === 'b' ? 1 : 0,
     singleStepEnabled: cbsd?.single_step_enabled || false,
+    grantRedundancyEnabled:
+      cbsd?.grant_redundancy === undefined
+        ? true
+        : Boolean(cbsd?.grant_redundancy),
+    carrierAggreGationEnabled: cbsd?.carrier_aggregation_enabled || false,
+    maxIbw: cbsd?.capabilities?.max_ibw_mhz || 150,
   };
 };
 
@@ -168,10 +177,10 @@ export function CbsdAddEditDialog(props: DialogProps) {
           min_power: parseInt(cbsdFormData.minPower as string),
           max_power: parseInt(cbsdFormData.maxPower as string),
           number_of_antennas: parseInt(cbsdFormData.numberOfAntennas as string),
-          max_ibw_mhz: 150,
+          max_ibw_mhz: parseInt(cbsdFormData.maxIbw as string),
         },
-        carrier_aggregation_enabled: false,
-        grant_redundancy: true,
+        carrier_aggregation_enabled: cbsdFormData.carrierAggreGationEnabled,
+        grant_redundancy: cbsdFormData.grantRedundancyEnabled,
         installation_param: {
           antenna_gain: parseInt(cbsdFormData.antennaGain as string),
         },
@@ -226,6 +235,38 @@ export function CbsdAddEditDialog(props: DialogProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCarrierAggregationChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const {checked} = event.target;
+    const shouldEnableGrantRedundancy = checked;
+    const grantRedundancyEnabled = shouldEnableGrantRedundancy
+      ? true
+      : cbsdFormData.grantRedundancyEnabled;
+
+    setCbsdFormData({
+      ...cbsdFormData,
+      carrierAggreGationEnabled: checked,
+      grantRedundancyEnabled,
+    });
+  };
+
+  const handleGrantRedundancyChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const {checked} = event.target;
+    const shouldDisableCarrierAggregation = !checked;
+    const carrierAggreGationEnabled = shouldDisableCarrierAggregation
+      ? false
+      : cbsdFormData.carrierAggreGationEnabled;
+
+    setCbsdFormData({
+      ...cbsdFormData,
+      grantRedundancyEnabled: checked,
+      carrierAggreGationEnabled,
+    });
   };
 
   return (
@@ -411,6 +452,57 @@ export function CbsdAddEditDialog(props: DialogProps) {
             />
           </AltFormField>
 
+          <AltFormField label={'Grant Redundancy Enabled'}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  inputProps={
+                    ({
+                      'data-testid': 'grant-redundancy-enabled-input',
+                    } as unknown) as React.InputHTMLAttributes<HTMLInputElement>
+                  }
+                  checked={cbsdFormData.grantRedundancyEnabled}
+                  onChange={handleGrantRedundancyChange}
+                  color="primary"
+                />
+              }
+              label={''}
+            />
+          </AltFormField>
+
+          <AltFormField label={'eNB Carrier Aggregation Enabled'}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  inputProps={
+                    ({
+                      'data-testid': 'carrier-aggregation-enabled-input',
+                    } as unknown) as React.InputHTMLAttributes<HTMLInputElement>
+                  }
+                  checked={cbsdFormData.carrierAggreGationEnabled}
+                  onChange={handleCarrierAggregationChange}
+                  color="primary"
+                />
+              }
+              label={''}
+            />
+          </AltFormField>
+
+          <AltFormField label={'Max Instantaneous BandWidth (IBW) MHz'}>
+            <OutlinedInput
+              fullWidth
+              inputProps={{
+                'data-testid': 'max-ibw-input',
+              }}
+              type="number"
+              disabled={isLoading}
+              value={cbsdFormData.maxIbw}
+              onChange={({target}) =>
+                setCbsdFormData({...cbsdFormData, maxIbw: target.value})
+              }
+            />
+          </AltFormField>
+
           <AltFormField label={'Frequency Preferences'}>
             <Grid
               container
@@ -466,7 +558,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
 
                 {cbsdFormData.frequenciesMhz.map((value, index) => {
                   return (
-                    <>
+                    <React.Fragment key={index}>
                       <Grid item xs={11}>
                         <OutlinedInput
                           fullWidth
@@ -510,7 +602,7 @@ export function CbsdAddEditDialog(props: DialogProps) {
                           </IconButton>
                         )}
                       </Grid>
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </Grid>
