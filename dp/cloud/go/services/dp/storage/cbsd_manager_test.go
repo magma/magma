@@ -36,6 +36,7 @@ const (
 	someNetwork           = "some_network"
 	otherNetwork          = "other_network_id"
 	someCbsdId            = 123
+	otherCbsdId           = 456
 	someFccId             = "some_fcc_id"
 	someUserId            = "some_user_id"
 	someSerialNumber      = "some_serial_number"
@@ -102,7 +103,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
 		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
+	s.thenCbsdIs(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithCarrierAggregationFields() {
@@ -112,7 +113,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithCarrierAggregationFields() {
 			WithGrantRedundancy(true).
 			WithMaxIbwMhx(140).Cbsd, registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
+	s.thenCbsdIs(b.NewDBCbsdBuilder().
 		WithIndoorDeployment(false).
 		WithCarrierAggregationEnabled(true).
 		WithGrantRedundancy(true).
@@ -127,44 +128,10 @@ func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
 			WithIndoorDeployment(true).Cbsd,
 		registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
+	s.thenCbsdIs(b.NewDBCbsdBuilder().
 		WithSingleStepEnabled(true).
 		WithCbsdCategory("a").
 		WithIndoorDeployment(true).Cbsd)
-}
-
-func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
-	err := s.resourceManager.InTransaction(func() {
-		actual, err := db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				As("t1").
-				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
-				Select(db.NewIncludeMask("name"))).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				As("t2").
-				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
-				Select(db.NewIncludeMask("name"))).
-			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
-			Fetch()
-		s.Require().NoError(err)
-
-		cbsd := expected
-		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.IsDeleted = db.MakeBool(false)
-		cbsd.ShouldDeregister = db.MakeBool(false)
-		expected := []db.Model{
-			cbsd,
-			&storage.DBCbsdState{Name: db.MakeString(unregistered)},
-			&storage.DBCbsdState{Name: db.MakeString(registered)},
-		}
-		s.Assert().Equal(expected, actual)
-	})
-	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
@@ -471,15 +438,13 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
-	expected := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
-			WithIndoorDeployment(false).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithEmptyGrant().
-		WithEmptyGrantState().
-		WithCbsdState(registered).
-		WithDesiredState(registered).
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(
+			b.NewDBCbsdBuilder().
+				WithIndoorDeployment(false).
+				WithId(someCbsdId).
+				WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
 		Details
 
 	s.Assert().Equal(expected, actual)
@@ -506,15 +471,13 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
 	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
-	expected := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
-			WithIndoorDeployment(false).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithCbsdState(registered).
-		WithDesiredState(registered).
-		WithEmptyGrant().
-		WithEmptyGrantState().
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(
+			b.NewDBCbsdBuilder().
+				WithIndoorDeployment(false).
+				WithId(someCbsdId).
+				WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
 		Details
 
 	s.Assert().Equal(expected, actual)
@@ -534,21 +497,58 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 		b.NewDBGrantBuilder().
 			WithStateId(grantState).
 			WithCbsdId(someCbsdId).
+			WithFrequency(3600).
 			Grant,
 	)
 
 	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
-	expected := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(b.NewDBCbsdBuilder().
 			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithCbsdState(registered).
-		WithDesiredState(registered).
-		WithGrant().
-		WithGrantState(authorized).
+			WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
+		WithGrant(authorized, 3600).
+		Details
+	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestFetchCbsdWithMultipleGrants() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	grantState := s.enumMaps[storage.GrantStateTable][authorized]
+	s.givenResourcesInserted(
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			Cbsd,
+		b.NewDBGrantBuilder().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			WithFrequency(3600).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			WithFrequency(3650).
+			Grant,
+	)
+
+	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
+	s.Require().NoError(err)
+
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
+		WithGrant(authorized, 3600).
+		WithGrant(authorized, 3650).
 		Details
 	s.Assert().Equal(expected, actual)
 }
@@ -604,15 +604,13 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	}
 
 	for i := range expected.Cbsds {
-		cbsdBuilder := b.NewDBCbsdBuilder().
+		cbsd := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1 + offset)).
 			WithIndoorDeployment(false).
-			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1+offset))
-		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
-			WithCbsdState(unregistered).
-			WithDesiredState(unregistered).
-			WithEmptyGrant().
-			WithEmptyGrantState().
+			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1+offset)).
+			Cbsd
+		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder().
+			WithCbsd(cbsd, unregistered, unregistered).
 			Details
 	}
 	s.Assert().Equal(expected, actual)
@@ -644,15 +642,13 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 		Cbsds: make([]*storage.DetailedCbsd, 1),
 	}
 	for i := range expected.Cbsds {
-		cbsdBuilder := b.NewDBCbsdBuilder().
+		cbsd := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1)).
 			WithIndoorDeployment(false).
-			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1))
-		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
-			WithCbsdState(unregistered).
-			WithDesiredState(unregistered).
-			WithEmptyGrant().
-			WithEmptyGrantState().
+			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1)).
+			Cbsd
+		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder().
+			WithCbsd(cbsd, unregistered, unregistered).
 			Details
 	}
 	s.Assert().Equal(expected, actual)
@@ -684,17 +680,92 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
-	builder := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
+	cbsd := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(b.NewDBCbsdBuilder().
 			WithIndoorDeployment(false).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithEmptyGrant().
-		WithEmptyGrantState().
-		WithCbsdState(registered).
-		WithDesiredState(registered)
+			WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
+		Details
+	expected := b.GetDetailedDBCbsdList(cbsd)
 
-	expected := b.GetDetailedDBCbsdList(builder)
+	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestListWithMultipleGrants() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	grantState := s.enumMaps[storage.GrantStateTable][authorized]
+	s.givenResourcesInserted(
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			Cbsd,
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(otherCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			WithSerialNumber(anotherSerialNumber).
+			Cbsd,
+		b.NewDBGrantBuilder().
+			WithId(1).
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			WithFrequency(3530).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithId(2).
+			WithStateId(grantState).
+			WithCbsdId(otherCbsdId).
+			WithFrequency(3570).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithId(3).
+			WithStateId(grantState).
+			WithCbsdId(otherCbsdId).
+			WithFrequency(3610).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithId(4).
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			WithFrequency(3650).
+			Grant,
+	)
+
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
+	s.Require().NoError(err)
+
+	expected := &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{
+			b.NewDetailedDBCbsdBuilder().
+				WithCbsd(b.NewDBCbsdBuilder().
+					WithIndoorDeployment(false).
+					WithId(someCbsdId).
+					WithCbsdId(someCbsdIdStr).
+					Cbsd,
+					registered, registered).
+				WithGrant(authorized, 3530).
+				WithGrant(authorized, 3650).
+				Details,
+			b.NewDetailedDBCbsdBuilder().
+				WithCbsd(b.NewDBCbsdBuilder().
+					WithIndoorDeployment(false).
+					WithId(otherCbsdId).
+					WithCbsdId(someCbsdIdStr).
+					WithSerialNumber(anotherSerialNumber).
+					Cbsd,
+					registered, registered).
+				WithGrant(authorized, 3570).
+				WithGrant(authorized, 3610).
+				Details,
+		},
+		Count: 2,
+	}
 
 	s.Assert().Equal(expected, actual)
 }
@@ -742,6 +813,41 @@ func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
 func (s *CbsdManagerTestSuite) TestDeregisterNonExistentCbsd() {
 	err := s.cbsdManager.DeregisterCbsd(someNetwork, 0)
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+// TODO this modifies expected - needs fix!!!
+func (s *CbsdManagerTestSuite) thenCbsdIs(expected *storage.DBCbsd) {
+	err := s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&storage.DBCbsd{}).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t1").
+				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t2").
+				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
+			Fetch()
+		s.Require().NoError(err)
+
+		cbsd := expected
+		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.IsDeleted = db.MakeBool(false)
+		cbsd.ShouldDeregister = db.MakeBool(false)
+		expected := []db.Model{
+			cbsd,
+			&storage.DBCbsdState{Name: db.MakeString(unregistered)},
+			&storage.DBCbsdState{Name: db.MakeString(registered)},
+		}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) givenResourcesInserted(models ...db.Model) {
