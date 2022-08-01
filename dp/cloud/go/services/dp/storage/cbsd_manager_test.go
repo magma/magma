@@ -75,7 +75,6 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 		db.NewExcludeMask("id"),
 		&storage.DBCbsdState{Name: db.MakeString(unregistered)},
 		&storage.DBCbsdState{Name: db.MakeString(registered)},
-		&storage.DBGrantState{Name: db.MakeString("idle")},
 		&storage.DBGrantState{Name: db.MakeString("granted")},
 		&storage.DBGrantState{Name: db.MakeString(authorized)},
 	)
@@ -450,39 +449,6 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
-	state := s.enumMaps[storage.CbsdStateTable][registered]
-	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-
-	s.givenResourcesInserted(
-		b.NewDBCbsdBuilder().
-			WithNetworkId(someNetwork).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithStateId(state).
-			WithDesiredStateId(state).
-			Cbsd,
-		b.NewDBGrantBuilder().
-			WithStateId(grantState).
-			WithCbsdId(someCbsdId).
-			Grant,
-	)
-
-	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
-	s.Require().NoError(err)
-
-	expected := b.NewDetailedDBCbsdBuilder().
-		WithCbsd(
-			b.NewDBCbsdBuilder().
-				WithIndoorDeployment(false).
-				WithId(someCbsdId).
-				WithCbsdId(someCbsdIdStr).Cbsd,
-			registered, registered).
-		Details
-
-	s.Assert().Equal(expected, actual)
-}
-
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 	state := s.enumMaps[storage.CbsdStateTable][registered]
 	grantState := s.enumMaps[storage.GrantStateTable][authorized]
@@ -651,44 +617,6 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 			WithCbsd(cbsd, unregistered, unregistered).
 			Details
 	}
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
-	state := s.enumMaps[storage.CbsdStateTable][registered]
-	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-	s.givenResourcesInserted(
-		b.NewDBCbsdBuilder().
-			WithNetworkId(someNetwork).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithStateId(state).
-			WithDesiredStateId(state).
-			Cbsd,
-		b.NewDBGrantBuilder().
-			WithId(1).
-			WithStateId(grantState).
-			WithCbsdId(someCbsdId).
-			Grant,
-		b.NewDBGrantBuilder().
-			WithId(2).
-			WithStateId(grantState).
-			WithCbsdId(someCbsdId).
-			Grant,
-	)
-
-	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
-	s.Require().NoError(err)
-
-	cbsd := b.NewDetailedDBCbsdBuilder().
-		WithCbsd(b.NewDBCbsdBuilder().
-			WithIndoorDeployment(false).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).Cbsd,
-			registered, registered).
-		Details
-	expected := b.GetDetailedDBCbsdList(cbsd)
-
 	s.Assert().Equal(expected, actual)
 }
 
