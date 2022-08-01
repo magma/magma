@@ -28,7 +28,7 @@
       ],
       "boot_wait": "5s",
       "guest_additions_mode": "upload",
-      "guest_os_type": "ubuntu-64",
+      "guest_os_type": "Ubuntu_64",
       "headless": true,
       "http_directory": "http",
       "iso_checksum": "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2",
