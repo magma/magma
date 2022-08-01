@@ -19,17 +19,15 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
-import Input from '@mui/material/Input';
-import InputLabel from '@mui/material/InputLabel';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import React, {useCallback, useMemo, useState} from 'react';
 import Select from '@mui/material/Select';
-import TextField from '@mui/material/TextField';
 import renderList from '../util/renderList';
+import {AltFormField} from './FormField';
 import {NetworkId} from '../../shared/types/network';
+import {OutlinedInput} from '@mui/material';
 import {UserRoles} from '../../shared/roles';
-import {makeStyles} from '@mui/styles';
 
 export type EditUser = {
   id: string;
@@ -56,17 +54,6 @@ type Props = {
   onCreateUser: (payload: SaveUserData) => void;
 };
 
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-  select: {
-    marginTop: '16px',
-  },
-}));
-
 function getInitialNetworkIDs(
   userNetworkIds: Array<NetworkId> | undefined,
   allNetworkIDs: Array<NetworkId>,
@@ -76,7 +63,6 @@ function getInitialNetworkIDs(
 
 export default function EditUserDialog(props: Props) {
   const {allNetworkIDs} = props;
-  const classes = useStyles();
 
   const [error, setError] = useState<string>('');
   const [email, setEmail] = useState<string>(props.editingUser?.email || '');
@@ -131,68 +117,77 @@ export default function EditUserDialog(props: Props) {
       <DialogTitle>{props.editingUser ? 'Edit User' : 'Add User'}</DialogTitle>
       <DialogContent>
         {error && <FormLabel error>{error}</FormLabel>}
-        <TextField
-          name="email"
-          label="Email"
-          className={classes.input}
-          disabled={!!props.editingUser}
-          value={email}
-          onChange={({target}) => setEmail(target.value)}
-        />
+        <AltFormField label="Email">
+          <OutlinedInput
+            name="email"
+            fullWidth
+            disabled={!!props.editingUser}
+            value={email}
+            onChange={({target}) => setEmail(target.value)}
+          />
+        </AltFormField>
         {!props.ssoEnabled && (
           <>
-            <TextField
-              autoComplete="off"
-              name="password"
-              label="Password"
-              type="password"
-              value={password}
-              onChange={({target}) => setPassword(target.value)}
-              className={classes.input}
-            />
-            <TextField
-              autoComplete="off"
-              name="confirm_password"
-              label="Confirm Password"
-              type="password"
-              value={confirmPassword}
-              onChange={({target}) => setConfirmPassword(target.value)}
-              className={classes.input}
-            />
+            <AltFormField label="Password">
+              <OutlinedInput
+                autoComplete="off"
+                name="password"
+                type="password"
+                fullWidth
+                value={password}
+                onChange={({target}) => setPassword(target.value)}
+              />
+            </AltFormField>
+            <AltFormField label="Confirm Password">
+              <OutlinedInput
+                autoComplete="off"
+                name="confirm_password"
+                type="password"
+                fullWidth
+                value={confirmPassword}
+                onChange={({target}) => setConfirmPassword(target.value)}
+              />
+            </AltFormField>
           </>
         )}
-        <FormControl className={classes.input}>
-          <InputLabel id="role-select-label">Role</InputLabel>
-          <Select
-            labelId="role-select-label"
-            id="role-select"
-            value={role}
-            onChange={({target}) => setRole(parseInt(target.value as string))}>
-            <MenuItem value={UserRoles.USER}>User</MenuItem>
-            <MenuItem value={UserRoles.READ_ONLY_USER}>Read Only User</MenuItem>
-            <MenuItem value={UserRoles.SUPERUSER}>Super User</MenuItem>
-          </Select>
-        </FormControl>
-        {allNetworkIDs && (
-          <FormControl className={classes.input}>
-            <InputLabel htmlFor="network_ids">Accessible Networks</InputLabel>
+        <AltFormField label="Role">
+          <FormControl fullWidth>
             <Select
-              multiple
-              disabled={isSuperUser}
-              value={Array.from(networkIds)}
+              labelId="role-select-label"
+              id="role-select"
+              value={role}
               onChange={({target}) =>
-                setNetworkIds(new Set(target.value as Array<string>))
-              }
-              renderValue={networkIds => renderList(networkIds)}
-              input={<Input id="network_ids" />}>
-              {allNetworkIDs.map(network => (
-                <MenuItem key={network} value={network}>
-                  <Checkbox checked={networkIds.has(network)} />
-                  <ListItemText primary={network} />
-                </MenuItem>
-              ))}
+                setRole(parseInt(target.value as string))
+              }>
+              <MenuItem value={UserRoles.USER}>User</MenuItem>
+              <MenuItem value={UserRoles.READ_ONLY_USER}>
+                Read Only User
+              </MenuItem>
+              <MenuItem value={UserRoles.SUPERUSER}>Super User</MenuItem>
             </Select>
           </FormControl>
+        </AltFormField>
+        {allNetworkIDs && (
+          <AltFormField label="Accessible Networks">
+            <FormControl fullWidth>
+              <Select
+                multiple
+                disabled={isSuperUser}
+                value={Array.from(networkIds)}
+                onChange={({target}) =>
+                  setNetworkIds(new Set(target.value as Array<string>))
+                }
+                renderValue={networkIds => renderList(networkIds)}
+                input={<OutlinedInput id="network_ids" />}>
+                {allNetworkIDs.map(network => (
+                  <MenuItem key={network} value={network}>
+                    <Checkbox checked={networkIds.has(network)} />
+                    <ListItemText primary={network} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </AltFormField>
         )}
       </DialogContent>
       <DialogActions>

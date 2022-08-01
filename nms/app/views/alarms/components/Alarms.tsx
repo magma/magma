@@ -38,6 +38,7 @@ import {
 import {makeStyles} from '@mui/styles';
 
 import {Theme} from '@mui/material/styles';
+import {colors} from '../../../theme/default';
 import type {ApiUtil} from './AlarmsApi';
 import type {Labels} from './AlarmAPIType';
 import type {PromFiringAlert} from '../../../../generated';
@@ -47,8 +48,13 @@ const useTabStyles = makeStyles<Theme>(theme => ({
   root: {
     minWidth: 'auto',
     minHeight: theme.spacing(4),
-  },
-  wrapper: {
+    color: colors.primary.comet,
+    '&.Mui-selected': {
+      color: colors.secondary.dodgerBlue,
+    },
+    '&.Mui-disabled': {
+      color: colors.primary.comet,
+    },
     flexDirection: 'row',
     textTransform: 'capitalize',
     '& svg, .material-icons': {
@@ -139,6 +145,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
       <Grid container spacing={2} justifyContent="space-between">
         <Grid item xs={12}>
           <Tabs
+            className={tabStyles.tabBar}
             value={currentTabMatch?.params?.tabName || DEFAULT_TAB_NAME}
             indicatorColor="primary"
             textColor="primary">

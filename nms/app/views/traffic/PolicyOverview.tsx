@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import withAlert from '../../components/Alert/withAlert';
 import type {PolicyRule, QosClassId} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
@@ -25,19 +26,15 @@ import PolicyContext from '../../context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
 import RatingGroupEditDialog from './RatingGroupEdit';
-import React from 'react';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
+import React, {useContext, useEffect, useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
-import withAlert from '../../components/Alert/withAlert';
-import withStyles from '@mui/styles/withStyles';
 import {Checkbox} from '@mui/material';
+import {MagmaTab, MagmaTabs} from '../../theme/design-system/SecondaryTabs';
 import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
-import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
@@ -139,24 +136,6 @@ type RatingGroupRowType = {
   id: string;
   limitType: string;
 };
-
-const MagmaTabs = withStyles({
-  indicator: {
-    backgroundColor: colors.secondary.dodgerBlue,
-  },
-})(Tabs);
-
-const MagmaTab = withStyles({
-  root: {
-    fontFamily: typography.body1.fontFamily,
-    fontWeight: typography.body1.fontWeight,
-    fontSize: typography.body1.fontSize,
-    lineHeight: typography.body1.lineHeight,
-    letterSpacing: typography.body1.letterSpacing,
-    color: colors.primary.brightGray,
-    textTransform: 'none',
-  },
-})(Tab);
 
 export default function PolicyOverview() {
   const classes = useStyles();
@@ -285,6 +264,7 @@ export function PolicyTableRaw(props: WithAlert) {
               return (
                 <TextField
                   type="password"
+                  variant="standard"
                   value={rowData.monitoringKey}
                   InputProps={{
                     disableUnderline: true,
@@ -392,17 +372,8 @@ export function BaseNameTableRaw(props: WithAlert) {
           {
             title: 'Rule Names',
             field: 'ruleNames',
-            render: rowData => {
-              return (
-                <TextField
-                  value={rowData.ruleNames ? rowData.ruleNames.join(', ') : ''}
-                  InputProps={{
-                    disableUnderline: true,
-                    readOnly: true,
-                  }}
-                />
-              );
-            },
+            render: rowData =>
+              rowData.ruleNames ? rowData.ruleNames.join(', ') : '',
           },
           {
             title: '# of Assigned Subscribers',

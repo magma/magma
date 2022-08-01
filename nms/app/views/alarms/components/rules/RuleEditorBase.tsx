@@ -95,6 +95,7 @@ export default function RuleEditorBase({
                 <Grid item>
                   <TextField
                     id="rulename"
+                    variant="standard"
                     disabled={!isNew}
                     required
                     label="Rule Name"
@@ -106,6 +107,7 @@ export default function RuleEditorBase({
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     disabled={!isNew}
                     label="Description"
                     placeholder="Ex: The link is down"
@@ -161,7 +163,7 @@ export default function RuleEditorBase({
               <CardContent>
                 <Grid container direction="column" spacing={2}>
                   <Grid item>
-                    <InputLabel>Audience</InputLabel>
+                    <InputLabel variant="standard">Audience</InputLabel>
                     <SelectReceiver
                       fullWidth
                       receiver={receiver}

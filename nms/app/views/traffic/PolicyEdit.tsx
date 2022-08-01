@@ -52,7 +52,6 @@ const DEFAULT_POLICY_RULE: PolicyRule = {
 const useStyles = makeStyles(() => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   input: {
     display: 'inline-flex',

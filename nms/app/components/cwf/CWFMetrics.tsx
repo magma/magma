@@ -41,7 +41,6 @@ const useStyles = makeStyles({
   },
   tabs: {
     flex: 1,
-    color: colors.primary.white,
   },
 });
 

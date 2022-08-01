@@ -30,6 +30,7 @@ export default function SlackConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               required
               data-testid="slack-config-editor"
               id="apiurl"
@@ -46,6 +47,7 @@ export default function SlackConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               id="title"
               label="Message Title"
               placeholder="Ex: Urgent"

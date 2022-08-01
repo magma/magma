@@ -20,19 +20,11 @@ import TextField from '@mui/material/TextField';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import useMagmaAPI from '../../api/useMagmaAPI';
+import {AltFormField} from '../FormField';
 import {FegNetwork} from '../../../generated';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@mui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-}));
 
 type Props = {
   onClose: () => void;
@@ -41,7 +33,6 @@ type Props = {
 };
 
 export default function FEGNetworkDialog(props: Props) {
-  const classes = useStyles();
   const [servedNetworkIDs, setServedNetworkIDs] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -91,13 +82,14 @@ export default function FEGNetworkDialog(props: Props) {
       onSave={onSave}
       onClose={props.onClose}
       networkConfig={props.networkConfig}>
-      <TextField
-        name="fegNetworkID"
-        label="Federation Network ID"
-        className={classes.input}
-        value={servedNetworkIDs}
-        onChange={({target}) => setServedNetworkIDs(target.value)}
-      />
+      <AltFormField label="Federation Network ID">
+        <TextField
+          name="fegNetworkID"
+          fullWidth
+          value={servedNetworkIDs}
+          onChange={({target}) => setServedNetworkIDs(target.value)}
+        />
+      </AltFormField>
     </GenericNetworkDialog>
   );
 }

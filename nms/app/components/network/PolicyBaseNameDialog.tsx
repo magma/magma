@@ -120,6 +120,7 @@ export default function (props: Props) {
       <DialogTitle>{editingBaseName ? 'Edit' : 'Add'} Base Name</DialogTitle>
       <DialogContent>
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Base Name"
@@ -131,6 +132,7 @@ export default function (props: Props) {
           }
         />
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Rule Names (CSV)"

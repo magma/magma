@@ -35,7 +35,6 @@ import {useContext, useEffect, useState} from 'react';
 const useStyles = makeStyles({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   dialog: {
     backgroundColor: colors.primary.concrete,

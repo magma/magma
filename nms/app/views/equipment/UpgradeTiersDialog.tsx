@@ -50,7 +50,6 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   tabs: {
     color: colors.primary.white,

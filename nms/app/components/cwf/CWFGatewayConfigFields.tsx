@@ -128,6 +128,7 @@ export default function (props: Props) {
       <div className={classes.container}>
         <TextField
           label="IP"
+          variant="standard"
           margin="none"
           value={ipdrExportDst.ip}
           onChange={({target}) =>
@@ -137,6 +138,7 @@ export default function (props: Props) {
         />
         <TextField
           type="number"
+          variant="standard"
           label="Port"
           margin="none"
           value={ipdrExportDst.port}

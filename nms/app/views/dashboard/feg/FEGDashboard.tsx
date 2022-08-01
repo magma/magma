@@ -147,24 +147,28 @@ function FEGNetworkTab(props: Props) {
           Filter By Date
         </Text>
       </Grid>
-      <DateTimePicker
-        renderInput={props => <TextField {...props} />}
-        maxDate={endDate}
-        disableFuture
-        value={startDate}
-        onChange={date => setStartDate(date as moment.Moment)}
-      />
+      <Grid item>
+        <DateTimePicker
+          renderInput={props => <TextField {...props} />}
+          maxDate={endDate}
+          disableFuture
+          value={startDate}
+          onChange={date => setStartDate(date as moment.Moment)}
+        />
+      </Grid>
       <Grid item>
         <Text variant="body3" className={classes.dateTimeText}>
           to
         </Text>
       </Grid>
-      <DateTimePicker
-        renderInput={props => <TextField {...props} />}
-        disableFuture
-        value={endDate}
-        onChange={date => setEndDate(date as moment.Moment)}
-      />
+      <Grid item>
+        <DateTimePicker
+          renderInput={props => <TextField {...props} />}
+          disableFuture
+          value={endDate}
+          onChange={date => setEndDate(date as moment.Moment)}
+        />
+      </Grid>
     </Grid>
   );
 }

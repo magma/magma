@@ -37,9 +37,6 @@ const useStyles = makeStyles<Theme>(theme => ({
     backgroundColor: colors.primary.brightGray,
     padding: `0 ${theme.spacing(5)}`,
   },
-  tabs: {
-    color: colors.primary.white,
-  },
   tab: {
     fontSize: '18px',
     textTransform: 'none',
@@ -112,9 +109,7 @@ export default function TopBar(props: Props) {
               <Tabs
                 value={currentTab}
                 indicatorColor="primary"
-                TabIndicatorProps={{style: {height: '5px'}}}
-                textColor="inherit"
-                className={classes.tabs}>
+                TabIndicatorProps={{style: {height: '5px'}}}>
                 {props.tabs.map(tab => (
                   <Tab
                     key={tab.key ?? tab.label}

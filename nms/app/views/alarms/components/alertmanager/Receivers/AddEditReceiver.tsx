@@ -146,6 +146,7 @@ export default function AddEditReceiver(props: Props) {
           <CardContent>
             <Typography paragraph>Details</Typography>
             <TextField
+              variant="standard"
               required
               id="name"
               label="Name"

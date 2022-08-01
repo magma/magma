@@ -13,6 +13,7 @@
 
 //  NOTE: Color Names generated from hex code at http://chir.ag/projects/name-that-color/
 
+import {alpha} from '@mui/material';
 import {createTheme} from '@mui/material/styles';
 
 export const colors = {
@@ -216,6 +217,9 @@ export default createTheme({
       main: colors.secondary.dodgerBlue,
       dark: colors.secondary.mariner,
     },
+    background: {
+      default: colors.primary.concrete,
+    },
   },
 
   typography: {
@@ -281,13 +285,19 @@ export default createTheme({
           },
           color: '#545F77',
         },
+        textPrimary: {
+          color: colors.primary.mirage,
+          '&:hover': {
+            backgroundColor: alpha(colors.primary.mirage, 0.05),
+          },
+        },
       },
     },
     MuiCheckbox: {
       styleOverrides: {
-        colorSecondary: {
-          '&.Mui-checked': {
-            color: '#3984FF',
+        root: {
+          '&.Mui-checked, &.MuiCheckbox-indeterminate': {
+            color: colors.primary.comet,
           },
         },
       },
@@ -329,10 +339,18 @@ export default createTheme({
     },
     MuiDialogContent: {
       styleOverrides: {
-        root: {
+        root: ({theme}) => ({
           padding: '32px',
           minHeight: '480px',
-        },
+
+          [theme.breakpoints.up('md')]: {
+            minWidth: '600px',
+          },
+
+          '.MuiDialogTitle-root.MuiDialogTitle-root + &': {
+            paddingTop: '32px',
+          },
+        }),
       },
     },
     MuiDialogTitle: {
@@ -386,12 +404,12 @@ export default createTheme({
     MuiToggleButton: {
       styleOverrides: {
         root: {
-          color: '#3984FF',
-          backgroundColor: '#FFFFFF',
+          color: colors.primary.comet,
+          backgroundColor: colors.primary.white,
           textTransform: 'none',
           '&.Mui-selected': {
-            color: '#FFFFFF',
-            backgroundColor: '#3984FF',
+            color: colors.primary.white,
+            backgroundColor: colors.primary.comet,
           },
         },
       },
@@ -416,6 +434,24 @@ export default createTheme({
         },
       },
     },
+    MuiMenu: {
+      styleOverrides: {
+        root: {
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'transparent',
+          },
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected, &.Mui-selected&:hover': {
+            backgroundColor: alpha(colors.primary.mirage, 0.05),
+          },
+        },
+      },
+    },
     MuiSelect: {
       styleOverrides: {
         select: {
@@ -434,12 +470,12 @@ export default createTheme({
     },
     MuiSwitch: {
       styleOverrides: {
-        colorSecondary: {
+        switchBase: {
           '&.Mui-checked': {
-            color: '#3984FF',
+            color: colors.primary.comet,
           },
           '&.Mui-checked + .MuiSwitch-track': {
-            backgroundColor: '#3984FF',
+            backgroundColor: colors.primary.comet,
             opacity: 0.5,
           },
         },
@@ -462,6 +498,13 @@ export default createTheme({
           lineHeight: 1.5,
           letterSpacing: '0.5px',
           padding: '12px 24px',
+          color: colors.primary.nobel,
+          '&.Mui-selected': {
+            color: colors.primary.white,
+          },
+          '&.Mui-disabled': {
+            color: colors.primary.nobel,
+          },
         },
       },
     },
@@ -475,7 +518,7 @@ export default createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: {
-          color: '#3984FF',
+          color: colors.primary.comet,
         },
       },
     },
@@ -542,6 +585,14 @@ export default createTheme({
           '&::-ms-input-placeholder': {
             opacity: 1,
           },
+        },
+      },
+    },
+
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          '&:last-child': {paddingRight: 16},
         },
       },
     },

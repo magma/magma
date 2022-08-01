@@ -132,6 +132,7 @@ export default function PolicyFlowFields(props: Props) {
           {flow.match.ip_proto !== PROTOCOL.IPPROTO_ICMP && (
             <div className={classes.flex}>
               <TextField
+                variant="standard"
                 className={classes.input}
                 label="IPv4 Source"
                 margin="normal"
@@ -144,6 +145,7 @@ export default function PolicyFlowFields(props: Props) {
                 }}
               />
               <TextField
+                variant="standard"
                 className={classes.input}
                 label="IPv4 Destination"
                 margin="normal"
@@ -160,6 +162,7 @@ export default function PolicyFlowFields(props: Props) {
           {flow.match.ip_proto === PROTOCOL.IPPROTO_UDP && (
             <div className={classes.flex}>
               <TextField
+                variant="standard"
                 className={classes.input}
                 label="UDP Source Port"
                 margin="normal"
@@ -169,6 +172,7 @@ export default function PolicyFlowFields(props: Props) {
                 }
               />
               <TextField
+                variant="standard"
                 className={classes.input}
                 label="UDP Destination Port"
                 margin="normal"
@@ -182,6 +186,7 @@ export default function PolicyFlowFields(props: Props) {
           {flow.match.ip_proto === PROTOCOL.IPPROTO_TCP && (
             <div className={classes.flex}>
               <TextField
+                variant="standard"
                 className={classes.input}
                 label="TCP Source Port"
                 margin="normal"
@@ -191,6 +196,7 @@ export default function PolicyFlowFields(props: Props) {
                 }
               />
               <TextField
+                variant="standard"
                 className={classes.input}
                 label="TCP Destination Port"
                 margin="normal"

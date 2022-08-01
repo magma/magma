@@ -65,6 +65,7 @@ export default function OrganizationUserDialog(props: DialogProps) {
       </AltFormField>
       <AltFormField label={'Password'}>
         <PasswordInput
+          fullWidth
           data-testid="password"
           placeholder="Enter Password"
           value={user.password || ''}
@@ -75,6 +76,7 @@ export default function OrganizationUserDialog(props: DialogProps) {
       </AltFormField>
       <AltFormField label={'Confirm Password'}>
         <PasswordInput
+          fullWidth
           data-testid="passwordConfirmation"
           placeholder="Enter Password Confirmation"
           value={user?.passwordConfirmation || ''}

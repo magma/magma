@@ -30,6 +30,7 @@ export default function WebhookConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Url"
               placeholder="Ex: webhook.example.com"

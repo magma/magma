@@ -14,6 +14,7 @@
 import * as React from 'react';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import Input from '@mui/material/Input';
 import MenuItem from '@mui/material/MenuItem';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
 import {useAlarmContext} from '../../AlarmContext';
@@ -56,7 +57,7 @@ export default function SelectReceiver({
       data-testid="select-receiver"
       onChange={handleChange}
       defaultValue="Select Team"
-      inputProps={{'data-testid': 'select-receiver-input'}}
+      input={<Input inputProps={{'data-testid': 'select-receiver-input'}} />}
       renderValue={value => (
         <Chip
           key={value}

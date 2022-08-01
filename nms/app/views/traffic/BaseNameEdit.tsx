@@ -21,7 +21,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@mui/material/FormLabel';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -160,7 +159,6 @@ export function BaseNameEdit(props: Props) {
             </AltFormField>
           )}
           <div>
-            <ListItem dense disableGutters />
             <AltFormField label={'Base Name ID'}>
               <OutlinedInput
                 data-testid="baseNameID"
@@ -170,7 +168,7 @@ export function BaseNameEdit(props: Props) {
                 onChange={({target}) => setEditedName(target.value)}
               />
             </AltFormField>
-            <AltFormField disableGutters label={'Included Rule Names'}>
+            <AltFormField label={'Included Rule Names'}>
               <Select
                 fullWidth={true}
                 multiple
@@ -194,7 +192,7 @@ export function BaseNameEdit(props: Props) {
                 ))}
               </Select>
             </AltFormField>
-            <AltFormField disableGutters label={'Assigned Subscribers'}>
+            <AltFormField label={'Assigned Subscribers'}>
               <Select
                 fullWidth={true}
                 multiple

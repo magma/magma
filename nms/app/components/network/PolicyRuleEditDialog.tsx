@@ -29,6 +29,7 @@ import TextField from '@mui/material/TextField';
 import TypedSelect from '../TypedSelect';
 import Typography from '@mui/material/Typography';
 
+import Input from '@mui/material/Input';
 import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
@@ -228,6 +229,7 @@ export default function PolicyRuleEditDialog(props: Props) {
       <DialogTitle>{props.rule ? 'Edit' : 'Add'} Rule</DialogTitle>
       <DialogContent>
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="ID"
@@ -237,6 +239,7 @@ export default function PolicyRuleEditDialog(props: Props) {
           onChange={({target}) => setRule({...rule, id: target.value})}
         />
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Precendence"
@@ -248,6 +251,7 @@ export default function PolicyRuleEditDialog(props: Props) {
           }
         />
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Monitoring Key (base64)"
@@ -258,6 +262,7 @@ export default function PolicyRuleEditDialog(props: Props) {
           }
         />
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Monitoring Key (hex)"
@@ -266,6 +271,7 @@ export default function PolicyRuleEditDialog(props: Props) {
           value={base64ToHex(rule.monitoring_key ?? '')}
         />
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Monitoring Key (ascii)"
@@ -274,6 +280,7 @@ export default function PolicyRuleEditDialog(props: Props) {
           value={decodeBase64(rule.monitoring_key ?? '')}
         />
         <TextField
+          variant="standard"
           className={classes.input}
           label="Rating Group"
           margin="normal"
@@ -290,7 +297,7 @@ export default function PolicyRuleEditDialog(props: Props) {
             })
           }
         />
-        <FormControl className={classes.input}>
+        <FormControl className={classes.input} variant="standard">
           <InputLabel htmlFor="trackingType">Tracking Type</InputLabel>
           <TypedSelect
             items={{
@@ -299,14 +306,14 @@ export default function PolicyRuleEditDialog(props: Props) {
               OCS_AND_PCRF: 'OCS and PCRF',
               NO_TRACKING: 'No Tracking',
             }}
-            inputProps={{id: 'trackingType'}}
+            input={<Input id="trackingType" />}
             value={rule.tracking_type || 'NO_TRACKING'}
             onChange={trackingType =>
               setRule({...rule, tracking_type: trackingType})
             }
           />
         </FormControl>
-        <FormControl className={classes.input}>
+        <FormControl className={classes.input} variant="standard">
           <InputLabel htmlFor="appName">App Name</InputLabel>
           <TypedSelect
             items={{
@@ -334,12 +341,12 @@ export default function PolicyRuleEditDialog(props: Props) {
               YAHOO: 'Yahoo',
               IMO: 'IMO',
             }}
-            inputProps={{id: 'appName'}}
+            input={<Input id="appName" />}
             value={rule.app_name || 'NO_APP_NAME'}
             onChange={appName => setRule({...rule, app_name: appName})}
           />
         </FormControl>
-        <FormControl className={classes.input}>
+        <FormControl className={classes.input} variant="standard">
           <InputLabel htmlFor="appServiceType">App Service Type</InputLabel>
           <TypedSelect
             items={{
@@ -348,31 +355,32 @@ export default function PolicyRuleEditDialog(props: Props) {
               AUDIO: 'Audio',
               VIDEO: 'Video',
             }}
-            inputProps={{id: 'appServiceType'}}
+            input={<Input id="appServiceType" />}
             value={rule.app_service_type || 'NO_SERVICE_TYPE'}
             onChange={appServiceType =>
               setRule({...rule, app_service_type: appServiceType})
             }
           />
         </FormControl>
-        <FormControl className={classes.input}>
+        <FormControl className={classes.input} variant="standard">
           <InputLabel htmlFor="target">Network Wide</InputLabel>
           <TypedSelect
             items={{
               true: 'true',
               false: 'false',
             }}
-            inputProps={{id: 'target'}}
+            input={<Input id="target" />}
             value={isNetworkWide ? 'true' : 'false'}
             onChange={target => {
               setIsNetworkWide(target === 'true');
             }}
           />
         </FormControl>
-        <FormControl className={classes.input}>
+        <FormControl className={classes.input} variant="standard">
           <InputLabel htmlFor="target">Qos Profile</InputLabel>
           <Select
             className={classes.input}
+            input={<Input />}
             value={rule?.qos_profile ?? ''}
             onChange={({target}) =>
               setRule({...rule, qos_profile: target.value})

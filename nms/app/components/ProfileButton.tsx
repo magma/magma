@@ -33,20 +33,18 @@ const useStyles = makeStyles(() => ({
     padding: '15px 28px',
     cursor: 'pointer',
     outline: 'none',
-    '&:hover $icon, &:hover $label, &$selected $icon, &$selected $label': {
+    '&:hover .MuiSvgIcon-root, &:hover span': {
       color: colors.primary.white,
     },
   },
   label: {
-    '&&': {
-      color: colors.primary.gullGray,
-      whiteSpace: 'nowrap',
-      paddingLeft: '16px',
-    },
+    color: colors.primary.gullGray,
+    whiteSpace: 'nowrap',
+    paddingLeft: '16px',
   },
   selected: {
     backgroundColor: colors.secondary.dodgerBlue,
-    '& $icon': {
+    '& .MuiSvgIcon-root, & span': {
       color: colors.primary.white,
     },
   },

@@ -186,6 +186,7 @@ type PasswordProps = {
   placeholder?: string;
   value: string;
   required?: boolean;
+  fullWidth?: boolean;
   autoComplete?: string;
 };
 

@@ -23,21 +23,18 @@ import Link from '@mui/material/Link';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
 import Paper from '@mui/material/Paper';
-import React from 'react';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
+import React, {useEffect, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import WarningIcon from '@mui/icons-material/Warning';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
-import withStyles from '@mui/styles/withStyles';
 import {Alarm} from '@mui/icons-material';
+import {MagmaTab, MagmaTabs} from '../theme/design-system/SecondaryTabs';
 import {REFRESH_INTERVAL} from '../context/AppContext';
 import {Theme} from '@mui/material/styles';
-import {colors, typography} from '../theme/default';
+import {colors} from '../theme/default';
 import {intersection} from 'lodash';
 import {makeStyles} from '@mui/styles';
-import {useEffect, useState} from 'react';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -83,24 +80,6 @@ const useStyles = makeStyles<Theme>(theme => ({
     margin: '5px',
   },
 }));
-
-const MagmaTabs = withStyles({
-  indicator: {
-    backgroundColor: colors.secondary.dodgerBlue,
-  },
-})(Tabs);
-
-const MagmaTab = withStyles({
-  root: {
-    fontFamily: typography.body1.fontFamily,
-    fontWeight: typography.body1.fontWeight,
-    fontSize: typography.body1.fontSize,
-    lineHeight: typography.body1.lineHeight,
-    letterSpacing: typography.body1.letterSpacing,
-    color: colors.primary.brightGray,
-    textTransform: 'none',
-  },
-})(Tab);
 
 type Severity = 'Critical' | 'Major' | 'Minor' | 'Other';
 

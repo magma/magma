@@ -272,10 +272,13 @@ function SeverityEditor(props: {
   const severityMenuItemClasses = useSeverityMenuItemStyles();
   return (
     <Grid item xs={3}>
-      <InputLabel htmlFor="severity-input">Severity</InputLabel>
+      <InputLabel htmlFor="severity-input" variant="standard">
+        Severity
+      </InputLabel>
       <TextField
         id="severity-input"
         fullWidth
+        variant="standard"
         required
         select
         value={props.severity}
@@ -340,9 +343,12 @@ function TimeUnitEditor(props: {
   const severityMenuItemClasses = useSeverityMenuItemStyles();
   return (
     <Grid item xs={3}>
-      <InputLabel htmlFor="unit-input">Unit</InputLabel>
+      <InputLabel htmlFor="unit-input" variant="standard">
+        Unit
+      </InputLabel>
       <TextField
         id="unit-input"
+        variant="standard"
         fullWidth
         select
         value={props.timeUnit}

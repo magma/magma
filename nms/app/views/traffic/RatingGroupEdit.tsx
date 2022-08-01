@@ -20,7 +20,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@mui/material/FormLabel';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -29,24 +28,9 @@ import React from 'react';
 import Select from '@mui/material/Select';
 
 import {AltFormField} from '../../components/FormField';
-import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-
-const useStyles = makeStyles(() => ({
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
-  },
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '50%',
-    fullWidth: true,
-  },
-}));
 
 type Props = {
   open: boolean;
@@ -55,7 +39,6 @@ type Props = {
 };
 
 export default function RatingGroupEditDialog(props: Props) {
-  const classes = useStyles();
   const ctx = useContext(PolicyContext);
   const ratingGroups = ctx.ratingGroups;
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -129,10 +112,8 @@ export default function RatingGroupEditDialog(props: Props) {
               </FormLabel>
             </AltFormField>
           )}
-          <ListItem dense disableGutters />
           <AltFormField label={'Rating Group ID'} disableGutters>
             <OutlinedInput
-              className={classes.input}
               fullWidth={true}
               type="number"
               data-testid="ratingGroupID"

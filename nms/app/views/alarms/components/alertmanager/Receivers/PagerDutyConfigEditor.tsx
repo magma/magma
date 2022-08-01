@@ -30,6 +30,7 @@ export default function PagerDutyConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Description"
               value={config.description}
@@ -39,6 +40,7 @@ export default function PagerDutyConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Severity"
               value={config.severity}
@@ -48,6 +50,7 @@ export default function PagerDutyConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Url"
               placeholder="Ex: webhook.example.com"
@@ -58,6 +61,7 @@ export default function PagerDutyConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Routing_key"
               value={config.routing_key}
@@ -67,6 +71,7 @@ export default function PagerDutyConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Service_key"
               value={config.service_key}
@@ -76,6 +81,7 @@ export default function PagerDutyConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Client"
               value={config.client}
@@ -85,6 +91,7 @@ export default function PagerDutyConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Client Url"
               value={config.client_url}

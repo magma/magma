@@ -56,7 +56,6 @@ import type {
 const useStyles = makeStyles(() => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   input: {
     display: 'inline-flex',

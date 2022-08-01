@@ -78,6 +78,7 @@ function DialogWithConfirmationPhrase(props: DialogConfirmationProps) {
         <DialogContentText>
           {message}
           <TextField
+            variant="standard"
             label={label}
             value={confirmationPhrase}
             onChange={({target}) => setConfirmationPhrase(target.value)}

@@ -117,8 +117,11 @@ export default function LabelsEditor({labels, onChange}: Props) {
             labelsState.map(([key, value], index) => (
               <Grid container key={index} item spacing={1}>
                 <Grid item xs={6}>
-                  <InputLabel htmlFor="label-name-input">Label Name</InputLabel>
+                  <InputLabel htmlFor="label-name-input" variant="standard">
+                    Label Name
+                  </InputLabel>
                   <TextField
+                    variant="standard"
                     id="label-name-input"
                     placeholder="Name"
                     value={key}
@@ -127,8 +130,11 @@ export default function LabelsEditor({labels, onChange}: Props) {
                   />
                 </Grid>
                 <Grid item xs={5}>
-                  <InputLabel htmlFor="label-value-input">Value</InputLabel>
+                  <InputLabel htmlFor="label-value-input" variant="standard">
+                    Value
+                  </InputLabel>
                   <TextField
+                    variant="standard"
                     id="label-value-input"
                     placeholder="Value"
                     value={value}
