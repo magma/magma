@@ -1,0 +1,23 @@
+################################################################################
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+arm_instance_type: t4g.medium
+arm_security_group: sgr-072a514ea61845f33
+arm_ami_instance: ami-00a0488e9d5582804
+arm_region: us-east-1
+arm_keypair: gha_keypair
+arm_vpc: vpc-5c81213a
+
+magma_dir: /tmp/magma/
+magma_repo: https://github.com/magma/magma.git
+magma_branch: master #default value
