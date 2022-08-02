@@ -85,7 +85,7 @@ test('rendered row is transformed by path expression', () => {
 });
 
 test('if menuItems is passed, actions menu is rendered', () => {
-  const {getAllByTitle} = render(
+  const {getAllByRole} = render(
     <Wrapper>
       <SimpleTable
         columnStruct={mockColumns()}
@@ -98,7 +98,7 @@ test('if menuItems is passed, actions menu is rendered', () => {
       />
     </Wrapper>,
   );
-  expect(getAllByTitle('Actions')[0]).toBeInTheDocument();
+  expect(getAllByRole('button', {name: 'Actions'})[0]).toBeInTheDocument();
 });
 
 describe('column renderers', () => {

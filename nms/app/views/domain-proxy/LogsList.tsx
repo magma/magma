@@ -309,12 +309,20 @@ function LogsList() {
               <Grid item>
                 <DateTimePicker
                   renderInput={props => (
-                    <TextField data-testid="end-date-input" {...props} />
+                    <TextField
+                      {...props}
+                      inputProps={{
+                        'data-testid': 'start-date-input',
+                        ...props.inputProps,
+                      }}
+                    />
                   )}
                   maxDate={endDate}
                   disableFuture
                   value={startDate}
-                  onChange={newValue => setStartDate(newValue as moment.Moment)}
+                  onChange={newValue => {
+                    setStartDate(newValue as moment.Moment);
+                  }}
                   inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>
@@ -406,7 +414,13 @@ function LogsList() {
               <Grid item>
                 <DateTimePicker
                   renderInput={props => (
-                    <TextField data-testid="end-date-input" {...props} />
+                    <TextField
+                      {...props}
+                      inputProps={{
+                        'data-testid': 'end-date-input',
+                        ...props.inputProps,
+                      }}
+                    />
                   )}
                   disableFuture
                   value={endDate}

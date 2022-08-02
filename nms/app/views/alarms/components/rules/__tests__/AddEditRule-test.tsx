@@ -85,7 +85,7 @@ describe('Receiver select', () => {
       </AlarmsWrapper>,
     );
     const select = getByTestId('select-receiver');
-    expect(select.textContent).toBe('test_receiver');
+    expect(select).toHaveTextContent('test_receiver');
   });
 
   test('selecting a receiver sets the value in the select box', () => {

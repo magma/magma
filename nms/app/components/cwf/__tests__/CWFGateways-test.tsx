@@ -141,7 +141,9 @@ describe('<CWFGateways />', () => {
   });
 
   it('renders', async () => {
-    const {getByTitle, getAllByTitle, getAllByRole} = render(<Wrapper />);
+    const {getByLabelText, getAllByLabelText, getAllByRole} = render(
+      <Wrapper />,
+    );
 
     await waitFor(() =>
       expect(
@@ -163,8 +165,8 @@ describe('<CWFGateways />', () => {
     );
     const expectedGatewayDate =
       'Last refreshed ' + new Date(0).toLocaleString();
-    expect(getByTitle(expectedGatewayDate)).toBeInTheDocument();
-    const primaryCwag = getAllByTitle('Primary CWAG');
+    expect(getByLabelText(expectedGatewayDate)).toBeInTheDocument();
+    const primaryCwag = getAllByLabelText('Primary CWAG');
     expect(primaryCwag).toHaveLength(1);
 
     expect(rowItems[2]).toHaveTextContent('mock_cwf2');
@@ -173,6 +175,6 @@ describe('<CWFGateways />', () => {
     );
     const expectedGatewayDate2 =
       'Last refreshed ' + new Date(1).toLocaleString();
-    expect(getByTitle(expectedGatewayDate2)).toBeInTheDocument();
+    expect(getByLabelText(expectedGatewayDate2)).toBeInTheDocument();
   });
 });

@@ -208,7 +208,7 @@ export default function SimpleTable<T extends object>(
     setAnchorEl(null);
   };
 
-  if (props.menuItems && anchorEl) {
+  if (props.menuItems) {
     // Actions menu
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(

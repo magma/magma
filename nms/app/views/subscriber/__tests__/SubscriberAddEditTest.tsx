@@ -37,6 +37,8 @@ import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('../../../hooks/useSnackbar');
 
+jest.setTimeout(30000);
+
 const subscribersMock: Record<string, Subscriber> = {
   IMSI00000000001002: {
     name: 'subscriber0',
@@ -335,8 +337,8 @@ describe('<AddSubscriberButton />', () => {
     const {
       getByTestId,
       queryByTestId,
-      getByTitle,
-      findByTitle,
+      getByRole,
+      findByRole,
       findByTestId,
       findByText,
     } = render(<AddWrapper />);
@@ -362,7 +364,7 @@ describe('<AddSubscriberButton />', () => {
     expect(rowHeader[0]).toHaveTextContent('Active Policies');
 
     //Add subscriber
-    fireEvent.click(await findByTitle('Add'));
+    fireEvent.click(await findByRole('button', {name: 'Add'}));
 
     const name = (await findByTestId('name')).firstChild;
     const IMSI = getByTestId('IMSI').firstChild;
@@ -392,7 +394,7 @@ describe('<AddSubscriberButton />', () => {
     }
 
     // Add subscriber
-    fireEvent.click(getByTitle('Save'));
+    fireEvent.click(getByRole('button', {name: 'Save'}));
 
     // Verify new subscriber row before saving
     const rowItems = await within(detailsTable).findAllByRole('row', {

@@ -611,11 +611,8 @@ describe('<AddEditEnodeButton />', () => {
 
     const enbConfigType = getByTestId('enodeb_config').firstChild;
 
-    if (
-      enbConfigType instanceof HTMLElement &&
-      enbConfigType.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(enbConfigType.firstChild);
+    if (enbConfigType instanceof HTMLInputElement) {
+      fireEvent.click(enbConfigType);
     } else {
       throw 'invalid type';
     }

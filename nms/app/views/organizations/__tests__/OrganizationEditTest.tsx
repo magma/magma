@@ -22,8 +22,9 @@ import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {mockUseAxios} from '../useAxiosTestHelper';
+import {render} from '../../../util/TestingLibrary';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useAxios');
@@ -190,9 +191,12 @@ describe('<OrganizationEdit />', () => {
       data: hostUserMock,
     });
 
-    const {getByTestId, getByText, queryByTestId, getAllByTitle} = render(
-      <WrappedOrganizations />,
-    );
+    const {
+      getByTestId,
+      getByText,
+      queryByTestId,
+      openActionsTableMenu,
+    } = render(<WrappedOrganizations />);
 
     await waitFor(() => {
       expect(getByTestId('organizationTitle')).toBeInTheDocument();
@@ -204,10 +208,7 @@ describe('<OrganizationEdit />', () => {
     expect(queryByTestId('onboardingDialog')).toBeNull();
 
     // Open menu to go to organization detail page
-    const actionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(actionList[0]);
-    expect(getByTestId('actions-menu')).toBeVisible();
+    await openActionsTableMenu(0);
     await waitFor(() => {
       fireEvent.click(getByText('View'));
     });

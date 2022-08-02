@@ -17,8 +17,9 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
+import {render} from '../../../util/TestingLibrary';
+import {waitFor} from '@testing-library/react';
 import type {LteGateway, PromqlReturnObject} from '../../../../generated';
 
 jest.mock('../../../hooks/useSnackbar');
@@ -152,9 +153,12 @@ describe('<Gateway />', () => {
   );
 
   it('renders', async () => {
-    const {findByTestId, getByTestId, getAllByRole, getAllByTitle} = render(
-      <Wrapper />,
-    );
+    const {
+      findByTestId,
+      getByTestId,
+      getAllByRole,
+      openActionsTableMenu,
+    } = render(<Wrapper />);
 
     await waitFor(() =>
       expect(
@@ -202,9 +206,7 @@ describe('<Gateway />', () => {
     );
 
     // click the actions button for gateway 0
-    const actionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(actionList[0]);
+    await openActionsTableMenu(0);
     expect(await findByTestId('actions-menu')).toBeVisible();
   });
 });

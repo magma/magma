@@ -343,13 +343,11 @@ describe('<TrafficDashboard />', () => {
     if (
       policyID instanceof HTMLInputElement &&
       prio instanceof HTMLInputElement &&
-      networkWide instanceof HTMLElement
+      networkWide instanceof HTMLInputElement
     ) {
       fireEvent.change(policyID, {target: {value: 'test_policy_0'}});
       fireEvent.change(prio, {target: {value: '1'}});
-      if (networkWide.firstChild instanceof HTMLElement) {
-        fireEvent.click(networkWide.firstChild);
-      }
+      fireEvent.click(networkWide);
     } else {
       throw 'invalid type';
     }
@@ -468,13 +466,11 @@ describe('<TrafficDashboard />', () => {
     if (
       policyID instanceof HTMLInputElement &&
       prio instanceof HTMLInputElement &&
-      networkWide instanceof HTMLElement
+      networkWide instanceof HTMLInputElement
     ) {
       fireEvent.change(policyID, {target: {value: 'test_policy_0'}});
       fireEvent.change(prio, {target: {value: '1'}});
-      if (networkWide.firstChild instanceof HTMLElement) {
-        fireEvent.click(networkWide.firstChild);
-      }
+      fireEvent.click(networkWide);
     } else {
       throw 'invalid type';
     }

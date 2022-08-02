@@ -19,8 +19,9 @@ import defaultTheme from '../../../theme/default';
 import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
+import {render} from '../../../util/TestingLibrary';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {LteGateway} from '../../../../generated';
 
@@ -170,14 +171,9 @@ describe('<GatewayPools />', () => {
       )
       .mockImplementation();
 
-    const {
-      findAllByRole,
-      findByTestId,
-      findByText,
-      getByTestId,
-      getByText,
-      getAllByTitle,
-    } = render(<Wrapper />);
+    const {findAllByRole, findByText, getByText, openActionsTableMenu} = render(
+      <Wrapper />,
+    );
 
     const rowItems = await findAllByRole('row');
 
@@ -207,11 +203,7 @@ describe('<GatewayPools />', () => {
     expect(rowItems[3]).toHaveTextContent('-');
 
     // delete gateway pool3
-    const actionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(actionList[2]);
-
-    expect(await findByTestId('actions-menu')).toBeVisible();
+    await openActionsTableMenu(2);
     fireEvent.click(getByText('Remove'));
     expect(
       await findByText('Are you sure you want to delete pool3?'),
@@ -235,13 +227,10 @@ describe('<GatewayPools />', () => {
       queryByTestId,
       getByTestId,
       getByText,
-      findAllByTitle,
-      findByTestId,
+      openActionsTableMenu,
     } = render(<Wrapper />);
 
-    const actionList = await findAllByTitle('Actions');
-    fireEvent.click(actionList[2]);
-    await findByTestId('actions-menu');
+    await openActionsTableMenu(2);
     fireEvent.click(getByText('Edit'));
 
     // check if only first tab (config) is active

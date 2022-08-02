@@ -20,9 +20,10 @@ import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {Subscriber} from '../../../../generated';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
+import {render} from '../../../util/TestingLibrary';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -126,7 +127,9 @@ describe('<SubscriberDashboard />', () => {
   };
 
   it('Verify Subscribers Dashboard', async () => {
-    const {getAllByTitle, getAllByRole, getByTestId} = render(<Wrapper />);
+    const {openActionsTableMenu, getAllByRole, getByTestId} = render(
+      <Wrapper />,
+    );
 
     await waitFor(() => {
       const rowItems = getAllByRole('row');
@@ -150,9 +153,7 @@ describe('<SubscriberDashboard />', () => {
     });
 
     // click the actions button for subscriber0
-    const actionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(actionList[0]);
+    await openActionsTableMenu(0);
     await waitFor(() => {
       expect(getByTestId('actions-menu')).toBeVisible();
     });

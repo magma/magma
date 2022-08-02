@@ -401,11 +401,8 @@ describe('<AddEditGatewayButton />', () => {
 
     // Verify Dynamic Services Edit
     const monitordService = getByTestId('monitordService').firstChild;
-    if (
-      monitordService instanceof HTMLElement &&
-      monitordService.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(monitordService.firstChild);
+    if (monitordService instanceof HTMLInputElement) {
+      fireEvent.click(monitordService);
     } else {
       throw 'invalid type';
     }
@@ -450,13 +447,12 @@ describe('<AddEditGatewayButton />', () => {
     const sgiStaticIpv6 = getByTestId('sgiStaticIpv6').firstChild;
     const ipv6Block = getByTestId('ipv6Block').firstChild;
     if (
-      natEnabled instanceof HTMLElement &&
-      natEnabled.firstChild instanceof HTMLElement &&
+      natEnabled instanceof HTMLInputElement &&
       gwSgiIpv6 instanceof HTMLInputElement &&
       sgiStaticIpv6 instanceof HTMLInputElement &&
       ipv6Block instanceof HTMLInputElement
     ) {
-      fireEvent.click(natEnabled.firstChild);
+      fireEvent.click(natEnabled);
       fireEvent.change(gwSgiIpv6, {
         target: {value: '2001:4860:4860:0:0:0:0:1'},
       });
@@ -507,11 +503,8 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     const enbDhcpService = getByTestId('enbDhcpService').firstChild;
-    if (
-      enbDhcpService instanceof HTMLElement &&
-      enbDhcpService.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(enbDhcpService.firstChild);
+    if (enbDhcpService instanceof HTMLInputElement) {
+      fireEvent.click(enbDhcpService);
     } else {
       throw 'invalid type';
     }
@@ -658,21 +651,15 @@ describe('<AddEditGatewayButton />', () => {
     expect(queryByTestId('headerEnrichmentEdit')).not.toBeNull();
     // Verify Header Enrichment Edit
     const HeEnabled = getByTestId('enableHE').firstChild;
-    if (
-      HeEnabled instanceof HTMLElement &&
-      HeEnabled.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(HeEnabled.firstChild);
+    if (HeEnabled instanceof HTMLInputElement) {
+      fireEvent.click(HeEnabled);
     } else {
       throw 'invalid type';
     }
     expect(queryByTestId('encryptionEdit')).toBeNull();
     const encryptionEnabled = getByTestId('enableEncryption').firstChild;
-    if (
-      encryptionEnabled instanceof HTMLElement &&
-      encryptionEnabled.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(encryptionEnabled.firstChild);
+    if (encryptionEnabled instanceof HTMLInputElement) {
+      fireEvent.click(encryptionEnabled);
     } else {
       throw 'invalid type';
     }
@@ -751,11 +738,8 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     const enbDhcpService = getByTestId('enbDhcpService').firstChild;
-    if (
-      enbDhcpService instanceof HTMLElement &&
-      enbDhcpService.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(enbDhcpService.firstChild);
+    if (enbDhcpService instanceof HTMLInputElement) {
+      fireEvent.click(enbDhcpService);
     } else {
       throw 'invalid type';
     }

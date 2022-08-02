@@ -35,6 +35,13 @@ jest.mock('../../../hooks/useSnackbar', () => ({
   useEnqueueSnackbar: () => mockEnqueueSnackbar,
 }));
 
+jest.mock('@mui/x-date-pickers/DateTimePicker', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+  DateTimePicker: jest.requireActual(
+    '@mui/x-date-pickers/DesktopDateTimePicker',
+  ).DesktopDateTimePicker,
+}));
+
 const networkId = 'test-network';
 
 const renderWithProviders = (jsx: React.ReactNode) => {
@@ -72,7 +79,9 @@ describe('<LogsList />', () => {
     };
 
     const fillInput = (testId: string, value: unknown) => {
+      fireEvent.click(screen.getByTestId(testId));
       fireEvent.change(screen.getByTestId(testId), {target: {value}});
+      fireEvent.blur(screen.getByTestId(testId));
     };
 
     // See https://stackoverflow.com/a/61491607

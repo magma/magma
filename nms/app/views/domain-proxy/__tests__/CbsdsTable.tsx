@@ -16,7 +16,8 @@ import React from 'react';
 import defaultTheme from '../../../theme/default';
 
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, within} from '@testing-library/react';
+import {fireEvent, within} from '@testing-library/react';
+import {render} from '../../../util/TestingLibrary';
 
 jest.mock('axios');
 
@@ -126,21 +127,8 @@ describe('<CbsdsTable /> with 2 cbsds', () => {
 
   it('Opens edit modal when Edit button is clicked', async () => {
     const component = renderTable();
-
-    const tables = await component.findAllByRole('table');
-    const table = tables[0];
-
-    const rows = await within(table).findAllByRole('row');
-    // 0 is headings, 1 is the first row
-    const row = rows[1];
-
-    const menuButton = await within(row).findByRole(
-      (role, element) => element?.getAttribute('title') === 'Actions',
-    );
-
-    fireEvent.click(menuButton);
-
-    const menu = await component.findByTestId('actions-menu');
+    await component.findAllByRole('table');
+    const menu = await component.openActionsTableMenu(0);
 
     const editButton = await within(menu).findByText('Edit');
 

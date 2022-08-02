@@ -39,7 +39,7 @@ describe('NMS', () => {
       await page.goto('https://magma-test.localhost/nms/test/traffic/policy');
 
       // check if the description is right
-      await page.waitForXPath(`//span[text()='Policies']`);
+      await page.waitForXPath(`//button[text()='Policies']`);
 
       // verify if we have mocked policies installed
       await page.waitForXPath(`//button[text()='test1']`);
