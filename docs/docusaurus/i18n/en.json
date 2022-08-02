@@ -99,8 +99,8 @@
       "feg/docker_setup": {
         "title": "FeG Docker Setup"
       },
-      "feg/s1ap_federated_test": {
-        "title": "S1AP Federated Integration Test"
+      "feg/s1ap_federated_tests": {
+        "title": "S1AP Federated Integration Tests"
       },
       "feg/session_proxy": {
         "title": "feg/session_proxy"

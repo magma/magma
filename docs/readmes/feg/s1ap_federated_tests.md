@@ -1,24 +1,27 @@
 ---
-id: s1ap_federated_test
-title: S1AP Federated Integration Test
+id: s1ap_federated_tests
+title: S1AP Federated Integration Tests
 hide_title: true
 ---
 
-# S1AP Federated Integration Test
+# S1AP Federated Integration Tests
 
 The S1AP Integration Test only tests the AGW. The objective of the **S1AP
-Federated Integration Test** is to provide a test platform
-to run Magma with all of its components. That is, an end-to-end test with all
+Federated Integration Tests** is to provide a test platform
+to run Magma with all of its components. That is, end-to-end tests with all
 components of Magma: AGW, Orc8r and FeG.
 
-Currently, this test is in an experimental phase, so we are only testing the connectivity of
-AGW - Orc8r - FeG, and we are able to run an attach/detach test using the S1AP tester
+Currently, these tests are in an experimental phase, so we are only testing the connectivity of
+AGW - Orc8r - FeG, and we are able to run the following tests using the S1AP tester
 and our mock HSS.
+
+- An attach/detach test
+- An attach/detach test with multiple UEs (for 32 UEs)
 
 ## Architecture
 
-As the diagram indicates, this test spins up **AGW**, **FeG**, and **Orc8r**
-and uses `S1AP` and `magma_trfserver` as an eNb and SGi emulator to run tests.
+As the diagram indicates, these tests spin up **AGW**, **FeG**, and **Orc8r**
+and use `S1AP` and `magma_trfserver` as an eNb and SGi emulator to run tests.
 
 ```mermaid
 graph LR;
@@ -57,6 +60,7 @@ This script will
 - Configure Orc8r with AGW and FeG
 - Run connectivity tests between all three components
 - Run a basic attach/detach test
+- Run an attach/detach test with multiple UEs (for 32 UEs)
 
 To execute the script, run:
 
@@ -111,7 +115,7 @@ vagrant up magma_test
 vagrant up magma_trfserver
 ```
 
-You can then [run the test manually](#run-test-manually).
+You can then [run the tests manually](#run-tests-manually).
 
 ### Manual build
 
@@ -186,10 +190,10 @@ cd magma/lte/gateway
 vagrant up magma_trfserver
 ```
 
-#### Run test manually
+#### Run tests manually
 
-Once you have built all of the VMs, you can try to run the test from the
-`magma_test` VM. It is a simple attach-detach test:
+Once you have built all of the VMs, you can try to run the tests from the
+`magma_test` VM.
 
 ```bash
 cd magma/lte/gateway
@@ -197,8 +201,12 @@ vagrant ssh magma_test
 
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests
-make integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
+## Individual test(s), e.g.:
+make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
 
-# once the test is done, you can exit the vagrant vm
+## All tests
+make fed_integ_test
+
+# once the tests are done, you can exit the vagrant vm
 exit
 ```

@@ -54,6 +54,16 @@ else
 	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 endif
 
+.PHONY: fed_integ_test
+fed_integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
+	. $(PYTHON_BUILD)/bin/activate
+ifdef TESTS
+	$(call execute_test,$(TESTS))
+else
+	echo "pass" > $(MAGMA_ROOT)/test_status.txt
+	$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
+endif
+
 .PHONY: nonsanity
 nonsanity: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
