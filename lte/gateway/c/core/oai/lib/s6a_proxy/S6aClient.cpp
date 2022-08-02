@@ -274,7 +274,7 @@ void S6aClient::convert_ula_to_subscriber_data(
 
     sub_apn_config->set_pdn((magma::lte::APNConfiguration_PDNType)apn.pdn());
 
-    // Only the first IP is assigned in to the subscriber in the current
+    // Only the first IP is assigned to the subscriber in the current
     // implementation
     if (apn.served_party_ip_address_size() > 0) {
       sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));

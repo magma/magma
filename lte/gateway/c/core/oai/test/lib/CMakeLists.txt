@@ -15,9 +15,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories("/usr/src/googletest/googlemock/include/")
 
-
 link_directories(/usr/src/googletest/googlemock/lib/)
-
 
 add_executable(bstr_test test_bstr.cpp)
 target_link_libraries(bstr_test LIB_BSTR gmock_main gtest gtest_main gmock pthread)

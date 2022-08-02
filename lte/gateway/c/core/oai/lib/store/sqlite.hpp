@@ -39,7 +39,7 @@ class SqliteStore {
   std::vector<std::string> _create_db_locations(std::string db_location,
                                                 int _n_shards);
   void _create_store();
-  const char* _to_str(const SubscriberData& subscriber_data);
+  const char* get_sid(const SubscriberData& subscriber_data);
   // Map subscriber ID to bucket
   int _sid2bucket(std::string sid);
 };
