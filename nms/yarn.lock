@@ -1285,7 +1285,7 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.3", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.14.0", "@babel/runtime@^7.3.1", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.0", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.3", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.14.0", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.0", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
   version "7.17.2"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.2.tgz#66f68591605e59da47523c631416b18508779941"
   integrity sha512-hzeyJyMA1YGdJTuWU0e/j4wKXrU4OMFvY2MSlaI9B7VQb0r5cxTE3EAIS2Q7Tn2RIcDkRvTA/v2JsAEhxe99uw==
@@ -1666,19 +1666,7 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/projects/-/projects-0.1.0.tgz#7e1d6641e6dbe0f8137560f25c6d89b1d5cd9354"
   integrity sha512-vdP5+Y4XWkdVR3H97NCbZiuMpi2xSelyUFg5AR7vZXWzXLFKVziSQEvvqG442U3PQbuLV15LShfYJhEHDc13fA==
 
-"@fbcnms/sequelize-models@^0.1.11":
-  version "0.1.11"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.11.tgz#cdaff770ae08075593d269d5e215c304a88d20e7"
-  integrity sha512-Hipcb1DhO+pIWMrfZwxpPHOlWRkfGpABKOINhnKbyAOzXMkfmSOm4iSD52GN+mKtqzFEhzUNoHdAyyrP/bBlIw==
-  dependencies:
-    "@fbcnms/babel-register" "^0.1.0"
-    inquirer "^8.0.0"
-    mariadb "^2.4.2"
-    minimist "^1.2.5"
-    pg "^8.6.0"
-    sequelize "^5.8.5"
-
-"@fbcnms/sequelize-models@^0.1.13":
+"@fbcnms/sequelize-models@^0.1.11", "@fbcnms/sequelize-models@^0.1.13", "@fbcnms/sequelize-models@^0.1.9":
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.13.tgz#64bc98f5db5347e1e6dca3681ec4af8e5950539e"
   integrity sha512-USQxC9EKje8yTskWveiUEZSbo3iPYv0oRe4uyRk5yJr7J1NOXf2CT5yEnNf2KlWM9CQ4IuUggcZAHuasA9qI+g==
@@ -1689,18 +1677,6 @@
     minimist "^1.2.5"
     pg "^8.6.0"
     sequelize "^5.22.5"
-
-"@fbcnms/sequelize-models@^0.1.9":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.9.tgz#f6913ded822aa1c7d0f05c1f6a2572ff73a91411"
-  integrity sha512-jFFEju8f1zcuakPze3F8dnUPxlmht1e10u6Q/La3Boa+kYHXAB64YL1ZzjBN1WGA0BXJGQcHIINFnmD1g+mHEA==
-  dependencies:
-    "@fbcnms/babel-register" "^0.1.0"
-    inquirer "^8.0.0"
-    mariadb "^2.4.2"
-    minimist "^1.2.5"
-    pg "^8.6.0"
-    sequelize "^5.8.5"
 
 "@fbcnms/strings@^0.1.0":
   version "0.1.0"
@@ -12773,27 +12749,6 @@ sequelize@^5.22.5:
     validator "^13.7.0"
     wkx "^0.4.8"
 
-sequelize@^5.8.5:
-  version "5.22.3"
-  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-5.22.3.tgz#7e7a92ddd355d883c9eb11cdb106d874d0d2636f"
-  integrity sha512-+nxf4TzdrB+PRmoWhR05TP9ukLAurK7qtKcIFv5Vhxm5Z9v+d2PcTT6Ea3YAoIQVkZ47QlT9XWAIUevMT/3l8Q==
-  dependencies:
-    bluebird "^3.5.0"
-    cls-bluebird "^2.1.0"
-    debug "^4.1.1"
-    dottie "^2.0.0"
-    inflection "1.12.0"
-    lodash "^4.17.15"
-    moment "^2.24.0"
-    moment-timezone "^0.5.21"
-    retry-as-promised "^3.2.0"
-    semver "^6.3.0"
-    sequelize-pool "^2.3.0"
-    toposort-class "^1.0.1"
-    uuid "^3.3.3"
-    validator "^10.11.0"
-    wkx "^0.4.8"
-
 serialize-javascript@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-4.0.0.tgz#b525e1238489a5ecfc42afacc3fe99e666f4b1aa"
@@ -14397,11 +14352,6 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
-
-validator@^10.11.0:
-  version "10.11.0"
-  resolved "https://registry.yarnpkg.com/validator/-/validator-10.11.0.tgz#003108ea6e9a9874d31ccc9e5006856ccd76b228"
-  integrity sha512-X/p3UZerAIsbBfN/IwahhYaBbY68EN/UQBWHtsbXGT5bfrH/p4NQzUCG1kF/rtKaNpnJ7jAu6NGTdSNtyNIXMw==
 
 validator@^13.7.0:
   version "13.7.0"
