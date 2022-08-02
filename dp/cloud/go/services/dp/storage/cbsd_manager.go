@@ -368,7 +368,7 @@ func getGrantsForCbsds(builder sq.StatementBuilderType, cbsds ...*DetailedCbsd) 
 	}
 	rawGrants, err := buildDetailedGrantQuery(builder).
 		Where(sq.Eq{"cbsd_id": idList}).
-		OrderBy(GrantTable+".id", db.OrderAsc).
+		OrderBy(GrantTable+".low_frequency", db.OrderAsc).
 		List()
 	if err != nil {
 		return err
