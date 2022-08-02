@@ -1007,7 +1007,7 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
   } else {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  ue_ref_p->set_s1_ue_state(S1AP_UE_CONNECTED);
+  ue_ref_p->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_CONNECTED);
   message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id =
@@ -1398,7 +1398,7 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   }
   if (rc == RETURNok) {
     // Start timer to track UE context release complete from eNB
-    ue_ref_p->set_s1_ue_state(S1AP_UE_WAITING_CRR);
+    ue_ref_p->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_WAITING_CRR);
     ue_ref_p->mutable_s1ap_ue_context_rel_timer()->set_id(s1ap_start_timer(
         ue_ref_p->s1ap_ue_context_rel_timer().msec(), TIMER_REPEAT_ONCE,
         handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id));
@@ -1645,7 +1645,7 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
       imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
-      ue_ref_p->set_s1_ue_state(S1AP_UE_WAITING_CRR);
+      ue_ref_p->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_WAITING_CRR);
       // We can safely remove UE context now and stop timer
       s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
 
@@ -2261,11 +2261,11 @@ status_code_e s1ap_mme_handle_handover_failure(s1ap_state_t* state,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (ue_ref_p->s1_ue_state() == S1AP_UE_HANDOVER) {
+  if (ue_ref_p->s1ap_ue_state() == magma::lte::oai::S1AP_UE_HANDOVER) {
     // this effectively cancels the HandoverPreparation proecedure as we
     // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
     // state.
-    ue_ref_p->set_s1_ue_state(S1AP_UE_CONNECTED);
+    ue_ref_p->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_CONNECTED);
     ue_ref_p->mutable_s1ap_handover_state()->Clear();
   } else {
     // Not a failure, but nothing for us to do.
@@ -2415,11 +2415,11 @@ status_code_e s1ap_mme_handle_handover_cancel(s1ap_state_t* state,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (ue_ref_p->s1_ue_state() == S1AP_UE_HANDOVER) {
+  if (ue_ref_p->s1ap_ue_state() == magma::lte::oai::S1AP_UE_HANDOVER) {
     // this effectively cancels the HandoverPreparation proecedure as we
     // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
     // state.
-    ue_ref_p->set_s1_ue_state(S1AP_UE_CONNECTED);
+    ue_ref_p->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_CONNECTED);
     /* Free all the transport layer address pointers in ERAB admitted list
      * before actually resetting the S1AP handover state
      */
@@ -2973,7 +2973,7 @@ status_code_e s1ap_mme_handle_handover_command(
   }
 
   // we're doing handover, update the ue state
-  ue_ref_p->set_s1_ue_state(S1AP_UE_HANDOVER);
+  ue_ref_p->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_HANDOVER);
   ue_ref_p->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(
       ho_command_p->mme_ue_s1ap_id);
   ue_ref_p->mutable_s1ap_handover_state()->set_source_enb_id(
@@ -3163,7 +3163,8 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
           tgt_enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
-    new_ue_ref_p->set_s1_ue_state(S1AP_UE_CONNECTED);  // handover has completed
+    new_ue_ref_p->set_s1ap_ue_state(
+        magma::lte::oai::S1AP_UE_CONNECTED);  // handover has completed
     new_ue_ref_p->set_enb_ue_s1ap_id(tgt_enb_ue_s1ap_id);
     // Will be allocated by NAS
     new_ue_ref_p->set_mme_ue_s1ap_id(mme_ue_s1ap_id);
@@ -3422,7 +3423,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
           enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
-    new_ue_ref_p->set_s1_ue_state(ue_ref_p->s1_ue_state());
+    new_ue_ref_p->set_s1ap_ue_state(ue_ref_p->s1ap_ue_state());
     new_ue_ref_p->set_enb_ue_s1ap_id(enb_ue_s1ap_id);
     // Will be allocated by NAS
     new_ue_ref_p->set_mme_ue_s1ap_id(mme_ue_s1ap_id);
@@ -3826,7 +3827,7 @@ void s1ap_mme_release_ue_context(s1ap_state_t* state, UeDescription* ue_ref_p,
   message_p->ittiMsgHeader.imsi = imsi64;
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
 
-  if (!(ue_ref_p->s1_ue_state() == S1AP_UE_WAITING_CRR)) {
+  if (!(ue_ref_p->s1ap_ue_state() == magma::lte::oai::S1AP_UE_WAITING_CRR)) {
     OAILOG_ERROR(LOG_S1AP, "Incorrect S1AP UE state\n");
   }
   OAILOG_DEBUG_UE(LOG_S1AP, imsi64, "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",

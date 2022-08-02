@@ -51,8 +51,17 @@ message EnbDescription {
   uint32 ran_cp_ipaddr_sz = 13; // eNB sctp end point IP addr size
 }
 
+enum S1apUeState {
+ S1AP_UE_INVALID_STATE = 0;
+ S1AP_UE_WAITING_CSR = 1; ///< Waiting for Initial Context Setup Response
+ S1AP_UE_HANDOVER = 2;    ///< Handover procedure triggered
+ S1AP_UE_CONNECTED = 3;   ///< UE context ready
+ S1AP_UE_WAITING_CRR = 4; /// UE Context release Procedure initiated , waiting for
+                          /// UE context Release Complete
+}
+
 message UeDescription {
-  int32 s1_ue_state = 2;     // enum s1_ue_state_s
+  int32 s1_ue_state = 2 [deprecated = true];     // enum s1_ue_state_s
   uint32 enb_ue_s1ap_id = 3; // enb_ue_s1ap_id_t
   uint32 mme_ue_s1ap_id = 4; // mme_ue_s1ap_id_t
 
@@ -65,6 +74,7 @@ message UeDescription {
 
   S1apHandoverState s1ap_handover_state = 9; // s1ap_handover_state_t
   uint64 comp_s1ap_id = 10; // sctp_assoc_id & enb_ue_s1ap_id
+  S1apUeState s1ap_ue_state = 11;
 }
 
 message S1apState {

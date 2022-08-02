@@ -30,6 +30,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
+using oai::S1apUeState;
 using oai::UeDescription;
 extern task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
@@ -429,7 +430,7 @@ bool is_num_enbs_valid(s1ap_state_t* state, uint32_t expected_num_enbs) {
 }
 
 bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
-                       enum s1_ue_state_s expected_ue_state) {
+                       enum S1apUeState expected_ue_state) {
   UeDescription* ue = nullptr;
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   uint64_t comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, enb_ue_id);
@@ -438,7 +439,7 @@ bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
   if (magma::PROTO_MAP_OK != rc) {
     return false;
   }
-  return ue->s1_ue_state() == expected_ue_state ? true : false;
+  return ue->s1ap_ue_state() == expected_ue_state ? true : false;
 }
 
 status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,

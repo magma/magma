@@ -1048,7 +1048,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apHandoverCommand) {
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // State validation
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_HANDOVER));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_HANDOVER));
 }
 
 TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
@@ -1154,7 +1154,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1206,7 +1206,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
 
   UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
-  ASSERT_EQ(ue_ref_p->s1_ue_state(), S1AP_UE_HANDOVER);
+  ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
   // Simulate ENB Status Transfer
   uint8_t enb_transfer[] = {0x00, 0x18, 0x40, 0x24, 0x00, 0x00, 0x03, 0x00,
@@ -1338,7 +1338,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1483,7 +1483,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1536,7 +1536,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
 
   UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
-  ASSERT_EQ(ue_ref_p->s1_ue_state(), S1AP_UE_HANDOVER);
+  ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
   // Simulate Handover Cancel
   uint8_t hand_cancel[] = {0x00, 0x04, 0x00, 0x15, 0x00, 0x00, 0x03, 0x00, 0x00,
@@ -1635,7 +1635,7 @@ TEST_F(S1apMmeHandlersTest, HandleErabSetupResponse) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1761,7 +1761,7 @@ TEST_F(S1apMmeHandlersTest, HandleErrorIndicationMessage) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1885,7 +1885,7 @@ TEST_F(S1apMmeHandlersTest, HandleEnbResetPartial) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -2110,7 +2110,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
             RETURNok);
 
   // State validation
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
   ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
 
   // Simulate Attach Complete
@@ -2166,7 +2166,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
       RETURNok);
 
   // Confirm UE state update (assoc_id, enb_ue_s1ap_id)
-  ASSERT_TRUE(is_ue_state_valid(switch_assoc_id, 2, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(switch_assoc_id, 2, oai::S1AP_UE_CONNECTED));
 
   // Simulate Detach request PDU payload
   uint8_t detach_req_bytes[] = {
