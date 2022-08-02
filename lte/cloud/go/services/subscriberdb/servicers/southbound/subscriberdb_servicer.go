@@ -45,7 +45,6 @@ func NewSubscriberdbServicer(config subscriberdb.Config, store syncstore.SyncSto
 	return &subscriberdbServicer{store: store, Config: config}
 }
 
-
 func (s *subscriberdbServicer) CheckInSync(
 	ctx context.Context,
 	req *lte_protos.CheckInSyncRequest,
@@ -118,12 +117,11 @@ func (s *subscriberdbServicer) Sync(
 	}
 	if resync {
 
-		if cloudflag{
+		if cloudflag {
 			return nil, nil
 		} else {
 			return &lte_protos.SyncResponse{Resync: true}, nil
 		}
-
 
 	}
 
@@ -277,7 +275,7 @@ func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, netw
 	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
 		glog.V(2).Infof("Cloud Authentication enabled, not streaming subscriber data")
-		return false , nil, nil, nil
+		return false, nil, nil, nil
 	} else {
 		glog.V(2).Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return false, renewed, deleted, nil
@@ -311,7 +309,6 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context,
 		glog.V(2).Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return subProtos, nextToken, nil
 	}
-
 
 }
 
@@ -353,13 +350,13 @@ func (s *subscriberdbServicer) shouldResync(network string, gateway string) bool
 func GetCloudSubscriberDbEnabled(ctx context.Context) bool {
 	gateway := protos.GetClientGateway(ctx)
 	networkID := gateway.NetworkId
-	network, err := configurator.LoadNetwork(ctx, networkID, false, true,serdes.Network)
+	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
 		fmt.Errorf("Load error for network %s: %w", networkID, err)
 		return true
 	}
 	nwCellularConfigType, ok := network.Configs[lte.CellularNetworkConfigType]
-	if (!ok){
+	if !ok {
 		fmt.Errorf("Error fetching cellular configs")
 		return true
 	}
