@@ -11,9 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import requests
+from magma.configuration_controller.crl_validator.crl_validator import (
+    CRLValidator,
+)
 from magma.configuration_controller.metrics import SAS_REQUEST_PROCESSING_TIME
 from magma.configuration_controller.request_router.exceptions import (
     RequestRouterError,
@@ -26,20 +29,22 @@ class RequestRouter(object):
     """
 
     def __init__(
-        self,
-        sas_url: str,
-        rc_ingest_url: str,
-        cert_path: str,
-        ssl_key_path: str,
-        request_mapping: Dict,
-        ssl_verify: str,
-    ):
+            self,
+            sas_url: str,
+            rc_ingest_url: str,
+            cert_path: str,
+            ssl_key_path: str,
+            request_mapping: Dict,
+            ssl_verify: Union[str, bool],
+            crl_validator: CRLValidator = None,
+    ) -> None:
         self.sas_url = sas_url
         self.rc_ingest_url = rc_ingest_url
         self.cert_path = cert_path
         self.ssl_key_path = ssl_key_path
         self.ssl_verify = ssl_verify
         self.request_mapping = request_mapping
+        self.crl_validator = crl_validator
 
     @SAS_REQUEST_PROCESSING_TIME.time()
     def post_to_sas(self, request_dict: Dict[str, List[Dict]]) -> requests.Response:
@@ -73,6 +78,9 @@ class RequestRouter(object):
             )
 
         try:
+            if self.crl_validator:
+                self.crl_validator.is_valid(url=self.sas_url)
+
             sas_response = requests.post(
                 f'{self.sas_url}/{sas_method}',
                 json=request_dict,

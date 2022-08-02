@@ -179,6 +179,27 @@ function virtualApnRulesToObject(
     });
 }
 
+export function FEGAddGatewayButton() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleClose = () => setIsVisible(false);
+
+  return (
+    <>
+      <Button
+        onClick={() => setIsVisible(true)}
+        color="primary"
+        size="small"
+        variant="contained">
+        Add Gateway
+      </Button>
+      {isVisible && (
+        <FEGGatewayDialog onClose={handleClose} onSave={handleClose} />
+      )}
+    </>
+  );
+}
+
 export default function FEGGatewayDialog(props: Props) {
   const classes = useStyles();
   const params = useParams();
@@ -373,7 +394,12 @@ export default function FEGGatewayDialog(props: Props) {
   }
 
   return (
-    <Dialog open={true} onClose={props.onClose} maxWidth="md" scroll="body">
+    <Dialog
+      open={true}
+      onClose={props.onClose}
+      maxWidth="md"
+      scroll="body"
+      data-testid="FEGGatewayDialog">
       <AppBar position="static" className={classes.appBar}>
         <Tabs
           indicatorColor="primary"

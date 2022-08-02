@@ -66,9 +66,8 @@ const testCases = {
     default: 'dashboard',
     sections: [
       'dashboard',
-      'gateways',
-      'network',
       'equipment',
+      'network',
       'configure',
       'alerts',
       'metrics',

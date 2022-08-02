@@ -261,8 +261,7 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
         self.when_cbsd_is_inactive()
         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
-        del builder.payload["grant"]
-        self.then_cbsd_is(cbsd, builder.with_is_active(False).payload)
+        self.then_cbsd_is(cbsd, builder.without_grants().with_is_active(False).payload)
 
     def test_frequency_preferences(self):
         builder = CbsdAPIDataBuilder() \
@@ -578,8 +577,7 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
     def then_cbsd_is(self, actual: Dict[str, Any], expected: Dict[str, Any]):
         actual = actual.copy()
         del actual['id']
-        grant = actual.get('grant')
-        if grant:
+        for grant in actual.get('grants', []):
             del grant['grant_expire_time']
             del grant['transmit_expire_time']
         self.assertEqual(actual, expected)

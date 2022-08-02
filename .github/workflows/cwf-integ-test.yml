@@ -69,7 +69,7 @@ jobs:
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-cwf
+          key: vagrant-boxes-cwf-v20220722
       - name: Setup Python env
         uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
         with:

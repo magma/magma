@@ -44,7 +44,7 @@ Description Defines the layer 3 messages supported by the NAS sublayer
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 
 /****************************************************************************/

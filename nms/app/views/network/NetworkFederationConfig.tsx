@@ -72,7 +72,7 @@ function FederationMappingFields(props: FieldProps) {
             expanded: classes.expanded,
           }}
           expandIcon={<ExpandMoreIcon />}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item className={classes.title}>
               <Text weight="medium" variant="body2">
                 Mapping {props.index + 1}

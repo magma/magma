@@ -31,12 +31,11 @@ import {
   PolicyRule,
   Subscriber,
 } from '../../../../generated';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
-jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
 
 const subscribersMock: Record<string, Subscriber> = {
@@ -208,8 +207,6 @@ const ran: NetworkRanConfigs = {
 
 describe('<AddSubscriberButton />', () => {
   beforeEach(() => {
-    jest.setTimeout(60000);
-
     (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
     mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersPost');
     mockAPI(MagmaAPI.subscribers, 'lteNetworkIdSubscribersSubscriberIdPut');
@@ -336,9 +333,7 @@ describe('<AddSubscriberButton />', () => {
       getByTestId,
       queryByTestId,
       getByTitle,
-      getAllByRole,
       findByTitle,
-      findAllByRole,
       findByTestId,
       findByText,
     } = render(<AddWrapper />);
@@ -350,8 +345,10 @@ describe('<AddSubscriberButton />', () => {
 
     expect(await findByTestId('addSubscriberDialog')).not.toBeNull();
 
+    const detailsTable = getByTestId('subscriber-details-table');
+
     // first row is the header
-    const rowHeader = getAllByRole('row');
+    const rowHeader = within(detailsTable).getAllByRole('row', {hidden: true});
     expect(rowHeader[0]).toHaveTextContent('Subscriber Name');
     expect(rowHeader[0]).toHaveTextContent('IMSI');
     expect(rowHeader[0]).toHaveTextContent('Auth Key');
@@ -395,7 +392,9 @@ describe('<AddSubscriberButton />', () => {
     fireEvent.click(getByTitle('Save'));
 
     // Verify new subscriber row before saving
-    const rowItems = await findAllByRole('row');
+    const rowItems = await within(detailsTable).findAllByRole('row', {
+      hidden: true,
+    });
     expect(rowItems[1]).toHaveTextContent('IMSI00000000001004');
     expect(rowItems[1]).toHaveTextContent('8baf473f2f8fd09487cccbd7097c6862');
     expect(rowItems[1]).toHaveTextContent('8e27b6af0e692e750f32667a3b14605d');
