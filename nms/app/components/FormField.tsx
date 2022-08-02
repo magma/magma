@@ -55,6 +55,13 @@ const useStyles = makeStyles<Theme>(theme => ({
     fontWeight: 400,
     marginLeft: '8px',
   },
+  label: {
+    fontSize: '14px',
+    fontFamily: 'Inter',
+    fontStyle: 'normal',
+    fontWeight: 500,
+    lineHeight: '20px',
+  },
   secondaryHeading: {
     flexBasis: '66.66%',
   },
@@ -87,6 +94,7 @@ type Props = {
   isOptional?: boolean;
   // If true, the left and right padding is removed.
   disableGutters?: boolean;
+  className?: string;
 };
 
 export default function FormField(props: Props) {
@@ -115,9 +123,12 @@ export default function FormField(props: Props) {
 export function AltFormField(props: Props) {
   const classes = useStyles();
   return (
-    <ListItem dense={props.dense} disableGutters={props.disableGutters}>
+    <ListItem
+      dense={props.dense}
+      disableGutters={props.disableGutters}
+      className={props.className}>
       <Grid container>
-        <Grid item xs={12}>
+        <Grid item xs={12} className={classes.label}>
           {props.label}
           {props.isOptional && (
             <Typography

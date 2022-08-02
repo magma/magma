@@ -28,10 +28,16 @@ help() {
     echo "      Execute the specified test."
     echo "   $(basename "$0") --list"
     echo "      List all integration tests."
+    echo "   $(basename "$0") --list-precommit"
+    echo "      List the precommit integration tests."
     echo "   $(basename "$0") --list-extended"
     echo "      List the extended integration tests."
     echo "   $(basename "$0") --list-traffic-server"
     echo "      List all integration tests that use the traffic server."
+    echo "   $(basename "$0") --precommit"
+    echo "      Run all precommit integration tests."
+    echo "   $(basename "$0") --extended"
+    echo "      Run all extended integration tests."
     echo "   $(basename "$0") --setup-extended"
     echo "      Execute the setup test for the extended tests."
     echo "   $(basename "$0") --teardown-extended"
@@ -48,36 +54,45 @@ help() {
 
 categorize_test() {
     local TARGET=$1
-    if bazel query "attr(tags, extended_test, kind(py_test, ${TARGET}))";
+    if [[ $(bazel query attr\(tags, precommit_test, kind\(py_test, "${TARGET}"\)\)) == *"${TARGET}" ]];
+    then
+        PRECOMMIT_TEST_TARGETS=( "${TARGET}" )
+    elif [[ $(bazel query attr\(tags, extended_test, kind\(py_test, "${TARGET}"\)\)) == *"${TARGET}" ]];
     then
         EXTENDED_TEST_TARGETS=( "${TARGET}" )
     else
         echo "ERROR: Could not categorize the provided test."
         exit 1
     fi
-    # TODO: other tests
 }
 
 create_test_targets() {
+    local ONLY_FOR_LISTING=${1:-"false"}
     if [[ "${TARGET_PATH}" == *":"* ]];
     then
         echo "Single target specified - running test:"
         categorize_test "${TARGET_PATH}"
-    else
-        echo "Multiple targets specified - running tests:"
-        create_extended_test_targets
-        # TODO: other tests
-    fi
-    if [[ "${#EXTENDED_TEST_TARGETS[@]}" -eq 0 ]]; # TODO other tests
+    elif [[ "${TARGET_PATH}" == "" ]];
     then
-        echo "ERROR: No test found."
-        help
+        if [[ "${ONLY_FOR_LISTING}" == "false" ]];
+        then
+            echo "Multiple targets specified - running tests:"
+        fi
+        create_precommit_test_targets
+        create_extended_test_targets
+    else
+        echo "ERROR: Invalid test target name."
         exit 1
     fi
-    for TARGET in "${EXTENDED_TEST_TARGETS[@]}"
+    ALL_TARGETS=( "${PRECOMMIT_TEST_TARGETS[@]}" "${EXTENDED_TEST_TARGETS[@]}" )
+    for TARGET in "${ALL_TARGETS[@]}"
     do
         echo "${TARGET}"
     done
+}
+
+create_precommit_test_targets() {
+    mapfile -t PRECOMMIT_TEST_TARGETS < <(bazel query "attr(tags, precommit_test, kind(py_test, //lte/gateway/python/integ_tests/s1aptests/...))")
 }
 
 create_extended_test_targets() {
@@ -85,10 +100,19 @@ create_extended_test_targets() {
 }
 
 list_all_tests() {
+    TARGET_PATH=""
     echo "All integration tests:"
-    list_extended_tests
-    # TODO: other tests
+    create_test_targets "true"
     exit 0
+}
+
+list_precommit_tests() {
+    echo "Precommit tests:"
+    create_precommit_test_targets
+    for TARGET in "${PRECOMMIT_TEST_TARGETS[@]}"
+    do
+        echo "${TARGET}"
+    done
 }
 
 list_extended_tests() {
@@ -129,6 +153,21 @@ teardown_extended_tests() {
     fi
 }
 
+run_test_batch() {
+    for TARGET in "${TEST_BATCH_TO_RUN[@]}"
+    do
+        echo "Starting test ${NUM_RUN}/${TOTAL_TESTS}: ${TARGET}"
+        if run_test "${TARGET}";
+        then
+            NUM_SUCCESS=$((NUM_SUCCESS + 1))
+            TEST_RESULTS["${TARGET}"]="${GREEN}PASSED${NO_COLOR}"
+        else
+            TEST_RESULTS["${TARGET}"]="${RED}FAILED${NO_COLOR}"
+        fi
+        NUM_RUN=$((NUM_RUN + 1))
+    done
+}
+
 run_test() {
     local TARGET=$1
     local TARGET_PATH=${TARGET%:*}
@@ -150,7 +189,7 @@ print_summary() {
     echo "SUMMARY: ${NUM_SUCCESS}/${TOTAL_TESTS} tests were successful."
     for TARGET in "${!TEST_RESULTS[@]}"
     do
-        echo "  ${TARGET}: ${TEST_RESULTS[${TARGET}]}"
+        echo -e "  ${TARGET}: ${TEST_RESULTS[${TARGET}]}"
     done
 }
 
@@ -158,10 +197,12 @@ print_summary() {
 # SCRIPT SECTION
 ###############################################################################
 
-declare -a EXTENDED_TEST_TARGETS
+PRECOMMIT_TEST_TARGETS=()
+EXTENDED_TEST_TARGETS=()
 declare -A TEST_RESULTS
 NUM_SUCCESS=0
 NUM_RUN=1
+RUN_ALL="true"
 
 cd "${MAGMA_ROOT}"
 
@@ -170,6 +211,10 @@ EXTENDED_TEST_TEARDOWN="lte/gateway/python/integ_tests/s1aptests:test_restore_mm
 SKIP_EXTENDED_SETUP_AND_TEARDOWN="false"
 EXTENDED_TEST_CLEANUP_FILE_NAME="${MAGMA_ROOT}/lte/gateway/configs/templates/mme.conf.template.bak"
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NO_COLOR='\033[0m'
+
 declare -a POSITIONAL_ARGS
 
 while [[ $# -gt 0 ]]; do
@@ -177,12 +222,26 @@ while [[ $# -gt 0 ]]; do
     --list)
       list_all_tests
       ;;
+    --list-precommit)
+      list_precommit_tests
+      exit 0
+      ;;
     --list-extended)
       list_extended_tests
       exit 0
       ;;
     --list-traffic-server)
       list_traffic_server_tests
+      ;;
+    --precommit)
+      create_precommit_test_targets
+      RUN_ALL="false"
+      break
+      ;;
+    --extended)
+      create_extended_test_targets
+      RUN_ALL="false"
+      break
       ;;
     --setup-extended)
       setup_extended_tests
@@ -227,34 +286,43 @@ then
     exit 0
 fi
 
-create_test_targets
-
-TOTAL_TESTS=${#EXTENDED_TEST_TARGETS[@]}
-# TODO TOTAL_TESTS=$((TOTAL_TESTS + PRECOMMIT))
-
-if [[ "${SKIP_EXTENDED_SETUP_AND_TEARDOWN}" == "false" ]];
+if [[ "${RUN_ALL}" == "true" ]];
 then
-    setup_extended_tests
+    create_test_targets
 fi
 
-for TARGET in "${EXTENDED_TEST_TARGETS[@]}"
-do
-    echo "Starting test ${NUM_RUN}/${TOTAL_TESTS}: ${TARGET}"
-    if run_test "${TARGET}";
+TOTAL_TESTS=${#PRECOMMIT_TEST_TARGETS[@]}
+TOTAL_TESTS=$((TOTAL_TESTS + ${#EXTENDED_TEST_TARGETS[@]}))
+
+declare -a TEST_BATCH_TO_RUN
+
+if [[ ${#PRECOMMIT_TEST_TARGETS[@]} -gt 0 ]];
+then
+    echo "#######################################"
+    echo "PRECOMMIT TESTS"
+    echo "#######################################"
+    TEST_BATCH_TO_RUN=( "${PRECOMMIT_TEST_TARGETS[@]}" )
+    run_test_batch
+fi
+
+if [[ ${#EXTENDED_TEST_TARGETS[@]} -gt 0 ]];
+then
+    echo "#######################################"
+    echo "EXTENDED TESTS"
+    echo "#######################################"
+    if [[ "${SKIP_EXTENDED_SETUP_AND_TEARDOWN}" == "false" ]];
     then
-        NUM_SUCCESS=$((NUM_SUCCESS + 1))
-        TEST_RESULTS["${TARGET}"]="PASSED"
-    else
-        TEST_RESULTS["${TARGET}"]="FAILED"
+        setup_extended_tests
     fi
-    NUM_RUN=$((NUM_RUN + 1))
-done
 
-if [[ "${SKIP_EXTENDED_SETUP_AND_TEARDOWN}" == "false" ]];
-then
-    teardown_extended_tests
+    TEST_BATCH_TO_RUN=( "${EXTENDED_TEST_TARGETS[@]}" )
+    run_test_batch
+
+    if [[ "${SKIP_EXTENDED_SETUP_AND_TEARDOWN}" == "false" ]];
+    then
+        teardown_extended_tests
+    fi
 fi
-# TODO other tests
 
 print_summary "${NUM_SUCCESS}" "${TOTAL_TESTS}"
 
