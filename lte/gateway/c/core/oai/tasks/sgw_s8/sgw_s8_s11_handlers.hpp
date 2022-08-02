@@ -66,7 +66,7 @@ void sgw_s8_handle_s11_create_bearer_response(
 int sgw_s8_handle_delete_bearer_request(
     sgw_state_t* sgw_state, const s8_delete_bearer_request_t* const db_req);
 
-int sgw_s8_handle_s11_delete_bearer_response(
+status_code_e sgw_s8_handle_s11_delete_bearer_response(
     sgw_state_t* sgw_state,
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_delete_bearer_response_p,

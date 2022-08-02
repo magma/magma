@@ -1665,12 +1665,12 @@ int sgw_s8_handle_delete_bearer_request(
 }
 
 // Handle NW-initiated dedicated bearer dectivation response from MME
-int sgw_s8_handle_s11_delete_bearer_response(
+status_code_e sgw_s8_handle_s11_delete_bearer_response(
     sgw_state_t* sgw_state,
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_delete_bearer_response_p,
     imsi64_t imsi64) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   ebi_t ebi = {0};
   uint32_t sequence_number = 0;
   char* pgw_cp_ip_port = NULL;
