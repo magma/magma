@@ -365,7 +365,7 @@ func GetCloudSubscriberDbEnabled(ctx context.Context) bool {
 	}
 	nwCellularConfig := nwCellularConfigType.(*lte_models.NetworkCellularConfigs)
 	EpcConfig := nwCellularConfig.Epc
-	return EpcConfig.CloudSubscriberDbEnabled
+	return EpcConfig.CloudSubscriberdbEnabled
 }
 
 func loadAPNs(ctx context.Context, gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
