@@ -152,10 +152,10 @@ func (s *subscriberdbServicer) Sync(
 	}
 
 	if cloudflag {
-		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Debugf("Cloud Authentication disabled, streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication disabled, streaming subscriber data")
 		return res, nil
 	}
 }
@@ -222,10 +222,10 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	}
 	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Debugf("Cloud Authentication disabled,  streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return listRes, nil
 	}
 
@@ -276,10 +276,10 @@ func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, netw
 	return false, renewed, deleted, nil
 	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return false , nil, nil, nil
 	} else {
-		glog.Debugf("Cloud Authentication disabled,  streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return false, renewed, deleted, nil
 	}
 }
@@ -305,10 +305,10 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context,
 
 	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, "", nil
 	} else {
-		glog.Debugf("Cloud Authentication disabled,  streaming subscriber data")
+		glog.V(2).Infof("Cloud Authentication disabled,  streaming subscriber data")
 		return subProtos, nextToken, nil
 	}
 
