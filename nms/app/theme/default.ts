@@ -368,7 +368,7 @@ export default createTheme({
       },
     },
 
-    // TODO[MUI5]
+    // TODO[MUI5] #13463
     // MuiDropzoneArea: {
     //   root: {
     //     color: colors.primary.gullGray,

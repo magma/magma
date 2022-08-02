@@ -194,8 +194,6 @@ const StyledMenu = withStyles({
 })((props: MenuProps) => (
   <Menu
     elevation={0}
-    // TODO[MUI5] - https://mui.com/material-ui/migration/v5-component-changes/#remove-getcontentanchorel-prop
-    // getContentAnchorEl={null}
     anchorOrigin={{
       vertical: 'bottom',
       horizontal: 'center',

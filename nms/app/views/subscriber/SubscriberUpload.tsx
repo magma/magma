@@ -169,7 +169,7 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
           </Grid>
           {!fileName ? (
             <Grid item xs={12}>
-              {/*  TODO[MUI5] remove */}
+              {/*  TODO[MUI5] #13463 */}
               {/*<DropzoneArea*/}
               {/*  dropzoneText={((<DropzoneText />) as unknown) as string}*/}
               {/*  useChipsForPreview*/}

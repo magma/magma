@@ -134,21 +134,19 @@ function EditorMenuButton({
   onReset: () => void;
   onDelete: () => void;
 }) {
-  const iconRef = React.useRef<HTMLElement>();
+  const iconRef = React.useRef<HTMLButtonElement>(null);
   const [isMenuOpen, setMenuOpen] = React.useState(false);
 
-  // TODO[MUI5] https://mui.com/material-ui/migration/v5-component-changes/#rootref
   return (
     <>
-      <>
-        <IconButton
-          aria-label="editor-menu"
-          edge="end"
-          onClick={() => setMenuOpen(true)}
-          size="large">
-          <MoreVertIcon />
-        </IconButton>
-      </>
+      <IconButton
+        ref={iconRef}
+        aria-label="editor-menu"
+        edge="end"
+        onClick={() => setMenuOpen(true)}
+        size="large">
+        <MoreVertIcon />
+      </IconButton>
       <Menu
         anchorEl={iconRef.current}
         open={isMenuOpen}
