@@ -76,7 +76,7 @@ func (s *subscriberdbServicer) Sync(
 	ctx context.Context,
 	req *lte_protos.SyncRequest,
 ) (*lte_protos.SyncResponse, error) {
-	cloudflag := CloudSubscriberDbEnabled(ctx)
+	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if !s.DigestsEnabled {
 		return &lte_protos.SyncResponse{Resync: true}, nil
 	}
@@ -151,13 +151,11 @@ func (s *subscriberdbServicer) Sync(
 		Resync: false,
 	}
 
-
-
 	if cloudflag {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Infof("Cloud Authentication disabled, streaming subscriber data")
+		glog.Debugf("Cloud Authentication disabled, streaming subscriber data")
 		return res, nil
 	}
 }
@@ -222,12 +220,12 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 			LeafDigests: digest.LeafDigests,
 		},
 	}
-	cloudflag := CloudSubscriberDbEnabled(ctx)
+	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, nil
 	} else {
-		glog.Infof("Cloud Authentication disabled,  streaming subscriber data")
+		glog.Debugf("Cloud Authentication disabled,  streaming subscriber data")
 		return listRes, nil
 	}
 
@@ -276,12 +274,12 @@ func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, netw
 		return true, nil, nil, err
 	}
 	return false, renewed, deleted, nil
-	cloudflag := CloudSubscriberDbEnabled(ctx)
+	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
 		return false , nil, nil, nil
 	} else {
-		glog.Infof("Cloud Authentication disabled,  streaming subscriber data")
+		glog.Debugf("Cloud Authentication disabled,  streaming subscriber data")
 		return false, renewed, deleted, nil
 	}
 }
@@ -305,12 +303,12 @@ func (s *subscriberdbServicer) loadSubscribersPageFromCache(ctx context.Context,
 		return nil, "", err
 	}
 
-	cloudflag := CloudSubscriberDbEnabled(ctx)
+	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
-		glog.Infof("Cloud Authentication enabled, not streaming subscriber data")
+		glog.Debugf("Cloud Authentication enabled, not streaming subscriber data")
 		return nil, "", nil
 	} else {
-		glog.Infof("Cloud Authentication disabled,  streaming subscriber data")
+		glog.Debugf("Cloud Authentication disabled,  streaming subscriber data")
 		return subProtos, nextToken, nil
 	}
 
@@ -352,7 +350,7 @@ func (s *subscriberdbServicer) shouldResync(network string, gateway string) bool
 	return shouldResync
 }
 
-func CloudSubscriberDbEnabled(ctx context.Context) bool {
+func GetCloudSubscriberDbEnabled(ctx context.Context) bool {
 	gateway := protos.GetClientGateway(ctx)
 	networkID := gateway.NetworkId
 	network, err := configurator.LoadNetwork(ctx, networkID, false, true,serdes.Network)
@@ -367,7 +365,7 @@ func CloudSubscriberDbEnabled(ctx context.Context) bool {
 	}
 	nwCellularConfig := nwCellularConfigType.(*lte_models.NetworkCellularConfigs)
 	EpcConfig := nwCellularConfig.Epc
-	return EpcConfig.CloudSubscriberdbEnabled
+	return EpcConfig.CloudSubscriberDbEnabled
 }
 
 func loadAPNs(ctx context.Context, gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

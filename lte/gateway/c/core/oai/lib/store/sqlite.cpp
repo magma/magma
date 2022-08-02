@@ -83,7 +83,7 @@ void SqliteStore::_create_store() {
 }
 
 void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
-  std::string sid_s = get_sid(subscriber_data);
+  std::string sid_s = _get_sid(subscriber_data);
   const char* sid = sid_s.c_str();
   std::string data_str_s;
   subscriber_data.SerializeToString(&data_str_s);
@@ -110,14 +110,14 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
     sqlite3_bind_blob(stmt, 2, data_str, strlen(data_str), NULL);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
-    std::cout << "APN infomration for " << sid
+    std::cout << "APN information for " << sid
               << " has been written to SubscriberDB" << std::endl;
   } else {
     std::cout << "SQL Error " << std::endl;
   }
 }
 
-const char* SqliteStore::get_sid(const SubscriberData& subscriber_data) {
+const char* SqliteStore::_get_sid(const SubscriberData& subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
     std::cout << "Valid sid: " << subscriber_data.sid().id() << std::endl;
     std::string sid_s = "IMSI" + subscriber_data.sid().id();
