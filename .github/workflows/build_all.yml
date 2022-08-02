@@ -130,6 +130,7 @@ jobs:
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
       - name: Build AGW
         run: |
+          export MAGMA_DEV_MEMORY_MB=4096
           cd lte/gateway
           fab release package:destroy_vm=True
           mkdir magma-packages
