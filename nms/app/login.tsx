@@ -14,6 +14,7 @@
 import './util/axiosConfig';
 import './util/polyfill';
 
+import CssBaseline from '@material-ui/core/CssBaseline';
 import LoginForm from './views/login/LoginForm';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -39,6 +40,7 @@ ReactDOM.render(
   <AppContextProvider>
     <BrowserRouter>
       <ThemeProvider theme={defaultTheme}>
+        <CssBaseline />
         <LoginWrapper />
       </ThemeProvider>
     </BrowserRouter>
