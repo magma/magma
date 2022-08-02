@@ -174,28 +174,11 @@ else ifeq ($(OS_NAME),Darwin)
 	$(MAKE) nms_prereqs_osx
 endif
 
-nms_prereqs_ubuntu: nms_node_ubuntu
-	NODE="$(shell which nodejs)"; ln -s $$NODE /usr/local/bin/node
-	# update nodejs to latest
+nms_prereqs_ubuntu:
 	curl -sL https://deb.nodesource.com/setup_lts.x | bash -
-	apt-get install -y nodejs
-	# get codegen dependency
+	apt install -y nodejs
 	npm install --global yarn
 	yarn
-
-nms_node_ubuntu:
-	# install pre-reqs
-	apt update
-	# Handle certificate verification
-	apt-get install -y libgnutls30
-	# Get a newer version of nodejs
-	curl -fSL https://deb.nodesource.com/setup_14.x | bash -
-	apt-get install -y nodejs
-	# And now install npm
-	apt install -y aptitude
-	aptitude install -y npm
-	# symlink nodejs executable
-	mkdir -p /usr/local/bin
 
 nms_prereqs_osx:
 	node --version || brew install node

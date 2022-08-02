@@ -13,7 +13,8 @@
 import puppeteer from 'puppeteer';
 
 const DASHBOARD_SELECTOR = `//span[text()='Dashboard']`;
-const LOGINFORM_SELECTOR = `//span[text()='Magma']`;
+const LOGINFORM_SELECTOR = `//*[@data-testid='loginForm']`;
+
 export const ARTIFACTS_DIR = `/tmp/nms_artifacts/`;
 
 const user = {
