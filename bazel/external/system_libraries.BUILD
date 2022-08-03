@@ -115,3 +115,8 @@ native_binary(
     src = "usr/local/bin/asn1c",
     out = "asn1c",
 )
+
+cc_library(
+    name = "libsqlite3-dev",
+    linkopts = ["-lsqlite3"],
+)
