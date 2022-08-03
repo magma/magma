@@ -11,6 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
+import sys
+sys.path.append("../../../gateway")
+sys.path.append('../../../../orc8r')
+
+
 import ctypes
 import ipaddress
 import json
@@ -23,7 +29,9 @@ import time
 from enum import Enum
 from queue import Empty, Queue
 from typing import Optional
-
+from dev_tools import register_subscriber, LTENetwork
+import fabric
+import tools.fab.dev_utils as dev_utils
 import grpc
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -787,6 +795,59 @@ class SubscriberUtil(object):
         self._ue_cfgs.append(ue_cfg)
         self._ue_id += 1
         return ue_cfg
+
+    def add_sub_cloud_and_update_nw_config(self, num_ues=1):
+        print("not adding subscriber again")
+        subscribers = []
+        for _ in range(num_ues):
+            sid = self._gen_next_sid()
+            print("Registering a client")
+            # self._subscriber_client.add_subscriber(sid)
+            register_subscriber()
+            print("Registered successfully")
+
+            #enabling flags
+            print("enabling flags")
+            payload = LTENetwork(
+            id="test",
+            name='Test Network', description='Test Network',
+            cellular=NetworkCellularConfig(
+                epc=NetworkEPCConfig(
+                    cloud_subscriberdb_enabled=True,
+                    lte_auth_amf='gAA=',
+                    lte_auth_op='EREREREREREREREREREREQ==',
+                    mcc='001', mnc='01', tac=1,
+                    gx_gy_relay_enabled=False,
+                    hss_relay_enabled=False,
+                    network_services=[],
+                    mobility=MobilityConfig(
+                        ip_allocation_mode='NAT',
+                        nat=NatConfig(['192.168.128.0/24']),
+                        reserved_addresses=[],
+                    ),
+                ),
+                ran=NetworkRANConfig(
+                    bandwidth_mhz=20,
+                    tdd_config=NetworkTDDConfig(
+                        earfcndl=44590,
+                        subframe_assignment=2, special_subframe_pattern=7,
+                    ),
+                ),
+                feg_network_id="",
+            ),
+            dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
+            )
+            dev_tools.cloud_put(f'lte/{network_id}/cellular', payload)
+            print("PUT is now complete")
+
+
+
+            imei = self._generate_imei()
+            subscribers.append(self._get_s1ap_sub(sid, imei))
+
+
+        self._subscriber_client.wait_for_changes()
+        return subscribers
 
     def add_sub(self, num_ues=1):
         """Add subscribers to the EPC, is blocking"""

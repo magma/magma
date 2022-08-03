@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 from typing import Any, List, Optional
+from collections import defaultdict
 
 import urllib3
 from fabric.api import cd
@@ -35,6 +36,23 @@ FEG_FAB_PATH = '../../feg/gateway/'
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+def register_subscriber():
+    subscriber_data = SubscriberData(
+        active_apns =  ["magma.ipv4"],
+        active_base_names = [],
+        active_policies = [],
+        active_policies_by_apn = {},
+        forbidden_network_types= [],
+        id = "IMSI001010000000001",
+        lte =  LTESubscription(
+            auth_algo = "MILENAGE",
+            auth_key = "AAECAwQFBgcICQoLDA0ODw==",
+            auth_opc = "JMBffC8rNo3hDyUvJfbPwg==",
+            state= "ACTIVE",
+            sub_profile= "default",),
+        name = "subscriber1",
+        static_ips = {})
+    _register_subscriber(subscriber_data)
 
 def register_vm():
     network_payload = LTENetwork(
@@ -188,6 +206,12 @@ def check_agw_feg_connectivity(timeout=10):
     with cd("/home/vagrant/build/python/bin/"):
         dev_utils.run_remote_command_with_repetition("./feg_hello_cli.py m 0", timeout)
 
+
+def _register_subscriber(subscriber_data: Any):
+    network_id=NIDS_BY_TYPE[LTE_NETWORK_TYPE]
+    dev_utils.cloud_post(
+        f'lte/{network_id}/subscribers',[subscriber_data]
+    )
 
 def _register_network(network_type: str, payload: Any):
     network_id = NIDS_BY_TYPE[network_type]
@@ -408,3 +432,31 @@ class LTEGateway:
         self.tier = tier
         self.cellular = cellular
         self.connected_enodeb_serials = connected_enodeb_serials
+
+class LTESubscription:
+    def __init__(self, auth_algo:str,auth_key:str, auth_opc:str, state:str, sub_profile: str):
+        self.auth_algo = auth_algo
+        self.auth_key = auth_key
+        self.auth_opc = auth_opc
+        self.state = state
+        self.sub_profile = sub_profile
+
+class SubscriberData:
+    def __init__(
+        self, active_apns: List[str],
+        active_base_names: List[str],
+        active_policies: List[str],
+        active_policies_by_apn: defaultdict(list),
+        forbidden_network_types: List[str],
+        id: str,
+        lte:  LTESubscription, name: str, static_ips: defaultdict(str)):
+
+        self.active_apns = active_apns
+        self.active_base_names = active_base_names
+        self.active_policies = active_policies
+        self.active_policies_by_apn = active_policies_by_apn
+        self.forbidden_network_types = forbidden_network_types
+        self.id = id
+        self.lte = lte
+        self.name = name
+        self.static_ips = static_ips

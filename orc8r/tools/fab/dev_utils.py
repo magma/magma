@@ -350,6 +350,43 @@ def cloud_get(
         )
     return resp.json()
 
+def cloud_put(
+        resource: str,
+        data: Any,
+        params: Dict[str, str] = None,
+        url: Optional[str] = None,
+        admin_cert: Optional[types.ClientCert] = None,
+):
+    """
+    Send a PUT request to an API URI
+
+    Args:
+        resource: URI to request
+        data: JSON-serializable payload
+        params: Params to include with the request
+        url: API base URL
+        admin_cert: API client certificate
+    """
+    url = url or PORTAL_URL
+    admin_cert = admin_cert or types.ClientCert(
+        cert='./../../.cache/test_certs/admin_operator.pem',
+        key='./../../.cache/test_certs/admin_operator.key.pem',
+    )
+    resp = requests.put(
+        url + resource,
+        data=jsonpickle.pickler.encode(data),
+        params=params,
+        headers={'content-type': 'application/json'},
+        verify=False,
+        cert=admin_cert,
+    )
+    if resp.status_code not in [200, 201, 204]:
+        parsed = json.loads(jsonpickle.pickler.encode(data))
+        raise Exception(
+            'Put Request failed: \n%s\n%s \nReceived a %d response: %s\nFAILED!' %
+            (resp.url, json.dumps(parsed, indent=4, sort_keys=False), resp.status_code, resp.text),
+        )
+
 
 def cloud_post(
         resource: str,
