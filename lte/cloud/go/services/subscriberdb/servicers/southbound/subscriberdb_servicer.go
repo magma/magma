@@ -351,7 +351,7 @@ func GetCloudSubscriberDbEnabled(ctx context.Context) bool {
 	networkID := gateway.NetworkId
 	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
-		glog.Errorf("Load error for network %s: %w", networkID, err)
+		glog.Errorf("Load error for network %s: %+v", networkID, err)
 		return false
 	}
 	nwCellularConfigType, ok := network.Configs[lte.CellularNetworkConfigType]
