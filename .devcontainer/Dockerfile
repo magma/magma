@@ -3,6 +3,7 @@
 ################################################################
 FROM ghcr.io/magma/magma/bazel-base:latest as devcontainer
 
+ARG HOME=/home/vscode
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
 # [Option] Upgrade OS packages to their latest versions
@@ -36,7 +37,6 @@ ARG PYTHON_VERSION=3.8
 ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
-
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -82,7 +82,7 @@ RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && rm ${GO_TARBALL}
-ENV PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/go/bin
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -207,7 +207,7 @@ RUN ldconfig -v
 ##### Install Python requirements
 
 ### create virtualenv
-ARG PYTHON_VENV=/home/vscode/build/python
+ARG PYTHON_VENV=${HOME}/build/python
 ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
 # PYTHON_VENV must by in sync with "python.defaultInterpreterPath", "python.analysis.extraPaths" and magtivate path in "postCreateCommand" in .devcontainer/devcontainer.json
 
