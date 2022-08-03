@@ -1072,6 +1072,7 @@ MME_DEPS = [
     "@system_libraries//:libfd",
     "@system_libraries//:libgnutls",
     "@system_libraries//:libnettle",
+    "@system_libraries//:libsqlite3-dev",
 ]
 
 # EMBEDDED_SGW 1
