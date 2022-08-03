@@ -25,6 +25,7 @@
 namespace {
 constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
 constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
+constexpr char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 }  // namespace
 
@@ -63,7 +64,7 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
+s1ap_state_t* create_s1ap_state(void) {
   bstring ht_name;
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
@@ -81,7 +82,7 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
 }
 
 void S1apStateManager::create_state() {
-  state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
+  state_cache_p = create_s1ap_state();
 
   bstring ht_name = bfromcstr(S1AP_ENB_COLL);
   state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
@@ -182,10 +183,11 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 }
 
 void S1apStateManager::create_s1ap_imsi_map() {
-  s1ap_imsi_map_ = (s1ap_imsi_map_t*)calloc(1, sizeof(s1ap_imsi_map_t));
+  s1ap_imsi_map_ = new s1ap_imsi_map_t();
 
-  s1ap_imsi_map_->mme_ue_id_imsi_htbl =
-      hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
+  s1ap_imsi_map_->mme_ueid2imsi_map.map =
+      new google::protobuf::Map<uint32_t, uint64_t>();
+  s1ap_imsi_map_->mme_ueid2imsi_map.set_name(S1AP_MME_UEID2IMSI_MAP);
 
   if (persist_state_enabled) {
     oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
@@ -199,9 +201,8 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   if (!s1ap_imsi_map_) {
     return;
   }
-  hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
-
-  free_wrapper((void**)&s1ap_imsi_map_);
+  s1ap_imsi_map_->mme_ueid2imsi_map.destroy_map();
+  delete s1ap_imsi_map_;
 }
 
 s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
