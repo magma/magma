@@ -63,28 +63,52 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 	}
 	return &protos.UpdateCbsdResponse{}, nil
 }
-func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+
+func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.CBSDStateResult, error) {
 	data := requestToDbCbsd(request)
-	cbsd, err := c.store.EnodebdUpdateCbsd(data)
-	if err != nil {
-		return nil, makeErr(err, "update cbsd")
-	}
-	msg, _ := json.Marshal(request)
-	log := &logs_pusher.DPLog{
-		EventTimestamp:   clock.Now().Unix(),
-		LogFrom:          "CBSD",
-		LogTo:            "DP",
-		LogName:          "EnodebdUpdateCbsd",
-		LogMessage:       string(msg),
-		CbsdSerialNumber: cbsd.CbsdSerialNumber.String,
-		NetworkId:        cbsd.NetworkId.String,
-		FccId:            cbsd.FccId.String,
-	}
-	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
-		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)
+	details, err := c.store.EnodebdUpdateCbsd(data)
+
+	if err != nil || details.Grants == nil || details.Cbsd.IsDeleted.Bool == true {
+		state := &protos.CBSDStateResult{}
+		c.sendLog(ctx, state, "CbsdStateResponse", "DP", "CBSD", details)
+		return state, makeErr(err, "update cbsd")
 	}
 
-	return &protos.UpdateCbsdResponse{}, nil
+	c.sendLog(ctx, request, "EnodebdUpdateCbsd", "CBSD", "DP", details)
+
+	channels := []*protos.LteChannel{{
+		LowFrequencyHz:  details.Grants[0].Grant.LowFrequency.Int64,
+		HighFrequencyHz: details.Grants[0].Grant.HighFrequency.Int64,
+		MaxEirpDbmMhz:   float32(details.Grants[0].Grant.MaxEirp.Float64),
+	}}
+
+	state := &protos.CBSDStateResult{
+		Channels:                  channels,
+		RadioEnabled:              true,
+		CarrierAggregationEnabled: details.Cbsd.CarrierAggregationEnabled.Bool,
+		Channel:                   channels[0],
+	}
+
+	c.sendLog(ctx, state, "CbsdStateResponse", "DP", "CBSD", details)
+
+	return state, nil
+}
+
+func (c *cbsdManager) sendLog(ctx context.Context, source interface{}, name string, from string, to string, details *storage.DetailedCbsd) {
+	msg, _ := json.Marshal(source)
+	log := &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().UTC().Unix(),
+		LogFrom:          from,
+		LogTo:            to,
+		LogName:          name,
+		LogMessage:       string(msg),
+		CbsdSerialNumber: details.Cbsd.CbsdSerialNumber.String,
+		NetworkId:        details.Cbsd.NetworkId.String,
+		FccId:            details.Cbsd.FccId.String,
+	}
+	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
+		glog.Warningf("Failed to log %s. Details: %s", name, err)
+	}
 }
 
 func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
@@ -267,6 +291,9 @@ func grantsFromDatabase(grants []*storage.DetailedGrant) []*protos.GrantDetails 
 }
 
 func makeErr(err error, wrap string) error {
+	if err == nil {
+		return nil
+	}
 	e := fmt.Errorf(wrap+": %w", err)
 	code := codes.Internal
 	if err == merrors.ErrNotFound {

@@ -18,8 +18,7 @@ from time import sleep
 from typing import Any, Dict
 from unittest import TestCase, mock
 
-from dp.protos.cbsd_pb2 import UpdateCbsdResponse
-from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
+from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel, EnodebdUpdateCbsdRequest
 from magma.enodebd.data_models.data_model import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.device_config.configuration_util import (
@@ -160,8 +159,6 @@ MOCK_CBSD_STATE = CBSDStateResult(
         ),
     ],
 )
-
-MOCK_ENODEBD_CBSD_UPDATE = UpdateCbsdResponse()
 
 
 class SasToRfConfigTests(TestCase):
@@ -340,8 +337,7 @@ class SasToRfConfigTests(TestCase):
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+    def test_enodebd_update_cbsd_called_with_empty_request_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
         test_serial_number = '120200024019APP0105'
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
@@ -357,11 +353,10 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, '0')
         acs_state_machine.handle_tr069_message(req)
         acs_state_machine.transition('notify_dp')
-        mock_enodebd_update_cbsd.assert_not_called()
+        mock_enodebd_update_cbsd.assert_called_with(EnodebdUpdateCbsdRequest(serial_number=test_serial_number))
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_notify_dp(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+    def test_notify_dp(self, mock_enodebd_update_cbsd) -> None:
         expected_final_param_values = {
             ParameterName.UL_BANDWIDTH: '100',
             ParameterName.DL_BANDWIDTH: '100',
@@ -412,14 +407,9 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             [], models.GetParameterValuesResponse,
         )
 
-        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
-        mock_get_state.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         resp = acs_state_machine.handle_tr069_message(req)
-
-        mock_get_state.assert_called_with(
-            CBSDRequest(serial_number=test_serial_number),
-        )
 
         enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
             serial_number=acs_state_machine.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
@@ -534,11 +524,9 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         )
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_provision(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+    def test_provision(self, mock_enodebd_update_cbsd) -> None:
         self.maxDiff = None
-        mock_get_state.return_value = MOCK_CBSD_STATE
-        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
         data_model = BaicellsQRTBTrDataModel()
@@ -642,12 +630,10 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     """Testing Baicells QRTB specific states"""
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.get_cbsd_state')
-    def test_end_session_and_notify_dp_transition(self, mock_get_state, mock_enodebd_update_cbsd):
+    def test_end_session_and_notify_dp_transition(self, mock_enodebd_update_cbsd):
         """Testing if SM steps in and out of BaicellsQRTBWaitNotifyDPState as per state map"""
 
-        mock_get_state.return_value = MOCK_CBSD_STATE
-        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = provision_clean_sm(
             state='wait_get_transient_params',

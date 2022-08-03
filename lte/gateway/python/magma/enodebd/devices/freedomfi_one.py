@@ -13,7 +13,7 @@ limitations under the License.
 import logging
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
-from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
+from dp.protos.cbsd_pb2 import CBSDStateResult, EnodebdUpdateCbsdRequest
 from magma.enodebd.data_models import transform_for_magma
 from magma.enodebd.data_models.data_model import (
     DataModel,
@@ -43,7 +43,6 @@ from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.dp_client import (
     build_enodebd_update_cbsd_request,
     enodebd_update_cbsd,
-    get_cbsd_state,
 )
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
@@ -1553,15 +1552,7 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         """
         Enter the state
         """
-        request = CBSDRequest(
-            serial_number=self.acs.device_cfg.get_parameter(
-                ParameterName.SERIAL_NUMBER,
-            ),
-        )
-        state = get_cbsd_state(request)
-        ff_one_update_desired_config_from_cbsd_state(
-            state, self.acs.desired_cfg,
-        )
+        serial_number = self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
         # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
         # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
         #                 Hardcode it.
@@ -1570,7 +1561,7 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         gps_status = self.acs.device_cfg.get_parameter(ParameterName.GPS_STATUS)
         if gps_status:
             enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
-                serial_number=self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+                serial_number=serial_number,
                 latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
                 longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
                 indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
@@ -1579,9 +1570,12 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
                 antenna_gain=self.acs.device_cfg.get_parameter(SASParameters.SAS_ANTENNA_GAIN),
                 cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
             )
-            enodebd_update_cbsd(enodebd_update_cbsd_request)
+            state = enodebd_update_cbsd(enodebd_update_cbsd_request)
         else:
             EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
+            state = enodebd_update_cbsd(EnodebdUpdateCbsdRequest(serial_number=serial_number))
+
+        ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
 
 
 def _ff_one_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:

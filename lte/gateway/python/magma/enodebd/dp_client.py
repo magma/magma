@@ -17,8 +17,7 @@ from dp.protos.cbsd_pb2 import (
     UpdateCbsdResponse,
 )
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
-from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
-from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
+from dp.protos.cbsd_pb2 import CBSDStateResult
 from google.protobuf.json_format import MessageToJson
 from google.protobuf.wrappers_pb2 import (  # pylint: disable=no-name-in-module
     BoolValue,
@@ -33,35 +32,6 @@ logger = EnodebdLogger
 DP_SERVICE_NAME = "dp_service"
 DP_ORC8R_SERVICE_NAME = "dp"
 DEFAULT_GRPC_TIMEOUT = 20
-
-
-def get_cbsd_state(request: CBSDRequest) -> CBSDStateResult:
-    """
-    Make RPC call to 'GetCBSDState' method of dp service
-    """
-    try:
-        chan = ServiceRegistry.get_rpc_channel(
-            DP_SERVICE_NAME,
-            ServiceRegistry.CLOUD,
-        )
-    except ValueError:
-        logger.error("Can't get RPC channel to %s", DP_SERVICE_NAME)
-        return CBSDStateResult(radio_enabled=False)
-    client = DPServiceStub(chan)
-    try:
-        msg_json = MessageToJson(request, including_default_value_fields=True, preserving_proto_field_name=True)
-        logger.debug(f"Sending GetCBSDState request: {msg_json}")
-        res = client.GetCBSDState(request, DEFAULT_GRPC_TIMEOUT)
-        msg_json = MessageToJson(res, including_default_value_fields=True, preserving_proto_field_name=True)
-        logger.debug(f"Received GetCBSDState reply: {msg_json}")
-    except grpc.RpcError as err:
-        logger.warning(
-            "GetCBSDState error: [%s] %s",
-            err.code(),
-            err.details(),
-        )
-        return CBSDStateResult(radio_enabled=False)
-    return res
 
 
 def _indoortobool(s: str):
@@ -118,7 +88,7 @@ def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse
         )
     except ValueError:
         logger.error("Can't get RPC channel to %s", DP_ORC8R_SERVICE_NAME)
-        return UpdateCbsdResponse()
+        return CBSDStateResult(radio_enabled=False)
     client = CbsdManagementStub(chan)
     try:
         msg_json = MessageToJson(request, including_default_value_fields=True, preserving_proto_field_name=True)
@@ -132,5 +102,5 @@ def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse
             err.code(),
             err.details(),
         )
-        return UpdateCbsdResponse()
+        return CBSDStateResult(radio_enabled=False)
     return res

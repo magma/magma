@@ -9,13 +9,13 @@ const (
 	distanceThresholdM = 10
 )
 
-func ShouldENodeBDUpdate(prev *DBCbsd, next *DBCbsd) bool {
+func ShouldEnodebdUpdateInstallationParams(prev *DBCbsd, next *DBCbsd) bool {
 	return canUpdate(prev) &&
 		(paramsChanges(next, prev) || coordinatesChanged(next, prev))
 }
 
 func canUpdate(prev *DBCbsd) bool {
-	return !prev.CpiDigitalSignature.Valid
+	return prev.SingleStepEnabled.Bool == true && !prev.CpiDigitalSignature.Valid
 }
 
 func paramsChanges(prev *DBCbsd, next *DBCbsd) bool {

@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import List
 from uuid import uuid4
 
-from dp.protos.enodebd_dp_pb2 import CBSDStateResult, LteChannel
+from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel
 
 SOME_FCC_ID = "some_fcc_id"
 USER_ID = "some_user_id"

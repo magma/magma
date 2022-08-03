@@ -14,6 +14,8 @@ limitations under the License.
 package models
 
 import (
+	"time"
+
 	"github.com/go-openapi/strfmt"
 
 	"magma/dp/cloud/go/protos"
@@ -109,13 +111,13 @@ func getModelInstallationParam(params *protos.InstallationParam) InstallationPar
 }
 
 type LogInterface struct {
-	Body         string          `json:"log_message"`
-	FccID        string          `json:"fcc_id"`
-	From         string          `json:"log_from"`
-	SerialNumber string          `json:"cbsd_serial_number"`
-	Time         strfmt.DateTime `json:"@timestamp"`
-	To           string          `json:"log_to"`
-	Type         string          `json:"log_name"`
+	Body         string `json:"log_message"`
+	FccID        string `json:"fcc_id"`
+	From         string `json:"log_from"`
+	SerialNumber string `json:"cbsd_serial_number"`
+	Time         int64  `json:"event_timestamp"`
+	To           string `json:"log_to"`
+	Type         string `json:"log_name"`
 }
 
 func LogInterfaceToLog(i *LogInterface) *Log {
@@ -124,7 +126,7 @@ func LogInterfaceToLog(i *LogInterface) *Log {
 		FccID:        i.FccID,
 		From:         i.From,
 		SerialNumber: i.SerialNumber,
-		Time:         i.Time,
+		Time:         strfmt.DateTime(time.Unix(i.Time, 0).UTC()),
 		To:           i.To,
 		Type:         i.Type,
 	}

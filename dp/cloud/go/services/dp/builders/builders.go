@@ -73,6 +73,11 @@ func (b *DBCbsdBuilder) WithId(id int64) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithIsDeleted(deleted bool) *DBCbsdBuilder {
+	b.Cbsd.IsDeleted = db.MakeBool(deleted)
+	return b
+}
+
 func (b *DBCbsdBuilder) WithCbsdId(id string) *DBCbsdBuilder {
 	b.Cbsd.CbsdId = db.MakeString(id)
 	return b
@@ -211,19 +216,39 @@ type DBGrantBuilder struct {
 
 func NewDBGrantBuilder() *DBGrantBuilder {
 	return &DBGrantBuilder{
-		Grant: &storage.DBGrant{
-			GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
-			TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
-			LowFrequency:       db.MakeInt(3590 * 1e6),
-			HighFrequency:      db.MakeInt(3610 * 1e6),
-			MaxEirp:            db.MakeFloat(35),
-			GrantId:            db.MakeString("some_grant_id"),
-		},
+		Grant: &storage.DBGrant{},
 	}
+}
+
+func (b *DBGrantBuilder) WithDefaultTestValues() *DBGrantBuilder {
+	b.Grant = &storage.DBGrant{
+		GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
+		TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
+		LowFrequency:       db.MakeInt(3590 * 1e6),
+		HighFrequency:      db.MakeInt(3610 * 1e6),
+		MaxEirp:            db.MakeFloat(35),
+		GrantId:            db.MakeString("some_grant_id"),
+	}
+	return b
 }
 
 func (b *DBGrantBuilder) WithId(id int64) *DBGrantBuilder {
 	b.Grant.Id = db.MakeInt(id)
+	return b
+}
+
+func (b *DBGrantBuilder) WithLowFrequency(f int64) *DBGrantBuilder {
+	b.Grant.LowFrequency = db.MakeInt(f)
+	return b
+}
+
+func (b *DBGrantBuilder) WithHighFrequency(f int64) *DBGrantBuilder {
+	b.Grant.HighFrequency = db.MakeInt(f)
+	return b
+}
+
+func (b *DBGrantBuilder) WithMaxEirp(e float64) *DBGrantBuilder {
+	b.Grant.MaxEirp = db.MakeFloat(e)
 	return b
 }
 
@@ -245,6 +270,35 @@ func (b *DBGrantBuilder) WithGrantId(id string) *DBGrantBuilder {
 func (b *DBGrantBuilder) WithFrequency(frequencyMHz int64) *DBGrantBuilder {
 	b.Grant.LowFrequency = db.MakeInt((frequencyMHz - 10) * 1e6)
 	b.Grant.HighFrequency = db.MakeInt((frequencyMHz + 10) * 1e6)
+	return b
+}
+
+func (b *DBGrantBuilder) WithGrantExpireTime(t time.Time) *DBGrantBuilder {
+	b.Grant.GrantExpireTime = db.MakeTime(t)
+	return b
+}
+
+func (b *DBGrantBuilder) WithTransmitExpireTime(t time.Time) *DBGrantBuilder {
+	b.Grant.TransmitExpireTime = db.MakeTime(t)
+	return b
+}
+
+type CbsdStateResultBuilder struct {
+	Result *protos.CBSDStateResult
+}
+
+func NewCbsdStateResultBuilder(radioEnabled bool, carrierAggregation bool) *CbsdStateResultBuilder {
+	return &CbsdStateResultBuilder{
+		Result: &protos.CBSDStateResult{
+			RadioEnabled:              radioEnabled,
+			CarrierAggregationEnabled: carrierAggregation,
+		},
+	}
+}
+
+func (b *CbsdStateResultBuilder) WithChannels(c []*protos.LteChannel) *CbsdStateResultBuilder {
+	b.Result.Channels = c
+	b.Result.Channel = c[0]
 	return b
 }
 
@@ -344,11 +398,11 @@ func (b *DetailedDBCbsdBuilder) WithCbsd(cbsd *storage.DBCbsd, state string, des
 	return b
 }
 
-func (b *DetailedDBCbsdBuilder) WithGrant(state string, frequencyMHz int64) *DetailedDBCbsdBuilder {
+func (b *DetailedDBCbsdBuilder) WithGrant(state string, frequencyMHz int64, grantExpireTime time.Time, transmitExpireTime time.Time) *DetailedDBCbsdBuilder {
 	grant := &storage.DetailedGrant{
 		Grant: &storage.DBGrant{
-			GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
-			TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
+			GrantExpireTime:    db.MakeTime(grantExpireTime),
+			TransmitExpireTime: db.MakeTime(transmitExpireTime),
 			LowFrequency:       db.MakeInt((frequencyMHz - 10) * 1e6),
 			HighFrequency:      db.MakeInt((frequencyMHz + 10) * 1e6),
 			MaxEirp:            db.MakeFloat(35),
@@ -624,13 +678,13 @@ type DPLogBuilder struct {
 	Log *logs_pusher.DPLog
 }
 
-func NewDPLogBuilder() *DPLogBuilder {
+func NewDPLogBuilder(from string, to string, name string) *DPLogBuilder {
 	return &DPLogBuilder{Log: &logs_pusher.DPLog{
 		EventTimestamp:   clock.Now().Unix(),
-		LogFrom:          "CBSD",
-		LogTo:            "DP",
-		LogName:          "EnodebdUpdateCbsd",
-		LogMessage:       "some log message",
+		LogFrom:          from,
+		LogTo:            to,
+		LogName:          name,
+		LogMessage:       "{}",
 		CbsdSerialNumber: "some_serial_number",
 		NetworkId:        "some_network",
 		FccId:            "some_fcc_id",
