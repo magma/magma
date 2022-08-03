@@ -22,48 +22,40 @@ import type {
   VirtualApnRule,
 } from '../../../generated';
 
-import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '../../theme/design-system/DialogTitle';
 import FEGGatewayContext from '../../context/FEGGatewayContext';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import InputLabel from '@material-ui/core/InputLabel';
 import KeyValueFields from '../KeyValueFields';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
+import MagmaAPI from '../../api/MagmaAPI';
 import MenuItem from '@material-ui/core/MenuItem';
-import React, {
-  ChangeEvent,
-  InputHTMLAttributes,
-  useContext,
-  useState,
-} from 'react';
+import OutlinedInput from '@material-ui/core/OutlinedInput';
+import React, {ChangeEvent, useContext, useState} from 'react';
 import Select from '@material-ui/core/Select';
+import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import TextField from '@material-ui/core/TextField';
-
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
-
-import MagmaAPI from '../../api/MagmaAPI';
 import {
   AddGatewayFields,
   EMPTY_GATEWAY_FIELDS,
   MAGMAD_DEFAULT_CONFIGS,
 } from '../AddGatewayDialog';
+import {AltFormField} from '../FormField';
+import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
-  appBar: {
-    backgroundColor: '#f5f5f5',
-    marginBottom: '20px',
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
+    color: colors.primary.white,
   },
   input: {
     display: 'inline-flex',
@@ -400,29 +392,29 @@ export default function FEGGatewayDialog(props: Props) {
       maxWidth="md"
       scroll="body"
       data-testid="FEGGatewayDialog">
-      <AppBar position="static" className={classes.appBar}>
-        <Tabs
-          indicatorColor="primary"
-          textColor="primary"
-          value={tab}
-          onChange={(event, tab) => setTab(tab as string)}>
-          {!editingGateway && <Tab label="General" value="general" />}
-          <Tab label="Gx" value="gx" />
-          <Tab label="Gy" value="gy" />
-          <Tab label="SWx" value="swx" />
-          <Tab label="S6A" value="s6a" />
-          <Tab label="S8" value="s8" />
-          <Tab label="CSFB" value="csfb" />
-        </Tabs>
-      </AppBar>
+      <DialogTitle
+        label={editingGateway ? 'Edit Gateway' : 'Add New Gateway'}
+        onClose={props.onClose}
+      />
+      <Tabs
+        value={tab}
+        className={classes.tabBar}
+        indicatorColor="primary"
+        onChange={(event, tab) => setTab(tab as string)}>
+        {!editingGateway && <Tab label="General" value="general" />}
+        <Tab label="Gx" value="gx" />
+        <Tab label="Gy" value="gy" />
+        <Tab label="SWx" value="swx" />
+        <Tab label="S6A" value="s6a" />
+        <Tab label="S8" value="s8" />
+        <Tab label="CSFB" value="csfb" />
+      </Tabs>
       <DialogContent>
         {content}
         {contentOverwriteAPN}
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
-          Cancel
-        </Button>
+        <Button onClick={props.onClose}>Cancel</Button>
         <Button
           onClick={() => void onSave()}
           color="primary"
@@ -438,7 +430,6 @@ function S8Fields(props: {
   values: S8Values;
   onChange: (values: S8Values) => void;
 }) {
-  const classes = useStyles();
   const {values} = props;
   const onChange = (field: keyof S8Values) => (
     event: ChangeEvent<HTMLInputElement>,
@@ -446,30 +437,33 @@ function S8Fields(props: {
 
   return (
     <>
-      <TextField
-        label="Local Address"
-        className={classes.input}
-        value={values.local_address}
-        onChange={onChange('local_address')}
-        placeholder="example.magma.com:5555"
-        inputProps={{'data-testid': 'localAddress'}}
-      />
-      <TextField
-        label="PGW Address"
-        className={classes.input}
-        value={values.pgw_address}
-        onChange={onChange('pgw_address')}
-        placeholder="pgw.magma.com:5555"
-        inputProps={{'data-testid': 'pgwAddress'}}
-      />
-      <TextField
-        label="APN Operator Suffix"
-        className={classes.input}
-        value={values.apn_operator_suffix}
-        onChange={onChange('apn_operator_suffix')}
-        placeholder=".operator.com"
-        inputProps={{'data-testid': 'apnOperatorSuffix'}}
-      />
+      <AltFormField label="Local Address">
+        <OutlinedInput
+          fullWidth={true}
+          value={values.local_address}
+          onChange={onChange('local_address')}
+          placeholder="example.magma.com:5555"
+          inputProps={{'data-testid': 'localAddress'}}
+        />
+      </AltFormField>
+      <AltFormField label="PGW Address">
+        <OutlinedInput
+          fullWidth={true}
+          value={values.pgw_address}
+          onChange={onChange('pgw_address')}
+          placeholder="pgw.magma.com:5555"
+          inputProps={{'data-testid': 'pgwAddress'}}
+        />
+      </AltFormField>
+      <AltFormField label="APN Operator Suffix">
+        <OutlinedInput
+          fullWidth={true}
+          value={values.apn_operator_suffix}
+          onChange={onChange('apn_operator_suffix')}
+          placeholder=".operator.com"
+          inputProps={{'data-testid': 'apnOperatorSuffix'}}
+        />
+      </AltFormField>
     </>
   );
 }
@@ -478,7 +472,6 @@ function SCTPFields(props: {
   values: SCTPValues;
   onChange: (sctpValues: SCTPValues) => void;
 }) {
-  const classes = useStyles();
   const {values} = props;
   const onChange = (field: keyof SCTPValues) => (
     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
@@ -486,22 +479,24 @@ function SCTPFields(props: {
 
   return (
     <>
-      <TextField
-        label="Server Address"
-        className={classes.input}
-        value={values.server_address}
-        onChange={onChange('server_address')}
-        placeholder="example.magma.com:5555"
-        inputProps={{'data-testid': 'serverAddress'}}
-      />
-      <TextField
-        label="Local Address"
-        className={classes.input}
-        value={values.local_address}
-        onChange={onChange('local_address')}
-        placeholder="example.magma.com:5555"
-        inputProps={{'data-testid': 'localAddress'}}
-      />
+      <AltFormField label="Server Address">
+        <OutlinedInput
+          fullWidth={true}
+          value={values.server_address}
+          onChange={onChange('server_address')}
+          placeholder="example.magma.com:5555"
+          inputProps={{'data-testid': 'serverAddress'}}
+        />
+      </AltFormField>
+      <AltFormField label="Local Address">
+        <OutlinedInput
+          fullWidth={true}
+          value={values.local_address}
+          onChange={onChange('local_address')}
+          placeholder="example.magma.com:5555"
+          inputProps={{'data-testid': 'localAddress'}}
+        />
+      </AltFormField>
     </>
   );
 }
@@ -511,7 +506,6 @@ function DiameterFields(props: {
   onChange: (diameterValues: DiameterValues) => void;
   supportedProtocols: Array<Required<DiameterClientConfigs['protocol']>>;
 }) {
-  const classes = useStyles();
   const {values, supportedProtocols} = props;
   const onChange = (field: keyof DiameterValues) => (
     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
@@ -519,65 +513,76 @@ function DiameterFields(props: {
 
   return (
     <>
-      <TextField
-        label="Address"
-        className={classes.input}
-        value={values.address}
-        onChange={onChange('address')}
-        placeholder="example.magma.com:5555"
-        inputProps={{'data-testid': 'address'}}
-      />
-      <TextField
-        label="Destination Host"
-        className={classes.input}
-        value={values.dest_host}
-        onChange={onChange('dest_host')}
-        placeholder="magma-fedgw.magma.com"
-        inputProps={{'data-testid': 'destinationHost'}}
-      />
-      <TextField
-        label="Dest Realm"
-        className={classes.input}
-        value={values.dest_realm}
-        onChange={onChange('dest_realm')}
-        placeholder="magma.com"
-        inputProps={{'data-testid': 'destRealm'}}
-      />
-      <TextField
-        label="Host"
-        className={classes.input}
-        value={values.host}
-        onChange={onChange('host')}
-        placeholder="magma.com"
-        inputProps={{'data-testid': 'host'}}
-      />
-      <TextField
-        label="Realm"
-        className={classes.input}
-        value={values.realm}
-        onChange={onChange('realm')}
-        placeholder="realm"
-        inputProps={{'data-testid': 'realm'}}
-      />
-      <TextField
-        label="Local Address"
-        className={classes.input}
-        value={values.local_address}
-        onChange={onChange('local_address')}
-        placeholder=":56789"
-        inputProps={{'data-testid': 'localAddress'}}
-      />
-      <TextField
-        label="Product Name"
-        className={classes.input}
-        value={values.product_name}
-        onChange={onChange('product_name')}
-        placeholder="Magma"
-        inputProps={{'data-testid': 'productName'}}
-      />
-      <FormControl className={classes.input}>
-        <InputLabel htmlFor="protocol">Protocol</InputLabel>
+      <AltFormField label="Address">
+        <OutlinedInput
+          fullWidth={true}
+          placeholder="example.magma.com:5555"
+          value={values.address}
+          onChange={onChange('address')}
+          inputProps={{'data-testid': 'address'}}
+        />
+      </AltFormField>
+      <AltFormField label="Destination Host">
+        <OutlinedInput
+          fullWidth={true}
+          onChange={onChange('dest_host')}
+          placeholder="magma-fedgw.magma.com"
+          value={values.dest_host}
+          inputProps={{'data-testid': 'destinationHost'}}
+        />
+      </AltFormField>
+      <AltFormField label="Dest Realm">
+        <OutlinedInput
+          fullWidth={true}
+          onChange={onChange('dest_realm')}
+          placeholder="magma.com"
+          value={values.dest_realm}
+          inputProps={{'data-testid': 'destRealm'}}
+        />
+      </AltFormField>
+      <AltFormField label="Host">
+        <OutlinedInput
+          fullWidth={true}
+          onChange={onChange('host')}
+          placeholder="magma.com"
+          value={values.host}
+          inputProps={{'data-testid': 'host'}}
+        />
+      </AltFormField>
+      <AltFormField label="Realm">
+        <OutlinedInput
+          fullWidth={true}
+          onChange={onChange('realm')}
+          placeholder="realm"
+          value={values.realm}
+          inputProps={{'data-testid': 'realm'}}
+        />
+      </AltFormField>
+
+      <AltFormField label="Local Address">
+        <OutlinedInput
+          fullWidth={true}
+          onChange={onChange('local_address')}
+          placeholder=":56789"
+          value={values.local_address}
+          inputProps={{'data-testid': 'localAddress'}}
+        />
+      </AltFormField>
+
+      <AltFormField label="Product Name">
+        <OutlinedInput
+          fullWidth={true}
+          onChange={onChange('product_name')}
+          placeholder="Magma"
+          value={values.product_name}
+          inputProps={{'data-testid': 'productName'}}
+        />
+      </AltFormField>
+
+      <AltFormField label="Protocol">
         <Select
+          fullWidth={true}
+          variant={'outlined'}
           inputProps={{id: 'protocol', 'data-testid': 'protocol'}}
           value={values.protocol}
           onChange={({target}) => {
@@ -597,24 +602,16 @@ function DiameterFields(props: {
             </MenuItem>
           ))}
         </Select>
-      </FormControl>
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={values.disable_dest_host}
-            onChange={({target}) =>
-              props.onChange({...values, disable_dest_host: target.checked})
-            }
-            color="primary"
-            inputProps={
-              {'data-testid': 'disableDestinationHost'} as InputHTMLAttributes<
-                HTMLInputElement
-              >
-            }
-          />
-        }
-        label="Disable Destination Host"
-      />
+      </AltFormField>
+
+      <AltFormField label="Disable Destination Host">
+        <Switch
+          checked={values.disable_dest_host}
+          onChange={({target}) =>
+            props.onChange({...values, disable_dest_host: target.checked})
+          }
+        />
+      </AltFormField>
     </>
   );
 }
