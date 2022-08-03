@@ -23,7 +23,6 @@ import {
   FegLteNetwork,
   NetworkFederationConfigs,
   PolicyRule,
-  RatingGroup,
   RedirectInformation,
 } from '../../../../generated';
 import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
@@ -182,11 +181,7 @@ describe('<TrafficDashboard />', () => {
     mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesPost');
     mockAPI(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdPut');
     mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', {});
-    mockAPI(
-      MagmaAPI.ratingGroups,
-      'networksNetworkIdRatingGroupsGet',
-      ({} as unknown) as Array<RatingGroup>,
-    );
+    mockAPI(MagmaAPI.ratingGroups, 'networksNetworkIdRatingGroupsGet', {});
     mockAPI(
       MagmaAPI.policies,
       'networksNetworkIdPoliciesBaseNamesBaseNameGet',
