@@ -271,7 +271,6 @@ func (s *subscriberdbServicer) getSubscribersChangeset(ctx context.Context, netw
 	if err != nil {
 		return true, nil, nil, err
 	}
-	return false, renewed, deleted, nil
 	cloudflag := GetCloudSubscriberDbEnabled(ctx)
 	if cloudflag {
 		glog.V(2).Infof("Cloud Authentication enabled, not streaming subscriber data")
@@ -352,12 +351,12 @@ func GetCloudSubscriberDbEnabled(ctx context.Context) bool {
 	networkID := gateway.NetworkId
 	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
-		fmt.Errorf("Load error for network %s: %w", networkID, err)
+		glog.Errorf("Load error for network %s: %w", networkID, err)
 		return false
 	}
 	nwCellularConfigType, ok := network.Configs[lte.CellularNetworkConfigType]
 	if !ok {
-		fmt.Errorf("Error fetching cellular configs")
+		glog.Errorf("Error fetching cellular configs")
 		return false
 	}
 	nwCellularConfig := nwCellularConfigType.(*lte_models.NetworkCellularConfigs)
