@@ -148,24 +148,6 @@ export type AlertConfig = {
   _isCustomAlertRule?: boolean;
 };
 
-// Must match https://github.com/facebookarchive/prometheus-configmanager/blob/main/alertmanager/config/route.go#L17
-export type AlertRoutingTree = {
-  receiver: string;
-
-  group_by_str?: Array<string>;
-  group_by?: Array<string>;
-  group_by_all?: boolean;
-
-  match?: Record<string, string>;
-  match_re?: Record<string, string>;
-  continue?: boolean;
-  routes?: Array<AlertRoutingTree>;
-
-  group_wait?: string;
-  group_interval?: string;
-  repeat_interval?: string;
-};
-
 export type BulkAlertUpdateResponse = {
   errors: Record<string, string>;
   statuses: Record<string, string>;

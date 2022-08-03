@@ -13,10 +13,10 @@
 
 import * as React from 'react';
 import axios from 'axios';
-import {AlertRoutingTree} from './AlarmAPIType';
 import {useAlarmContext} from './AlarmContext';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {AlertRoutingTree} from '../../../../generated';
 import type {ApiUtil} from './AlarmsApi';
 import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 
