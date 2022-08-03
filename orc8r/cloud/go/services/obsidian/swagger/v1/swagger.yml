@@ -6592,18 +6592,12 @@ definitions:
       group_wait:
         type: string
       match:
-        properties:
-          label:
-            type: string
-          value:
-            type: string
+        additionalProperties:
+          type: string
         type: object
       match_re:
-        properties:
-          label:
-            type: string
-          value:
-            type: string
+        additionalProperties:
+          type: string
         type: object
       receiver:
         type: string
