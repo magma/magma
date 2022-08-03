@@ -70,5 +70,8 @@
     "packages": [
       "packages/*"
     ]
+  },
+  "resolutions": {
+    "**/@fbcnms/**/@fbcnms/sequelize-models": "^0.1.13"
   }
 }
