@@ -353,12 +353,12 @@ func GetCloudSubscriberDbEnabled(ctx context.Context) bool {
 	network, err := configurator.LoadNetwork(ctx, networkID, false, true, serdes.Network)
 	if err != nil {
 		fmt.Errorf("Load error for network %s: %w", networkID, err)
-		return true
+		return false
 	}
 	nwCellularConfigType, ok := network.Configs[lte.CellularNetworkConfigType]
 	if !ok {
 		fmt.Errorf("Error fetching cellular configs")
-		return true
+		return false
 	}
 	nwCellularConfig := nwCellularConfigType.(*lte_models.NetworkCellularConfigs)
 	EpcConfig := nwCellularConfig.Epc

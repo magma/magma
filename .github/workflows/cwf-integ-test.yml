@@ -59,7 +59,7 @@ jobs:
           args: 'CWF integration test: docker build step failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ env.SHA }}): ${{ steps.commit.outputs.title}}'
   cwf-integ-test:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-10.15
+    runs-on: macos-12
     needs: docker-build
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -70,10 +70,6 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes
           key: vagrant-boxes-cwf-v20220722
-      - name: Setup Python env
-        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
-        with:
-          default: 3.8.5
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
