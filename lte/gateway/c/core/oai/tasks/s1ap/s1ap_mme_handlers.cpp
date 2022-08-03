@@ -34,7 +34,6 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -42,6 +41,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_CNDomain.h"
@@ -405,7 +405,8 @@ void clean_stale_enb_state(s1ap_state_t* state,
   enb_description_t* stale_enb_association = NULL;
 
   state->enbs.map_apply_callback_on_all_elements(
-      get_stale_enb_connection_with_enb_id, (void*)new_enb_association,
+      get_stale_enb_connection_with_enb_id,
+      reinterpret_cast<void*>(new_enb_association),
       (void**)&stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -550,7 +551,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
                       "invalid_state");
     /* UE state at s1ap task is created on reception of initial ue message
-     * map, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map, ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
@@ -2049,7 +2050,6 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   S1ap_HandoverRequestAcknowledgeIEs_t* ie = NULL;
   enb_description_t* source_enb = NULL;
   enb_description_t* target_enb = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t idx = 0;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -2746,7 +2746,6 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
   bstring src_tgt_container = {0};
   uint8_t* enb_id_buf = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint32_t idx = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -3207,7 +3206,6 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
   S1ap_ENBStatusTransferIEs_t* ie = NULL;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* target_enb_association = NULL;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -3670,7 +3668,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 
   if (reset) {
     /* UE state at s1ap task is created on reception of initial ue message
-     * map, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
@@ -3744,7 +3742,7 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
     enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
     magma::proto_map_rc_t rc =
         state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
-    if (magma::PROTO_MAP_OK != rc) {
+    if (rc != magma::PROTO_MAP_OK) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   } else if ((enb_association->s1_state == S1AP_SHUTDOWN) ||
@@ -4518,20 +4516,19 @@ status_code_e s1ap_handle_paging_request(
   }
 
   /*Fetching eNB list to send paging request message*/
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* enb_ref_p = NULL;
   if (state == NULL) {
     OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   if (!(state->enbs.size())) {
-    OAILOG_ERROR(LOG_S1AP, "Could not find eNB hashlist!\n");
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB map!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
        itr++) {
-    enb_ref_p = (enb_description_t*)itr->second;
+    enb_ref_p = reinterpret_cast<enb_description_t*>(itr->second);
     if (!enb_ref_p) {
       continue;
     }
@@ -4831,7 +4828,6 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint8_t* enb_id_buf = NULL;
   enb_description_t* enb_association = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -5360,13 +5356,4 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   // Remove UE context and inform MME_APP.
   s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-}
-
-// Frees the contents of pointer, called while freeing an entry from protibuf
-// map
-void free_enb_description(void** ptr) {
-  if (ptr) {
-    delete *ptr;
-    *ptr = nullptr;
-  }
 }

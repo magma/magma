@@ -1,9 +1,24 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 from typing import Dict
 
 import requests
 import responses
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
+)
+from magma.configuration_controller.response_processor.strategies.response_processing import (
+    unset_frequency,
 )
 from magma.configuration_controller.response_processor.strategies.strategies_mapping import (
     processor_strategies,
@@ -60,8 +75,6 @@ RELINQUISHMENT_REQ = RequestTypes.RELINQUISHMENT.value
 HEARTBEAT_REQ = RequestTypes.HEARTBEAT.value
 GRANT_REQ = RequestTypes.GRANT.value
 SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
-
-INITIAL_GRANT_ATTEMPTS = 1
 
 _fake_requests_map = {
     REGISTRATION_REQ: registration_requests,
@@ -175,47 +188,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
 
     @parameterized.expand([
-        (0, GRANT_REQ, INITIAL_GRANT_ATTEMPTS),
-        (400, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
-        (401, GRANT_REQ, INITIAL_GRANT_ATTEMPTS + 1),
-        (0, RELINQUISHMENT_REQ, INITIAL_GRANT_ATTEMPTS),
-        (0, DEREGISTRATION_REQ, 0),
-        (0, SPECTRUM_INQ_REQ, 0),
-    ])
-    @responses.activate
-    def test_grant_attempts_after_response(self, code, message_type, expected):
-        cbsd = DBCbsd(
-            cbsd_id=CBSD_ID,
-            user_id=USER_ID,
-            fcc_id=FCC_ID,
-            cbsd_serial_number=CBSD_SERIAL_NR,
-            grant_attempts=INITIAL_GRANT_ATTEMPTS,
-            state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
-            desired_state=self._get_db_enum(DBCbsdState, CbsdStates.REGISTERED.value),
-        )
-        request = DBRequest(
-            type=self._get_db_enum(DBRequestType, message_type),
-            cbsd=cbsd,
-            payload={'cbsdId': CBSD_ID},
-        )
-
-        response = self._prepare_response_from_db_requests(
-            db_requests=[request],
-            response_code=code,
-        )
-
-        self.session.add(request)
-        self.session.commit()
-
-        self._process_response(
-            request_type_name=message_type,
-            response=response,
-            db_requests=[request],
-        )
-
-        self.assertEqual(expected, cbsd.grant_attempts)
-
-    @parameterized.expand([
         (0, CbsdStates.REGISTERED),
         (300, CbsdStates.UNREGISTERED),
         (400, CbsdStates.UNREGISTERED),
@@ -325,11 +297,25 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertEqual(0, len(cbsd.channels))
 
     @responses.activate
+    def test_available_frequencies_deleted_after_spectrum_inquiry_response(self):
+        # Given
+        db_requests = self._create_db_requests(SPECTRUM_INQ_REQ, spectrum_inquiry_requests)
+        cbsd = self.session.query(DBCbsd).filter(DBCbsd.cbsd_id == "foo").first()
+
+        response = self._prepare_response_from_payload(zero_channels_for_one_cbsd)
+
+        # When
+        self._process_response(SPECTRUM_INQ_REQ, response, db_requests)
+
+        # Then
+        self.assertIsNone(cbsd.available_frequencies)
+
+    @responses.activate
     def test_channel_params_set_on_grant_response(self):
         # Given
         cbsd_id = "foo"
-        low_frequency = 1
-        high_frequency = 2
+        low_frequency = 3560000000
+        high_frequency = 3561000000
         max_eirp = 3
 
         fixture = self._build_grant_request(
@@ -391,6 +377,44 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             self.assertTrue(state.name == expected_cbsd_sate)
             for state in states
         ]
+
+    @parameterized.expand([
+        (None, 3560000000, 3580000000, None),
+        ([0b1111, 0b110, 0b1100, 0b1010], 3562500000, 3567500000, [0b0111, 0b110, 0b1100, 0b1010]),  # 5 MHz bw
+        ([0b0, 0b110, 0b1100, 0b1010], 3550000000, 3560000000, [0b0, 0b100, 0b1100, 0b1010]),  # 10 MHz bw
+        ([0b0, 0b110, 0b1111100, 0b1010], 3572500000, 3587500000, [0b0, 0b110, 0b0111100, 0b1010]),  # 15 MHz bw
+        ([0b0, 0b110, 0b1111100, 0b10101], 3560000000, 3580000000, [0b0, 0b110, 0b1111100, 0b00101]),  # 20 MHz bw
+    ])
+    def test_unset_frequency(self, orig_avail_freqs, low_freq, high_freq, expected_avail_freq):
+        # Given
+        cbsd = DBCbsd(
+            cbsd_id="some_cbsd_id",
+            fcc_id="some_fcc_id",
+            cbsd_serial_number="some_serial_number",
+            user_id="some_user_id",
+            state_id=1,
+            desired_state_id=1,
+            available_frequencies=orig_avail_freqs,
+        )
+
+        grant = DBGrant(
+            cbsd=cbsd,
+            state_id=1,
+            grant_id="some_grant_id",
+            low_frequency=low_freq,
+            high_frequency=high_freq,
+            max_eirp=15,
+        )
+
+        self.session.add_all([cbsd, grant])
+        self.session.commit()
+
+        # When
+        unset_frequency(grant)
+        cbsd = self.session.query(DBCbsd).filter(DBCbsd.id == cbsd.id).scalar()
+
+        # Then
+        self.assertEqual(expected_avail_freq, cbsd.available_frequencies)
 
     def _process_response(self, request_type_name, response, db_requests):
         processor = self._get_response_processor(request_type_name)
@@ -469,6 +493,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             user_id=user_id,
             state=cbsd_state,
             desired_state=cbsd_state,
+            available_frequencies=[0b11111100, 0b11110111, 0b11001111, 0b11110001],
         )
 
         self.session.add(cbsd)
@@ -509,17 +534,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.session.add(channel)
         self.session.commit()
         return channel
-
-    def _create_grant(self, grant_id, channel, cbsd, state):
-        grant = DBGrant(
-            channel=channel,
-            cbsd=cbsd,
-            state=state,
-            grant_id=grant_id,
-        )
-        self.session.add(grant)
-        self.session.commit()
-        return grant
 
     def _create_db_requests_from_fixture(self, request_type, fixture, cbsd_state):
         db_requests = []

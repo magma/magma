@@ -47,8 +47,8 @@ class S1APStateConverterTest : public ::testing::Test {
 
 TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   sctp_assoc_id_t assoc_id = 1;
-  s1ap_state_t* init_state = create_s1ap_state(2, 2);
-  s1ap_state_t* final_state = create_s1ap_state(2, 2);
+  s1ap_state_t* init_state = create_s1ap_state();
+  s1ap_state_t* final_state = create_s1ap_state();
 
   enb_description_t* enb_association = s1ap_new_enb();
   enb_association->sctp_assoc_id = assoc_id;
@@ -102,8 +102,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
 
 TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   sctp_assoc_id_t assoc_id = 1;
-  s1ap_state_t* init_state = create_s1ap_state(2, 2);
-  s1ap_state_t* final_state = create_s1ap_state(2, 2);
+  s1ap_state_t* init_state = create_s1ap_state();
+  s1ap_state_t* final_state = create_s1ap_state();
 
   enb_description_t* enb_association = s1ap_new_enb();
   enb_association->sctp_assoc_id = assoc_id;

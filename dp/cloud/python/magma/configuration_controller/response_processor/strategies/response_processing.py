@@ -132,6 +132,7 @@ def _create_channels(response: DBResponse, session: Session):
     cbsd_id = response.request.payload["cbsdId"]
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
     available_channels = response.payload.get("availableChannel")
+    cbsd.available_frequencies = None
     if not available_channels:
         logger.warning(
             "Could not create channel from spectrumInquiryResponse. Response missing 'availableChannel' object",
@@ -167,8 +168,6 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
 
     if response.response_code != ResponseCodes.SUCCESS.value:
         cbsd = response.request.cbsd
-        if cbsd:
-            cbsd.grant_attempts += 1
 
     grant = _get_or_create_grant_from_response(obj, response, session)
     if not grant:
@@ -183,6 +182,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
         new_state = obj.grant_states_map[GrantStates.GRANTED.value]
     else:
         new_state = obj.grant_states_map[GrantStates.IDLE.value]
+        unset_frequency(grant)
     logger.info(
         f'process_grant_responses: Updating grant state from {grant.state} to {new_state}',
     )
@@ -216,6 +216,7 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
         new_state = obj.grant_states_map[GrantStates.UNSYNC.value]
     elif response.response_code == ResponseCodes.TERMINATED_GRANT.value:
         new_state = obj.grant_states_map[GrantStates.IDLE.value]
+        unset_frequency(grant)
     elif response.response_code == ResponseCodes.DEREGISTER.value:
         _terminate_all_grants_from_response(response, session)
         return
@@ -271,6 +272,31 @@ def process_deregistration_response(obj: ResponseDBProcessor, response: DBRespon
         f'process_deregistration_response: Unregistering {response.payload}',
     )
     _unregister_cbsd(response, session)
+
+
+def unset_frequency(grant: DBGrant):
+    """
+    Unset available frequency on the nth position of available frequencies for the given frequency
+
+    Args:
+        grant (DBGrant): Grant whose low and high frequencies are the base for the calculation
+
+    Returns:
+        None
+    """
+    frequencies = grant.cbsd.available_frequencies
+    low = grant.low_frequency
+    high = grant.high_frequency
+
+    if not all([frequencies, low, high]):
+        return
+
+    bw_hz = high - low
+    mid = (low + high) // 2
+    bit_to_unset = (mid - int(3550 * 1e6)) // int(5 * 1e6)
+    bw_index = bw_hz // int(5 * 1e6) - 1
+
+    frequencies[bw_index] = frequencies[bw_index] & ~(1 << int(bit_to_unset))  # noqa: WPS465
 
 
 def _get_or_create_grant_from_response(
@@ -335,8 +361,6 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     if not cbsd_id:
         return
     cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
-    if cbsd:
-        cbsd.grant_attempts = 0
     logger.info(f'Terminating all grants for {cbsd_id=}')
     session.query(DBGrant).filter(DBGrant.cbsd == cbsd).delete()
     logger.info(f"Deleting all channels for {cbsd_id=}")

@@ -19,10 +19,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"magma/dp/cloud/go/protos"
+	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
@@ -33,12 +35,16 @@ type cbsdManager struct {
 	protos.UnimplementedCbsdManagementServer
 	store                  storage.CbsdManager
 	cbsdInactivityInterval time.Duration
+	logConsumerUrl         string
+	logPusher              logs_pusher.LogPusher
 }
 
-func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration) protos.CbsdManagementServer {
+func NewCbsdManager(store storage.CbsdManager, cbsdInactivityInterval time.Duration, logConsumerUrl string, logPusher logs_pusher.LogPusher) protos.CbsdManagementServer {
 	return &cbsdManager{
 		store:                  store,
 		cbsdInactivityInterval: cbsdInactivityInterval,
+		logConsumerUrl:         logConsumerUrl,
+		logPusher:              logPusher,
 	}
 }
 
@@ -57,13 +63,27 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 	}
 	return &protos.UpdateCbsdResponse{}, nil
 }
-
-func (c *cbsdManager) EnodebdUpdateCbsd(_ context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
-	cbsd := requestToDbCbsd(request)
-	err := c.store.EnodebdUpdateCbsd(cbsd)
+func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.UpdateCbsdResponse, error) {
+	data := requestToDbCbsd(request)
+	cbsd, err := c.store.EnodebdUpdateCbsd(data)
 	if err != nil {
 		return nil, makeErr(err, "update cbsd")
 	}
+	msg, _ := json.Marshal(request)
+	log := &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().Unix(),
+		LogFrom:          "CBSD",
+		LogTo:            "DP",
+		LogName:          "EnodebdUpdateCbsd",
+		LogMessage:       string(msg),
+		CbsdSerialNumber: cbsd.CbsdSerialNumber.String,
+		NetworkId:        cbsd.NetworkId.String,
+		FccId:            cbsd.FccId.String,
+	}
+	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
+		glog.Warningf("Failed to log Enodebd Update. Details: %s", err)
+	}
+
 	return &protos.UpdateCbsdResponse{}, nil
 }
 
@@ -154,16 +174,19 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 	installationParam := data.GetInstallationParam()
 	b, _ := json.Marshal(preferences.GetFrequenciesMhz())
 	cbsd := &storage.DBCbsd{
-		UserId:                  db.MakeString(data.GetUserId()),
-		FccId:                   db.MakeString(data.GetFccId()),
-		CbsdSerialNumber:        db.MakeString(data.GetSerialNumber()),
-		MinPower:                db.MakeFloat(capabilities.GetMinPower()),
-		MaxPower:                db.MakeFloat(capabilities.GetMaxPower()),
-		NumberOfPorts:           db.MakeInt(capabilities.GetNumberOfAntennas()),
-		PreferredBandwidthMHz:   db.MakeInt(preferences.GetBandwidthMhz()),
-		PreferredFrequenciesMHz: db.MakeString(string(b)),
-		SingleStepEnabled:       db.MakeBool(data.GetSingleStepEnabled()),
-		CbsdCategory:            db.MakeString(data.GetCbsdCategory()),
+		UserId:                    db.MakeString(data.GetUserId()),
+		FccId:                     db.MakeString(data.GetFccId()),
+		CbsdSerialNumber:          db.MakeString(data.GetSerialNumber()),
+		MinPower:                  db.MakeFloat(capabilities.GetMinPower()),
+		MaxPower:                  db.MakeFloat(capabilities.GetMaxPower()),
+		NumberOfPorts:             db.MakeInt(capabilities.GetNumberOfAntennas()),
+		PreferredBandwidthMHz:     db.MakeInt(preferences.GetBandwidthMhz()),
+		PreferredFrequenciesMHz:   db.MakeString(string(b)),
+		SingleStepEnabled:         db.MakeBool(data.GetSingleStepEnabled()),
+		CbsdCategory:              db.MakeString(data.GetCbsdCategory()),
+		CarrierAggregationEnabled: db.MakeBool(data.GetCarrierAggregationEnabled()),
+		GrantRedundancy:           db.MakeBool(data.GetGrantRedundancy()),
+		MaxIbwMhx:                 db.MakeInt(data.Capabilities.GetMaxIbwMhz()),
 	}
 	setInstallationParam(cbsd, installationParam)
 	return cbsd
@@ -210,13 +233,16 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 				MinPower:         data.Cbsd.MinPower.Float64,
 				MaxPower:         data.Cbsd.MaxPower.Float64,
 				NumberOfAntennas: data.Cbsd.NumberOfPorts.Int64,
+				MaxIbwMhz:        data.Cbsd.MaxIbwMhx.Int64,
 			},
 			Preferences: &protos.FrequencyPreferences{
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
 				FrequenciesMhz: frequencies,
 			},
-			DesiredState:      data.DesiredState.Name.String,
-			InstallationParam: getInstallationParam(data.Cbsd),
+			DesiredState:              data.DesiredState.Name.String,
+			InstallationParam:         getInstallationParam(data.Cbsd),
+			CarrierAggregationEnabled: data.Cbsd.CarrierAggregationEnabled.Bool,
+			GrantRedundancy:           data.Cbsd.GrantRedundancy.Bool,
 		},
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,

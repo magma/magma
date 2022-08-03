@@ -92,23 +92,23 @@ TEST(test_get_subs_auth_info, get_subs_auth_info) {
 }
 
 TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
-     convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans) {
+     convert_proto_msg_to_itti_amf_decrypted_msin_info_ans) {
   magma::lte::M5GSUCIRegistrationAnswer response;
-  itti_amf_decrypted_imsi_info_ans_t amf_decrypt_imsi_info_resp;
+  itti_amf_decrypted_msin_info_ans_t amf_decrypt_msin_info_resp;
 
-  std::string imsi("1032547698");
+  std::string msin("1032547698");
 
-  response.set_ue_msin_recv(imsi);
+  response.set_ue_msin_recv(msin);
 
-  magma5g::convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
-      response, &amf_decrypt_imsi_info_resp);
+  magma5g::convert_proto_msg_to_itti_amf_decrypted_msin_info_ans(
+      response, &amf_decrypt_msin_info_resp);
 
-  EXPECT_EQ(memcmp(amf_decrypt_imsi_info_resp.imsi,
-                   response.ue_msin_recv().c_str(), imsi.length()),
+  EXPECT_EQ(memcmp(amf_decrypt_msin_info_resp.msin,
+                   response.ue_msin_recv().c_str(), msin.length()),
             0);
 }
 
-TEST(test_get_decrypt_imsi_info, get_decrypt_imsi_info) {
+TEST(test_get_decrypt_msin_info, get_decrypt_msin_info) {
   uint8_t ue_pubkey_identifier = 1;
   std::string ue_pubkey =
       "0\xc9q\xf4q\xeb\xf9\xa2o\x17\t\xd6qT\xcd;\xf6`\x8d%\xb0^"
@@ -116,7 +116,7 @@ TEST(test_get_decrypt_imsi_info, get_decrypt_imsi_info) {
   std::string ciphertext = "\xfc\xf0b\xfc\xad";
   std::string mac_tag = "\xa2;\xef\x01\xad\xe1\xd7e";
 
-  M5GSUCIRegistrationRequest req = magma5g::create_decrypt_imsi_request(
+  M5GSUCIRegistrationRequest req = magma5g::create_decrypt_msin_request(
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);
 
   EXPECT_TRUE(ue_pubkey_identifier == req.ue_pubkey_identifier());

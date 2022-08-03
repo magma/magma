@@ -19,7 +19,7 @@
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 
 status_code_e mme_config_embedded_spgw_parse_opt_line(int argc, char* argv[],
                                                       mme_config_t*,

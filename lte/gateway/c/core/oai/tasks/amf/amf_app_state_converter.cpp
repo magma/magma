@@ -822,9 +822,9 @@ void AmfNasStateConverter::smf_context_to_proto(
       smf_context_proto->mutable_requested_nssai());
 
   AmfNasStateConverter::qos_flow_setup_request_item_to_proto(
-      state_smf_context->subscribed_qos_profile.qos_flow_req_item,
-      smf_context_proto->mutable_qos_flow_list());
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
+
+      state_smf_context->smf_proc_data.qos_flow_list.item[0].qos_flow_req_item,
+      smf_context_proto->mutable_smf_proc_data()->mutable_qos_flow_list());
 }
 
 void AmfNasStateConverter::proto_to_smf_context(
@@ -878,8 +878,8 @@ void AmfNasStateConverter::proto_to_smf_context(
                                          &state_smf_context->requested_nssai);
 
   AmfNasStateConverter::proto_to_qos_flow_setup_request_item(
-      smf_context_proto.qos_flow_list(),
-      &state_smf_context->subscribed_qos_profile.qos_flow_req_item);
-  OAILOG_FUNC_OUT(LOG_AMF_APP);
+      smf_context_proto.smf_proc_data().qos_flow_list(),
+      &state_smf_context->smf_proc_data.qos_flow_list.item[0]
+           .qos_flow_req_item);
 }
 }  // namespace magma5g

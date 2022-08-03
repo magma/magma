@@ -100,6 +100,8 @@ class GTPTrafficTest(unittest.TestCase):
                 'ovs_multi_tunnel': False,
                 'paging_timeout': 30,
                 'classifier_controller_id': 5,
+                'enable_nat': True,
+                'ovs_uplink_port_name': "patch-up",
             },
             mconfig=PipelineD(),
             loop=None,

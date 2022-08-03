@@ -30,7 +30,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-extern task_zmq_ctx_t task_zmq_ctx_main_s1ap;
+task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
 status_code_e setup_new_association(s1ap_state_t* state,
                                     sctp_assoc_id_t assoc_id) {
@@ -444,7 +444,7 @@ status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,
                                       s1ap_state_t* state,
                                       sctp_assoc_id_t assoc_id,
                                       sctp_stream_id_t stream_id) {
-  status_code_e rc;
+  status_code_e rc = RETURNok;
   bstring payload;
   payload = blk2bstr(bytes, bytes_len);
   S1ap_S1AP_PDU_t pdu;

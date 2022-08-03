@@ -36,11 +36,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_TimeToWait.h"
@@ -425,7 +425,7 @@ ue_description_t* s1ap_new_ue(s1ap_state_t* state,
   if (magma::PROTO_MAP_OK != rc) {
     OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
                  magma::map_rc_code2string(rc));
-    free_enb_description((void**)&ue_ref);
+    free_cpp_wrapper((void**)&ue_ref);
     return NULL;
   }
   // Increment number of UE

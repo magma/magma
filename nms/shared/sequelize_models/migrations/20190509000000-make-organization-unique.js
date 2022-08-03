@@ -10,22 +10,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
  */
 
-import type {DataTypes, QueryInterface} from 'sequelize';
 const CONSTRAINT_NAME = 'unique_organization_name';
 
 module.exports = {
-  up: (queryInterface: QueryInterface, _types: DataTypes) => {
-    return queryInterface.addConstraint('Organizations', ['name'], {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  up: ({context: queryInterface}) => {
+    return queryInterface.addConstraint('Organizations', {
       type: 'unique',
       name: CONSTRAINT_NAME,
+      fields: ['name'],
     });
   },
 
-  down: (queryInterface: QueryInterface, _types: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  down: ({context: queryInterface}) => {
     return queryInterface.removeConstraint('Organizations', CONSTRAINT_NAME);
   },
 };

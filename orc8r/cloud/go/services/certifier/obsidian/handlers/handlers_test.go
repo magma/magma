@@ -3,14 +3,14 @@ package handlers_test
 import (
 	"testing"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
-	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/certifier/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier/test_utils"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian/tests"
 )
 
 func TestUserEndpoints(t *testing.T) {

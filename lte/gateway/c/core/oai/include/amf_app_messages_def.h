@@ -35,5 +35,5 @@ MESSAGE_DEF(AMF_APP_SUBS_AUTH_INFO_RESP, itti_amf_subs_auth_info_ans_t,
             amf_app_subs_auth_info_resp)
 MESSAGE_DEF(AMF_IP_ALLOCATION_RESPONSE, itti_amf_ip_allocation_response_t,
             amf_ip_allocation_response)
-MESSAGE_DEF(AMF_APP_DECRYPT_IMSI_INFO_RESP, itti_amf_decrypted_imsi_info_ans_t,
+MESSAGE_DEF(AMF_APP_DECRYPT_MSIN_INFO_RESP, itti_amf_decrypted_msin_info_ans_t,
             amf_app_decrypt_info_resp)

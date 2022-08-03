@@ -51,6 +51,9 @@ MESSAGE_DEF(NGAP_UE_CONTEXT_MODIFICATION_FAILURE,
 MESSAGE_DEF(NGAP_GNB_INITIATED_RESET_REQ, itti_ngap_gnb_initiated_reset_req_t,
             ngap_gnb_initiated_reset_req)
 
+MESSAGE_DEF(NGAP_GNB_INITIATED_RESET_ACK, itti_ngap_gnb_initiated_reset_ack_t,
+            ngap_gnb_initiated_reset_ack)
+
 MESSAGE_DEF(NGAP_PDUSESSIONRESOURCE_SETUP_RSP,
             itti_ngap_pdusessionresource_setup_rsp_t,
             ngap_pdusessionresource_setup_rsp)
@@ -69,3 +72,10 @@ MESSAGE_DEF(NGAP_PAGING_REQUEST, itti_ngap_paging_request_t,
 MESSAGE_DEF(NGAP_INITIAL_CONTEXT_SETUP_REQ,
             Ngap_initial_context_setup_request_t,
             ngap_initial_context_setup_req)
+
+MESSAGE_DEF(NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP,
+            itti_ngap_pdu_session_resource_modify_response_t,
+            ngap_pdu_sessionresource_modify_rsp)
+MESSAGE_DEF(NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ,
+            itti_ngap_pdu_session_resource_modify_request_t,
+            ngap_pdu_session_resource_modify_req)

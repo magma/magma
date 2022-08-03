@@ -21,10 +21,10 @@
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.hpp"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.h"
 }
 
 using namespace fluid_msg;

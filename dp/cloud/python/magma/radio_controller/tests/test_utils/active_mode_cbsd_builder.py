@@ -1,3 +1,15 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 from __future__ import annotations
 
 from typing import List, Optional
@@ -10,6 +22,7 @@ from dp.protos.active_mode_pb2 import (
     EirpCapabilities,
     FrequencyPreferences,
     Grant,
+    GrantSettings,
     GrantState,
     InstallationParams,
     SasSettings,
@@ -25,12 +38,12 @@ class ActiveModeCbsdBuilder:
         self.grants = []
         self.channels = []
         self.last_seen_timestamp = None
-        self.grant_attempts = None
         self.eirp_capabilities = EirpCapabilities()
         self.sas_settings = SasSettings()
         self.preferences = FrequencyPreferences()
         self.installation = InstallationParams()
         self.db_data = DatabaseCbsd()
+        self.grant_settings = GrantSettings()
 
     def build(self) -> Cbsd:
         return Cbsd(
@@ -41,11 +54,11 @@ class ActiveModeCbsdBuilder:
             grants=self.grants,
             channels=self.channels,
             last_seen_timestamp=self.last_seen_timestamp,
-            grant_attempts=self.grant_attempts,
             eirp_capabilities=self.eirp_capabilities,
             db_data=self.db_data,
             preferences=self.preferences,
             installation_params=self.installation,
+            grant_settings=self.grant_settings,
         )
 
     def with_single_step_enabled(self) -> ActiveModeCbsdBuilder:
@@ -76,6 +89,10 @@ class ActiveModeCbsdBuilder:
         self.state = state
         return self
 
+    def with_grant_settings(self, grant_settings: GrantSettings):
+        self.grant_settings = grant_settings
+        return self
+
     def with_registration(self, prefix: str) -> ActiveModeCbsdBuilder:
         self.cbsd_id = f'{prefix}_cbsd_id'
         self.sas_settings.fcc_id = f'{prefix}_fcc_id'
@@ -103,12 +120,16 @@ class ActiveModeCbsdBuilder:
         self,
         grant_id: str, state: GrantState,
         hb_interval_sec: int, last_hb_ts: int,
+        low_frequency_hz: int = 3500,
+        high_frequency_hz: int = 3700,
     ) -> ActiveModeCbsdBuilder:
         grant = Grant(
             id=grant_id,
             state=state,
             heartbeat_interval_sec=hb_interval_sec,
             last_heartbeat_timestamp=last_hb_ts,
+            low_frequency_hz=low_frequency_hz,
+            high_frequency_hz=high_frequency_hz,
         )
         self.grants.append(grant)
         return self
@@ -154,8 +175,4 @@ class ActiveModeCbsdBuilder:
 
     def with_last_seen(self, last_seen_timestamp: int) -> ActiveModeCbsdBuilder:
         self.last_seen_timestamp = last_seen_timestamp
-        return self
-
-    def with_grant_attempts(self, grant_attempts: int) -> ActiveModeCbsdBuilder:
-        self.grant_attempts = grant_attempts
         return self

@@ -16,13 +16,13 @@
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern "C" {
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 }
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 #include "lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
@@ -94,6 +94,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     mock_read_s1ap_ue_state_db(name_of_ue_samples);
 
     state = S1apStateManager::getInstance().get_state(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   virtual void TearDown() {

@@ -22,7 +22,7 @@ from concurrent.futures import Future
 from typing import List, OrderedDict
 
 import grpc
-from lte.protos import pipelined_pb2_grpc
+from lte.protos import pipelined_pb2_grpc  # type: ignore[attr-defined]
 from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
