@@ -176,7 +176,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     if response.response_code == ResponseCodes.GRANT_CONFLICT.value:
         _unsync_conflict_from_response(obj, response, session)
         return
-    elif response.response_code != ResponseCodes.SUCCESS.value:
+    if response.response_code != ResponseCodes.SUCCESS.value:
         _remove_grant_from_response(response, session, unset_freq=True)
         return
 
@@ -384,16 +384,16 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
 def _unsync_conflict_from_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
     state = obj.grant_states_map[GrantStates.UNSYNC.value]
 
-    conflicts_ids = set(response.payload.get("response", {}).get("responseData", []))
-    existing_grants = session.query(DBGrant).filter(DBGrant.grant_id.in_(conflicts_ids)).all()
-    existing_grants_ids = {g.id for g in existing_grants}
+    conflicts_ids = response.payload.get("response", {}).get("responseData", [])
+    existing_grants = session.query(DBGrant.grant_id).filter(DBGrant.grant_id.in_(conflicts_ids)).all()
+    existing_grants_ids = {g.grant_id for g in existing_grants}
 
-    unsync_grants = list(conflicts_ids - existing_grants_ids)
-    if not unsync_grants:
+    for grant_id in conflicts_ids:
+        if grant_id in existing_grants_ids:
+            continue
+
+        _create_grant_from_response(response, state, session, grant_id=grant_id)
         return
-
-    grant_id = unsync_grants[0]
-    _create_grant_from_response(response, state, session, grant_id=grant_id)
 
 
 def _unregister_cbsd(response: DBResponse, session: Session) -> None:

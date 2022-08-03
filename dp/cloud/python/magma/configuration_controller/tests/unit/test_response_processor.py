@@ -242,7 +242,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         # Then
         self.assertListEqual(
             expected_grants_states,
-            [g.state.name for g in self.session.query(DBGrant).all()],
+            [g.state.name for g in self.session.query(DBGrant).order_by(DBGrant.id).all()],
         )
 
     @parameterized.expand([
