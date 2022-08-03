@@ -82,7 +82,7 @@ RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && rm ${GO_TARBALL}
-ENV PATH=$PATH:/usr/local/go/bin
+ENV PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
