@@ -11,12 +11,6 @@
  * limitations under the License.
  */
 
-export type FiringAlarmStatus = {
-  inhibitedBy: Array<string>;
-  silencedBy: Array<string>;
-  state: string;
-};
-
 export type AlertReceiver = {
   name: string;
   email_configs?: Array<ReceiverEmailConfig>;
@@ -146,11 +140,6 @@ export type AlertConfig = {
   labels?: Labels;
   rawData?: AlertConfig;
   _isCustomAlertRule?: boolean;
-};
-
-export type BulkAlertUpdateResponse = {
-  errors: Record<string, string>;
-  statuses: Record<string, string>;
 };
 
 export type AlertSuppressionMatcher = {
