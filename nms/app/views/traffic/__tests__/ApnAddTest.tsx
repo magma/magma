@@ -111,7 +111,6 @@ describe('<TrafficDashboard />', () => {
   // verify apn edit
 
   it('verify apn add', async () => {
-    jest.setTimeout(30000);
     const networkId = 'test';
     const {
       queryByTestId,

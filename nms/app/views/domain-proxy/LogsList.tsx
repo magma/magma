@@ -142,12 +142,12 @@ function LogsList() {
   const [fccId, setFccId] = useState<string>('');
   const [from, setFrom] = useState<LogsDirectionNullable>(null);
   const [to, setTo] = useState<LogsDirectionNullable>(null);
-  const [responseCode, setResponseCode] = useState<string | null>(null);
+  const [responseCode, setResponseCode] = useState<string>('');
   const [logName, setLogName] = useState<string>('');
 
   const getDataFn = useCallback(
     async (query: {page: number; pageSize: number}) => {
-      const responseCodeParsed = parseInt(responseCode!);
+      const responseCodeParsed = parseInt(responseCode);
       const response = (
         await MagmaAPI.logs.dpNetworkIdLogsGet({
           networkId,
@@ -207,7 +207,7 @@ function LogsList() {
 
   return (
     <div className={classes.root}>
-      <Grid container justify="space-between" spacing={3}>
+      <Grid container justifyContent="space-between" spacing={3}>
         <Grid item xs={12}>
           <CardTitleRow
             key="title"
@@ -228,7 +228,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   Serial Number
@@ -252,7 +252,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   FCC ID
@@ -276,7 +276,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   From
@@ -299,7 +299,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   Start Date
@@ -328,7 +328,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   Response Code
@@ -352,7 +352,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   Log Name
@@ -376,7 +376,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   To
@@ -399,7 +399,7 @@ function LogsList() {
               container
               spacing={1}
               alignItems="center"
-              justify="flex-end">
+              justifyContent="flex-end">
               <Grid item>
                 <Text variant="body3" className={classes.filterText}>
                   End Date

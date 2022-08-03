@@ -160,7 +160,6 @@ describe('<TrafficDashboard />', () => {
     </MemoryRouter>
   );
   it('renders', async () => {
-    jest.setTimeout(30000);
     const {
       getByTestId,
       findAllByRole,

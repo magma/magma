@@ -214,8 +214,8 @@ func NewDBGrantBuilder() *DBGrantBuilder {
 		Grant: &storage.DBGrant{
 			GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
 			TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
-			LowFrequency:       db.MakeInt(3600 * 1e6),
-			HighFrequency:      db.MakeInt(3620 * 1e6),
+			LowFrequency:       db.MakeInt(3590 * 1e6),
+			HighFrequency:      db.MakeInt(3610 * 1e6),
 			MaxEirp:            db.MakeFloat(35),
 			GrantId:            db.MakeString("some_grant_id"),
 		},
@@ -239,6 +239,12 @@ func (b *DBGrantBuilder) WithStateId(id int64) *DBGrantBuilder {
 
 func (b *DBGrantBuilder) WithGrantId(id string) *DBGrantBuilder {
 	b.Grant.GrantId = db.MakeString(id)
+	return b
+}
+
+func (b *DBGrantBuilder) WithFrequency(frequencyMHz int64) *DBGrantBuilder {
+	b.Grant.LowFrequency = db.MakeInt((frequencyMHz - 10) * 1e6)
+	b.Grant.HighFrequency = db.MakeInt((frequencyMHz + 10) * 1e6)
 	return b
 }
 
@@ -327,58 +333,32 @@ type DetailedDBCbsdBuilder struct {
 	Details *storage.DetailedCbsd
 }
 
-func NewDetailedDBCbsdBuilder(builder *DBCbsdBuilder) *DetailedDBCbsdBuilder {
-	return &DetailedDBCbsdBuilder{
-		Details: &storage.DetailedCbsd{
-			Cbsd: builder.Cbsd,
+func NewDetailedDBCbsdBuilder() *DetailedDBCbsdBuilder {
+	return &DetailedDBCbsdBuilder{Details: &storage.DetailedCbsd{}}
+}
+
+func (b *DetailedDBCbsdBuilder) WithCbsd(cbsd *storage.DBCbsd, state string, desiredState string) *DetailedDBCbsdBuilder {
+	b.Details.Cbsd = cbsd
+	b.Details.CbsdState = &storage.DBCbsdState{Name: db.MakeString(state)}
+	b.Details.DesiredState = &storage.DBCbsdState{Name: db.MakeString(desiredState)}
+	return b
+}
+
+func (b *DetailedDBCbsdBuilder) WithGrant(state string, frequencyMHz int64) *DetailedDBCbsdBuilder {
+	grant := &storage.DetailedGrant{
+		Grant: &storage.DBGrant{
+			GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
+			TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
+			LowFrequency:       db.MakeInt((frequencyMHz - 10) * 1e6),
+			HighFrequency:      db.MakeInt((frequencyMHz + 10) * 1e6),
+			MaxEirp:            db.MakeFloat(35),
+		},
+		GrantState: &storage.DBGrantState{
+			Name: db.MakeString(state),
 		},
 	}
-}
-
-func (b *DetailedDBCbsdBuilder) WithGrant() *DetailedDBCbsdBuilder {
-	b.Details.Grant = &storage.DBGrant{
-		GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
-		TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
-		LowFrequency:       db.MakeInt(3600 * 1e6),
-		HighFrequency:      db.MakeInt(3620 * 1e6),
-		MaxEirp:            db.MakeFloat(35),
-	}
+	b.Details.Grants = append(b.Details.Grants, grant)
 	return b
-}
-
-func (b *DetailedDBCbsdBuilder) WithEmptyGrant() *DetailedDBCbsdBuilder {
-	b.Details.Grant = &storage.DBGrant{}
-	return b
-}
-
-func (b *DetailedDBCbsdBuilder) WithEmptyGrantState() *DetailedDBCbsdBuilder {
-	b.Details.GrantState = &storage.DBGrantState{}
-	return b
-}
-
-func (b *DetailedDBCbsdBuilder) WithCbsdState(state string) *DetailedDBCbsdBuilder {
-	b.Details.CbsdState = &storage.DBCbsdState{
-		Name: db.MakeString(state),
-	}
-	return b
-}
-
-func (b *DetailedDBCbsdBuilder) WithGrantState(state string) *DetailedDBCbsdBuilder {
-	b.Details.GrantState = &storage.DBGrantState{
-		Name: db.MakeString(state),
-	}
-	return b
-}
-
-func (b *DetailedDBCbsdBuilder) WithDesiredState(state string) *DetailedDBCbsdBuilder {
-	b.Details.DesiredState = &storage.DBCbsdState{
-		Name: db.MakeString(state),
-	}
-	return b
-}
-
-func (b *DetailedDBCbsdBuilder) WithDefaultTestData() *DetailedDBCbsdBuilder {
-	return b.WithGrant().WithGrantState(authorized).WithCbsdState(registered).WithDesiredState(registered)
 }
 
 type DetailedProtoCbsdBuilder struct {
@@ -391,6 +371,7 @@ func NewDetailedProtoCbsdBuilder(builder *CbsdProtoPayloadBuilder) *DetailedProt
 			Data:     builder.Payload,
 			State:    registered,
 			IsActive: false,
+			Grants:   []*protos.GrantDetails{},
 		},
 	}
 }
@@ -416,14 +397,14 @@ func (b *DetailedProtoCbsdBuilder) Active() *DetailedProtoCbsdBuilder {
 }
 
 func (b *DetailedProtoCbsdBuilder) WithGrant() *DetailedProtoCbsdBuilder {
-	b.Details.Grant = &protos.GrantDetails{
+	b.Details.Grants = append(b.Details.Grants, &protos.GrantDetails{
 		BandwidthMhz:            20,
 		FrequencyMhz:            3610,
 		MaxEirp:                 35,
 		State:                   authorized,
 		TransmitExpireTimestamp: 456,
 		GrantExpireTimestamp:    123,
-	}
+	})
 	return b
 }
 
@@ -447,12 +428,11 @@ func GetMutableDBCbsd(cbsd *storage.DBCbsd, state string) *storage.MutableCbsd {
 	}
 }
 
-func GetDetailedDBCbsdList(builder *DetailedDBCbsdBuilder) *storage.DetailedCbsdList {
-	cbsdList := &storage.DetailedCbsdList{
-		Cbsds: []*storage.DetailedCbsd{builder.Details},
+func GetDetailedDBCbsdList(cbsd *storage.DetailedCbsd) *storage.DetailedCbsdList {
+	return &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{cbsd},
+		Count: 1,
 	}
-	cbsdList.Count = int64(len(cbsdList.Cbsds))
-	return cbsdList
 }
 
 type CbsdModelPayloadBuilder struct {
@@ -495,14 +475,14 @@ func (b *CbsdModelPayloadBuilder) WithCbsdCategory(c string) *CbsdModelPayloadBu
 }
 
 func (b *CbsdModelPayloadBuilder) WithGrant() *CbsdModelPayloadBuilder {
-	b.Payload.Grant = &models.Grant{
+	b.Payload.Grants = append(b.Payload.Grants, &models.Grant{
 		BandwidthMhz:       20,
 		FrequencyMhz:       3610,
 		GrantExpireTime:    to_pointer.TimeToDateTime(123),
 		MaxEirp:            35,
 		State:              authorized,
 		TransmitExpireTime: to_pointer.TimeToDateTime(456),
-	}
+	})
 	return b
 }
 

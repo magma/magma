@@ -32,7 +32,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 /****************************************************************************/

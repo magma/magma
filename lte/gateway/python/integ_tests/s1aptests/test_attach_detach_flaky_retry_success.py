@@ -50,7 +50,7 @@ class TestAttachDetachFlakyRetrySuccess(unittest.TestCase):
             req = self._s1ap_wrapper.ue_req
             print(
                 "************************* Running End to End attach for ",
-                "UE id ",
+                "UE Id",
                 req.ue_id,
             )
             # Now actually complete the attach
@@ -65,10 +65,6 @@ class TestAttachDetachFlakyRetrySuccess(unittest.TestCase):
 
             # Wait for EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
-            print(
-                "************************* Running UE detach for UE id ",
-                req.ue_id,
-            )
 
             print("Waiting for 3 seconds for the flow rules creation")
             time.sleep(3)
@@ -82,6 +78,10 @@ class TestAttachDetachFlakyRetrySuccess(unittest.TestCase):
             )
 
             # Now detach the UE
+            print(
+                "************************* Running UE detach for UE Id",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.detach(
                 req.ue_id,
                 detach_type[i],
