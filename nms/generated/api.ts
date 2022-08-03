@@ -211,16 +211,16 @@ export interface AlertRoutingTree {
     'group_wait'?: string;
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match'?: AlertRoutingTreeMatch;
+    'match'?: { [key: string]: string; };
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match_re'?: AlertRoutingTreeMatch;
+    'match_re'?: { [key: string]: string; };
     /**
      * 
      * @type {string}
@@ -239,25 +239,6 @@ export interface AlertRoutingTree {
      * @memberof AlertRoutingTree
      */
     'routes'?: Array<AlertRoutingTree>;
-}
-/**
- * 
- * @export
- * @interface AlertRoutingTreeMatch
- */
-export interface AlertRoutingTreeMatch {
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'label'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'value'?: string;
 }
 /**
  * 
