@@ -334,10 +334,11 @@ def _remove_grant_from_response(
     if not grant:
         return
 
+    logger.info(f'Terminating grant {grant.grant_id}')
+
     if unset_freq:
         unset_frequency(grant)
     session.delete(grant)
-    logger.info('Terminated grant')
 
 
 def _update_grant_from_request(response: DBResponse, grant: DBGrant) -> None:
