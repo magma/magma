@@ -27,10 +27,9 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   },
   // Alerts
   viewFiringAlerts: async ({networkId}) => {
-    const alerts = await MagmaAPI.alerts.networksNetworkIdAlertsGet({
+    return await MagmaAPI.alerts.networksNetworkIdAlertsGet({
       networkId: nullthrows(networkId),
     });
-    return alerts;
   },
   viewMatchingAlerts: () => {
     console.warn('not implemented');
@@ -127,10 +126,9 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   },
   // Metric Series
   getMetricSeries: async ({networkId}) => {
-    const series = await MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet({
+    return await MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet({
       networkId: nullthrows(networkId),
     });
-    return series;
   },
   getMetricNames: async ({networkId}) => {
     const series = (
