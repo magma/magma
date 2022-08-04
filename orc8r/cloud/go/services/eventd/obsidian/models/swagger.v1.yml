@@ -68,7 +68,7 @@ paths:
           schema:
             type: array
             items:
-              - $ref: '#/definitions/event'
+              $ref: '#/definitions/event'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -154,7 +154,7 @@ paths:
           schema:
             type: array
             items:
-              - $ref: '#/definitions/event'
+              $ref: '#/definitions/event'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 

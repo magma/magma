@@ -17485,7 +17485,7 @@ export const EventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Event>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.eventsNetworkIdGet(networkId, streams, events, tags, hwIds, from, size, start, end, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -17500,7 +17500,7 @@ export const EventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Event>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.eventsNetworkIdStreamNameGet(networkId, streamName, eventType, hardwareId, tag, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -17545,7 +17545,7 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: any): AxiosPromise<Array<string>> {
+        eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: any): AxiosPromise<Array<Event>> {
             return localVarFp.eventsNetworkIdGet(networkId, streams, events, tags, hwIds, from, size, start, end, options).then((request) => request(axios, basePath));
         },
         /**
@@ -17559,7 +17559,7 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: any): AxiosPromise<Array<string>> {
+        eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: any): AxiosPromise<Array<Event>> {
             return localVarFp.eventsNetworkIdStreamNameGet(networkId, streamName, eventType, hardwareId, tag, options).then((request) => request(axios, basePath));
         },
     };

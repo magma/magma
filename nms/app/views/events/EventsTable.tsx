@@ -25,7 +25,6 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {DateTimePicker} from '@material-ui/pickers';
-import {Event as MagmaEvent} from '../../../generated';
 import {MaterialTableProps} from '@material-table/core';
 import {Theme} from '@material-ui/core/styles';
 import {colors} from '../../theme/default';
@@ -181,7 +180,7 @@ async function handleEventQuery(
         ...filters,
       })
     ).data;
-    const eventResp = (
+    const unfiltered = (
       await MagmaAPI.events.eventsNetworkIdGet({
         networkId: networkId,
         hwIds: hardwareId,
@@ -198,8 +197,6 @@ async function handleEventQuery(
       eventCount < query.page * query.pageSize
         ? eventCount / query.pageSize
         : query.page;
-    // TODO[ts-migration] There is a serious type mismatch here. Investigate!
-    const unfiltered = (eventResp as unknown) as Array<MagmaEvent>;
     const data = unfiltered.map(event => {
       return {
         ts: event.timestamp,
