@@ -5666,9 +5666,9 @@ paths:
         "200":
           description: Success
           schema:
-            items:
-            - $ref: '#/definitions/call_trace'
-            type: array
+            additionalProperties:
+              $ref: '#/definitions/call_trace'
+            type: object
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List all call traces for a network
