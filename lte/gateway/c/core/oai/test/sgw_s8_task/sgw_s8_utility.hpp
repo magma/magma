@@ -20,6 +20,8 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -29,9 +31,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 }
-
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 void fill_imsi(char* imsi);
 void fill_itti_csreq(itti_s11_create_session_request_t* session_req_pP,

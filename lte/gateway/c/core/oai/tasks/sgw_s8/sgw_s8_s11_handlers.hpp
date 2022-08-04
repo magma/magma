@@ -14,6 +14,8 @@ limitations under the License.
 #pragma once
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,8 +23,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 #define CP_TEID 1
 #define UP_TEID 2

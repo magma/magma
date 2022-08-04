@@ -25,6 +25,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
@@ -1773,11 +1774,10 @@ status_code_e sgw_s8_handle_s11_delete_bearer_response(
             eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
 
 #if !MME_UNIT_TEST
-        rc =
-            gtpv1u_del_s8_tunnel(enb, enb_ipv6, pgw, pgw_ipv6, ue_ipv4, ue_ipv6,
-                                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-                                 eps_bearer_ctxt_p->s_gw_teid_S5_S8_up);
-        if (rc != RETURNok) {
+        if (RETURNok != (gtpv1u_del_s8_tunnel(
+                            enb, enb_ipv6, pgw, pgw_ipv6, ue_ipv4, ue_ipv6,
+                            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+                            eps_bearer_ctxt_p->s_gw_teid_S5_S8_up))) {
           OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                           "ERROR in deleting TUNNEL " TEID_FMT
                           " (eNB) <-> (SGW) " TEID_FMT "\n",
