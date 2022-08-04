@@ -14,17 +14,17 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 
 #include <cstdlib>
+
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 }
-
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
 
 using magma::lte::SgwStateManager;
 

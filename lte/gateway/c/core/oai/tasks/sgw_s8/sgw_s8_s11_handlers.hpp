@@ -14,8 +14,15 @@ limitations under the License.
 #pragma once
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define CP_TEID 1
 #define UP_TEID 2
@@ -105,8 +112,14 @@ void sgw_s8_proc_s11_create_bearer_rsp(
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64,
     sgw_state_t* sgw_state);
 
-void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers);
-
 void sgw_s8_send_failed_delete_bearer_response(
     const s8_delete_bearer_request_t* const db_req,
     gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers);
+#ifdef __cplusplus
+}
+#endif

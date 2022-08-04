@@ -17,17 +17,17 @@
 #include <gtest/gtest.h>
 #include <netinet/in.h>
 
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/queue.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 }
+
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"

@@ -15,13 +15,21 @@ limitations under the License.
 #define SGW_S8_TASK_C
 
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp"
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg);
 static void sgw_s8_exit(void);
@@ -29,7 +37,8 @@ task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 
 static void* sgw_s8_thread(void* args) {
   itti_mark_task_ready(TASK_SGW_S8);
-  init_task_context(TASK_SGW_S8, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
+  const task_id_t peer_task_id[] = {TASK_MME_APP};
+  init_task_context(TASK_SGW_S8, peer_task_id, 1, handle_message,
                     &sgw_s8_task_zmq_ctx);
 
   zloop_start(sgw_s8_task_zmq_ctx.event_loop);

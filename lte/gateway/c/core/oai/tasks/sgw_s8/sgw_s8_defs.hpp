@@ -15,8 +15,15 @@ limitations under the License.
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
-
 status_code_e sgw_s8_init(sgw_config_t* sgw_config_p);
+#ifdef __cplusplus
+}
+#endif
+
+extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
