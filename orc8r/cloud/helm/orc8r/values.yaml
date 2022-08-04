@@ -345,6 +345,6 @@ dp:
       orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: /magma/v1/dp
-  enabled: true
+  enabled: false
   cbsd_inactivity_interval_sec: 14400
   log_consumer_url: "http://domain-proxy-fluentd:9888/dp"

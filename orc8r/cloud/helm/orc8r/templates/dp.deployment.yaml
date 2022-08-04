@@ -10,7 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 */}}
+{{- if .Values.dp.enabled -}}
 {{- include "orc8rlib.deployment" (list . "domain-proxy.deployment") -}}
+{{- end -}}
 {{- define "domain-proxy.deployment" -}}
 metadata:
   name: orc8r-domain-proxy

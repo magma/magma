@@ -63,7 +63,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		CbsdID:                    details.CbsdId,
 		DesiredState:              details.Data.DesiredState,
 		FccID:                     details.Data.FccId,
-		Grant:                     getGrant(details.Grant),
+		Grants:                    getGrants(details.Grants),
 		ID:                        details.Id,
 		IsActive:                  details.IsActive,
 		SerialNumber:              details.Data.SerialNumber,
@@ -82,18 +82,19 @@ func makeSliceNotNil(s []int64) []int64 {
 	return s
 }
 
-func getGrant(grant *protos.GrantDetails) *Grant {
-	if grant == nil {
-		return nil
+func getGrants(grants []*protos.GrantDetails) []*Grant {
+	res := make([]*Grant, len(grants))
+	for i, g := range grants {
+		res[i] = &Grant{
+			BandwidthMhz:       g.BandwidthMhz,
+			FrequencyMhz:       g.FrequencyMhz,
+			GrantExpireTime:    to_pointer.TimeToDateTime(g.GrantExpireTimestamp),
+			MaxEirp:            g.MaxEirp,
+			State:              g.State,
+			TransmitExpireTime: to_pointer.TimeToDateTime(g.TransmitExpireTimestamp),
+		}
 	}
-	return &Grant{
-		BandwidthMhz:       grant.BandwidthMhz,
-		FrequencyMhz:       grant.FrequencyMhz,
-		GrantExpireTime:    to_pointer.TimeToDateTime(grant.GrantExpireTimestamp),
-		MaxEirp:            grant.MaxEirp,
-		State:              grant.State,
-		TransmitExpireTime: to_pointer.TimeToDateTime(grant.TransmitExpireTimestamp),
-	}
+	return res
 }
 
 func getModelInstallationParam(params *protos.InstallationParam) InstallationParam {

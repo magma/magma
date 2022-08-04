@@ -14,7 +14,7 @@
 # Ansible playbook for setting up a production machine (i.e., a box running
 # Debian 8).
 
-- name: Set up a iperf3 trfserver machine
+- name: Set up an iperf3 trfserver machine
   hosts: trfserver
   become: true
 
@@ -24,5 +24,4 @@
     full_provision: true
 
   roles:
-    - role: stretch_snapshot
     - role: trfserver

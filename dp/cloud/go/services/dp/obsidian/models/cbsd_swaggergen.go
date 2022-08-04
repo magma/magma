@@ -8,6 +8,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -52,12 +53,12 @@ type Cbsd struct {
 	// Required: true
 	FrequencyPreferences FrequencyPreferences `json:"frequency_preferences"`
 
-	// grant
-	Grant *Grant `json:"grant,omitempty"`
-
 	// tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
 	// Required: true
 	GrantRedundancy bool `json:"grant_redundancy"`
+
+	// grants
+	Grants []*Grant `json:"grants"`
 
 	// database id of cbsd
 	// Required: true
@@ -121,11 +122,11 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateGrant(formats); err != nil {
+	if err := m.validateGrantRedundancy(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.validateGrantRedundancy(formats); err != nil {
+	if err := m.validateGrants(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -299,29 +300,36 @@ func (m *Cbsd) validateFrequencyPreferences(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
-	if swag.IsZero(m.Grant) { // not required
-		return nil
-	}
+func (m *Cbsd) validateGrantRedundancy(formats strfmt.Registry) error {
 
-	if m.Grant != nil {
-		if err := m.Grant.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("grant")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("grant")
-			}
-			return err
-		}
+	if err := validate.Required("grant_redundancy", "body", bool(m.GrantRedundancy)); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (m *Cbsd) validateGrantRedundancy(formats strfmt.Registry) error {
+func (m *Cbsd) validateGrants(formats strfmt.Registry) error {
+	if swag.IsZero(m.Grants) { // not required
+		return nil
+	}
 
-	if err := validate.Required("grant_redundancy", "body", bool(m.GrantRedundancy)); err != nil {
-		return err
+	for i := 0; i < len(m.Grants); i++ {
+		if swag.IsZero(m.Grants[i]) { // not required
+			continue
+		}
+
+		if m.Grants[i] != nil {
+			if err := m.Grants[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("grants" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("grants" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil
@@ -449,7 +457,7 @@ func (m *Cbsd) ContextValidate(ctx context.Context, formats strfmt.Registry) err
 		res = append(res, err)
 	}
 
-	if err := m.contextValidateGrant(ctx, formats); err != nil {
+	if err := m.contextValidateGrants(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -491,17 +499,21 @@ func (m *Cbsd) contextValidateFrequencyPreferences(ctx context.Context, formats 
 	return nil
 }
 
-func (m *Cbsd) contextValidateGrant(ctx context.Context, formats strfmt.Registry) error {
+func (m *Cbsd) contextValidateGrants(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.Grant != nil {
-		if err := m.Grant.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("grant")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("grant")
+	for i := 0; i < len(m.Grants); i++ {
+
+		if m.Grants[i] != nil {
+			if err := m.Grants[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("grants" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("grants" + "." + strconv.Itoa(i))
+				}
+				return err
 			}
-			return err
 		}
+
 	}
 
 	return nil

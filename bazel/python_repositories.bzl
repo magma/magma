@@ -30,6 +30,8 @@ def python_repositories(name = ""):
         patches = [
             "//lte/gateway/deploy/roles/magma/files/patches:ryu_ipfix_args.patch",
             "//lte/gateway/deploy/roles/magma/files/patches:0001-Set-unknown-dpid-ofctl-log-to-debug.patch",
+            "//lte/gateway/deploy/roles/magma/files/patches:0002-QFI-value-set-in-Openflow-controller-using-RYU.patch",
+            "//lte/gateway/deploy/roles/magma/files/patches:0003-QFI-value-set-in-Openflow-controller-using-RYU.patch",
         ],
         patch_args = ["-p1"],
     )

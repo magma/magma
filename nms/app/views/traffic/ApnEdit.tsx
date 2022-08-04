@@ -275,7 +275,7 @@ export function ApnEdit(props: Props) {
                 onChange={({target}) => {
                   setPdnType(parseInt(target.value as string));
                 }}
-                input={<OutlinedInput data-testId="pdnType" />}>
+                input={<OutlinedInput data-testid="pdnType" />}>
                 <MenuItem value={0}>
                   <ListItemText primary={'IPv4'} />
                 </MenuItem>

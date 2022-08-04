@@ -62,7 +62,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
     magma_trfserver.vm.box = "magmacore/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"
-    magma_trfserver.vm.box_version = "1.1.20210326"
+    magma_trfserver.vm.box_version = "1.1.20220722"
     magma_trfserver.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -75,7 +75,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_trfserver.vm.provider "virtualbox" do |vb|
       vb.name = "magma-trfserver"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "256"]
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
       vb.customize ["modifyvm", :id, "--cpus", "1"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end

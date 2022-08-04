@@ -77,7 +77,6 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         self.unregistered = cbsd_states[CbsdStates.UNREGISTERED.value]
         self.registered = cbsd_states[CbsdStates.REGISTERED.value]
 
-        self.idle = grant_states[GrantStates.IDLE.value]
         self.granted = grant_states[GrantStates.GRANTED.value]
         self.authorized = grant_states[GrantStates.AUTHORIZED.value]
 
@@ -228,7 +227,6 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
     def test_get_state_with_grants(self):
         cbsd = self._prepare_base_cbsd(). \
-            with_grant("idle_grant", self.idle, 1, 2). \
             with_grant("granted_grant", self.granted, 3). \
             with_grant("authorized_grant", self.authorized, 5, 6). \
             build()
