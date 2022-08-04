@@ -53,8 +53,7 @@ def does_iface_config_match_expected(ip: str, netmask: str) -> bool:
 
 
 def _get_prerouting_rules(output: str) -> List[str]:
-    prerouting_rules = output.split('\n\n')[0]
-    prerouting_rules = prerouting_rules.split('\n')
+    prerouting_rules = output.split('\n\n')[0].split('\n')
     # Skipping the first two lines since it contains only column names
     prerouting_rules = prerouting_rules[2:]
     return prerouting_rules
@@ -81,7 +80,17 @@ async def check_and_apply_iptables_rules(
         )
     else:
         # Checks each rule in PREROUTING Chain
-        check_rules(prerouting_rules, port, enodebd_public_ip, enodebd_ip)
+        expected_rules_present = check_rules(prerouting_rules, port, enodebd_public_ip, enodebd_ip)
+        if not expected_rules_present:
+            logger.info('Configuring Iptables rule')
+            await run(
+                get_iptables_rule(
+                    port,
+                    enodebd_public_ip,
+                    enodebd_ip,
+                    add=True,
+                ),
+            )
 
 
 def check_rules(
@@ -89,21 +98,25 @@ def check_rules(
     port: str,
     enodebd_public_ip: str,
     private_ip: str,
-) -> None:
+) -> bool:
     unexpected_rules = []
+    expected_rules_present = False
     pattern = r'DNAT\s+tcp\s+--\s+anywhere\s+{pub_ip}\s+tcp\s+dpt:{dport} to:{ip}'.format(
-                pub_ip=enodebd_public_ip,
-                dport=port,
-                ip=private_ip,
+        pub_ip=enodebd_public_ip,
+        dport=port,
+        ip=private_ip,
     )
     for rule in prerouting_rules:
         match = re.search(pattern, rule)
         if not match:
             unexpected_rules.append(rule)
+        else:
+            expected_rules_present = True
     if unexpected_rules:
         logger.warning('The following Prerouting rule(s) are unexpected')
         for rule in unexpected_rules:
             logger.warning(rule)
+    return expected_rules_present
 
 
 async def run(cmd):

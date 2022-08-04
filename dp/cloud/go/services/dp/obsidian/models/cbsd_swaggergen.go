@@ -8,6 +8,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -23,6 +24,10 @@ type Cbsd struct {
 	// capabilities
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
+
+	// this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+	// Required: true
+	CarrierAggregationEnabled bool `json:"carrier_aggregation_enabled"`
 
 	// is the radio type A (only) or B (also applies to A/B type radios)
 	// Required: true
@@ -48,8 +53,12 @@ type Cbsd struct {
 	// Required: true
 	FrequencyPreferences FrequencyPreferences `json:"frequency_preferences"`
 
-	// grant
-	Grant *Grant `json:"grant,omitempty"`
+	// tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+	// Required: true
+	GrantRedundancy bool `json:"grant_redundancy"`
+
+	// grants
+	Grants []*Grant `json:"grants"`
 
 	// database id of cbsd
 	// Required: true
@@ -93,6 +102,10 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateCarrierAggregationEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
@@ -109,7 +122,11 @@ func (m *Cbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateGrant(formats); err != nil {
+	if err := m.validateGrantRedundancy(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGrants(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -155,6 +172,15 @@ func (m *Cbsd) validateCapabilities(formats strfmt.Registry) error {
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateCarrierAggregationEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("carrier_aggregation_enabled", "body", bool(m.CarrierAggregationEnabled)); err != nil {
 		return err
 	}
 
@@ -274,20 +300,36 @@ func (m *Cbsd) validateFrequencyPreferences(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Cbsd) validateGrant(formats strfmt.Registry) error {
-	if swag.IsZero(m.Grant) { // not required
+func (m *Cbsd) validateGrantRedundancy(formats strfmt.Registry) error {
+
+	if err := validate.Required("grant_redundancy", "body", bool(m.GrantRedundancy)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Cbsd) validateGrants(formats strfmt.Registry) error {
+	if swag.IsZero(m.Grants) { // not required
 		return nil
 	}
 
-	if m.Grant != nil {
-		if err := m.Grant.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("grant")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("grant")
-			}
-			return err
+	for i := 0; i < len(m.Grants); i++ {
+		if swag.IsZero(m.Grants[i]) { // not required
+			continue
 		}
+
+		if m.Grants[i] != nil {
+			if err := m.Grants[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("grants" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("grants" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil
@@ -415,7 +457,7 @@ func (m *Cbsd) ContextValidate(ctx context.Context, formats strfmt.Registry) err
 		res = append(res, err)
 	}
 
-	if err := m.contextValidateGrant(ctx, formats); err != nil {
+	if err := m.contextValidateGrants(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -457,17 +499,21 @@ func (m *Cbsd) contextValidateFrequencyPreferences(ctx context.Context, formats 
 	return nil
 }
 
-func (m *Cbsd) contextValidateGrant(ctx context.Context, formats strfmt.Registry) error {
+func (m *Cbsd) contextValidateGrants(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.Grant != nil {
-		if err := m.Grant.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("grant")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("grant")
+	for i := 0; i < len(m.Grants); i++ {
+
+		if m.Grants[i] != nil {
+			if err := m.Grants[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("grants" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("grants" + "." + strconv.Itoa(i))
+				}
+				return err
 			}
-			return err
 		}
+
 	}
 
 	return nil

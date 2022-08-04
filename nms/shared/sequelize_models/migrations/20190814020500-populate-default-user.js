@@ -10,15 +10,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
  */
 
 import bcrypt from 'bcryptjs';
-import type {DataTypes, QueryInterface} from 'sequelize';
 
 module.exports = {
-  up: async (queryInterface: QueryInterface, _: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  up: async ({context: queryInterface}) => {
     const email = process.env.FB_TEST_USER;
     if (!email) {
       return Promise.resolve(null);
@@ -64,9 +71,12 @@ module.exports = {
       {},
     );
   },
-
-  down: (queryInterface: QueryInterface, _: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  down: ({context: queryInterface}) => {
     if (process.env.FB_TEST_USER) {
+      // @ts-ignore
       return queryInterface.bulkDelete('Users', null, {});
     }
     return Promise.resolve(null);

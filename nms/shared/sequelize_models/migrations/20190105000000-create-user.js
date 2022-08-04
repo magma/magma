@@ -10,22 +10,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
  */
-'use strict';
 
-import type {DataTypes, QueryInterface} from 'sequelize';
+import {DataTypes} from 'sequelize';
 
 module.exports = {
-  up: (queryInterface: QueryInterface, Sequelize: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  up: ({context: queryInterface}) => {
     return queryInterface.addColumn('Users', 'readOnly', {
       allowNull: false,
       defaultValue: false,
-      type: Sequelize.BOOLEAN,
+      type: DataTypes.BOOLEAN,
     });
   },
-  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  down: ({context: queryInterface}) => {
     return queryInterface.dropTable('Users');
   },
 };

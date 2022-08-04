@@ -1,4 +1,4 @@
 # This file is templated in CI (see e.g. .github/workflows/bazel.yml)
-# The full config is then written to remote-cache.bazelrc which is imported in the .bazelrc
+# The full config is then written to bazel/bazelrcs/cache.bazelrc which is imported in the .bazelrc
 build --config=remote_caching_rw
 build:remote_caching_rw --remote_cache="https://bazelbuild:~~BAZEL_REMOTE_PASSWORD~~@bazel-remote-cache.magmacore-ci.org:9090/~~CACHE_KEY~~"

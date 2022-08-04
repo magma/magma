@@ -82,6 +82,8 @@ class ClassifierMmeTest(unittest.TestCase):
                 'ovs_multi_tunnel': True,
                 'paging_timeout': 30,
                 'classifier_controller_id': 5,
+                'enable_nat': True,
+                'ovs_uplink_port_name': "patch-up",
             },
             mconfig=None,
             loop=None,

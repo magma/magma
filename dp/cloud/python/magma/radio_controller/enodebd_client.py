@@ -15,10 +15,38 @@ import argparse
 import json
 import logging
 import sys
+from collections import namedtuple
+from typing import Optional, Type, Union
 
 import grpc
-from dp.protos import enodebd_dp_pb2 as enodebd_msgs
-from dp.protos import enodebd_dp_pb2_grpc as enodebd_services
+from dp.protos.cbsd_pb2 import EnodebdUpdateCbsdRequest
+from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
+from dp.protos.enodebd_dp_pb2 import CBSDRequest
+from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
+from google.protobuf import json_format
+
+SERVICES_ADDRESSES = {
+    DPServiceStub: 'localhost:50053',
+    CbsdManagementStub: 'orc8r-dp:9180',
+}
+MAGMA_CERTS = (
+    'x-magma-client-cert-serial',
+    '7ZZXAF7CAETF241KL22B8YRR7B5UF401',
+)
+
+CommandConfig = namedtuple("CommandConfig", 'service_cls method_name message_cls request_kwargs')
+COMMANDS_CONFIG = {
+    'state': CommandConfig(DPServiceStub, 'GetCBSDState', CBSDRequest, {}),
+    'register': CommandConfig(DPServiceStub, 'CBSDRegister', CBSDRequest, {}),
+    'deregister': CommandConfig(DPServiceStub, 'CBSDDeregister', CBSDRequest, {}),
+    'relinquish': CommandConfig(DPServiceStub, 'CBSDRelinquish', CBSDRequest, {}),
+    'update': CommandConfig(
+        CbsdManagementStub, 'EnodebdUpdateCbsd', EnodebdUpdateCbsdRequest, {'metadata': (MAGMA_CERTS,)},
+    ),
+}
+
+ServiceType = Union[DPServiceStub, CbsdManagementStub]
+MessageType = Union[CBSDRequest, EnodebdUpdateCbsdRequest]
 
 default_cbsd_dict = {
     "serial_number": "enodebd_client_serial_number",
@@ -29,8 +57,18 @@ default_cbsd_dict = {
     "antenna_gain": 15,
     "number_of_ports": 2,
 }
-
-DP_RC_SERVICE_ADDR = 'localhost:50053'
+default_cbsd_update_dict = {
+    "serial_number": "enodebd_client_serial_number",
+    "installation_param": {
+        "antenna_gain": 15,
+        "latitude_deg": 10.6,
+        "longitude_deg": 11.6,
+        "indoor_deployment": True,
+        "height_type": "agl",
+        "height_m": 12.5,
+    },
+    "cbsd_category": "a",
+}
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -39,17 +77,35 @@ logging.basicConfig(
 )
 
 
-def create_rc_service_channel(addr: str):
+def _create_service(
+        service_cls: Type[ServiceType], address: Optional[str] = None,
+) -> ServiceType:
     """
-    Create Radio Controller service gRPC channel
+    Create gRPC service.
 
     Parameters:
-        addr: Radio Controller gRPC service URL
+        service_cls: protobuf class of gRPC service
+        address: gRPC service URL
+
+    Returns:
+        gRPC service instance
+    """
+    service_address = address or SERVICES_ADDRESSES[service_cls]
+    channel = _create_service_channel(address=service_address)
+    return service_cls(channel)
+
+
+def _create_service_channel(address: str) -> grpc.Channel:
+    """
+    Create gRPC channel for the gRPC service
+
+    Parameters:
+        address: Radio Controller gRPC service URL
 
     Returns:
         gRPC channel
     """
-    channel = grpc.insecure_channel(addr)
+    channel = grpc.insecure_channel(address)
     try:
         grpc.channel_ready_future(channel).result(timeout=10)
     except grpc.FutureTimeoutError:
@@ -58,102 +114,136 @@ def create_rc_service_channel(addr: str):
         return channel
 
 
-def create_grpc_dp_service(channel):
+def _create_message(
+        message_cls: Type[MessageType], json_file: Optional[str] = None,
+) -> MessageType:
     """
-    Create Radio Controller gRPC service
+    Create gRPC message
 
     Parameters:
-        channel: Radio Controller gRPC service channel
+        message_cls: protobuf class of the gRPC message
+        json_file: path to json file containing message content
 
     Returns:
-        DPServiceStub
+        gRPC message instance
     """
-    stub = enodebd_services.DPServiceStub(channel)
-    return stub
+    if json_file:
+        data = _load_json(path=json_file)
+    else:
+        data = _get_default_cbsd_message(message_cls=message_cls)
+
+    return json_format.ParseDict(js_dict=data, message=message_cls())
 
 
-def create_rc_grpc_cbsd_request(**kwargs):
+def _dump_message(message: MessageType) -> str:
     """
-    Construct a CBSDRequest gRPC message
+    Dump message to json
 
     Parameters:
-        kwargs: dict where keys are CBSDRequest fields, and values are the values
+        message: gRPC message
 
     Returns:
-        CBSDRequest message
+        marshaled json
     """
-    msg = enodebd_msgs.CBSDRequest(**kwargs)
-    return msg
+    return json_format.MessageToJson(
+        message=message,
+        including_default_value_fields=True,
+        preserving_proto_field_name=True,
+        sort_keys=True,
+    )
 
 
-def send_request(service, rpc, msg):
+def _load_json(path: str) -> dict:
     """
-    Send a CBSDRequest gRPC message to gRPC endpoint
+    Read json file content
 
     Parameters:
-        service: DBService
-        rpc: the gRPC method of the service
-        msg: CBSDRequest message
+        path: path to json file
 
     Returns:
-        CBSDStateResult
+        unmarshalled json
     """
-    resp = rpc(msg)
-    return resp
-
-
-def _get_cbsd_dict(json_file_path: str) -> dict:
-    if not json_file_path:
-        return default_cbsd_dict
     try:
-        with open(json_file_path, 'r') as f:
+        with open(path, 'r') as f:
             return json.load(f)
-    except (ValueError, OSError) as err:
-        logging.warning(
-            f"Failed to read or parse CBSD file {json_file_path}. {err}",
-        )
-        raise
+    except (ValueError, OSError) as e:
+        raise ValueError(f"Failed to read the json file {path}: {e}")
 
 
-def _create_argparse(dp_service: enodebd_services.DPServiceStub):
+def _get_default_cbsd_message(message_cls: Type[MessageType]) -> dict:
+    """
+    Get default message content corresponding to given message class
+
+    Parameters:
+        message_cls: protobuf class of the gRPC message
+
+    Returns:
+        default content for message class
+    """
+    if message_cls == EnodebdUpdateCbsdRequest:
+        return default_cbsd_update_dict
+    return default_cbsd_dict
+
+
+def _create_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
+
+    commands_group = parser.add_argument_group('commands')
+    commands = commands_group.add_mutually_exclusive_group()
+    commands.add_argument(
+        '-s', '--state', dest='command', action='store_const',
+        default='state', const='state', help='RPC get CBSD state [default]',
+    )
+    commands.add_argument(
+        '-r', '--register', dest='command', action='store_const',
+        const='register', help='RPC register CBSD [deprecated]',
+    )
+    commands.add_argument(
+        '-d', '--deregister', dest='command', action='store_const',
+        const='deregister', help='RPC deregister CBSD [deprecated]',
+    )
+    commands.add_argument(
+        '-e', '--relinquish', dest='command', action='store_const',
+        const='relinquish', help='RPC relinquish CBSD',
+    )
+    commands.add_argument(
+        '-u', '--update', dest='command', action='store_const',
+        const='update', help='RPC update CBSD params',
+    )
+
     parser.add_argument(
-        '-s', '--state', dest='rpc', action='store_const',
-        default=dp_service.GetCBSDState, const=dp_service.GetCBSDState, help='CBSD Get State RPC',
+        '-a', '--address', dest='address', action='store', type=str,
+        default=None, help='RPC call destination, if different than default',
     )
     parser.add_argument(
-        '-r', '--register', dest='rpc', action='store_const',
-        const=dp_service.CBSDRegister, help='CBSD Register RPC',
-    )
-    parser.add_argument(
-        '-d', '--deregister', dest='rpc', action='store_const',
-        const=dp_service.CBSDDeregister, help='CBSD Deregister RPC',
-    )
-    parser.add_argument(
-        '-e', '--relinquish', dest='rpc', action='store_const',
-        const=dp_service.CBSDRelinquish, help='CBSD Register RPC',
-    )
-    parser.add_argument(
-        '-c', '--cbsd', dest='cbsd_json_file', action='store', type=str,
-        default=None, help='Path to JSON file with CBSD config params',
+        '-c', '--cbsd', dest='json_file', action='store', type=str,
+        default=None, help='Path to JSON file with CBSD config, if different than default',
     )
     return parser
 
 
-def main():
-    """
-    Top level function of the module
-    """
-    channel = create_rc_service_channel(DP_RC_SERVICE_ADDR)
-    dp_service = create_grpc_dp_service(channel)
-    parser = _create_argparse(dp_service=dp_service)
+def main() -> None:
+    parser = _create_argparse()
     args = parser.parse_args()
-    cbsd = _get_cbsd_dict(args.cbsd_json_file)
-    msg = create_rc_grpc_cbsd_request(**cbsd)
-    rpc_method_name = str(args.rpc._method)
-    logging.info(f'Sending gRPC {rpc_method_name} request:\n{msg}')
-    resp = send_request(dp_service, args.rpc, msg)
-    logging.info(f'Received gRPC response:\n{resp}')
+
+    command_config = COMMANDS_CONFIG[args.command]
+    message = _create_message(
+        message_cls=command_config.message_cls, json_file=args.json_file,
+    )
+    service = _create_service(
+        service_cls=command_config.service_cls, address=args.address,
+    )
+    method = getattr(service, command_config.method_name)
+
+    logging.info(
+        f'Sending gRPC {command_config.method_name} '
+        f'request:\n{_dump_message(message=message)}',
+    )
+    response = method(message, **command_config.request_kwargs)
+    logging.info(
+        f'Received gRPC response:\n'
+        f'{_dump_message(message=response)}\n',
+    )
 
 
 if __name__ == '__main__':

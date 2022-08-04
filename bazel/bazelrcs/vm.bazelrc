@@ -1,1 +1,1 @@
-common --config=vm
+build --config=vm

@@ -79,8 +79,6 @@
      - devOpsCloudstrapper indicates the 'Name' tag used to identify the DevOps Cloudstrapper instance
      - primaryCloudstrapper indicates the 'Name' tag used to identify the Primary Cloudstrapper instance
      - devOpsAmi indicates the name of the AMI created for the Cloudstrapper base image
-   - build.yaml
-    - buildUbuntuAmi - AMI id of base Ubuntu image to be used, available in the region where Cloudstrapper is run
 
   Run the following commands
   - devops-provision: Setup instance using default security group, Bootkey and Ubuntu
@@ -92,7 +90,7 @@
 
  - devops-configure: Install ansible, golang, packages, local working directory and latest github sources
      ```
-     ansible-playbook devops-configure.yaml -i <dynamic inventory file> -e "devops=tag_Name_<devOpsCloudstrapper>" -e "dirLocalInventory=<inventory folder>" -u ubuntu --skip-tags buildMagma,pubMagma,pubHelm,keyManager
+     ansible-playbook devops-configure.yaml -i "<WORK_DIR>/common_instance_aws_ec2.yaml" -e "devops=tag_Name_<devOpsCloudstrapper>" -e "dirLocalInventory=<inventory folder>" -u ubuntu --skip-tags buildMagma,pubMagma,pubHelm,keyManager
      ```
    - Result: Base instance configured using packages and latest Magma source
 
@@ -133,7 +131,6 @@
 
       - buildAwsRegion indicates which region will host the build instance.
       - buildAwsAz indicates an Availability Zone within the region specified above
-      - buildUbuntuAmi reflects the base Ubuntu AMI available in the region described in buildAwsRegion
 
     All variables can be customized by making a change in the build.yaml file. Invocations
     using Dynamic Inventory would have to be changed to reflect the new labels.
@@ -234,7 +231,7 @@
 
     agw-configure: configures the AGW to include controller information Command:
     ```
-    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> -e sshKey=<PATH-TO-PUBLIC-KEY-TO-ADD>]
+    ansible-playbook agw-configure.yaml -i "<WORK_DIR>/common_instance_aws_ec2.yaml" -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> -e sshKey=<PATH-TO-PUBLIC-KEY-TO-ADD>]
     ```
 
     Example:
@@ -250,7 +247,6 @@
   - Tunables (in roles/vars/):
 
     - build.yaml:
-      - buildUbuntuAmi: AMI ID of Base Ubuntu 20.04 image
       - buildAgwAmiName: Name of the AGW AMI created, used to label the AMI
       - buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance for configuration
       - buildAgwVersion: Version of AGW to be built
@@ -270,12 +266,17 @@
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
         - Add ```--skip-tag clearSSHKeys``` if you want to keep ssh keys on the instance
-    ```
-
-    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
 
     ```
-    - ami-init: Snapshot the AMI instance
+    ansible-playbook ami-configure.yaml -i "<WORK_DIR>/common_instance_aws_ec2.yaml" -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+    ```
+
+    Example:
+    ```
+    ansible-playbook ami-configure.yaml -i "~/test_agwc/common_instance_aws_ec2.yaml" -e "dirLocalInventory=~/test_agwc" -e "aminode=tag_Name_buildGwJan" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+    ```
+
+    - ami-init: Snapshot the AGW instance
     ```
     ansible-playbook ami-init.yaml -e "dirLocalInventory=<Local Inventory Dir>"
     ```

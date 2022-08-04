@@ -10,65 +10,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
  */
 
-import type {DataTypes, QueryInterface, Transaction} from 'sequelize';
+import {DataTypes} from 'sequelize';
 
 module.exports = {
-  up: (queryInterface: QueryInterface, Sequelize: DataTypes) => {
-    return queryInterface.sequelize.transaction(
-      (transaction: Transaction): Promise<void[]> =>
-        Promise.all([
-          queryInterface.addColumn(
-            'Organizations',
-            'ssoCert',
-            {
-              allowNull: false,
-              defaultValue: '',
-              type: Sequelize.TEXT,
-            },
-            {transaction},
-          ),
-          queryInterface.addColumn(
-            'Organizations',
-            'ssoEntrypoint',
-            {
-              allowNull: false,
-              defaultValue: '',
-              type: Sequelize.STRING,
-            },
-            {transaction},
-          ),
-          queryInterface.addColumn(
-            'Organizations',
-            'ssoIssuer',
-            {
-              allowNull: false,
-              defaultValue: '',
-              type: Sequelize.STRING,
-            },
-            {transaction},
-          ),
-        ]),
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  up: ({context: queryInterface}) => {
+    return queryInterface.sequelize.transaction(transaction =>
+      Promise.all([
+        queryInterface.addColumn(
+          'Organizations',
+          'ssoCert',
+          {
+            allowNull: false,
+            defaultValue: '',
+            type: DataTypes.TEXT,
+          },
+          {transaction},
+        ),
+        queryInterface.addColumn(
+          'Organizations',
+          'ssoEntrypoint',
+          {
+            allowNull: false,
+            defaultValue: '',
+            type: DataTypes.STRING,
+          },
+          {transaction},
+        ),
+        queryInterface.addColumn(
+          'Organizations',
+          'ssoIssuer',
+          {
+            allowNull: false,
+            defaultValue: '',
+            type: DataTypes.STRING,
+          },
+          {transaction},
+        ),
+      ]),
     );
   },
 
-  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
-    return queryInterface.sequelize.transaction(
-      (transaction: Transaction): Promise<void[]> =>
-        Promise.all([
-          queryInterface.removeColumn('Organizations', 'ssoEntrypoint', {
-            transaction,
-          }),
-          queryInterface.removeColumn('Organizations', 'ssoCert', {
-            transaction,
-          }),
-          queryInterface.removeColumn('Organizations', 'ssoDefaultNetworkIDs', {
-            transaction,
-          }),
-        ]),
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  down: ({context: queryInterface}) => {
+    return queryInterface.sequelize.transaction(transaction =>
+      Promise.all([
+        queryInterface.removeColumn('Organizations', 'ssoEntrypoint', {
+          transaction,
+        }),
+        queryInterface.removeColumn('Organizations', 'ssoCert', {
+          transaction,
+        }),
+        queryInterface.removeColumn('Organizations', 'ssoDefaultNetworkIDs', {
+          transaction,
+        }),
+      ]),
     );
   },
 };

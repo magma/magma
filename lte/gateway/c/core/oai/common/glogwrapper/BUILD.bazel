@@ -17,5 +17,5 @@ cc_library(
     name = "glog_logging",
     srcs = ["glog_logging.cpp"],
     hdrs = ["glog_logging.hpp"],
-    deps = ["@com_github_google_glog//:glog"],
+    deps = ["@system_libraries//:libglog"],
 )

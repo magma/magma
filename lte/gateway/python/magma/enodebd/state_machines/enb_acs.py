@@ -13,7 +13,7 @@ limitations under the License.
 from abc import ABC, abstractmethod
 from asyncio import BaseEventLoop
 from time import time
-from typing import Any, Type
+from typing import Any, Optional, Type
 
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import DataModel
@@ -49,7 +49,7 @@ class EnodebAcsStateMachine(ABC):
         self._are_invasive_changes_applied = True
         # Flag to preseve backwards compatibility
         self._use_param_key = use_param_key
-        self._param_version_key = None
+        self._param_version_key: Optional[int] = None
 
     def has_parameter(self, param: ParameterName) -> bool:
         """
@@ -130,16 +130,25 @@ class EnodebAcsStateMachine(ABC):
         self._service = service
 
     @property
-    def event_loop(self) -> BaseEventLoop:
-        return self._service.loop
+    def event_loop(self) -> Optional[BaseEventLoop]:
+        if self._service:
+            return self._service.loop
+        else:
+            return None
 
     @property
     def mconfig(self) -> Any:
-        return self._service.mconfig
+        if self._service:
+            return self._service.mconfig
+        else:
+            return None
 
     @property
     def service_config(self) -> Any:
-        return self._service.config
+        if self._service:
+            return self._service.config
+        else:
+            return None
 
     @property
     def desired_cfg(self) -> EnodebConfiguration:
@@ -163,23 +172,23 @@ class EnodebAcsStateMachine(ABC):
     def data_model(self) -> DataModel:
         return self._data_model
 
+    @data_model.setter
+    def data_model(self, data_model) -> None:
+        self._data_model = data_model
+
     @property
     def has_version_key(self) -> bool:
         """ Return if the ACS supports param version key """
         return self._use_param_key
 
     @property
-    def parameter_version_key(self) -> int:
+    def parameter_version_key(self) -> Optional[int]:
         """ Return the param version key """
         return self._param_version_key
 
     def parameter_version_inc(self):
         """ Set the internal version key to the timestamp """
         self._param_version_key = time()
-
-    @data_model.setter
-    def data_model(self, data_model) -> None:
-        self._data_model = data_model
 
     @property
     def are_invasive_changes_applied(self) -> bool:

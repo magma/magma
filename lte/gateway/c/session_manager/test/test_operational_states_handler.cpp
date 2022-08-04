@@ -85,22 +85,25 @@ TEST_F(OperationalStatesHandlerTest, test_get_operational_states) {
       EXPECT_FALSE(subscriber_state_it == subscriber_state.end());
       json_value = nlohmann::json::parse(subscriber_state_it->second);
       nlohmann::json gateway_subscribers = json_value[SUBSCRIBERS];
-      nlohmann::json content = gateway_subscribers[IMSI1];
-      content = content[0][APN1];
-      EXPECT_EQ(content[0]["lifecycle_state"],
+      nlohmann::json content = gateway_subscribers[IMSI1][APN1];
+      EXPECT_EQ(content.size(), 1);
+      content = content[0];
+      EXPECT_EQ(content["lifecycle_state"],
                 session_fsm_state_to_str(SESSION_ACTIVE));
-      EXPECT_EQ(content[0]["session_start_time"], SESSION_START_TIME_1);
-      EXPECT_EQ(content[0]["apn"], APN1);
-      EXPECT_EQ(content[0]["ipv4"], IP1);
-      EXPECT_EQ(content[0]["session_id"], SESSION_ID_1);
-      content = gateway_subscribers[IMSI2];
-      content = content[0][APN1];
-      EXPECT_EQ(content[0]["lifecycle_state"],
+      EXPECT_EQ(content["session_start_time"], SESSION_START_TIME_1);
+      EXPECT_EQ(content["apn"], APN1);
+      EXPECT_EQ(content["ipv4"], IP1);
+      EXPECT_EQ(content["session_id"], SESSION_ID_1);
+
+      content = gateway_subscribers[IMSI2][APN1];
+      EXPECT_EQ(content.size(), 1);
+      content = content[0];
+      EXPECT_EQ(content["lifecycle_state"],
                 session_fsm_state_to_str(SESSION_ACTIVE));
-      EXPECT_EQ(content[0]["session_start_time"], SESSION_START_TIME_2);
-      EXPECT_EQ(content[0]["apn"], APN1);
-      EXPECT_EQ(content[0]["ipv4"], IP2);
-      EXPECT_EQ(content[0]["session_id"], SESSION_ID_2);
+      EXPECT_EQ(content["session_start_time"], SESSION_START_TIME_2);
+      EXPECT_EQ(content["apn"], APN1);
+      EXPECT_EQ(content["ipv4"], IP2);
+      EXPECT_EQ(content["session_id"], SESSION_ID_2);
       break;
     }
   }

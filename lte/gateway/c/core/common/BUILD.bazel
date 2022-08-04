@@ -29,7 +29,7 @@ cc_library(
 
 cc_library(
     name = "dynamic_memory_check",
-    srcs = ["dynamic_memory_check.c"],
+    srcs = ["dynamic_memory_check.cpp"],
     hdrs = ["dynamic_memory_check.h"],
     deps = [
         ":assertions",

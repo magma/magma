@@ -17,6 +17,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,6 +49,14 @@ var (
 	streamSubscribersFlag = flag.Bool("stream_subscribers", false, "Whether to stream subscribers from the cloud")
 )
 
+const (
+	ServerProtocol     = "HSS_SERVER_PROTOCOL"
+	ServerAddress      = "HSS_SERVER_ADDRESS"
+	ServerLocalAddress = "HSS_SERVER_LOCAL_ADDRESS"
+	ServerDestHost     = "HSS_SERVER_DEST_HOST"
+	ServerDestRealm    = "HSS_SERVER_DEST_REALM"
+)
+
 func init() {
 	flag.Uint64(maxUlBitRateFlag, defaultMaxUlBitRate, "Maximum uplink bit rate (AMBR-UL)")
 	flag.Uint64(maxDlBitRateFlag, defaultMaxDlBitRate, "Maximum downlink bit rate (AMBR-DL)")
@@ -69,11 +78,11 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 		glog.Errorf("%s Managed Configs Load Error: %v\n", hssServiceName, err)
 		return &mconfig.HSSConfig{
 			Server: &mconfig.DiamServerConfig{
-				Address:      diameter.GetValue(diameter.AddrFlag, ""),
-				Protocol:     diameter.GetValue(diameter.NetworkFlag, hssDefaultProtocol),
-				LocalAddress: diameter.GetValue(diameter.LocalAddrFlag, ""),
-				DestHost:     diameter.GetValue(diameter.DestHostFlag, hssDefaultHost),
-				DestRealm:    diameter.GetValue(diameter.DestRealmFlag, hssDefaultRealm),
+				Protocol:     diameter.GetValueOrEnv(diameter.NetworkFlag, ServerProtocol, hssDefaultProtocol),
+				Address:      diameter.GetValueOrEnv(diameter.AddrFlag, ServerAddress, ""),
+				LocalAddress: diameter.GetValueOrEnv(diameter.LocalAddrFlag, ServerLocalAddress, ""),
+				DestHost:     diameter.GetValueOrEnv(diameter.DestHostFlag, ServerDestHost, hssDefaultHost),
+				DestRealm:    diameter.GetValueOrEnv(diameter.DestRealmFlag, ServerDestRealm, hssDefaultRealm),
 			},
 			LteAuthOp:  hssDefaultLteAuthOp,
 			LteAuthAmf: hssDefaultLteAuthAmf,
@@ -193,4 +202,45 @@ func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool, lteAuthN
 		},
 		Non_3Gpp: non3gppProfile,
 	}
+}
+
+func ValidateConfig(config *mconfig.HSSConfig) error {
+	if err := ValidateHostWithPort(config.Server.Address); err != nil {
+		return err
+	}
+
+	if err := ValidateHostWithPort(config.Server.LocalAddress); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateHost(host string) error {
+	if net.ParseIP(host) != nil {
+		return nil
+	}
+
+	if _, err := net.LookupHost(host); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateHostWithPort(host string) error {
+	if ValidateHost(host) == nil {
+		return nil
+	}
+
+	host, _, err := net.SplitHostPort(host)
+	if err != nil {
+		return err
+	}
+
+	if err = ValidateHost(host); err != nil {
+		return err
+	}
+
+	return nil
 }

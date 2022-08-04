@@ -12,8 +12,8 @@
  */
 
 #include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 extern "C" {
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
@@ -21,7 +21,7 @@ extern "C" {
 
 extern task_zmq_ctx_t task_zmq_ctx_main_s8;
 using ::testing::Test;
-spgw_config_t spgw_config;
+extern spgw_config_t spgw_config;
 // TC validates updation of bearer context on reception of Create Session Rsp
 TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
   sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;

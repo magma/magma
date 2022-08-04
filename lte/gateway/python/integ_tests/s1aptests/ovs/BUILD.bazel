@@ -23,4 +23,5 @@ py_library(
     name = "rest_api",
     testonly = 1,
     srcs = ["rest_api.py"],
+    deps = [":constants"],
 )

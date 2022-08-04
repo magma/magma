@@ -25,8 +25,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.h"
 }
+
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
 
 namespace magma {
 namespace lte {

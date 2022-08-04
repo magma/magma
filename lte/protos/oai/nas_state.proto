@@ -458,6 +458,7 @@ message Smf_Proc_Data {
   uint32 max_downlink = 5;
   M5GPduSessionType pdu_session_type = 6;
   uint32 ssc_mode = 7;
+  M5GQosFlowItem qos_flow_list = 8;
 }
 
 message SNssai {
@@ -495,7 +496,6 @@ message SmfContext {
   ProtocolConfigurationOptions pco = 14;
   string dnn_in_use = 15;   
   SNssai requested_nssai = 16;
-  M5GQosFlowItem qos_flow_list = 17;
 }
 
 // emm_context_t

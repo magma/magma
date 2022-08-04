@@ -77,7 +77,7 @@ class StateConverter {
    * @param conversion_callable conversion function for each entry of hashtable
    * @param log_task_level log level for task (LOG_MME_APP, LOG_SPGW_APP)
    */
-  // TODO (rsarwad): Shall be removed once all modules are converted to cpp and
+  // TODO(rsarwad): Shall be removed once all modules are converted to cpp and
   // use protobuf map instead of hash table
   template <typename NodeType, typename ProtoMessage>
   static void hashtable_ts_to_proto(
@@ -146,10 +146,10 @@ class StateConverter {
       NodeType* node = itr->second;
       if (node) {
         ProtoMessage proto;
-        conversion_callable((NodeType*)node, &proto);
+        conversion_callable(reinterpret_cast<NodeType*>(node), &proto);
         (*proto_map)[itr->first] = proto;
       } else {
-        OAILOG_ERROR(log_task_level, "Key %lu not found on %s hashtable",
+        OAILOG_ERROR(log_task_level, "Key %lu without value in %s map",
                      itr->first, state_map.get_name());
       }
     }
@@ -182,7 +182,7 @@ class StateConverter {
         failed_to_write = false;
       }
       if (failed_to_write) {
-        OAILOG_ERROR(log_task_level, "Failed to insert node on hashtable %s",
+        OAILOG_ERROR(log_task_level, "Failed to insert key in map %s",
                      state_map.get_name());
       }
     }
@@ -241,29 +241,6 @@ class StateConverter {
   static void proto_to_map_uint64_uint64(
       const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
       map_uint64_uint64_t* map);
-
-  template <typename state_map_t, typename proto_map_t>
-  static void copy_int_protomap_to_proto(state_map_t state_map,
-                                         proto_map_t* proto_map) {
-    for (auto elm = state_map.map->begin(); elm != state_map.map->end();
-         ++elm) {
-      (*proto_map)[elm->first] = elm->second;
-    }
-  }
-
-  template <typename proto_map_t, typename state_map_t>
-  static void copy_int_protomap_to_state(const proto_map_t& proto_map,
-                                         state_map_t state_map) {
-    for (auto const& kv : proto_map) {
-      proto_map_rc_t rc = state_map.insert(kv.first, kv.second);
-      if (rc != PROTO_MAP_OK) {
-        OAILOG_ERROR(
-            LOG_UTIL, "Failed to insert value %lu in table %s: error: %s\n",
-            kv.second, state_map.get_name(), magma::map_rc_code2string(rc));
-      }
-    }
-  }
-
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
   static void chars_to_plmn(const char* plmn_array, plmn_t* state_plmn);

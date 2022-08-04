@@ -1,4 +1,14 @@
 ---
+- name: Find out Ubuntu 20.04 AMI ID
+  amazon.aws.ec2_ami_info:
+    filters:
+      name: "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220610"
+  register: ubuntuAmiSearchResult
+
+- name: Set Ubuntu AMI fact
+  set_fact:
+    factUbuntuAmi: "{{ ubuntuAmiSearchResult.images[0].image_id }}"
+
 - name: check if gateway name is defined
   assert:
     that:
@@ -79,7 +89,7 @@
     state: present
     template: "roles/cfn/cfnMagmaAgwPublicDual.json"
     template_parameters:
-      paramImageBase: "{{ buildUbuntuAmi }}"
+      paramImageBase: "{{ factUbuntuAmi }}"
       paramSubnetPublic: "{{ factBridgeSubnetId }}"
       paramSubnetPrivate: "{{ factSgiSubnetId }}"
       paramAzHome: "{{ awsAgwAz }}"

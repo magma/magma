@@ -1,3 +1,15 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 from __future__ import annotations
 
 from concurrent import futures
@@ -9,8 +21,10 @@ from dp.protos.active_mode_pb2 import (
     DeleteCbsdRequest,
     GetStateRequest,
     Granted,
+    GrantSettings,
     Registered,
     State,
+    StoreAvailableFrequenciesRequest,
     Unregistered,
 )
 from dp.protos.active_mode_pb2_grpc import (
@@ -39,6 +53,7 @@ from magma.radio_controller.tests.test_utils.db_cbsd_builder import (
 
 SOME_ID = 123
 OTHER_ID = 456
+FREQUENCIES = [0b10101100, 0b00110, 0b0100000, 0b11010]
 
 
 class ActiveModeControllerTestCase(LocalDBTestCase):
@@ -62,7 +77,6 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         self.unregistered = cbsd_states[CbsdStates.UNREGISTERED.value]
         self.registered = cbsd_states[CbsdStates.REGISTERED.value]
 
-        self.idle = grant_states[GrantStates.IDLE.value]
         self.granted = grant_states[GrantStates.GRANTED.value]
         self.authorized = grant_states[GrantStates.AUTHORIZED.value]
 
@@ -76,10 +90,13 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_registration('some'). \
             with_eirp_capabilities(0, 10, 1). \
             with_antenna_gain(20). \
-            with_desired_state(self.registered)
+            with_desired_state(self.registered). \
+            with_max_ibw(1000). \
+            with_carrier_aggregation(True). \
+            with_available_frequencies(FREQUENCIES)
 
     @staticmethod
-    def _prepare_base_active_mode_config() -> ActiveModeCbsdBuilder:
+    def _prepare_base_active_mode_cbsd() -> ActiveModeCbsdBuilder:
         return ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
             with_category('a'). \
@@ -87,7 +104,15 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
             with_registration('some'). \
             with_eirp_capabilities(0, 10, 1). \
             with_antenna_gain(20). \
-            with_desired_state(Registered)
+            with_desired_state(Registered). \
+            with_grant_settings(
+            GrantSettings(
+                grant_redundancy_enabled=True,
+                carrier_aggregation_enabled=True,
+                max_ibw_mhz=1000,
+                available_frequencies=FREQUENCIES,
+            ),
+            )  # noqa: E123
 
 
 class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
@@ -110,13 +135,13 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
 
     def test_delete_cbsd(self):
         # Given
-        cbsd1 = self._prepare_base_cbsd().\
-            with_id(SOME_ID).\
-            with_registration("some").\
+        cbsd1 = self._prepare_base_cbsd(). \
+            with_id(SOME_ID). \
+            with_registration("some"). \
             build()
         cbsd2 = self._prepare_base_cbsd(). \
             with_id(OTHER_ID). \
-            with_registration("some_other").\
+            with_registration("some_other"). \
             build()
         self.session.add_all([cbsd1, cbsd2])
         self.session.commit()
@@ -151,6 +176,19 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
 
         self.assertFalse(cbsd.should_deregister)
 
+    def test_store_available_frequencies(self):
+        cbsd = self._prepare_base_cbsd().build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        available_frequencies = FREQUENCIES
+
+        self.stub.StoreAvailableFrequencies(
+            StoreAvailableFrequenciesRequest(id=SOME_ID, available_frequencies=available_frequencies),
+        )
+
+        self.assertListEqual(cbsd.available_frequencies, available_frequencies)
+
     def test_acknowledge_non_existent_cbsd_update(self):
         with self.assertRaises(grpc.RpcError) as err:
             self.stub.AcknowledgeCbsdUpdate(
@@ -166,8 +204,8 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config().build()
-        expected = State(cbsds=[config])
+        am_cbsd = self._prepare_base_active_mode_cbsd().build()
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -179,29 +217,28 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_preferences(15, [3600, 3580, 3620]). \
             build()
 
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(actual, expected)
 
     def test_get_state_with_grants(self):
         cbsd = self._prepare_base_cbsd(). \
-            with_grant("idle_grant", self.idle, 1, 2). \
             with_grant("granted_grant", self.granted, 3). \
             with_grant("authorized_grant", self.authorized, 5, 6). \
             build()
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_grant("granted_grant", Granted, 3, 0). \
             with_grant("authorized_grant", Authorized, 5, 6). \
             build()
 
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(actual, expected)
 
@@ -213,11 +250,11 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_channel(1, 2, 3). \
             with_channel(5, 6). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(actual, expected)
@@ -229,10 +266,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             deleted(). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -244,10 +281,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             updated(). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -259,25 +296,10 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_last_seen(1). \
             build()
-        expected = State(cbsds=[config])
-
-        actual = self.amc_service.GetState(GetStateRequest(), None)
-        self.assertEqual(expected, actual)
-
-    def test_get_state_with_grant_attempts(self):
-        cbsd = self._prepare_base_cbsd(). \
-            with_grant_attempts(1). \
-            build()
-        self.session.add(cbsd)
-        self.session.commit()
-
-        config = self._prepare_base_active_mode_config(). \
-            with_grant_attempts(1). \
-            build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -306,15 +328,15 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add_all([some_cbsd, other_cbsd])
         self.session.commit()
 
-        some_config = self._prepare_base_active_mode_config(). \
+        some_am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_id(SOME_ID). \
             with_registration('some'). \
             build()
-        other_config = self._prepare_base_active_mode_config(). \
+        other_am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_id(OTHER_ID). \
             with_registration('other'). \
             build()
-        expected = State(cbsds=[some_config, other_config])
+        expected = State(cbsds=[some_am_cbsd, other_am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -327,11 +349,11 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.session.add(cbsd)
         self.session.commit()
 
-        config = self._prepare_base_active_mode_config(). \
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_single_step_enabled(). \
             with_installation_params(1, 2, 3, 'AGL', True). \
             build()
-        expected = State(cbsds=[config])
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -342,20 +364,31 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_state(self.registered). \
             with_desired_state(self.registered). \
             with_registration('some'). \
+            with_max_ibw(1000). \
+            with_carrier_aggregation(True). \
+            with_available_frequencies(FREQUENCIES). \
             updated(). \
             build()
+
         self.session.add(cbsd)
         self.session.commit()
 
-        config = ActiveModeCbsdBuilder(). \
+        am_cbsd = ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
             with_state(Registered). \
             with_desired_state(Registered). \
             with_registration('some'). \
             updated(). \
             with_category('b'). \
-            build()
-        expected = State(cbsds=[config])
+            with_grant_settings(
+            GrantSettings(
+                grant_redundancy_enabled=True,
+                carrier_aggregation_enabled=True,
+                max_ibw_mhz=1000,
+                available_frequencies=FREQUENCIES,
+            ),
+            ).build()  # noqa: E123
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
@@ -366,20 +399,30 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
             with_state(self.registered). \
             with_desired_state(self.registered). \
             with_registration('some'). \
+            with_max_ibw(1000). \
+            with_carrier_aggregation(True). \
+            with_available_frequencies(FREQUENCIES). \
             deleted(). \
             build()
         self.session.add(cbsd)
         self.session.commit()
 
-        config = ActiveModeCbsdBuilder(). \
+        am_cbsd = ActiveModeCbsdBuilder(). \
             with_id(SOME_ID). \
             with_state(Registered). \
             with_desired_state(Registered). \
             with_registration('some'). \
             deleted(). \
             with_category('b'). \
-            build()
-        expected = State(cbsds=[config])
+            with_grant_settings(
+            GrantSettings(
+                grant_redundancy_enabled=True,
+                carrier_aggregation_enabled=True,
+                max_ibw_mhz=1000,
+                available_frequencies=FREQUENCIES,
+            ),
+            ).build()  # noqa: E123
+        expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)

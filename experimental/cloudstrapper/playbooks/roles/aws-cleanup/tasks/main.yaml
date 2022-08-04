@@ -1,13 +1,13 @@
 ---
 
-- include: gw.yaml
+- include_tasks: gw.yaml
   environment:
     AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"
-- include: orc8r.yaml
+- include_tasks: orc8r.yaml
   environment:
     AWS_DEFAULT_REGION: "{{ awsOrc8rRegion }}"
   tags: orc8r
-- include: keys.yaml
+- include_tasks: keys.yaml
   environment:
     AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"
   tags: [keys, never]

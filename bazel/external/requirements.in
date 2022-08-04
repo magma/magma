@@ -60,3 +60,6 @@ freezegun
 pytest
 pytest-cov
 coverage-lcov
+
+# s1ap test requirements
+iperf3

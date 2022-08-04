@@ -15,14 +15,16 @@ package db
 
 import (
 	"fmt"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"magma/orc8r/cloud/go/sqorc"
 )
 
-func (q *Query) Insert() (int64, error) {
+func (q *Query) Insert(mask FieldMask) (int64, error) {
 	var id int64
+	q.arg.inputMask = mask
 	err := q.builder.
 		Insert(buildFrom(q.arg)).
 		SetMap(filterValues(q.arg)).
@@ -32,13 +34,30 @@ func (q *Query) Insert() (int64, error) {
 	return id, err
 }
 
-func (q *Query) Update() error {
-	_, err := q.builder.
+func (q *Query) Update(mask FieldMask) ([]Model, error) {
+	q.arg.inputMask = mask
+	baseQuery := q.builder.
 		Update(buildFrom(q.arg)).
 		SetMap(filterValues(q.arg)).
-		Where(q.arg.filter).
-		Exec()
-	return err
+		Where(q.arg.filter)
+
+	c := collectColumns(q)
+	cols := c.getColumnNames()
+	if cols == nil {
+		_, err := baseQuery.Exec()
+		return nil, err
+	}
+	models, pointers := c.getPointers()
+	suffix := getSuffix(cols)
+	err := baseQuery.
+		Suffix(suffix).
+		QueryRow().
+		Scan(pointers...)
+	return models, err
+}
+
+func getSuffix(columns []string) string {
+	return "RETURNING " + strings.Join(columns, ", ")
 }
 
 func (q *Query) Delete() error {
@@ -98,7 +117,7 @@ func filterValues(arg *arg) map[string]interface{} {
 	values := map[string]interface{}{}
 	fields := arg.model.Fields()
 	for i, p := range arg.metadata.Properties {
-		if arg.mask.ShouldInclude(p.Name) {
+		if arg.inputMask.ShouldInclude(p.Name) {
 			if p.HasDefault && fields[i].isNull() {
 				values[p.Name] = p.DefaultValue
 			} else {
