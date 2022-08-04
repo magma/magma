@@ -12,12 +12,12 @@ limitations under the License.
 """
 import grpc
 from dp.protos.cbsd_pb2 import (
+    CBSDStateResult,
     EnodebdUpdateCbsdRequest,
     InstallationParam,
     UpdateCbsdResponse,
 )
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
-from dp.protos.cbsd_pb2 import CBSDStateResult
 from google.protobuf.json_format import MessageToJson
 from google.protobuf.wrappers_pb2 import (  # pylint: disable=no-name-in-module
     BoolValue,

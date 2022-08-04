@@ -18,12 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/wrapperspb"
-
 	"magma/dp/cloud/go/protos"
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
@@ -32,6 +26,12 @@ import (
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/merrors"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -197,6 +197,37 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				MaxEirpDbmMhz:   35,
 			}}).Result,
 	}, {
+		name: "update cbsd with multiple grants",
+		payload: b.NewCbsdProtoPayloadBuilder().
+			WithEmptyInstallationParam().
+			Payload,
+		expectedDetailedCbsd: b.NewDetailedDBCbsdBuilder().
+			WithCbsd(
+				b.NewDBCbsdBuilder().
+					Cbsd, registered, registered).
+			WithGrant(authorized, 3600, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+			WithGrant(authorized, 3580, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+			Details,
+		expectedEnodebdUpdateLog: b.NewDPLogBuilder("CBSD", "DP", "EnodebdUpdateCbsd").
+			WithLogMessage("{\"serial_number\":\"some_serial_number\",\"installation_param\":{},\"cbsd_category\":\"b\"}").
+			Log,
+		expectedCbsdStateLog: b.NewDPLogBuilder("DP", "CBSD", "CbsdStateResponse").
+			WithLogMessage("{\"channels\":[{\"low_frequency_hz\":3590000000,\"high_frequency_hz\":3610000000,\"max_eirp_dbm_mhz\":35},{\"low_frequency_hz\":3570000000,\"high_frequency_hz\":3590000000,\"max_eirp_dbm_mhz\":35}],\"radio_enabled\":true,\"channel\":{\"low_frequency_hz\":3590000000,\"high_frequency_hz\":3610000000,\"max_eirp_dbm_mhz\":35}}").
+			Log,
+		expectedState: b.NewCbsdStateResultBuilder(true, false).
+			WithChannels([]*protos.LteChannel{
+				{
+					LowFrequencyHz:  3590e6,
+					HighFrequencyHz: 3610e6,
+					MaxEirpDbmMhz:   35,
+				},
+				{
+					LowFrequencyHz:  3570e6,
+					HighFrequencyHz: 3590e6,
+					MaxEirpDbmMhz:   35,
+				},
+			}).Result,
+	}, {
 		name: "update deleted cbsd with grant",
 		payload: b.NewCbsdProtoPayloadBuilder().
 			WithEmptyInstallationParam().
@@ -285,28 +316,31 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateWithError() {
 		storageError        error
 		expectedErrorStatus codes.Code
 		expectedLog         *logs_pusher.DPLog
+		storageDetails      *storage.DetailedCbsd
 	}{{
 		name:                "update cbsd with duplicate data",
 		storageError:        merrors.ErrAlreadyExists,
 		expectedErrorStatus: codes.AlreadyExists,
 		expectedLog:         b.NewDPLogBuilder("DP", "CBSD", "CbsdStateResponse").Log,
+		storageDetails: b.NewDetailedDBCbsdBuilder().
+			WithCbsd(
+				b.NewDBCbsdBuilder().
+					WithFullInstallationParam().
+					Cbsd,
+				registered,
+				registered).
+			Details,
 	}, {
 		name:                "update nonexistent cbsd",
 		storageError:        merrors.ErrNotFound,
 		expectedErrorStatus: codes.NotFound,
 		expectedLog:         b.NewDPLogBuilder("DP", "CBSD", "CbsdStateResponse").Log,
+		storageDetails:      nil,
 	}}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			s.store.err = tc.storageError
-			s.store.details = b.NewDetailedDBCbsdBuilder().
-				WithCbsd(
-					b.NewDBCbsdBuilder().
-						WithFullInstallationParam().
-						Cbsd,
-					registered,
-					registered).
-				Details
+			s.store.details = tc.storageDetails
 			s.logPusher.expectedCbsdStateLog = tc.expectedLog
 			s.logPusher.expectedLogConsumerUrl = someUrl
 
@@ -623,6 +657,9 @@ func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.M
 }
 
 func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) (*storage.DetailedCbsd, error) {
+	if s.details == nil {
+		return nil, s.err
+	}
 	s.details.Cbsd.CbsdCategory = data.CbsdCategory
 	s.details.Cbsd.AntennaGain = data.AntennaGain
 	s.details.Cbsd.LatitudeDeg = data.LatitudeDeg

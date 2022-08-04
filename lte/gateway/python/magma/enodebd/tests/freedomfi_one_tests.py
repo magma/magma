@@ -17,7 +17,11 @@ from typing import Any, Dict
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel, EnodebdUpdateCbsdRequest
+from dp.protos.cbsd_pb2 import (
+    CBSDStateResult,
+    EnodebdUpdateCbsdRequest,
+    LteChannel,
+)
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model_parameters import ParameterName

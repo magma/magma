@@ -21,15 +21,21 @@ from time import sleep
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+import grpc
 import pytest
 import requests
-from dp.protos.cbsd_pb2 import EnodebdUpdateCbsdRequest, InstallationParam, CBSDStateResult
+from dp.protos.cbsd_pb2 import (
+    CBSDStateResult,
+    EnodebdUpdateCbsdRequest,
+    InstallationParam,
+)
 from google.protobuf.wrappers_pb2 import BoolValue, DoubleValue, StringValue
-from parameterized import parameterized
-
 from magma.test_runner.config import TestConfig
 from magma.test_runner.tests.api_data_builder import CbsdAPIDataBuilder
-from magma.test_runner.tests.integration_testcase import Orc8rIntegrationTestCase
+from magma.test_runner.tests.integration_testcase import (
+    Orc8rIntegrationTestCase,
+)
+from parameterized import parameterized
 from retrying import retry
 
 config = TestConfig()
@@ -115,7 +121,6 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
     def test_cbsd_unregistered_when_enodebd_changes_coordinates(self, lat, lon, should_deregister):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number) \
-            .with_full_installation_param() \
             .with_single_step_enabled(True) \
             .with_cbsd_category("a")
 
@@ -214,8 +219,8 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             .with_cbsd_id(cbsd_id) \
             .with_grant(bandwidth_mhz=5, frequency_mhz=3625, max_eirp=31)
 
-        with self.while_cbsd_is_active():
-            self.then_state_is_eventually(builder.build_grant_state_data())
+        with self.while_cbsd_is_active(self.update_request):
+            self.then_state_is_eventually(builder.build_grant_state_data(), self.update_request)
             cbsd = self.when_cbsd_is_fetched(sn)
             self.then_cbsd_is(cbsd, builder.payload)
 
@@ -239,8 +244,8 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             .with_grant(bandwidth_mhz=20, frequency_mhz=3580, max_eirp=25) \
             .with_grant(bandwidth_mhz=20, frequency_mhz=3600, max_eirp=25)
 
-        with self.while_cbsd_is_active():
-            self.then_state_is_eventually(builder.build_grant_state_data())
+        with self.while_cbsd_is_active(self.update_request):
+            self.then_state_is_eventually(builder.build_grant_state_data(), self.update_request)
             cbsd = self.when_cbsd_is_fetched(sn)
             self.then_cbsd_is(cbsd, builder.payload)
 
@@ -355,7 +360,8 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             self._verify_logs_count(scenarios)
 
     def given_single_step_cbsd_provisioned(
-            self, builder: CbsdAPIDataBuilder, update_request: EnodebdUpdateCbsdRequest) -> int:
+            self, builder: CbsdAPIDataBuilder, update_request: EnodebdUpdateCbsdRequest,
+    ) -> int:
         self.when_cbsd_is_created(builder.payload)
         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
         self.then_cbsd_is(
@@ -434,7 +440,8 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         return cbsd['id']
 
     def _check_cbsd_successfully_provisioned(
-            self, builder: CbsdAPIDataBuilder, request: EnodebdUpdateCbsdRequest) -> Dict[str, Any]:
+            self, builder: CbsdAPIDataBuilder, request: EnodebdUpdateCbsdRequest,
+    ) -> Dict[str, Any]:
         sn = builder.payload["serial_number"]
         fcc_id = builder.payload["fcc_id"]
         cbsd_id = f"{fcc_id}/{sn}"
@@ -489,14 +496,11 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         self.assertEqual(r.status_code, expected_status)
 
     def when_cbsd_is_updated_by_enodebd(self, req: EnodebdUpdateCbsdRequest) -> CBSDStateResult:
-        try:
-            return self.orc8r_dp_client.EnodebdUpdateCbsd(
-                request=req, metadata=(
-                    (MAGMA_CLIENT_CERT_SERIAL_KEY, MAGMA_CLIENT_CERT_SERIAL_VALUE),
-                ),
-            )
-        except Exception as e:
-            self.fail(e)
+        return self.orc8r_dp_client.EnodebdUpdateCbsd(
+            request=req, metadata=(
+                (MAGMA_CLIENT_CERT_SERIAL_KEY, MAGMA_CLIENT_CERT_SERIAL_VALUE),
+            ),
+        )
 
     def when_cbsd_is_deregistered(self, cbsd_id: int):
         r = send_request_to_backend('post', f'cbsds/{cbsd_id}/deregister')
@@ -576,8 +580,10 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         self.when_cbsd_is_deleted(cbsd_id)
         self.then_cbsd_is_deleted(self.serial_number)
 
-        state = self.when_cbsd_is_updated_by_enodebd(EnodebdUpdateCbsdRequest(serial_number=self.serial_number))
-        self.then_state_is(state, get_empty_state())
+        try:
+            self.when_cbsd_is_updated_by_enodebd(EnodebdUpdateCbsdRequest(serial_number=self.serial_number))
+        except grpc.RpcError as e:
+            self.assertEqual(grpc.StatusCode.NOT_FOUND, e.code())
 
         self.then_message_is_eventually_sent(filters)
 

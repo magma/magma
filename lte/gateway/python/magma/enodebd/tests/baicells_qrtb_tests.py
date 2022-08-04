@@ -18,7 +18,11 @@ from time import sleep
 from typing import Any, Dict
 from unittest import TestCase, mock
 
-from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel, EnodebdUpdateCbsdRequest
+from dp.protos.cbsd_pb2 import (
+    CBSDStateResult,
+    EnodebdUpdateCbsdRequest,
+    LteChannel,
+)
 from magma.enodebd.data_models.data_model import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.device_config.configuration_util import (
