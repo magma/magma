@@ -164,3 +164,4 @@ std::string decode_msg(const std::vector<char>& encoded_msg) {
 
 }  // namespace lte
 }  // namespace magma
+

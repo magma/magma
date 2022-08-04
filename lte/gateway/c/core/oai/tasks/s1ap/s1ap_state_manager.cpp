@@ -229,5 +229,6 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
 map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
+
 }  // namespace lte
 }  // namespace magma
