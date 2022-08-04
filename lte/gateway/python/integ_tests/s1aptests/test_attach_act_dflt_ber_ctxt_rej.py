@@ -19,16 +19,20 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
+class TestAttachActDfltBerCtxtRej(unittest.TestCase):
+    """Integration Test: TestAttachActDfltBerCtxtRej"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_complete_with_ActvDfltBearCtxtRej(self):
-        """ Test Attach test case for sending Activate Default
-        EPS Bearer Reject along with Attach Complete message """
+    def test_attach_act_dflt_ber_ctxt_rej(self):
+        """Test Attach test case for sending Activate Default
+        EPS Bearer Reject along with Attach Complete message"""
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
@@ -50,45 +54,50 @@ class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
         print("********Triggering Attach Request ")
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
-        sqnRecvd = s1ap_types.ueSqnRcvd_t()
-        sqnRecvd.pres = 0
-        auth_res.sqnRcvd = sqnRecvd
+        sqn_recvd = s1ap_types.ueSqnRcvd_t()
+        sqn_recvd.pres = 0
+        auth_res.sqnRcvd = sqn_recvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
-
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
         )
-        msg = response.cast(s1ap_types.ueAttachAccept_t)
-        bid = msg.esmInfo.epsBearerId
+        bid = attach_acc.esmInfo.epsBearerId
 
         # Trigger Attach Complete with
         # Activate Default EPS Bearer Context Reject
@@ -102,17 +111,20 @@ class TestAttachCompleteWithActvDfltBearCtxtRej(unittest.TestCase):
         # Attach Complete message
         # Attach Complete + Activate Default EPS Bearer Context Reject
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_REJECT, act_rej,
+            s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_REJECT,
+            act_rej,
         )
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("******** released UE contexts ********")
 

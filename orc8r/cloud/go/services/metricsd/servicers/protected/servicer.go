@@ -56,25 +56,39 @@ func (srv *CloudMetricsControllerServer) Push(ctx context.Context, in *protos.Pu
 	return new(protos.Void), nil
 }
 
+func (srv *CloudMetricsControllerServer) PushRaw(ctx context.Context, in *protos.RawMetricsContainer) (*protos.Void, error) {
+	for _, family := range in.Families {
+		for _, metric := range family.Metric {
+			addLabel(metric, "service", in.Service)
+		}
+		processMetricFamily(family, in.HostName)
+	}
+	return new(protos.Void), nil
+}
+
 // ConsumeCloudMetrics pulls metrics off the given input channel and sends
 // them to all exporters after some preprocessing.
 // Returns only when inputChan closed, which should never happen.
 func (srv *CloudMetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
 	for family := range inputChan {
-		metricsToSubmit := preprocessCloudMetrics(family, hostName)
-		metricsExporters, err := metricsd.GetMetricsExporters()
-		if err != nil {
-			glog.Error(err)
-			continue
-		}
-		for _, e := range metricsExporters {
-			err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
-			if err != nil {
-				glog.Error(err)
-			}
-		}
+		processMetricFamily(family, hostName)
 	}
 	glog.Error("Consume cloud metrics channel unexpectedly closed")
+}
+
+func processMetricFamily(family *prom_proto.MetricFamily, hostName string) {
+	metricsToSubmit := preprocessCloudMetrics(family, hostName)
+	metricsExporters, err := metricsd.GetMetricsExporters()
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	for _, e := range metricsExporters {
+		err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
+		if err != nil {
+			glog.Error(err)
+		}
+	}
 }
 
 func preprocessCloudMetrics(family *prom_proto.MetricFamily, hostName string) exporters.MetricAndContext {

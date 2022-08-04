@@ -37,10 +37,10 @@ extern "C" {
 namespace magma5g {
 
 //------------------------------------------------------------------------------
-static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
+static status_code_e amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_context_t* amf_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   /*
    * We received security vector from HSS. Try to setup security with UE
@@ -73,8 +73,9 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
 }
 
 //------------------------------------------------------------------------------
-static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
-  int rc = RETURNok;
+static status_code_e amf_cn_implicit_deregister_ue(
+    const amf_ue_ngap_id_t ue_id) {
+  status_code_e rc = RETURNok;
   struct amf_context_s* amf_ctx_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -102,8 +103,8 @@ static int amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
 }
 
 //------------------------------------------------------------------------------
-int amf_cn_send(const amf_cn_t* msg) {
-  int rc = RETURNerror;
+status_code_e amf_cn_send(const amf_cn_t* msg) {
+  status_code_e rc = RETURNerror;
   amf_cn_primitive_t primitive = msg->primitive;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);

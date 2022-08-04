@@ -64,7 +64,7 @@
 status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
                                   emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMM-PROC  - EMM status procedure requested (cause=%d)",

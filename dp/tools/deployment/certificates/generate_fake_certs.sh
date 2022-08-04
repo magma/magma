@@ -4,7 +4,7 @@ set -e
 _dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OPENSSL_CONFIG="../openssl.cnf"
 CERT_DIRECTORY="$_dir/certs"
-CRLDP_BASE="http://localhost:9007/"
+CRLDP_BASE="http://fake-crl-service:9007/"
 
 
 if [ -d "$CERT_DIRECTORY" ]
@@ -737,4 +737,3 @@ cat domain_proxy_server.cert sas_ca.cert root_ca.cert \
 
 # Cleanup: remove all files not directly used by the testcases or other scripts.
 rm ./*.csr
-rm -rf "$CERT_DIRECTORY/{crl,db,private}"

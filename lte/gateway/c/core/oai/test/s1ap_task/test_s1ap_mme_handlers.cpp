@@ -37,7 +37,7 @@ namespace magma {
 namespace lte {
 
 using oai::UeDescription;
-task_zmq_ctx_t task_zmq_ctx_main_s1ap;
+extern task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);

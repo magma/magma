@@ -24,13 +24,6 @@ def cpp_repositories():
     )
 
     http_archive(
-        name = "com_github_google_glog",
-        strip_prefix = "glog-0.4.0",
-        sha256 = "f28359aeba12f30d73d9e4711ef356dc842886968112162bc73002645139c39c",
-        urls = ["https://github.com/google/glog/archive/v0.4.0.tar.gz"],
-    )
-
-    http_archive(
         name = "yaml-cpp",
         strip_prefix = "yaml-cpp-yaml-cpp-0.7.0",
         sha256 = "43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3",

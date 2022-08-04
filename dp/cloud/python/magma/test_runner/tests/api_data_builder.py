@@ -35,6 +35,9 @@ class CbsdAPIDataBuilder:
             'user_id': USER_ID,
             'cbsd_category': 'b',
             'single_step_enabled': False,
+            'carrier_aggregation_enabled': False,
+            'grant_redundancy': True,
+            'grants': [],
         }
 
     def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
@@ -99,11 +102,12 @@ class CbsdAPIDataBuilder:
         }
         return self
 
-    def with_capabilities(self, max_power=20, min_power=0, number_of_antennas=2):
+    def with_capabilities(self, max_power=20, min_power=0, number_of_antennas=2, max_ibw_mhz=150):
         self.payload['capabilities'] = {
             'max_power': max_power,
             'min_power': min_power,
             'number_of_antennas': number_of_antennas,
+            'max_ibw_mhz': max_ibw_mhz,
         }
         return self
 
@@ -112,8 +116,8 @@ class CbsdAPIDataBuilder:
         return self
 
     def with_expected_grant(
-        self, bandwidth_mhz: int = 10, frequency_mhz: int = 3625, max_eirp: int = 28,
-        grant_state="authorized",
+            self, bandwidth_mhz: int = 10, frequency_mhz: int = 3625, max_eirp: int = 28,
+            grant_state="authorized",
     ) -> CbsdAPIDataBuilder:
         self.bandwidth_mhz = bandwidth_mhz
         self.frequency_mhz = frequency_mhz
@@ -121,15 +125,20 @@ class CbsdAPIDataBuilder:
         self.grant_state = grant_state
         return self
 
+    def without_grants(self) -> CbsdAPIDataBuilder:
+        self.payload['grants'] = []
+        return self
+
+    # TODO clean up this (two with grant methods)
     def with_grant(
-        self, bandwidth_mhz: int = None, frequency_mhz: int = None, max_eirp: int = None, grant_state=None,
+            self, bandwidth_mhz: int = None, frequency_mhz: int = None, max_eirp: int = None, grant_state=None,
     ) -> CbsdAPIDataBuilder:
-        self.payload['grant'] = {
+        self.payload['grants'] = [{
             'bandwidth_mhz': bandwidth_mhz or self.bandwidth_mhz,
             'frequency_mhz': frequency_mhz or self.frequency_mhz,
             'max_eirp': max_eirp or self.max_eirp,
             'state': grant_state or self.grant_state,
-        }
+        }]
         return self
 
     def with_max_eirp(self, max_eirp: int = 28) -> CbsdAPIDataBuilder:
@@ -160,9 +169,17 @@ class CbsdAPIDataBuilder:
         half_bandwidth_hz = int(5e5) * bandwidth_mhz
         return CBSDStateResult(
             radio_enabled=True,
+            carrier_aggregation_enabled=False,
             channel=LteChannel(
                 low_frequency_hz=frequency_hz - half_bandwidth_hz,
                 high_frequency_hz=frequency_hz + half_bandwidth_hz,
                 max_eirp_dbm_mhz=max_eirp,
             ),
+            channels=[
+                LteChannel(
+                    low_frequency_hz=frequency_hz - half_bandwidth_hz,
+                    high_frequency_hz=frequency_hz + half_bandwidth_hz,
+                    max_eirp_dbm_mhz=max_eirp,
+                ),
+            ],
         )

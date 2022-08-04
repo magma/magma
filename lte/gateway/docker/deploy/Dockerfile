@@ -16,7 +16,7 @@ RUN mkdir -p ~/.ssh &&  \
     chmod 600 id_rsa
 
 ARG CACHE_DATE=2019-09-05
-RUN git clone --depth 1 https://github.com/facebookincubator/magma.git $MAGMA_ROOT
+RUN git clone --depth 1 https://github.com/magma/magma.git $MAGMA_ROOT
 
 RUN cp $MAGMA_ROOT/lte/gateway/docker/deploy/ssh_config /etc/ssh/ssh_config
 

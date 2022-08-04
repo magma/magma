@@ -35,7 +35,7 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.CAVIUM)
+            .build_acs_state_machine(EnodebDeviceName.CAVIUM)
 
         # Send an Inform message
         inform_msg = Tr069MessageBuilder.get_inform(
@@ -79,7 +79,7 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
 
         # Send back some object parameters with TWO plmns
         req = Tr069MessageBuilder.get_cavium_object_param_values_response(
-                num_plmns=2,
+            num_plmns=2,
         )
         resp = acs_state_machine.handle_tr069_message(req)
 
@@ -93,8 +93,8 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
 
         # Number of PLMNs should reflect object count
         num_plmns_cur = \
-                acs_state_machine \
-                .device_cfg.get_parameter(ParameterName.NUM_PLMNS)
+            acs_state_machine \
+            .device_cfg.get_parameter(ParameterName.NUM_PLMNS)
         self.assertEqual(num_plmns_cur, 2)
 
     def test_count_plmns_more_defined(self) -> None:
@@ -106,7 +106,7 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.CAVIUM)
+            .build_acs_state_machine(EnodebDeviceName.CAVIUM)
 
         # Send an Inform message
         inform_msg = Tr069MessageBuilder.get_inform(
@@ -140,7 +140,7 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
 
         # Send back regular parameters, and some absurd number of PLMNS
         req = Tr069MessageBuilder.get_cavium_param_values_response(
-                num_plmns=100,
+            num_plmns=100,
         )
         resp = acs_state_machine.handle_tr069_message(req)
 
@@ -152,7 +152,7 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
 
         # Send back some object parameters with an absurd number of PLMNs
         req = Tr069MessageBuilder.get_cavium_object_param_values_response(
-                num_plmns=100,
+            num_plmns=100,
         )
         resp = acs_state_machine.handle_tr069_message(req)
 
@@ -166,6 +166,6 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
 
         # Number of PLMNs should reflect data model
         num_plmns_cur = \
-                acs_state_machine \
-                .device_cfg.get_parameter(ParameterName.NUM_PLMNS)
+            acs_state_machine \
+            .device_cfg.get_parameter(ParameterName.NUM_PLMNS)
         self.assertEqual(num_plmns_cur, 6)

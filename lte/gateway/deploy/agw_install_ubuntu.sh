@@ -185,7 +185,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
 
   alias python=python3
-  pip3 install ansible
+  pip3 install ansible==5.10.0
 
   git clone "${GIT_URL}" /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma || exit

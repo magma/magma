@@ -1,6 +1,6 @@
 ---
 name: "Build Docker image for Bazel Base and DevContainer"
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -34,7 +34,7 @@ jobs:
   build_dockerfile_bazel_base:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}
@@ -46,7 +46,7 @@ jobs:
     needs: build_dockerfile_bazel_base
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}

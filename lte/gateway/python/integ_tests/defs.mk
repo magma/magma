@@ -60,6 +60,7 @@ s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \
 s1aptests/test_enb_partial_reset.py \
+s1aptests/test_enb_complete_reset.py \
 s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_failure_incorrect_plmn.py \
@@ -256,10 +257,19 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 # Sanity: Failure/Stuck/Crashing Test Cases
 # s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \ GitHubIssue 12779
-
-# Sanity: Flaky Test Cases
-# s1aptests/test_enb_complete_reset.py \ GitHubIssue 12583
 #---------------
+# Scalability Testing: These testcases are not supposed to be part of regular
+# sanity testing because they will take too much time to execute, however they
+# should run under CI automation on regular basis for load testing, with lesser
+# frequency compared to sanity testing
+#
+# TODO: Add these testcases as part of CI automation
+# s1aptests/test_scalability_attach_detach_multi_ue.py
+#---------------
+
+# Add the s1aptester integration tests with federation gateway
+FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \
+federated_tests/s1aptests/test_attach_detach_multi_ue.py
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

@@ -20,11 +20,11 @@ import (
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
 	builder_servicers "magma/feg/cloud/go/services/feg/servicers/protected"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 )
 
 func main() {

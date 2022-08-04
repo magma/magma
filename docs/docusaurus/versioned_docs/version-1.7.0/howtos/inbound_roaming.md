@@ -19,7 +19,7 @@ At the bottom of this document you have
 [configuration example](#configuration-example)
 
 TEID allocation is described on
-[Technical Reference](https://docs.magmacoreorg/docs/lte/dev_teid_allocation)
+[Technical Reference](https://docs.magmacore.org/docs/lte/dev_teid_allocation)
 section.
 
 ## Architecture
@@ -99,7 +99,7 @@ Roaming you need:
 
 - Install [Or8cr](https://docs.magmacore.org/docs/orc8r/architecture_overview),
 - Install [Federatetion Gateway](https://docs.magmacore.org/docs/feg/deploy_intro) and,
-- Install [Access Gateway](https://docs.magmacoreorg/docs/lte/setup_deb).
+- Install [Access Gateway](https://docs.magmacore.org/docs/lte/setup_deb).
 - Create a Federate Deployment (see [below](#Create a Federated Deployment)).
 - Make sure your setup is able to serve calls with your local subscribers
 

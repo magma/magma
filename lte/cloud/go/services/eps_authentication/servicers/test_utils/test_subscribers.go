@@ -31,6 +31,7 @@ func GetTestSubscribers() []*protos.SubscriberData {
 
 	// Default subscriber
 	sub := generateDefaultSub("sub1")
+	sub.Non_3Gpp.ApnConfig[0].ServiceSelection = "apn"
 	subs = append(subs, sub)
 
 	// Default Subs with a blank AAA server

@@ -44,7 +44,7 @@ Description Defines the layer 3 messages supported by the NAS sublayer
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 
 /****************************************************************************/
@@ -107,21 +107,20 @@ typedef struct nas_message_decode_status_s {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-status_code_e nas_message_header_decode(
-    const unsigned char* const buffer,
-    nas_message_security_header_t* const header, const size_t length,
-    nas_message_decode_status_t* const status, bool* const is_sr);
+int nas_message_header_decode(const unsigned char* const buffer,
+                              nas_message_security_header_t* const header,
+                              const size_t length,
+                              nas_message_decode_status_t* const status,
+                              bool* const is_sr);
 
-status_code_e nas_message_encrypt(const unsigned char* inbuf,
-                                  unsigned char* outbuf,
-                                  const nas_message_security_header_t* header,
-                                  size_t length, void* security);
+int nas_message_encrypt(const unsigned char* inbuf, unsigned char* outbuf,
+                        const nas_message_security_header_t* header,
+                        size_t length, void* security);
 
-status_code_e nas_message_decrypt(const unsigned char* const inbuf,
-                                  unsigned char* const outbuf,
-                                  nas_message_security_header_t* header,
-                                  size_t length, void* security,
-                                  nas_message_decode_status_t* status);
+int nas_message_decrypt(const unsigned char* const inbuf,
+                        unsigned char* const outbuf,
+                        nas_message_security_header_t* header, size_t length,
+                        void* security, nas_message_decode_status_t* status);
 
 int nas_message_decode(const unsigned char* const buffer, nas_message_t* msg,
                        size_t length, void* security,

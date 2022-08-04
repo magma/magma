@@ -65,14 +65,14 @@ static int _nas5g_message_protected_encode(
 
 /* Functions used to decrypt and encrypt layer 3 NAS messages */
 static int _nas5g_message_decrypt(
-    unsigned char* const dest, unsigned char* const src, uint8_t type,
-    uint32_t code, uint8_t seq, uint32_t length,
+    unsigned char* const dest, unsigned char* const src,
+    uint8_t security_header_type, uint32_t code, uint8_t seq, uint32_t length,
     amf_security_context_t* const amf_security_context,
     amf_nas_message_decode_status_t* status);
 
 static int _nas5g_message_encrypt(
-    unsigned char* dest, const unsigned char* src, uint8_t type, uint32_t code,
-    uint8_t seq, int const direction, uint32_t length,
+    unsigned char* dest, const unsigned char* src, uint8_t security_header_type,
+    uint32_t code, uint8_t seq, int const direction, uint32_t length,
     amf_security_context_t* const amf_security_context);
 
 /* Functions used for integrity protection of layer 3 NAS messages */

@@ -14,7 +14,7 @@ import (
 
 	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
 	"github.com/imdario/mergo"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -3,6 +3,7 @@
 ################################################################
 FROM ghcr.io/magma/magma/bazel-base:latest as devcontainer
 
+ARG HOME=/home/vscode
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
 # [Option] Upgrade OS packages to their latest versions
@@ -36,7 +37,6 @@ ARG PYTHON_VERSION=3.8
 ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
-
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -77,12 +77,12 @@ RUN echo "Install general purpose packages" && \
 
 # Install golang 1.18
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.18"
+ARG GOLANG_VERSION="1.18.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && rm ${GO_TARBALL}
-ENV PATH=$PATH:/usr/local/go/bin
+ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/go/bin
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -207,7 +207,7 @@ RUN ldconfig -v
 ##### Install Python requirements
 
 ### create virtualenv
-ARG PYTHON_VENV=/home/vscode/build/python
+ARG PYTHON_VENV=${HOME}/build/python
 ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
 # PYTHON_VENV must by in sync with "python.defaultInterpreterPath", "python.analysis.extraPaths" and magtivate path in "postCreateCommand" in .devcontainer/devcontainer.json
 
@@ -277,7 +277,5 @@ RUN for SWAGGER_SRC in lte orc8r; \
     rmdir ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/swagger_client && \
     rm -r ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/test; \
     done
-
-RUN ln -fs $MAGMA_ROOT/bazel/bazelrcs/devcontainer.bazelrc /etc/bazelrc
 
 WORKDIR $MAGMA_ROOT

@@ -44,7 +44,7 @@ type Grant struct {
 
 	// state
 	// Required: true
-	// Enum: [granted guthorized]
+	// Enum: [granted authorized unsync]
 	State string `json:"state"`
 
 	// transmit expire time
@@ -145,7 +145,7 @@ var grantTypeStatePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["granted","guthorized"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["granted","authorized","unsync"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -158,8 +158,11 @@ const (
 	// GrantStateGranted captures enum value "granted"
 	GrantStateGranted string = "granted"
 
-	// GrantStateGuthorized captures enum value "guthorized"
-	GrantStateGuthorized string = "guthorized"
+	// GrantStateAuthorized captures enum value "authorized"
+	GrantStateAuthorized string = "authorized"
+
+	// GrantStateUnsync captures enum value "unsync"
+	GrantStateUnsync string = "unsync"
 )
 
 // prop value enum

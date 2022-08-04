@@ -23,10 +23,10 @@ import (
 	smsd_servicer "magma/lte/cloud/go/services/smsd/servicers/southbound"
 	storage2 "magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
-	"magma/orc8r/cloud/go/obsidian"
-	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
-	swagger_servicers "magma/orc8r/cloud/go/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/obsidian"
+	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
+	swagger_servicers "magma/orc8r/cloud/go/services/obsidian/swagger/servicers/protected"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 )

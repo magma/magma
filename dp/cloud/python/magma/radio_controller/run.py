@@ -15,8 +15,11 @@ import logging
 from concurrent import futures
 from datetime import datetime
 from signal import SIGTERM, signal
+from time import sleep
 
 import grpc
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from dp.protos.active_mode_pb2_grpc import (
     add_ActiveModeControllerServicer_to_server,
 )
@@ -24,6 +27,7 @@ from dp.protos.enodebd_dp_pb2_grpc import add_DPServiceServicer_to_server
 from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
 from magma.db_service.session_manager import SessionManager
 from magma.fluentd_client.client import FluentdClient
+from magma.metricsd_client.client import get_metricsd_client, process_metrics
 from magma.radio_controller.config import get_config
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
@@ -48,6 +52,19 @@ def run():
     """
     logger.info("Starting grpc server")
     config = get_config()
+    scheduler = BackgroundScheduler()
+    metricsd_client = get_metricsd_client()
+    scheduler.add_job(
+        process_metrics,
+        args=[metricsd_client, config.SERVICE_HOSTNAME, "radio_controller"],
+        trigger=IntervalTrigger(
+            seconds=config.METRICS_PROCESSING_INTERVAL_SEC,
+        ),
+        max_instances=1,
+        name="metrics_processing_job",
+    )
+    scheduler.start()
+
     logger.info(f"grpc port is: {config.GRPC_PORT}")
     db_engine = create_engine(
         url=config.SQLALCHEMY_DB_URI,

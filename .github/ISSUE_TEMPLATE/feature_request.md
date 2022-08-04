@@ -3,7 +3,7 @@ name: "\U0001F680 Feedback form"
 about: Describe a problem, suggest a new idea or functionality for the project
 title: ''
 labels: 'type: feature'
-assignees: aswin-alexander, talkhasib
+assignees: ''
 
 ---
 
@@ -16,19 +16,24 @@ assignees: aswin-alexander, talkhasib
 
 ### Describe the problem
 
-**Description**
+#### Description
+
 A clear and concise description of what the problem is, under which scenarios or how frequent it happen
 
-**Additional context**
+#### Additional context
+
 Add any other context or screenshots about the problem here. You can also provide links to relevant resources.
 
 ### Describe your idea (optional)
 
-**Description**
+#### Description
+
 A clear and concise description of any alternative solutions or features you've considered.
 
-**Additional context**
+#### Additional context
+
 Add any other context or screenshots about your solution.
 
-**Desired timelines**
+#### Desired timelines
+
 Share any information about timeline expectations.

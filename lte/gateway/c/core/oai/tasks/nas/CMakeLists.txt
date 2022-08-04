@@ -54,29 +54,29 @@ set(libnas_emm_msg_OBJS
     )
 
 set(libnas_esm_msg_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDedicatedEpsBearerContextAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDedicatedEpsBearerContextReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDedicatedEpsBearerContextRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDefaultEpsBearerContextAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDefaultEpsBearerContextReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDefaultEpsBearerContextRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceAllocationReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceAllocationRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceModificationReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceModificationRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/DeactivateEpsBearerContextAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/DeactivateEpsBearerContextRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/EsmInformationRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/EsmInformationResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/esm_msg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/EsmStatus.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ModifyEpsBearerContextAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ModifyEpsBearerContextReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ModifyEpsBearerContextRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnConnectivityReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnConnectivityRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnDisconnectReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnDisconnectRequest.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDedicatedEpsBearerContextAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDedicatedEpsBearerContextReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDedicatedEpsBearerContextRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDefaultEpsBearerContextAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDefaultEpsBearerContextReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ActivateDefaultEpsBearerContextRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceAllocationReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceAllocationRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceModificationReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/BearerResourceModificationRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/DeactivateEpsBearerContextAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/DeactivateEpsBearerContextRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/EsmInformationRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/EsmInformationResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/esm_msg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/EsmStatus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ModifyEpsBearerContextAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ModifyEpsBearerContextReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/ModifyEpsBearerContextRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnConnectivityReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnConnectivityRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnDisconnectReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/msg/PdnDisconnectRequest.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ies)

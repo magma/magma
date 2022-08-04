@@ -485,7 +485,8 @@ status_code_e s1ap_generate_downlink_nas_transport(
   OAILOG_FUNC_IN(LOG_S1AP);
 
   // Try to retrieve SCTP association id using mme_ue_s1ap_id
-  if (magma::PROTO_MAP_OK == state->mmeid2associd.get(ue_id, &sctp_assoc_id)) {
+  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
+      magma::PROTO_MAP_OK) {
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
@@ -611,7 +612,8 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_setup_req->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
-  if (magma::PROTO_MAP_OK == state->mmeid2associd.get(ue_id, &sctp_assoc_id)) {
+  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
+      magma::PROTO_MAP_OK) {
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);

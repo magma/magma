@@ -25,12 +25,11 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 }
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 using magma::lte::S1apStateManager;
@@ -154,26 +153,6 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
   S1apStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
-void get_mme_ue_ids_no_imsi(uint32_t keyP, uint64_t const dataP,
-                            uint32_t* num_ues_checked,
-                            std::vector<uint32_t>& mme_id_list,
-                            map_uint64_ue_description_t* s1ap_ue_state) {
-  UeDescription* ue_ref_p = NULL;
-
-  // Check if a UE reference exists for this comp_s1ap_id
-  s1ap_ue_state->get(dataP, &ue_ref_p);
-  if (!ue_ref_p) {
-    mme_id_list.push_back(keyP);
-    ++(*num_ues_checked);
-    OAILOG_DEBUG(
-        LOG_S1AP,
-        "Adding mme_ue_s1ap_id %u to eNB clean up list with num_ues_checked "
-        "%u",
-        keyP, *num_ues_checked);
-  }
-  return;  // always return false to make sure it runs on all elements
-}
-
 void remove_ues_without_imsi_from_ue_id_coll() {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
@@ -182,7 +161,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     return;
   }
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  uint32_t num_ues_checked;
+  UeDescription* ue_ref_p = NULL;
 
   // get each eNB in s1ap_state
   for (auto itr = s1ap_state_p->enbs.map->begin();
@@ -197,14 +176,22 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     }
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
-    num_ues_checked = 0;
     // ue_context, if not delete it
     for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
          ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
-      get_mme_ue_ids_no_imsi(ue_itr->first, ue_itr->second, &num_ues_checked,
-                             mme_ue_id_no_imsi_list, s1ap_ue_state);
+      // Check if a UE reference exists for this comp_s1ap_id
+      s1ap_ue_state->get(ue_itr->second, &ue_ref_p);
+      if (!ue_ref_p) {
+        mme_ue_id_no_imsi_list.push_back(ue_itr->first);
+        OAILOG_DEBUG(LOG_S1AP,
+                     "Adding mme_ue_s1ap_id %u to eNB clean up list with "
+                     "num_ues_checked "
+                     "%lu",
+                     ue_itr->first, mme_ue_id_no_imsi_list.size());
+      }
     }
-    for (uint32_t i = 0; i < num_ues_checked; i++) {
+    // remove all the mme_ue_s1ap_ids
+    for (uint32_t i = 0; i < mme_ue_id_no_imsi_list.size(); i++) {
       enb_association_p->ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
       s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_id_no_imsi_list[i]);

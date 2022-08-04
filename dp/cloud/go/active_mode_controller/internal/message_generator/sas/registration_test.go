@@ -1,3 +1,16 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package sas_test
 
 import (
@@ -67,7 +80,7 @@ func TestRegistrationRequestGenerator(t *testing.T) {
 	"measCapability": []
 }`,
 	}}
-	g := sas.NewRegistrationRequestGenerator()
+	g := &sas.RegistrationRequestGenerator{}
 	for _, tt := range data {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := g.GenerateRequests(tt.cbsd)
@@ -88,9 +101,16 @@ type request struct {
 func assertRequestsEqual(t *testing.T, expected []*request, actual []*sas.Request) {
 	require.Len(t, actual, len(expected))
 	for i := range actual {
-		args := []interface{}{"at %d", i}
-		x, y := expected[i], actual[i]
-		assert.Equal(t, x.requestType, y.Type.String(), args...)
-		assert.JSONEq(t, x.data, string(y.Data), args...)
+		args := []any{"at %d", i}
+		assertRequestEqual(t, expected[i], actual[i], args...)
 	}
+}
+
+func assertRequestEqual(t *testing.T, expected *request, actual *sas.Request, args ...any) {
+	if expected == nil {
+		assert.Nil(t, actual, args...)
+		return
+	}
+	assert.Equal(t, expected.requestType, actual.Type.String(), args...)
+	assert.JSONEq(t, expected.data, string(actual.Data), args...)
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<cbrsParams>
+	<jsonsRepoPath>jsonExpectedFolder</jsonsRepoPath>
+	<testRepoPath>testFiles</testRepoPath>
+	<hostIp>0.0.0.0</hostIp>
+	<port>9000</port>
+	<heartbeatLimit>30</heartbeatLimit>
+	<pemFilePath>certificates/server.cert</pemFilePath>
+	<keyFilePath>certificates/server.key</keyFilePath>
+	<caCerts>certificates/ca.cert</caCerts>
+	<cpiCert>certificates/cpi.cert</cpiCert>
+</cbrsParams>

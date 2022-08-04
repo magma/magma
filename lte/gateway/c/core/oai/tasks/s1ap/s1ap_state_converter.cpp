@@ -41,15 +41,9 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
   if (state->mmeid2associd.isEmpty()) {
-    OAILOG_DEBUG(LOG_S1AP, "No entries in mmeid2associd hashtable");
+    OAILOG_DEBUG(LOG_S1AP, "No entries in mmeid2associd map");
   } else {
-    for (auto itr = state->mmeid2associd.map->begin();
-         itr != state->mmeid2associd.map->end(); itr++) {
-      mmeid = itr->first;
-      proto_map_rc_t rc = state->mmeid2associd.get(mmeid, &sctp_assoc_id);
-      AssertFatal(rc == PROTO_MAP_OK, "mmeid not in mmeid2associd");
-      (*mmeid2associd)[mmeid] = sctp_assoc_id;
-    }
+    *(proto->mutable_mmeid2associd()) = *(state->mmeid2associd.map);
   }
 
   uint32_t expected_enb_count = state->enbs.size();
@@ -68,15 +62,7 @@ void S1apStateConverter::proto_to_state(const S1apState& proto,
                      enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
                                         LOG_S1AP);
 
-  auto mmeid2associd = proto.mmeid2associd();
-  for (auto const& kv : mmeid2associd) {
-    mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t)kv.first;
-    sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
-
-    proto_map_rc_t rc = state->mmeid2associd.insert(mmeid, associd);
-    AssertFatal(rc == PROTO_MAP_OK, "failed to insert associd");
-  }
-
+  *(state->mmeid2associd.map) = proto.mmeid2associd();
   state->num_enbs = proto.num_enbs();
   uint32_t expected_enb_count = state->enbs.size();
   OAILOG_WARNING(LOG_S1AP, "expected_enb_count:%d state->num_enbs :%d \n",
@@ -106,8 +92,7 @@ void S1apStateConverter::enb_to_proto(enb_description_t* enb,
   proto->set_ran_cp_ipaddr_sz(enb->ran_cp_ipaddr_sz);
 
   // store ue_ids
-  copy_int_protomap_to_proto(enb->ue_id_coll, proto->mutable_ue_ids());
-
+  *(proto->mutable_ue_id_map()) = *(enb->ue_id_coll.map);
   supported_ta_list_to_proto(&enb->supported_ta_list,
                              proto->mutable_supported_ta_list());
 }
@@ -130,21 +115,12 @@ void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
   enb->ran_cp_ipaddr_sz = proto.ran_cp_ipaddr_sz();
 
   // load ues
+  char S1AP_UE_MAP_NAME[] = "s1ap_ue_coll";
   proto_map_rc_t rc = {PROTO_MAP_OK};
   enb->ue_id_coll.map = new google::protobuf::Map<uint32_t, uint64_t>();
-  enb->ue_id_coll.set_name("s1ap_ue_coll");
+  enb->ue_id_coll.set_name(S1AP_UE_MAP_NAME);
+  *(enb->ue_id_coll.map) = proto.ue_id_map();
 
-  auto ue_ids = proto.ue_ids();
-  for (auto const& kv : ue_ids) {
-    mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
-    uint64_t comp_s1ap_id = kv.second;
-
-    rc = enb->ue_id_coll.insert(mme_ue_s1ap_id, comp_s1ap_id);
-    if (rc != PROTO_MAP_OK) {
-      OAILOG_DEBUG(LOG_S1AP,
-                   "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
-    }
-  }
   proto_to_supported_ta_list(&enb->supported_ta_list,
                              proto.supported_ta_list());
 }
@@ -162,15 +138,14 @@ void S1apStateConverter::proto_to_ue(const oai::UeDescription& proto,
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(
     const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto) {
-  google::protobuf::Map<uint32_t, uint64_t> map =
+  *s1ap_imsi_proto->mutable_mme_ue_s1ap_id_imsi_map() =
       *(s1ap_imsi_map->mme_ueid2imsi_map.map);
-  *s1ap_imsi_proto->mutable_mme_ue_id_imsi_map() = map;
 }
 
 void S1apStateConverter::proto_to_s1ap_imsi_map(
     const oai::S1apImsiMap& s1ap_imsi_proto, s1ap_imsi_map_t* s1ap_imsi_map) {
   *(s1ap_imsi_map->mme_ueid2imsi_map.map) =
-      s1ap_imsi_proto.mme_ue_id_imsi_map();
+      s1ap_imsi_proto.mme_ue_s1ap_id_imsi_map();
 }
 
 void S1apStateConverter::supported_ta_list_to_proto(

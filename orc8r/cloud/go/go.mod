@@ -39,7 +39,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imdario/mergo v0.3.5
 	github.com/jxskiss/base62 v1.0.0
-	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/echo/v4 v4.7.2
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.9
@@ -83,7 +83,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -100,6 +99,7 @@ require (
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -115,7 +115,8 @@ require (
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/labstack/gommon v0.3.0 // indirect
+	github.com/labstack/echo v3.3.10+incompatible // indirect
+	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -147,7 +148,7 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/toqueteos/webbrowser v1.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasttemplate v1.0.1 // indirect
+	github.com/valyala/fasttemplate v1.2.1 // indirect
 	go.mongodb.org/mongo-driver v1.8.2 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
@@ -155,7 +156,7 @@ require (
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect

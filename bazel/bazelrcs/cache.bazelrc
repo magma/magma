@@ -1,0 +1,3 @@
+# In CI this file is overwritten by bazel/scripts/remote_cache_bazelrc_setup.sh
+# in order to configure the remote cache.
+common --config=disk_cache

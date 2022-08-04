@@ -15,6 +15,7 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
@@ -22,10 +23,11 @@
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
-char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
-char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
-char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
+constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
+constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
+constexpr char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
+constexpr char S1AP_STATE_UE_MAP[] = "s1ap_state_ue_map";
 }  // namespace
 
 using magma::lte::oai::UeDescription;
@@ -63,14 +65,14 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
+s1ap_state_t* create_s1ap_state(void) {
   bstring ht_name;
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
   state_cache_p->enbs.map =
       new google::protobuf::Map<unsigned int, struct enb_description_s*>();
   state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_enb_description);
+  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
 
   state_cache_p->mmeid2associd.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
@@ -81,11 +83,11 @@ s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
 }
 
 void S1apStateManager::create_state() {
-  state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
+  state_cache_p = create_s1ap_state();
 
   state_ue_map.map =
       new google::protobuf::Map<uint64_t, magma::lte::oai::UeDescription*>();
-  state_ue_map.set_name(S1AP_ENB_COLL);
+  state_ue_map.set_name(S1AP_STATE_UE_MAP);
   state_ue_map.bind_callback(free_ue_description);
 
   create_s1ap_imsi_map();
@@ -117,9 +119,9 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
   }
-  if (magma::PROTO_MAP_OK != state_cache_p->mmeid2associd.destroy_map()) {
+  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
+                 "An error occurred while destroying mmeid2associd map");
   }
   delete state_cache_p;
 }

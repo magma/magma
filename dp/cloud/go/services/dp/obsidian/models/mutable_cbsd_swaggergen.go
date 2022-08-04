@@ -24,6 +24,10 @@ type MutableCbsd struct {
 	// Required: true
 	Capabilities Capabilities `json:"capabilities"`
 
+	// this flag controls eNB behavior, should multiple grants be used for Carrier Aggregation, or one for Single Carrier
+	// Required: true
+	CarrierAggregationEnabled *bool `json:"carrier_aggregation_enabled"`
+
 	// is the radio type A (only) or B (also applies to A/B type radios)
 	// Required: true
 	// Enum: [a b]
@@ -43,6 +47,10 @@ type MutableCbsd struct {
 	// frequency preferences
 	// Required: true
 	FrequencyPreferences FrequencyPreferences `json:"frequency_preferences"`
+
+	// Tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
+	// Required: true
+	GrantRedundancy *bool `json:"grant_redundancy"`
 
 	// installation param
 	InstallationParam MutableInstallationParam `json:"installation_param,omitempty"`
@@ -72,6 +80,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateCarrierAggregationEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateCbsdCategory(formats); err != nil {
 		res = append(res, err)
 	}
@@ -85,6 +97,10 @@ func (m *MutableCbsd) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFrequencyPreferences(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGrantRedundancy(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -118,6 +134,15 @@ func (m *MutableCbsd) validateCapabilities(formats strfmt.Registry) error {
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("capabilities")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCbsd) validateCarrierAggregationEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("carrier_aggregation_enabled", "body", m.CarrierAggregationEnabled); err != nil {
 		return err
 	}
 
@@ -231,6 +256,15 @@ func (m *MutableCbsd) validateFrequencyPreferences(formats strfmt.Registry) erro
 		} else if ce, ok := err.(*errors.CompositeError); ok {
 			return ce.ValidateName("frequency_preferences")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *MutableCbsd) validateGrantRedundancy(formats strfmt.Registry) error {
+
+	if err := validate.Required("grant_redundancy", "body", m.GrantRedundancy); err != nil {
 		return err
 	}
 

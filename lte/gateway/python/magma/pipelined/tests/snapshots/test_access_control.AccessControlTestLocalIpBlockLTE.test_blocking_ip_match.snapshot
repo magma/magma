@@ -15,7 +15,7 @@
  cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop
  cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop
  cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop
- cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=3001::10 actions=drop
  cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop
  cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop
  cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ipv6,reg1=0x1,ipv6_dst=fe80::linkLocalSuffix actions=drop

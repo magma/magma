@@ -15,8 +15,6 @@ RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1
   chmod -R a+Xr /usr/include/google && \
   rm -rf protoc3.zip protoc3
 
-# Install python3.8 since it's not native on focal
-RUN apt-add-repository "ppa:deadsnakes/ppa"
 RUN apt-get -y update && apt-get -y install python3.8
 
 ENV MAGMA_ROOT /magma
@@ -45,10 +43,6 @@ COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d
 RUN apt-key add /tmp/jfrog.pub && \
     apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
 
-# Install python3.8 since it's not native on focal
-RUN apt-add-repository "ppa:deadsnakes/ppa"
-RUN apt-get -y update && apt-get -y install python3.8
-
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
   curl \
@@ -67,6 +61,7 @@ RUN apt-get -y update && apt-get -y install \
   pkg-config \
   python-cffi \
   python3-pip \
+  python3.8 \
   python3.8-dev \
   redis-server \
   network-manager

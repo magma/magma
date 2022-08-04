@@ -216,7 +216,6 @@ class DBCbsd(Base):
     max_power = Column(Float)
     antenna_gain = Column(Float)
     number_of_ports = Column(Integer)
-    grant_attempts = Column(Integer, nullable=False, server_default='0')
     preferred_bandwidth_mhz = Column(
         Integer, nullable=False, server_default='0',
     )
@@ -240,6 +239,10 @@ class DBCbsd(Base):
     indoor_deployment = Column(Boolean, nullable=False, server_default='false')
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     should_deregister = Column(Boolean, nullable=False, server_default='false')
+    carrier_aggregation_enabled = Column(Boolean, nullable=False, server_default='false')
+    max_ibw_mhz = Column(Integer, nullable=False, server_default='150')
+    grant_redundancy = Column(Boolean, nullable=False, server_default='true')
+    available_frequencies = Column(JSON)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
