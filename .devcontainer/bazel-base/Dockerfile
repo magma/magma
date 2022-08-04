@@ -43,6 +43,7 @@ RUN echo "Install general purpose packages" && \
         libgmp3-dev \
         libidn11-dev \
         libsctp1 \
+        libsqlite3-dev \
         # dependency of sctpd
         libsctp-dev \
         libssl-dev \
