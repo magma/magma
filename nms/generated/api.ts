@@ -10061,7 +10061,7 @@ export const CallTracingApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: CallTrace; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdTracingGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -10143,7 +10143,7 @@ export const CallTracingApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<Array<string>> {
+        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: CallTrace; }> {
             return localVarFp.networksNetworkIdTracingGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**
