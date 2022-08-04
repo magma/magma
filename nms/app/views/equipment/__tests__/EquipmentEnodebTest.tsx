@@ -23,7 +23,6 @@ import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {PaginatedEnodebs} from '../../../../generated';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
 
@@ -51,13 +50,6 @@ describe('<Enodeb />', () => {
       MagmaAPI.metrics,
       'networksNetworkIdPrometheusQueryRangeGet',
       mockThroughput,
-    );
-
-    // TODO[TS-migration] Why is there a type mismatch here
-    mockAPI(
-      MagmaAPI.enodebs,
-      'lteNetworkIdEnodebsGet',
-      (enbInfo as unknown) as PaginatedEnodebs,
     );
   });
 
