@@ -25,19 +25,29 @@ UNREGISTERED = "unregistered"
 
 class CbsdAPIDataBuilder:
     def __init__(self):
-        self.frequency_mhz = 3625
-        self.bandwidth_mhz = 10
-        self.max_eirp = 28
-        self.grant_state = "authorized"
         self.payload = {
             'fcc_id': SOME_FCC_ID,
             'serial_number': str(uuid4()),
             'user_id': USER_ID,
             'cbsd_category': 'b',
+            'desired_state': 'registered',
             'single_step_enabled': False,
             'carrier_aggregation_enabled': False,
-            'grant_redundancy': True,
+            'grant_redundancy': False,
             'grants': [],
+            'capabilities': {
+                'max_power': 20,
+                'min_power': 0,
+                'number_of_antennas': 2,
+                'max_ibw_mhz': 150,
+            },
+            'frequency_preferences': {
+                'bandwidth_mhz': 10,
+                'frequencies_mhz': [3625],
+            },
+            'installation_param': {
+                'antenna_gain': 15,
+            },
         }
 
     def with_serial_number(self, serial_number: str) -> CbsdAPIDataBuilder:
@@ -48,28 +58,20 @@ class CbsdAPIDataBuilder:
         self.payload['fcc_id'] = fcc_id
         return self
 
-    def with_cbsd_category(self, cbsd_category: str = "b") -> CbsdAPIDataBuilder:
+    def with_cbsd_category(self, cbsd_category: str) -> CbsdAPIDataBuilder:
         self.payload['cbsd_category'] = cbsd_category
         return self
 
     def with_latitude_deg(self, latitude_deg: float = 10.5) -> CbsdAPIDataBuilder:
-        installation_param = self.payload.setdefault("installation_param", {})
-        installation_param["latitude_deg"] = latitude_deg
+        self.payload['installation_param']['latitude_deg'] = latitude_deg
         return self
 
     def with_longitude_deg(self, longitude_deg: float = 11.5) -> CbsdAPIDataBuilder:
-        installation_param = self.payload.setdefault("installation_param", {})
-        installation_param["longitude_deg"] = longitude_deg
-        return self
-
-    def with_antenna_gain(self, antenna_gain: int = 15) -> CbsdAPIDataBuilder:
-        installation_param = self.payload.setdefault("installation_param", {})
-        installation_param["antenna_gain"] = antenna_gain
+        self.payload['installation_param']['longitude_deg'] = longitude_deg
         return self
 
     def with_indoor_deployment(self, indoor_deployment: bool = False) -> CbsdAPIDataBuilder:
-        installation_param = self.payload.setdefault("installation_param", {})
-        installation_param["indoor_deployment"] = indoor_deployment
+        self.payload['installation_param']["indoor_deployment"] = indoor_deployment
         return self
 
     def with_full_installation_param(
@@ -91,58 +93,35 @@ class CbsdAPIDataBuilder:
         }
         return self
 
-    def with_frequency_preferences(
-            self,
-            bandwidth_mhz: int = 20,
-            frequencies_mhz: List[int] = None,
-    ) -> CbsdAPIDataBuilder:
+    def with_frequency_preferences(self, bandwidth_mhz: int, frequencies_mhz: List[int]) -> CbsdAPIDataBuilder:
         self.payload["frequency_preferences"] = {
             "bandwidth_mhz": bandwidth_mhz,
-            "frequencies_mhz": frequencies_mhz or [],
+            "frequencies_mhz": frequencies_mhz,
         }
         return self
 
-    def with_capabilities(self, max_power=20, min_power=0, number_of_antennas=2, max_ibw_mhz=150):
-        self.payload['capabilities'] = {
-            'max_power': max_power,
-            'min_power': min_power,
-            'number_of_antennas': number_of_antennas,
-            'max_ibw_mhz': max_ibw_mhz,
-        }
+    def with_carrier_aggregation(self) -> CbsdAPIDataBuilder:
+        self.payload['grant_redundancy'] = True
+        self.payload['carrier_aggregation_enabled'] = True
         return self
 
     def with_desired_state(self, desired_state: str = "registered") -> CbsdAPIDataBuilder:
         self.payload["desired_state"] = desired_state
         return self
 
-    def with_expected_grant(
-            self, bandwidth_mhz: int = 10, frequency_mhz: int = 3625, max_eirp: int = 28,
-            grant_state="authorized",
-    ) -> CbsdAPIDataBuilder:
-        self.bandwidth_mhz = bandwidth_mhz
-        self.frequency_mhz = frequency_mhz
-        self.max_eirp = max_eirp
-        self.grant_state = grant_state
-        return self
-
     def without_grants(self) -> CbsdAPIDataBuilder:
         self.payload['grants'] = []
         return self
 
-    # TODO clean up this (two with grant methods)
     def with_grant(
-            self, bandwidth_mhz: int = None, frequency_mhz: int = None, max_eirp: int = None, grant_state=None,
+            self, bandwidth_mhz: int = 10, frequency_mhz: int = 3625, max_eirp: int = 28,
     ) -> CbsdAPIDataBuilder:
-        self.payload['grants'] = [{
-            'bandwidth_mhz': bandwidth_mhz or self.bandwidth_mhz,
-            'frequency_mhz': frequency_mhz or self.frequency_mhz,
-            'max_eirp': max_eirp or self.max_eirp,
-            'state': grant_state or self.grant_state,
-        }]
-        return self
-
-    def with_max_eirp(self, max_eirp: int = 28) -> CbsdAPIDataBuilder:
-        self.payload['max_eirp'] = max_eirp
+        self.payload['grants'].append({
+            'bandwidth_mhz': bandwidth_mhz,
+            'frequency_mhz': frequency_mhz,
+            'max_eirp': max_eirp,
+            'state': 'authorized',
+        })
         return self
 
     def with_state(self, state: str = UNREGISTERED) -> CbsdAPIDataBuilder:
@@ -161,25 +140,25 @@ class CbsdAPIDataBuilder:
         self.payload['single_step_enabled'] = enabled
         return self
 
-    def build_grant_state_data(self, frequenzy_mhz=None, bandwidth_mhz=None, max_eirp=None) -> CBSDStateResult:
-        frequenzy_mhz = frequenzy_mhz or self.frequency_mhz
-        bandwidth_mhz = bandwidth_mhz or self.bandwidth_mhz
-        max_eirp = max_eirp or self.max_eirp
-        frequency_hz = int(1e6) * frequenzy_mhz
-        half_bandwidth_hz = int(5e5) * bandwidth_mhz
+    def build_grant_state_data(self) -> CBSDStateResult:
+        # TODO rewrite builders to dataclasses
+        grants = [_api_to_proto_grant(g) for g in self.payload['grants']]
         return CBSDStateResult(
             radio_enabled=True,
-            carrier_aggregation_enabled=False,
-            channel=LteChannel(
-                low_frequency_hz=frequency_hz - half_bandwidth_hz,
-                high_frequency_hz=frequency_hz + half_bandwidth_hz,
-                max_eirp_dbm_mhz=max_eirp,
-            ),
-            channels=[
-                LteChannel(
-                    low_frequency_hz=frequency_hz - half_bandwidth_hz,
-                    high_frequency_hz=frequency_hz + half_bandwidth_hz,
-                    max_eirp_dbm_mhz=max_eirp,
-                ),
-            ],
+            carrier_aggregation_enabled=self.payload['carrier_aggregation_enabled'],
+            channel=grants[0],
+            channels=grants,
         )
+
+
+def _api_to_proto_grant(grant: dict[str, any]) -> LteChannel:
+    frequency_mhz = grant['frequency_mhz']
+    bandwidth_mhz = grant['bandwidth_mhz']
+    max_eirp_dbm_mhz = grant['max_eirp']
+    frequency_hz = 10**6 * frequency_mhz
+    bandwidth_hz = 10**6 * bandwidth_mhz
+    return LteChannel(
+        low_frequency_hz=frequency_hz - bandwidth_hz // 2,
+        high_frequency_hz=frequency_hz + bandwidth_hz // 2,
+        max_eirp_dbm_mhz=max_eirp_dbm_mhz,
+    )

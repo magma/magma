@@ -53,15 +53,12 @@ MAGMA_CLIENT_CERT_SERIAL_VALUE = '7ZZXAF7CAETF241KL22B8YRR7B5UF401'
 class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationTestCase):
     def setUp(self) -> None:
         self.serial_number = self._testMethodName + '_' + str(uuid4())
+        # TODO why do we do that? Setup was supposed to be done by deployment...
         self.prometheus_url = f'http://{config.PROMETHEUS_SERVICE_HOST}:{config.PROMETHEUS_SERVICE_PORT}'
         requests.post(f"{self.prometheus_url}/api/v1/admin/tsdb/delete_series")
 
     def test_cbsd_sas_flow(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
             .with_serial_number(self.serial_number)
 
         cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
@@ -75,10 +72,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_cbsd_sas_single_step_flow(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
             .with_single_step_enabled(True) \
             .with_serial_number(self.serial_number)
 
@@ -89,10 +82,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_cbsd_unregistered_when_requested_by_desired_state(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
             .with_serial_number(self.serial_number)
         cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
 
@@ -107,9 +96,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_cbsd_unregistered_when_enodebd_changes_coordinates(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
             .with_serial_number(self.serial_number) \
             .with_full_installation_param() \
             .with_cbsd_category("a")
@@ -139,9 +125,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
     def test_cbsd_not_unregistered_when_coordinates_change_less_than_10_m(self):
         builder = CbsdAPIDataBuilder()\
             .with_single_step_enabled(True) \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
             .with_serial_number(self.serial_number) \
             .with_full_installation_param() \
             .with_cbsd_category("a")
@@ -170,10 +153,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_enodebd_update_cbsd(self) -> None:
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number) \
             .with_cbsd_category("b")
         self.when_cbsd_is_created(builder.payload)
@@ -201,10 +180,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_sas_flow_restarted_when_user_requested_deregistration(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number)
 
         cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
@@ -220,10 +195,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number)
 
         cbsd_id = self.given_multi_step_cbsd_provisioned(builder)
@@ -241,7 +212,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
             self.then_cbsd_is(
                 cbsd,
                 builder
-                .with_expected_grant()
                 .with_cbsd_id(f"{OTHER_FCC_ID}/{self.serial_number}")
                 .with_is_active(True)
                 .payload,
@@ -249,36 +219,67 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_activity_status(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number)
         self.given_multi_step_cbsd_provisioned(builder)
 
         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
-        self.then_cbsd_is(cbsd, builder.with_grant().with_is_active(True).payload)
+        self.then_cbsd_is(cbsd, builder.with_is_active(True).payload)
 
         self.when_cbsd_is_inactive()
         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
+        # TODO this is bad builders shouldn't be used like that
         self.then_cbsd_is(cbsd, builder.without_grants().with_is_active(False).payload)
 
     def test_frequency_preferences(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
             .with_serial_number(self.serial_number) \
-            .with_frequency_preferences(5, [3625]) \
-            .with_expected_grant(5, 3625, 31)
-        self.given_multi_step_cbsd_provisioned(builder)
+            .with_frequency_preferences(5, [3625])
+
+        self.when_cbsd_is_created(builder.payload)
+
+        sn = builder.payload['serial_number']
+        fcc_id = builder.payload['fcc_id']
+        cbsd_id = f'{fcc_id}/{sn}'
+
+        builder \
+            .with_state('registered') \
+            .with_is_active(True) \
+            .with_indoor_deployment(False) \
+            .with_cbsd_id(cbsd_id) \
+            .with_grant(bandwidth_mhz=5, frequency_mhz=3625, max_eirp=31)
+
+        with self.while_cbsd_is_active():
+            self.then_state_is_eventually(builder.build_grant_state_data())
+            cbsd = self.when_cbsd_is_fetched(sn)
+            self.then_cbsd_is(cbsd, builder.payload)
+
+    def test_carrier_aggregation(self):
+        builder = CbsdAPIDataBuilder() \
+            .with_serial_number(self.serial_number) \
+            .with_frequency_preferences(20, [3600]) \
+            .with_carrier_aggregation()
+
+        self.when_cbsd_is_created(builder.payload)
+
+        sn = builder.payload['serial_number']
+        fcc_id = builder.payload['fcc_id']
+        cbsd_id = f'{fcc_id}/{sn}'
+
+        builder \
+            .with_state('registered') \
+            .with_is_active(True) \
+            .with_indoor_deployment(False) \
+            .with_cbsd_id(cbsd_id) \
+            .with_grant(bandwidth_mhz=20, frequency_mhz=3580, max_eirp=25) \
+            .with_grant(bandwidth_mhz=20, frequency_mhz=3600, max_eirp=25)
+
+        with self.while_cbsd_is_active():
+            self.then_state_is_eventually(builder.build_grant_state_data())
+            cbsd = self.when_cbsd_is_fetched(sn)
+            self.then_cbsd_is(cbsd, builder.payload)
 
     def test_creating_cbsd_with_the_same_unique_fields_returns_409(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_frequency_preferences() \
-            .with_desired_state() \
-            .with_antenna_gain() \
             .with_serial_number(self.serial_number)
 
         self.when_cbsd_is_created(builder.payload)
@@ -286,10 +287,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_updating_cbsd_returns_409_when_setting_existing_serial_num(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_frequency_preferences()
 
         cbsd1_serial = self.serial_number + "_foo"
         cbsd2_serial = self.serial_number + "_bar"
@@ -307,17 +304,9 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
         cbsd2_serial = self.serial_number + "_bar"
 
         builder1 = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_frequency_preferences(). \
-            with_serial_number(cbsd1_serial)
+            .with_serial_number(cbsd1_serial)
         builder2 = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain(15) \
-            .with_frequency_preferences(). \
-            with_serial_number(cbsd2_serial)
+            .with_serial_number(cbsd2_serial)
 
         self.when_cbsd_is_created(builder1.payload)
         self.when_cbsd_is_created(builder2.payload)
@@ -344,10 +333,6 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
 
     def test_fetching_logs_with_custom_filters(self):
         builder = CbsdAPIDataBuilder() \
-            .with_capabilities() \
-            .with_desired_state() \
-            .with_antenna_gain() \
-            .with_frequency_preferences() \
             .with_serial_number(self.serial_number)
 
         sas_to_dp_end_date_only = {
@@ -481,21 +466,19 @@ class DomainProxyOrc8rTestCase(DomainProxyIntegrationTestCase, Orc8rIntegrationT
     def _check_cbsd_successfully_provisioned(self, builder: CbsdAPIDataBuilder) -> Dict[str, Any]:
         sn = builder.payload["serial_number"]
         fcc_id = builder.payload["fcc_id"]
+        cbsd_id = f"{fcc_id}/{sn}"
+        # TODO this is very unexpected, builder modifies state
+        expected_cbsd = builder \
+            .with_is_active(True) \
+            .with_grant() \
+            .with_state("registered") \
+            .with_cbsd_id(cbsd_id) \
+            .payload
 
         self.then_state_is_eventually(builder.build_grant_state_data())
-
         cbsd = self.when_cbsd_is_fetched(sn)
 
-        cbsd_id = f"{fcc_id}/{sn}"
-        self.then_cbsd_is(
-            cbsd,
-            builder
-            .with_is_active(True)
-            .with_grant()
-            .with_state("registered")
-            .with_cbsd_id(cbsd_id)
-            .payload,
-        )
+        self.then_cbsd_is(cbsd, expected_cbsd)
 
         return cbsd
 
