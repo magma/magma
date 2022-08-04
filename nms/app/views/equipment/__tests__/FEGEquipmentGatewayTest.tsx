@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import FEGEquipmentGateway from '../FEGEquipmentGateway';
+import FEGEquipmentDashboard from '../FEGEquipmentDashboard';
 import MagmaAPI from '../../../api/MagmaAPI';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -19,11 +19,14 @@ import defaultTheme from '../../../theme/default';
 import moment from 'moment';
 import {AxiosResponse} from 'axios';
 import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
-import {FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest} from '../../../../generated';
+import {
+  FederationGatewaysApiFegNetworkIdGatewaysGatewayIdHealthStatusGetRequest,
+  FederationGatewaysApiFegNetworkIdGatewaysPostRequest,
+} from '../../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
-import {render, waitFor} from '@testing-library/react';
 import type {
   Csfb,
   FederationGateway,
@@ -117,6 +120,24 @@ const mockGw0: FederationGateway = {
   },
 };
 
+const mockGw1: FederationGateway = {
+  ...mockGw0,
+  id: 'test_gw1',
+  name: 'test_gateway1',
+  federation: {
+    aaa_server: {},
+    eap_aka: {},
+    health: {},
+    hss: {},
+    served_network_ids: [],
+    gx: {},
+    gy: {},
+    swx: mockSwx,
+    s6a: {},
+    csfb: {},
+  },
+};
+
 const mockCheckinMetric: PromqlReturnObject = {
   status: 'success',
   data: {
@@ -170,24 +191,6 @@ const mockFalloverStatus: PromqlReturnObject = {
   },
 };
 
-const mockGw1: FederationGateway = {
-  ...mockGw0,
-  id: 'test_gw1',
-  name: 'test_gateway1',
-  federation: {
-    aaa_server: {},
-    eap_aka: {},
-    health: {},
-    hss: {},
-    served_network_ids: [],
-    gx: {},
-    gy: {},
-    swx: mockSwx,
-    s6a: {},
-    csfb: {},
-  },
-};
-
 const fegGateways = {
   [mockGw0.id]: mockGw0,
   [mockGw1.id]: mockGw1,
@@ -207,7 +210,7 @@ const mockClusterStatus: FederationNetworkClusterStatus = {
   active_gateway: mockGw0.id,
 };
 
-describe('<FEGEquipmentGateway />', () => {
+describe('<FEGEquipmentDashboard />', () => {
   beforeEach(() => {
     // gateway context gets list of federation gateways
     mockAPI(
@@ -278,14 +281,16 @@ describe('<FEGEquipmentGateway />', () => {
   });
 
   const Wrapper = () => (
-    <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
+    <MemoryRouter
+      initialEntries={['/nms/mynetwork/overview/gateway']}
+      initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
           <FEGGatewayContextProvider networkId="mynetwork">
             <Routes>
               <Route
-                path="/nms/:networkId/gateway/"
-                element={<FEGEquipmentGateway />}
+                path="/nms/:networkId/*"
+                element={<FEGEquipmentDashboard />}
               />
             </Routes>
           </FEGGatewayContextProvider>
@@ -355,5 +360,56 @@ describe('<FEGEquipmentGateway />', () => {
     expect(getByTestId('Last Fallover Time')).toHaveTextContent(
       lastFalloverTime,
     );
+  });
+
+  it('adds a federation gateway', async () => {
+    const {
+      findByText,
+      findByRole,
+      getByText,
+      getByTestId,
+      getByPlaceholderText,
+    } = render(<Wrapper />);
+
+    mockAPI(MagmaAPI.upgrades, 'networksNetworkIdTiersGet', ['default']);
+    const fegGatewayPostMock = mockAPI(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysPost',
+    );
+
+    const description = 'hello I am a federated gateway';
+    const id = 'test_gw2';
+    const hardware_id = '4dfe212f-df33-4cd2-910c-41892a042fee';
+    const name = 'test_gateway2';
+    const tier = 'default';
+
+    fireEvent.click(await findByText('Add Gateway'));
+
+    const addDialog = await findByRole('dialog');
+    expect(addDialog).toBeInTheDocument();
+
+    const setField = (placeholder: string, value: string) =>
+      fireEvent.change(getByPlaceholderText(placeholder), {
+        target: {value},
+      });
+    setField('Gateway 1', name);
+    setField('Sample Gateway description', description);
+    setField('Eg. 4dfe212f-df33-4cd2-910c-41892a042fee', hardware_id);
+    setField('<country>_<org>_<location>_<sitenumber>', id);
+    fireEvent.change(getByTestId('upgradeTier'), {
+      target: {value: tier},
+    });
+
+    fireEvent.click(getByText('Save'));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const {gateway} = fegGatewayPostMock.mock
+      .calls[0][0] as FederationGatewaysApiFegNetworkIdGatewaysPostRequest;
+
+    expect(gateway.description).toEqual(description);
+    expect(gateway.id).toEqual(id);
+    expect(gateway.device!.hardware_id).toEqual(hardware_id);
+    expect(gateway.name).toEqual(name);
+    expect(gateway.tier).toEqual(tier);
   });
 });

@@ -20,9 +20,10 @@ const ADMIN_NW_SELECTOR = `//a[starts-with(@href, '/nms/test/admin/networks')]`;
 const PROFILE_BUTTON_SELECTOR = `//*[@data-testid='profileButton']`;
 const NETWORK_SELECTOR_SELECTOR = `//*[@data-testid='networkSelector']`;
 
+jest.setTimeout(60000);
+
 let browser: Browser;
 beforeEach(async () => {
-  jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
@@ -82,7 +83,7 @@ describe('Admin component', () => {
       path: ARTIFACTS_DIR + 'organization_network_list.png',
     });
     await page.close();
-  }, 60000);
+  });
 });
 
 describe('NMS', () => {
@@ -172,7 +173,7 @@ describe('NMS', () => {
       await page.close();
       throw err;
     }
-  }, 60000);
+  });
 
   test('verifying feg_lte dashboard', async () => {
     const page = await browser.newPage();
@@ -225,5 +226,5 @@ describe('NMS', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'feg_lte_network_dashboard.png',
     });
-  }, 60000);
+  });
 });

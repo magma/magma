@@ -50,7 +50,7 @@ typedef struct s1ap_state_s {
 } s1ap_state_t;
 
 typedef struct s1ap_imsi_map_s {
-  hash_table_uint64_ts_t* mme_ue_id_imsi_htbl;
+  magma::proto_map_uint32_uint64_t mme_ueid2imsi_map;
 } s1ap_imsi_map_t;
 
 enum s1_timer_class_s {

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, Dict, List, NamedTuple
+from typing import Any, Dict, List, NamedTuple, Optional
 
 from magma.db_service.models import DBRequest
 
@@ -20,6 +20,25 @@ RequestsMap = Dict[str, List[DBRequest]]
 
 
 class DBResponse(NamedTuple):
+    """ Class representing single response from SAS. """
     response_code: int
     payload: Dict[str, Any]
     request: DBRequest
+
+    @property
+    def cbsd_id(self) -> Optional[str]:
+        """ Get cbsd_id that request refers to.
+
+        Returns:
+            string
+        """
+        return self.payload.get('cbsdId') or self.request.payload.get('cbsdId')
+
+    @property
+    def grant_id(self) -> Optional[str]:
+        """ Get grant_id that request refers to.
+
+        Returns:
+            string
+        """
+        return self.payload.get('grantId') or self.request.payload.get('grantId')
