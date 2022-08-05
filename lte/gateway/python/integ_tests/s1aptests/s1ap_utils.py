@@ -29,7 +29,8 @@ import time
 from enum import Enum
 from queue import Empty, Queue
 from typing import Optional
-from dev_tools import register_subscriber, LTENetwork
+from dev_tools import *
+import tools.fab.dev_utils as dev_utils
 import fabric
 import tools.fab.types as types
 import tools.fab.dev_utils as dev_utils
@@ -806,7 +807,7 @@ class SubscriberUtil(object):
             sid = self._gen_next_sid()
             print("Registering a client")
             # self._subscriber_client.add_subscriber(sid)
-            register_subscriber(admin_cert)
+            # register_subscriber(admin_cert)
             print("Registered successfully")
 
             #enabling flags
@@ -841,7 +842,7 @@ class SubscriberUtil(object):
             dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
             )
 
-            dev_tools.cloud_put(f'lte/{network_id}/cellular', payload,None,None,admin_cert)
+            dev_utils.cloud_put(f'lte/test/cellular', payload,None,None,admin_cert)
             print("PUT is now complete")
 
 

@@ -60,6 +60,7 @@ def register_vm():
         name='Test Network', description='Test Network',
         cellular=NetworkCellularConfig(
             epc=NetworkEPCConfig(
+                cloud_subscriberdb_enabled=False,
                 lte_auth_amf='gAA=',
                 lte_auth_op='EREREREREREREREREREREQ==',
                 mcc='001', mnc='01', tac=1,
@@ -334,12 +335,13 @@ class MobilityConfig:
 
 class NetworkEPCConfig:
     def __init__(
-        self, lte_auth_amf: str, lte_auth_op: str,
+        self, cloud_subscriberdb_enabled:bool, lte_auth_amf: str, lte_auth_op: str,
         mcc: str, mnc: str, tac: int,
         gx_gy_relay_enabled: bool, hss_relay_enabled: bool,
         network_services: List[str],
         mobility: MobilityConfig,
     ):
+        self.cloud_subscriberdb_enabled = cloud_subscriberdb_enabled
         self.lte_auth_amf = lte_auth_amf
         self.lte_auth_op = lte_auth_op
         self.mcc = mcc
