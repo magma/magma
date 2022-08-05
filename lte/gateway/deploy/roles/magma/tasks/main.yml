@@ -517,3 +517,12 @@
     force: yes
     remote_src: yes
   when: full_provision
+
+# TODO: preburn this and add it under MME(OAI) dependencies
+- name: Install SQLite3 C++ library
+  retries: 5
+  apt:
+    state: latest
+    pkg:
+      - libsqlite3-dev
+  when: full_provision

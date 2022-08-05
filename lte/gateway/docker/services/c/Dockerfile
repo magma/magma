@@ -89,7 +89,8 @@ RUN apt-get update && apt-get install -y \
   libtspi-dev \
   libconfig-dev \
   libgmp3-dev \
-  libczmq-dev
+  libczmq-dev \
+  libsqlite3-dev
 
 RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
