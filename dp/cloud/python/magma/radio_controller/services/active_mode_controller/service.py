@@ -35,16 +35,9 @@ from dp.protos.active_mode_pb2 import (
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
-from magma.db_service.models import (
-    DBCbsd,
-    DBChannel,
-    DBGrant,
-    DBGrantState,
-    DBRequest,
-)
+from magma.db_service.models import DBCbsd, DBChannel, DBGrant, DBRequest
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
-from magma.mappings.types import GrantStates
 from magma.radio_controller.metrics import (
     ACKNOWLEDGE_UPDATE_PROCESSING_TIME,
     DELETE_CBSD_PROCESSING_TIME,
@@ -154,24 +147,10 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
 
 
 def _list_cbsds(session: Session) -> State:
-    # It might be possible to use join instead of nested queries
-    # however it requires some serious investigation on how to use it
-    # with eager_contains and filter (aliases)
-    db_grant_idle_state_id = session.query(DBGrantState.id).filter(
-        DBGrantState.name == GrantStates.IDLE.value,
-    ).scalar_subquery()
-
     # Selectively load sqlalchemy object relations using a single query to avoid commit races.
-    # We want to have CBSD entity "grants" relation only contain grants in a Non-IDLE state.
-    # We want to have CBSD entity "requests" relation only contain PENDING requests.
     return (
         session.query(DBCbsd).
-        outerjoin(
-            DBGrant, and_(
-                DBGrant.cbsd_id == DBCbsd.id,
-                DBGrant.state_id != db_grant_idle_state_id,
-            ),
-        ).
+        outerjoin(DBGrant).
         outerjoin(DBRequest).
         options(
             joinedload(DBCbsd.state),

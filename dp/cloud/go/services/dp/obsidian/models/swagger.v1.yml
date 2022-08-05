@@ -77,9 +77,10 @@ definitions:
         x-nullable: false
       frequency_preferences:
         $ref: '#/definitions/frequency_preferences'
-      grant:
-        $ref: '#/definitions/grant'
-        x-nullable: false
+      grants:
+        items:
+          $ref: '#/definitions/grant'
+        type: array
       grant_redundancy:
         description: tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
         type: boolean
@@ -178,7 +179,8 @@ definitions:
       state:
         enum:
           - granted
-          - guthorized
+          - authorized
+          - unsync
         type: string
         x-nullable: false
       transmit_expire_time:

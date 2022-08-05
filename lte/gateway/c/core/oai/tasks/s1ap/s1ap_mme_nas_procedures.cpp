@@ -261,8 +261,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
   } else {
     imsi64_t imsi64 = INVALID_IMSI64;
     s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                            (const hash_key_t)ue_ref->mme_ue_s1ap_id, &imsi64);
+    s1ap_imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id, &imsi64);
 
     OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
@@ -335,8 +334,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
           mme_ue_s1ap_id);
       imsi64_t imsi64 = INVALID_IMSI64;
       s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                              (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+      s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
       s1ap_mme_generate_ue_context_release_command(
           state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
@@ -456,8 +454,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl, mme_ue_s1ap_id,
-                          &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
     OAILOG_DEBUG_UE(
@@ -521,9 +518,8 @@ status_code_e s1ap_generate_downlink_nas_transport(
      * * * * Create new IE list message and encode it.
      */
     s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    if (hashtable_uint64_ts_insert(imsi_map->mme_ue_id_imsi_htbl,
-                                   (const hash_key_t)ue_id, imsi64) ==
-        HASH_TABLE_SAME_KEY_VALUE_EXISTS) {
+    if ((imsi_map->mme_ueid2imsi_map.insert(ue_id, imsi64) ==
+         magma::PROTO_MAP_KEY_ALREADY_EXISTS)) {
       *is_state_same = true;
     }
 
@@ -880,8 +876,7 @@ void s1ap_handle_conn_est_cnf(
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_insert(imsi_map->mme_ue_id_imsi_htbl,
-                             (const hash_key_t)conn_est_cnf_pP->ue_id, imsi64);
+  imsi_map->mme_ueid2imsi_map.insert(conn_est_cnf_pP->ue_id, imsi64);
 
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =

@@ -19,27 +19,61 @@ import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
+
+import {AltFormField} from '../../components/FormField';
+import {colors} from '../../theme/default';
 import {withStyles} from '@material-ui/core/styles';
 
 const ENTER_KEY = 13;
 const styles = {
+  capitalize: {
+    textTransform: 'capitalize',
+  },
   card: {
     maxWidth: '400px',
-    margin: '10% auto 0',
+    margin: '24px auto 0',
+    padding: '20px 0',
+  },
+  cardContent: {
+    padding: '0 24px',
   },
   input: {
     display: 'inline-flex',
     width: '100%',
-    margin: '5px 0',
   },
   footer: {
-    padding: '18px 16px 16px',
-    float: 'right',
+    padding: '0 24px',
+  },
+  login: {
+    marginTop: '10%',
   },
   title: {
-    marginBottom: '16px',
     textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+    margin: '12px auto 0',
+    flexDirection: 'column',
+    maxWidth: '400px',
+    alignItems: 'start',
+  },
+  formTitle: {
+    marginBottom: '8px',
+    textAlign: 'left',
     display: 'block',
+    fontSize: '20px',
+  },
+  FormField: {
+    paddingBottom: '0',
+  },
+  submitButton: {
+    width: '100%',
+    marginTop: '16px',
+  },
+  regular: {
+    color: colors.primary.mirage,
+  },
+  gray: {
+    color: colors.primary.gullGray,
   },
 } as const;
 
@@ -53,6 +87,9 @@ type Props = {
   ssoAction?: string;
 };
 
+const HOST_PORTAL_TITLE = 'Magma Host Portal';
+const ORGANIZATION_PORTAL_TITLE = 'Magma Organization Portal';
+
 class LoginForm extends React.Component<Props> {
   form: HTMLFormElement | null = null;
 
@@ -65,67 +102,103 @@ class LoginForm extends React.Component<Props> {
     const params = new URLSearchParams(window.location.search);
     const to = params.get('to');
 
-    if (ssoEnabled) {
-      return (
-        <Card raised={true} className={classes.card}>
-          <CardContent>
-            <Text className={classes.title} variant="h5">
-              {this.props.title}
-            </Text>
-            {error}
-          </CardContent>
-          <CardActions className={classes.footer}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                window.location.href =
-                  (ssoAction || '') + window.location.search;
-              }}>
-              Sign In
-            </Button>
-          </CardActions>
-        </Card>
-      );
-    }
+    const [organization] = window.location.hostname.split('.', 1);
+    const hostPortal: boolean = organization === 'host';
 
     return (
-      <Card raised={true} className={classes.card}>
-        <form
-          ref={ref => (this.form = ref)}
-          method="post"
-          action={this.props.action}>
-          <input type="hidden" name="_csrf" value={csrfToken} />
-          <input type="hidden" name="to" value={to!} />
-          <CardContent>
-            <Text className={classes.title} variant="h5">
-              {this.props.title}
+      <div className={classes.login} data-testid="loginForm">
+        <div className={classes.title}>
+          {!hostPortal && (
+            <Text className={classes.capitalize} variant="h4">
+              {organization}
             </Text>
-            {error}
-            <TextField
-              name="email"
-              label="Email"
-              className={classes.input}
-              onKeyUp={key => key.keyCode === ENTER_KEY && this.form?.submit()}
-            />
-            <TextField
-              name="password"
-              label="Password"
-              type="password"
-              className={classes.input}
-              onKeyUp={key => key.keyCode === ENTER_KEY && this.form?.submit()}
-            />
-          </CardContent>
-          <CardActions className={classes.footer}>
-            <Button
-              onClick={() => this.form?.submit()}
-              variant="contained"
-              color="primary">
-              Login
-            </Button>
-          </CardActions>
-        </form>
-      </Card>
+          )}
+          <Text
+            className={hostPortal ? classes.regular : classes.gray}
+            variant={hostPortal ? 'h4' : 'subtitle1'}>
+            {hostPortal ? HOST_PORTAL_TITLE : ORGANIZATION_PORTAL_TITLE}
+          </Text>
+        </div>
+        <Card raised={true} className={classes.card}>
+          {ssoEnabled ? (
+            <>
+              <CardContent className={classes.cardContent}>
+                <Text className={classes.formTitle} variant="h6">
+                  {`Log in to ${
+                    hostPortal ? 'host' : organization
+                  } user account`}
+                </Text>
+                {error}
+              </CardContent>
+              <CardActions className={classes.footer}>
+                <Button
+                  color="primary"
+                  variant="contained"
+                  className={classes.submitButton}
+                  onClick={() => {
+                    window.location.href =
+                      (ssoAction || '') + window.location.search;
+                  }}>
+                  Login
+                </Button>
+              </CardActions>
+            </>
+          ) : (
+            <>
+              <form
+                ref={ref => (this.form = ref)}
+                method="post"
+                action={this.props.action}>
+                <input type="hidden" name="_csrf" value={csrfToken} />
+                <input type="hidden" name="to" value={to || ''} />
+                <CardContent className={classes.cardContent}>
+                  <Text className={classes.formTitle} variant="h6">
+                    {`Log in to ${
+                      hostPortal ? 'host' : organization
+                    } user account`}
+                  </Text>
+                  {error}
+                  <AltFormField
+                    disableGutters
+                    label={'Email'}
+                    className={classes.FormField}>
+                    <TextField
+                      variant="outlined"
+                      name="email"
+                      placeholder="Email"
+                      className={classes.input}
+                      onKeyUp={key =>
+                        key.keyCode === ENTER_KEY && this.form!.submit()
+                      }
+                    />
+                  </AltFormField>
+                  <AltFormField disableGutters label={'Password'}>
+                    <TextField
+                      variant="outlined"
+                      name="password"
+                      placeholder="Password"
+                      type="password"
+                      className={classes.input}
+                      onKeyUp={key =>
+                        key.keyCode === ENTER_KEY && this.form!.submit()
+                      }
+                    />
+                  </AltFormField>
+                </CardContent>
+                <CardActions className={classes.footer}>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    className={classes.submitButton}
+                    onClick={() => this.form!.submit()}>
+                    Login
+                  </Button>
+                </CardActions>
+              </form>
+            </>
+          )}
+        </Card>
+      </div>
     );
   }
 }

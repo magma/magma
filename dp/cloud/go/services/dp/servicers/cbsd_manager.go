@@ -204,20 +204,6 @@ func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam
 }
 
 func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Duration) *protos.CbsdDetails {
-	const mega int64 = 1e6
-	var grant *protos.GrantDetails
-	if data.GrantState.Name.Valid {
-		bandwidth := (data.Grant.HighFrequency.Int64 - data.Grant.LowFrequency.Int64) / mega
-		frequency := (data.Grant.HighFrequency.Int64 + data.Grant.LowFrequency.Int64) / (mega * 2)
-		grant = &protos.GrantDetails{
-			BandwidthMhz:            bandwidth,
-			FrequencyMhz:            frequency,
-			MaxEirp:                 data.Grant.MaxEirp.Float64,
-			State:                   data.GrantState.Name.String,
-			TransmitExpireTimestamp: data.Grant.TransmitExpireTime.Time.Unix(),
-			GrantExpireTimestamp:    data.Grant.GrantExpireTime.Time.Unix(),
-		}
-	}
 	isActive := clock.Since(data.Cbsd.LastSeen.Time) < inactivityInterval
 	var frequencies []int64
 	_ = json.Unmarshal([]byte(data.Cbsd.PreferredFrequenciesMHz.String), &frequencies)
@@ -247,7 +233,7 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 		CbsdId:   data.Cbsd.CbsdId.String,
 		State:    data.CbsdState.Name.String,
 		IsActive: isActive,
-		Grant:    grant,
+		Grants:   grantsFromDatabase(data.Grants),
 	}
 }
 
@@ -260,6 +246,24 @@ func getInstallationParam(c *storage.DBCbsd) *protos.InstallationParam {
 	p.HeightType = protoStringOrNil(c.HeightType)
 	p.AntennaGain = protoDoubleOrNil(c.AntennaGain)
 	return p
+}
+
+func grantsFromDatabase(grants []*storage.DetailedGrant) []*protos.GrantDetails {
+	const mega int64 = 1e6
+	res := make([]*protos.GrantDetails, len(grants))
+	for i, g := range grants {
+		bw := (g.Grant.HighFrequency.Int64 - g.Grant.LowFrequency.Int64) / mega
+		freq := (g.Grant.HighFrequency.Int64 + g.Grant.LowFrequency.Int64) / (mega * 2)
+		res[i] = &protos.GrantDetails{
+			BandwidthMhz:            bw,
+			FrequencyMhz:            freq,
+			MaxEirp:                 g.Grant.MaxEirp.Float64,
+			State:                   g.GrantState.Name.String,
+			TransmitExpireTimestamp: g.Grant.TransmitExpireTime.Time.Unix(),
+			GrantExpireTimestamp:    g.Grant.GrantExpireTime.Time.Unix(),
+		}
+	}
+	return res
 }
 
 func makeErr(err error, wrap string) error {

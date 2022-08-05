@@ -19,7 +19,13 @@ import {AddEditCbsdButton, CbsdAddEditDialog} from '../CbsdEdit';
 import MagmaAPI from '../../../api/MagmaAPI';
 import {CbsdContextProvider} from '../../../context/CbsdContext';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, waitFor, within} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import {mockAPI, mockAPIError} from '../../../util/TestUtils';
 import type {Cbsd, MutableCbsd} from '../../../../generated';
 
@@ -33,7 +39,7 @@ const mockCbsd: Cbsd = {
     max_power: 24,
     min_power: 0,
     number_of_antennas: 1,
-    max_ibw_mhz: 150,
+    max_ibw_mhz: 100,
   },
   carrier_aggregation_enabled: false,
   grant_redundancy: true,
@@ -61,6 +67,25 @@ const networkId = 'test-network';
 const convertCbsdToMutableCbsd = (cbsdToConvert: Cbsd): MutableCbsd => {
   const {is_active, id, state, cbsd_id, ...payload} = cbsdToConvert;
   return payload;
+};
+
+const fillCheckbox = (testId: string, value: unknown) => {
+  fireEvent.change(screen.getByTestId(testId), {target: {checked: value}});
+};
+
+const fillInput = (testId: string, value: unknown) => {
+  fireEvent.change(screen.getByTestId(testId), {target: {value}});
+};
+
+// See https://stackoverflow.com/a/61491607
+const fillMuiSelect = async (testId: string, optionText: string | number) => {
+  const select = screen.getByTestId(testId);
+  fireEvent.mouseDown(within(select).getByRole('button'));
+  const listbox = screen.getByRole('listbox');
+  fireEvent.click(within(listbox).getByText(new RegExp(`^${optionText}`, 'i')));
+  await waitFor(() => {
+    expect(listbox).not.toBeInTheDocument();
+  });
 };
 
 const renderWithProviders = (jsx: React.ReactNode) => {
@@ -188,21 +213,9 @@ describe('<CbsdAddEditDialog />', () => {
   });
 
   it('Calls postDpByNetworkIdCbsds() and shows success snackbar when CBSD is created', async () => {
-    const {getByTestId, findByTestId, getByRole} = renderWithProviders(
+    const {findByTestId} = renderWithProviders(
       <CbsdAddEditDialog open={true} onClose={() => {}} />,
     );
-
-    const fillInput = (testId: string, value: unknown) => {
-      fireEvent.change(getByTestId(testId), {target: {value}});
-    };
-
-    // See https://stackoverflow.com/a/61491607
-    const fillMuiSelect = (testId: string, optionText: string | number) => {
-      const select = getByTestId(testId);
-      fireEvent.mouseDown(within(select).getByRole('button'));
-      const listbox = within(getByRole('listbox', {hidden: false}));
-      fireEvent.click(listbox.getByText(new RegExp(`^${optionText}`, 'i')));
-    };
 
     fillInput('serial-number-input', mockCbsd.serial_number);
     fillInput('fcc-id-input', mockCbsd.fcc_id);
@@ -215,10 +228,16 @@ describe('<CbsdAddEditDialog />', () => {
       mockCbsd.capabilities.number_of_antennas,
     );
     fillInput('antenna-gain-input', mockCbsd.installation_param.antenna_gain!);
-    fillMuiSelect('desired-state-input', mockCbsd.desired_state);
-    fillMuiSelect('cbsd-category-input', mockCbsd.cbsd_category);
-    fillInput('single-step-enabled-input', mockCbsd.single_step_enabled);
-    fillMuiSelect(
+    await fillMuiSelect('desired-state-input', mockCbsd.desired_state);
+    await fillMuiSelect('cbsd-category-input', mockCbsd.cbsd_category);
+    fillCheckbox('single-step-enabled-input', mockCbsd.single_step_enabled);
+    fillCheckbox('grant-redundancy-enabled-input', mockCbsd.grant_redundancy);
+    fillCheckbox(
+      'carrier-aggregation-enabled-input',
+      mockCbsd.carrier_aggregation_enabled,
+    );
+    fillInput('max-ibw-input', mockCbsd.capabilities.max_ibw_mhz);
+    await fillMuiSelect(
       'bandwidth-input',
       mockCbsd.frequency_preferences.bandwidth_mhz,
     );
@@ -244,6 +263,116 @@ describe('<CbsdAddEditDialog />', () => {
         cbsd: expectedCbsdPayload,
         networkId,
       }),
+    );
+  });
+});
+
+describe('<CbsdAddEditDialog /> carrier aggregation fields', () => {
+  const getGrantRedundancyInput = (): HTMLInputElement =>
+    screen.getByTestId('grant-redundancy-enabled-input');
+
+  const getCarrierAggregationInput = (): HTMLInputElement =>
+    screen.getByTestId('carrier-aggregation-enabled-input');
+
+  it('When cbsd has grant_redundancy = false, the corresponding checkbox is unchecked ', async () => {
+    const cbsd = {
+      ...mockCbsd,
+      grant_redundancy: false,
+    };
+
+    renderWithProviders(
+      <CbsdAddEditDialog open={true} onClose={() => {}} cbsd={cbsd} />,
+    );
+
+    await waitFor(() =>
+      expect(getGrantRedundancyInput().checked).toEqual(false),
+    );
+  });
+
+  it('When cbsd has grant_redundancy = true, the corresponding checkbox is checked ', async () => {
+    const cbsd = {
+      ...mockCbsd,
+      grant_redundancy: true,
+    };
+
+    renderWithProviders(
+      <CbsdAddEditDialog open={true} onClose={() => {}} cbsd={cbsd} />,
+    );
+
+    await waitFor(() =>
+      expect(getGrantRedundancyInput().checked).toEqual(true),
+    );
+  });
+
+  it('When cbsd has carrier_aggregation_enabled = false, the corresponding checkbox is unchecked ', async () => {
+    const cbsd = {
+      ...mockCbsd,
+      carrier_aggregation_enabled: false,
+    };
+
+    renderWithProviders(
+      <CbsdAddEditDialog open={true} onClose={() => {}} cbsd={cbsd} />,
+    );
+
+    await waitFor(() =>
+      expect(getCarrierAggregationInput().checked).toEqual(false),
+    );
+  });
+
+  it('When cbsd has carrier_aggregation_enabled = true, the corresponding checkbox is checked ', async () => {
+    const cbsd = {
+      ...mockCbsd,
+      carrier_aggregation_enabled: true,
+    };
+
+    renderWithProviders(
+      <CbsdAddEditDialog open={true} onClose={() => {}} cbsd={cbsd} />,
+    );
+
+    await waitFor(() =>
+      expect(getCarrierAggregationInput().checked).toEqual(true),
+    );
+  });
+
+  it('When carrier_aggregation_enabled is checked, checks grant_redundancy automatically', async () => {
+    const cbsd = {
+      ...mockCbsd,
+      grant_redundancy: false,
+      carrier_aggregation_enabled: false,
+    };
+
+    renderWithProviders(
+      <CbsdAddEditDialog open={true} onClose={() => {}} cbsd={cbsd} />,
+    );
+
+    fireEvent.click(getCarrierAggregationInput());
+
+    await waitFor(() =>
+      expect(getCarrierAggregationInput().checked).toEqual(true),
+    );
+    await waitFor(() =>
+      expect(getGrantRedundancyInput().checked).toEqual(true),
+    );
+  });
+
+  it('When grant_redundancy is un-checked, un-checks carrier_aggregation_enabled automatically', async () => {
+    const cbsd = {
+      ...mockCbsd,
+      grant_redundancy: true,
+      carrier_aggregation_enabled: true,
+    };
+
+    renderWithProviders(
+      <CbsdAddEditDialog open={true} onClose={() => {}} cbsd={cbsd} />,
+    );
+
+    fireEvent.click(getGrantRedundancyInput());
+
+    await waitFor(() =>
+      expect(getCarrierAggregationInput().checked).toEqual(false),
+    );
+    await waitFor(() =>
+      expect(getGrantRedundancyInput().checked).toEqual(false),
     );
   });
 });

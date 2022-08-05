@@ -118,8 +118,8 @@ class FakeSas(sas_interface.SasInterface):
                 'cbsdId': req['cbsdId'],
                 'availableChannel': [{
                     'frequencyRange': {
-                        'lowFrequency': 3620000000,
-                        'highFrequency': 3630000000,
+                        'lowFrequency': 3550000000,
+                        'highFrequency': 3700000000,
                     },
                     'channelType': 'GAA',
                     'ruleApplied': 'FCC_PART_96',

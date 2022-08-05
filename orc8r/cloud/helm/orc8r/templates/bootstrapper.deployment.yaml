@@ -40,6 +40,8 @@ args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/bootstrapper", "-cak=/var/op
 ports:
   - name: grpc
     containerPort: 9088
+  - name: grpc-internal
+    containerPort: 9188
 livenessProbe:
   tcpSocket:
     port: 9088

@@ -10,8 +10,8 @@ generate_cpp_protos("${SGW_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
 message("s8 Proto_srcs are ${PROTO_SRCS}")
 message("s8 Proto_includes are ${PROTO_HDRS}")
 set(SGW_S8_SRC
-    sgw_s8_task.c
-    sgw_s8_handlers.c
+    sgw_s8_task.cpp
+    sgw_s8_handlers.cpp
     sgw_s8_state.cpp
     sgw_s8_state_manager.cpp
     sgw_s8_state_converter.cpp

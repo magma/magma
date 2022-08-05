@@ -63,7 +63,8 @@ message S1apState {
 }
 
 message S1apImsiMap {
-  map<uint64, uint64> mme_ue_id_imsi_map = 1; // mme_s1ap_ue_id => IMSI64
+  map<uint64, uint64> mme_ue_id_imsi_map = 1 [deprecated = true]; // mme_s1ap_ue_id => IMSI64
+  map<uint32, uint64> mme_ue_s1ap_id_imsi_map = 2; // mme_ue_s1ap_id => IMSI64
 }
 
 message S1apHandoverState {

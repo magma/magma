@@ -16,9 +16,9 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 }
 
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
 
 namespace magma {
