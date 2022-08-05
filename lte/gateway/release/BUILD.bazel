@@ -111,6 +111,13 @@ pkg_filegroup(
 )
 
 pkg_files(
+    name = "magma_go_binaries",
+    srcs = ["//feg/gateway/services/envoy_controller"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+)
+
+pkg_files(
     name = "magma_c_binaries",
     srcs = [
         "//lte/gateway/c/connection_tracker/src:connectiond",
@@ -146,6 +153,7 @@ pkg_tar(
         ":magma_config_stretch_snapshot",
         ":magma_configs",
         ":magma_ebpf",
+        ":magma_go_binaries",
         ":magma_python_scripts",
         ":magma_service_definitions",
         "//lte/gateway/deploy/roles/magma/files:ansible_configs",
