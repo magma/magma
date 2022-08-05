@@ -21,6 +21,8 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import TopBar from '../../components/TopBar';
+import UpgradeButton from './UpgradeTiersDialog';
+
 import {FEGAddGatewayButton} from '../../components/feg/FEGGatewayDialog';
 import {Navigate, Route, Routes} from 'react-router-dom';
 import {Theme} from '@material-ui/core/styles';
@@ -67,7 +69,20 @@ function EquipmentDashboardInternal() {
             label: 'Federation Gateways',
             to: 'gateway',
             icon: CellWifiIcon,
-            filters: <FEGAddGatewayButton />,
+            filters: (
+              <Grid
+                container
+                justifyContent="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  <UpgradeButton />
+                </Grid>
+                <Grid item>
+                  <FEGAddGatewayButton />
+                </Grid>
+              </Grid>
+            ),
           },
         ]}
       />
