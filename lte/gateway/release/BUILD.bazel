@@ -101,6 +101,15 @@ pkg_filegroup(
     prefix = "/var/opt/magma/ebpf",
 )
 
+pkg_filegroup(
+    name = "magma_python_scripts",
+    srcs = [
+        "//lte/gateway/python/load_tests:magma_lte_loadtest_scripts",
+        "//lte/gateway/python/scripts:magma_lte_scripts",
+        "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
+    ],
+)
+
 pkg_files(
     name = "magma_c_binaries",
     srcs = [
@@ -137,6 +146,7 @@ pkg_tar(
         ":magma_config_stretch_snapshot",
         ":magma_configs",
         ":magma_ebpf",
+        ":magma_python_scripts",
         ":magma_service_definitions",
         "//lte/gateway/deploy/roles/magma/files:ansible_configs",
         "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
