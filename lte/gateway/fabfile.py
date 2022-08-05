@@ -876,7 +876,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
         ' source ~/build/python/bin/activate;'
         ' export GATEWAY_IP=%s;'
-        ' make -i %s enable-flaky-retry=true %s\''
+        ' make %s enable-flaky-retry=true %s\''
         % (key, host, port, gateway_ip, test_mode, tests),
     )
 
