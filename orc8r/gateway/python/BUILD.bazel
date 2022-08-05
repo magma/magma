@@ -1,4 +1,4 @@
-# Copyright 2021 The Magma Authors.
+# Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -12,31 +12,26 @@
 load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup")
 load("//bazel:runfiles.bzl", "expand_runfiles")
 
-LTE_PY_SERVICES = [
-    "enodebd",
-    "health",
-    "kernsnoopd",
-    "mobilityd",
-    "monitord",
-    "pipelined",
-    "policydb",
-    "redirectd",
-    "smsd",
-    "subscriberdb",
+ORC8R_PY_SERVICES = [
+    "ctraced",
+    "directoryd",
+    "eventd",
+    "magmad",
+    "state",
 ]
 
 [
     expand_runfiles(
         name = "{py_service}_expanded".format(py_service = py_service),
         targets = [
-            "//lte/gateway/python/magma/{py_service}:{py_service}".format(py_service = py_service),
+            "//orc8r/gateway/python/magma/{py_service}:{py_service}".format(py_service = py_service),
         ],
     )
-    for py_service in LTE_PY_SERVICES
+    for py_service in ORC8R_PY_SERVICES
 ]
 
 pkg_filegroup(
-    name = "magma_python_lte_services",
-    srcs = ["{py_service}_expanded".format(py_service = py_service) for py_service in LTE_PY_SERVICES],
+    name = "magma_python_orc8r_services",
+    srcs = ["{py_service}_expanded".format(py_service = py_service) for py_service in ORC8R_PY_SERVICES],
     visibility = ["//lte/gateway/release:__pkg__"],
 )

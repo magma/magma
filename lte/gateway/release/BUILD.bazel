@@ -18,6 +18,7 @@ bazel build lte/gateway/release:sctpd_deb_pkg --config=production
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//bazel:deb_build.bzl", "PY_DEST")
 
 SCTPD_PKGNAME = "magma-sctpd"
 
@@ -131,6 +132,15 @@ pkg_files(
 )
 
 pkg_filegroup(
+    name = "magma_python_services",
+    srcs = [
+        "//lte/gateway/python:magma_python_lte_services",
+        "//orc8r/gateway/python:magma_python_orc8r_services",
+    ],
+    prefix = PY_DEST,
+)
+
+pkg_filegroup(
     name = "magma_configs",
     srcs = [
         "//lte/gateway/configs:magma_config_files",
@@ -155,6 +165,7 @@ pkg_tar(
         ":magma_ebpf",
         ":magma_go_binaries",
         ":magma_python_scripts",
+        ":magma_python_services",
         ":magma_service_definitions",
         "//lte/gateway/deploy/roles/magma/files:ansible_configs",
         "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
