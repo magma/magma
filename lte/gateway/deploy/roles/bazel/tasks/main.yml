@@ -30,3 +30,10 @@
     path: '/var/cache/bazel-cache-repo'
     state: link
     force: yes
+
+- name: Symlink cache.bazelrc into the VM
+  file:
+    src: '/home/vagrant/magma/bazel/bazelrcs/cache.bazelrc'
+    path: '/var/cache/cache.bazelrc'
+    state: link
+    force: yes

@@ -17,69 +17,69 @@ RUN echo "Install general purpose packages" && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-        apt-transport-https \
-        apt-utils \
-        # dependencies of FreeDiameter
-        bison \
-        build-essential \
-        ca-certificates \
-        cmake \
-        curl \
-        gcc \
-        git \
-        gnupg2 \
-        g++ \
-        # dependency of mobilityd (tests)
-        iproute2 \
-        # dependency of python services (e.g. magmad)
-        iputils-ping \
-        flex \
-        libconfig-dev \
-        # dependency of @sentry_native//:sentry
-        libcurl4-openssl-dev \
-        # dependencies of oai/mme
-        libczmq-dev \
-        libgcrypt-dev \
-        libgmp3-dev \
-        libidn11-dev \
-        libsctp1 \
-        # dependency of sctpd
-        libsctp-dev \
-        libssl-dev \
-        # dependency of pip systemd
-        libsystemd-dev \
-        lld \
-        # dependency of python services (e.g. magmad)
-        net-tools \
-        # dependency of python services (e.g. pipelined)
-        netbase \
-        python${PYTHON_VERSION} \
-        python-is-python3 \
-        software-properties-common \
-        # dependency of python services (e.g. magmad)
-        systemd \
-        unzip \
-        # dependency of liagent
-        uuid-dev \
-        vim \
-        wget \
-        zip
+    apt-transport-https \
+    apt-utils \
+    # dependencies of FreeDiameter
+    bison \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    gcc \
+    git \
+    gnupg2 \
+    g++ \
+    # dependency of mobilityd (tests)
+    iproute2 \
+    # dependency of python services (e.g. magmad)
+    iputils-ping \
+    flex \
+    libconfig-dev \
+    # dependency of @sentry_native//:sentry
+    libcurl4-openssl-dev \
+    # dependencies of oai/mme
+    libczmq-dev \
+    libgcrypt-dev \
+    libgmp3-dev \
+    libidn11-dev \
+    libsctp1 \
+    # dependency of sctpd
+    libsctp-dev \
+    libssl-dev \
+    # dependency of pip systemd
+    libsystemd-dev \
+    lld \
+    # dependency of python services (e.g. magmad)
+    net-tools \
+    # dependency of python services (e.g. pipelined)
+    netbase \
+    python${PYTHON_VERSION} \
+    python-is-python3 \
+    software-properties-common \
+    # dependency of python services (e.g. magmad)
+    systemd \
+    unzip \
+    # dependency of liagent
+    uuid-dev \
+    vim \
+    wget \
+    zip
 
 RUN apt-get install -y --no-install-recommends \
-        libtool=2.4.6-14 && \
+    libtool=2.4.6-14 && \
     echo "Install Folly dependencies" && \
     apt-get install -y --no-install-recommends \
-        libgoogle-glog-dev \
-        libgflags-dev \
-        libboost-all-dev \
-        libevent-dev \
-        libdouble-conversion-dev \
-        libboost-chrono-dev \
-        libiberty-dev && \
+    libgoogle-glog-dev \
+    libgflags-dev \
+    libboost-all-dev \
+    libevent-dev \
+    libdouble-conversion-dev \
+    libboost-chrono-dev \
+    libiberty-dev && \
     echo "Install libtins and connection tracker dependencies" && \
     apt-get install -y --no-install-recommends \
-        libpcap-dev=1.9.1-3 \
-        libmnl-dev=1.0.4-2
+    libpcap-dev=1.9.1-3 \
+    libmnl-dev=1.0.4-2
 
 ## Install Fmt (Folly Dep)
 RUN git clone https://github.com/fmtlib/fmt.git && \
@@ -112,12 +112,12 @@ RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/pub
     add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.7.0 main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
-        bcc-tools \
-        liblfds710 \
-        oai-asn1c \
-        oai-gnutls \
-        oai-nettle \
-        oai-freediameter
+    bcc-tools \
+    liblfds710 \
+    oai-asn1c \
+    oai-gnutls \
+    oai-nettle \
+    oai-freediameter
 
 # Install bazel
 WORKDIR /usr/sbin
@@ -130,5 +130,6 @@ RUN ldconfig -v
 
 RUN ln -s /workspaces/magma/.bazel-cache /var/cache/bazel-cache
 RUN ln -s /workspaces/magma/.bazel-cache-repo /var/cache/bazel-cache-repo
+RUN ln -s /workspaces/magma/bazel/bazelrcs/cache.bazelrc /var/cache/cache.bazelrc
 
 WORKDIR /workspaces/magma
