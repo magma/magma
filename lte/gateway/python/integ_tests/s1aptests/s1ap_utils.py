@@ -31,6 +31,7 @@ from queue import Empty, Queue
 from typing import Optional
 from dev_tools import register_subscriber, LTENetwork
 import fabric
+import tools.fab.types as types
 import tools.fab.dev_utils as dev_utils
 import grpc
 import s1ap_types
@@ -798,12 +799,14 @@ class SubscriberUtil(object):
 
     def add_sub_cloud_and_update_nw_config(self, num_ues=1):
         print("not adding subscriber again")
+        admin_cert = types.ClientCert(cert = '/home/vagrant/magma/.cache/test_certs/admin_operator.pem', key = '/home/vagrant/magma/.cache/test_certs/admin_operator.key.pem')
+        print(admin_cert)
         subscribers = []
         for _ in range(num_ues):
             sid = self._gen_next_sid()
             print("Registering a client")
             # self._subscriber_client.add_subscriber(sid)
-            register_subscriber()
+            register_subscriber(admin_cert)
             print("Registered successfully")
 
             #enabling flags
@@ -837,8 +840,8 @@ class SubscriberUtil(object):
             ),
             dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
             )
-            admin_cert = types.ClientCert(cert = '$MAGMA_ROOT/.cache/test_certs/admin_operator.pem', key = '$MAGMA_ROOT/.cache/test_certs/admin_operator.key.pem')
-            dev_tools.cloud_put(f'lte/{network_id}/cellular', payload,None,None,)
+
+            dev_tools.cloud_put(f'lte/{network_id}/cellular', payload,None,None,admin_cert)
             print("PUT is now complete")
 
 

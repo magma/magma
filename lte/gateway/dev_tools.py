@@ -36,7 +36,7 @@ FEG_FAB_PATH = '../../feg/gateway/'
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def register_subscriber():
+def register_subscriber(admin_cert: Optional[types.ClientCert] = None):
     subscriber_data = SubscriberData(
         active_apns =  ["magma.ipv4"],
         active_base_names = [],
@@ -52,7 +52,7 @@ def register_subscriber():
             sub_profile= "default",),
         name = "subscriber1",
         static_ips = {})
-    _register_subscriber(subscriber_data)
+    _register_subscriber(subscriber_data, admin_cert)
 
 def register_vm():
     network_payload = LTENetwork(
@@ -207,10 +207,10 @@ def check_agw_feg_connectivity(timeout=10):
         dev_utils.run_remote_command_with_repetition("./feg_hello_cli.py m 0", timeout)
 
 
-def _register_subscriber(subscriber_data: Any):
+def _register_subscriber(subscriber_data: Any, admin_cert: Optional[types.ClientCert]):
     network_id=NIDS_BY_TYPE[LTE_NETWORK_TYPE]
     dev_utils.cloud_post(
-        f'lte/{network_id}/subscribers',[subscriber_data]
+        f'lte/{network_id}/subcribers',[subscriber_data], None, None, admin_cert
     )
 
 def _register_network(network_type: str, payload: Any):
