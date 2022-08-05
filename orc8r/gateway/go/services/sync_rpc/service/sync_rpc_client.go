@@ -34,7 +34,6 @@ import (
 
 	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/definitions"
-	_ "magma/orc8r/lib/go/initflag"
 	"magma/orc8r/lib/go/protos"
 )
 

@@ -27,7 +27,6 @@ import (
 	"github.com/golang/glog"
 
 	"magma/gateway/config"
-	_ "magma/orc8r/lib/go/initflag"
 	"magma/orc8r/lib/go/protos"
 )
 

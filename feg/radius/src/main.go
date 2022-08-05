@@ -32,8 +32,6 @@ import (
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/server"
 
-	_ "magma/orc8r/lib/go/initflag"
-
 	"go.uber.org/zap"
 )
 

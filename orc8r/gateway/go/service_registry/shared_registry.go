@@ -19,7 +19,6 @@ import (
 
 	"github.com/golang/glog"
 
-	_ "magma/orc8r/lib/go/initflag"
 	platform_registry "magma/orc8r/lib/go/registry"
 )
 
