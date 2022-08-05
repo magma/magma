@@ -45,16 +45,12 @@ def get_certificate(hostname: str, port: int = 443) -> Optional[x509.Certificate
             binary_certificate = sock.getpeercert(binary_form=True)
             sock.shutdown(socket.SHUT_RDWR)
     except socket.error as e:
-        msg = f'Unable to get SSL certificate for {hostname}: {e}'
-        logger.warning(msg)
-        raise ConnectionError(msg)
+        raise ConnectionError(f'Unable to get SSL certificate for {hostname}: {e}')
 
     try:
         return x509.load_der_x509_certificate(data=binary_certificate)
     except ValueError as e:
-        msg = f'Unable to read SSL certificate for {hostname}: {e}'
-        logger.warning(msg)
-        raise ValueError(msg)
+        raise ValueError(f'Unable to read SSL certificate for {hostname}: {e}')
 
 
 def get_certificate_crls(certificate: x509.Certificate) -> List[x509.CertificateRevocationList]:

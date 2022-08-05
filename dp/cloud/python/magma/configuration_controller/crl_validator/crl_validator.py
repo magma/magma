@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 from typing import List
 from urllib.parse import urlparse
 
@@ -19,6 +20,8 @@ from magma.configuration_controller.crl_validator.certificate import (
     is_certificate_revoked,
 )
 from rwmutex import RWLock
+
+logger = logging.getLogger(__name__)
 
 CERTIFICATE_UNAVAILABLE = 'certificate unavailable'
 
@@ -74,7 +77,7 @@ class CRLValidator(object):
         try:
             with self._lock.read:
                 certificate = self._certificates[host]
-                if certificate is CERTIFICATE_UNAVAILABLE:
+                if certificate == CERTIFICATE_UNAVAILABLE:
                     # If certificate is not available now it should be considered valid.
                     # We can't get CRLs without having the certificate, but CRLs are not mandatory in any way
                     # and certificate is needed here only to validate it against its CRLs. If we don't have it
@@ -101,7 +104,9 @@ class CRLValidator(object):
         for host in self._hosts:
             try:
                 certificate = get_certificate(hostname=host)
-            except (ConnectionError, ValueError):
+            except (ConnectionError, ValueError) as e:
+                logger.warning(e)
+
                 with self._lock.write:
                     self._certificates[host] = CERTIFICATE_UNAVAILABLE
                 continue
