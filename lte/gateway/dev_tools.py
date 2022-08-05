@@ -123,6 +123,7 @@ def register_federated_vm():
         name='Test Network', description='Test Network',
         cellular=NetworkCellularConfig(
             epc=NetworkEPCConfig(
+                cloud_subscriberdb_enabled=False,
                 lte_auth_amf='gAA=',
                 lte_auth_op='EREREREREREREREREREREQ==',
                 mcc='001', mnc='01', tac=1,
@@ -211,7 +212,7 @@ def check_agw_feg_connectivity(timeout=10):
 def _register_subscriber(subscriber_data: Any, admin_cert: Optional[types.ClientCert]):
     network_id=NIDS_BY_TYPE[LTE_NETWORK_TYPE]
     dev_utils.cloud_post(
-        f'lte/{network_id}/subcribers',[subscriber_data], None, None, admin_cert
+        f'lte/{network_id}/subscribers',[subscriber_data], None, None, admin_cert
     )
 
 def _register_network(network_type: str, payload: Any):
