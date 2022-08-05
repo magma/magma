@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import datetime
 
 from freezegun import freeze_time
 from magma.configuration_controller.custom_types.custom_types import DBResponse
@@ -32,7 +33,8 @@ HEARTBEAT_REQUEST = 'heartbeatRequest'
 SOME_SERIAL_NUMBER = 'some_serial_number'
 SOME_NETWORK_ID = 'some_network_id'
 SOME_MESSAGE = 'some_message'
-SOME_DATE = '2020-05-20T00:00:00+00:00'
+SOME_DATE = datetime.datetime.now(datetime.timezone.utc)
+SOME_TIMESTAMP = int(SOME_DATE.timestamp())
 
 
 class IncorrectDPLog(object):
@@ -73,7 +75,7 @@ class DPLogsTestCase(LocalDBTestCase):
 
         # Then
         expected_log = DPLog(
-            event_timestamp=SOME_DATE,
+            event_timestamp=SOME_TIMESTAMP,
             cbsd_serial_number=serial_num,
             fcc_id=fcc_id,
             log_from=DP,
@@ -104,7 +106,7 @@ class DPLogsTestCase(LocalDBTestCase):
 
         # Then
         expected_log = DPLog(
-            event_timestamp=SOME_DATE,
+            event_timestamp=SOME_TIMESTAMP,
             cbsd_serial_number=serial_num,
             fcc_id=fcc_id,
             log_from=SAS,
@@ -121,4 +123,4 @@ class DPLogsTestCase(LocalDBTestCase):
             make_dp_log(IncorrectDPLog())
 
     def test_datetime_now(self):
-        self.assertEqual(SOME_DATE, now())
+        self.assertEqual(SOME_TIMESTAMP, now())
