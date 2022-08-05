@@ -15,7 +15,6 @@ from dp.protos.cbsd_pb2 import (
     CBSDStateResult,
     EnodebdUpdateCbsdRequest,
     InstallationParam,
-    UpdateCbsdResponse,
 )
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
 from google.protobuf.json_format import MessageToJson
@@ -77,7 +76,7 @@ def build_enodebd_update_cbsd_request(
     )
 
 
-def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse:
+def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> CBSDStateResult:
     """
     Make RPC call to 'EnodebdUpdateCbsd' method of dp orc8r service
     """

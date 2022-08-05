@@ -66,6 +66,7 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 
 func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.CBSDStateResult, error) {
 	data := requestToDbCbsd(request)
+	glog.Warningf("Received the following EnodebdUpdateCbsd request: %s", request)
 	details, err := c.store.EnodebdUpdateCbsd(data)
 
 	if err != nil || details.Grants == nil || details.Cbsd.IsDeleted.Bool == true {
@@ -96,7 +97,7 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	}
 
 	c.sendLog(ctx, state, "CbsdStateResponse", "DP", "CBSD", details)
-
+	glog.Warningf("Sending the following CbsdState: %s", state)
 	return state, nil
 }
 
