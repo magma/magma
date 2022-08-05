@@ -837,7 +837,8 @@ class SubscriberUtil(object):
             ),
             dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
             )
-            dev_tools.cloud_put(f'lte/{network_id}/cellular', payload)
+            admin_cert = types.ClientCert(cert = '$MAGMA_ROOT/.cache/test_certs/admin_operator.pem', key = '$MAGMA_ROOT/.cache/test_certs/admin_operator.key.pem')
+            dev_tools.cloud_put(f'lte/{network_id}/cellular', payload,None,None,)
             print("PUT is now complete")
 
 
