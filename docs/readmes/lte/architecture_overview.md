@@ -10,7 +10,7 @@ This document overviews the architecture of the Access Gateway (AGW) component o
 
 ## Overview
 
-The main service within AGW is *magmad*, which serves orchestrates the lifecycle of all other AGW services. The only service *not* managed by magmad is the *sctpd* service (when the AGW is running in stateless mode).
+The main service within AGW is *magmad*, which orchestrates the lifecycle of all other AGW services. The only service *not* managed by magmad is the *sctpd* service (when the AGW is running in stateless mode).
 
 The major services and components hosted within the AGW include
 
