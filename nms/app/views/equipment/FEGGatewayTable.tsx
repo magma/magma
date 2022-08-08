@@ -95,7 +95,7 @@ export default function GatewayTable() {
               <Select
                 value={currentView}
                 input={<OutlinedInput />}
-                onChange={({target}) => setCurrentView(target.value as string)}>
+                onChange={({target}) => setCurrentView(target.value)}>
                 <MenuItem key={ViewTypes.STATUS} value={ViewTypes.STATUS}>
                   Status
                 </MenuItem>
