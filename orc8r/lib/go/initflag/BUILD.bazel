@@ -11,10 +11,16 @@
 
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-# This empty library is needed to satisfy the side-effect imports of
+# This library is needed to satisfy the side-effect imports of
 # this package. E.g. in orc8r/lib/go/service/config/service_config.go
 go_library(
     name = "initflag",
+    srcs = [
+        "initflag.go",
+        "parse_flag_debug.go",
+        "parse_flag_release.go",
+        "syslog.go",
+    ],
     importpath = "magma/orc8r/lib/go/initflag",
     visibility = ["//visibility:public"],
 )
