@@ -286,7 +286,30 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 # Add the s1aptester integration tests with federation gateway
 FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \
-federated_tests/s1aptests/test_attach_detach_multi_ue.py
+federated_tests/s1aptests/test_attach_detach_multi_ue.py \
+federated_tests/s1aptests/test_attach_auth_failure.py \
+federated_tests/s1aptests/test_no_auth_response.py \
+federated_tests/s1aptests/test_nas_non_delivery_for_auth.py \
+federated_tests/s1aptests/test_sctp_abort_after_auth_req.py \
+federated_tests/s1aptests/test_sctp_shutdown_after_auth_req.py \
+federated_tests/s1aptests/test_no_auth_resp_with_mme_restart_reattach.py \
+federated_tests/s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
+federated_tests/s1aptests/test_attach_auth_mac_failure.py \
+federated_tests/s1aptests/test_no_auth_response_with_mme_restart.py \
+federated_tests/s1aptests/test_no_security_mode_complete.py \
+federated_tests/s1aptests/test_no_attach_complete.py \
+federated_tests/s1aptests/test_attach_detach_security_algo_eea0_eia0.py \
+federated_tests/s1aptests/test_attach_detach_security_algo_eea1_eia1.py \
+federated_tests/s1aptests/test_attach_detach_security_algo_eea2_eia2.py \
+federated_tests/s1aptests/test_attach_security_mode_reject.py \
+federated_tests/s1aptests/test_attach_missing_imsi.py \
+federated_tests/s1aptests/test_duplicate_attach.py \
+federated_tests/s1aptests/test_attach_emergency.py \
+federated_tests/s1aptests/test_attach_detach_after_ue_context_release.py \
+federated_tests/s1aptests/test_attach_esm_information_wrong_apn.py \
+federated_tests/s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
+federated_tests/s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py
+
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

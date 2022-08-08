@@ -12,11 +12,8 @@ to run Magma with all of its components. That is, end-to-end tests with all
 components of Magma: AGW, Orc8r and FeG.
 
 Currently, these tests are in an experimental phase, so we are only testing the connectivity of
-AGW - Orc8r - FeG, and we are able to run the following tests using the S1AP tester
+AGW - Orc8r - FeG, and we are able to run the basic authentication related tests using the S1AP tester
 and our mock HSS.
-
-- An attach/detach test
-- An attach/detach test with multiple UEs (for 32 UEs)
 
 ## Architecture
 
