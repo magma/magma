@@ -39631,7 +39631,7 @@ export const RatingGroupsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<RatingGroup>>> {
+        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: RatingGroup; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdRatingGroupsGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -39701,7 +39701,7 @@ export const RatingGroupsApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<Array<RatingGroup>> {
+        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: RatingGroup; }> {
             return localVarFp.networksNetworkIdRatingGroupsGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**
