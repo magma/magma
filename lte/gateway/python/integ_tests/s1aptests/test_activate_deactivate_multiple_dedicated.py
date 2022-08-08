@@ -111,6 +111,7 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
             bearer_ids,
         )
         for i in range(num_dedicated_bearers):
+            time.sleep(0.1)
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
                 response.msg_type,
@@ -124,8 +125,8 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
             )
 
             print(
-                "********************** Deleted dedicated bearer with"
-                "with bearer id",
+                "********************** Deleted dedicated bearer with "
+                "bearer id",
                 bearer_ids[i],
             )
         # Verify if flow rules are deleted for dedicated bearers
