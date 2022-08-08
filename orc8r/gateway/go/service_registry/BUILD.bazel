@@ -22,7 +22,6 @@ go_library(
     importpath_aliases = ["magma/gateway/service_registry"],
     visibility = ["//visibility:public"],
     deps = [
-        "//orc8r/lib/go/initflag",
         "//orc8r/lib/go/protos:common_go_proto",
         "//orc8r/lib/go/registry",
         "//orc8r/lib/go/service/config",
