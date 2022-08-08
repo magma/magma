@@ -15,7 +15,7 @@ subscriber, APN, policy rules, etc.). If an Orc8r is connected, these configurat
 would be overwritten periodically and also lead to restart of services, both of which will
 interfere with the test scenario.
 
-TODO: Update this document once integration tests with cloud are also supported
+<!-- TODO: Update this document once integration tests with cloud are also supported -->
 
 Our VM-only tests use 3 Vagrant-managed VMs hosted on the local device (laptop):
 

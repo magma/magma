@@ -1,5 +1,6 @@
 coverage~=5.5
 mock==4.0.3
+mocket==3.10.6
 parameterized==0.8.1
 pytest==6.2.3
 requests-mock==1.8.0

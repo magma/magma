@@ -164,10 +164,10 @@ typedef struct amf_sap_s {
 } amf_sap_t;
 
 // Message passing from Access to Service Access Point.
-int amf_sap_send(amf_sap_t* msg);
+status_code_e amf_sap_send(amf_sap_t* msg);
 
 // Functions to handle all UL message final actions*/
-int amf_cn_send(const amf_cn_t* msg);
-int amf_reg_send(amf_sap_t* const msg);
+status_code_e amf_cn_send(const amf_cn_t* msg);
+status_code_e amf_reg_send(amf_sap_t* const msg);
 
 }  // namespace  magma5g

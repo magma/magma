@@ -122,7 +122,7 @@ void sgs_fsm_initialize(void) {
  **                                                                        **
  ***************************************************************************/
 status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   sgs_fsm_state_t state;
   sgs_primitive_t primitive;
 

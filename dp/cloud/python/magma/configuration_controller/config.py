@@ -29,6 +29,10 @@ class Config(object):
     REQUEST_PROCESSING_LIMIT = int(
         os.environ.get('REQUEST_PROCESSING_LIMIT', 100),
     )
+    METRICS_PROCESSING_INTERVAL_SEC = int(
+        os.environ.get('METRICS_PROCESSING_INTERVAL_SEC', 5),
+    )
+    SERVICE_HOSTNAME = os.environ.get('SERVICE_HOSTNAME', '')
 
     # Services
     SAS_URL = os.environ.get('SAS_URL', 'https://fake-sas-service/v1.2')
@@ -64,6 +68,7 @@ class Config(object):
     SAS_CERT_PATH = os.environ.get(
         'SAS_CERT_PATH', '/backend/configuration_controller/certs/ca.crt',
     )
+    CRL_CACHE_TIME = int(os.environ.get('CRL_CACHE_TIME', '3600'))
 
 
 class DevelopmentConfig(Config):

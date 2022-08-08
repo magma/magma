@@ -32,9 +32,11 @@ class TestContinuousRandomAttach(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
         print(
             "The test case runs for a pre-defined duration and does not "
-            "guarantee complete detach of all the UEs. Restart sctpd service "
-            "to clear Redis state for subsequent test cases",
+            "guarantee complete detach of all the UEs. Delete residual flow "
+            "rules and restart sctpd service to clear Redis state for "
+            "subsequent test cases",
         )
+        self._s1ap_wrapper._s1_util.delete_ovs_flow_rules()
         self._s1ap_wrapper.magmad_util.restart_sctpd()
         self._s1ap_wrapper.magmad_util.print_redis_state()
 

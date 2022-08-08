@@ -18,8 +18,8 @@ cc_test(
     deps = [
         "//lte/gateway/c/sctpd/src:sctpd_event_handler",
         "//lte/protos:sctpd_cpp_grpc",
-        "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
+        "@system_libraries//:libglog",
     ],
 )
 
@@ -30,7 +30,7 @@ cc_test(
     deps = [
         "//lte/gateway/c/sctpd/src:sctp_assoc",
         "//lte/gateway/c/sctpd/src:sctp_desc",
-        "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
+        "@system_libraries//:libglog",
     ],
 )

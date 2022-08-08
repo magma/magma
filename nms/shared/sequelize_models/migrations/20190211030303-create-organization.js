@@ -10,52 +10,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow strict-local
- * @format
+ *
+ * We are using JSDoc type annotations because renaming this file will cause
+ * the migration to be re-executed.
+ *
+ * NEW MIGRATIONS SHOULD BE WRITTEN IN TYPESCRIPT!
+ *
+ * @typedef { import("sequelize").QueryInterface } QueryInterface
  */
 
-import type {DataTypes, QueryInterface} from 'sequelize';
+import {DataTypes} from 'sequelize';
 
 module.exports = {
-  up: (queryInterface: QueryInterface, types: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  up: ({context: queryInterface}) => {
     return queryInterface.createTable('Organizations', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: types.INTEGER,
+        type: DataTypes.INTEGER,
       },
       customDomains: {
         allowNull: false,
         defaultValue: '[]',
-        type: types.JSON,
+        type: DataTypes.JSON,
       },
       name: {
         allowNull: false,
-        type: types.STRING,
+        type: DataTypes.STRING,
       },
       networkIDs: {
         allowNull: true,
         defaultValue: '[]',
-        type: types.JSON,
+        type: DataTypes.JSON,
       },
       tabs: {
         allowNull: false,
         defaultValue: '[]',
-        type: types.JSON,
+        type: DataTypes.JSON,
       },
       createdAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: types.DATE,
+        type: DataTypes.DATE,
       },
     });
   },
 
-  down: (queryInterface: QueryInterface, _types: DataTypes) => {
+  /**
+   * @param {{ context: QueryInterface}} params
+   */
+  down: ({context: queryInterface}) => {
     return queryInterface.dropTable('Organizations');
   },
 };

@@ -34,7 +34,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
-	github.com/labstack/echo/v4 v4.2.1
+	github.com/labstack/echo/v4 v4.7.2
 	github.com/magma/milenage v1.0.2
 	github.com/mennanov/fieldmask-utils v0.5.0
 	github.com/ory/go-acc v0.2.8
@@ -101,7 +101,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jxskiss/base62 v1.0.0 // indirect
-	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
@@ -115,7 +114,6 @@ require (
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/moriyoshi/routewrapper v0.0.0-20180228100351-e52d8d14cf39 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olivere/elastic/v7 v7.0.6 // indirect
 	github.com/ory/viper v1.7.5 // indirect
@@ -135,6 +133,8 @@ require (
 	github.com/tklauser/numcpus v0.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
+	github.com/vishvananda/netlink v1.1.0 // indirect
+	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	go.mongodb.org/mongo-driver v1.8.2 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/mod v0.5.1 // indirect

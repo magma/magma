@@ -115,6 +115,7 @@
     remote_src: yes
   with_items:
     - config_stateless_agw.py
+    - config_iface_for_ipv6.py
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
@@ -339,7 +340,7 @@
 - name: Download golang tar
   # TODO: make this preburn again
   get_url:
-    url: "https://storage.googleapis.com/golang/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    url: "https://artifactory.magmacore.org/artifactory/generic/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
   when: full_provision
@@ -481,13 +482,6 @@
     state: link
     force: yes
 
-- name: Symlink system wide bazelrc into the VM
-  file:
-    src: '/home/vagrant/magma/bazel/bazelrcs/vm.bazelrc'
-    path: '/etc/bazelrc'
-    state: link
-    force: yes
-
 # TODO: Fix magma-dev VM box and remove this step.
 - name: Install Magma dependencies
   retries: 5
@@ -522,4 +516,13 @@
     dest: /var/opt/magma/ebpf/EbpfMap.h
     force: yes
     remote_src: yes
+  when: full_provision
+
+# TODO: preburn this and add it under MME(OAI) dependencies
+- name: Install SQLite3 C++ library
+  retries: 5
+  apt:
+    state: latest
+    pkg:
+      - libsqlite3-dev
   when: full_provision

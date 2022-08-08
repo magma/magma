@@ -42,7 +42,7 @@ bool s6a_purge_ue(const char* imsi) {
   if (imsi == nullptr) {
     return false;
   }
-  if (!get_s6a_relay_enabled()) {
+  if (!magma::S6aClient::get_s6a_relay_enabled()) {
     return true;
   }
   magma::S6aClient::purge_ue(imsi, [imsiStr = std::string(imsi)](
@@ -50,7 +50,7 @@ bool s6a_purge_ue(const char* imsi) {
                                        feg::PurgeUEAnswer response) {
     auto log_level = "ERROR";
     if (status.ok() &&
-        response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
+        response.error_code() < feg::ErrorCode::COMMAND_UNSUPPORTED) {
       log_level = "INFO";
     }
     // For now, do nothing, just log
@@ -74,7 +74,7 @@ static void s6a_handle_authentication_info_ans(
   itti_msg->imsi_length = imsi_length;
 
   if (status.ok()) {
-    if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
+    if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPPORTED) {
       std::cout << "[INFO] "
                 << "Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: "
                 << imsi << "; Status: " << status.error_message()
@@ -135,7 +135,7 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
   itti_msg->imsi_length = imsi_length;
 
   if (status.ok()) {
-    if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
+    if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPPORTED) {
       std::cout << "[INFO] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
                 << imsi << "; Status: " << status.error_message()
                 << "; StatusCode: " << response.error_code() << std::endl;

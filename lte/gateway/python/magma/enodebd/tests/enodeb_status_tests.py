@@ -82,12 +82,12 @@ class EnodebStatusTests(TestCase):
         )
         manager.handle_tr069_message(ctx1, inform_msg)
         status = get_single_enb_status('120200002618AGP0001', manager)
-        self.assertEquals(
+        self.assertEqual(
             status.connected,
             SingleEnodebStatus.StatusProperty.Value('ON'),
             'Status should be connected.',
         )
-        self.assertEquals(
+        self.assertEqual(
             status.configured,
             SingleEnodebStatus.StatusProperty.Value('OFF'),
             'Status should be not configured.',
@@ -111,7 +111,7 @@ class EnodebStatusTests(TestCase):
         manager.handle_tr069_message(ctx1, inform_msg)
         enb_status_by_serial = get_all_enb_status(manager)
         enb_status = enb_status_by_serial.get('120200002618AGP0001')
-        self.assertEquals(
+        self.assertEqual(
             enb_status.enodeb_connected,
             SingleEnodebStatus.StatusProperty.Value('ON'),
             'Status should be connected.',

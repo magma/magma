@@ -62,7 +62,7 @@ class UplinkBridgeController(MagmaController):
         self._sgi_ip_mon = None
         self._datapath = None
 
-    def _get_config(self, config_dict) -> namedtuple:
+    def _get_config(self, config_dict) -> UplinkBridgeConfig:
 
         enable_nat = config_dict.get('enable_nat', True)
         bridge_name = config_dict.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
@@ -255,15 +255,6 @@ class UplinkBridgeController(MagmaController):
             )
             actions = "output:LOCAL"
             self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
-
-        # forward the node solicite msg to host and UE
-        addr = SOLICITED_NODE_MULTICAST
-        match = "in_port=%s,ipv6,ipv6_dst=%s" % (
-                self.config.uplink_eth_port_name,
-                addr,
-        )
-        actions = "output:%s,output:LOCAL" % self.config.uplink_patch
-        self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
 
     def _delete_all_flows(self):
         if self.config.uplink_bridge is None:

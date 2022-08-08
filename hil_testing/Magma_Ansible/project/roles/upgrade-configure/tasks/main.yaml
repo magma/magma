@@ -1,0 +1,68 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: make sure apt is upto date
+  shell: apt update -y
+
+- name: get current installed magma sw
+  tags: upgrade
+  shell: apt-cache policy magma| grep Installed| cut -d':' -f2
+  register: installed_magma
+
+- name: get candidate magma sw
+  tags: upgrade
+  shell: apt-cache policy magma| grep Candidate| cut -d':' -f2
+  register: candidate_magma
+
+- name: check for upgrade
+  tags: upgrade
+  set_fact:
+    need_upgrade: true
+    cacheable: yes
+  when: installed_magma.stdout != candidate_magma.stdout
+
+- name: Upgrade magma to latest
+  tags: upgrade
+  apt:
+    update_cache: yes
+    state: latest
+    dpkg_options: 'force-overwrite,force-confnew'
+    pkg:
+      - magma
+      - magma-sctpd
+  async: 900
+  poll: 5
+  when: need_upgrade
+
+- name: get current installed sw
+  tags: post-checks
+  shell: apt-cache policy magma| grep Installed| cut -d':' -f2
+  register: installed_sw
+  when: need_upgrade
+
+- name: get candidate sw
+  tags: post-checks
+  shell: apt-cache policy magma| grep Candidate| cut -d':' -f2
+  register: candidate_sw
+  when: need_upgrade
+
+- fail: msg="SUT is not on latest software"
+  tags: post-checks
+  when: (need_upgrade and installed_sw.stdout != candidate_sw.stdout)
+
+- name: set cache for upgrade
+  tags: upgrade
+  set_fact:
+    need_upgrade: false
+    cacheable: yes
+  when: installed_magma.stdout == candidate_magma.stdout
+

@@ -1,3 +1,15 @@
+"""
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.models import DBCbsdState, DBGrantState, DBRequestType
 from magma.db_service.session_manager import SessionManager
@@ -13,7 +25,7 @@ class DBInitializationTestCase(LocalDBTestCase):
 
     @parameterized.expand([
         (DBRequestType, 6),
-        (DBGrantState, 4),
+        (DBGrantState, 3),
         (DBCbsdState, 2),
     ])
     def test_db_is_initialized_with_db_states_and_types(self, model, expected_post_init_count):

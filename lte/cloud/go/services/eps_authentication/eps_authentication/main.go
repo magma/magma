@@ -16,8 +16,8 @@ package main
 import (
 	"github.com/golang/glog"
 
+	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication"
 	"magma/lte/cloud/go/services/eps_authentication/servicers"
 	eps_storage "magma/lte/cloud/go/services/eps_authentication/storage"
@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("EPS Auth Servicer Initialization Error: %s", err)
 	}
-	protos.RegisterEPSAuthenticationServer(srv.GrpcServer, servicer)
+	protos.RegisterS6AProxyServer(srv.GrpcServer, servicer) // EPS Auth server implements S6a Proxy API
 
 	// Run the service
 	err = srv.Run()

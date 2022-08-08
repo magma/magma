@@ -34,8 +34,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
@@ -63,7 +63,7 @@ static int esm_information(emm_context_t* emm_context_p, ebi_t ebi,
 status_code_e esm_proc_esm_information_request(
     emm_context_t* const emm_context_p, const pti_t pti) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
+  status_code_e rc = RETURNok;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -110,7 +110,7 @@ status_code_e esm_proc_esm_information_response(
     const protocol_configuration_options_t* const pco,
     esm_cause_t* const esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   /*
    * Stop T3489 timer if running

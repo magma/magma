@@ -19,7 +19,7 @@ There are two basic options for setting up Magma Cloudstrapper within Amazon Web
     - In “Choose Action”, select “Launch from Website” (default)
     - The EC2 Instance Type dropdown will select “t2.medium” by default
     - Choose preferred values for other drop-boxes. Cloudstrapper will work fine deployed on the public subnet.
-    - Under “Security Group Settings” select a security group that at allows SSH traffic and any other rules that are relevant to your network.
+    - Under “Security Group Settings” select a security group that allows SSH traffic and any other rules that are relevant to your network.
     - Under “Key Pair Settings” select your preferred key pair.
 - Click on Launch
 - In order to ssh into your Cloudstrapper use the key pair .pem file and ubuntu in this format: ssh -i &lt;KeyPair&gt; ubuntu@&lt;InstanceIP&gt;
@@ -108,7 +108,7 @@ varFirstInstall: "false"
     - varBuildType: Using either ‘community’ or ‘custom’ binaries
     - varFirstInstall: Indicating if this is the first install of any kind of Magma or not, to skip some of the default, shared roles created
 
-- First change your directory to ~/magma-dev/magma/experimental/cloudstrapper/playbooks. Next, run the playbook to setup Orchestrator the deployment:
+- First change your directory to `~/magma-dev/magma/experimental/cloudstrapper/playbooks`. Next, run the playbook to set up the Orchestrator deployment:
 
 ```bash
 ansible-playbook orc8r.yaml -e '@<path to parameters file>'

@@ -1,6 +1,9 @@
 version: "3.7"
 
 services:
+  s6a_proxy:
+    depends_on:
+      - hss
   hss:
     container_name: hss
     image: feg_gateway_go
@@ -20,7 +23,7 @@ services:
       # Use 127.0.0.1 when running FEG on the host itself
       # Use 10.0.2.2 when running FEG on Vagrant VM
       - controller.magma.test:10.0.2.2
-      - bootstrapper-controller.magma.test:10.0.0.2
+      - bootstrapper-controller.magma.test:10.0.2.2
     command:
       - /bin/bash
       - -c

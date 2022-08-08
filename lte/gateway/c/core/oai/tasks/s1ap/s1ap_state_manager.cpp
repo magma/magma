@@ -15,13 +15,17 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
 constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
 constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
+constexpr char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 }  // namespace
 
@@ -60,28 +64,25 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(uint32_t max_enbs, uint32_t max_ues) {
+s1ap_state_t* create_s1ap_state(void) {
   bstring ht_name;
 
-  s1ap_state_t* state_cache_p =
-      static_cast<s1ap_state_t*>(calloc(1, sizeof(s1ap_state_t)));
+  s1ap_state_t* state_cache_p = new s1ap_state_t();
+  state_cache_p->enbs.map =
+      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
+  state_cache_p->enbs.set_name(S1AP_ENB_COLL);
+  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
 
-  ht_name = bfromcstr(S1AP_ENB_COLL);
-  hashtable_ts_init(&state_cache_p->enbs, max_enbs, nullptr, free_wrapper,
-                    ht_name);
-  bdestroy(ht_name);
-
-  ht_name = bfromcstr(S1AP_MME_ID2ASSOC_ID_COLL);
-  hashtable_ts_init(&state_cache_p->mmeid2associd, max_ues, nullptr,
-                    hash_free_int_func, ht_name);
-  bdestroy(ht_name);
+  state_cache_p->mmeid2associd.map =
+      new google::protobuf::Map<uint32_t, uint32_t>();
+  state_cache_p->mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
 
   state_cache_p->num_enbs = 0;
   return state_cache_p;
 }
 
 void S1apStateManager::create_state() {
-  state_cache_p = create_s1ap_state(max_enbs_, max_ues_);
+  state_cache_p = create_s1ap_state();
 
   bstring ht_name = bfromcstr(S1AP_ENB_COLL);
   state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
@@ -100,31 +101,27 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   sctp_assoc_id_t assoc_id;
   enb_description_t* enb;
 
-  keys = hashtable_ts_get_keys(&state_cache_p->enbs);
-  if (!keys) {
+  if (state_cache_p->enbs.isEmpty()) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
   } else {
-    for (i = 0; i < keys->num_keys; i++) {
-      assoc_id = (sctp_assoc_id_t)keys->keys[i];
-      ht_rc = hashtable_ts_get(&state_cache_p->enbs, (hash_key_t)assoc_id,
-                               (void**)&enb);
-      if (ht_rc != HASH_TABLE_OK) {
+    for (auto itr = state_cache_p->enbs.map->begin();
+         itr != state_cache_p->enbs.map->end(); itr++) {
+      enb = itr->second;
+      if (!enb) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
-        hashtable_uint64_ts_destroy(&enb->ue_id_coll);
+        enb->ue_id_coll.destroy_map();
       }
     }
-    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  if (hashtable_ts_destroy(&state_cache_p->enbs) != HASH_TABLE_OK) {
+  if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
+  }
+  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying s1 eNB hash table");
+                 "An error occurred while destroying mmeid2associd map");
   }
-  if (hashtable_ts_destroy(&state_cache_p->mmeid2associd) != HASH_TABLE_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
-  }
-  free(state_cache_p);
+  delete state_cache_p;
 }
 
 void S1apStateManager::free_state() {
@@ -186,10 +183,11 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 }
 
 void S1apStateManager::create_s1ap_imsi_map() {
-  s1ap_imsi_map_ = (s1ap_imsi_map_t*)calloc(1, sizeof(s1ap_imsi_map_t));
+  s1ap_imsi_map_ = new s1ap_imsi_map_t();
 
-  s1ap_imsi_map_->mme_ue_id_imsi_htbl =
-      hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
+  s1ap_imsi_map_->mme_ueid2imsi_map.map =
+      new google::protobuf::Map<uint32_t, uint64_t>();
+  s1ap_imsi_map_->mme_ueid2imsi_map.set_name(S1AP_MME_UEID2IMSI_MAP);
 
   if (persist_state_enabled) {
     oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
@@ -203,9 +201,8 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   if (!s1ap_imsi_map_) {
     return;
   }
-  hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
-
-  free_wrapper((void**)&s1ap_imsi_map_);
+  s1ap_imsi_map_->mme_ueid2imsi_map.destroy_map();
+  delete s1ap_imsi_map_;
 }
 
 s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {

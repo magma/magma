@@ -17,15 +17,19 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachNoInitialContextSetupResp(unittest.TestCase):
+class TestAttachNoInitialContextResp(unittest.TestCase):
+    """Integration Test: TestAttachNoInitialContextResp"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_no_initial_context_setup_resp(self):
-        """ Attach, no initial context setup response """
+    def test_attach_no_initial_context_resp(self):
+        """Attach, no initial context setup response"""
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
@@ -41,11 +45,13 @@ class TestAttachNoInitialContextSetupResp(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
@@ -53,38 +59,40 @@ class TestAttachNoInitialContextSetupResp(unittest.TestCase):
         sqnrecvd.pres = 0
         auth_res.sqnRcvd = sqnrecvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
-        )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
 
-        print(
-            "************************* Receive Initial context Setup request ",
-            "for UE id ",
-            ue_id,
+        # Receive initial context setup and attach accept indication
+        response = (
+            self._s1ap_wrapper._s1_util
+                .receive_initial_ctxt_setup_and_attach_accept()
         )
+        attach_acc = response.cast(s1ap_types.ueAttachAccept_t)
+        print(
+            "********************** Received attach accept for UE Id:",
+            attach_acc.ue_Id,
+        )
+
         # Send SCTP ABORT to MME
         sctp_abort = s1ap_types.FwSctpAbortReq_t()
         sctp_abort.cause = 0
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort,
+            s1ap_types.tfwCmd.SCTP_ABORT_REQ,
+            sctp_abort,
         )
         print(
             "************************* Send Initial context Setup response ",

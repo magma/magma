@@ -261,8 +261,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
   } else {
     imsi64_t imsi64 = INVALID_IMSI64;
     s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                            (const hash_key_t)ue_ref->mme_ue_s1ap_id, &imsi64);
+    s1ap_imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id, &imsi64);
 
     OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
@@ -335,8 +334,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
           mme_ue_s1ap_id);
       imsi64_t imsi64 = INVALID_IMSI64;
       s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                              (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+      s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
       s1ap_mme_generate_ue_context_release_command(
           state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
@@ -456,8 +454,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl, mme_ue_s1ap_id,
-                          &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
     OAILOG_DEBUG_UE(
@@ -482,15 +479,14 @@ status_code_e s1ap_generate_downlink_nas_transport(
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  void* id = NULL;
+  uint32_t sctp_assoc_id = 0;
   uint8_t err = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
   // Try to retrieve SCTP association id using mme_ue_s1ap_id
-  if (HASH_TABLE_OK == hashtable_ts_get(&state->mmeid2associd,
-                                        (const hash_key_t)ue_id, (void**)&id)) {
-    sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
+  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
+      magma::PROTO_MAP_OK) {
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
@@ -522,9 +518,8 @@ status_code_e s1ap_generate_downlink_nas_transport(
      * * * * Create new IE list message and encode it.
      */
     s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    if (hashtable_uint64_ts_insert(imsi_map->mme_ue_id_imsi_htbl,
-                                   (const hash_key_t)ue_id, imsi64) ==
-        HASH_TABLE_SAME_KEY_VALUE_EXISTS) {
+    if ((imsi_map->mme_ueid2imsi_map.insert(ue_id, imsi64) ==
+         magma::PROTO_MAP_KEY_ALREADY_EXISTS)) {
       *is_state_same = true;
     }
 
@@ -613,13 +608,12 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  void* id = NULL;
+  uint32_t sctp_assoc_id = 0;
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_setup_req->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
-  hashtable_ts_get(&state->mmeid2associd, (const hash_key_t)ue_id, (void**)&id);
-  if (id) {
-    sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
+  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
+      magma::PROTO_MAP_OK) {
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
@@ -882,8 +876,7 @@ void s1ap_handle_conn_est_cnf(
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_insert(imsi_map->mme_ue_id_imsi_htbl,
-                             (const hash_key_t)conn_est_cnf_pP->ue_id, imsi64);
+  imsi_map->mme_ueid2imsi_map.insert(conn_est_cnf_pP->ue_id, imsi64);
 
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
@@ -1205,24 +1198,22 @@ void s1ap_handle_mme_ue_id_notification(
         return;
       }
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
-      hashtable_rc_t h_rc = hashtable_ts_insert(
-          &state->mmeid2associd, (const hash_key_t)mme_ue_s1ap_id,
-          (void*)(uintptr_t)sctp_assoc_id);
+      magma::proto_map_rc_t rc =
+          state->mmeid2associd.insert(mme_ue_s1ap_id, sctp_assoc_id);
 
-      hashtable_uint64_ts_insert(&enb_ref->ue_id_coll,
-                                 (const hash_key_t)mme_ue_s1ap_id,
+      enb_ref->ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id,
                                  ue_ref->comp_s1ap_id);
 
       OAILOG_DEBUG(LOG_S1AP,
-                   "Num elements in ue_id_coll %zu and num ue associated %u",
-                   enb_ref->ue_id_coll.num_elements, enb_ref->nb_ue_associated);
+                   "Num elements in ue_id_coll %lu and num ue associated %u",
+                   enb_ref->ue_id_coll.size(), enb_ref->nb_ue_associated);
 
       OAILOG_DEBUG(
           LOG_S1AP,
           "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
           sctp_assoc_id, enb_ue_s1ap_id, mme_ue_s1ap_id,
-          hashtable_rc_code2string(h_rc));
+          magma::map_rc_code2string(rc));
       return;
     }
     OAILOG_DEBUG(LOG_S1AP,
@@ -1245,11 +1236,11 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
-  void* id = NULL;
+  uint32_t id = 0;
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_rel_cmd->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_rel_cmd->mme_ue_s1ap_id;
 
-  hashtable_ts_get(&state->mmeid2associd, (const hash_key_t)ue_id, (void**)&id);
+  state->mmeid2associd.get(ue_id, &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
     enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);

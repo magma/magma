@@ -70,18 +70,18 @@ static void handle_decrypted_imsi_info_ans(
   }
 
   message_p =
-      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_APP_DECRYPT_IMSI_INFO_RESP);
+      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_APP_DECRYPT_MSIN_INFO_RESP);
 
-  itti_amf_decrypted_imsi_info_ans_t* amf_app_decrypted_imsi_info_resp;
-  amf_app_decrypted_imsi_info_resp =
+  itti_amf_decrypted_msin_info_ans_t* amf_app_decrypted_msin_info_resp;
+  amf_app_decrypted_msin_info_resp =
       &message_p->ittiMsg.amf_app_decrypt_info_resp;
-  memset(amf_app_decrypted_imsi_info_resp, 0,
-         sizeof(itti_amf_decrypted_imsi_info_ans_t));
+  memset(amf_app_decrypted_msin_info_resp, 0,
+         sizeof(itti_amf_decrypted_msin_info_ans_t));
 
-  magma5g::convert_proto_msg_to_itti_amf_decrypted_imsi_info_ans(
-      response, amf_app_decrypted_imsi_info_resp);
+  magma5g::convert_proto_msg_to_itti_amf_decrypted_msin_info_ans(
+      response, amf_app_decrypted_msin_info_resp);
 
-  amf_app_decrypted_imsi_info_resp->ue_id = ue_id;
+  amf_app_decrypted_msin_info_resp->ue_id = ue_id;
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
@@ -102,7 +102,7 @@ AsyncM5GSUCIRegistrationServiceClient::getInstance() {
   return instance;
 }
 
-M5GSUCIRegistrationRequest create_decrypt_imsi_request(
+M5GSUCIRegistrationRequest create_decrypt_msin_request(
     const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
     const std::string& ciphertext, const std::string& mac_tag) {
   M5GSUCIRegistrationRequest request;
@@ -116,11 +116,11 @@ M5GSUCIRegistrationRequest create_decrypt_imsi_request(
   return request;
 }
 
-bool AsyncM5GSUCIRegistrationServiceClient::get_decrypt_imsi_info(
+bool AsyncM5GSUCIRegistrationServiceClient::get_decrypt_msin_info(
     const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
     const std::string& ciphertext, const std::string& mac_tag,
     amf_ue_ngap_id_t ue_id) {
-  M5GSUCIRegistrationRequest request = create_decrypt_imsi_request(
+  M5GSUCIRegistrationRequest request = create_decrypt_msin_request(
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);
 
   GetSuciInfoRPC(request, [ue_id](const Status& status,
@@ -136,7 +136,7 @@ void AsyncM5GSUCIRegistrationServiceClient::GetSuciInfoRPC(
   auto localResp = new AsyncLocalResponse<M5GSUCIRegistrationAnswer>(
       std::move(callback), RESPONSE_TIMEOUT);
   localResp->set_response_reader(
-      std::move(stub_->AsyncM5GDecryptImsiSUCIRegistration(
+      std::move(stub_->AsyncM5GDecryptMsinSUCIRegistration(
           localResp->get_context(), request, &queue_)));
 }
 

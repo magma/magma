@@ -27,7 +27,7 @@ PROTO_INCLUDES := /usr/include
 endif
 export PROTO_INCLUDES
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/services/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_V1_ROOT)/swagger.yml
@@ -36,8 +36,7 @@ SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
 SWAGGER_V1_COMMON_DIR := $(SWAGGER_V1_SPECS_DIR)/common
 SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
-SWAGGER_NMS_OUT := $(MAGMA_ROOT)/nms/generated/MagmaAPIBindings.js
-SWAGGER_NMS_OUT_TS := $(MAGMA_ROOT)/nms/generated-ts/
+SWAGGER_NMS_OUT := $(MAGMA_ROOT)/nms/generated/
 
 OS_NAME := $(shell uname)
 
@@ -175,38 +174,18 @@ else ifeq ($(OS_NAME),Darwin)
 	$(MAKE) nms_prereqs_osx
 endif
 
-nms_prereqs_ubuntu: nms_node_ubuntu
-	NODE="$(shell which nodejs)"; ln -s $$NODE /usr/local/bin/node
-	# update nodejs to latest
+nms_prereqs_ubuntu:
 	curl -sL https://deb.nodesource.com/setup_lts.x | bash -
-	apt-get install -y nodejs
-	# get codegen dependency
+	apt install -y nodejs
 	npm install --global yarn
-	yarn add swagger-js-codegen
-	yarn add @openapitools/openapi-generator-cli
-
-nms_node_ubuntu:
-	# install pre-reqs
-	apt update
-	# Handle certificate verification
-	apt-get install -y libgnutls30
-	# Get a newer version of nodejs
-	curl -fSL https://deb.nodesource.com/setup_14.x | bash -
-	apt-get install -y nodejs
-	# And now install npm
-	apt install -y aptitude
-	aptitude install -y npm
-	# symlink nodejs executable
-	mkdir -p /usr/local/bin
+	yarn
 
 nms_prereqs_osx:
 	node --version || brew install node
 	npm --version || brew install npm
 	yarn --version || npm install --global yarn
-	yarn add swagger-js-codegen
-	yarn add @openapitools/openapi-generator-cli
+	yarn
 
 nms_gen:
 	# generate Swagger API bindings for NMS
-	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwagger.sh $(SWAGGER_V1_YML) $(SWAGGER_NMS_OUT)
-	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwaggerForTypeScript.sh -f -i $(SWAGGER_V1_YML) -o $(SWAGGER_NMS_OUT_TS)
+	$(MAGMA_ROOT)/nms/scripts/generateAPIFromSwagger.sh -f -i $(SWAGGER_V1_YML) -o $(SWAGGER_NMS_OUT)

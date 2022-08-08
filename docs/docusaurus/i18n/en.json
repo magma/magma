@@ -99,8 +99,8 @@
       "feg/docker_setup": {
         "title": "FeG Docker Setup"
       },
-      "feg/s1ap_federated_test": {
-        "title": "S1AP Federated Integration Test"
+      "feg/s1ap_federated_tests": {
+        "title": "S1AP Federated Integration Tests"
       },
       "feg/session_proxy": {
         "title": "feg/session_proxy"
@@ -255,6 +255,9 @@
         "title": "AGW Setup (With Vagrant)",
         "sidebar_label": "Setup (With Vagrant)"
       },
+      "lte/suci_extensions": {
+        "title": "SUCI Extensions"
+      },
       "lte/dev_teid_allocation": {
         "title": "TEID Allocation"
       },
@@ -365,6 +368,9 @@
       },
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
+      },
+      "orc8r/deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju (Beta)"
       },
       "orc8r/dev_aws_stack": {
         "title": "AWS Stack"

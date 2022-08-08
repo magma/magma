@@ -52,7 +52,7 @@ setup to handle your own/local subscribers. So before configuring Inbound
 Roaming you need:
 - Install [Or8cr](https://docs.magmacore.org/docs/orc8r/architecture_overview),
 - Install [Federatetion Gateway](https://docs.magmacore.org/docs/feg/deploy_intro) and,
-- Install [Access Gateway](https://docs.magmacoreorg/docs/lte/setup_deb).
+- Install [Access Gateway](https://docs.magmacore.org/docs/lte/setup_deb).
 - Create a Federate Deployment (see [below](#Create a Federated Deployment)).
 - Make sure your setup is able to serve calls with your local subscribers
 

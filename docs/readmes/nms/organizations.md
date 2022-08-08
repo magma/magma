@@ -16,8 +16,7 @@ organization name. For example, users of a `facebook` organization in the NMS
 would access the NMS using `facebook.nms.yourdomain.com`.
 
 Note that multitenacy is currently only supported through mechanisms living
-in the NMS, but not through the Orc8r API. This is planned to be unified with
-Magma v1.8.
+in the NMS, but not through the Orc8r API.
 
 ## First-time Setup
 

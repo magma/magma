@@ -12,10 +12,8 @@
  */
 #include <vector>
 
-extern "C" {
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
-}
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 
 namespace magma {
 

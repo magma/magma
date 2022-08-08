@@ -28,9 +28,9 @@ controller:
     database:
       driver: postgres  # mysql/postgres
       sql_dialect: psql  # maria/psql
-      db: dp_test
+      db: dp
       host: db
-      port: 5433
+      port: 5432
       user: postgres
       pass: postgres
     service_registry:
@@ -53,7 +53,7 @@ logging:
 #
 ## Metrics
 metrics:
-  enabled: false
+  enabled: true
   imagePullSecrets:
     - name: orc8r-secrets-registry
 
@@ -112,6 +112,7 @@ nginx:
   spec:
     hostname: localhost
 nms:
+  enabled: false
   nginx:
     deployment:
       spec:
@@ -135,11 +136,11 @@ nms:
       service: true
     env:
       api_host: orc8r-nginx-proxy:443
-      mysql_db: dp_test
+      mysql_db: dp
       mysql_dialect: postgres
       mysql_host: db
       mysql_pass: postgres
-      mysql_port: 5433
+      mysql_port: 5432
       mysql_user: postgres
     image:
       repository: magmalte
@@ -155,7 +156,9 @@ nms:
         api:
           targetPort: 9443
 dp:
+  enabled: true
   cbsd_inactivity_interval_sec: 3
+  log_consumer_url: "http://domain-proxy-fluentd:9888/dp"
   service:
     labels:
       orc8r.io/obsidian_handlers: "true"

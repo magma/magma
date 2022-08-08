@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import sys
+import time
 from distutils.util import strtobool
 from time import sleep
 
@@ -51,7 +52,7 @@ in `release/magma.lockfile`
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
 FEG_INTEG_TEST_ROOT = AGW_PYTHON_ROOT + "/integ_tests/federated_tests"
-FEG_INTEG_TEST_DOCKER_ROOT = FEG_INTEG_TEST_ROOT + "/Docker"
+FEG_INTEG_TEST_DOCKER_ROOT = FEG_INTEG_TEST_ROOT + "/docker"
 ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
@@ -219,23 +220,79 @@ def s1ap_setup_cloud():
     run("sudo systemctl restart magma@magmad")
 
 
+def open_orc8r_port_in_vagrant():
+    """
+    Add a line to Vagrantfile file to open 9445 port on Vagrant.
+    Note that localhost request to 9443 will be sent to Vagrant vm.
+    Remove this line manually if you intend to run orc8r on your host
+    """
+    cmd_yes_if_exists = """grep -q 'guest: 9443, host: 9443' Vagrantfile"""
+
+    # Insert line after a specific line
+    cmd_insert_line = \
+        "awk '/config.vm.define :magma,/{print;print " \
+        "\"    magma.vm.network \\\"forwarded_port\\\", " \
+        "guest: 9443, host: 9443\"" \
+        ";next}1' Vagrantfile >> Vagrantfile.bak00 && " \
+        "cp Vagrantfile.bak00 Vagrantfile && rm Vagrantfile.bak00"
+
+    local("{} || ({})".format(cmd_yes_if_exists, cmd_insert_line))
+
+
+def redirect_feg_agw_to_vagrant_orc8r():
+    """
+    Modifies feg docker-compose.override.yml hosts and AGW /etc/hosts
+    to point to localhost when Orc8r runs on inside Vagrant
+    """
+    local(
+        "sed -i '' 's/:10.0.2.2/:127.0.0.1/' {}/docker-compose.override.yml"
+        .format(FEG_INTEG_TEST_DOCKER_ROOT),
+    )
+
+    vagrant_setup(
+        'magma', destroy_vm=False, force_provision=False,
+    )
+    sudo("sed -i 's/10.0.2.2/127.0.0.1/' /etc/hosts")
+
+
 def federated_integ_test(
         build_all='False', clear_orc8r='False', provision_vm='False',
-        destroy_vm='False',
+        destroy_vm='False', orc8r_on_vagrant='False',
 ):
     build_all = bool(strtobool(build_all))
     clear_orc8r = bool(strtobool(clear_orc8r))
     provision_vm = bool(strtobool(provision_vm))
     destroy_vm = bool(strtobool(destroy_vm))
+    orc8r_on_vagrant = bool(strtobool(orc8r_on_vagrant))
+
+    if orc8r_on_vagrant:
+        # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
+        execute(open_orc8r_port_in_vagrant)
+
     with lcd(FEG_INTEG_TEST_ROOT):
         if build_all:
             local(
-                "fab build_all:clear_orc8r={},provision_vm={}".
-                format(clear_orc8r, provision_vm),
+                "fab build_all:clear_orc8r={},provision_vm={},"
+                "orc8r_on_vagrant={}".format(
+                    clear_orc8r,
+                    provision_vm,
+                    orc8r_on_vagrant,
+                ),
             )
-        local("fab start_all")
+
+        if orc8r_on_vagrant:
+            # modify dns entries to find Orc8r from inside Vagrant
+            execute(redirect_feg_agw_to_vagrant_orc8r)
+
+        local("fab start_all:orc8r_on_vagrant={}".format(orc8r_on_vagrant))
+
+        if orc8r_on_vagrant:
+            print("Wait for orc8r to be available")
+            sleep(60)
+
         local("fab configure_orc8r")
-        local("fab test_connectivity")
+        sleep(20)
+        local("fab test_connectivity:timeout=200")
 
     vagrant_setup(
         'magma_trfserver', destroy_vm, force_provision=provision_vm,
@@ -245,7 +302,120 @@ def federated_integ_test(
         'magma_test', destroy_vm, force_provision=provision_vm,
     )
     execute(_make_integ_tests)
-    execute(run_integ_tests, "federated_tests/s1aptests/test_attach_detach.py")
+    sleep(20)
+    execute(run_integ_tests, federated_mode=True)
+
+
+def _modify_for_bazel_services():
+    """ Modify the service definitions to use the bazel-built executables """
+    run(r"sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/")
+    run("sudo systemctl daemon-reload")
+
+
+def bazel_integ_test_pre_build(
+    gateway_host=None, test_host=None, trf_host=None,
+    destroy_vm='True', provision_vm='True',
+):
+    """
+    Prepare to run the integration tests on the bazel build services.
+    This defaults to running on local vagrant machines, but can also be
+    pointed to an arbitrary host (e.g. amazon) by passing "address:port"
+    as arguments
+
+    gateway_host: The ssh address string of the machine to run the gateway
+        services on. Formatted as "host:port". If not specified, defaults to
+        the `magma` vagrant box.
+
+    test_host: The ssh address string of the machine to run the tests on
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_test` vagrant box.
+
+    trf_host: The ssh address string of the machine to run the TrafficServer
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_trfserver` vagrant box.
+    """
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    # Setup the gateway: use the provided gateway if given, else default to the
+    # vagrant machine
+    gateway_ip = '192.168.60.142'
+
+    if not gateway_host:
+        gateway_host = vagrant_setup(
+            'magma', destroy_vm, force_provision=provision_vm,
+        )
+    else:
+        ansible_setup(gateway_host, "dev", "magma_dev.yml")
+        gateway_ip = gateway_host.split('@')[1].split(':')[0]
+
+    execute(_dist_upgrade)
+    execute(_modify_for_bazel_services)
+
+
+def bazel_integ_test_post_build(
+    gateway_host=None, test_host=None, trf_host=None,
+    destroy_vm='True', provision_vm='True',
+):
+    """
+    Run the integration tests on the bazel build services. This defaults to
+    running on local vagrant machines, but can also be pointed to an
+    arbitrary host (e.g. amazon) by passing "address:port" as arguments
+
+    gateway_host: The ssh address string of the machine to run the gateway
+        services on. Formatted as "host:port". If not specified, defaults to
+        the `magma` vagrant box.
+
+    test_host: The ssh address string of the machine to run the tests on
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_test` vagrant box.
+
+    trf_host: The ssh address string of the machine to run the TrafficServer
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_trfserver` vagrant box.
+    """
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    gateway_ip = '192.168.60.142'
+
+    if not gateway_host:
+        gateway_host = vagrant_setup(
+            'magma', False, force_provision=False,
+        )
+    else:
+        ansible_setup(gateway_host, "dev", "magma_dev.yml")
+        gateway_ip = gateway_host.split('@')[1].split(':')[0]
+
+    execute(_run_sudo_python_unit_tests)
+    execute(_restart_gateway)
+
+    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    if not trf_host:
+        trf_host = vagrant_setup(
+            'magma_trfserver', destroy_vm, force_provision=provision_vm,
+        )
+    else:
+        ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
+    execute(_start_trfserver)
+
+    # Run the tests: use the provided test machine if given, else default to
+    # the vagrant machine
+    if not test_host:
+        test_host = vagrant_setup(
+            'magma_test', destroy_vm, force_provision=provision_vm,
+        )
+    else:
+        ansible_setup(test_host, "test", "magma_test.yml")
+
+    execute(_make_integ_tests)
+    execute(_run_integ_tests, gateway_ip)
+
+    if not gateway_host:
+        setup_env_vagrant()
+    else:
+        env.hosts = [gateway_host]
 
 
 def integ_test(
@@ -323,7 +493,7 @@ def integ_test(
         env.hosts = [gateway_host]
 
 
-def run_integ_tests(tests=None):
+def run_integ_tests(tests=None, federated_mode=False):
     """
     Function is required to run tests only in pre-configured Jenkins env.
 
@@ -336,17 +506,19 @@ def run_integ_tests(tests=None):
 
     In case of selecting specific test like follows:
     $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
+    $ fab run_integ_tests:tests=federated_tests/s1aptests/test_attach_detach.py,federated_mode=True
 
     The specific test will be executed as a result of the execution of following
     command in test machine:
     $ make integ_test TESTS=s1aptests/test_attach_detach.py
+    $ make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
     """
     test_host = vagrant_setup("magma_test", destroy_vm=False)
     gateway_ip = '192.168.60.142'
     if tests:
         tests = "TESTS=" + tests
 
-    execute(_run_integ_tests, gateway_ip, tests)
+    execute(_run_integ_tests, gateway_ip, tests, federated_mode)
 
 
 def get_test_summaries(
@@ -546,6 +718,17 @@ def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
     sudo('service magma@magmad start')
 
 
+def build_test_vms(provision_vm='False', destroy_vm='False'):
+    vagrant_setup(
+        'magma_trfserver', destroy_vm, force_provision=provision_vm,
+    )
+
+    vagrant_setup(
+        'magma_test', destroy_vm, force_provision=provision_vm,
+    )
+    execute(_make_integ_tests)
+
+
 def _copy_out_c_execs_in_magma_vm():
     with settings(warn_only=True):
         exec_paths = [
@@ -595,6 +778,13 @@ def _start_gateway():
 
     with cd(AGW_ROOT):
         run('make run')
+
+
+def _restart_gateway():
+    """ Restart the gateway """
+
+    with cd(AGW_ROOT):
+        run('make restart')
 
 
 def _set_service_config_var(service, var_name, value):
@@ -649,7 +839,7 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
+def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=False):
     """ Run the integration tests
 
     For now, just run a single basic test
@@ -659,6 +849,10 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
     tests = tests or ''
+    test_mode = 'integ_test'
+    if federated_mode:
+        test_mode = 'fed_integ_test'
+
     """
     NOTE: the s1aptester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
@@ -681,8 +875,8 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
         ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
         ' source ~/build/python/bin/activate;'
         ' export GATEWAY_IP=%s;'
-        ' make -i integ_test enable-flaky-retry=true %s\''
-        % (key, host, port, gateway_ip, tests),
+        ' make -i %s enable-flaky-retry=true %s\''
+        % (key, host, port, gateway_ip, test_mode, tests),
     )
 
 

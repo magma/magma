@@ -19,7 +19,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 from datetime import datetime
 from difflib import unified_diff
-from typing import List, Optional, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -42,6 +42,8 @@ from magma.pipelined.tests.app.exceptions import (
 )
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator
 from ryu.lib import hub
 
 """
@@ -49,7 +51,6 @@ Pipelined test util functions can be used for testing pipelined, the usage of
 these functions can be seen in pipelined/tests/test_*.py files
 """
 
-SubTest = namedtuple('SubTest', ['context', 'isolator', 'flowtest_list'])
 PktsToSend = namedtuple('PktsToSend', ['pkt', 'num'])
 QueryMatch = namedtuple('QueryMatch', ['pkts', 'flow_count'])
 
@@ -59,10 +60,18 @@ SNAPSHOT_EXTENSION = '.snapshot'
 
 # Tuple for FlowVerifier, class wrapper needed becuse of optional flow_count
 class FlowTest(namedtuple('FlowTest', ['query', 'match_num', 'flow_count'])):
+    __test__ = False
     __slots__ = ()
 
     def __new__(cls, query, match_num, flow_count=None):
         return super(FlowTest, cls).__new__(cls, query, match_num, flow_count)
+
+
+class SubTest(NamedTuple):
+    __test__ = False
+    context: RyuDirectSubscriberContext
+    isolator: RyuDirectTableIsolator
+    flowtest_list: FlowTest
 
 
 class WaitTimeExceeded(Exception):
@@ -473,6 +482,7 @@ def fail(
         stdout=subprocess.PIPE,
         shell=True,
     )
+    assert p.stdout is not None
     ofctl_dump = p.stdout.read().decode("utf-8", 'ignore').strip()
     logging.error("cmd ofctl_dump: %s", ofctl_dump)
 
@@ -698,6 +708,7 @@ def get_ovsdb_port_tag(port_name: str) -> Optional[str]:
         ["ovsdb-client", "dump", "Port", "name", "tag"],
         stdout=subprocess.PIPE,
     )
+    assert dump1.stdout is not None
     for port in dump1.stdout.readlines():
         if port_name not in str(port):
             continue

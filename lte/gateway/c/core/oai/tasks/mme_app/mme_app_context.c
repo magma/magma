@@ -242,6 +242,20 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   }
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
 
+  // Delete pending dedicated bearer request
+  for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
+    if (ue_context_p->pending_ded_ber_req[idx]) {
+      if (ue_context_p->pending_ded_ber_req[idx]->tft) {
+        free_traffic_flow_template(
+            &ue_context_p->pending_ded_ber_req[idx]->tft);
+      }
+      if (ue_context_p->pending_ded_ber_req[idx]->pco) {
+        free_protocol_configuration_options(
+            &ue_context_p->pending_ded_ber_req[idx]->pco);
+      }
+      free_wrapper((void**)&ue_context_p->pending_ded_ber_req[idx]);
+    }
+  }
   ue_context_p->send_ue_purge_request = false;
   ue_context_p->hss_initiated_detach = false;
   for (int i = 0; i < MAX_APN_PER_UE; i++) {
@@ -1686,7 +1700,7 @@ void mme_app_remove_stale_ue_context(
           &mme_ue_s1ap_id) == HASH_TABLE_OK) {
     ue_mm_context_t* ue_context_p =
         mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
-    if (!ue_context_p) {
+    if (ue_context_p) {
       hashtable_uint64_ts_remove(
           mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
           (const hash_key_t)enb_s1ap_id_key);
@@ -1697,6 +1711,7 @@ void mme_app_remove_stale_ue_context(
           (mme_ue_s1ap_id_t)mme_ue_s1ap_id,
           s1ap_remove_stale_ue_context->enb_ue_s1ap_id,
           s1ap_remove_stale_ue_context->enb_id);
+      ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);

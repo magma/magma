@@ -59,7 +59,8 @@ git clone "${GIT_URL}" freediameter
 cd freediameter
 git checkout "${GIT_COMMIT}"
 
-patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch
+patch -p1 < "$MAGMA_ROOT/lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch"
+patch -p1 < "$MAGMA_ROOT/lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch"
 
 awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt
 
@@ -77,20 +78,20 @@ PKGFILE="$(pkgfilename)"
 BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
 
 # remove old packages
-if [ -f ${BUILD_PATH} ]; then
-  rm ${BUILD_PATH}
+if [ -f "${BUILD_PATH}" ]; then
+  rm "${BUILD_PATH}"
 fi
 
 fpm \
     -s dir \
-    -t ${PKGFMT} \
-    -a ${ARCH} \
-    -n ${PKGNAME} \
-    -v ${PKGVERSION} \
-    --iteration ${ITERATION} \
-    --provides ${PKGNAME} \
-    --conflicts ${PKGNAME} \
-    --replaces ${PKGNAME} \
-    --package ${BUILD_PATH} \
+    -t "${PKGFMT}" \
+    -a "${ARCH}" \
+    -n "${PKGNAME}" \
+    -v "${PKGVERSION}" \
+    --iteration "${ITERATION}" \
+    --provides "${PKGNAME}" \
+    --conflicts "${PKGNAME}" \
+    --replaces "${PKGNAME}" \
+    --package "${BUILD_PATH}" \
     --description 'freediameter' \
     -C ${WORK_DIR}/install

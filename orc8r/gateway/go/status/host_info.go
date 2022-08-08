@@ -17,11 +17,11 @@ import (
 	"net"
 
 	"github.com/emakeev/snowflake"
-	"github.com/moriyoshi/routewrapper"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	gopsutil_net "github.com/shirou/gopsutil/v3/net"
+	"github.com/vishvananda/netlink"
 )
 
 var (
@@ -31,7 +31,7 @@ var (
 	hostInfo      *host.InfoStat
 	netInterfaces []gopsutil_net.InterfaceStat
 	disksInfo     []disk.PartitionStat
-	hostRoutes    []routewrapper.Route
+	hostRoutes    []netlink.Route
 	bootTime      uint64
 	vpnIp         string
 	machineInfo   *MachineInfo
@@ -78,10 +78,7 @@ func init() {
 	}
 	disksInfo, _ = disk.Partitions(true)
 
-	w, err := routewrapper.NewRouteWrapper()
-	if err == nil {
-		hostRoutes, _ = w.Routes()
-	}
+	hostRoutes, _ = netlink.RouteList(nil, netlink.FAMILY_V4)
 	machineInfo = GetMachineInfo()
 	platformInfo = GetPlatformInfo()
 }

@@ -14,5 +14,6 @@ limitations under the License.
 package dp
 
 type Config struct {
-	CbsdInactivityIntervalSec int `yaml:"cbsd_inactivity_interval_sec"`
+	CbsdInactivityIntervalSec int    `yaml:"cbsd_inactivity_interval_sec"`
+	LogConsumerUrl            string `yaml:"log_consumer_url"`
 }

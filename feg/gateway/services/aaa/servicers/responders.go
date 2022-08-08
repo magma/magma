@@ -235,7 +235,7 @@ func (srv *accountingService) Reset(_ context.Context, req *fegprotos.ResetReque
 	imsis := req.GetUserId()
 	if len(imsis) == 0 { // we do not support reset all request
 		glog.Warning("S6a Reset ALL is not supported")
-		res.ErrorCode = fegprotos.ErrorCode_COMMAND_UNSUPORTED
+		res.ErrorCode = fegprotos.ErrorCode_COMMAND_UNSUPPORTED
 		return res, nil
 	}
 	for _, imsi := range imsis {

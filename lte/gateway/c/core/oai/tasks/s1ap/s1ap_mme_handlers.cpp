@@ -34,7 +34,6 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -43,6 +42,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_CNDomain.h"
@@ -124,7 +124,7 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 
 static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
-                                           const hash_key_t keyP,
+                                           uint32_t keyP,
                                            uint64_t const dataP, void* argP,
                                            void** resultP);
 /* Handlers matrix. Only mme related procedures present here.
@@ -381,8 +381,8 @@ status_code_e s1ap_mme_generate_s1_setup_failure(const sctp_assoc_id_t assoc_id,
 
 //------------------------------------------------------------------------------
 bool get_stale_enb_connection_with_enb_id(__attribute__((unused))
-                                          const hash_key_t keyP,
-                                          void* const elementP,
+                                          const uint32_t keyP,
+                                          enb_description_t* const elementP,
                                           void* parameterP, void** resultP) {
   enb_description_t* new_enb_association = (enb_description_t*)parameterP;
   enb_description_t* ht_enb_association = (enb_description_t*)elementP;
@@ -405,8 +405,9 @@ void clean_stale_enb_state(s1ap_state_t* state,
                            enb_description_t* new_enb_association) {
   enb_description_t* stale_enb_association = NULL;
 
-  hashtable_ts_apply_callback_on_elements(
-      &state->enbs, get_stale_enb_connection_with_enb_id, new_enb_association,
+  state->enbs.map_apply_callback_on_all_elements(
+      get_stale_enb_connection_with_enb_id,
+      reinterpret_cast<void*>(new_enb_association),
       (void**)&stale_enb_association);
   if (stale_enb_association == NULL) {
     // No stale eNB connection found;
@@ -416,18 +417,16 @@ void clean_stale_enb_state(s1ap_state_t* state,
   OAILOG_INFO(LOG_S1AP, "Found stale eNB at association id %d",
               stale_enb_association->sctp_assoc_id);
   // Remove the S1 context for UEs associated with old eNB association
-  hashtable_key_array_t* keys =
-      hashtable_uint64_ts_get_keys(&stale_enb_association->ue_id_coll);
-  if (keys != NULL) {
+  if (stale_enb_association->ue_id_coll.size()) {
     ue_description_t* ue_ref = NULL;
-    for (int i = 0; i < keys->num_keys; i++) {
-      ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t)keys->keys[i]);
+    for (auto itr_map = stale_enb_association->ue_id_coll.map->begin();
+         itr_map != stale_enb_association->ue_id_coll.map->end(); ++itr_map) {
+      ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t)itr_map->first);
       /* The function s1ap_remove_ue will take care of removing the enb also,
        * when the last UE is removed
        */
       s1ap_remove_ue(state, ue_ref);
     }
-    FREE_HASHTABLE_KEY_ARRAY(keys);
   } else {
     // Remove the old eNB association
     OAILOG_INFO(LOG_S1AP, "Deleting eNB: %s (Sctp_assoc_id = %u)",
@@ -560,9 +559,9 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     OAILOG_WARNING(LOG_S1AP,
                    "Ignoring s1setup from eNB in state %s on assoc id %u",
                    s1_enb_state2str(enb_association->s1_state), assoc_id);
-    OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
-                 enb_association->nb_ue_associated,
-                 enb_association->ue_id_coll.num_elements);
+    OAILOG_DEBUG(
+        LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %zu",
+        enb_association->nb_ue_associated, enb_association->ue_id_coll.size());
     rc = s1ap_mme_generate_s1_setup_failure(
         assoc_id, S1ap_Cause_PR_transport,
         S1ap_CauseTransport_transport_resource_unavailable,
@@ -570,12 +569,12 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     increment_counter("s1_setup", 1, 2, "result", "failure", "cause",
                       "invalid_state");
     /* UE state at s1ap task is created on reception of initial ue message
-     * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map, ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
      */
-    if (enb_association->ue_id_coll.num_elements == 0) {
+    if (enb_association->ue_id_coll.size() == 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP,
                          s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
                              state, enb_association->sctp_assoc_id));
@@ -584,10 +583,10 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     MessageDef* message_p = NULL;
 
     arg.associated_enb_id = enb_association->enb_id;
-    arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
-    hashtable_uint64_ts_apply_callback_on_elements(
-        &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind,
-        (void*)&arg, (void**)&message_p);
+    arg.deregister_ue_count = enb_association->ue_id_coll.size();
+    enb_association->ue_id_coll.map_apply_callback_on_all_elements(
+        s1ap_send_enb_deregistered_ind, reinterpret_cast<void*>(&arg),
+        reinterpret_cast<void**>(&message_p));
 
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
@@ -881,8 +880,7 @@ status_code_e s1ap_mme_handle_ue_cap_indication(s1ap_state_t* state,
   }
 
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UECapabilityInfoIndicationIEs_t, ie,
                              container, S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID,
@@ -996,8 +994,7 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialContextSetupResponseIEs_t, ie,
                              container, S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID,
@@ -1259,8 +1256,7 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                            (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+    imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
     if (ue_ref_p->sctp_assoc_id == assoc_id &&
         ue_ref_p->enb_ue_s1ap_id == enb_ue_s1ap_id) {
       /*
@@ -1412,6 +1408,11 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   //  doesn't send 'ue context release complete' message to mme_app
 
   if (cause == S1AP_SUCCESSFUL_HANDOVER) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+  // If cause is S1AP_INVALID_MME_UE_S1AP_ID, then it indicates that s1ap doen't
+  // have valid UE context
+  if (cause == S1AP_INVALID_MME_UE_S1AP_ID && ue_ref_p == NULL) {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
   if (rc == RETURNok) {
@@ -1567,9 +1568,9 @@ status_code_e s1ap_handle_ue_context_release_command(
            ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG_UE(LOG_S1AP, imsi64,
                     "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                    " %u(10)\n",
+                    " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
                     ue_context_release_command_pP->mme_ue_s1ap_id,
-                    ue_context_release_command_pP->mme_ue_s1ap_id);
+                    ue_context_release_command_pP->enb_ue_s1ap_id);
     rc = RETURNok;
   } else {
     /*
@@ -1661,8 +1662,7 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
       // Remove UE context only if UE is not handed over to another eNB
       imsi64_t imsi64 = INVALID_IMSI64;
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                              (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+      imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
       ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
       // We can safely remove UE context now and stop timer
@@ -1745,8 +1745,7 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   // Pass this message to MME APP for necessary handling
   // Log the Cause Type and Cause value
@@ -1880,9 +1879,7 @@ status_code_e s1ap_mme_handle_ue_context_modification_response(
        */
 
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                              (const hash_key_t)ie->value.choice.MME_UE_S1AP_ID,
-                              &imsi64);
+      imsi_map->mme_ueid2imsi_map.get(ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
       message_p = DEPRECATEDitti_alloc_new_message_fatal(
           TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_RESPONSE);
@@ -1964,9 +1961,7 @@ status_code_e s1ap_mme_handle_ue_context_modification_failure(
         (ue_ref_p->enb_ue_s1ap_id ==
          (ie_enb->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK))) {
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-      hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                              (const hash_key_t)ie->value.choice.MME_UE_S1AP_ID,
-                              &imsi64);
+      imsi_map->mme_ueid2imsi_map.get(ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
       // Pass this message to MME APP for necessary handling
       // Log the Cause Type and Cause value
@@ -2073,7 +2068,6 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   S1ap_HandoverRequestAcknowledgeIEs_t* ie = NULL;
   enb_description_t* source_enb = NULL;
   enb_description_t* target_enb = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t idx = 0;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -2156,8 +2150,7 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   }
 
   // get imsi for logging
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   // Retrieve the association ID for the eNB that UE is currently connected
   // (i.e., Source eNB) and pull the Source eNB record from s1ap state using
@@ -2169,15 +2162,17 @@ status_code_e s1ap_mme_handle_handover_request_ack(
                  mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      source_enb = (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      source_enb = itr->second;
+      if (!source_enb) {
+        continue;
+      }
       if (source_enb->sctp_assoc_id == ue_ref_p->sctp_assoc_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (source_enb->sctp_assoc_id != ue_ref_p->sctp_assoc_id) {
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "No source eNB found for UE\n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -2769,7 +2764,6 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
   bstring src_tgt_container = {0};
   uint8_t* enb_id_buf = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint32_t idx = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -2790,7 +2784,7 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
               "Handover Required from association id %u, "
               "Connected UEs = %u Num elements = %zu\n",
               assoc_id, enb_association->nb_ue_associated,
-              enb_association->ue_id_coll.num_elements);
+              enb_association->ue_id_coll.size());
 
   container = &pdu->choice.initiatingMessage.value.choice.HandoverRequired;
 
@@ -2925,20 +2919,20 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
       cause_value, target_enb_id);
 
   // get imsi for logging
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   // retrieve enb_description using hash table and match target_enb_id
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      target_enb_association =
-          (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      target_enb_association = itr->second;
+      if (!target_enb_association) {
+        continue;
+      }
       if (target_enb_association->enb_id == target_enb_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (target_enb_association->enb_id != target_enb_id) {
       bdestroy_wrapper(&src_tgt_container);
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
@@ -3143,8 +3137,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
   TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
   // imsi for logging
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   // get existing UE context
   if ((src_ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
@@ -3207,20 +3200,18 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
     s1ap_remove_ue(state, src_ue_ref_p);
 
     /* Mapping between mme_ue_s1ap_id, assoc_id and enb_ue_s1ap_id */
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        &state->mmeid2associd, (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
-        (void*)(uintptr_t)assoc_id);
+    magma::proto_map_rc_t rc =
+        state->mmeid2associd.insert(new_ue_ref_p->mme_ue_s1ap_id, assoc_id);
 
-    hashtable_uint64_ts_insert(&target_enb->ue_id_coll,
-                               (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
-                               new_ue_ref_p->comp_s1ap_id);
+    target_enb->ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id,
+                                  new_ue_ref_p->comp_s1ap_id);
 
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
         "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
-        hashtable_rc_code2string(h_rc));
+        magma::map_rc_code2string(rc));
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -3233,7 +3224,6 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
   S1ap_ENBStatusTransferIEs_t* ie = NULL;
   ue_description_t* ue_ref_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* target_enb_association = NULL;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -3283,17 +3273,18 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
 
   // get the enb_description matching the target_enb_id
   // retrieve enb_description using hash table and match target_enb_id
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      target_enb_association =
-          (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      target_enb_association = itr->second;
+      if (!target_enb_association) {
+        continue;
+      }
       if (target_enb_association->enb_id ==
           ue_ref_p->s1ap_handover_state.target_enb_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (target_enb_association->enb_id !=
         ue_ref_p->s1ap_handover_state.target_enb_id) {
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n",
@@ -3386,8 +3377,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
                   "ID: " ENB_UE_S1AP_ID_FMT "\n",
                   enb_ue_s1ap_id);
 
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   /* If all the E-RAB ID IEs in E-RABToBeSwitchedDLList is set to the
    * same value, send PATH SWITCH REQUEST FAILURE message to eNB */
@@ -3454,20 +3444,18 @@ status_code_e s1ap_mme_handle_path_switch_request(
     s1ap_remove_ue(state, ue_ref_p);
 
     /* Mapping between mme_ue_s1ap_id, assoc_id and enb_ue_s1ap_id */
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        &state->mmeid2associd, (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
-        (void*)(uintptr_t)assoc_id);
+    magma::proto_map_rc_t rc =
+        state->mmeid2associd.insert(new_ue_ref_p->mme_ue_s1ap_id, assoc_id);
 
-    hashtable_uint64_ts_insert(&enb_association->ue_id_coll,
-                               (const hash_key_t)new_ue_ref_p->mme_ue_s1ap_id,
-                               new_ue_ref_p->comp_s1ap_id);
+    enb_association->ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id,
+                                       new_ue_ref_p->comp_s1ap_id);
 
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
         "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
         assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
-        hashtable_rc_code2string(h_rc));
+        magma::map_rc_code2string(rc));
 
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_PathSwitchRequestIEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList,
@@ -3555,7 +3543,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
-                                           const hash_key_t keyP,
+                                           uint32_t keyP,
                                            uint64_t const dataP, void* argP,
                                            void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*)argP;
@@ -3624,9 +3612,8 @@ typedef struct arg_s1ap_construct_enb_reset_req_s {
   MessageDef* msg;
 } arg_s1ap_construct_enb_reset_req_t;
 
-bool construct_s1ap_mme_full_reset_req(const hash_key_t keyP,
-                                       const uint64_t dataP, void* argP,
-                                       void** resultP) {
+bool construct_s1ap_mme_full_reset_req(uint32_t keyP, const uint64_t dataP,
+                                       void* argP, void** resultP) {
   arg_s1ap_construct_enb_reset_req_t* arg =
       reinterpret_cast<arg_s1ap_construct_enb_reset_req_t*>(argP);
   ue_description_t* ue_ref = reinterpret_cast<ue_description_t*>(dataP);
@@ -3670,7 +3657,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
               "SCTP disconnection request for association id %u, Reset Flag = "
               "%u. Connected UEs = %u Num elements = %zu\n",
               assoc_id, reset, enb_association->nb_ue_associated,
-              enb_association->ue_id_coll.num_elements);
+              enb_association->ue_id_coll.size());
 
   // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
@@ -3699,12 +3686,12 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 
   if (reset) {
     /* UE state at s1ap task is created on reception of initial ue message
-     * Hash list, ue_id_coll is updated after mme_app_task assigns and provides
+     * The map ue_id_coll is updated after mme_app_task assigns and provides
      * mme_ue_s1ap_id to s1ap task
      * s1ap task shall clear this UE state if mme_app task has not yet provided
      * mme_ue_s1ap_id
      */
-    if (enb_association->ue_id_coll.num_elements == 0) {
+    if (enb_association->ue_id_coll.size() == 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP,
                          s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
                              state, enb_association->sctp_assoc_id));
@@ -3716,10 +3703,10 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
    */
 
   arg.associated_enb_id = enb_association->enb_id;
-  arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
-  hashtable_uint64_ts_apply_callback_on_elements(
-      &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind, (void*)&arg,
-      (void**)&message_p);
+  arg.deregister_ue_count = enb_association->ue_id_coll.size();
+  enb_association->ue_id_coll.map_apply_callback_on_all_elements(
+      s1ap_send_enb_deregistered_ind, reinterpret_cast<void*>(&arg),
+      reinterpret_cast<void**>(&message_p));
 
   /*
    * Mark the eNB's s1 state as appropriate, the eNB will be deleted or
@@ -3771,10 +3758,9 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
     enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
-    hashtable_rc_t hash_rc = hashtable_ts_insert(
-        &state->enbs, (const hash_key_t)enb_association->sctp_assoc_id,
-        (void*)enb_association);
-    if (HASH_TABLE_OK != hash_rc) {
+    magma::proto_map_rc_t rc =
+        state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
+    if (rc != magma::PROTO_MAP_OK) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   } else if ((enb_association->s1_state == S1AP_SHUTDOWN) ||
@@ -3910,8 +3896,7 @@ status_code_e s1ap_mme_handle_error_ind_message(s1ap_state_t* state,
 
   imsi64_t imsi64 = INVALID_IMSI64;
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   switch (cause_type) {
     case S1ap_Cause_PR_radioNetwork:
@@ -4016,8 +4001,7 @@ status_code_e s1ap_mme_handle_erab_setup_response(
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)ue_ref_p->mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(ue_ref_p->mme_ue_s1ap_id, &imsi64);
 
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
@@ -4206,9 +4190,8 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
       }
       arg.msg = msg;
       arg.current_ue_index = 0;
-      hashtable_uint64_ts_apply_callback_on_elements(
-          &enb_association->ue_id_coll, construct_s1ap_mme_full_reset_req, &arg,
-          NULL);
+      enb_association->ue_id_coll.map_apply_callback_on_all_elements(
+          construct_s1ap_mme_full_reset_req, &arg, NULL);
       // EURECOM LG 2020-07-16 added break here
       break;
     case RESET_PARTIAL:
@@ -4248,8 +4231,7 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
           mme_ue_s1ap_id =
               (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
           s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-          hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                                  (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+          imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) != NULL) {
             if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
               enb_ue_s1ap_id_t enb_ue_s1ap_id =
@@ -4552,20 +4534,22 @@ status_code_e s1ap_handle_paging_request(
   }
 
   /*Fetching eNB list to send paging request message*/
-  hashtable_element_array_t* enb_array = NULL;
   enb_description_t* enb_ref_p = NULL;
   if (state == NULL) {
     OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  enb_array = hashtable_ts_get_elements(&state->enbs);
-  if (enb_array == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "Could not find eNB hashlist!\n");
+  if (!(state->enbs.size())) {
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB map!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
-  for (idx = 0; idx < enb_array->num_elements; idx++) {
-    enb_ref_p = (enb_description_t*)enb_array->elements[idx];
+  for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+       itr++) {
+    enb_ref_p = reinterpret_cast<enb_description_t*>(itr->second);
+    if (!enb_ref_p) {
+      continue;
+    }
     if (enb_ref_p->s1_state == S1AP_READY) {
       supported_ta_list_t* enb_ta_list = &enb_ref_p->supported_ta_list;
 
@@ -4580,8 +4564,6 @@ status_code_e s1ap_handle_paging_request(
       }
     }
   }
-  free_wrapper((void**)&enb_array->elements);
-  free_wrapper((void**)&enb_array);
   free(buffer_p);
   if (rc != RETURNok) {
     OAILOG_ERROR(LOG_S1AP,
@@ -4864,7 +4846,6 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint8_t* enb_id_buf = NULL;
   enb_description_t* enb_association = NULL;
   enb_description_t* target_enb_association = NULL;
-  hashtable_element_array_t* enb_array = NULL;
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -4919,16 +4900,17 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   }
 
   // retrieve enb_description using hash table and match target_enb_id
-  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
-    for (idx = 0; idx < enb_array->num_elements; idx++) {
-      target_enb_association =
-          (enb_description_t*)(uintptr_t)enb_array->elements[idx];
+  if (state->enbs.size()) {
+    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
+         itr++) {
+      target_enb_association = itr->second;
+      if (!target_enb_association) {
+        continue;
+      }
       if (target_enb_association->enb_id == target_enb_id) {
         break;
       }
     }
-    free_wrapper((void**)&enb_array->elements);
-    free_wrapper((void**)&enb_array);
     if (target_enb_association->enb_id != target_enb_id) {
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -5260,9 +5242,7 @@ status_code_e s1ap_mme_handle_erab_rel_response(s1ap_state_t* state,
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)ie->value.choice.MME_UE_S1AP_ID,
-                          &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_REL_RSP);
   if (message_p == NULL) {
@@ -5385,8 +5365,7 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   state = get_s1ap_state(false);
   ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   OAILOG_DEBUG_UE(LOG_S1AP, imsi64,
                   "Expired- UE Context Release Timer for "

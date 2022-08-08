@@ -9,13 +9,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/prometheus/alertmanager/api/v2/client/silence"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/alertmanager/pkg/parse"
 	"github.com/prometheus/prometheus/pkg/labels"
 
-	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/obsidian"
 	"magma/orc8r/lib/go/metrics"
 )
 
