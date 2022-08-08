@@ -434,7 +434,7 @@ function UpgradeTable() {
             });
             const dataUpdate = [...lteGatewayUpgradeRows];
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const index = (oldData as any).tableData.id as number;
+            const index = (oldData as any).tableData.index as number;
             dataUpdate[index] = newData;
             setLteGatewayUpgradeRows([...dataUpdate]);
           } catch (e) {
