@@ -521,7 +521,7 @@ export function TroubleshootingControl(props: ChildProps) {
     2,
   );
   const tdErrContent = JSON.stringify(
-    controlProxyContent?.response?.['stderr'] ?? {},
+    tdAgentLogsContent?.response?.['stderr'] ?? {},
   );
   const tdAgentLogsFileContent = JSON.stringify(
     tdAgentLogsContent?.response?.['stdout'] ?? {},
