@@ -83,7 +83,7 @@ def run():
         max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine=db_engine)
-    ssl_validator = CRLValidator(urls=[config.SAS_URL]) if config.VERIFY_SAS_CRL else None
+    ssl_validator = CRLValidator(urls=[config.SAS_URL])
     router = RequestRouter(
         sas_url=config.SAS_URL,
         rc_ingest_url=config.RC_INGEST_URL,
@@ -128,15 +128,14 @@ def run():
         max_instances=1,
         name="metrics_processing_job",
     )
-    if config.VERIFY_SAS_CRL:
-        scheduler.add_job(
-            CRLValidator.update_certificates,
-            trigger=IntervalTrigger(
-                seconds=config.CRL_CACHE_TIME,
-            ),
-            max_instances=1,
-            name="crl_validator_certs_update_job",
-        )
+    scheduler.add_job(
+        ssl_validator.update_certificates,
+        trigger=IntervalTrigger(
+            seconds=config.CRL_CACHE_TIME,
+        ),
+        max_instances=1,
+        name="crl_validator_certs_update_job",
+    )
     scheduler.start()
 
     while True:

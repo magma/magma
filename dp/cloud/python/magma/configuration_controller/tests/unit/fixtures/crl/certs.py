@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import socket
+
+import requests
 
 
 def _load_certificate_file(file: str) -> bytes:
@@ -34,4 +37,16 @@ REVOKED_CRL_CERT = _load_certificate_file(file='revoked.crt')
 REVOKED_CERT_CRLS_DATA = {
     'http://crl3.digicert.com/RapidSSLTLSDVRSAMixedSHA2562020CA-1.crl': _load_certificate_file(file='revoked_1.crl'),
     'http://crl4.digicert.com/RapidSSLTLSDVRSAMixedSHA2562020CA-1.crl': _load_certificate_file(file='revoked_2.crl'),
+}
+
+INVALID_CRL_CERT = b'invalid crl data'
+INVALID_CERT_CRLS_DATA = {
+    'http://crl3.digicert.com/DigiCertTLSHybridECCSHA3842020CA1-1.crl': b'invalid crl 1',
+    'http://crl4.digicert.com/DigiCertTLSHybridECCSHA3842020CA1-1.crl': b'invalid crl 2',
+}
+
+CERT_SOCKET_EXCEPTION = socket.error('Socket error')
+CRLS_CONNECTION_EXCEPTION = {
+    'http://crl3.digicert.com/DigiCertTLSHybridECCSHA3842020CA1-1.crl': requests.exceptions.RequestException('Request error'),
+    'http://crl4.digicert.com/DigiCertTLSHybridECCSHA3842020CA1-1.crl': requests.exceptions.RequestException('Request error'),
 }

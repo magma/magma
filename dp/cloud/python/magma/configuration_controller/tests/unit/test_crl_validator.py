@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Dict, List
+from typing import Dict, List, Union
 from unittest import TestCase, mock
 
 import requests_mock
@@ -22,7 +22,11 @@ from magma.configuration_controller.request_router.request_router import (
     RequestRouter,
 )
 from magma.configuration_controller.tests.unit.fixtures.crl.certs import (
+    CERT_SOCKET_EXCEPTION,
     CERTIFICATES_DATE,
+    CRLS_CONNECTION_EXCEPTION,
+    INVALID_CERT_CRLS_DATA,
+    INVALID_CRL_CERT,
     NO_CRL_CERT,
     REVOKED_CERT_CRLS_DATA,
     REVOKED_CRL_CERT,
@@ -41,8 +45,12 @@ class CRLValidatorTestCase(TestCase):
     sas_url = 'https://fake.sas.url/'
 
     @parameterized.expand([
-        (VALID_CRL_CERT, VALID_CERT_CRLS_DATA),
         (NO_CRL_CERT, {}),
+        (VALID_CRL_CERT, VALID_CERT_CRLS_DATA),
+        (INVALID_CRL_CERT, {}),
+        (VALID_CRL_CERT, INVALID_CERT_CRLS_DATA),
+        (CERT_SOCKET_EXCEPTION, {}),
+        (VALID_CRL_CERT, CRLS_CONNECTION_EXCEPTION),
     ])
     @mocket.mocketize
     def test_valid_certificates_passes(
@@ -52,8 +60,8 @@ class CRLValidatorTestCase(TestCase):
             crls: Dict[str, bytes],
     ) -> None:
         # Given
-        self._set_mocket_cert(certificate=certificate)
-        self._set_mocker_CRL(mocker=mocker, crls=crls)
+        self._set_mocket_cert(data=certificate)
+        self._set_mocker_CRL(mocker=mocker, data=crls)
         validator = self._create_validator(urls=[self.sas_url])
 
         # When
@@ -65,8 +73,8 @@ class CRLValidatorTestCase(TestCase):
     @mocket.mocketize
     def test_exception_is_raised_on_revoked_certificate(self, mocker: requests_mock.Mocker) -> None:
         # Given
-        self._set_mocket_cert(certificate=REVOKED_CRL_CERT)
-        self._set_mocker_CRL(mocker=mocker, crls=REVOKED_CERT_CRLS_DATA)
+        self._set_mocket_cert(data=REVOKED_CRL_CERT)
+        self._set_mocker_CRL(mocker=mocker, data=REVOKED_CERT_CRLS_DATA)
         validator = self._create_validator(urls=[self.sas_url])
 
         # When / Then
@@ -84,16 +92,16 @@ class CRLValidatorTestCase(TestCase):
     @mocket.mocketize
     def test_certificates_are_updated_in_the_background(self, mocker: requests_mock.Mocker) -> None:
         # Given
-        self._set_mocket_cert(certificate=VALID_CRL_CERT)
-        self._set_mocker_CRL(mocker=mocker, crls=VALID_CERT_CRLS_DATA)
+        self._set_mocket_cert(data=VALID_CRL_CERT)
+        self._set_mocker_CRL(mocker=mocker, data=VALID_CERT_CRLS_DATA)
 
         validator = self._create_validator(urls=[self.sas_url])
         valid = validator.is_valid(url=self.sas_url)
         self.assertIs(valid, True)
 
         # When / Then
-        self._set_mocket_cert(certificate=REVOKED_CRL_CERT)
-        self._set_mocker_CRL(mocker=mocker, crls=REVOKED_CERT_CRLS_DATA)
+        self._set_mocket_cert(data=REVOKED_CRL_CERT)
+        self._set_mocker_CRL(mocker=mocker, data=REVOKED_CERT_CRLS_DATA)
 
         # Ensure certs are not instant updated
         valid = validator.is_valid(url=self.sas_url)
@@ -120,16 +128,21 @@ class CRLValidatorTestCase(TestCase):
         return CRLValidator(urls=urls)
 
     @staticmethod
-    def _set_mocket_cert(certificate: bytes) -> None:
+    def _set_mocket_cert(data: Union[bytes, Exception]) -> None:
         def getpeercert(*args, **kwargs) -> bytes:
-            return certificate
+            if isinstance(data, Exception):
+                raise data
+            return data
 
         mocket.MocketSocket.getpeercert = getpeercert
 
     @staticmethod
-    def _set_mocker_CRL(mocker: requests_mock.Mocker, crls: Dict[str, bytes]) -> None:
-        for url, cert in crls.items():
-            mocker.register_uri('GET', url, content=cert)
+    def _set_mocker_CRL(mocker: requests_mock.Mocker, data: Dict[str, Union[bytes, Exception]]) -> None:
+        for url, response in data.items():
+            if isinstance(response, Exception):
+                mocker.register_uri('GET', url, exc=response)
+            else:
+                mocker.register_uri('GET', url, content=response)
 
 
 @requests_mock.Mocker()
