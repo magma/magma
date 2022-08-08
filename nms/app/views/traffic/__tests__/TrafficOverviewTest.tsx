@@ -313,7 +313,7 @@ describe('<TrafficDashboard />', () => {
   });
 });
 
-describe('<' + 'TrafficDashboard APNs/>', () => {
+describe('<TrafficDashboard APNs/>', () => {
   const {location} = window;
   const networkId = 'test';
 

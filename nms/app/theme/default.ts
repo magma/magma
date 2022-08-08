@@ -229,7 +229,7 @@ export default createTheme({
     MuiAppBar: {
       styleOverrides: {
         colorPrimary: {
-          color: '#FFFFFF',
+          color: colors.primary.white,
         },
       },
     },
@@ -250,7 +250,7 @@ export default createTheme({
     MuiBackdrop: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(50, 56, 69, 0.8)',
+          backgroundColor: alpha(colors.primary.brightGray, 0.8),
         },
       },
     },
@@ -269,21 +269,21 @@ export default createTheme({
           boxShadow: 'none',
         },
         containedPrimary: {
-          backgroundColor: '#545F77',
+          backgroundColor: colors.primary.comet,
           '&:hover, &:focus': {
-            backgroundColor: '#323845',
+            backgroundColor: colors.primary.brightGray,
             boxShadow: 'none',
           },
         },
         outlinedPrimary: {
-          border: '1px solid #545F77',
-          backgroundColor: '#FFFFFF',
+          border: `1px solid ${colors.primary.comet}`,
+          backgroundColor: colors.primary.white,
           '&:hover, &:focus': {
-            backgroundColor: '#FFFFFF',
+            backgroundColor: colors.primary.white,
             boxShadow: 'none',
-            border: '1px solid #545F77',
+            border: `1px solid ${colors.primary.comet}`,
           },
-          color: '#545F77',
+          color: colors.primary.comet,
         },
         textPrimary: {
           color: colors.primary.mirage,
@@ -314,7 +314,7 @@ export default createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          backgroundColor: '#F2F2F2',
+          backgroundColor: colors.primary.concrete,
           height: '2px',
         },
       },
@@ -322,16 +322,15 @@ export default createTheme({
     MuiDialog: {
       styleOverrides: {
         paper: {
-          backgroundColor: '#F2F2F2',
+          backgroundColor: colors.primary.concrete,
         },
       },
     },
     MuiDialogActions: {
       styleOverrides: {
         root: {
-          backgroundColor: '#FFFFFF',
-          boxShadow:
-            '0px 2px 4px 0px rgba(0, 0, 0, 0.14), 0px 4px 5px 0px rgba(0, 0, 0, 0.12), 0px 1px 10px 0px rgba(0, 0, 0, 0.20)',
+          backgroundColor: colors.primary.white,
+          boxShadow: shadows.DP3,
           padding: '20px',
           zIndex: 1,
         },
@@ -357,9 +356,9 @@ export default createTheme({
       defaultProps: {},
       styleOverrides: {
         root: {
-          backgroundColor: '#171B25',
+          backgroundColor: colors.primary.mirage,
           padding: '16px 24px',
-          color: '#FFFFFF',
+          color: colors.primary.white,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -396,7 +395,7 @@ export default createTheme({
             fontSize: '12px',
             lineHeight: 0.66,
             letterSpacing: '0.4px',
-            color: '#E52240',
+            color: colors.state.error,
           },
         },
       },
@@ -460,7 +459,7 @@ export default createTheme({
         },
         outlined: {
           '&:focus': {
-            backgroundColor: '#FFFFFF',
+            backgroundColor: colors.primary.white,
           },
           '&:read-only': {
             opacity: 1,
@@ -511,7 +510,7 @@ export default createTheme({
     MuiTableRow: {
       styleOverrides: {
         root: {
-          backgroundColor: 'white',
+          backgroundColor: colors.primary.white,
         },
       },
     },
@@ -526,7 +525,7 @@ export default createTheme({
       styleOverrides: {
         colorDefault: {
           backgroundColor: '#e4f0f6',
-          color: '#3984FF',
+          color: colors.secondary.dodgerBlue,
         },
       },
     },
@@ -544,8 +543,8 @@ export default createTheme({
           borderRadius: '2px',
           boxSizing: 'border-box',
           padding: '8px 16px',
-          color: '#323845',
-          backgroundColor: '#FFFFFF',
+          color: colors.primary.brightGray,
+          backgroundColor: colors.primary.white,
         },
         multiline: {
           padding: '8px 16px',
@@ -574,7 +573,7 @@ export default createTheme({
           lineHeight: '14px',
           height: '14px',
           '&::placeholder': {
-            color: '#8895ad',
+            color: colors.primary.gullGray,
           },
           '&::-webkit-input-placeholder': {
             opacity: 1,

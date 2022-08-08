@@ -79,9 +79,7 @@ describe('<LogsList />', () => {
     };
 
     const fillInput = (testId: string, value: unknown) => {
-      fireEvent.click(screen.getByTestId(testId));
       fireEvent.change(screen.getByTestId(testId), {target: {value}});
-      fireEvent.blur(screen.getByTestId(testId));
     };
 
     // See https://stackoverflow.com/a/61491607
