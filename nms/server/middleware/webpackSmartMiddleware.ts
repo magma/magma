@@ -15,8 +15,14 @@
 import express, {Router} from 'express';
 import logging from '../../shared/logging';
 import webpack from 'webpack';
-import webpackHotMiddleware, {MiddlewareOptions} from 'webpack-hot-middleware';
 import webpackMiddleware from 'webpack-dev-middleware';
+
+// We use a fork of webpack-hot-middleware that is compatible with webpack 5
+// and fast refresh.
+// See https://github.com/webpack-contrib/webpack-hot-middleware/pull/397
+import webpackHotMiddleware, {
+  MiddlewareOptions,
+} from '@gatsbyjs/webpack-hot-middleware';
 
 import {RequestHandler} from 'express';
 const logger = (logging.getLogger(
