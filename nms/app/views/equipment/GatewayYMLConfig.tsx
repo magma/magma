@@ -109,7 +109,6 @@ function GatewayConfigYml(props: Props) {
         enqueueSnackbar(`${selectedService} config fetched successfully`, {
           variant: 'success',
         });
-        // TODO[TS-migration] What is the real response here?
         // @ts-ignore
         setServiceConfig(response?.response?.['stdout'] ?? '');
       },
