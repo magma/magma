@@ -171,21 +171,17 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
     Returns:
         None
     """
-
-    grant = _get_grant_from_response(response, session)
-
     # Grant response codes worth considering here also are:
     # 400 - INTERFERENCE
-    # 401 - GRANT_CONFLICT
-    # Might need better processing, for now we set the state to IDLE in all cases other than SUCCESS
+    if response.response_code == ResponseCodes.GRANT_CONFLICT.value:
+        _unsync_conflict_from_response(obj, response, session)
+        return
     if response.response_code != ResponseCodes.SUCCESS.value:
-        if grant:
-            unset_frequency(grant)
-            session.delete(grant)
-            logger.info(f'process_grant_responses: Terminated grant')
+        _remove_grant_from_response(response, session, unset_freq=True)
         return
 
     new_state = obj.grant_states_map[GrantStates.GRANTED.value]
+    grant = _get_grant_from_response(response, session)
     if not grant:
         grant = _create_grant_from_response(response, new_state, session)
     else:
@@ -209,13 +205,8 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
     Returns:
         None
     """
-    grant = _get_grant_from_response(response, session)
-
     if response.response_code == ResponseCodes.TERMINATED_GRANT.value:
-        if grant:
-            unset_frequency(grant)
-            session.delete(grant)
-            logger.info(f'process_heartbeat_responses: Terminated grant')
+        _remove_grant_from_response(response, session, unset_freq=True)
         return
 
     if response.response_code == ResponseCodes.SUCCESS.value:
@@ -227,6 +218,7 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
     else:
         return
 
+    grant = _get_grant_from_response(response, session)
     if not grant:
         grant = _create_grant_from_response(response, new_state, session)
     else:
@@ -252,13 +244,11 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
     Returns:
         None
     """
-    grant = _get_grant_from_response(response, session)
-
     if response.response_code == ResponseCodes.SUCCESS.value:
-        if grant:
-            session.delete(grant)
-            logger.info(f'process_relinquishment_responses: Terminated grant')
+        _remove_grant_from_response(response, session)
         return
+
+    grant = _get_grant_from_response(response, session)
     _update_grant_from_response(response, grant)
 
 
@@ -307,8 +297,8 @@ def _get_grant_from_response(
         response: DBResponse,
         session: Session,
 ) -> Optional[DBGrant]:
-    cbsd_id = response.payload.get(CBSD_ID) or response.request.payload.get(CBSD_ID)
-    grant_id = response.payload.get(GRANT_ID) or response.request.payload.get(GRANT_ID)
+    cbsd_id = response.cbsd_id
+    grant_id = response.grant_id
     if not grant_id:
         return None
 
@@ -322,19 +312,33 @@ def _create_grant_from_response(
         response: DBResponse,
         state: DBGrantState,
         session: Session,
+        grant_id: str = None,
 ) -> Optional[DBGrant]:
-    cbsd_id = response.payload.get(CBSD_ID) or response.request.payload.get(CBSD_ID)
-    grant_id = response.payload.get(GRANT_ID) or response.request.payload.get(GRANT_ID)
+    grant_id = grant_id or response.grant_id
     if not grant_id:
         return None
 
-    cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).scalar()
+    cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == response.cbsd_id).scalar()
     grant = DBGrant(cbsd=cbsd, grant_id=grant_id, state=state)
     _update_grant_from_request(response, grant)
     session.add(grant)
 
     logger.info(f'Created new grant {grant}')
     return grant
+
+
+def _remove_grant_from_response(
+        response: DBResponse, session: Session, unset_freq: bool = False,
+) -> None:
+    grant = _get_grant_from_response(response, session)
+    if not grant:
+        return
+
+    logger.info(f'Terminating grant {grant.grant_id}')
+
+    if unset_freq:
+        unset_frequency(grant)
+    session.delete(grant)
 
 
 def _update_grant_from_request(response: DBResponse, grant: DBGrant) -> None:
@@ -375,6 +379,21 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
     session.query(DBGrant).filter(DBGrant.cbsd == cbsd).delete()
     logger.info(f"Deleting all channels for {cbsd_id=}")
     session.query(DBChannel).filter(DBChannel.cbsd == cbsd).delete()
+
+
+def _unsync_conflict_from_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
+    state = obj.grant_states_map[GrantStates.UNSYNC.value]
+
+    conflicts_ids = response.payload.get("response", {}).get("responseData", [])
+    existing_grants = session.query(DBGrant.grant_id).filter(DBGrant.grant_id.in_(conflicts_ids)).all()
+    existing_grants_ids = {g.grant_id for g in existing_grants}
+
+    for grant_id in conflicts_ids:
+        if grant_id in existing_grants_ids:
+            continue
+
+        _create_grant_from_response(response, state, session, grant_id=grant_id)
+        return
 
 
 def _unregister_cbsd(response: DBResponse, session: Session) -> None:

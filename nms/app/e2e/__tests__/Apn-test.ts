@@ -14,10 +14,10 @@
 import puppeteer, {Browser} from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
+jest.setTimeout(60000);
+
 let browser: Browser;
 beforeEach(async () => {
-  jest.setTimeout(60000);
-
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
@@ -54,7 +54,7 @@ describe('NMS', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'apn_dashboard.png',
     });
-  }, 60000);
+  });
 });
 
 describe('NMS Apn Add', () => {
@@ -92,7 +92,7 @@ describe('NMS Apn Add', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'apn_add.png',
     });
-  }, 60000);
+  });
 });
 
 describe('NMS APN Edit', () => {
@@ -131,5 +131,5 @@ describe('NMS APN Edit', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'apn_edit.png',
     });
-  }, 60000);
+  });
 });

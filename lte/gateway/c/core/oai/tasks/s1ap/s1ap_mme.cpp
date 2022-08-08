@@ -465,11 +465,9 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
 
   imsi64_t imsi64 = INVALID_IMSI64;
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)mme_ue_s1ap_id, &imsi64);
+  s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
   delete_s1ap_ue_state(imsi64);
-  hashtable_uint64_ts_remove(s1ap_imsi_map->mme_ue_id_imsi_htbl,
-                             mme_ue_s1ap_id);
+  s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_s1ap_id);
 
   OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %lu",
                enb_ref->nb_ue_associated, enb_ref->ue_id_coll.size());

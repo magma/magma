@@ -26,7 +26,7 @@ namespace magma {
 namespace lte {
 
 TEST(test_s1ap_handle_new_association, empty_initial_state) {
-  s1ap_state_t* s = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state();
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -58,7 +58,7 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
 }
 
 TEST(test_s1ap_handle_new_association, shutdown) {
-  s1ap_state_t* s = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
@@ -74,7 +74,7 @@ TEST(test_s1ap_handle_new_association, shutdown) {
 }
 
 TEST(test_s1ap_handle_new_association, resetting) {
-  s1ap_state_t* s = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
@@ -90,7 +90,7 @@ TEST(test_s1ap_handle_new_association, resetting) {
 }
 
 TEST(test_s1ap_handle_new_association, reassociate) {
-  s1ap_state_t* s = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
@@ -127,7 +127,7 @@ TEST(test_s1ap_handle_new_association, reassociate) {
 }
 
 TEST(test_s1ap_handle_new_association, clean_stale_association) {
-  s1ap_state_t* s = create_s1ap_state(2, 2);
+  s1ap_state_t* s = create_s1ap_state();
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {

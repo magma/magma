@@ -40,13 +40,13 @@ func TestServiceRun(t *testing.T) {
 	serviceName := state.ServiceName
 
 	// Create the service
-	srv, lis, _ := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, serviceName, nil, nil)
+	srv, lis, plis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, serviceName, nil, nil)
 	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
 	assert.NotNil(t, srv.EchoServer)
 
 	// Start the service
-	go srv.RunTest(lis, nil)
+	go srv.RunTest(lis, plis)
 
 	// Wait for the service to be started and check its state and health
 	time.Sleep(time.Second)
@@ -54,7 +54,7 @@ func TestServiceRun(t *testing.T) {
 	assert.Equal(t, protos.ServiceInfo_APP_HEALTHY, srv.Health)
 
 	// Create a rpc stub and query the Service303 interface
-	conn, err := registry.GetConnection(serviceName, protos.ServiceType_SOUTHBOUND)
+	conn, err := registry.GetConnection(serviceName, protos.ServiceType_PROTECTED)
 	assert.NoError(t, err, "err in getting connection to service")
 	client := protos.NewService303Client(conn)
 

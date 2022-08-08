@@ -125,45 +125,36 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
 
     @parameterized.expand([
         (
-            GRANT_REQ, ResponseCodes.SUCCESS.value,
-            GrantStates.GRANTED.value,
+            GRANT_REQ, ResponseCodes.SUCCESS.value, None, GrantStates.GRANTED.value,
         ),
         (
-            GRANT_REQ, ResponseCodes.INTERFERENCE.value,
-            None,
+            GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, None,
         ),
         (
-            GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value,
-            None,
+            GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value, ['grant1', 'grant2'], GrantStates.UNSYNC.value,
         ),
         (
-            GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value,
-            None,
+            GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, None,
         ),
         (
-            HEARTBEAT_REQ, ResponseCodes.SUCCESS.value,
-            GrantStates.AUTHORIZED.value,
+            HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, GrantStates.AUTHORIZED.value,
         ),
         (
-            HEARTBEAT_REQ,
-            ResponseCodes.TERMINATED_GRANT.value, None,
+            HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, None,
         ),
         (
-            HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value,
-            GrantStates.GRANTED.value,
+            HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, GrantStates.GRANTED.value,
         ),
         (
-            HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value,
-            GrantStates.UNSYNC.value,
+            HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, GrantStates.UNSYNC.value,
         ),
         (
-            RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value,
-            None,
+            RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, None,
         ),
     ])
     @responses.activate
     def test_grant_state_after_response(
-            self, request_type_name, response_code, expected_grant_state_name,
+            self, request_type_name, response_code, response_data, expected_grant_state_name,
     ):
         # Given
         requests_fixtures = _fake_requests_map[request_type_name]
@@ -171,7 +162,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             request_type_name, requests_fixtures,
         )
         response = self._prepare_response_from_db_requests(
-            db_requests=db_requests, response_code=response_code,
+            db_requests=db_requests, response_code=response_code, response_data=response_data,
         )
 
         # When
@@ -186,6 +177,72 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         self.assertListEqual(
             expected_grant_state * nr_of_requests,
             [g.state.name for g in self.session.query(DBGrant).all()],
+        )
+
+    @parameterized.expand([
+        (
+            GRANT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.GRANTED.value],
+        ),
+        (
+            GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, [],
+        ),
+        (
+            GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value,
+            ['test_grant_id_for_1', 'test_grant_id_for_2'],
+            [GrantStates.GRANTED.value, GrantStates.UNSYNC.value],
+        ),
+        (
+            GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, [],
+        ),
+        (
+            HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.AUTHORIZED.value],
+        ),
+        (
+            HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, [],
+        ),
+        (
+            HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, [GrantStates.GRANTED.value],
+        ),
+        (
+            HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, [GrantStates.UNSYNC.value],
+        ),
+        (
+            RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, [],
+        ),
+    ])
+    @responses.activate
+    def test_preexisting_grant_state_after_response(
+            self, request_type_name, response_code, response_data, expected_grants_states,
+    ):
+        # Given
+        requests_fixtures = [_fake_requests_map[request_type_name][0]]
+        db_requests = self._create_db_requests(request_type_name, requests_fixtures)
+
+        grant_id = db_requests[0].payload.get('grantId') or "test_grant_id_for_1"
+        grant = DBGrant(
+            cbsd=db_requests[0].cbsd,
+            state_id=1,
+            grant_id=grant_id,
+            low_frequency=3560000000,
+            high_frequency=3580000000,
+            max_eirp=15,
+        )
+        self.session.add(grant)
+        self.session.commit()
+
+        response = self._prepare_response_from_db_requests(
+            db_requests=db_requests, response_code=response_code, response_data=response_data,
+        )
+
+        # When
+        self._process_response(
+            request_type_name=request_type_name, response=response, db_requests=db_requests,
+        )
+
+        # Then
+        self.assertListEqual(
+            expected_grants_states,
+            [g.state.name for g in self.session.query(DBGrant).order_by(DBGrant.id).all()],
         )
 
     @parameterized.expand([

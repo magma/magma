@@ -32,7 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
 #include "lte/protos/oai/std_3gpp_types.pb.h"
 #include "lte/protos/oai/spgw_state.pb.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/pgw_types.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
