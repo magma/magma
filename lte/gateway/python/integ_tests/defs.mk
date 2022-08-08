@@ -270,6 +270,12 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_scalability_attach_detach_multi_ue.py
 #---------------
 
+# TODO: Flaky ipv6 tests which randomly fail with connection refused
+#s1aptests/test_ipv6_non_nat_dp_dl_tcp.py
+#s1aptests/test_ipv6_non_nat_dp_ul_udp.py
+#s1aptests/test_ipv6_non_nat_dp_dl_udp.py
+#---------------
+
 # Add the s1aptester integration tests with federation gateway
 FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \
 federated_tests/s1aptests/test_attach_detach_multi_ue.py
