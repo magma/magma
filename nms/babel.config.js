@@ -12,7 +12,7 @@
  */
 
 function isWebpack(caller) {
-  return !!(caller && caller.name === 'web');
+  return !!(caller && caller.name === 'babel-loader');
 }
 
 module.exports = api => {
