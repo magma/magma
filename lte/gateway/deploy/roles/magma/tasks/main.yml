@@ -191,6 +191,15 @@
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
   when: full_provision
 
+# Explicitly set policy to stop docker from blocking everything
+# https://docs.docker.com/network/iptables/#docker-on-a-router
+- name: Allow forwarding in iptables
+  iptables:
+    chain: FORWARD
+    policy: ACCEPT
+  become: yes
+  when: full_provision
+
 - name: Install OpenAirInterface (OAI) dependencies
   retries: 5
   when: preburn
