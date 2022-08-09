@@ -155,14 +155,14 @@ class TestIpv6NonNatDedBearerDlTcp(unittest.TestCase):
         }
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules, ipv6_non_nat=True
+            num_ul_flows, dl_flow_rules, ipv6_non_nat=True,
         )
 
         print(
             "************************* Running UE downlink (TCP) for UE id ",
             req.ue_id,
         )
-        with self._s1ap_wrapper.configDownlinkTest(req, duration=1,) as test:
+        with self._s1ap_wrapper.configDownlinkTest(req, duration=1) as test:
             test.verify()
 
         print(
