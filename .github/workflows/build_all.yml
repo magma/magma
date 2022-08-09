@@ -144,7 +144,7 @@ jobs:
           for i in `ls -a1 *.deb`
           do
             echo "Pushing package $i to JFROG artifiactory: https://artifactory.magmacore.org/artifactory/debian-test/pool"
-            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
+            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-1.8.0/$i;deb.distribution=focal-1.8.0;deb.component=main;deb.architecture=amd64" -T $i)
             echo "$HTTP_RESPONSE"
             # extract the body and download uri
             HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
@@ -258,7 +258,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
         run: |
-          COMMIT_HASH_WITH_VERSION="magma@1.7.0.$(git rev-list --count HEAD)-${GITHUB_SHA:0:8}"
+          COMMIT_HASH_WITH_VERSION="magma@1.8.0.$(git rev-list --count HEAD)-${GITHUB_SHA:0:8}"
           sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
           sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
           sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
