@@ -341,7 +341,7 @@ class SasToRfConfigTests(TestCase):
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
-    def test_enodebd_update_cbsd_called_with_empty_request_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
         test_serial_number = '120200024019APP0105'
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
@@ -357,7 +357,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, '0')
         acs_state_machine.handle_tr069_message(req)
         acs_state_machine.transition('notify_dp')
-        mock_enodebd_update_cbsd.assert_called_with(EnodebdUpdateCbsdRequest(serial_number=test_serial_number))
+        mock_enodebd_update_cbsd.assert_not_called()
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     def test_notify_dp(self, mock_enodebd_update_cbsd) -> None:
@@ -422,7 +422,6 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             indoor_deployment=acs_state_machine.device_cfg.get_parameter(ParameterName.INDOOR_DEPLOYMENT),
             antenna_height=acs_state_machine.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT),
             antenna_height_type=acs_state_machine.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT_TYPE),
-            antenna_gain=acs_state_machine.device_cfg.get_parameter(ParameterName.ANTENNA_GAIN),
             cbsd_category=acs_state_machine.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
         )
         mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)

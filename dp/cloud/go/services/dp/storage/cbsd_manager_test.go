@@ -243,7 +243,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Empty().
 			WithSerialNumber(someSerialNumber).
 			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: b.NewDetailedDBCbsdBuilder().
 			WithCbsd(
@@ -255,7 +256,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					WithLastSeen(nowTimestamp).
 					WithShouldDeregister(true).
 					WithCbsdCategory("a").
-					WithFullInstallationParam().
+					WithFullEnodebdAllowedInstallationParam().
 					Cbsd,
 				registered,
 				registered).
@@ -286,7 +287,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Empty().
 			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 3)).
 			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: b.NewDetailedDBCbsdBuilder().
 			WithCbsd(
@@ -297,7 +299,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					WithShouldDeregister(true).
 					WithDesiredStateId(registeredStateId).
 					WithCbsdCategory("a").
-					WithFullInstallationParam().
+					WithFullEnodebdAllowedInstallationParam().
 					WithLastSeen(nowTimestamp).
 					Cbsd, registered, registered).
 			WithGrant(authorized, 3600, clock.Now().UTC().Add(time.Hour), clock.Now().UTC().Add(time.Hour)).Details,
@@ -327,7 +329,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Empty().
 			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 4)).
 			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: &storage.DetailedCbsd{
 			Cbsd: b.NewDBCbsdBuilder().
@@ -337,7 +340,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithDesiredStateId(registeredStateId).
 				WithShouldDeregister(true).
 				WithCbsdCategory("a").
-				WithFullInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
 				WithLastSeen(nowTimestamp).
 				Cbsd,
 		},
@@ -367,7 +370,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Empty().
 			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 5)).
 			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: b.NewDetailedDBCbsdBuilder().
 			WithCbsd(
@@ -378,7 +382,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 5)).
 					WithShouldDeregister(true).
 					WithCbsdCategory("a").
-					WithFullInstallationParam().
+					WithFullEnodebdAllowedInstallationParam().
 					WithLastSeen(nowTimestamp).
 					Cbsd, registered, registered).Details,
 	}, {
@@ -407,7 +411,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			Empty().
 			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 6)).
 			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: b.NewDetailedDBCbsdBuilder().WithCbsd(
 			b.NewDBCbsdBuilder().
@@ -417,7 +422,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithDesiredStateId(registeredStateId).
 				WithShouldDeregister(true).
 				WithCbsdCategory("a").
-				WithFullInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
 				WithLastSeen(nowTimestamp).
 				Cbsd, registered, registered).Details,
 	}, {
@@ -440,6 +445,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			WithIndoorDeployment(true).
 			WithLatitude(10.00001).
 			WithLongitude(100.00001).
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: b.NewDetailedDBCbsdBuilder().WithCbsd(
 			b.NewDBCbsdBuilder().
@@ -475,6 +481,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			WithSingleStepEnabled(false).
 			WithCbsdCategory("a").
 			WithFullInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
 		expected: b.NewDetailedDBCbsdBuilder().
 			WithCbsd(b.NewDBCbsdBuilder().
@@ -482,7 +489,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithSingleStepEnabled(true).
 				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 8)).
 				WithDesiredStateId(registeredStateId).
-				WithFullInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
 				WithCbsdCategory("a").
 				WithLastSeen(nowTimestamp).
 				WithShouldDeregister(true).
@@ -498,7 +505,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithNetworkId(someNetwork).
 				WithSingleStepEnabled(true).
 				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 9)).
-				WithFullInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
 				WithDesiredStateId(registeredStateId).
 				WithStateId(registeredStateId).
 				Cbsd,
@@ -508,6 +515,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 9)).
 				WithCbsdCategory("a").
 				WithIncompleteInstallationParam().
+				WithLastSeen(nowTimestamp).
 				Cbsd,
 			expected: b.NewDetailedDBCbsdBuilder().
 				WithCbsd(
@@ -530,7 +538,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithNetworkId(someNetwork).
 				WithSingleStepEnabled(true).
 				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 10)).
-				WithFullInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
 				WithDesiredStateId(registeredStateId).
 				WithStateId(registeredStateId).
 				Cbsd,
@@ -539,7 +547,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithNetworkId(someNetwork).
 				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 101010101010)).
 				WithCbsdCategory("a").
-				WithIncompleteInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
+				WithLastSeen(nowTimestamp).
 				Cbsd,
 			expectedError: "Not found",
 		},
@@ -568,7 +577,8 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				Empty().
 				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 11)).
 				WithCbsdCategory("a").
-				WithFullInstallationParam().
+				WithFullEnodebdAllowedInstallationParam().
+				WithLastSeen(nowTimestamp).
 				Cbsd,
 			expected: b.NewDetailedDBCbsdBuilder().
 				WithCbsd(b.NewDBCbsdBuilder().
@@ -578,7 +588,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					WithDesiredStateId(registeredStateId).
 					WithShouldDeregister(true).
 					WithCbsdCategory("a").
-					WithFullInstallationParam().
+					WithFullEnodebdAllowedInstallationParam().
 					WithLastSeen(nowTimestamp).
 					Cbsd, registered, registered).
 				Details,

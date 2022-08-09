@@ -16,6 +16,8 @@ package builders
 import (
 	"time"
 
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/protos"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/models"
@@ -23,8 +25,6 @@ import (
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
-
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -155,6 +155,15 @@ func (b *DBCbsdBuilder) WithFullInstallationParam() *DBCbsdBuilder {
 	b.Cbsd.HeightM = db.MakeFloat(12.5)
 	b.Cbsd.HeightType = db.MakeString("agl")
 	b.Cbsd.AntennaGain = db.MakeFloat(4.5)
+	return b
+}
+
+func (b *DBCbsdBuilder) WithFullEnodebdAllowedInstallationParam() *DBCbsdBuilder {
+	b.Cbsd.LatitudeDeg = db.MakeFloat(10.5)
+	b.Cbsd.LongitudeDeg = db.MakeFloat(11.5)
+	b.Cbsd.IndoorDeployment = db.MakeBool(true)
+	b.Cbsd.HeightM = db.MakeFloat(12.5)
+	b.Cbsd.HeightType = db.MakeString("agl")
 	return b
 }
 
@@ -349,6 +358,17 @@ func (b *CbsdProtoPayloadBuilder) WithEmptyInstallationParam() *CbsdProtoPayload
 
 func (b *CbsdProtoPayloadBuilder) WithAntennaGain(gain float64) *CbsdProtoPayloadBuilder {
 	b.Payload.InstallationParam.AntennaGain = wrapperspb.Double(gain)
+	return b
+}
+
+func (b *CbsdProtoPayloadBuilder) WithEnodebdInstallationParams() *CbsdProtoPayloadBuilder {
+	b.Payload.InstallationParam = &protos.InstallationParam{
+		LatitudeDeg:      wrapperspb.Double(10.5),
+		LongitudeDeg:     wrapperspb.Double(11.5),
+		IndoorDeployment: wrapperspb.Bool(true),
+		HeightM:          wrapperspb.Double(12.5),
+		HeightType:       wrapperspb.String("agl"),
+	}
 	return b
 }
 

@@ -569,7 +569,6 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             indoor_deployment=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
             antenna_height='0',
             antenna_height_type=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
-            antenna_gain=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_ANTENNA_GAIN),
             cbsd_category=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
         )
 
@@ -611,7 +610,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         # No GPS locked means LAT and LONG are not available yet
         acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, False)
         acs_state_machine.transition('notify_dp')
-        mock_enodebd_update_cbsd.assert_called_with(EnodebdUpdateCbsdRequest(serial_number=test_serial_number))
+        mock_enodebd_update_cbsd.assert_not_called()
 
 
 class FreedomFiOneStatesTests(EnodebHandlerTestCase):

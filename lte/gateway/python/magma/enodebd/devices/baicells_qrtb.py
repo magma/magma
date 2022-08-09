@@ -13,7 +13,7 @@ limitations under the License.
 from distutils.util import strtobool
 from typing import Any, Callable, Dict, List, Optional
 
-from dp.protos.cbsd_pb2 import CBSDStateResult, EnodebdUpdateCbsdRequest
+from dp.protos.cbsd_pb2 import CBSDStateResult
 from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_magma
 from magma.enodebd.data_models.data_model import DataModel, TrParam
@@ -404,7 +404,6 @@ class BaicellsQRTBNotifyDPState(NotifyDPState):
                 indoor_deployment=self.acs.device_cfg.get_parameter(ParameterName.INDOOR_DEPLOYMENT),
                 antenna_height=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT),
                 antenna_height_type=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT_TYPE),
-                antenna_gain=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_GAIN),
                 cbsd_category=self.acs.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
             )
             state = enodebd_update_cbsd(enodebd_update_cbsd_request)

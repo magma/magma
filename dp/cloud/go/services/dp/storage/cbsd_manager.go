@@ -102,7 +102,6 @@ func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *MutableCbsd) 
 
 func (c *cbsdManager) EnodebdUpdateCbsd(data *DBCbsd) (*DetailedCbsd, error) {
 	grantJoinClause := getGrantJoinClauseForEnodebdUpdate()
-	data.LastSeen = db.MakeTime(clock.Now().UTC())
 	result, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
 		err := runner.enodebdUpdateCbsd(data)
@@ -228,7 +227,7 @@ func getCbsdWriteFields() []string {
 
 func getEnodebdWritableFields() []string {
 	return []string{
-		"antenna_gain", "cbsd_category", "latitude_deg", "longitude_deg",
+		"cbsd_category", "latitude_deg", "longitude_deg",
 		"height_m", "height_type", "indoor_deployment", "cpi_digital_signature",
 	}
 }

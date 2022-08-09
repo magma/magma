@@ -18,6 +18,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"magma/dp/cloud/go/protos"
 	b "magma/dp/cloud/go/services/dp/builders"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
@@ -26,12 +32,6 @@ import (
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/lib/go/merrors"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -298,7 +298,6 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					IndoorDeployment: tc.payload.InstallationParam.IndoorDeployment,
 					HeightM:          tc.payload.InstallationParam.HeightM,
 					HeightType:       tc.payload.InstallationParam.HeightType,
-					AntennaGain:      tc.payload.InstallationParam.AntennaGain,
 				},
 				CbsdCategory: tc.payload.CbsdCategory,
 			}
@@ -351,7 +350,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateWithError() {
 			}
 			state, err := s.manager.EnodebdUpdateCbsd(context.Background(), request)
 			s.Require().Error(err)
-			s.Assert().Equal(&protos.CBSDStateResult{}, state)
+			s.Assert().Nil(state)
 
 			errStatus, _ := status.FromError(err)
 			s.Assert().Equal(tc.expectedErrorStatus, errStatus.Code())

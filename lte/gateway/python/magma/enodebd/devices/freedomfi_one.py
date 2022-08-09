@@ -13,7 +13,7 @@ limitations under the License.
 import logging
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
-from dp.protos.cbsd_pb2 import CBSDStateResult, EnodebdUpdateCbsdRequest
+from dp.protos.cbsd_pb2 import CBSDStateResult
 from magma.enodebd.data_models import transform_for_magma
 from magma.enodebd.data_models.data_model import (
     DataModel,
@@ -1567,7 +1567,6 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
                 indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
                 antenna_height=str(ANTENNA_HEIGHT),
                 antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
-                antenna_gain=self.acs.device_cfg.get_parameter(SASParameters.SAS_ANTENNA_GAIN),
                 cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
             )
             state = enodebd_update_cbsd(enodebd_update_cbsd_request)

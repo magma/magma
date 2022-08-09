@@ -44,7 +44,6 @@ def build_enodebd_update_cbsd_request(
     indoor_deployment: str,
     antenna_height: str,
     antenna_height_type: str,
-    antenna_gain: str,
     cbsd_category: str,
 ) -> EnodebdUpdateCbsdRequest:
     # cbsd category and antenna height type should be converted to lowercase
@@ -57,7 +56,6 @@ def build_enodebd_update_cbsd_request(
     longitude_deg_float = float(longitude_deg)
 
     indoor_deployment_bool = _indoortobool(indoor_deployment)
-    antenna_gain_float = float(antenna_gain)
     antenna_height_float = float(antenna_height)
 
     installation_param = InstallationParam(
@@ -66,7 +64,6 @@ def build_enodebd_update_cbsd_request(
         indoor_deployment=BoolValue(value=indoor_deployment_bool),
         height_m=DoubleValue(value=antenna_height_float),
         height_type=StringValue(value=antenna_height_type),
-        antenna_gain=DoubleValue(value=antenna_gain_float),
     )
 
     return EnodebdUpdateCbsdRequest(

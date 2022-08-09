@@ -66,11 +66,12 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 
 func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.CBSDStateResult, error) {
 	data := requestToDbCbsd(request)
+	data.LastSeen = db.MakeTime(clock.Now().UTC())
 	details, err := c.store.EnodebdUpdateCbsd(data)
 	state := &protos.CBSDStateResult{}
 
 	if err != nil {
-		return state, makeErr(err, "update cbsd")
+		return nil, makeErr(err, "update cbsd")
 	}
 	if details != nil && details.Cbsd != nil && (details.Cbsd.IsDeleted.Bool || details.Grants == nil) {
 		c.sendLog(ctx, nil, "CbsdStateResponse", "DP", "CBSD", details)
@@ -297,9 +298,6 @@ func grantsFromDatabase(grants []*storage.DetailedGrant) []*protos.GrantDetails 
 }
 
 func makeErr(err error, wrap string) error {
-	if err == nil {
-		return nil
-	}
 	e := fmt.Errorf(wrap+": %w", err)
 	code := codes.Internal
 	if err == merrors.ErrNotFound {
