@@ -48,7 +48,7 @@ run:remote_caching_ro --remote_download_toplevel
 
 # Import the bazel caching config, with default disk cache,
 # which in CI gets overwritten by the remote caching config. 
-import bazel/bazelrcs/cache.bazelrc
+import %workspace%/bazel/bazelrcs/cache.bazelrc
 
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
