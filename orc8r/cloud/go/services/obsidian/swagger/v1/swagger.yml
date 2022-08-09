@@ -1127,7 +1127,7 @@ paths:
           description: Success
           schema:
             items:
-            - $ref: '#/definitions/event'
+              $ref: '#/definitions/event'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
@@ -1164,7 +1164,7 @@ paths:
           description: Success
           schema:
             items:
-            - $ref: '#/definitions/event'
+              $ref: '#/definitions/event'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'

@@ -107,11 +107,7 @@ const mockEvents = [
 describe('<EventsTable />', () => {
   beforeEach(() => {
     mockAPI(MagmaAPI.events, 'eventsNetworkIdAboutCountGet', mockEvents.length);
-    mockAPI(
-      MagmaAPI.events,
-      'eventsNetworkIdGet',
-      (mockEvents as unknown) as Array<string>,
-    );
+    mockAPI(MagmaAPI.events, 'eventsNetworkIdGet', mockEvents);
   });
 
   const Wrapper = () => {
