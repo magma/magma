@@ -237,16 +237,6 @@ func (b *DBGrantBuilder) WithId(id int64) *DBGrantBuilder {
 	return b
 }
 
-func (b *DBGrantBuilder) WithLowFrequency(f int64) *DBGrantBuilder {
-	b.Grant.LowFrequency = db.MakeInt(f)
-	return b
-}
-
-func (b *DBGrantBuilder) WithHighFrequency(f int64) *DBGrantBuilder {
-	b.Grant.HighFrequency = db.MakeInt(f)
-	return b
-}
-
 func (b *DBGrantBuilder) WithMaxEirp(e float64) *DBGrantBuilder {
 	b.Grant.MaxEirp = db.MakeFloat(e)
 	return b
@@ -684,7 +674,7 @@ func NewDPLogBuilder(from string, to string, name string) *DPLogBuilder {
 		LogFrom:          from,
 		LogTo:            to,
 		LogName:          name,
-		LogMessage:       "{}",
+		LogMessage:       "null",
 		CbsdSerialNumber: "some_serial_number",
 		NetworkId:        "some_network",
 		FccId:            "some_fcc_id",

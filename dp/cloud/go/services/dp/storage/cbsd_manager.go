@@ -102,6 +102,7 @@ func (c *cbsdManager) UpdateCbsd(networkId string, id int64, data *MutableCbsd) 
 
 func (c *cbsdManager) EnodebdUpdateCbsd(data *DBCbsd) (*DetailedCbsd, error) {
 	grantJoinClause := getGrantJoinClauseForEnodebdUpdate()
+	data.LastSeen = db.MakeTime(clock.Now().UTC())
 	result, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
 		err := runner.enodebdUpdateCbsd(data)
@@ -114,21 +115,6 @@ func (c *cbsdManager) EnodebdUpdateCbsd(data *DBCbsd) (*DetailedCbsd, error) {
 		return nil, makeError(err, c.errorChecker)
 	}
 	return result.(*DetailedCbsd), nil
-}
-
-func getGrantJoinClauseForEnodebdUpdate() sq.Sqlizer {
-	return sq.And{
-		db.On(GrantTable, "state_id", GrantStateTable, "id"),
-		sq.Eq{GrantStateTable + ".name": "authorized"},
-		sq.Or{
-			sq.Eq{"transmit_expire_time": nil},
-			sq.Gt{"transmit_expire_time": db.MakeTime(clock.Now().UTC())},
-		},
-		sq.Or{
-			sq.Eq{"grant_expire_time": nil},
-			sq.Gt{"grant_expire_time": db.MakeTime(clock.Now().UTC())},
-		},
-	}
 }
 
 func (c *cbsdManager) DeleteCbsd(networkId string, id int64) error {
@@ -272,7 +258,6 @@ func (c *cbsdManagerInTransaction) updateCbsd(networkId string, id int64, data *
 func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) error {
 	identifiers := []string{"cbsd_serial_number", "network_id"}
 	maskFields := append(identifiers, getEnodebdWritableFields()...)
-	maskFields = append(maskFields, "single_step_enabled")
 	mask := db.NewIncludeMask(maskFields...)
 	filters := sq.Eq{"cbsd_serial_number": data.CbsdSerialNumber}
 	cbsd, err := c.selectForUpdateIfCbsdExists(mask, filters)
@@ -289,11 +274,10 @@ func (c *cbsdManagerInTransaction) enodebdUpdateCbsd(data *DBCbsd) error {
 		data.ShouldDeregister = db.MakeBool(true)
 	}
 
-	data.LastSeen = db.MakeTime(clock.Now().UTC())
 	_, err = db.NewQuery().
 		WithBuilder(c.builder).
 		From(data).
-		Select(db.NewIncludeMask(identifiers...)).
+		Select(db.NewIncludeMask("id")).
 		Where(filters).
 		Update(db.NewIncludeMask(columns...))
 
@@ -488,4 +472,19 @@ func getCbsdFilters(networkId string, filter *CbsdFilter) sq.Eq {
 		}
 	}
 	return filters
+}
+
+func getGrantJoinClauseForEnodebdUpdate() sq.Sqlizer {
+	return sq.And{
+		db.On(GrantTable, "state_id", GrantStateTable, "id"),
+		sq.Eq{GrantStateTable + ".name": "authorized"},
+		sq.Or{
+			sq.Eq{"transmit_expire_time": nil},
+			sq.Gt{"transmit_expire_time": db.MakeTime(clock.Now().UTC())},
+		},
+		sq.Or{
+			sq.Eq{"grant_expire_time": nil},
+			sq.Gt{"grant_expire_time": db.MakeTime(clock.Now().UTC())},
+		},
+	}
 }

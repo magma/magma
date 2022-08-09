@@ -15,7 +15,7 @@ func ShouldEnodebdUpdateInstallationParams(prev *DBCbsd, next *DBCbsd) bool {
 }
 
 func canUpdate(prev *DBCbsd) bool {
-	return prev.SingleStepEnabled.Bool == true && !prev.CpiDigitalSignature.Valid
+	return !prev.CpiDigitalSignature.Valid
 }
 
 func paramsChanges(prev *DBCbsd, next *DBCbsd) bool {

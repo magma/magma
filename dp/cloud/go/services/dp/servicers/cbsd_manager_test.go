@@ -708,10 +708,10 @@ func (p *LogPusher) pushLogs(_ context.Context, log *logs_pusher.DPLog, consumer
 }
 
 func (p *LogPusher) getExpectedLog(log *logs_pusher.DPLog) *logs_pusher.DPLog {
-	if log.LogName == "EnodebdUpdateCbsd" {
+	switch l := log.LogName; l {
+	case "EnodebdUpdateCbsd":
 		return p.expectedEnodebdUpdateLog
-	}
-	if log.LogName == "CbsdStateResponse" {
+	case "CbsdStateResponse":
 		return p.expectedCbsdStateLog
 	}
 	return nil

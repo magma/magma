@@ -408,11 +408,9 @@ class BaicellsQRTBNotifyDPState(NotifyDPState):
                 cbsd_category=self.acs.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
             )
             state = enodebd_update_cbsd(enodebd_update_cbsd_request)
+            qrtb_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
         else:
             EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
-            state = enodebd_update_cbsd(EnodebdUpdateCbsdRequest(serial_number=serial_number))
-
-        qrtb_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
 
 
 class CarrierAggregationParameters:

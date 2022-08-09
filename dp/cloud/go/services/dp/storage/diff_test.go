@@ -114,29 +114,6 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 		},
 		expected: true,
 	}, {
-		name: "should not update if single step not enabled",
-		prev: &storage.DBCbsd{
-			AntennaGain:         db.MakeFloat(20),
-			CbsdCategory:        db.MakeString("A"),
-			LatitudeDeg:         sql.NullFloat64{},
-			LongitudeDeg:        sql.NullFloat64{},
-			HeightM:             db.MakeFloat(8),
-			HeightType:          db.MakeString("AGL"),
-			IndoorDeployment:    db.MakeBool(true),
-			CpiDigitalSignature: sql.NullString{},
-		},
-		next: &storage.DBCbsd{
-			AntennaGain:         db.MakeFloat(20),
-			CbsdCategory:        db.MakeString("A"),
-			LatitudeDeg:         sql.NullFloat64{},
-			LongitudeDeg:        sql.NullFloat64{},
-			HeightM:             db.MakeFloat(8),
-			HeightType:          db.MakeString("AGL"),
-			IndoorDeployment:    db.MakeBool(true),
-			CpiDigitalSignature: sql.NullString{},
-		},
-		expected: false,
-	}, {
 		name: "should not update if coordinates changed less than 10m",
 		prev: &storage.DBCbsd{
 			AntennaGain:         db.MakeFloat(20),

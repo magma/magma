@@ -66,15 +66,15 @@ func (c *cbsdManager) UserUpdateCbsd(_ context.Context, request *protos.UpdateCb
 
 func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.EnodebdUpdateCbsdRequest) (*protos.CBSDStateResult, error) {
 	data := requestToDbCbsd(request)
-	glog.Warningf("Received the following EnodebdUpdateCbsd request: %s", request)
 	details, err := c.store.EnodebdUpdateCbsd(data)
+	state := &protos.CBSDStateResult{}
 
-	if err != nil || details.Grants == nil || details.Cbsd.IsDeleted.Bool == true {
-		state := &protos.CBSDStateResult{}
-		if details != nil && details.Cbsd != nil {
-			c.sendLog(ctx, state, "CbsdStateResponse", "DP", "CBSD", details)
-		}
+	if err != nil {
 		return state, makeErr(err, "update cbsd")
+	}
+	if details != nil && details.Cbsd != nil && (details.Cbsd.IsDeleted.Bool || details.Grants == nil) {
+		c.sendLog(ctx, nil, "CbsdStateResponse", "DP", "CBSD", details)
+		return state, nil
 	}
 
 	c.sendLog(ctx, request, "EnodebdUpdateCbsd", "CBSD", "DP", details)
@@ -89,7 +89,7 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 		})
 	}
 
-	state := &protos.CBSDStateResult{
+	state = &protos.CBSDStateResult{
 		Channels:                  channels,
 		RadioEnabled:              true,
 		CarrierAggregationEnabled: details.Cbsd.CarrierAggregationEnabled.Bool,
@@ -97,7 +97,6 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	}
 
 	c.sendLog(ctx, state, "CbsdStateResponse", "DP", "CBSD", details)
-	glog.Warningf("Sending the following CbsdState: %s", state)
 	return state, nil
 }
 

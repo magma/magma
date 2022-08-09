@@ -1571,11 +1571,9 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
                 cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
             )
             state = enodebd_update_cbsd(enodebd_update_cbsd_request)
+            ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
         else:
             EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
-            state = enodebd_update_cbsd(EnodebdUpdateCbsdRequest(serial_number=serial_number))
-
-        ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
 
 
 def _ff_one_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:

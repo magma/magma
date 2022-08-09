@@ -261,34 +261,6 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				registered).
 			Details,
 	}, {
-		name: "test enodebd should not update cbsd with single step disabled",
-		inputCbsd: b.NewDBCbsdBuilder().
-			WithId(1).
-			WithNetworkId(someNetwork).
-			WithSingleStepEnabled(false).
-			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 1)).
-			WithDesiredStateId(registeredStateId).
-			WithStateId(registeredStateId).
-			Cbsd,
-		toUpdate: b.NewDBCbsdBuilder().
-			Empty().
-			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 1)).
-			WithFullInstallationParam().
-			Cbsd,
-		expected: b.NewDetailedDBCbsdBuilder().WithCbsd(
-			b.NewDBCbsdBuilder().
-				WithNetworkId(someNetwork).
-				WithDesiredStateId(registeredStateId).
-				WithSingleStepEnabled(false).
-				WithShouldDeregister(false).
-				WithIndoorDeployment(false).
-				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 1)).
-				WithLastSeen(nowTimestamp).
-				Cbsd,
-			registered,
-			registered).
-			Details,
-	}, {
 		name: "test enodebd update cbsd with valid authorized grant",
 		inputCbsd: b.NewDBCbsdBuilder().
 			WithId(3).
@@ -345,8 +317,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithCbsdId(4).
 				WithStateId(authorizedStateId).
 				WithGrantId("some_grant_id").
-				WithLowFrequency(3600e6).
-				WithHighFrequency(3610e6).
+				WithFrequency(3610e6).
 				WithMaxEirp(15).
 				WithGrantExpireTime(clock.Now().UTC().Add(-time.Hour)).
 				WithTransmitExpireTime(clock.Now().UTC().Add(-time.Hour)).
@@ -386,8 +357,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithCbsdId(5).
 				WithStateId(authorizedStateId).
 				WithGrantId("some_grant_id").
-				WithLowFrequency(3600e6).
-				WithHighFrequency(3610e6).
+				WithFrequency(3610e6).
 				WithMaxEirp(15).
 				WithGrantExpireTime(clock.Now().UTC().Add(time.Hour)).
 				WithTransmitExpireTime(clock.Now().UTC().Add(-time.Hour)).
@@ -427,8 +397,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithCbsdId(6).
 				WithStateId(authorizedStateId).
 				WithGrantId("some_grant_id").
-				WithLowFrequency(3600e6).
-				WithHighFrequency(3610e6).
+				WithFrequency(3610e6).
 				WithMaxEirp(15).
 				WithGrantExpireTime(clock.Now().UTC().Add(-time.Hour)).
 				WithTransmitExpireTime(clock.Now().UTC().Add(time.Hour)).
@@ -588,8 +557,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 				WithId(11).
 				WithCbsdId(11).
 				WithGrantId("some_grant_id").
-				WithLowFrequency(3600e6).
-				WithHighFrequency(3610e6).
+				WithFrequency(3610e6).
 				WithMaxEirp(15).
 				WithStateId(idleStateId).
 				WithGrantExpireTime(clock.Now().UTC().Add(time.Hour)).

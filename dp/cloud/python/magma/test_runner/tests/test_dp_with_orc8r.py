@@ -60,16 +60,16 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         self.serial_number = self._testMethodName + '_' + str(uuid4())
         # TODO why do we do that? Setup was supposed to be done by deployment...
         self.prometheus_url = f'http://{config.PROMETHEUS_SERVICE_HOST}:{config.PROMETHEUS_SERVICE_PORT}'
-        self.update_request = EnodebdUpdateCbsdRequest(serial_number=self.serial_number)
         requests.post(f"{self.prometheus_url}/api/v1/admin/tsdb/delete_series")
 
     def test_cbsd_sas_multi_step_flow(self):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
 
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, self.update_request)
+        update_request = builder.build_enodebd_update_request()
+        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, update_request)
 
-        with self.while_cbsd_is_active(self.update_request):
+        with self.while_cbsd_is_active(update_request):
             self.then_provision_logs_are_sent()
 
         self.then_metrics_are_in_prometheus()
@@ -81,18 +81,7 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             .with_single_step_enabled(True) \
             .with_serial_number(self.serial_number)
 
-        update_request = EnodebdUpdateCbsdRequest(
-            serial_number=self.serial_number,
-            installation_param=InstallationParam(
-                antenna_gain=DoubleValue(value=15),
-                latitude_deg=DoubleValue(value=10.5),
-                longitude_deg=DoubleValue(value=11.5),
-                indoor_deployment=BoolValue(value=True),
-                height_type=StringValue(value="agl"),
-                height_m=DoubleValue(value=12.5),
-            ),
-            cbsd_category="a",
-        )
+        update_request = builder.build_enodebd_update_request(indoor_deployment=True, cbsd_category="a")
         self.given_single_step_cbsd_provisioned(builder, update_request)
 
         with self.while_cbsd_is_active(update_request):
@@ -103,9 +92,10 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
 
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, self.update_request)
+        update_request = builder.build_enodebd_update_request()
+        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, update_request)
 
-        with self.while_cbsd_is_active(self.update_request):
+        with self.while_cbsd_is_active(update_request):
             filters = self._get_filters_for_request_type('deregistration', self.serial_number)
 
             builder = builder.with_desired_state(UNREGISTERED)
@@ -116,7 +106,7 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
 
     @parameterized.expand([
         (10.6, 11.6, True),
-        (10.500001, 10.500001, False),
+        (10.500001, 11.500001, False),
     ])
     def test_cbsd_unregistered_when_enodebd_changes_coordinates(self, lat, lon, should_deregister):
         builder = CbsdAPIDataBuilder() \
@@ -124,25 +114,15 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             .with_single_step_enabled(True) \
             .with_cbsd_category("a")
 
-        update_request_1 = update_request_2 = EnodebdUpdateCbsdRequest(
-            serial_number=self.serial_number,
-            installation_param=InstallationParam(
-                antenna_gain=DoubleValue(value=15),
-                latitude_deg=DoubleValue(value=10.5),
-                longitude_deg=DoubleValue(value=11.5),
-                indoor_deployment=BoolValue(value=True),
-                height_type=StringValue(value="agl"),
-                height_m=DoubleValue(value=12.5),
-            ),
-            cbsd_category="a",
-        )
+        update_request = builder.build_enodebd_update_request(cbsd_category="a", indoor_deployment=True)
 
-        self.given_single_step_cbsd_provisioned(builder, update_request_1)
+        self.given_single_step_cbsd_provisioned(builder, update_request)
 
-        update_request_2.installation_param.latitude_deg.value = lat
-        update_request_2.installation_param.longitude_deg.value = lon
+        update_request.installation_param.latitude_deg.value = lat
+        update_request.installation_param.longitude_deg.value = lon
 
-        with self.while_cbsd_is_active(update_request_2):
+        with self.while_cbsd_is_active(update_request):
+
             filters = self._get_filters_for_request_type('deregistration', self.serial_number)
             if should_deregister:
                 self.then_message_is_eventually_sent(filters)
@@ -153,31 +133,33 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
 
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, self.update_request)
+        update_request = builder.build_enodebd_update_request()
+        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, update_request)
 
-        with self.while_cbsd_is_active(self.update_request):
+        with self.while_cbsd_is_active(update_request):
             filters = self._get_filters_for_request_type('deregistration', self.serial_number)
 
             self.when_cbsd_is_deregistered(cbsd_id)
 
             self.then_message_is_eventually_sent(filters)
 
-            self.then_state_is_eventually(builder.build_grant_state_data(), self.update_request)
+            self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
 
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
 
-        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, self.update_request)
+        update_request = builder.build_enodebd_update_request()
+        cbsd_id = self.given_multi_step_cbsd_provisioned(builder, update_request)
 
-        with self.while_cbsd_is_active(self.update_request):
+        with self.while_cbsd_is_active(update_request):
             builder = builder.with_fcc_id(OTHER_FCC_ID)
             self.when_cbsd_is_updated_by_user(cbsd_id, builder.payload)
 
             filters = self._get_filters_for_request_type('deregistration', self.serial_number)
             self.then_message_is_eventually_sent(filters)
 
-            self.then_state_is_eventually(builder.build_grant_state_data(), self.update_request)
+            self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
 
             cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
             self.then_cbsd_is(
@@ -191,7 +173,8 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
     def test_activity_status(self):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
-        self.given_multi_step_cbsd_provisioned(builder, self.update_request)
+        update_request = builder.build_enodebd_update_request()
+        self.given_multi_step_cbsd_provisioned(builder, update_request)
 
         cbsd = self.when_cbsd_is_fetched(builder.payload["serial_number"])
         self.then_cbsd_is(cbsd, builder.with_is_active(True).payload)
@@ -215,12 +198,14 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         builder \
             .with_state('registered') \
             .with_is_active(True) \
-            .with_indoor_deployment(False) \
+            .with_full_installation_param(indoor_deployment=False) \
             .with_cbsd_id(cbsd_id) \
             .with_grant(bandwidth_mhz=5, frequency_mhz=3625, max_eirp=31)
 
-        with self.while_cbsd_is_active(self.update_request):
-            self.then_state_is_eventually(builder.build_grant_state_data(), self.update_request)
+        update_request = builder.build_enodebd_update_request()
+
+        with self.while_cbsd_is_active(update_request):
+            self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
             cbsd = self.when_cbsd_is_fetched(sn)
             self.then_cbsd_is(cbsd, builder.payload)
 
@@ -239,13 +224,15 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         builder \
             .with_state('registered') \
             .with_is_active(True) \
-            .with_indoor_deployment(False) \
+            .with_full_installation_param(indoor_deployment=False) \
             .with_cbsd_id(cbsd_id) \
             .with_grant(bandwidth_mhz=20, frequency_mhz=3580, max_eirp=25) \
             .with_grant(bandwidth_mhz=20, frequency_mhz=3600, max_eirp=25)
 
-        with self.while_cbsd_is_active(self.update_request):
-            self.then_state_is_eventually(builder.build_grant_state_data(), self.update_request)
+        update_request = builder.build_enodebd_update_request()
+
+        with self.while_cbsd_is_active(update_request):
+            self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
             cbsd = self.when_cbsd_is_fetched(sn)
             self.then_cbsd_is(cbsd, builder.payload)
 
@@ -355,8 +342,10 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             (sas_to_dp_with_limit_and_too_large_offset, operator.eq, 0),
         ]
 
-        self.given_multi_step_cbsd_provisioned(builder, self.update_request)
-        with self.while_cbsd_is_active(self.update_request):
+        update_request = builder.build_enodebd_update_request()
+
+        self.given_multi_step_cbsd_provisioned(builder, update_request)
+        with self.while_cbsd_is_active(update_request):
             self._verify_logs_count(scenarios)
 
     def given_single_step_cbsd_provisioned(
@@ -451,6 +440,13 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
             .with_grant() \
             .with_state("registered") \
             .with_cbsd_id(cbsd_id) \
+            .with_full_installation_param(
+                antenna_gain=request.installation_param.antenna_gain.value,
+                latitude_deg=request.installation_param.latitude_deg.value,
+                longitude_deg=request.installation_param.longitude_deg.value,
+                indoor_deployment=request.installation_param.indoor_deployment.value,
+                height_type=request.installation_param.height_type.value,
+                height_m=request.installation_param.height_m.value) \
             .payload
 
         self.then_state_is_eventually(builder.build_grant_state_data(), request)
@@ -468,8 +464,8 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         self.then_message_is_eventually_sent(filters)
 
     def then_logs_are_in_only_one_network(self):
-        self.then_logs_are(self._get_current_sas_filters(self.serial_number), self.get_sas_provision_messages())
-        self.then_logs_are(self._get_current_sas_filters(self.serial_number), [], network="someOtherNetworkId")
+        self.then_logs_are(_get_current_sas_filters(self.serial_number), self.get_sas_provision_messages())
+        self.then_logs_are(_get_current_sas_filters(self.serial_number), [], network="someOtherNetworkId")
 
     def when_cbsd_is_created(self, data: Dict[str, Any], expected_status: int = HTTPStatus.CREATED):
         r = send_request_to_backend('post', 'cbsds', json=data)
@@ -536,7 +532,7 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         for grant in actual.get('grants', []):
             del grant['grant_expire_time']
             del grant['transmit_expire_time']
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
     def then_cbsd_is_deleted(self, serial_number: str):
         self._check_for_cbsd(serial_number=serial_number, should_exist=False)
@@ -614,20 +610,21 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         if should_exist:
             return cbsds[0]
 
-    def _get_current_sas_filters(self, serial_number: str) -> Dict[str, Any]:
-        return {
-            'serial_number': serial_number,
-            'from': SAS,
-            'to': DP,
-            'end': now(),
-        }
-
     def _get_filters_for_request_type(self, request_type: str, serial_number: str) -> Dict[str, Any]:
         return {
             'serial_number': serial_number,
             'type': f'{request_type}Response',
             'begin': self.now,
         }
+
+
+def _get_current_sas_filters(serial_number: str) -> Dict[str, Any]:
+    return {
+        'serial_number': serial_number,
+        'from': SAS,
+        'to': DP,
+        'end': now(),
+    }
 
 
 def get_empty_state() -> CBSDStateResult:
