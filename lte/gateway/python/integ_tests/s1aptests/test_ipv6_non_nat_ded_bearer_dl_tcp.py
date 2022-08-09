@@ -162,11 +162,8 @@ class TestIpv6NonNatDedBearerDlTcp(unittest.TestCase):
             "************************* Running UE downlink (TCP) for UE id ",
             req.ue_id,
         )
-        with self._s1ap_wrapper.configDownlinkTest(
-            req, duration=1,
-        ) as test:
+        with self._s1ap_wrapper.configDownlinkTest(req, duration=1,) as test:
             test.verify()
-
 
         print(
             "************************* Running UE detach for UE id ",
@@ -174,7 +171,9 @@ class TestIpv6NonNatDedBearerDlTcp(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, wait_for_s1,
+            req.ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            wait_for_s1,
         )
 
 
