@@ -19,7 +19,7 @@ jobs:
           python-version: '3.8.10'
       - run: |
           mkdir ~/.magma
-          echo ${{ secrets.GITHUB_TOKEN }} > ~/.magma/github_access_token
+          echo ${{ secrets.GIT_TOKEN }} > ~/.magma/github_access_token
       - name: Install python prerequisites
         run: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
       - run: |
