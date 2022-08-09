@@ -28,6 +28,11 @@ help() {
     echo "      Execute all precommit and extended integration tests in the magma repository."
     echo "   $(basename "$0") path_to_tests_directory:bazel_test_target_name"
     echo "      Execute the specified test."
+    echo "   --retry-on-failure"
+    echo "      Retry twice for every test in case of failure."
+    echo "   --retry-attempts N"
+    echo "      Retry N times for every test in case of failure."
+    echo "      Should be used together with --retry-on-failure."
     echo -e "${BOLD}List tests:${NO_FORMATTING}"
     echo "   $(basename "$0") --list"
     echo "      List all integration tests."
@@ -251,7 +256,7 @@ run_test() {
         set +x
         echo "RUNNING TEST: ${TARGET}"
         set -x
-        sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}"
+        sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}";
     )
 }
 
@@ -272,6 +277,7 @@ print_summary() {
 PRECOMMIT_TEST_TARGETS=()
 EXTENDED_TEST_TARGETS=()
 NONSANITY_TEST_TARGETS=()
+FLAKY_ARGS=()
 declare -A TEST_RESULTS
 NUM_SUCCESS=0
 NUM_RUN=1
@@ -289,13 +295,15 @@ NONSANITY_TEST_SETUP="lte/gateway/python/integ_tests/s1aptests:test_modify_confi
 NONSANITY_TEST_TEARDOWN="lte/gateway/python/integ_tests/s1aptests:test_restore_config_after_non_sanity"
 SKIP_NONSANITY_SETUP_AND_TEARDOWN="false"
 TEST_CLEANUP_FILE_NAME="${MAGMA_ROOT}/lte/gateway/configs/templates/mme.conf.template.bak"
+RETRY_ON_FAILURE="false"
+RETRY_ATTEMPTS=2
 
 BOLD='\033[1m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NO_FORMATTING='\033[0m'
 
-declare -a POSITIONAL_ARGS
+declare -a POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -356,6 +364,15 @@ while [[ $# -gt 0 ]]; do
       SKIP_NONSANITY_SETUP_AND_TEARDOWN="true"
       shift
       ;;
+    --retry-on-failure)
+      RETRY_ON_FAILURE="true"
+      shift
+      ;;
+    --retry-attempts)
+      shift
+      RETRY_ATTEMPTS="$1"
+      shift
+      ;;
     --help)
       help
       exit 0
@@ -404,6 +421,11 @@ create_test_targets
 TOTAL_TESTS=${#PRECOMMIT_TEST_TARGETS[@]}
 TOTAL_TESTS=$((TOTAL_TESTS + ${#EXTENDED_TEST_TARGETS[@]}))
 TOTAL_TESTS=$((TOTAL_TESTS + ${#NONSANITY_TEST_TARGETS[@]}))
+
+if [[ "${RETRY_ON_FAILURE}" == "true" ]];
+then
+    FLAKY_ARGS=( --force-flaky --no-flaky-report --max-runs="$((RETRY_ATTEMPTS + 1))" --min-passes=1 )
+fi
 
 declare -a TEST_BATCH_TO_RUN
 
