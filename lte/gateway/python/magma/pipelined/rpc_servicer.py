@@ -993,6 +993,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             encode_imsi(subscriber_id),
             True,
             pdr_entry.ue_ipv6_addr,
+            session_qfi=pdr_entry.session_qfi,
         )
 
         return ret

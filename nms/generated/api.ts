@@ -211,16 +211,16 @@ export interface AlertRoutingTree {
     'group_wait'?: string;
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match'?: AlertRoutingTreeMatch;
+    'match'?: { [key: string]: string; };
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match_re'?: AlertRoutingTreeMatch;
+    'match_re'?: { [key: string]: string; };
     /**
      * 
      * @type {string}
@@ -239,25 +239,6 @@ export interface AlertRoutingTree {
      * @memberof AlertRoutingTree
      */
     'routes'?: Array<AlertRoutingTree>;
-}
-/**
- * 
- * @export
- * @interface AlertRoutingTreeMatch
- */
-export interface AlertRoutingTreeMatch {
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'label'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'value'?: string;
 }
 /**
  * 
@@ -10061,7 +10042,7 @@ export const CallTracingApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: CallTrace; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdTracingGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -10143,7 +10124,7 @@ export const CallTracingApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<Array<string>> {
+        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: CallTrace; }> {
             return localVarFp.networksNetworkIdTracingGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -39631,7 +39612,7 @@ export const RatingGroupsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<RatingGroup>>> {
+        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: RatingGroup; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdRatingGroupsGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -39701,7 +39682,7 @@ export const RatingGroupsApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<Array<RatingGroup>> {
+        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: RatingGroup; }> {
             return localVarFp.networksNetworkIdRatingGroupsGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**

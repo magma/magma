@@ -134,7 +134,7 @@ describe('<TrafficDashboard />', () => {
     mockAPI(
       MagmaAPI.ratingGroups,
       'networksNetworkIdRatingGroupsGet',
-      (ratingGroups as unknown) as Array<RatingGroup>,
+      ratingGroups,
     );
     mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });
@@ -352,7 +352,7 @@ describe('<TrafficDashboard APNs/>', () => {
     mockAPI(
       MagmaAPI.ratingGroups,
       'networksNetworkIdRatingGroupsGet',
-      (ratingGroups as unknown) as Array<RatingGroup>,
+      ratingGroups,
     );
     mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });

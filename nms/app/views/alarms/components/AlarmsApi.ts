@@ -11,12 +11,11 @@
  * limitations under the License.
  */
 
-import {PromFiringAlert} from '../../../../generated';
+import {AlertRoutingTree, PromFiringAlert} from '../../../../generated';
 import type {
   AlertConfig,
   AlertManagerGlobalConfig,
   AlertReceiver,
-  AlertRoutingTree,
   AlertSuppression,
   PrometheusLabelSet,
   TenancyConfig,
