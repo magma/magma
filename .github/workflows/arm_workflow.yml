@@ -40,6 +40,10 @@ jobs:
           pip install ansible awscli boto3
           sudo apt-get update
 
+      - name: Run the ansible crap
+        run: |
+          cd
+
 
       - name: Notify success to Slack
         if: success() && github.ref == 'refs/heads/master'
