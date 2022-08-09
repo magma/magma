@@ -173,9 +173,6 @@ async function handleEventQuery(
         streams: streams,
         hwIds: hardwareId,
         tags: tags,
-        // TODO[ts-migration] "from" does not appear in API
-        // @ts-ignore
-        from,
         start: start.toISOString(),
         end: end.toISOString(),
         ...filters,
