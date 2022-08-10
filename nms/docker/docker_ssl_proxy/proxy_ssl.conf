@@ -6,5 +6,6 @@ server {
   location / {
      proxy_pass http://magmalte:8081;
      proxy_set_header Host $http_host;
+     proxy_set_header X-Forwarded-Proto $scheme;
   }
 }
