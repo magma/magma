@@ -492,7 +492,7 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
     @retry(stop_max_attempt_number=30, wait_fixed=1000)
     def then_logs_are(self, filters: Dict[str, Any], expected: List[str], network: Optional[str] = None):
         actual = self._get_log_types(filters, network)
-        self.assertEqual(actual, expected)
+        self.assertListEqual(expected, actual)
 
     @retry(stop_max_attempt_number=30, wait_fixed=1000)
     def then_logs_contain(self, filters: Dict[str, Any], expected: List[str], network: Optional[str] = None):
