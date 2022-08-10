@@ -12,12 +12,16 @@
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+
 
 MAGMA_ROOT = "../../../../../"
 
 ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+CONTAINER_REGISTRY = "192.168.60.1:5678"  # The VM host
 
 py_binary(
     name = "enodebd",
@@ -58,6 +62,14 @@ py3_image(
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
     ],
+)
+
+container_push(
+   name = "push_enodebd_image",
+   image = ":enodebd_image",
+   format = "Docker",
+   registry = CONTAINER_REGISTRY,
+   repository = "magma/enodebd",
 )
 
 py_library(
