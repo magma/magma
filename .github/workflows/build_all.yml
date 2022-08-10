@@ -111,7 +111,7 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
-    if: github.event_name == 'push' && github.repository_owner == 'magma'
+#    if: github.event_name == 'push' && github.repository_owner == 'magma'
     runs-on: macos-12
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
