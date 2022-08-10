@@ -1,3 +1,0 @@
- priority=0 actions=resubmit(,ingress(main_table))
- priority=0,in_port=15578 actions=resubmit(,201)
- priority=0,in_port=15579 actions=resubmit(,202)
