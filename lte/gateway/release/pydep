@@ -591,7 +591,7 @@ def py_to_deb(pkgname: str,
             return 0
         log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
-        cmd = "fpm -s python -t deb --no-python-dependencies "
+        cmd = "fpm -s python -t deb --no-python-dependencies --python-pip /home/vagrant/build/python/bin/pip "
         if not py2:
             cmd += "--python-package-name-prefix=python3 "
             cmd += "--python-bin=python3 "

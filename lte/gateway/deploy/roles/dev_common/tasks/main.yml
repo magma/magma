@@ -161,6 +161,12 @@
   shell: gem install fpm
   when: preburn
 
+ # TODO: Delete this after the next preburn
+- name: Upgrade FPM. Temporary fix since we need a newer version on the VM.
+  tags: dev
+  shell: gem install fpm
+  when: full_provision
+
 - name: Common install dependencies for building and shipping client release
   tags: dev
   apt:
