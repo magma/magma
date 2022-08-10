@@ -11,13 +11,12 @@
  * limitations under the License.
  *
  */
-import ReactRefreshPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import paths from './paths';
 import postcssFlexbugFixes from 'postcss-flexbugs-fixes';
 import webpack, {Configuration} from 'webpack';
 
 function entry(value: Array<string>) {
-  return ['@gatsbyjs/webpack-hot-middleware/client', ...value];
+  return ['webpack-hot-middleware/client', ...value];
 }
 
 const devWebpackConfig: Configuration = {
@@ -43,14 +42,7 @@ const devWebpackConfig: Configuration = {
     chunkFilename: '[name].js',
     publicPath: '/nms/static/dist/',
   },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-    new ReactRefreshPlugin({
-      overlay: {
-        sockIntegration: 'whm', // whm -> webpack-hot-middleware
-      },
-    }),
-  ],
+  plugins: [new webpack.HotModuleReplacementPlugin()],
   module: {
     rules: [
       {
