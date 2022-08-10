@@ -135,6 +135,7 @@ s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
 s1aptests/test_disable_ipv6_iface.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_attach_detach_flaky_retry_success.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_detach_with_he_policy.py \
