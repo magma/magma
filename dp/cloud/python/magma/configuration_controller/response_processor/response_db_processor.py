@@ -12,9 +12,11 @@ limitations under the License.
 """
 import logging
 from json.decoder import JSONDecodeError
-from typing import Callable, List
+from typing import Callable, List, Dict
 
 import requests
+from sqlalchemy import or_
+
 from magma.configuration_controller.config import get_config
 from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.metrics import SAS_RESPONSE_PROCESSING_TIME
@@ -72,17 +74,14 @@ class ResponseDBProcessor(object):
             return
 
     def _populate_grant_states_map(self, session):
-        self.grant_states_map = {
-            GrantStates.GRANTED.value: session.query(DBGrantState).filter(
-                DBGrantState.name == GrantStates.GRANTED.value,
-            ).scalar(),
-            GrantStates.AUTHORIZED.value: session.query(DBGrantState).filter(
+        grant_states = session.query(DBGrantState).filter(
+            or_(
                 DBGrantState.name == GrantStates.AUTHORIZED.value,
-            ).scalar(),
-            GrantStates.UNSYNC.value: session.query(DBGrantState).filter(
+                DBGrantState.name == GrantStates.GRANTED.value,
                 DBGrantState.name == GrantStates.UNSYNC.value,
-            ).scalar(),
-        }
+            ),
+        ).all()
+        self.grant_states_map = {gs.name: gs for gs in grant_states}
 
     def _process_responses(
             self,
