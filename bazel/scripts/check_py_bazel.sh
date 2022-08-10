@@ -45,7 +45,6 @@ DENY_LIST_NOT_RELEVANT=(
   "./protos"
   "./show-tech"
   "./third_party"
-  "./xwf/gateway/deploy"
   "./hil_testing"
 )
 
