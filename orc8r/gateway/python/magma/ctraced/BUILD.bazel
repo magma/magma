@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -23,6 +24,21 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ctraced_lib",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py3_image(
+    name = "ctraced_image",
+    srcs = ["main.py"],
+    imports = [ORC8R_ROOT],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
     visibility = ["//visibility:public"],
     deps = [
         ":ctraced_lib",
