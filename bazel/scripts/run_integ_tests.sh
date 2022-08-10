@@ -84,13 +84,13 @@ categorize_test() {
     local TARGET=$1
     if [[ $(bazel query attr\(tags, precommit_test, kind\(py_test, "${TARGET}"\)\)) == *"${TARGET}" ]];
     then
-        PRECOMMIT_TEST_TARGETS=( "${TARGET}" )
+        PRECOMMIT_TEST_TARGETS+=( "${TARGET}" )
     elif [[ $(bazel query attr\(tags, extended_test, kind\(py_test, "${TARGET}"\)\)) == *"${TARGET}" ]];
     then
-        EXTENDED_TEST_TARGETS=( "${TARGET}" )
+        EXTENDED_TEST_TARGETS+=( "${TARGET}" )
     elif [[ $(bazel query attr\(tags, nonsanity_test, kind\(py_test, "${TARGET}"\)\)) == *"${TARGET}" ]];
     then
-        NONSANITY_TEST_TARGETS=( "${TARGET}" )
+        NONSANITY_TEST_TARGETS+=( "${TARGET}" )
     else
         echo "ERROR: Could not categorize the provided test."
         exit 1
@@ -99,12 +99,20 @@ categorize_test() {
 
 create_test_targets() {
     local ONLY_FOR_LISTING=${1:-"false"}
-    if [[ "${TARGET_PATH}" == *":"* ]];
+    if (( ${#POSITIONAL_ARGS[@]} > 0 ));
     then
-        echo "Single target specified - running test:"
-        categorize_test "${TARGET_PATH}"
-    elif [[ "${TARGET_PATH}" == "" ]];
-    then
+        echo "Custom target list provided - running tests:"
+        for TARGET_PATH in "${POSITIONAL_ARGS[@]}"
+        do
+            if [[ "${TARGET_PATH}" == *":"* ]];
+            then
+                categorize_test "${TARGET_PATH}"
+            else
+                echo "ERROR: Invalid test target name."
+                exit 1
+            fi
+        done
+    else
         if [[ "${ONLY_FOR_LISTING}" == "false" ]];
         then
             echo "Multiple targets specified - running tests:"
@@ -121,9 +129,6 @@ create_test_targets() {
         then
             create_nonsanity_test_targets
         fi
-    else
-        echo "ERROR: Invalid test target name."
-        exit 1
     fi
     ALL_TARGETS=( "${PRECOMMIT_TEST_TARGETS[@]}" "${EXTENDED_TEST_TARGETS[@]}" "${NONSANITY_TEST_TARGETS[@]}" )
     for TARGET in "${ALL_TARGETS[@]}"
@@ -388,33 +393,26 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-set -- "${POSITIONAL_ARGS[@]}"
-
-TARGET_PATH="${1:-}"
-
-if [[ "${TARGET_PATH}" == *"${EXTENDED_TEST_SETUP}" ]];
-then
-    setup_extended_tests
-    exit 0
-fi
-
-if [[ "${TARGET_PATH}" == *"${EXTENDED_TEST_TEARDOWN}" ]];
-then
-    teardown_extended_tests
-    exit 0
-fi
-
-if [[ "${TARGET_PATH}" == *"${NONSANITY_TEST_SETUP}" ]];
-then
-    setup_nonsanity_tests
-    exit 0
-fi
-
-if [[ "${TARGET_PATH}" == *"${NONSANITY_TEST_TEARDOWN}" ]];
-then
-    teardown_nonsanity_tests
-    exit 0
-fi
+for TARGET_PATH in "${POSITIONAL_ARGS[@]}"
+do
+    if [[ "${TARGET_PATH}" == *"${EXTENDED_TEST_SETUP}" ]];
+    then
+        setup_extended_tests
+        exit 0
+    elif [[ "${TARGET_PATH}" == *"${EXTENDED_TEST_TEARDOWN}" ]];
+    then
+        teardown_extended_tests
+        exit 0
+    elif [[ "${TARGET_PATH}" == *"${NONSANITY_TEST_SETUP}" ]];
+    then
+        setup_nonsanity_tests
+        exit 0
+    elif [[ "${TARGET_PATH}" == *"${NONSANITY_TEST_TEARDOWN}" ]];
+    then
+        teardown_nonsanity_tests
+        exit 0
+    fi
+done
 
 create_test_targets
 
