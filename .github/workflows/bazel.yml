@@ -52,10 +52,12 @@ jobs:
   bazel_build_and_test:
     needs: path_filter
     # Only run workflow if this is a scheduled run on master branch,
-    # or a pull_request that skip-duplicate-action wants to run again.
+    # if the workflow has been triggered manually or if it is a pull_request
+    # that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
-      needs.path_filter.outputs.files_changed == 'true'
+      needs.path_filter.outputs.files_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -206,10 +208,12 @@ jobs:
   bazel_package:
     needs: path_filter
     # Only run workflow if this is a scheduled run on master branch,
-    # or a pull_request that skip-duplicate-action wants to run again.
+    # if the workflow has been triggered manually or if it is a pull_request
+    # that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
-      needs.path_filter.outputs.files_changed == 'true'
+      needs.path_filter.outputs.files_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
     runs-on: ubuntu-latest
     steps:
