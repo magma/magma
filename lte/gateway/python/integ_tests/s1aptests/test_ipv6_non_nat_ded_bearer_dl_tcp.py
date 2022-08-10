@@ -176,6 +176,9 @@ class TestIpv6NonNatDedBearerDlTcp(unittest.TestCase):
             wait_for_s1,
         )
 
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
+
 
 if __name__ == "__main__":
     unittest.main()

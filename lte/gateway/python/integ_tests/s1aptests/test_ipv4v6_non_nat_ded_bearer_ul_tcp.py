@@ -75,7 +75,7 @@ class TestIpv4v6NonNatDedBearerUlTcp(unittest.TestCase):
         )
 
         # Now actually complete the attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
@@ -83,6 +83,8 @@ class TestIpv4v6NonNatDedBearerUlTcp(unittest.TestCase):
             pdn_type=3,
         )
 
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ipv4 = ipaddress.ip_address(bytes(addr[8:12]))
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
@@ -151,6 +153,7 @@ class TestIpv4v6NonNatDedBearerUlTcp(unittest.TestCase):
         time.sleep(5)
         num_ul_flows = 2
         dl_flow_rules = {
+            default_ipv4: [],
             default_ipv6: [flow_list],
         }
         # Verify if flow rules are created
@@ -158,8 +161,6 @@ class TestIpv4v6NonNatDedBearerUlTcp(unittest.TestCase):
             num_ul_flows, dl_flow_rules, ipv6_non_nat=True,
         )
 
-        print("Sleeping for 5 secs")
-        time.sleep(5)
         print(
             "************************* Running UE uplink (TCP) for UE id ",
             req.ue_id,
@@ -176,6 +177,9 @@ class TestIpv4v6NonNatDedBearerUlTcp(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             wait_for_s1,
         )
+
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":

@@ -72,7 +72,7 @@ class TestIpv4v6NonNatUlTcp(unittest.TestCase):
         )
 
         # Now actually complete the attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
@@ -80,12 +80,11 @@ class TestIpv4v6NonNatUlTcp(unittest.TestCase):
             pdn_type=3,
         )
 
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ipv4 = ipaddress.ip_address(bytes(addr[8:12]))
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Delay to ensure S1APTester sends attach complete before sending UE
-        # context release
-        time.sleep(5)
         # Receive Router Advertisement message
         apn = "magma"
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -101,11 +100,22 @@ class TestIpv4v6NonNatUlTcp(unittest.TestCase):
             "\x00",
         )
         print("********** UE IPv6 address: ", ipv6_addr)
-        ipaddress.ip_address(ipv6_addr)
+        default_ipv6 = ipaddress.ip_address(ipv6_addr)
         self._s1ap_wrapper.s1_util.update_ipv6_address(ue_id, ipv6_addr)
 
-        print("Sleeping for 5 secs")
+        # Sleep before verifying flows
+        print("********** Sleeping for 5 seconds")
         time.sleep(5)
+        num_ul_flows = 1
+        dl_flow_rules = {
+            default_ipv4: [],
+            default_ipv6: [],
+        }
+        # Verify if flow rules are created
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules, ipv6_non_nat=True,
+        )
+
         print(
             "************************* Running IPv6 UE uplink (TCP) for UE id ",
             req.ue_id,
@@ -122,6 +132,9 @@ class TestIpv4v6NonNatUlTcp(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             wait_for_s1,
         )
+
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":

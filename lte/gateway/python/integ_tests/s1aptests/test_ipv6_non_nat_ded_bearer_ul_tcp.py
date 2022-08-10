@@ -86,9 +86,6 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        # Delay to ensure S1APTester sends attach complete before sending UE
-        # context release
-        time.sleep(5)
         # Receive Router Advertisement message
         apn = "magma"
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -162,8 +159,6 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
             num_ul_flows, dl_flow_rules, ipv6_non_nat=True,
         )
 
-        print("Sleeping for 5 secs")
-        time.sleep(5)
         print(
             "************************* Running UE uplink (TCP) for UE id ",
             req.ue_id,
@@ -180,6 +175,9 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             wait_for_s1,
         )
+
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":
