@@ -16,6 +16,7 @@
     path: '/etc/bazelrc'
     state: link
     force: yes
+    follow: false
 
 - name: Symlink bazel disk cache configuration into the VM
   file:
