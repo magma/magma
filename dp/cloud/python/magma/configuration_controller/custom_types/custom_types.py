@@ -19,6 +19,7 @@ MergedRequests = Dict[str, List[Dict]]
 RequestsMap = Dict[str, List[DBRequest]]
 
 
+# TODO why does this class have a "DB" prefix. The name is misleading
 class DBResponse(NamedTuple):
     """ Class representing single response from SAS. """
     response_code: int
