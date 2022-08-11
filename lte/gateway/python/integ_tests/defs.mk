@@ -277,6 +277,13 @@ s1aptests/test_restore_config_after_non_sanity.py
 #s1aptests/test_ipv6_non_nat_dp_dl_udp.py
 #---------------
 
+# TODO: Add ipv6 tests to integ test suite
+# s1aptests/test_ipv4v6_non_nat_ul_tcp.py
+# s1aptests/test_ipv4v6_non_nat_ded_bearer_ul_tcp.py
+# s1aptests/test_ipv4v6_non_nat_ded_bearer_dl_tcp.py
+# s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py
+# s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py
+
 # Add the s1aptester integration tests with federation gateway
 FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \
 federated_tests/s1aptests/test_attach_detach_multi_ue.py
