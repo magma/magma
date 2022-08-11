@@ -15,7 +15,7 @@ import React from 'react';
 
 import LoadingFiller from './LoadingFiller';
 
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({

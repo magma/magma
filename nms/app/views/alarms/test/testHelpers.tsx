@@ -13,13 +13,12 @@
 
 import * as React from 'react';
 import AlarmContext from '../components/AlarmContext';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../theme/default';
 import getPrometheusRuleInterface from '../components/rules/PrometheusEditor/getRuleInterface';
 import {MemoryRouter} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {RenderResult, act, render} from '@testing-library/react';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import type {AlarmContext as AlarmContextType} from '../components/AlarmContext';
 import type {ApiUtil} from '../components/AlarmsApi';
 import type {RuleInterfaceMap} from '../components/rules/RuleInterface';
@@ -112,11 +111,11 @@ export function AlarmsTestWrapper({
 }) {
   return (
     <MemoryRouter initialEntries={[route || '/']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <SnackbarProvider>{children}</SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 }

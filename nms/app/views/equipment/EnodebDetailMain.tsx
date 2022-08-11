@@ -11,32 +11,33 @@
  * limitations under the License.
  */
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import DataUsageIcon from '@mui/icons-material/DataUsage';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
 import EnodebContext from '../../context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
-import Grid from '@material-ui/core/Grid';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import Grid from '@mui/material/Grid';
 import React from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsIcon from '@mui/icons-material/Settings';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import TopBar from '../../components/TopBar';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {RunGatewayCommands} from './RunGatewayCommands';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import type {WithAlert} from '../../components/Alert/withAlert';
@@ -173,12 +174,11 @@ function Overview() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date!)}
+            onChange={date => setStartDate(date as moment.Moment)}
           />
         </Grid>
         <Grid item>
@@ -188,11 +188,10 @@ function Overview() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date!)}
+            onChange={date => setEndDate(date as moment.Moment)}
           />
         </Grid>
       </Grid>

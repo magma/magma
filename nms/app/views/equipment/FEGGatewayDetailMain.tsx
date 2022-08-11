@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
-import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
-import DashboardIcon from '@material-ui/icons/Dashboard';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import FEGClusterStatus from './FEGClusterStatus';
 import FEGGatewayConnectionStatus from './FEGGatewayConnectionStatus';
@@ -24,21 +24,21 @@ import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
 import FEGGatewayDetailSubscribers from './FEGGatewayDetailSubscribers';
 import FEGGatewaySummary from './FEGGatewaySummary';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
-import Grid from '@material-ui/core/Grid';
-import ListAltIcon from '@material-ui/icons/ListAlt';
-import MyLocationIcon from '@material-ui/icons/MyLocation';
-import PeopleIcon from '@material-ui/icons/People';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import Grid from '@mui/material/Grid';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import PeopleIcon from '@mui/icons-material/People';
 import React from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
-import Tooltip from '@material-ui/core/Tooltip';
+import SettingsIcon from '@mui/icons-material/Settings';
+import Tooltip from '@mui/material/Tooltip';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
 
 import {EVENT_STREAM} from '../events/EventsTable';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({

@@ -10,9 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import PeopleIcon from '@material-ui/icons/People';
+import PeopleIcon from '@mui/icons-material/People';
 import React from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SubscriberDetail from './SubscriberDetail';
 import SubscriberStateTable from './SubscriberStateTable';
 import SubscriberTable from './SubscriberTable';

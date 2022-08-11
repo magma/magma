@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Link from '@material-ui/core/Link';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Link from '@mui/material/Link';
 import React, {useContext} from 'react';
 import ReactJson from 'react-json-view';
 import SubscriberContext from '../../context/SubscriberContext';
@@ -276,7 +276,8 @@ export function RenderLink(props: RenderLinkType) {
       <Link
         variant="body2"
         component="button"
-        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}>
+        onClick={() => navigate(imsi + `${!subscriberConfig ? '/event' : ''}`)}
+        underline="hover">
         {imsi}
       </Link>
     </div>

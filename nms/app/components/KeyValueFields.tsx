@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import {AltFormField} from './FormField';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   container: {
@@ -90,12 +90,16 @@ export default function KeyValueFields(props: Props) {
               {props.keyValuePairs.length !== 1 && (
                 <IconButton
                   onClick={() => removeField(index)}
-                  className={classes.icon}>
+                  className={classes.icon}
+                  size="large">
                   <RemoveCircleOutline />
                 </IconButton>
               )}
               {index === props.keyValuePairs.length - 1 && (
-                <IconButton onClick={addField} className={classes.icon}>
+                <IconButton
+                  onClick={addField}
+                  className={classes.icon}
+                  size="large">
                   <AddCircleOutline />
                 </IconButton>
               )}

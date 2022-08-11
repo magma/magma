@@ -15,14 +15,13 @@ import type {PromqlReturnObject} from '../../../../generated';
 import Enodeb from '../EquipmentEnodeb';
 import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
 
@@ -123,17 +122,19 @@ describe('<Enodeb />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
-      <MuiPickersUtilsProvider utils={MomentUtils}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContext.Provider value={enbCtx}>
-              <Routes>
-                <Route path="/nms/:networkId/enodeb/" element={<Enodeb />} />
-              </Routes>
-            </EnodebContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
-      </MuiPickersUtilsProvider>
+      <LocalizationProvider dateAdapter={AdapterMoment}>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider value={enbCtx}>
+                <Routes>
+                  <Route path="/nms/:networkId/enodeb/" element={<Enodeb />} />
+                </Routes>
+              </EnodebContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
+      </LocalizationProvider>
     </MemoryRouter>
   );
 

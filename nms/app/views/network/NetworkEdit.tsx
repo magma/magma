@@ -16,20 +16,20 @@ import type {
   NetworkEpcConfigs,
 } from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import LteNetworkContext from '../../context/LteNetworkContext';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 
 import {NetworkEpcEdit} from './NetworkEpc';
 import {NetworkFederationEdit} from './NetworkFederationConfig';
 import {NetworkInfoEdit} from './NetworkInfo';
 import {NetworkRanEdit} from './NetworkRanConfig';
 import {colors, typography} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 
 const NETWORK_TITLE = 'Network';
@@ -53,7 +53,6 @@ const useStyles = makeStyles({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
 });
 

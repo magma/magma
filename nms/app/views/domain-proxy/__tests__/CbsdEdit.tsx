@@ -11,14 +11,13 @@
  * limitations under the License.
  */
 
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AddEditCbsdButton, CbsdAddEditDialog} from '../CbsdEdit';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {CbsdContextProvider} from '../../../context/CbsdContext';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {
   fireEvent,
   render,
@@ -90,11 +89,11 @@ const fillMuiSelect = async (testId: string, optionText: string | number) => {
 
 const renderWithProviders = (jsx: React.ReactNode) => {
   return render(
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
         <CbsdContextProvider networkId={networkId}>{jsx}</CbsdContextProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>,
+      </ThemeProvider>
+    </StyledEngineProvider>,
   );
 };
 

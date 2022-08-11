@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
@@ -20,7 +20,7 @@ import {Line} from 'react-chartjs-2';
 import MagmaAPI from '../../api/MagmaAPI';
 import {PositionType, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

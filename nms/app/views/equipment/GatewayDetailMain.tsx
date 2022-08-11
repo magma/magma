@@ -10,14 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
+import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import DashboardAlertTable from '../../components/DashboardAlertTable';
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig, {GatewayJsonConfig} from './GatewayDetailConfig';
@@ -28,18 +28,18 @@ import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayDetailSubscribers from './GatewayDetailSubscribers';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
-import Grid from '@material-ui/core/Grid';
-import ListAltIcon from '@material-ui/icons/ListAlt';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import Grid from '@mui/material/Grid';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import MenuButton from '../../components/MenuButton';
-import MenuItem from '@material-ui/core/MenuItem';
-import MyLocationIcon from '@material-ui/icons/MyLocation';
-import PeopleIcon from '@material-ui/icons/People';
+import MenuItem from '@mui/material/MenuItem';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import PeopleIcon from '@mui/icons-material/People';
 import React, {useContext, useState} from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -52,10 +52,10 @@ import {
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {RunGatewayCommands} from './RunGatewayCommands';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import type {LteGateway} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
@@ -66,7 +66,6 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
 }));
 type CommandProps = {

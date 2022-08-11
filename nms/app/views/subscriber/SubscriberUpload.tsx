@@ -11,30 +11,28 @@
  * limitations under the License.
  */
 
-import Alert from '@material-ui/lab/Alert';
-import Button from '@material-ui/core/Button';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import React from 'react';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import React, {useMemo, useState} from 'react';
 import Text from '../../theme/design-system/Text';
-import {DropzoneArea} from 'material-ui-dropzone';
+
 import {
   SUBSCRIBER_ACTION_TYPE,
   SubscriberInfo,
-  forbiddenNetworkTypes,
-} from './SubscriberUtils';
-import {
   SubscribersDialogDetailProps,
+  forbiddenNetworkTypes,
   validateSubscribers,
 } from './SubscriberUtils';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
+import {useDropzone} from 'react-dropzone';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   uploadDialog: {
@@ -43,6 +41,23 @@ const useStyles = makeStyles(() => ({
   uploadInstructions: {
     marginTop: '16px',
     color: colors.primary.comet,
+  },
+  dropzone: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '20px',
+    borderWidth: 2,
+    borderRadius: 2,
+    borderColor: colors.primary.gullGray,
+    borderStyle: 'dashed',
+    color: '#bdbdbd',
+    outline: 'none',
+    transition: 'border .24s ease-in-out',
+    minHeight: '200px',
+    cursor: 'pointer',
+    justifyContent: 'center',
   },
 }));
 const SUB_NAME_OFFSET = 0;
@@ -154,10 +169,58 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [fileName, setFileName] = useState('');
 
+  const {
+    getRootProps,
+    isFocused,
+    isDragAccept,
+    isDragReject,
+    getInputProps,
+  } = useDropzone({
+    accept: {'text/csv': []},
+    maxFiles: 1,
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    onDrop: async files => {
+      if (files.length) {
+        try {
+          const newSubscribers: Array<SubscriberInfo> = await parseSubscriberFile(
+            files[0],
+          );
+
+          if (newSubscribers) {
+            setSubscribers([...newSubscribers]);
+            const errors = validateSubscribers(
+              newSubscribers,
+              subscriberAction,
+            );
+            setFileName(files[0].name);
+
+            if (!(subscriberAction === 'delete')) {
+              setUpload(false);
+              setAddError(errors);
+            }
+          }
+        } catch (e) {
+          enqueueSnackbar(getErrorMessage(e), {
+            variant: 'error',
+          });
+        }
+      }
+    },
+  });
+
+  const style = useMemo(
+    () => ({
+      ...(isFocused ? {bordercolor: colors.secondary.dodgerBlue} : {}),
+      ...(isDragAccept ? {borderColor: colors.secondary.dodgerBlue} : {}),
+      ...(isDragReject ? {borderColor: colors.state.error} : {}),
+    }),
+    [isFocused, isDragAccept, isDragReject],
+  );
+
   const DropzoneText = () => (
-    <div>
-      Drag and drop or <Link>browse files</Link>
-    </div>
+    <Text variant="h5">
+      Drag and drop or <Link underline="hover">browse files</Link>
+    </Text>
   );
 
   return (
@@ -178,41 +241,10 @@ export function SubscriberDetailsUpload(props: SubscribersDialogDetailProps) {
           </Grid>
           {!fileName ? (
             <Grid item xs={12}>
-              <DropzoneArea
-                dropzoneText={((<DropzoneText />) as unknown) as string}
-                useChipsForPreview
-                showPreviewsInDropzone={false}
-                filesLimit={1}
-                showAlerts={false}
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                onChange={async files => {
-                  if (files.length) {
-                    try {
-                      const newSubscribers: Array<SubscriberInfo> = await parseSubscriberFile(
-                        files[0],
-                      );
-
-                      if (newSubscribers) {
-                        setSubscribers([...newSubscribers]);
-                        const errors = validateSubscribers(
-                          newSubscribers,
-                          subscriberAction,
-                        );
-                        setFileName(files[0].name);
-
-                        if (!(subscriberAction === 'delete')) {
-                          setUpload(false);
-                          setAddError(errors);
-                        }
-                      }
-                    } catch (e) {
-                      enqueueSnackbar(getErrorMessage(e), {
-                        variant: 'error',
-                      });
-                    }
-                  }
-                }}
-              />
+              <div {...getRootProps({style})} className={classes.dropzone}>
+                <input {...getInputProps()} />
+                <DropzoneText />
+              </div>
               <UploadInstructions action={subscriberAction} />
             </Grid>
           ) : (
@@ -280,7 +312,9 @@ function UploadInstructions({action}: {action: string}) {
   return (
     <Text variant="body2" className={classes.uploadInstructions}>
       {`Accepted file type: .csv (<10 MB).  ${instructions}`}
-      <Link href={UPLOAD_DOC_LINK}>documentation</Link>
+      <Link href={UPLOAD_DOC_LINK} underline="hover">
+        documentation
+      </Link>
     </Text>
   );
 }

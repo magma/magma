@@ -11,21 +11,21 @@
  * limitations under the License.
  */
 
-import AddAlertIcon from '@material-ui/icons/AddAlert';
-import AlarmIcon from '@material-ui/icons/Alarm';
+import AddAlertIcon from '@mui/icons-material/AddAlert';
+import AlarmIcon from '@mui/icons-material/Alarm';
 import Alarms from './components/Alarms';
 import AppContext from '../../context/AppContext';
-import Button from '@material-ui/core/Button';
-import ContactMailIcon from '@material-ui/icons/ContactMail';
-import Grid from '@material-ui/core/Grid';
+import Button from '@mui/material/Button';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
+import Grid from '@mui/material/Grid';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '../../../shared/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../util/AlarmsApiUtil';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {triggerAlertSync} from '../../util/SyncAlerts';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';

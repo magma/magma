@@ -12,7 +12,6 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import Organizations from '../Organizations';
 import axios from 'axios';
 import defaultTheme from '../../../theme/default';
@@ -20,8 +19,8 @@ import defaultTheme from '../../../theme/default';
 import {AppContextProvider} from '../../../context/AppContext';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockUseAxios} from '../useAxiosTestHelper';
 
@@ -127,8 +126,8 @@ window.CONFIG = {
 const WrappedOrganizations = () => {
   return (
     <MemoryRouter initialEntries={['/organizations']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <SnackbarProvider>
             <AppContextProvider>
               <Routes>
@@ -136,8 +135,8 @@ const WrappedOrganizations = () => {
               </Routes>
             </AppContextProvider>
           </SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 };

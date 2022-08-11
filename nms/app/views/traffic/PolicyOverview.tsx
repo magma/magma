@@ -10,33 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import withAlert from '../../components/Alert/withAlert';
 import type {PolicyRule, QosClassId} from '../../../generated';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import BaseNameEditDialog from './BaseNameEdit';
 import EmptyState from '../../components/EmptyState';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import LteNetworkContext from '../../context/LteNetworkContext';
 import PolicyContext from '../../context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
 import RatingGroupEditDialog from './RatingGroupEdit';
-import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import React, {useContext, useEffect, useState} from 'react';
 import Text from '../../theme/design-system/Text';
-import TextField from '@material-ui/core/TextField';
-import withAlert from '../../components/Alert/withAlert';
-import {Checkbox} from '@material-ui/core';
-import {Theme, withStyles} from '@material-ui/core/styles';
+import TextField from '@mui/material/TextField';
+import {Checkbox} from '@mui/material';
+import {MagmaTab, MagmaTabs} from '../../theme/design-system/SecondaryTabs';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
 
@@ -55,7 +53,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
+    padding: `0 ${theme.spacing(5)}`,
   },
   tabs: {
     color: colors.primary.white,
@@ -138,24 +136,6 @@ type RatingGroupRowType = {
   id: string;
   limitType: string;
 };
-
-const MagmaTabs = withStyles({
-  indicator: {
-    backgroundColor: colors.secondary.dodgerBlue,
-  },
-})(Tabs);
-
-const MagmaTab = withStyles({
-  root: {
-    fontFamily: typography.body1.fontFamily,
-    fontWeight: typography.body1.fontWeight,
-    fontSize: typography.body1.fontSize,
-    lineHeight: typography.body1.lineHeight,
-    letterSpacing: typography.body1.letterSpacing,
-    color: colors.primary.brightGray,
-    textTransform: 'none',
-  },
-})(Tab);
 
 export default function PolicyOverview() {
   const classes = useStyles();
@@ -268,7 +248,8 @@ export function PolicyTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),
@@ -283,6 +264,7 @@ export function PolicyTableRaw(props: WithAlert) {
               return (
                 <TextField
                   type="password"
+                  variant="standard"
                   value={rowData.monitoringKey}
                   InputProps={{
                     disableUnderline: true,
@@ -381,7 +363,8 @@ export function BaseNameTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),
@@ -389,17 +372,8 @@ export function BaseNameTableRaw(props: WithAlert) {
           {
             title: 'Rule Names',
             field: 'ruleNames',
-            render: rowData => {
-              return (
-                <TextField
-                  value={rowData.ruleNames ? rowData.ruleNames.join(', ') : ''}
-                  InputProps={{
-                    disableUnderline: true,
-                    readOnly: true,
-                  }}
-                />
-              );
-            },
+            render: rowData =>
+              rowData.ruleNames ? rowData.ruleNames.join(', ') : '',
           },
           {
             title: '# of Assigned Subscribers',
@@ -484,7 +458,8 @@ export function ProfileTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),
@@ -579,7 +554,8 @@ export function RatingGroupTableRaw(props: WithAlert) {
                 onClick={() => {
                   setCurrRow(currRow);
                   setOpen(true);
-                }}>
+                }}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),

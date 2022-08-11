@@ -12,11 +12,10 @@
  */
 import DashboardAlertTable from '../DashboardAlertTable';
 import MagmaAPI from '../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../util/TestUtils';
 import type {GettableAlert, PromFiringAlert} from '../../../generated';
@@ -124,13 +123,13 @@ describe('<DashboardAlertTable />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <Routes>
             <Route path="/nms/:networkId/*" element={<DashboardAlertTable />} />
           </Routes>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
   it('renders', async () => {

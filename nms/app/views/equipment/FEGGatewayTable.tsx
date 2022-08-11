@@ -17,17 +17,17 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
-import CheckIcon from '@material-ui/icons/Check';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
+import CheckIcon from '@mui/icons-material/Check';
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import FEGGatewayContext from '../../context/FEGGatewayContext';
 import GatewayTierContext from '../../context/GatewayTierContext';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useContext, useState} from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import Text from '../../theme/design-system/Text';
 
 import withAlert from '../../components/Alert/withAlert';
@@ -95,7 +95,7 @@ export default function GatewayTable() {
               <Select
                 value={currentView}
                 input={<OutlinedInput />}
-                onChange={({target}) => setCurrentView(target.value as string)}>
+                onChange={({target}) => setCurrentView(target.value)}>
                 <MenuItem key={ViewTypes.STATUS} value={ViewTypes.STATUS}>
                   Status
                 </MenuItem>
@@ -167,7 +167,8 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => navigate(currRow.id)}>
+                onClick={() => navigate(currRow.id)}
+                underline="hover">
                 {currRow.name}
               </Link>
             ),

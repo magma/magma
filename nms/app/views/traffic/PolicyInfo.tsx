@@ -11,16 +11,16 @@
  * limitations under the License.
  */
 
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import Switch from '@material-ui/core/Switch';
+import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
 import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {policyStyles} from './PolicyStyles';
 import type {PolicyQosProfile, PolicyRule} from '../../../generated';
 
@@ -91,7 +91,7 @@ export default function PolicyInfoEdit(props: Props) {
           onChange={({target}) => {
             props.onChange({
               ...policyRule,
-              qos_profile: target.value as string,
+              qos_profile: target.value,
             });
           }}
           input={<OutlinedInput id="qosProfile" />}>

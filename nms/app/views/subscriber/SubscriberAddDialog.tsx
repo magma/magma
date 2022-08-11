@@ -11,28 +11,28 @@
  * limitations under the License.
  */
 import ActionTable, {SelectEditComponent} from '../../components/ActionTable';
-import Alert from '@material-ui/lab/Alert';
-import AlertTitle from '@material-ui/lab/AlertTitle';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 import ApnContext from '../../context/ApnContext';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import Grid from '@material-ui/core/Grid';
-import ListItemText from '@material-ui/core/ListItemText';
+import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
+import ListItemText from '@mui/material/ListItemText';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import PolicyContext from '../../context/PolicyContext';
 import React, {forwardRef, useContext, useState} from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip from '@mui/material/Tooltip';
 import nullthrows from '../../../shared/util/nullthrows';
 import {Column, MaterialTableProps} from '@material-table/core';
 import {PasswordInput} from '../../components/FormField';
@@ -43,7 +43,7 @@ import {
 } from '../../util/SubscriberState';
 import {colors} from '../../theme/default';
 import {forbiddenNetworkTypes, validateSubscribers} from './SubscriberUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
 import type {ActionQuery} from '../../components/ActionTable';
 import type {EditProps} from './SubscriberEditDialog';
@@ -56,7 +56,6 @@ import type {
 const useStyles = makeStyles(() => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   input: {
     display: 'inline-flex',
@@ -324,10 +323,10 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             onChange={({target}) => props.onChange(target.value)}
             displayEmpty={true}
             renderValue={selected => {
-              if (!(selected as Array<string>).length) {
+              if (!selected.length) {
                 return 'Select Forbidden Network Types';
               }
-              return (selected as Array<string>).join(', ');
+              return selected.join(', ');
             }}
             input={
               <OutlinedInput
@@ -375,10 +374,10 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             onChange={({target}) => props.onChange(target.value)}
             displayEmpty={true}
             renderValue={selected => {
-              if (!(selected as Array<string>).length) {
+              if (!selected.length) {
                 return 'Select APNs';
               }
-              return (selected as Array<string>).join(', ');
+              return selected.join(', ');
             }}
             input={
               <OutlinedInput
@@ -413,10 +412,10 @@ function SubscriberDetailsTable(props: SubscribersDialogDetailProps) {
             onChange={({target}) => props.onChange(target.value)}
             displayEmpty={true}
             renderValue={selected => {
-              if (!(selected as Array<string>).length) {
+              if (!selected.length) {
                 return 'Select Policies';
               }
-              return (selected as Array<string>).join(', ');
+              return selected.join(', ');
             }}
             input={
               <OutlinedInput

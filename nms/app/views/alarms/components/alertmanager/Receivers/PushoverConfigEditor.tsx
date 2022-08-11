@@ -13,9 +13,9 @@
 
 import * as React from 'react';
 import ConfigEditor from './ConfigEditor';
-import Grid from '@material-ui/core/Grid';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverPushoverConfig} from '../../AlarmAPIType';
 
@@ -31,6 +31,7 @@ export default function PushoverConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="User Key"
               value={config.user_key}
@@ -40,6 +41,7 @@ export default function PushoverConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Token"
               value={config.token}
@@ -53,6 +55,7 @@ export default function PushoverConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               label="Title"
               value={config.title}
               onChange={e => onUpdate({title: e.target.value})}
@@ -61,6 +64,7 @@ export default function PushoverConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               label="Message"
               value={config.message}
               onChange={e => onUpdate({message: e.target.value})}
@@ -69,6 +73,7 @@ export default function PushoverConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               label="Priority"
               value={config.priority || '0'}
               onChange={e => onUpdate({priority: e.target.value})}

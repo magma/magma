@@ -21,20 +21,20 @@
  */
 
 import * as React from 'react';
-import CloseIcon from '@material-ui/icons/Close';
-import Collapse from '@material-ui/core/Collapse';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Link from '@material-ui/core/Link';
-import Paper from '@material-ui/core/Paper';
+import CloseIcon from '@mui/icons-material/Close';
+import Collapse from '@mui/material/Collapse';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Link from '@mui/material/Link';
+import Paper from '@mui/material/Paper';
 import SeverityIndicator from '../../severity/SeverityIndicator';
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 import moment from 'moment';
 import {PromFiringAlert} from '../../../../../../generated';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 import type {
@@ -42,7 +42,7 @@ import type {
   RuleInterfaceMap,
 } from '../../rules/RuleInterface';
 import type {Labels} from '../../AlarmAPIType';
-import type {SvgIconProps} from '@material-ui/core';
+import type {SvgIconProps} from '@mui/material';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -142,7 +142,8 @@ function MetricAlertViewer({alert}: AlertViewerProps) {
         <Link
           variant="subtitle1"
           component="button"
-          onClick={() => setShowDetails(!showDetails)}>
+          onClick={() => setShowDetails(!showDetails)}
+          underline="hover">
           {'Show More Details'}
         </Link>
       </Grid>
@@ -204,7 +205,8 @@ function AlertTroubleshootingLink({alertName}: {alertName: string}) {
                 variant="subtitle1"
                 href={troubleshootingLink?.link}
                 target="_blank"
-                rel="noopener">
+                rel="noopener"
+                underline="hover">
                 {troubleshootingLink?.title}
               </Link>
             </Grid>

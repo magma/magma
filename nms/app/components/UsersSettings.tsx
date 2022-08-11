@@ -12,19 +12,19 @@
  */
 
 import AppContext from '../context/AppContext';
-import Button from '@material-ui/core/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import EditUserDialog from './EditUserDialog';
-import IconButton from '@material-ui/core/IconButton';
+import IconButton from '@mui/material/IconButton';
 import LoadingFiller from './LoadingFiller';
-import Paper from '@material-ui/core/Paper';
+import Paper from '@mui/material/Paper';
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import Text from '../theme/design-system/Text';
 import axios, {AxiosResponse} from 'axios';
 import {UserRoles} from '../../shared/roles';
@@ -33,9 +33,9 @@ import type {WithAlert} from './Alert/withAlert';
 
 import renderList from '../util/renderList';
 import withAlert from './Alert/withAlert';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAxios} from '../hooks';
 import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
@@ -122,14 +122,15 @@ function UsersSettings(props: WithAlert) {
       </TableCell>
       <TableCell>{renderList(row.networkIDs || [])}</TableCell>
       <TableCell>
-        <IconButton onClick={() => deleteUser(row)}>
+        <IconButton onClick={() => deleteUser(row)} size="large">
           <DeleteIcon />
         </IconButton>
         <IconButton
           onClick={() => {
             setShowDialog(true);
             setEditingUser(row);
-          }}>
+          }}
+          size="large">
           <EditIcon />
         </IconButton>
       </TableCell>

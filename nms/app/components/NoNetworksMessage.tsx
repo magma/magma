@@ -12,10 +12,10 @@
  */
 
 import * as React from 'react';
-import Typography from '@material-ui/core/Typography';
-import WifiTethering from '@material-ui/icons/WifiTethering';
+import Typography from '@mui/material/Typography';
+import WifiTethering from '@mui/icons-material/WifiTethering';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   noAccess: {

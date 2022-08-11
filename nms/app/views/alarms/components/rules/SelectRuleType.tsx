@@ -12,12 +12,12 @@
  */
 
 import * as React from 'react';
-import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import Grid from '@mui/material/Grid';
+import InputLabel from '@mui/material/InputLabel';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import type {RuleInterfaceMap} from './RuleInterface';
 
 const useRuleTypeStyles = makeStyles<Theme>(theme => ({

@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 import CbsdsTable from './CbsdsTable';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React from 'react';
-import {Theme} from '@material-ui/core/styles/createTheme';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
