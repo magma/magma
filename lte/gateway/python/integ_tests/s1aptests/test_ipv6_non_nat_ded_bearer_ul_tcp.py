@@ -75,6 +75,9 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
         )
 
         # Now actually complete the attach
+        # PDN type values sent in NAS message are different from
+        # the values used in s6a (APN config)
+        # PDN Type 1-IPv4,2-IPv6,3-IPv4v6
         self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
