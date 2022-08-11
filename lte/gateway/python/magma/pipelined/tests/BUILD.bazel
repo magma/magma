@@ -895,3 +895,24 @@ pytest_test(
         "//lte/protos:pipelined_python_proto",
     ],
 )
+
+pytest_test(
+    name = "test_ipv6_solicitation_5g.py"
+    size = "small",
+    srcs = ["test_ipv6_solicitation_5g.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:ipv6_solicitation",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
