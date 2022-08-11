@@ -2,7 +2,7 @@
 
 # test server ssh
 SSH_CERT_FILE=${SSH_CERT_FILE:-~/.ssh/aws2.pem}
-IP_ADDRESS=${IP_ADDRESS:-54.145.218.49}
+IP_ADDRESS=${IP_ADDRESS}
 USERNAME=${USERNAME:-centos}
 
 # server runtime configfile relative to server executable
