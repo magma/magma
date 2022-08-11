@@ -14,7 +14,6 @@
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 def configure_python_dependencies(name = None):
-    native.register_toolchains("//bazel:py_toolchain")
 
     pip_parse(
         name = "python_deps",
