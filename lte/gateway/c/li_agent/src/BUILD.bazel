@@ -10,7 +10,11 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
+load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
+load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+
 
 package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
 
@@ -26,18 +30,35 @@ cc_binary(
     ],
 )
 
-cc_image(
-    name = "liagentd_image",
-    srcs = ["main.cpp"],
-    deps = [
-        ":interface_monitor",
-        "//orc8r/gateway/c/common/config:mconfig_loader",
-        "//orc8r/gateway/c/common/logging",
-        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
-        "//orc8r/gateway/c/common/service303",
-    ],
+download_pkgs(
+    name = "liagent_requisites",
+    image_tar = "@ubuntu_focal//image",
+    packages = [
+        "libpcap0.8",
+        "libcurl4",
+        "libgflags2.2",
+        "libunwind8",
+        ],
 )
 
+install_pkgs(
+    name = "liagentd_requisites_layer",
+    image_tar = "@ubuntu_focal//image",
+    installables_tar = ":liagent_requisites.tar",
+    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
+    output_image_name = "liagentd_requisites_layer",
+)
+
+container_image(
+    name = "liagentd_requisites_layer_wrapper",
+    base = ":liagentd_requisites_layer.tar",
+)
+
+cc_image(
+    name = "liagentd_cc_image",
+    binary = ":liagentd",
+    base = ":liagentd_requisites_layer_wrapper",  # cc_image cannot directly use install_pkgs target as base
+)
 
 cc_library(
     name = "interface_monitor",
