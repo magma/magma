@@ -897,7 +897,7 @@ pytest_test(
 )
 
 pytest_test(
-    name = "test_ipv6_solicitation_5g.py"
+    name = "test_ipv6_solicitation_5g.py",
     size = "small",
     srcs = ["test_ipv6_solicitation_5g.py"],
     imports = [
