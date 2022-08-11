@@ -121,7 +121,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
-          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-vbguest vagrant-mutate
+          vagrant plugin install vagrant-vbguest vagrant-vbguest vagrant-mutate
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
