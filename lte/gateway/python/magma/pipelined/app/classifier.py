@@ -14,7 +14,7 @@ import ipaddress
 import socket
 import subprocess
 from collections import namedtuple
-from typing import Optional
+from typing import Optional, Union
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
