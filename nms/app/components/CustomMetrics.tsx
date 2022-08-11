@@ -13,7 +13,7 @@
 import 'chartjs-adapter-date-fns';
 import React from 'react';
 import {Bar, Line} from 'react-chartjs-2';
-import {ChartData, ChartTooltipItem, TimeUnit} from 'chart.js';
+import {ScatterDataPoint, TimeUnit, TooltipItem} from 'chart.js';
 import {
   add,
   differenceInDays,
@@ -77,7 +77,7 @@ function timeUnitToDuration(unit: TimeUnit): keyof Duration {
 }
 
 export type DatasetType = {
-  t: number;
+  x: number;
   y: number;
 };
 
@@ -99,16 +99,18 @@ type Props = {
   dataset: Array<Dataset>;
   unit?: TimeUnit;
   yLabel?: string;
-  tooltipHandler?: (tooltipItem: ChartTooltipItem, data: ChartData) => string;
+  tooltipHandler?: (
+    tooltipItem: TooltipItem<'bar'> | TooltipItem<'line'>,
+  ) => string;
 };
 
-function defaultTooltip(
-  tooltipItem: ChartTooltipItem,
-  data: ChartData,
-  props: Props,
+export function defaultTooltip(
+  tooltipItem: TooltipItem<'bar'> | TooltipItem<'line'>,
+  props: {unit?: string | TimeUnit},
 ) {
-  const dataSet = data.datasets![tooltipItem.datasetIndex!];
-  return `${dataSet.label!}: ${tooltipItem.yLabel!} ${props.unit ?? ''}`;
+  const {dataset, dataIndex} = tooltipItem;
+  const value = (dataset.data[dataIndex] as ScatterDataPoint).y;
+  return `${dataset.label!}: ${value} ${props.unit ?? ''}`;
 }
 
 export default function CustomHistogram(props: Props) {
@@ -120,52 +122,51 @@ export default function CustomHistogram(props: Props) {
         options={{
           maintainAspectRatio: false,
           scales: {
-            xAxes: [
-              {
-                stacked: true,
-                gridLines: {
-                  display: false,
-                },
-                type: 'time',
-                ticks: {
-                  source: 'data',
-                },
-                time: {
-                  unit: props?.unit,
-                  round: 'second',
-                  tooltipFormat: 'yyyy/MM/dd h:mm:ss a',
-                },
-                scaleLabel: {
-                  display: true,
-                  labelString: 'Date',
-                },
+            x: {
+              stacked: true,
+              grid: {
+                display: false,
               },
-            ],
-            yAxes: [
-              {
-                stacked: true,
-                gridLines: {
-                  drawBorder: true,
-                },
-                ticks: {
-                  maxTicksLimit: 3,
-                },
-                scaleLabel: {
-                  display: true,
-                  labelString: props?.yLabel ?? '',
-                },
+              type: 'time',
+              ticks: {
+                source: 'data',
               },
-            ],
+              time: {
+                unit: props?.unit,
+                round: 'second',
+                tooltipFormat: 'yyyy/MM/dd h:mm:ss a',
+              },
+              title: {
+                display: true,
+                text: 'Date',
+              },
+            },
+
+            y: {
+              stacked: true,
+              grid: {
+                drawBorder: true,
+              },
+              ticks: {
+                maxTicksLimit: 3,
+              },
+              title: {
+                display: true,
+                text: props?.yLabel ?? '',
+              },
+            },
           },
-          tooltips: {
-            enabled: true,
-            mode: 'nearest',
-            callbacks: {
-              label: (tooltipItem: ChartTooltipItem, data: ChartData) => {
-                return (
-                  props.tooltipHandler?.(tooltipItem, data) ??
-                  defaultTooltip(tooltipItem, data, props)
-                );
+          plugins: {
+            tooltip: {
+              enabled: true,
+              mode: 'nearest',
+              callbacks: {
+                label(tooltipItem) {
+                  return (
+                    props.tooltipHandler?.(tooltipItem) ??
+                    defaultTooltip(tooltipItem, props)
+                  );
+                },
               },
             },
           },
@@ -183,62 +184,60 @@ export function CustomLineChart(props: Props) {
         data={{
           datasets: props.dataset,
         }}
-        legend={{
-          display: true,
-          position: 'top',
-          align: 'end',
-          labels: {
-            boxWidth: 12,
-          },
-        }}
         options={{
           maintainAspectRatio: false,
           scales: {
-            xAxes: [
-              {
-                gridLines: {
-                  display: false,
-                },
-                ticks: {
-                  maxTicksLimit: 10,
-                },
-                type: 'time',
-                time: {
-                  unit: props?.unit,
-                  round: 'second',
-                  tooltipFormat: 'yyyy/MM/dd h:mm:ss a',
-                },
-                scaleLabel: {
-                  display: true,
-                  labelString: 'Date',
-                },
+            x: {
+              grid: {
+                display: false,
               },
-            ],
-            yAxes: [
-              {
-                gridLines: {
-                  drawBorder: true,
-                },
-                ticks: {
-                  maxTicksLimit: 5,
-                },
-                scaleLabel: {
-                  display: true,
-                  labelString: props?.yLabel ?? '',
-                },
-                position: 'left',
+              ticks: {
+                maxTicksLimit: 10,
               },
-            ],
+              type: 'time',
+              time: {
+                unit: props?.unit,
+                round: 'second',
+                tooltipFormat: 'yyyy/MM/dd h:mm:ss a',
+              },
+              title: {
+                display: true,
+                text: 'Date',
+              },
+            },
+            y: {
+              grid: {
+                drawBorder: true,
+              },
+              ticks: {
+                maxTicksLimit: 5,
+              },
+              title: {
+                display: true,
+                text: props?.yLabel ?? '',
+              },
+              position: 'left',
+            },
           },
-          tooltips: {
-            enabled: true,
-            mode: 'nearest',
-            callbacks: {
-              label: (tooltipItem: ChartTooltipItem, data: ChartData) => {
-                return (
-                  props.tooltipHandler?.(tooltipItem, data) ??
-                  defaultTooltip(tooltipItem, data, props)
-                );
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: {
+                boxWidth: 12,
+              },
+            },
+            tooltip: {
+              enabled: true,
+              mode: 'nearest',
+              callbacks: {
+                label(tooltipItem) {
+                  return (
+                    props.tooltipHandler?.(tooltipItem) ??
+                    defaultTooltip(tooltipItem, props)
+                  );
+                },
               },
             },
           },
