@@ -525,17 +525,6 @@ jobs:
              echo "Docker compose failed"
              exit 1
           fi
-      - name: Build xwf go radius
-        run: |
-          cd ${MAGMA_ROOT}/
-          docker build --build-arg BUILD_NUM=${TAG} --tag goradius -f feg/radius/src/Dockerfile ./
-      - name: Load openvswitch kernel module for xwf integ test
-        # yamllint enable
-        run: sudo modprobe openvswitch
-      - name: Build xwfm-integ-tests
-        run: |
-          cd ${MAGMA_ROOT}
-          docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
@@ -546,8 +535,6 @@ jobs:
           docker save cwf_gateway_sessiond | gzip > gateway_sessiond.tar.gz
           docker save cwf_gateway_python | gzip > gateway_python.tar.gz
           docker save cwf_gateway_pipelined | gzip > gateway_pipelined.tar.gz
-          docker save goradius | gzip > goradius.tar.gz
-          docker save xwfm-integ-tests | gzip > xwfm-integ-tests.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -584,24 +571,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - name: Tag and push to Docker Registry goradius
-        if: github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-        # yamllint disable rule:line-length
-        run: |
-          ./ci-scripts/tag-push-docker.sh --images 'goradius' --tag "${TAG}" --tag-latest true
-      - name: Tag and push to Docker Registry xwfm-integ-tests
-        if: github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "${{ secrets.DOCKER_REGISTRY }}"
-          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-        # yamllint disable rule:line-length
-        run: |
-          ./ci-scripts/tag-push-docker.sh --images 'xwfm-integ-tests' --tag "${TAG}" --tag-latest true
       - name: Extract commit title
         id: commit
         if: github.event_name == 'push'
@@ -616,7 +585,7 @@ jobs:
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "CWAG/xwfm-deploy failed"
+          SLACK_TITLE: "CWAG-deploy failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Build workflow"
           SLACK_ICON_EMOJI: ":boom:"
@@ -629,7 +598,7 @@ jobs:
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*CWAG/xwfm Artifact Has Been Published*"
+          SLACK_TITLE: "*CWAG Artifact Has Been Published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_USERNAME: "Build workflow"
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
