@@ -16,7 +16,13 @@ from __future__ import annotations
 from typing import List
 from uuid import uuid4
 
-from dp.protos.enodebd_dp_pb2 import CBSDStateResult, LteChannel
+from dp.protos.cbsd_pb2 import (
+    CBSDStateResult,
+    EnodebdUpdateCbsdRequest,
+    InstallationParam,
+    LteChannel,
+)
+from google.protobuf.wrappers_pb2 import BoolValue, DoubleValue, StringValue
 
 SOME_FCC_ID = "some_fcc_id"
 USER_ID = "some_user_id"
@@ -29,7 +35,7 @@ class CbsdAPIDataBuilder:
             'fcc_id': SOME_FCC_ID,
             'serial_number': str(uuid4()),
             'user_id': USER_ID,
-            'cbsd_category': 'b',
+            'cbsd_category': 'a',
             'desired_state': 'registered',
             'single_step_enabled': False,
             'carrier_aggregation_enabled': False,
@@ -148,6 +154,19 @@ class CbsdAPIDataBuilder:
             carrier_aggregation_enabled=self.payload['carrier_aggregation_enabled'],
             channel=grants[0],
             channels=grants,
+        )
+
+    def build_enodebd_update_request(self, indoor_deployment=False, cbsd_category="a") -> EnodebdUpdateCbsdRequest:
+        return EnodebdUpdateCbsdRequest(
+            serial_number=self.payload["serial_number"],
+            installation_param=InstallationParam(
+                latitude_deg=DoubleValue(value=10.5),
+                longitude_deg=DoubleValue(value=11.5),
+                indoor_deployment=BoolValue(value=indoor_deployment),
+                height_type=StringValue(value="agl"),
+                height_m=DoubleValue(value=12.5),
+            ),
+            cbsd_category=cbsd_category,
         )
 
 

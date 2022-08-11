@@ -35,7 +35,6 @@ py_library(
         ":baicells",
         ":baicells_qrtb",
         ":freedomfi_one",
-        "//dp/protos:enodebd_dp_python_proto",
         "//lte/gateway/python/magma/enodebd/data_models:data_model",
         "//lte/gateway/python/magma/enodebd/device_config:enodeb_config_postprocessor",
         "//lte/gateway/python/magma/enodebd/devices/experimental:cavium",

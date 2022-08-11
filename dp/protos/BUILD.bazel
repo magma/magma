@@ -15,21 +15,6 @@ load("@rules_proto_grpc//python:defs.bzl", "python_grpc_library", "python_proto_
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "enodebd_dp_proto",
-    srcs = ["enodebd_dp.proto"],
-)
-
-python_proto_library(
-    name = "enodebd_dp_python_proto",
-    protos = [":enodebd_dp_proto"],
-)
-
-python_grpc_library(
-    name = "enodebd_dp_python_grpc",
-    protos = [":enodebd_dp_proto"],
-)
-
-proto_library(
     name = "cbsd_proto",
     srcs = ["cbsd.proto"],
     deps = ["@com_google_protobuf//:wrappers_proto"],
