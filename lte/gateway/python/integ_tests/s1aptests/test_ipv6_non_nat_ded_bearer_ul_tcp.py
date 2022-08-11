@@ -179,6 +179,8 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
             wait_for_s1,
         )
 
+        print("********** Sleeping for 5 seconds")
+        time.sleep(5)
         # Verify that all UL/DL flows are deleted
         self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
