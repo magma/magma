@@ -70,6 +70,7 @@ RUN apt-get update && \
       net-tools \
       tshark \
       tzdata \
+      libsqlite3x \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
