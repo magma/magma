@@ -65,8 +65,12 @@ def lte_integ_test(args):
     # failing test cases, because of which CI report always shows lte integ
     # test as success. Here we read the CI status from file for more accurate
     # lte integ test execution status
-    with open('test_status.txt', 'r') as file:
-        verdict = file.read().rstrip()
+    if os.path.exists("test_status.txt"):
+        with open('test_status.txt', 'r') as file:
+            status_file_content = file.read().rstrip()
+            expected_verdict_list = ["pass", "fail"]
+            if status_file_content in expected_verdict_list:
+                verdict = status_file_content
     publish_report('lte_integ_test', args.build_id, verdict, report)
 
 
