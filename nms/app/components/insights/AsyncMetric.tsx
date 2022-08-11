@@ -18,8 +18,9 @@ import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
 import MagmaAPI from '../../api/MagmaAPI';
-import {PositionType, TimeUnit} from 'chart.js';
+import {LayoutPosition, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated';
+import {defaultTooltip} from '../CustomMetrics';
 import {makeStyles} from '@mui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -45,7 +46,7 @@ export type ChartStyle = {
     pointRadius: number;
   };
   legend: {
-    position: PositionType;
+    position: LayoutPosition;
     align: 'center' | 'end' | 'start';
   };
 };
@@ -96,7 +97,7 @@ type Dataset = {
   borderWidth: number;
   backgroundColor: string;
   borderColor: string;
-  data: Array<{t: number; y: number | string}>;
+  data: Array<{x: number; y: number | string}>;
 };
 
 const RANGE_VALUES: Record<TimeRange, RangeValue> = {
@@ -312,7 +313,7 @@ function useDatasetsFetcher(props: Props) {
                 backgroundColor: getColorForIndex(index, props.chartColors),
                 borderColor: getColorForIndex(index++, props.chartColors),
                 data: it[dbHelper.datapointFieldName]!.map(i => ({
-                  t: parseInt(i[0]) * 1000,
+                  x: parseInt(i[0]) * 1000,
                   y: parseFloat(i[1]),
                 })),
               }),
@@ -322,11 +323,11 @@ function useDatasetsFetcher(props: Props) {
         // Add "NaN" to the beginning/end of each dataset to force the chart to
         // display the whole time frame requested
         datasets.forEach(dataset => {
-          if (dataset.data[0].t > startEnd.startUnix) {
-            dataset.data.unshift({t: startEnd.startUnix, y: 'NaN'});
+          if (dataset.data[0].x > startEnd.startUnix) {
+            dataset.data.unshift({x: startEnd.startUnix, y: 'NaN'});
           }
-          if (dataset.data[dataset.data.length - 1].t < startEnd.endUnix) {
-            dataset.data.push({t: startEnd.endUnix, y: 'NaN'});
+          if (dataset.data[dataset.data.length - 1].x < startEnd.endUnix) {
+            dataset.data.push({x: startEnd.endUnix, y: 'NaN'});
           }
         });
         setAllDatasets(datasets);
@@ -366,56 +367,55 @@ export default function AsyncMetric(props: Props) {
   } else {
     unit = getUnit(props.timeRange);
   }
+
   return (
     <Line
       height={props.height}
       options={{
         maintainAspectRatio: false,
         scales: {
-          xAxes: [
-            {
-              gridLines: style ? style.options.xAxes.gridLines : {},
-              ticks: style ? style.options.xAxes.ticks : {},
-              type: 'time',
-              time: {
-                unit,
-                round: 'second',
-                tooltipFormat: ' YYYY/MM/DD h:mm:ss a',
-              },
-              scaleLabel: {
-                display: true,
-                labelString: 'Date',
-              },
+          x: {
+            grid: style ? style.options.xAxes.gridLines : {},
+            ticks: style ? style.options.xAxes.ticks : {},
+            type: 'time',
+            time: {
+              unit,
+              round: 'second',
+              tooltipFormat: ' YYYY/MM/DD h:mm:ss a',
             },
-          ],
-          yAxes: [
-            {
-              gridLines: style ? style.options.yAxes.gridLines : {},
-              ticks: style ? style.options.yAxes.ticks : {},
-              position: 'left',
-              scaleLabel: {
-                display: true,
-                labelString: props.unit,
-              },
+            title: {
+              display: true,
+              text: 'Date',
             },
-          ],
-        },
-        tooltips: {
-          enabled: true,
-          mode: 'nearest',
-          callbacks: {
-            label: (tooltipItem, data) =>
-              `${data.datasets![tooltipItem.datasetIndex!]
-                .label!}: ${tooltipItem.yLabel!} ${props.unit}`,
+          },
+          y: {
+            grid: style ? style.options.yAxes.gridLines : {},
+            ticks: style ? style.options.yAxes.ticks : {},
+            position: 'left',
+            title: {
+              display: true,
+              text: props.unit,
+            },
           },
         },
-      }}
-      legend={{
-        display: allDatasets.length < 5,
-        position: style ? style.legend.position : 'bottom',
-        align: style ? style.legend.align : 'center',
-        labels: {
-          boxWidth: 12,
+        plugins: {
+          tooltip: {
+            enabled: true,
+            mode: 'nearest',
+            callbacks: {
+              label(tooltipItem) {
+                return defaultTooltip(tooltipItem, props);
+              },
+            },
+          },
+          legend: {
+            display: allDatasets.length < 5,
+            position: style ? style.legend.position : 'bottom',
+            align: style ? style.legend.align : 'center',
+            labels: {
+              boxWidth: 12,
+            },
+          },
         },
       }}
       data={{datasets: allDatasets}}

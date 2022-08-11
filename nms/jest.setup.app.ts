@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+import './app/util/chartjsSetup';
 import '@testing-library/jest-dom';
 
 import {configure} from '@testing-library/dom';

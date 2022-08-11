@@ -83,13 +83,13 @@ export default function LogChart(props: Props) {
 
           if (r === null || r === undefined) {
             return {
-              t: e.unix() * 1000,
+              x: e.unix() * 1000,
               y: 0,
             };
           }
 
           return {
-            t: e.unix() * 1000,
+            x: e.unix() * 1000,
             y: r,
           };
         });

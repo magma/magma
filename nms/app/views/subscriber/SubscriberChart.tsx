@@ -96,7 +96,7 @@ async function getDatasets(props: DatasetFetchProps) {
       resp.data.result.forEach(it =>
         it['values']?.map(i => {
           selectedData.push({
-            t: parseInt(i[0]) * 1000,
+            x: parseInt(i[0]) * 1000,
             y: parseFloat(convertBitToMbit(parseFloat(i[1]))),
           });
         }),
@@ -293,10 +293,10 @@ export default function SubscriberChart() {
               dataset={datasets}
               unit={unit}
               yLabel={yLabelUnit}
-              tooltipHandler={(tooltipItem, data) => {
-                const val = tooltipItem.yLabel;
-                return `${data.datasets![tooltipItem.datasetIndex!]
-                  .label!} ${val!} ${yLabelUnit} in last ${toolTipHint}s`;
+              tooltipHandler={tooltipItem => {
+                const val = tooltipItem.label;
+                return `${tooltipItem.dataset
+                  .label!} ${val} ${yLabelUnit} in last ${toolTipHint}s`;
               }}
             />
           }

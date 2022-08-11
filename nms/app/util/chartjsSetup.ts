@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 The Magma Authors.
+ * Copyright 2022 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,20 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'chartjs-adapter-moment';
 
-import './util/axiosConfig';
-import './util/chartjsSetup';
-import './util/polyfill';
-
-import Index from './components/host/Index';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import nullthrows from '../shared/util/nullthrows';
-import {BrowserRouter} from 'react-router-dom';
-
-ReactDOM.render(
-  <BrowserRouter>
-    <Index />
-  </BrowserRouter>,
-  nullthrows(document.getElementById('root')),
-);
+// Include everything into the bundle because bundle size is not crucial for us
+// https://www.chartjs.org/docs/latest/getting-started/integration.html#bundlers-webpack-rollup-etc
+import 'chart.js/auto';

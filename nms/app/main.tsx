@@ -12,6 +12,7 @@
  */
 
 import './util/axiosConfig';
+import './util/chartjsSetup';
 import './util/polyfill';
 
 import ApplicationMain from './components/ApplicationMain';

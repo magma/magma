@@ -82,13 +82,13 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
 
         if (r === null || r === undefined) {
           return {
-            t: e.unix() * 1000,
+            x: e.unix() * 1000,
             y: 0,
           };
         }
 
         return {
-          t: e.unix() * 1000,
+          x: e.unix() * 1000,
           y: r,
         };
       });
@@ -98,7 +98,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       return [];
     });
 
-  const alertsData: Array<{t: number; y: number}> = [];
+  const alertsData: Array<{x: number; y: number}> = [];
 
   try {
     const alertPromResp = (
@@ -113,7 +113,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
     alertPromResp.data?.result.forEach(it =>
       it['values']?.map(i => {
         alertsData.push({
-          t: parseInt(i[0]) * 1000,
+          x: parseInt(i[0]) * 1000,
           y: parseFloat(i[1]),
         });
       }),
