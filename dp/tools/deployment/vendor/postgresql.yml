@@ -27,6 +27,13 @@ spec:
               value: postgres
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+          args:
+            - -c
+            - logging_collector=on
+            - -c
+            - log_directory=/var/log/postgresql
+            - -c
+            - log_min_duration_statement=500
           livenessProbe:
             exec:
               command:
