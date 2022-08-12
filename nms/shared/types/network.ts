@@ -14,14 +14,12 @@
 
 const Networks = {
   carrier_wifi_network: 'carrier_wifi_network',
-  xwfm: 'xwfm',
   feg: 'feg',
   feg_lte: 'feg_lte',
   lte: 'lte',
 } as const;
 
 export const CWF = Networks.carrier_wifi_network;
-export const XWFM = Networks.xwfm;
 export const FEG = Networks.feg;
 export const LTE = Networks.lte;
 export const FEG_LTE = Networks.feg_lte;
