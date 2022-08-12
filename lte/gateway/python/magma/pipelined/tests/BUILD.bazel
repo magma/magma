@@ -915,4 +915,3 @@ pytest_test(
         "//lte/protos:mconfigs_python_proto",
     ],
 )
-
