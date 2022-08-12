@@ -23,9 +23,9 @@ ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 ARG EVENTLET_VERSION=0.25.1-2ubuntu1.1
 ARG GIT_VERSION=1:2.25.1-1ubuntu3.5
-ARG JDK_VERSION=8u312-b07-0ubuntu1~20.04
+ARG JDK_VERSION=8u342-b07-0ubuntu1~20.04
 ARG LIBIPERF0_VERSION=3.7-3
-ARG LIBMYSQL_VERSION=8.0.29-0ubuntu0.20.04.3
+ARG LIBMYSQL_VERSION=8.0.30-0ubuntu0.20.04.2
 ARG LIBPROTOBUF_VERSION=3.6.1.3-2ubuntu5
 ARG LIBSYSTEMD_DEV_VERSION=245.4-4ubuntu3.17
 ARG LSB_RELEASE_VERSION=11.1.0ubuntu2
@@ -97,7 +97,7 @@ RUN DIRECTORY="/tmp/aioeventlet" && \
   /magma/third_party/build/bin/aioeventlet_build.sh ${DIRECTORY} && \
   dpkg -i ${DIRECTORY}/python3-aioeventlet* && \
   rm -rf ${DIRECTORY} && \
-  mkdir -p ${SWAGGER_CODEGEN_DIR}modules/swagger-codegen-cli/target/ && \
+  mkdir -p ${SWAGGER_CODEGEN_DIR} && \
   wget -q https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
 
 WORKDIR $MAGMA_ROOT/lte/gateway/python

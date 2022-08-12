@@ -24,9 +24,9 @@ s1ap/publish-s1ap.sh yourregistry.com/yourrepo/
 - Internet Gateway (igw1) attached to VPC (vpc-s1ap)
 - Route table (rt1) with a default gateway to the Internet Gateway (igw1)
 - 3 Subnets with an associated Route Table (rt1)
-  - SGi: 192.168.60.0/24 (subnet-sgi)
-  - S1: 192.168.128.0/23 (subnet-s1)
-  - S1AP Management: 192.168.59.0/24 (subnet-management)
+    - SGi: 192.168.60.0/24 (subnet-sgi)
+    - S1: 192.168.128.0/23 (subnet-s1)
+    - S1AP Management: 192.168.59.0/24 (subnet-management)
 - Import/Create Key Pair (kp1)
 
 ### AGW instance
@@ -34,14 +34,14 @@ s1ap/publish-s1ap.sh yourregistry.com/yourrepo/
 - Ubuntu 20.04 x86
 - t2.large
 - Security group
-  - Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
-  - Allow all traffic from 192.168.60.0/24
-  - Allow all traffic from 192.168.128.0/23
+    - Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
+    - Allow all traffic from 192.168.60.0/24
+    - Allow all traffic from 192.168.128.0/23
 - 3 Interfaces
-  - eth0: 192.168.129.1 (subnet-s1)
-    - Add Public IP
-  - eth1: 192.168.60.142 (subnet-sgi)
-  - eth2: Auto-assign (subnet-management)
+    - eth0: 192.168.129.1 (subnet-s1)
+        - Add Public IP
+    - eth1: 192.168.60.142 (subnet-sgi)
+    - eth2: Auto-assign (subnet-management)
 - 50 GB Disk
 - Key Pair (kp1)
 
@@ -50,14 +50,14 @@ s1ap/publish-s1ap.sh yourregistry.com/yourrepo/
 - Ubuntu 20.04 x86
 - t2.large
 - Security group
-  - Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
-  - Allow all traffic from 192.168.60.0/24
-  - Allow all traffic from 192.168.128.0/23
+    - Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
+    - Allow all traffic from 192.168.60.0/24
+    - Allow all traffic from 192.168.128.0/23
 - 3 Interfaces
-  - eth0: Auto-assign (subnet-management)
-    - Add Public IP
-  - eth1: 192.168.60.141 (subnet-sgi)
-  - eth2: 192.168.128.11 (subnet-s1)
+    - eth0: Auto-assign (subnet-management)
+        - Add Public IP
+    - eth1: 192.168.60.141 (subnet-sgi)
+    - eth2: 192.168.128.11 (subnet-s1)
 - 50 GB Disk
 - Key Pair (kp1)
 
@@ -66,14 +66,14 @@ s1ap/publish-s1ap.sh yourregistry.com/yourrepo/
 - Ubuntu 20.04 x86
 - t2.large
 - Security group
-  - Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
-  - Allow all traffic from 192.168.60.0/24
-  - Allow all traffic from 192.168.128.0/23
+    - Allow SSH from My IP, or private address of your bastion host. **Important to not allow Public SSH access**
+    - Allow all traffic from 192.168.60.0/24
+    - Allow all traffic from 192.168.128.0/23
 - 3 Interfaces
-  - eth0: Auto-assign (subnet-management)
-    - Add Public IP
-  - eth1: 192.168.60.144 (subnet-sgi)
-  - eth2: 192.168.129.42 (subnet-s1)
+    - eth0: Auto-assign (subnet-management)
+        - Add Public IP
+    - eth1: 192.168.60.144 (subnet-sgi)
+    - eth2: 192.168.129.42 (subnet-s1)
 - 50 GB Disk
 - Key Pair (kp1)
 

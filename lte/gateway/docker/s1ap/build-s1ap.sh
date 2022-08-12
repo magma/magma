@@ -10,5 +10,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 docker-compose -f docker-compose.yaml -f s1ap/docker-compose.override.yaml build --parallel s1aptester trfgen
