@@ -101,7 +101,7 @@ def find_release_commits(  # noqa: S107
     local('mkdir -p .gitclone/magma')
     local('git config --global user.email "tim@magmacore.org"')
     local('git config --global user.name "backport-bot"')
-    local(f'git clone git@github.com:{repo_name} .gitclone/magma')
+    local(f'git clone https://github.com/{repo_name}.git .gitclone/magma')
 
     for rel in RELEASE_BRANCHES:
         if rel not in commits_by_release:
