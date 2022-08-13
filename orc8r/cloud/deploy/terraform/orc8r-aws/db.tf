@@ -18,7 +18,7 @@ resource "aws_db_instance" "default" {
   engine_version    = var.orc8r_db_engine_version
   instance_class    = var.orc8r_db_instance_class
 
-  name     = var.orc8r_db_name
+  db_name  = var.orc8r_db_name
   username = var.orc8r_db_username
   password = var.orc8r_db_password
 

@@ -79,7 +79,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "Kubernetes version for the EKS cluster."
   type        = string
-  default     = "1.21"
+  default     = "1.22"
 }
 
 variable "eks_worker_group_key" {
@@ -105,17 +105,17 @@ variable "eks_worker_groups" {
   # for the complete set of valid properties for these objects.
   description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.large instances."
   type        = any
-  default = [
-    {
-      name                 = "wg-1"
-      instance_type        = "t3.large"
-      asg_desired_capacity = 3
-      asg_min_size         = 1
-      asg_max_size         = 3
-      autoscaling_enabled  = false
-      kubelet_extra_args   = "" // object types must be identical (see thanos_worker_groups)
-    },
-  ]
+  default = {
+    eks_worker_group = {
+      name                = "wg-1"
+      instance_type       = "t3a.large"
+      desired_size        = 3
+      min_size            = 1
+      max_size            = 3
+      autoscaling_enabled = false
+      kubelet_extra_args  = "" // object types must be identical (see thanos_worker_groups)
+    }
+  }
 }
 
 variable "thanos_worker_groups" {
@@ -127,8 +127,8 @@ variable "thanos_worker_groups" {
   # in the helm release
   description = "Worker group configuration for Thanos. Default consists of 1 group consisting of 1 m5d.xlarge for thanos."
   type        = any
-  default = [
-    {
+  default = {
+    thanos_worker_groups = {
       name                 = "thanos-1"
       instance_type        = "m5d.xlarge"
       asg_desired_capacity = 1
@@ -136,9 +136,8 @@ variable "thanos_worker_groups" {
       asg_max_size         = 1
       autoscaling_enabled  = false
       kubelet_extra_args   = "--node-labels=compute-type=thanos"
-    },
-  ]
-
+    }
+  }
 }
 
 variable "blue_green_worker_groups" {
@@ -148,17 +147,17 @@ variable "blue_green_worker_groups" {
   # of the Orc8r/NMS
   description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 5 t3.medium instances."
   type        = any
-  default = [
-    {
+  default = {
+    blue_green_worker_groups = {
       name                 = "wg-1"
-      instance_type        = "t3.medium"
+      instance_type        = "t3a.medium"
       asg_desired_capacity = 8
       asg_min_size         = 1
       asg_max_size         = 8
       autoscaling_enabled  = false
       kubelet_extra_args   = "" // object types must be identical (see thanos_worker_groups)
-    },
-  ]
+    }
+  }
 }
 
 variable "eks_map_roles" {
@@ -342,24 +341,24 @@ variable "setup_cert_manager" {
 variable "elasticsearch_domain_name" {
   description = "Name for the ES domain."
   type        = string
-  default     = null
+  default     = "orc8r-es"
 }
 
 variable "elasticsearch_version" {
   description = "ES version for ES domain."
-  default     = "7.1"
+  default     = "7.10"
 }
 
 variable "elasticsearch_instance_type" {
   description = "AWS instance type for ES domain."
   type        = string
-  default     = null
+  default     = "t3.medium.elasticsearch"
 }
 
 variable "elasticsearch_instance_count" {
   description = "Number of instances to allocate for ES domain."
   type        = number
-  default     = null
+  default     = 2
 }
 
 variable "elasticsearch_dedicated_master_enabled" {
@@ -389,19 +388,19 @@ variable "elasticsearch_az_count" {
 variable "elasticsearch_ebs_enabled" {
   description = "Use EBS for ES storage. See https://aws.amazon.com/elasticsearch-service/pricing/ to check if your chosen instance types can use non-EBS storage."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "elasticsearch_ebs_volume_size" {
   description = "Size in GB to allocate for ES EBS data volumes."
   type        = number
-  default     = null
+  default     = 32
 }
 
 variable "elasticsearch_ebs_volume_type" {
   description = "EBS volume type for ES data volumes."
   type        = string
-  default     = null
+  default     = "gp3"
 }
 
 variable "elasticsearch_ebs_iops" {

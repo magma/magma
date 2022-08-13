@@ -30,13 +30,13 @@ resource "aws_key_pair" "eks_workers" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 17.0.3"
+  version = "~> 18.27.0"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  vpc_id  = module.vpc.vpc_id
-  subnets = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
 
   cluster_enabled_log_types = [
     "api",
@@ -46,17 +46,17 @@ module "eks" {
     "scheduler",
   ]
 
-  cluster_create_timeout = "30m"
+  # cluster_timeouts = {"30m"}
 
-  workers_group_defaults = {
-    key_name = var.eks_worker_group_key == null ? aws_key_pair.eks_workers[0].key_name : var.eks_worker_group_key
-  }
-  worker_additional_security_group_ids = concat([aws_security_group.default.id], var.eks_worker_additional_sg_ids)
-  workers_additional_policies          = var.eks_worker_additional_policy_arns
-  worker_groups                        = var.thanos_enabled ? concat(local.orc8r_worker_group, var.thanos_worker_groups) : local.orc8r_worker_group
+  # workers_group_defaults = {
+  #   key_name = var.eks_worker_group_key == null ? aws_key_pair.eks_workers[0].key_name : var.eks_worker_group_key
+  # }
+  cluster_additional_security_group_ids = concat([aws_security_group.default.id], var.eks_worker_additional_sg_ids)
+  iam_role_additional_policies          = var.eks_worker_additional_policy_arns
+  eks_managed_node_groups               = var.thanos_enabled ? concat(local.orc8r_worker_group, var.thanos_worker_groups) : local.orc8r_worker_group
 
-  map_roles = var.eks_map_roles
-  map_users = var.eks_map_users
+  aws_auth_roles = var.eks_map_roles
+  aws_auth_users = var.eks_map_users
 
   tags = var.global_tags
 
@@ -75,7 +75,7 @@ data "aws_iam_policy_document" "eks_worker_assumable" {
 
   statement {
     principals {
-      identifiers = [module.eks.worker_iam_role_arn]
+      identifiers = [module.eks.cluster_iam_role_arn]
       type        = "AWS"
     }
     actions = ["sts:AssumeRole"]

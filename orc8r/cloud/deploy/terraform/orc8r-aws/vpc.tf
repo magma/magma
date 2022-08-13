@@ -13,7 +13,7 @@
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 2.17.0"
+  version = "~> 3.14.0"
 
   name = var.vpc_name
   azs  = data.aws_availability_zones.available.names

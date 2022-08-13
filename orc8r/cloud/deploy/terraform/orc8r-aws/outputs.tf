@@ -21,14 +21,14 @@ output "eks_cluster_id" {
   value       = module.eks.cluster_id
 }
 
-output "kubeconfig" {
-  description = "kubectl config file to access the EKS cluster"
-  value       = module.eks.kubeconfig
-}
+# output "kubeconfig" {
+#   description = "kubectl config file to access the EKS cluster"
+#   value       = module.eks.kubeconfig
+# }
 
-output "eks_config_map_aws_auth" {
+output "eks_aws_auth_configmap_yaml" {
   description = "A K8s ConfigMap to allow authentication to the EKS cluster."
-  value       = module.eks.config_map_aws_auth
+  value       = module.eks.aws_auth_configmap_yaml
   sensitive   = true
 }
 
