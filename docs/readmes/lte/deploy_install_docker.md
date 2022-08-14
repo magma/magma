@@ -50,12 +50,14 @@ installation process to get an IP using DHCP.
 #### Do pre-installation steps
 
 Become root user and switch directory:
+
 ```bash
 sudo su
 cd /root
 ```
 
 Copy your `rootCA.pem` file from orc8r to the following location:
+
 ```bash
 mkdir -p /var/opt/magma/certs
 vim /var/opt/magma/certs/rootCA.pem
@@ -76,12 +78,14 @@ bash agw_install_docker.sh
 Once you see the output `Reboot this VM to apply kernel settings`, reboot your AGW host.
 
 After reboot again SSH and become root user:
+
 ```bash
 sudo su
 cd /root
 ```
 
 Now you have to update the environment file for docker-compose
+
 ```bash
 sed -i 's,DOCKER_REGISTRY=,DOCKER_REGISTRY=docker.artifactory.magmacore.org/,' /var/opt/magma/docker/.env
 sed -i 's/IMAGE_VERSION=latest/IMAGE_VERSION=1.8.0/' /var/opt/magma/docker/.env
@@ -91,6 +95,7 @@ sed -i 's/COMPOSE_PROJECT_NAME=agw/COMPOSE_PROJECT_NAME=agw_arm64/' /var/opt/mag
 ```
 
 Create `control_proxy.yml` file with your orc8r details:
+
 ```bash
 cat << EOF > /var/opt/magma/configs/control_proxy.yml
 cloud_address: controller.orc8r.magmacore.link
@@ -105,17 +110,20 @@ EOF
 ```
 
 Start your access gateway:
+
 ```bash
 cd /var/opt/magma/docker
 docker-compose up -d
 ```
 
 Now get Hardware ID and Challenge key and add AGW in your orc8r:
+
 ```bash
 docker exec magmad show_gateway_info.py
 ```
 
 Then restart your access gateway:
+
 ```bash
 docker-compose up -d --force-recreate
 ```
