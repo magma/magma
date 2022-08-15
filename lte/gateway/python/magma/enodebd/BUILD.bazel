@@ -11,11 +11,10 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
-load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
-load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 
 MAGMA_ROOT = "../../../../../"
@@ -23,8 +22,6 @@ MAGMA_ROOT = "../../../../../"
 ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
-
-CONTAINER_REGISTRY = "192.168.60.1:5678"  # The VM host
 
 py_binary(
     name = "enodebd",
@@ -48,38 +45,16 @@ py_binary(
 )
 
 download_pkgs(
-    name = "python_interpreters_packages",
-    packages = [
-        "python",  # Python 2 seems to be required during the build
-        "python3",
-        "python3-distutils",  # make strtobool from deprecated distutils work
-        ],
-    image_tar = "@ubuntu_focal//image",
-)
-
-install_pkgs(
-    name = "python_interpreters_layer",
-    image_tar = "@ubuntu_focal//image",
-    installables_tar = ":python_interpreters_packages.tar",
-    output_image_name = "python_interpreters_layer",
-)
-
-container_image(
-    name = "python_interpreters_layer_wrapper",
-    base = ":python_interpreters_layer.tar"
-)
-
-download_pkgs(
     name = "enodebd_requisites",
     packages = [
         "libxml2",
         ],
-    image_tar = ":python_interpreters_layer_wrapper.tar",
+    image_tar = "//lte/gateway/python:python_base_image.tar",
 )
 
 install_pkgs(
     name = "enodebd_requisites_layer",
-    image_tar = ":python_interpreters_layer_wrapper.tar",
+    image_tar = "//lte/gateway/python:python_base_image.tar",
     installables_tar = ":enodebd_requisites.tar",
     installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
     output_image_name = "enodebd_requisites_layer",
@@ -109,14 +84,6 @@ py3_image(
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
     ],
-)
-
-container_push(
-   name = "push_enodebd_image",
-   image = ":enodebd_image",
-   format = "Docker",
-   registry = CONTAINER_REGISTRY,
-   repository = "magma/enodebd",
 )
 
 py_library(
