@@ -171,7 +171,6 @@ services:
       test: ["CMD", "nc", "-zv", "localhost", "50079"]
       timeout: "4s"
       retries: 3
-    command: /usr/bin/env python3 -m magma.ctraced.main
 
   sctpd:
     <<: *ltecservice
