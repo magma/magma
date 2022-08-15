@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.SESSION_PROXY)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.SESSION_PROXY)
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}

@@ -48,7 +48,7 @@ func main() {
 	flag.Parse()
 	glog.Info("Starting UESim service")
 
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.UeSim)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.UeSim)
 	if err != nil {
 		glog.Fatalf("Error creating UeSim service: %s", err)
 	}
