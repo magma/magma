@@ -55,7 +55,7 @@ container_image(
 )
 
 cc_image(
-    name = "liagentd_cc_image",
+    name = "liagentd_image",
     binary = ":liagentd",
     base = ":liagentd_requisites_layer_wrapper",  # cc_image cannot directly use install_pkgs target as base
 )
