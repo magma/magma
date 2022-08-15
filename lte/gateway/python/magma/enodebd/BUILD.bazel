@@ -11,6 +11,9 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
+load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
+load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
@@ -44,8 +47,51 @@ py_binary(
     ],
 )
 
+download_pkgs(
+    name = "python_interpreters_packages",
+    packages = [
+        "python",
+        "python3",
+        ],
+    image_tar = "@ubuntu_focal//image",
+)
+
+install_pkgs(
+    name = "python_interpreters_layer",
+    image_tar = "@ubuntu_focal//image",
+    installables_tar = ":python_interpreters_packages.tar",
+    output_image_name = "python_interpreters_layer",
+)
+
+container_image(
+    name = "python_interpreters_layer_wrapper",
+    base = ":python_interpreters_layer.tar"
+)
+
+download_pkgs(
+    name = "enodebd_requisites",
+    packages = [
+        "libxml2",
+        ],
+    image_tar = ":python_interpreters_layer_wrapper",
+)
+
+install_pkgs(
+    name = "enodebd_requisites_layer",
+    image_tar = ":python_interpreters_layer_wrapper",
+    installables_tar = ":enodebd_requisites.tar",
+    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
+    output_image_name = "enodebd_requisites_layer",
+)
+
+container_image(
+    name = "enodebd_requisites_layer_wrapper",
+    base = ":enodebd_requisites_layer.tar"
+)
+
 py3_image(
     name = "enodebd_image",
+    base = ":enodebd_requisites_layer_wrapper",
     srcs = ["main.py"],
     imports = [
         LTE_ROOT,
