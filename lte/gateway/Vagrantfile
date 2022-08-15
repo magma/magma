@@ -27,9 +27,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "../..", "/home/vagrant/magma"
 
   config.vm.define :magma, primary: true do |magma|
-    magma.vm.box = "magmacore/magma_dev"
-    magma.vm.box_version = "1.2.20220801"
-    magma.disksize.size = '75GB'
+    config.disksize.size = '64GB'
+    config.vm.box = "magmacore/magma_dev"
+    config.vm.box_version = "1.2.20220801"
+     # Enable Dynamic Swap Space to prevent Out of Memory crashes
+    config.vm.provision :shell, inline: "swapoff -a && fallocate -l 4G /swapfile && chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab && swapon -a"
+    config.vm.provision :shell, inline: "echo vm.swappiness = 10 >> /etc/sysctl.conf && echo vm.vfs_cache_pressure = 50 >> /etc/sysctl.conf && sysctl -p"
 
      # Enable Dynamic Swap Space to prevent Out of Memory crashes
     magma.vm.provision :shell, inline: "swapoff -a && fallocate -l 4G /swapfile && chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab && swapon -a"
