@@ -750,12 +750,6 @@ def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
     run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
-    try:
-        run('sudo reboot')
-    except Exception as e:
-        print(e)
-    finally:
-        time.sleep(60)
 
 
 def _build_magma():
