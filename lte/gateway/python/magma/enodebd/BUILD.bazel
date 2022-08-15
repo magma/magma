@@ -50,8 +50,9 @@ py_binary(
 download_pkgs(
     name = "python_interpreters_packages",
     packages = [
-        "python",
+        "python",  # Python 2 seems to be required during the build
         "python3",
+        "python3-distutils",  # make strtobool from deprecated distutils work
         ],
     image_tar = "@ubuntu_focal//image",
 )
