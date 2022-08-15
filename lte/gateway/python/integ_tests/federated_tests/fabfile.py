@@ -201,7 +201,7 @@ def build_feg():
     with cd(feg_docker_integ_test_path_vagrant):
         run('docker-compose down')
         run('docker-compose build')
-        run('docker-compose up -d')
+        run('./run.py')
 
 
 def _build_feg_on_host():
@@ -218,7 +218,7 @@ def _build_feg_on_host():
         cwd=feg_docker_integ_test_path,
     )
     subprocess.check_call(
-        'docker-compose up -d', shell=True,
+        './run.py', shell=True,
         cwd=feg_docker_integ_test_path,
     )
 
@@ -229,7 +229,7 @@ def start_feg():
     """
     vagrant_setup('magma', destroy_vm=False)
     with cd(feg_docker_integ_test_path_vagrant):
-        run('docker-compose up -d')
+        run('./run.py')
 
 
 def _start_feg_on_host():
@@ -237,7 +237,7 @@ def _start_feg_on_host():
     start FEG locally on Docker
     """
     subprocess.check_call(
-        'docker-compose up -d', shell=True,
+        './run.py', shell=True,
         cwd=feg_docker_integ_test_path,
     )
 
