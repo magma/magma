@@ -48,7 +48,6 @@ services:
       /bin/bash -c "
         /usr/bin/env python3 /usr/local/bin/generate_oai_config.py &&
         /usr/bin/env python3 -m magma.magmad.main"
-
   redis:
     <<: *pyservice
     container_name: redis
@@ -62,35 +61,35 @@ services:
              /usr/bin/redis-cli shutdown"
 
   directoryd:
-    <<: *pyservice
+    <<: *service
     container_name: directoryd
+    image: bazel/orc8r/gateway/python/magma/directoryd:directoryd_image
     depends_on:
       - redis
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50067"]
       timeout: "4s"
       retries: 3
-    command: /usr/bin/env python3 -m magma.directoryd.main
 
   subscriberdb:
-    <<: *pyservice
+    <<: *service
     container_name: subscriberdb
+    image: bazel/lte/gateway/python/magma/subscriberdb:subscriberdb_image
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50051"]
       timeout: "4s"
       retries: 3
-    command: /usr/bin/env python3 -m magma.subscriberdb.main
 
   enodebd:
-    <<: *pyservice
+    <<: *service
     container_name: enodebd
+    image: bazel/lte/gateway/python/magma/enodebd:enodebd_image
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "60055"]
       timeout: "4s"
       retries: 3
     cap_add:
       - NET_ADMIN  # The container is invoking iptables and needs NET_ADMIN for that
-    command: /usr/bin/env python3 -m magma.enodebd.main
 
   state:
     <<: *pyservice
@@ -165,8 +164,9 @@ services:
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
 
   ctraced:
-    <<: *pyservice
+    <<: *service
     container_name: ctraced
+    image: bazel/orc8r/gateway/python/magma/ctraced:ctraced_image
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50079"]
       timeout: "4s"
@@ -294,11 +294,11 @@ services:
     command: /usr/local/bin/connectiond
 
   liagentd:
-    <<: *ltecservice
+    <<: *service
     container_name: liagentd
+    image: bazel/lte/gateway/c/li_agent/src:liagentd_image
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50065"]
       timeout: "4s"
       retries: 3
-    command: /usr/local/bin/liagentd
     restart: "no"
