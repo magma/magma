@@ -1,5 +1,5 @@
 """
-Copyright 2020 The Magma Authors.
+Copyright 2022 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
@@ -49,7 +49,7 @@ from scapy.layers.inet6 import (
 from scapy.layers.l2 import Ether
 
 
-class IPV6RouterSolicitationTableTest(unittest.TestCase):
+class IPV6RouterSolicitation5GTableTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
@@ -69,7 +69,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        super(IPV6RouterSolicitationTableTest, cls).setUpClass()
+        super(IPV6RouterSolicitation5GTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager(
             [],
@@ -107,9 +107,9 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
                 'virtual_mac': 'd6:34:bc:81:5d:40',
                 'enable_nat': True,
                 'classifier_controller_id': 5,
+                'enable5g_features': True,
             },
             mconfig=PipelineD(
-                ue_ip_block=cls.UE_BLOCK,
             ),
             loop=None,
             service_manager=cls.service_manager,
@@ -131,9 +131,9 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_ipv6_flows(self):
+    def test_ipv6_5g_flows(self):
         """
-        Verify that a UPLINK->UE arp request is properly matched
+        Verify that a UPLINK->UE Router Solic & Router Adv
         """
         ll_addr = get_if_hwaddr('testing_br')
 
@@ -171,7 +171,6 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
-            include_stats=False,
         )
 
         with isolator, snapshot_verifier:
