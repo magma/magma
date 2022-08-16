@@ -62,6 +62,7 @@ magma::SessionSet create_session_set_req(
   req.mutable_state()->set_state(info.state);
 
   for (auto& final_req : info.pdr_rules) {
+    final_req.set_gnb_teid(info.teids.enb_teid());
     for (const auto& val : rules_to_activate) {
       magma::VersionedPolicy versioned_rule;
       versioned_rule.set_version(val.version);

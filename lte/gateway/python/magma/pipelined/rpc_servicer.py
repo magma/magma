@@ -987,7 +987,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             pdr_entry.pdr_state,
             pdr_entry.precedence,
             pdr_entry.local_f_teid,
-            pdr_entry.far_action.o_teid,
+            pdr_entry.o_teid,
             pdr_entry.far_action.gnb_ip_addr,
             pdr_entry.ue_ip_addr,
             encode_imsi(subscriber_id),
@@ -1045,6 +1045,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 )
             if qos_enforce_rule.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
+                self._update_ipv6_prefix_store(qos_enforce_rule.ipv6_addr)
                 self._ng_deactivate_qer_flows(
                     ipv6, local_f_teid_ng,
                     qos_enforce_rule,
@@ -1076,6 +1077,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
             if qos_enforce_rule.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(qos_enforce_rule.ipv6_addr)
+                self._update_ipv6_prefix_store(qos_enforce_rule.ipv6_addr)
                 enforcement_res = \
                     self._ng_activate_qer_flow(
                         ipv6, local_f_teid_ng,
