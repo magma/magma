@@ -17,6 +17,13 @@
     state: link
     force: yes
 
+- name: Set hostname
+  become: yes
+  ansible.builtin.hostname:
+    name: magma-dev
+  when: full_provision
+
+
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
