@@ -65,7 +65,7 @@ RUN yum update -y && \
       libubsan \
       libasan \
       liblsan \
-      libsqlite3x \
+      sqlite \
       psmisc \
       procps-ng \
       tcpdump \

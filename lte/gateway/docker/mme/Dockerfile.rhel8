@@ -45,8 +45,8 @@ RUN rm /etc/rhsm-host && \
     protobuf-compiler \
     ruby \
     ruby-devel \
-    libsqlite3x \
-    libsqlite3x-devel \
+    sqlite \
+    sqlite-devel \
   && ln -s /usr/bin/python3 /usr/bin/python \
   && ln -s /usr/bin/cmake3 /usr/bin/cmake
 
@@ -429,7 +429,7 @@ RUN yum update -y && \
       libubsan \
       libasan \
       liblsan \
-      libsqlite3x \
+      sqlite \
       psmisc \
       procps-ng \
       tcpdump \
