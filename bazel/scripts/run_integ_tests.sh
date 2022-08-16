@@ -261,8 +261,17 @@ run_test() {
         set +x
         echo "RUNNING TEST: ${TARGET}"
         set -x
-        sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}";
+        sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}" \
+            --junit-xml="${INTEGTEST_REPORT_FOLDER}/${SHORT_TARGET}_report.xml" \
+            -o "junit_suite_name=${SHORT_TARGET}" -o "junit_logging=no";
     )
+}
+
+create_xml_report() {
+    rm -f "${MERGED_REPORT_FOLDER}/"*.xml
+    mkdir -p "${MERGED_REPORT_FOLDER}"
+    python3 lte/gateway/python/scripts/runtime_report.py -i ".+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/report_all_tests.xml" 
+    rm -f "${INTEGTEST_REPORT_FOLDER}/"*.xml
 }
 
 print_summary() {
@@ -302,6 +311,11 @@ SKIP_NONSANITY_SETUP_AND_TEARDOWN="false"
 TEST_CLEANUP_FILE_NAME="${MAGMA_ROOT}/lte/gateway/configs/templates/mme.conf.template.bak"
 RETRY_ON_FAILURE="false"
 RETRY_ATTEMPTS=2
+RERUN_PREVIOUSLY_FAILED="false"
+FAILED_LIST=()
+FAILED_LIST_FILE="/tmp/last_failed_integration_tests.txt"
+INTEGTEST_REPORT_FOLDER="/var/tmp/test_results"
+MERGED_REPORT_FOLDER="${INTEGTEST_REPORT_FOLDER}/merged"
 
 BOLD='\033[1m'
 RED='\033[0;31m'
@@ -473,6 +487,8 @@ then
         teardown_nonsanity_tests
     fi
 fi
+
+create_xml_report
 
 print_summary "${NUM_SUCCESS}" "${TOTAL_TESTS}"
 
