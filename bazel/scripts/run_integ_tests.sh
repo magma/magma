@@ -33,6 +33,8 @@ help() {
     echo "   --retry-attempts N"
     echo "      Retry N times for every test in case of failure."
     echo "      Should be used together with --retry-on-failure."
+    echo "   --rerun-previously-failed"
+    echo "      Rerun all tests that have failed during the previous run."
     echo -e "${BOLD}List tests:${NO_FORMATTING}"
     echo "   $(basename "$0") --list"
     echo "      List all integration tests."
@@ -99,7 +101,14 @@ categorize_test() {
 
 create_test_targets() {
     local ONLY_FOR_LISTING=${1:-"false"}
-    if (( ${#POSITIONAL_ARGS[@]} > 0 ));
+    if [[ "${RERUN_PREVIOUSLY_FAILED}" == "true" ]];
+    then
+        # shellcheck disable=SC2013
+        for TARGET_PATH in $(cat "${FAILED_LIST_FILE}");
+        do
+            categorize_test "${TARGET_PATH}"
+        done
+    elif (( ${#POSITIONAL_ARGS[@]} > 0 ));
     then
         echo "Custom target list provided - running tests:"
         for TARGET_PATH in "${POSITIONAL_ARGS[@]}"
@@ -135,6 +144,11 @@ create_test_targets() {
     do
         echo "${TARGET}"
     done
+    if [[ "${#ALL_TARGETS[@]}" -eq 0 ]];
+    then
+        echo "ERROR: No targets found with the given options!"
+        exit 1
+    fi
 }
 
 create_precommit_test_targets() {
@@ -245,6 +259,7 @@ run_test_batch() {
             TEST_RESULTS["${TARGET}"]="${GREEN}PASSED${NO_FORMATTING}"
         else
             TEST_RESULTS["${TARGET}"]="${RED}FAILED${NO_FORMATTING}"
+            FAILED_LIST+=( "${TARGET}" )
         fi
         NUM_RUN=$((NUM_RUN + 1))
     done
@@ -392,6 +407,10 @@ while [[ $# -gt 0 ]]; do
       RETRY_ATTEMPTS="$1"
       shift
       ;;
+    --rerun-previously-failed)
+      RERUN_PREVIOUSLY_FAILED="true"
+      break
+      ;;
     --help)
       help
       exit 0
@@ -436,7 +455,7 @@ TOTAL_TESTS=$((TOTAL_TESTS + ${#NONSANITY_TEST_TARGETS[@]}))
 
 if [[ "${RETRY_ON_FAILURE}" == "true" ]];
 then
-    FLAKY_ARGS=( --force-flaky --no-flaky-report --max-runs="$((RETRY_ATTEMPTS + 1))" --min-passes=1 )
+    FLAKY_ARGS=( --force-flaky --no-flaky-report "--max-runs=$((RETRY_ATTEMPTS + 1))" "--min-passes=1" )
 fi
 
 declare -a TEST_BATCH_TO_RUN
@@ -487,6 +506,8 @@ then
         teardown_nonsanity_tests
     fi
 fi
+
+echo "${FAILED_LIST[@]}" > "${FAILED_LIST_FILE}"
 
 create_xml_report
 
