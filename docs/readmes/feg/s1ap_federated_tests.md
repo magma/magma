@@ -192,6 +192,8 @@ vagrant up magma_trfserver
 Once you have built all of the VMs, you can try to run the tests from the
 `magma_test` VM.
 
+**Note**: Currently only [s6a related LTE Integ tests](https://github.com/magma/magma/blob/master/lte/gateway/python/integ_tests/defs.mk#L288) can be run in federated mode.
+
 ```bash
 cd magma/lte/gateway
 vagrant ssh magma_test
@@ -199,7 +201,7 @@ vagrant ssh magma_test
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests
 ## Individual test(s), e.g.:
-make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
+make fed_integ_test TESTS=s1aptests/test_attach_detach.py
 
 ## All tests
 make fed_integ_test
