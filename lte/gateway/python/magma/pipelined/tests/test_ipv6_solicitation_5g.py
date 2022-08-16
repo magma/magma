@@ -110,7 +110,6 @@ class IPV6RouterSolicitation5GTableTest(unittest.TestCase):
                 'enable5g_features': True,
             },
             mconfig=PipelineD(
-                ue_ip_block=cls.UE_BLOCK,
             ),
             loop=None,
             service_manager=cls.service_manager,
@@ -172,7 +171,6 @@ class IPV6RouterSolicitation5GTableTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
-            include_stats=False,
         )
 
         with isolator, snapshot_verifier:
