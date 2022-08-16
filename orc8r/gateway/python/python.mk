@@ -54,10 +54,6 @@ $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "setuptools==49.6.0"  # newer than 41.0.1
 
 py_patches:
-	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <$(PATCHES_DIR)/aioeventlet.py38.patch 2>/dev/null \
-	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <$(PATCHES_DIR)/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
-	|| ( true && echo "skipping aioeventlet patch since it was already applied")
-
 	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/ryu_ipfix_args.patch 2>/dev/null \
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/ryu_ipfix_args.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
@@ -69,7 +65,7 @@ py_patches:
 	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nicira_ext.py <$(PATCHES_DIR)/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch 2>/dev/null \
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nicira_ext.py <$(PATCHES_DIR)/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
-	
+
 	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_match.py <$(PATCHES_DIR)/0003-QFI-value-set-in-Openflow-controller-using-RYU.patch 2>/dev/null \
  	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_match.py <$(PATCHES_DIR)/0003-QFI-value-set-in-Openflow-controller-using-RYU.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
