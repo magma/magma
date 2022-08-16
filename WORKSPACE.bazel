@@ -228,3 +228,75 @@ container_pull(
     registry = "index.docker.io",
     repository = "library/ubuntu",
 )
+
+
+
+
+# https://github.com/GoogleContainerTools/distroless has an interesting approach to installing .deb packages:
+# .deb files are downloaded via repository rules. Instead of installing the packages with apt which would
+# require to run commands inside the docker container (similar to Dockerfiles), they only extract the .deb
+# files.
+# That means pre- and post-install scripts are not executed. This seems to work well for them, so we should
+# give it a try, as this approach has two tremendous advantages:
+#   * Bazel keeps track of the .deb files, including checking their checksums.
+#     This is probably great for reproducability and cacheability.
+#   * We do not require docker in our bazel builds.
+
+
+# TODO: look at https://github.com/GoogleContainerTools/distroless/tree/9c262f5114758891b8e32092aa844de5922342b7/debian_package_manager
+
+http_archive(
+    name = "distroless",
+    sha256 = "13ed5c03baaf41350dbaa9c28b20e932c613ad814dabd2442a98ce42dd5460fe",
+    strip_prefix = "distroless-2e6017a0bd179f7dec6d8c147ffd03e4d5618e47",
+    urls = [
+        "https://github.com/jheidbrink/distroless/archive/2e6017a0bd179f7dec6d8c147ffd03e4d5618e47.zip",
+    ],
+)
+
+load("@distroless//package_manager:dpkg.bzl", "dpkg_src", "dpkg_list")
+
+# dpkg_src and dpkg_list require a previously built dpkg_parser.par installed in the PATH
+
+dpkg_src(
+    name = "debian_bullseye_packages",
+    arch = "amd64",
+    distro = "bullseye",
+    sha256 = "4b7e4609184bab68a9b24e09f053a834870ede8f0610ae8725cbc45796218ca9",
+    snapshot = "20220811T012345Z",
+    url = "http://snapshot.debian.org/archive",
+)
+
+dpkg_list(
+    name = "python_interpreter_deb_package",
+    packages = [
+        "python3.9",
+        # The following are the transitive dependencies of python3.9
+        # Found them via
+        # docker run -it debian:bullseye
+        # apt update
+        # apt-get install --no-install-recommends --download-only --assume-yes python3.9
+        # for a in /var/cache/apt/archives/*.deb; do echo $(basename ${a%%_*}); done
+        "libexpat1",
+        "libmpdec3",
+        "libncursesw6",
+        "libpython3.9-minimal",
+        "libpython3.9-stdlib",
+        "libreadline8",
+        "libsqlite3-0",
+        "media-types",
+        "python3.9-minimal",
+        "readline-common",
+    ],
+    sources = [
+        "@debian_bullseye_packages//file:Packages.json",
+    ],
+)
+
+container_pull(
+    name = "debian_bullseye_image",
+    architecture = "amd64",
+    digest = "sha256:3b0233f376e6df3bc3d68a8912fb82f6f3068334931ab3943572eef5fe3d3f50",  # bullseye-20220801
+    registry = "index.docker.io",
+    repository = "debian/snapshot",
+)
