@@ -33,6 +33,7 @@ DENY_LIST_NOT_RELEVANT=(
   "./lte/gateway/deploy"
   # manually executed script
   "./lte/gateway/c/core/oai/tasks/s1ap/messages/asn1/asn1tostruct.py"
+  "./lte/gateway/python/build"
   # used for manual testing
   "./lte/gateway/python/magma/pipelined/tests/envoy-tests/http-serve.py"
   "./lte/gateway/python/magma/tests/pylint_wrapper.py"
@@ -53,7 +54,41 @@ DENY_LIST_NOT_RELEVANT=(
 # This list needs to be updated if respected structures are bazelified.
 DENY_LIST_NOT_YET_BAZELIFIED=(
   # TODO: GH12752 tests should be bazelified
-  "./lte/gateway/python/integ_tests"
+  "./lte/gateway/python/integ_tests/cloud"
+  "./lte/gateway/python/integ_tests/cloud_tests"
+  "./lte/gateway/python/integ_tests/federated_tests"
+  "./lte/gateway/python/integ_tests/gxgy_tests"
+  "./lte/gateway/python/integ_tests/s1aptests/workflow"
+  "./lte/gateway/python/integ_tests/s1aptests/test_agw_offload_mixed_idle_active_multiue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_ul_udp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_udp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_ul_tcp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_data_flow_after_service_request.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_dl_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_dl_udp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ded_bearer_dl_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ded_bearer_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_scalability_attach_detach_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_tcp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_with_multiple_mme_restarts.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_enable_ipv6_iface.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_disable_ipv6_iface.py"
+  # TODO: GH12754 move to (lte|orc8r)/gateway/python/scripts/
+  "./orc8r/gateway/python/magma/common/health/docker_health_service.py"
+  "./orc8r/gateway/python/magma/common/health/health_service.py"
+  "./orc8r/gateway/python/magma/common/health/entities.py"
+  "./lte/gateway/python/magma/health/health_service.py"
+  "./lte/gateway/python/magma/health/entities.py"
+  "./lte/gateway/python/magma/pipelined/pg_set_session_msg.py"
   # TODO: GH12755 access via absolut path on the VM,
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
