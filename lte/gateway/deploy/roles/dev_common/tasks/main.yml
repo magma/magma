@@ -159,12 +159,7 @@
 - name: Setup FPM so we can build packages
   tags: dev
   shell: gem install fpm
-  when: preburn
-
- # TODO: Delete this after the next preburn
-- name: Upgrade FPM. Temporary fix since we need a newer version on the VM.
-  tags: dev
-  shell: gem install fpm
+  # TODO: Reset this to preburn after the next preburn
   when: full_provision
 
 - name: Common install dependencies for building and shipping client release
