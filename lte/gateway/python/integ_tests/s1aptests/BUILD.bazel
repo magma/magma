@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:python_test.bzl", "pytest_test")
 load(
@@ -50,9 +51,7 @@ py_library(
 py_library(
     name = "s1ap_wrapper",
     testonly = True,
-    srcs = [
-        "s1ap_wrapper.py",
-    ],
+    srcs = ["s1ap_wrapper.py"],
     deps = [
         ":s1ap_utils",
         "//lte/gateway/python/integ_tests/common:magmad_client",
@@ -1128,6 +1127,18 @@ pytest_test(
     deps = [
         ":s1ap_utils",
         "//lte/gateway/python/integ_tests/common:magmad_client",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_flaky_retry_success",
+    size = "small",
+    srcs = ["test_attach_detach_flaky_retry_success.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":s1ap_wrapper",
+        requirement("flaky"),
     ],
 )
 
