@@ -13,8 +13,7 @@ load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
-load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
-load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
+load("@libxml2_packages//file:packages.bzl", packages_amd64_debian11 = "packages")
 
 
 MAGMA_ROOT = "../../../../../"
@@ -44,30 +43,28 @@ py_binary(
     ],
 )
 
-download_pkgs(
-    name = "enodebd_requisites",
-    packages = [
-        "libxml2",
-        ],
-    image_tar = "//lte/gateway/python:python_base_image.tar",
-)
-
-install_pkgs(
-    name = "enodebd_requisites_layer",
-    image_tar = "//lte/gateway/python:python_base_image.tar",
-    installables_tar = ":enodebd_requisites.tar",
-    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
-    output_image_name = "enodebd_requisites_layer",
-)
-
 container_image(
-    name = "enodebd_requisites_layer_wrapper",
-    base = ":enodebd_requisites_layer.tar"
+    name = "enodebd_requisites_image",
+    base = "//distroless_test:python39.tar",
+    debs = [
+        packages_amd64_debian11["libicu67"],
+        packages_amd64_debian11["libxml2"],
+    ],
 )
 
+# This docker image currently doesn't work currently:
+#
+#   File "/app/lte/gateway/python/magma/enodebd/enodebd_image.binary.runfiles/python_deps_pypi__spyne/spyne/interface/xml_schema/_base.py", line 29, in <module>
+#     from lxml import etree
+# ImportError: cannot import name 'etree' from 'lxml' (/app/lte/gateway/python/magma/enodebd/enodebd_image.binary.runfiles/python_deps_pypi__lxml/lxml/__init__.py)
+# 
+# This might come from a version mismatch of Python3.8 in our build host and Python3.9 in the target docker image.
+#
+# I'm leaving this here as an example how we would build a Python image without download_pkgs and install_pkgs,
+# just using the debs parameter of container_image
 py3_image(
     name = "enodebd_image",
-    base = ":enodebd_requisites_layer_wrapper",
+    base = ":enodebd_requisites_image",
     srcs = ["main.py"],
     imports = [
         LTE_ROOT,

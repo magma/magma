@@ -293,6 +293,23 @@ dpkg_list(
     ],
 )
 
+dpkg_list(
+    name = "libxml2_packages",
+    # Packages were retrieved via
+    # docker run -it debian:bullseye
+    # apt update
+    # apt install --no-install-recommends --assume-yes python3.9  # I later repeated without this line and the result was the same
+    # apt install --no-install-recommends --assume-yes --download-only libxml2
+    # for a in /var/cache/apt/archives/*.deb; do echo $(basename ${a%%_*}); done
+    packages = [
+        "libicu67",
+        "libxml2",
+    ],
+    sources = [
+        "@debian_bullseye_packages//file:Packages.json",
+    ],
+)
+
 container_pull(
     name = "debian_bullseye_image",
     architecture = "amd64",
