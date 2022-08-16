@@ -11,9 +11,8 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
-load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
-load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+load("@liagentd_dependencies//file:packages.bzl", "packages")
 
 
 package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
@@ -30,34 +29,30 @@ cc_binary(
     ],
 )
 
-download_pkgs(
-    name = "liagent_requisites",
-    image_tar = "@ubuntu_focal//image",
-    packages = [
-        "libpcap0.8",
-        "libcurl4",
-        "libgflags2.2",
-        "libunwind8",
-        ],
-)
-
-install_pkgs(
-    name = "liagentd_requisites_layer",
-    image_tar = "@ubuntu_focal//image",
-    installables_tar = ":liagent_requisites.tar",
-    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
-    output_image_name = "liagentd_requisites_layer",
-)
-
 container_image(
-    name = "liagentd_requisites_layer_wrapper",
-    base = ":liagentd_requisites_layer.tar",
+    name = "liagentd_requisites_image",
+    base = "@debian_bullseye_image//image",
+    debs = [
+        packages["libbrotli1"],
+        packages["libcurl4"],
+        packages["libdbus-1-3"],
+        packages["libgflags2.2"],
+        packages["libldap-2.4-2"],
+        packages["libnghttp2-14"],
+        packages["libpcap0.8"],
+        packages["libpsl5"],
+        packages["librtmp1"],
+        packages["libsasl2-2"],
+        packages["libsasl2-modules-db"],
+        packages["libssh2-1"],
+        packages["libunwind8"],
+    ],
 )
 
 cc_image(
     name = "liagentd_image",
     binary = ":liagentd",
-    base = ":liagentd_requisites_layer_wrapper",  # cc_image cannot directly use install_pkgs target as base
+    base = ":liagentd_requisites_image",
 )
 
 cc_library(
