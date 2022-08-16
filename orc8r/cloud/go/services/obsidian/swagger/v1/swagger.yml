@@ -9509,9 +9509,6 @@ definitions:
         $ref: '#/definitions/eap_aka'
       eap_sim:
         $ref: '#/definitions/eap_sim'
-      is_xwfm_variant:
-        example: false
-        type: boolean
       li_ues:
         $ref: '#/definitions/li_ues'
       network_services:
