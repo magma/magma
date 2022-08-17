@@ -4585,12 +4585,6 @@ export interface NetworkCarrierWifiConfigs {
     'eap_sim'?: EapSim;
     /**
      * 
-     * @type {boolean}
-     * @memberof NetworkCarrierWifiConfigs
-     */
-    'is_xwfm_variant'?: boolean;
-    /**
-     * 
      * @type {LiUes}
      * @memberof NetworkCarrierWifiConfigs
      */
