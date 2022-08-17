@@ -20,8 +20,7 @@ from lte.protos.pipelined_pb2 import (
 
 class FARRuleEntry(NamedTuple):
     apply_action: int
-    o_teid: int
-    gnb_ip_addr: Optional[str]
+    gnb_ip_addr: str
 
 
 class PDRRuleEntry(NamedTuple):
@@ -31,25 +30,26 @@ class PDRRuleEntry(NamedTuple):
     precedence: int
     local_f_teid: int
     ue_ip_addr: Optional[str]
+    o_teid: int
     del_qos_enforce_rule: DeactivateFlowsRequest
     add_qos_enforce_rule: ActivateFlowsRequest
     far_action: Optional[FARRuleEntry]
     ue_ipv6_addr: Optional[str]
+    session_qfi: Optional[int]
+
 
 # Create the Named tuple for the FAR entry
 
 
 def far_create_rule_entry(far_entry) -> FARRuleEntry:
-    o_teid = 0
     fwd_gnb_ip_addr = None
 
     if far_entry.fwd_parm.HasField('outr_head_cr'):
-        o_teid = far_entry.fwd_parm.outr_head_cr.o_teid
         fwd_gnb_ip_addr = far_entry.fwd_parm.outr_head_cr.gnb_ipv4_adr
 
     far_rule = FARRuleEntry(
         far_entry.far_action_to_apply[0],
-        o_teid, fwd_gnb_ip_addr,
+        fwd_gnb_ip_addr,
     )
 
     return far_rule
@@ -64,7 +64,11 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     deactivate_flow_req = None
     activate_flow_req = None
     ue_ipv6_addr = None
+    session_qfi = 0
+    o_teid = 0
 
+    if pdr_entry.gnb_teid:
+        o_teid = pdr_entry.gnb_teid
     # get local teid
     if pdr_entry.pdi.local_f_teid:
         local_f_teid = pdr_entry.pdi.local_f_teid
@@ -86,11 +90,14 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     if pdr_entry.HasField('activate_flow_req') == True:
         activate_flow_req = pdr_entry.activate_flow_req
 
+    if pdr_entry.session_qfi:
+        session_qfi = pdr_entry.session_qfi
+
     pdr_rule = PDRRuleEntry(
         pdr_entry.pdr_id, pdr_entry.pdr_version,
         pdr_entry.pdr_state, pdr_entry.precedence,
-        local_f_teid, ue_ip_addr,
+        local_f_teid, ue_ip_addr, o_teid,
         deactivate_flow_req, activate_flow_req,
-        far_entry, ue_ipv6_addr,
+        far_entry, ue_ipv6_addr, session_qfi,
     )
     return pdr_rule

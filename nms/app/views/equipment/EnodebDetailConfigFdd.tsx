@@ -12,11 +12,11 @@
  */
 
 import DataGrid from '../../components/DataGrid';
-import Grid from '@material-ui/core/Grid';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Grid from '@mui/material/Grid';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import type {DataRows} from '../../components/DataGrid';
 
 const useStyles = makeStyles({

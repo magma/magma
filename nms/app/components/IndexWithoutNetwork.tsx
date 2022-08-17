@@ -17,7 +17,7 @@ import Admin from './admin/Admin';
 import AppContent from './layout/AppContent';
 import AppSideBar from './AppSideBar';
 import {Route, Routes} from 'react-router-dom';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   root: {

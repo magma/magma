@@ -42,4 +42,6 @@ exit_code=$?
 docker-compose -f docker-compose-e2e.yml logs magmalte &> /tmp/nms_artifacts/magmalte.log
 docker-compose -f docker-compose-e2e.yml logs mock_server &> /tmp/nms_artifacts/mock_server.log
 
+docker-compose -f docker-compose-e2e.yml --env-file .env.mock down
+
 exit $exit_code

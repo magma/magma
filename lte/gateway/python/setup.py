@@ -130,7 +130,7 @@ setup(
         # TODO: (GH #12601) make magma compatible with ovs>=2.17.0
         'ovs>=2.13,<2.17.0',
         'prometheus-client>=0.3.1',
-        'aioeventlet==0.5.1',  # aioeventlet-build.sh
+        'aioeventlet @ git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619',
     ],
     extras_require={
         'dev': [

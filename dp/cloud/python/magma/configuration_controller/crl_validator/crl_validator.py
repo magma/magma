@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 from typing import List
 from urllib.parse import urlparse
 
@@ -19,6 +20,10 @@ from magma.configuration_controller.crl_validator.certificate import (
     is_certificate_revoked,
 )
 from rwmutex import RWLock
+
+logger = logging.getLogger(__name__)
+
+CERTIFICATE_UNAVAILABLE = 'certificate unavailable'
 
 
 def get_host(url: str) -> str:
@@ -72,11 +77,19 @@ class CRLValidator(object):
         try:
             with self._lock.read:
                 certificate = self._certificates[host]
-                crls = self._crls[certificate.serial_number]
+                if certificate == CERTIFICATE_UNAVAILABLE:
+                    # If certificate is not available now it should be considered valid.
+                    # We can't get CRLs without having the certificate, but CRLs are not mandatory in any way
+                    # and certificate is needed here only to validate it against its CRLs. If we don't have it
+                    # now we'll get it on next update, and if there was anything wrong with the SSL, but it
+                    # wasn't related to CRLs then requests will catch that while making the call to that host.
+                    return True
+
+                crls = self._crls.get(certificate.serial_number, [])
         except KeyError:
             raise KeyError(
-                f'{host} certificates unavailable, host was not given upon initialization'
-                f'so it was not prefetched. Available certificates: {self._hosts}',
+                f'{host} CRL validation unavailable, host was not given upon initialization, '
+                f'so certificates were not prefetched. Available hosts: {self._hosts}',
             )
 
         return not is_certificate_revoked(certificate=certificate, crls=crls)
@@ -89,7 +102,15 @@ class CRLValidator(object):
         Returns: None
         """
         for host in self._hosts:
-            certificate = get_certificate(hostname=host)
+            try:
+                certificate = get_certificate(hostname=host)
+            except (ConnectionError, ValueError) as e:
+                logger.warning(e)
+
+                with self._lock.write:
+                    self._certificates[host] = CERTIFICATE_UNAVAILABLE
+                continue
+
             crls = get_certificate_crls(certificate=certificate)
 
             with self._lock.write:

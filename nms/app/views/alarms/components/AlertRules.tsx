@@ -12,8 +12,8 @@
  */
 import * as React from 'react';
 import AddEditRule from './rules/AddEditRule';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
 import SeverityIndicator from './severity/SeverityIndicator';
 import SimpleTable, {SimpleTableProps} from './table/SimpleTable';
 import TableActionDialog from './table/TableActionDialog';
@@ -21,11 +21,11 @@ import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
 import {PROMETHEUS_RULE_TYPE, useAlarmContext} from './AlarmContext';
 import {Parse} from './prometheus/PromQLParser';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useLoadRules} from './hooks';
 import {useSnackbars} from '../../../hooks/useSnackbar';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../../util/ErrorUtils';
 import {useParams} from 'react-router-dom';
 import type {GenericRule} from './rules/RuleInterface';

@@ -52,10 +52,22 @@ jobs:
   bazel_build_and_test:
     needs: path_filter
     # Only run workflow if this is a scheduled run on master branch,
-    # or a pull_request that skip-duplicate-action wants to run again.
+    # if the workflow has been triggered manually or if it is a pull_request
+    # that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
-      needs.path_filter.outputs.files_changed == 'true'
+      needs.path_filter.outputs.files_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - bazel-config: ""
+            bazel-target: "//..."
+          - bazel-config: "--config=asan"
+            bazel-target: "`bazel query 'kind(cc.*, //...)'`"
+          - bazel-config: "--config=production"
+            bazel-target: "`bazel query 'kind(cc.*, //...)'`"
     name: Bazel Build & Test Job
     runs-on: ubuntu-latest
     steps:
@@ -76,10 +88,12 @@ jobs:
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
+          shell: bash
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
+            set -euo pipefail
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
@@ -87,39 +101,49 @@ jobs:
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Executing bazel build //...' 1>&2
+            printf '\r%s\r' 'Executing bazel build ${{ matrix.bazel-config }}' 1>&2
             printf '\r%s\r' '###############################' 1>&2
-            bazel build //... \
+            bazel build \
+              ${{ matrix.bazel-target }} \
+              ${{ matrix.bazel-config }} \
               --config=mme_unit_test \
-              --profile=Bazel_build_all_profile &&
+              --profile=Bazel_build_all_profile
 
-            printf '\r%s\r' '###############################' 1>&2 &&
-            printf '\r%s\r' 'Executing bazel test //...' 1>&2 &&
-            printf '\r%s\r' '###############################' 1>&2 &&
-            bazel test //... \
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            bazel test \
+              ${{ matrix.bazel-target }} \
+              ${{ matrix.bazel-config }} \
               --test_output=errors \
-              --profile=Bazel_test_all_profile &&
+              --profile=Bazel_test_all_profile
 
-            printf '\r%s\r' '###############################' 1>&2 &&
-            printf '\r%s\r' 'Executing starlark format check.' 1>&2 &&
-            printf '\r%s\r' '###############################' 1>&2 &&
-            bazel run //:check_starlark_format &&
+            if [ -z "${{ matrix.bazel-config }}" ];
+            then
+              printf '\r%s\r' '###############################' 1>&2
+              printf '\r%s\r' 'Executing starlark format check.' 1>&2
+              printf '\r%s\r' '###############################' 1>&2
+              bazel run //:check_starlark_format;
+            fi
 
-            printf '\r%s\r' '###############################' 1>&2 &&
-            printf '\r%s\r' 'Executing python import bazelification check.' 1>&2 &&
-            printf '\r%s\r' '###############################' 1>&2 &&
-            bazel/scripts/test_python_service_imports.sh
+            if [ -z "${{ matrix.bazel-config }}" ];
+            then
+              printf '\r%s\r' '###############################' 1>&2
+              printf '\r%s\r' 'Executing python import bazelification check.' 1>&2
+              printf '\r%s\r' '###############################' 1>&2
+              bazel/scripts/test_python_service_imports.sh;
+            fi
       - name: Publish bazel build profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: Bazel build all profile
+          name: Bazel build all profile ${{ matrix.bazel-config }}
           path: Bazel_build_all_profile
       - name: Publish bazel test profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: Bazel test all profile
+          name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
       - name: Build space left after run
         shell: bash
@@ -131,20 +155,65 @@ jobs:
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
-          SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...`"
+          SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...` ${{ matrix.bazel-config }}"
           SLACK_USERNAME: "Bazel Build & Test"
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
           MSG_MINIMAL: actions url,commit
 
+  if_bazel_build_and_test_success:
+    name: Run when bazel successful
+    needs: bazel_build_and_test
+    runs-on: ubuntu-latest
+    if: success() # Only run after all matrix jobs have passed
+    # See https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions
+    # or https://github.com/magma/magma/pull/13562 for more details.
+    # Store success output flag for report_result_bazel_build_and_test job
+    outputs:
+      success: ${{ steps.setoutput.outputs.success }}
+    steps:
+      - id: setoutput
+        run: echo "::set-output name=success::true"
+
+  report_result_bazel_build_and_test:
+    name: Bazel build and test status
+    runs-on: ubuntu-latest
+    if: always()
+    # This job always needs to run. It will be green if the bazel_build_and_test
+    # job was successful in all matrix jobs or if the job was skipped.
+    needs: [path_filter, bazel_build_and_test, if_bazel_build_and_test_success]
+    steps:
+      - run: |
+          bazel_build_and_test_success="${{ needs.if_bazel_build_and_test_success.outputs.success }}"
+          files_changed="${{ needs.path_filter.outputs.files_changed }}"
+
+          echo "The status of this job is determined by the statuses of the previous jobs in this workflow."
+          echo "For more details on this matrix workflow please look at the following wiki page or the PR #13562:"
+          echo "https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions"
+          echo "https://github.com/magma/magma/pull/13562"
+
+          echo "bazel_build_and_test_success: $bazel_build_and_test_success"
+          echo "files_changed: $files_changed"
+
+          if [[ $bazel_build_and_test_success == "true" || $files_changed != "true" ]];
+          then
+            echo "Bazel build and test job passed or was skipped"
+            exit 0
+          else
+            echo "Bazel build and test job failed"
+            exit 1
+          fi
+
   bazel_package:
     needs: path_filter
     # Only run workflow if this is a scheduled run on master branch,
-    # or a pull_request that skip-duplicate-action wants to run again.
+    # if the workflow has been triggered manually or if it is a pull_request
+    # that skip-duplicate-action wants to run again.
     if: |
       (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
-      needs.path_filter.outputs.files_changed == 'true'
+      needs.path_filter.outputs.files_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
     runs-on: ubuntu-latest
     steps:

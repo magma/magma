@@ -15,17 +15,17 @@ import ApnContext from '../../context/ApnContext';
 import ApnEditDialog from './ApnEdit';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EmptyState from '../../components/EmptyState';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import React from 'react';
-import RssFeedIcon from '@material-ui/icons/RssFeed';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 import withAlert from '../../components/Alert/withAlert';
 import {Apn} from '../../../generated';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
@@ -62,7 +62,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
+    padding: `0 ${theme.spacing(5)}`,
   },
   tabs: {
     color: colors.primary.white,
@@ -176,7 +176,8 @@ function ApnOverview(props: WithAlert) {
                       onClick={() => {
                         setCurrRow(currRow);
                         setOpen(true);
-                      }}>
+                      }}
+                      underline="hover">
                       {currRow.id}
                     </Link>
                   ),

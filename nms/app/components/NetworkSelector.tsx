@@ -11,15 +11,15 @@
  * limitations under the License.
  */
 import AppContext from '../context/AppContext';
-import Divider from '@material-ui/core/Divider';
+import Divider from '@mui/material/Divider';
 import MenuButton from './MenuButton';
-import MenuItem from '@material-ui/core/MenuItem';
+import MenuItem from '@mui/material/MenuItem';
 import NetworkContext from '../context/NetworkContext';
 import React, {useContext, useState} from 'react';
 import Text from '../theme/design-system/Text';
 import {LTE} from '../../shared/types/network';
 import {NetworkEditDialog} from '../views/network/NetworkEdit';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useNavigate} from 'react-router-dom';
 
 const useStyles = makeStyles({

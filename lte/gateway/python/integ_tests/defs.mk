@@ -129,9 +129,12 @@ s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py
+s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
+s1aptests/test_enable_ipv6_iface.py \
+s1aptests/test_disable_ipv6_iface.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_attach_detach_flaky_retry_success.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_detach_with_he_policy.py \
@@ -266,6 +269,20 @@ s1aptests/test_restore_config_after_non_sanity.py
 # TODO: Add these testcases as part of CI automation
 # s1aptests/test_scalability_attach_detach_multi_ue.py
 #---------------
+
+# TODO: Flaky ipv6 tests which randomly fail with connection refused
+#s1aptests/test_ipv6_non_nat_dp_dl_tcp.py
+#s1aptests/test_ipv6_non_nat_dp_ul_udp.py
+#s1aptests/test_ipv6_non_nat_dp_dl_udp.py
+#s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
+#---------------
+
+# TODO: Add ipv6 tests to integ test suite
+# s1aptests/test_ipv4v6_non_nat_ul_tcp.py
+# s1aptests/test_ipv4v6_non_nat_ded_bearer_ul_tcp.py
+# s1aptests/test_ipv4v6_non_nat_ded_bearer_dl_tcp.py
+# s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py
+# s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py
 
 # Add the s1aptester integration tests with federation gateway
 FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \

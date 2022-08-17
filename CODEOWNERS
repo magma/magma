@@ -28,6 +28,7 @@
 # approvers-cwf
 /cwf/ @magma/approvers-cwf
 /openwrt/ @magma/approvers-cwf
+/feg/radius @magma/approvers-cwf
 
 # approvers-agw
 /lte/gateway @magma/approvers-agw
@@ -52,14 +53,11 @@
 /lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
 /third_party/gtp_ovs @magma/approvers-agw-pipelined
 
-# XWF Magma integrations
-/xwf/ @magma/approvers-xwf
-/feg/radius @magma/approvers-xwf @magma/approvers-cwf
-
-/dp/ @magma/approvers-domain-proxy
-
+# approvers-docs
 /docs/ @magma/approvers-docs
-/docs/readmes/proposals @magma/approvers-tsc
+
+# approvers-domain-proxy
+/dp/ @magma/approvers-domain-proxy
 
 # approvers-bazel
 /.bazel-cache/ @magma/approvers-bazel
@@ -70,7 +68,9 @@
 /.bazelrc @magma/approvers-bazel
 *.bazel @magma/approvers-bazel
 
+# approvers-tsc
 /CODEOWNERS @magma/approvers-tsc
+/docs/readmes/proposals @magma/approvers-tsc
 
 # Generated code excluded from code ownership
 **/go.mod @ghost

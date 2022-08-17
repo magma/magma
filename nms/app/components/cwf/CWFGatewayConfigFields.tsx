@@ -13,16 +13,16 @@
 
 import type {AllowedGrePeer, IpdrExportDst} from '../../../generated';
 
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import React from 'react';
-import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
 import Text from '../../theme/design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   container: {
@@ -107,11 +107,14 @@ export default function (props: Props) {
           onChange={({target}) => onChange(index, 'key', target.value)}
           className={classes.inputValue}
         />
-        <IconButton onClick={() => removePeer(index)} className={classes.icon}>
+        <IconButton
+          onClick={() => removePeer(index)}
+          className={classes.icon}
+          size="large">
           <RemoveCircleOutline />
         </IconButton>
         {index === allowedGREPeers.length - 1 && (
-          <IconButton onClick={addPeer} className={classes.icon}>
+          <IconButton onClick={addPeer} className={classes.icon} size="large">
             <AddCircleOutline />
           </IconButton>
         )}
@@ -125,6 +128,7 @@ export default function (props: Props) {
       <div className={classes.container}>
         <TextField
           label="IP"
+          variant="standard"
           margin="none"
           value={ipdrExportDst.ip}
           onChange={({target}) =>
@@ -134,6 +138,7 @@ export default function (props: Props) {
         />
         <TextField
           type="number"
+          variant="standard"
           label="Port"
           margin="none"
           value={ipdrExportDst.port}

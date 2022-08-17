@@ -56,8 +56,8 @@ def make_dp_log(
     return func(*args)
 
 
-def now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+def now() -> int:
+    return int(datetime.now(timezone.utc).timestamp())
 
 
 def _make_log_from_db_request(request: 'DBRequest') -> DPLog:  # noqa: F821

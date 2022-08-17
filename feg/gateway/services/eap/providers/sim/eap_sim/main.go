@@ -35,7 +35,7 @@ func init() {
 
 func main() {
 	// Create the EAP SIM Provider service
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP_SIM)
+	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.EAP_SIM)
 	if err != nil {
 		glog.Fatalf("Error creating EAP SIM service: %s", err)
 	}

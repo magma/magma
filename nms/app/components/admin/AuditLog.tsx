@@ -13,17 +13,17 @@
 import ActionTable from '../ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import ListAltIcon from '@material-ui/icons/ListAlt';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/Grid';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import LoadingFiller from '../LoadingFiller';
 import React from 'react';
 import ReactJson from 'react-json-view';
 
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import {useAxios} from '../../hooks';
 import {useState} from 'react';
 

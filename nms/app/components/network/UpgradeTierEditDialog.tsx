@@ -13,17 +13,17 @@
 
 import type {Tier} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormGroup from '@material-ui/core/FormGroup';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import React from 'react';
-import TextField from '@material-ui/core/TextField';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
+import {AltFormField} from '../FormField';
+import {OutlinedInput} from '@mui/material';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -75,37 +75,35 @@ export default function UpgradeTierEditDialog(props: Props) {
         {props.tier ? 'Edit Upgrade Tier' : 'Add Upgrade Tier'}
       </DialogTitle>
       <DialogContent>
-        <FormGroup row>
-          <TextField
+        <AltFormField label="Tier ID">
+          <OutlinedInput
             required
-            label="Tier ID"
+            fullWidth
             placeholder="E.g. t1"
-            margin="normal"
             disabled={Boolean(props.tier)}
             value={tier.id}
             onChange={({target}) => setTier({...tier, id: target.value})}
           />
-        </FormGroup>
-        <FormGroup row>
-          <TextField
+        </AltFormField>
+        <AltFormField label="Tier Name">
+          <OutlinedInput
             required
+            fullWidth
             label="Tier Name"
             placeholder="E.g. Example Tier"
-            margin="normal"
             value={tier.name}
             onChange={({target}) => setTier({...tier, name: target.value})}
           />
-        </FormGroup>
-        <FormGroup row>
-          <TextField
+        </AltFormField>
+        <AltFormField label="Tier Version">
+          <OutlinedInput
             required
-            label="Tier Version"
+            fullWidth
             placeholder="E.g. 1.0.0-0"
-            margin="normal"
             value={tier.version}
             onChange={({target}) => setTier({...tier, version: target.value})}
           />
-        </FormGroup>
+        </AltFormField>
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onCancel}>Cancel</Button>

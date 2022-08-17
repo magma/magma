@@ -11,18 +11,17 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import ButtonBase from '@material-ui/core/ButtonBase';
-import Collapse from '@material-ui/core/Collapse';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import RootRef from '@material-ui/core/RootRef';
-import Typography from '@material-ui/core/Typography';
-import {Theme} from '@material-ui/core/styles';
+import ButtonBase from '@mui/material/ButtonBase';
+import Collapse from '@mui/material/Collapse';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Typography from '@mui/material/Typography';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../../../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 export type Props = {
   RequiredFields: React.ReactNode;
@@ -135,18 +134,19 @@ function EditorMenuButton({
   onReset: () => void;
   onDelete: () => void;
 }) {
-  const iconRef = React.useRef<HTMLElement>();
+  const iconRef = React.useRef<HTMLButtonElement>(null);
   const [isMenuOpen, setMenuOpen] = React.useState(false);
+
   return (
     <>
-      <RootRef rootRef={iconRef}>
-        <IconButton
-          aria-label="editor-menu"
-          edge="end"
-          onClick={() => setMenuOpen(true)}>
-          <MoreVertIcon />
-        </IconButton>
-      </RootRef>
+      <IconButton
+        ref={iconRef}
+        aria-label="editor-menu"
+        edge="end"
+        onClick={() => setMenuOpen(true)}
+        size="large">
+        <MoreVertIcon />
+      </IconButton>
       <Menu
         anchorEl={iconRef.current}
         open={isMenuOpen}

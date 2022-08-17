@@ -12,32 +12,32 @@
  */
 import type {FederatedNetworkConfigs, ModeMapItem} from '../../../generated';
 
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '@material-ui/core/Button';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import ListItemText from '@material-ui/core/ListItemText';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import Button from '@mui/material/Button';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import ListItemText from '@mui/material/ListItemText';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import Switch from '@material-ui/core/Switch';
+import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
 import Text from '../../theme/design-system/Text';
 
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {ModeMapItemModeEnum} from '../../../generated';
 import {federationStyles} from './FederationStyles';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -81,7 +81,8 @@ function FederationMappingFields(props: FieldProps) {
             <Grid item>
               <IconButton
                 className={classes.removeIcon}
-                onClick={() => props.handleDelete(props.index)}>
+                onClick={() => props.handleDelete(props.index)}
+                size="large">
                 <DeleteOutline />
               </IconButton>
             </Grid>
@@ -338,7 +339,8 @@ export function NetworkFederationEdit(props: EditProps) {
                 Add New Mapping
                 <IconButton
                   data-testid="addFlowButton"
-                  onClick={handleAddMapping}>
+                  onClick={handleAddMapping}
+                  size="large">
                   <AddCircleOutline />
                 </IconButton>
               </Grid>

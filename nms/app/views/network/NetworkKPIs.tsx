@@ -13,16 +13,16 @@
 import type {DataRows} from '../../components/DataGrid';
 
 import ApnContext from '../../context/ApnContext';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../context/EnodebContext';
 import GatewayContext from '../../context/GatewayContext';
-import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import PeopleIcon from '@material-ui/icons/People';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import PeopleIcon from '@mui/icons-material/People';
 import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
-import RssFeedIcon from '@material-ui/icons/RssFeed';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import SubscriberContext from '../../context/SubscriberContext';
 
 import {useContext} from 'react';

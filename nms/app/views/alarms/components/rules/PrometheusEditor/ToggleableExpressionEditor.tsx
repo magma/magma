@@ -13,24 +13,25 @@
 
 import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import RemoveCircleIcon from '@material-ui/icons/RemoveCircle';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import {InputChangeFunc} from './PrometheusEditor';
-import {SelectProps} from '@material-ui/core/Select/Select';
+import {SelectProps} from '@mui/material/Select/Select';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 
@@ -116,8 +117,11 @@ export function AdvancedExpressionEditor(props: {
 }) {
   return (
     <Grid item>
-      <InputLabel htmlFor="metric-advanced-input">Expression</InputLabel>
+      <InputLabel htmlFor="metric-advanced-input" variant="standard">
+        Expression
+      </InputLabel>
       <TextField
+        variant="standard"
         id="metric-advanced-input"
         required
         placeholder="SNR >= 0"
@@ -143,9 +147,12 @@ function ConditionSelector(props: {
   ];
   return (
     <Grid>
-      <InputLabel htmlFor="condition-input">Condition</InputLabel>
+      <InputLabel htmlFor="condition-input" variant="standard">
+        Condition
+      </InputLabel>
       <TextField
         id="condition-input"
+        variant="standard"
         fullWidth
         required
         select
@@ -175,8 +182,11 @@ function ValueSelector(props: {
 }) {
   return (
     <Grid item>
-      <InputLabel htmlFor="value-input">Value</InputLabel>
+      <InputLabel htmlFor="value-input" variant="standard">
+        Value
+      </InputLabel>
       <TextField
+        variant="standard"
         id="value-input"
         fullWidth
         value={props.expression.value}
@@ -200,7 +210,9 @@ function MetricSelector(props: {
   const {metricNames} = props;
   return (
     <Grid item>
-      <InputLabel htmlFor="metric-input">Metric</InputLabel>
+      <InputLabel htmlFor="metric-input" variant="standard">
+        Metric
+      </InputLabel>
       <Autocomplete
         id="metric-input"
         options={metricNames}
@@ -209,7 +221,9 @@ function MetricSelector(props: {
         onChange={(_e, value) => {
           props.onChange({...props.expression, metricName: value!});
         }}
-        renderInput={params => <TextField {...params} required />}
+        renderInput={params => (
+          <TextField {...params} required variant="standard" />
+        )}
       />
     </Grid>
   );
@@ -390,10 +404,13 @@ function LabelFilter(props: {
       </Grid>
       <Grid item xs={2}>
         <Grid>
-          <InputLabel htmlFor={`condition-input-${props.filterIdx}`}>
+          <InputLabel
+            htmlFor={`condition-input-${props.filterIdx}`}
+            variant="standard">
             Condition
           </InputLabel>
           <TextField
+            variant="standard"
             id={`condition-input-${props.filterIdx}`}
             fullWidth
             required
@@ -420,7 +437,9 @@ function LabelFilter(props: {
       </Grid>
       <Grid item xs={3}>
         <Grid item>
-          <InputLabel htmlFor={`value-input-${props.filterIdx}`}>
+          <InputLabel
+            htmlFor={`value-input-${props.filterIdx}`}
+            variant="standard">
             Value
           </InputLabel>
           <Autocomplete
@@ -443,6 +462,7 @@ function LabelFilter(props: {
             renderInput={params => (
               <TextField
                 {...params}
+                variant="standard"
                 required
                 id={`value-input-${props.filterIdx}`}
               />
@@ -451,7 +471,10 @@ function LabelFilter(props: {
         </Grid>
       </Grid>
       <Grid item xs={1} container alignItems="center" justifyContent="flex-end">
-        <IconButton onClick={() => props.onRemove(props.filterIdx)} edge="end">
+        <IconButton
+          onClick={() => props.onRemove(props.filterIdx)}
+          edge="end"
+          size="large">
           <RemoveCircleIcon />
         </IconButton>
       </Grid>
@@ -482,6 +505,7 @@ function FilterSelector(props: {
       displayEmpty
       className={classes.metricFilterItem}
       value={props.selectedValue}
+      input={<Input />}
       onChange={props.onChange as SelectProps['onChange']}>
       <MenuItem disabled value="">
         {props.defaultVal}

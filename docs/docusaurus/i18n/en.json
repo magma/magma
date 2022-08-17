@@ -198,6 +198,9 @@
       "lte/deploy_config_enodebd": {
         "title": "Configure eNodeB"
       },
+      "lte/deploy_install_docker": {
+        "title": "Install Docker AGW"
+      },
       "lte/deploy_install": {
         "title": "Install AGW"
       },

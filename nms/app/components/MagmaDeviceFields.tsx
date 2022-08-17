@@ -11,15 +11,16 @@
  * limitations under the License.
  */
 
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 
 import {MagmadGatewayConfigs} from '../../generated';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   input: {
@@ -42,11 +43,11 @@ export default function MagmaDeviceFields(props: Props) {
   return (
     <>
       <FormControl className={classes.input}>
-        <InputLabel htmlFor="autoupgradeEnabled">
+        <InputLabel htmlFor="autoupgradeEnabled" variant="standard">
           Autoupgrade Enabled
         </InputLabel>
         <Select
-          inputProps={{id: 'autoupgradeEnabled'}}
+          input={<Input id="autoupgradeEnabled" />}
           value={props.configs.autoupgrade_enabled ? 1 : 0}
           onChange={({target}) =>
             props.configChangeHandler('autoupgrade_enabled', !!target.value)
@@ -56,6 +57,7 @@ export default function MagmaDeviceFields(props: Props) {
         </Select>
       </FormControl>
       <TextField
+        variant="standard"
         label="Autoupgrade Poll Interval (seconds)"
         className={classes.input}
         value={props.configs.autoupgrade_poll_interval}
@@ -68,6 +70,7 @@ export default function MagmaDeviceFields(props: Props) {
         placeholder="E.g. 300"
       />
       <TextField
+        variant="standard"
         label="Checkin Interval (seconds)"
         className={classes.input}
         value={props.configs.checkin_interval}
@@ -77,6 +80,7 @@ export default function MagmaDeviceFields(props: Props) {
         placeholder="E.g. 60"
       />
       <TextField
+        variant="standard"
         label="Checkin Timeout (seconds)"
         className={classes.input}
         value={props.configs.checkin_timeout}

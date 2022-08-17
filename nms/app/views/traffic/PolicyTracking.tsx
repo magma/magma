@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-import ListItem from '@material-ui/core/ListItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import ListItem from '@mui/material/ListItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '../../components/TypedSelect';
 import {AltFormField} from '../../components/FormField';
 import {base64ToHex, decodeBase64} from '../../util/strings';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {policyStyles} from './PolicyStyles';
 import type {PolicyRule} from '../../../generated';
 

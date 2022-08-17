@@ -12,10 +12,10 @@
  */
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import ExploreIcon from '@material-ui/icons/Explore';
-import Grid from '@material-ui/core/Grid';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ExploreIcon from '@mui/icons-material/Explore';
+import Grid from '@mui/material/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
 import React from 'react';
 import moment from 'moment';
@@ -24,10 +24,10 @@ import useMagmaAPI from '../../api/useMagmaAPI';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import {PrometheusLabelSet} from '../alarms/components/AlarmAPIType';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';

@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '../../../theme/default';
@@ -19,10 +18,11 @@ import {ApnContextProvider} from '../../../context/ApnContext';
 import {PolicyProvider} from '../../../context/PolicyContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PolicyQosProfile, PolicyRule, RatingGroup} from '../../../../generated';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
+import {render} from '../../../util/TestingLibrary';
 
 jest.mock('axios');
 jest.mock('../../../../app/hooks/useSnackbar');
@@ -134,7 +134,7 @@ describe('<TrafficDashboard />', () => {
     mockAPI(
       MagmaAPI.ratingGroups,
       'networksNetworkIdRatingGroupsGet',
-      (ratingGroups as unknown) as Array<RatingGroup>,
+      ratingGroups,
     );
     mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });
@@ -143,8 +143,8 @@ describe('<TrafficDashboard />', () => {
     <MemoryRouter
       initialEntries={['/nms/test/traffic/policy']}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <PolicyProvider networkId={networkId}>
             <ApnContextProvider networkId={networkId}>
               <Routes>
@@ -155,17 +155,16 @@ describe('<TrafficDashboard />', () => {
               </Routes>
             </ApnContextProvider>
           </PolicyProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
   it('renders', async () => {
     const {
-      getByTestId,
       findAllByRole,
       findByTestId,
       getByText,
-      getAllByTitle,
+      openActionsTableMenu,
     } = render(<Wrapper />);
 
     // Policy tables rows
@@ -196,10 +195,9 @@ describe('<TrafficDashboard />', () => {
     expect(rowItemsPolicy[3]).toHaveTextContent('0');
     expect(rowItemsPolicy[3]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[3]).toHaveTextContent('NO_TRACKING');
+
     // click the actions button for policy 0
-    const policyActionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(policyActionList[0]);
+    await openActionsTableMenu(0);
 
     expect(await findByTestId('actions-menu')).toBeVisible();
 
@@ -236,9 +234,7 @@ describe('<TrafficDashboard />', () => {
     expect(rowItemsRatingGroups[2]).toHaveTextContent('1');
     expect(rowItemsRatingGroups[2]).toHaveTextContent('INFINITE_UNMETERED');
     // click the actions button for rating group 0
-    const ratingGroupActionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(ratingGroupActionList[0]);
+    await openActionsTableMenu(0);
     expect(await findByTestId('actions-menu')).toBeVisible();
   });
 
@@ -246,15 +242,10 @@ describe('<TrafficDashboard />', () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.policies, 'networksNetworkIdPoliciesRulesRuleIdDelete')
       .mockImplementation();
-    const {getByText, getByTestId, findAllByTitle, findByText} = render(
-      <Wrapper />,
-    );
+    const {getByText, findByText, openActionsTableMenu} = render(<Wrapper />);
 
     // click remove action for policy 0
-    const policyActionList = await findAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(policyActionList[0]);
-
+    await openActionsTableMenu(0);
     fireEvent.click(await findByText('Remove'));
 
     expect(
@@ -273,17 +264,12 @@ describe('<TrafficDashboard />', () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesProfileIdDelete')
       .mockImplementation();
-    const {getByText, getByTestId, findAllByTitle, findByText} = render(
-      <Wrapper />,
-    );
+    const {getByText, findByText, openActionsTableMenu} = render(<Wrapper />);
     // Profiles tab
     fireEvent.click(await findByText('Profiles'));
 
     // click remove action for profile_1
-    const profileActionList = await findAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(profileActionList[0]);
-
+    await openActionsTableMenu(0);
     fireEvent.click(await findByText('Remove'));
 
     expect(
@@ -305,18 +291,13 @@ describe('<TrafficDashboard />', () => {
         'networksNetworkIdRatingGroupsRatingGroupIdDelete',
       )
       .mockImplementation();
-    const {getByText, getByTestId, findAllByTitle, findByText} = render(
-      <Wrapper />,
-    );
+    const {getByText, findByText, openActionsTableMenu} = render(<Wrapper />);
 
     // Rating Groups tab
     fireEvent.click(await findByText('Rating Groups'));
 
     // click remove action for rating group 0
-    const ratingGroupActionList = await findAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(ratingGroupActionList[0]);
-
+    await openActionsTableMenu(0);
     fireEvent.click(await findByText('Remove'));
     expect(
       await findByText('Are you sure you want to delete Rating Group 0?'),
@@ -352,7 +333,7 @@ describe('<TrafficDashboard APNs/>', () => {
     mockAPI(
       MagmaAPI.ratingGroups,
       'networksNetworkIdRatingGroupsGet',
-      (ratingGroups as unknown) as Array<RatingGroup>,
+      ratingGroups,
     );
     mockAPI(MagmaAPI.policies, 'lteNetworkIdPolicyQosProfilesGet', qosProfiles);
   });
@@ -363,8 +344,8 @@ describe('<TrafficDashboard APNs/>', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <PolicyProvider networkId={networkId}>
             <ApnContextProvider networkId={networkId}>
               <Routes>
@@ -375,17 +356,16 @@ describe('<TrafficDashboard APNs/>', () => {
               </Routes>
             </ApnContextProvider>
           </PolicyProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
   it('renders', async () => {
     const {
       findAllByText,
-      findByTestId,
       getByTestId,
       getAllByRole,
-      getAllByTitle,
+      openActionsTableMenu,
     } = render(<Wrapper />);
 
     const apnTitles = await findAllByText('APNs');
@@ -421,25 +401,19 @@ describe('<TrafficDashboard APNs/>', () => {
     expect(rowItemsApns[2]).toHaveTextContent('false');
 
     // click the actions button for apn 0
-    const apnActionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(apnActionList[0]);
-
-    expect(await findByTestId('actions-menu')).toBeVisible();
+    await openActionsTableMenu(0);
+    await waitFor(() => {
+      expect(getByTestId('actions-menu')).toBeVisible();
+    });
   });
 
   it('shows prompt when remove apn is clicked', async () => {
     const deleteMock = jest
       .spyOn(MagmaAPI.apns, 'lteNetworkIdApnsApnNameDelete')
       .mockImplementation();
-    const {getByText, getByTestId, findAllByTitle, findByText} = render(
-      <Wrapper />,
-    );
+    const {getByText, findByText, openActionsTableMenu} = render(<Wrapper />);
 
-    const apnActionList = await findAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(apnActionList[0]);
-
+    await openActionsTableMenu(0);
     fireEvent.click(await findByText('Remove'));
     expect(
       await findByText('Are you sure you want to delete apn_0?'),

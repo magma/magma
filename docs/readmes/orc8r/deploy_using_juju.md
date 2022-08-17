@@ -18,14 +18,14 @@ the project's [homepage](https://github.com/canonical/charmed-magma).
 - Ubuntu 20.04 machine with internet access
 - A public domain
 
-## 1. Set up your management environment
+## Set up your management environment
 
 From a Ubuntu 20.04 machine, install the following tools:
 
 - [Juju](https://juju.is/docs/olm/installing-juju)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 
-## 2. Create a Kubernetes cluster and bootstrap a Juju controller
+## Create a Kubernetes cluster and bootstrap a Juju controller
 
 Select a Kubernetes environment and follow the guide to create the cluster and bootstrap
 a Juju controller on it.
@@ -35,7 +35,7 @@ a Juju controller on it.
 3. [Amazon Web Services (EKS)](https://juju.is/docs/olm/amazon-elastic-kubernetes-service-(amazon-eks)#heading--install-the-juju-client)
 4. [Microsoft Azure (AKS)](<https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)>)
 
-## 3. Deploy charmed Magma Orchestrator
+## Deploy charmed Magma Orchestrator
 
 From your Ubuntu machine, create an `overlay.yaml` file that contains the following content:
 
@@ -44,9 +44,17 @@ applications:
   orc8r-certifier:
     options:
       domain: <your domain name>
+  orc8r-nginx:
+    options:
+      domain: <your domain name>
+  tls-certificates-operator:
+    options:
+      certificate: <your base64 encoded certificate>
+      private-key: <your base64 encoded private key>
+      ca-certificate: <your base64 encoded ca certificate>
 ```
 
-Replace `<your domain name>` with your domain name.
+Replace the values in angle brackets.
 
 Deploy Orchestrator:
 
@@ -56,36 +64,26 @@ juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
 
 The deployment is completed when all services are in the `Active-Idle` state.
 
-## 4. Import the admin operator HTTPS certificate
+## Import the admin operator HTTPS certificate
 
-Retrieve the self-signed certificate:
-
-```bash
-juju scp --container="magma-orc8r-certifier" orc8r-certifier/0:/var/opt/magma/certs/..data/admin_operator.pfx admin_operator.pfx
-```
-
-> The default password to open the admin_operator.pfx file is `password123`. To choose a different
-> password, re-deploy orc8r-certifier with the `passphrase` juju config.
-
-## 5. Create the Orchestrator admin user
-
-Create the user:
+Retrieve the PFX package and password that contains the certificates to authenticate against Magma Orchestrator:
 
 ```bash
-juju run-action orc8r-orchestrator/0 create-orchestrator-admin-user
+juju scp --container="magma-orc8r-certifier" orc8r-certifier/0:/var/opt/magma/certs/admin_operator.pfx admin_operator.pfx
+juju run-action orc8r-certifier/leader get-pfx-package-password --wait
 ```
 
-## 6. Setup DNS
+> The pfx package was copied to your current working directory and can now be loaded in your browser.
 
-Use `kubectl` or your cloud's CLI to retrieve the public addresses associated to the following Kubernetes
-LoadBalancer services:
+## Setup DNS
 
-- `nginx-proxy`
-- `orc8r-bootstrap-nginx`
-- `orc8r-clientcert-nginx`
-- `orc8r-nginx-proxy`
+Retrieve the services that need to be exposed:
 
-Create these A records in your managed domain:
+```bash
+juju run-action orc8r-orchestrator/leader get-load-balancer-services --wait
+```
+
+In your domain registrar, create A records for the following Kubernetes services:
 
 | Hostname                                | Address                                |
 |-----------------------------------------|----------------------------------------|
@@ -94,7 +92,7 @@ Create these A records in your managed domain:
 | `controller.<your domain>`              | `<orc8r-clientcert-nginx External IP>` |
 | `*.nms.<your domain>`                   | `<nginx-proxy External IP>`            |
 
-## 7. Verify the deployment
+## Verify the deployment
 
 Get the master organization's username and password:
 

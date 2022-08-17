@@ -12,15 +12,15 @@
  */
 import type {SectionsConfigs} from '../layout/Section';
 
-import AlarmIcon from '@material-ui/icons/Alarm';
+import AlarmIcon from '@mui/icons-material/Alarm';
 import Alarms from '../../views/alarms/legacy/Alarms';
 import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import React from 'react';
-import SettingsCellIcon from '@material-ui/icons/SettingsCell';
-import ShowChartIcon from '@material-ui/icons/ShowChart';
+import SettingsCellIcon from '@mui/icons-material/SettingsCell';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 export function getCWFSections(): SectionsConfigs {
   const sections = [

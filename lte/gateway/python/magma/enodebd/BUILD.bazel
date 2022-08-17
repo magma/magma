@@ -103,7 +103,6 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//dp/protos:cbsd_python_grpc",
-        "//dp/protos:enodebd_dp_python_grpc",
     ],
 )
 

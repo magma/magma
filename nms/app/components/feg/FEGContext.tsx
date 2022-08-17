@@ -15,6 +15,7 @@ import * as React from 'react';
 import {FEGGatewayContextProvider} from '../../context/FEGGatewayContext';
 import {FEGNetworkContextProvider} from '../../context/FEGNetworkContext';
 import {FEGSubscriberContextProvider} from '../../context/FEGSubscriberContext';
+import {GatewayTierContextProvider} from '../../context/GatewayTierContext';
 import {NetworkId} from '../../../shared/types/network';
 
 /**
@@ -31,9 +32,11 @@ export function FEGContextProvider(props: {
   return (
     <FEGNetworkContextProvider networkId={networkId}>
       <FEGSubscriberContextProvider networkId={networkId}>
-        <FEGGatewayContextProvider networkId={networkId}>
-          {props.children}
-        </FEGGatewayContextProvider>
+        <GatewayTierContextProvider networkId={networkId}>
+          <FEGGatewayContextProvider networkId={networkId}>
+            {props.children}
+          </FEGGatewayContextProvider>
+        </GatewayTierContextProvider>
       </FEGSubscriberContextProvider>
     </FEGNetworkContextProvider>
   );

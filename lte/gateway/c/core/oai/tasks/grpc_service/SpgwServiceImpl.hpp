@@ -23,7 +23,7 @@
 #include "lte/protos/policydb.pb.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/spgw_service_handler.h"
+#include "lte/gateway/c/core/oai/include/spgw_service_handler.hpp"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 

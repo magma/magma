@@ -11,26 +11,27 @@
  * limitations under the License.
  */
 
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
+import DataUsageIcon from '@mui/icons-material/DataUsage';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CustomLineChart, DatasetType} from '../../components/CustomMetrics';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
 import {convertBitToMbit, getPromValue} from './SubscriberUtils';
 import {getStep, getStepString} from '../../components/CustomMetrics';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -234,12 +235,11 @@ export default function SubscriberChart() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             maxDate={end}
             disableFuture
             value={start}
-            onChange={date => setStart(date!)}
+            onChange={date => setStart(date as moment.Moment)}
           />
         </Grid>
         <Grid item>
@@ -249,11 +249,10 @@ export default function SubscriberChart() {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             disableFuture
             value={end}
-            onChange={date => setEnd(date!)}
+            onChange={date => setEnd(date as moment.Moment)}
           />
         </Grid>
       </Grid>

@@ -12,9 +12,9 @@
  */
 import puppeteer from 'puppeteer';
 
-const ADD_NETWORK_SELECTOR = `//span[text()='Add Network']`;
-const ADD_NETWORK_DIALOG = `//span[text()='Add Network']`;
-const ADD_NETWORK_SAVE = `//span[text()='Save']`;
+const ADD_NETWORK_SELECTOR = `//button[text()='Add Network']`;
+const ADD_NETWORK_DIALOG = `//h2[text()='Add Network']`;
+const ADD_NETWORK_SAVE = `//button[text()='Save']`;
 
 type AddParams = {
   name: string;

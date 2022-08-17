@@ -12,13 +12,11 @@ limitations under the License.
 """
 import grpc
 from dp.protos.cbsd_pb2 import (
+    CBSDStateResult,
     EnodebdUpdateCbsdRequest,
     InstallationParam,
-    UpdateCbsdResponse,
 )
 from dp.protos.cbsd_pb2_grpc import CbsdManagementStub
-from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult
-from dp.protos.enodebd_dp_pb2_grpc import DPServiceStub
 from google.protobuf.json_format import MessageToJson
 from google.protobuf.wrappers_pb2 import (  # pylint: disable=no-name-in-module
     BoolValue,
@@ -35,35 +33,6 @@ DP_ORC8R_SERVICE_NAME = "dp"
 DEFAULT_GRPC_TIMEOUT = 20
 
 
-def get_cbsd_state(request: CBSDRequest) -> CBSDStateResult:
-    """
-    Make RPC call to 'GetCBSDState' method of dp service
-    """
-    try:
-        chan = ServiceRegistry.get_rpc_channel(
-            DP_SERVICE_NAME,
-            ServiceRegistry.CLOUD,
-        )
-    except ValueError:
-        logger.error("Can't get RPC channel to %s", DP_SERVICE_NAME)
-        return CBSDStateResult(radio_enabled=False)
-    client = DPServiceStub(chan)
-    try:
-        msg_json = MessageToJson(request, including_default_value_fields=True, preserving_proto_field_name=True)
-        logger.debug(f"Sending GetCBSDState request: {msg_json}")
-        res = client.GetCBSDState(request, DEFAULT_GRPC_TIMEOUT)
-        msg_json = MessageToJson(res, including_default_value_fields=True, preserving_proto_field_name=True)
-        logger.debug(f"Received GetCBSDState reply: {msg_json}")
-    except grpc.RpcError as err:
-        logger.warning(
-            "GetCBSDState error: [%s] %s",
-            err.code(),
-            err.details(),
-        )
-        return CBSDStateResult(radio_enabled=False)
-    return res
-
-
 def _indoortobool(s: str):
     return s.lower() in ['true', 't', '1', 'yes', 'indoor']
 
@@ -75,7 +44,6 @@ def build_enodebd_update_cbsd_request(
     indoor_deployment: str,
     antenna_height: str,
     antenna_height_type: str,
-    antenna_gain: str,
     cbsd_category: str,
 ) -> EnodebdUpdateCbsdRequest:
     # cbsd category and antenna height type should be converted to lowercase
@@ -88,7 +56,6 @@ def build_enodebd_update_cbsd_request(
     longitude_deg_float = float(longitude_deg)
 
     indoor_deployment_bool = _indoortobool(indoor_deployment)
-    antenna_gain_float = float(antenna_gain)
     antenna_height_float = float(antenna_height)
 
     installation_param = InstallationParam(
@@ -97,7 +64,6 @@ def build_enodebd_update_cbsd_request(
         indoor_deployment=BoolValue(value=indoor_deployment_bool),
         height_m=DoubleValue(value=antenna_height_float),
         height_type=StringValue(value=antenna_height_type),
-        antenna_gain=DoubleValue(value=antenna_gain_float),
     )
 
     return EnodebdUpdateCbsdRequest(
@@ -107,7 +73,7 @@ def build_enodebd_update_cbsd_request(
     )
 
 
-def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse:
+def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> CBSDStateResult:
     """
     Make RPC call to 'EnodebdUpdateCbsd' method of dp orc8r service
     """
@@ -118,7 +84,7 @@ def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse
         )
     except ValueError:
         logger.error("Can't get RPC channel to %s", DP_ORC8R_SERVICE_NAME)
-        return UpdateCbsdResponse()
+        return CBSDStateResult(radio_enabled=False)
     client = CbsdManagementStub(chan)
     try:
         msg_json = MessageToJson(request, including_default_value_fields=True, preserving_proto_field_name=True)
@@ -132,5 +98,5 @@ def enodebd_update_cbsd(request: EnodebdUpdateCbsdRequest) -> UpdateCbsdResponse
             err.code(),
             err.details(),
         )
-        return UpdateCbsdResponse()
+        return CBSDStateResult(radio_enabled=False)
     return res

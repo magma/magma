@@ -15,12 +15,12 @@ import type {Subscriber, SubscriberState} from '../../../generated';
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import PeopleIcon from '@material-ui/icons/People';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import PeopleIcon from '@mui/icons-material/People';
 import React from 'react';
 import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
@@ -28,9 +28,9 @@ import Text from '../../theme/design-system/Text';
 import {Column} from '@material-table/core';
 import {JsonDialog, RenderLink} from './SubscriberUtils';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useInterval} from '../../hooks';
 
@@ -105,7 +105,7 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
               <List>
                 {currRow.activePolicies.map(policy => (
                   <ListItem key={policy.id}>
-                    <Link>{policy.id} </Link>
+                    <Link underline="hover">{policy.id} </Link>
                   </ListItem>
                 ))}
               </List>

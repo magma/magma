@@ -12,11 +12,11 @@
  */
 
 import * as React from 'react';
-import Checkbox from '@material-ui/core/Checkbox';
+import Checkbox from '@mui/material/Checkbox';
 import ConfigEditor from './ConfigEditor';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverEmailConfig} from '../../AlarmAPIType';
 
@@ -32,6 +32,7 @@ export default function EmailConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Send To"
               placeholder="Ex: ops@example.com"
@@ -42,6 +43,7 @@ export default function EmailConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="From"
               placeholder="Ex: notifications@example.com"
@@ -52,6 +54,7 @@ export default function EmailConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Host"
               placeholder="Ex: smtp.example.com"
@@ -62,6 +65,7 @@ export default function EmailConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               label="Auth Username"
               value={config.auth_username}
               onChange={e => onUpdate({auth_username: e.target.value})}
@@ -71,6 +75,7 @@ export default function EmailConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               label="Auth Password"
               value={config.auth_password}
               onChange={e => onUpdate({auth_password: e.target.value})}
@@ -84,6 +89,7 @@ export default function EmailConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               label="Auth Secret"
               value={config.auth_secret}
               onChange={e => onUpdate({auth_secret: e.target.value})}
@@ -93,6 +99,7 @@ export default function EmailConfigEditor({
           </Grid>
           <Grid item>
             <TextField
+              variant="standard"
               label="Auth Identity"
               value={config.auth_identity}
               onChange={e => onUpdate({auth_identity: e.target.value})}

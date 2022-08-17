@@ -10,14 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../theme/default';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import {GenericCommandResponse} from '../../../generated';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {TroubleshootingControl} from '../GatewayCommandFields';
 import {mockAPI, mockAPIError} from '../../util/TestUtils';
 import {render} from '@testing-library/react';
@@ -26,16 +25,16 @@ jest.mock('../../../app/hooks/useSnackbar');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
         <Routes>
           <Route
             path="/nms/:networkId"
             element={<TroubleshootingControl gatewayID={'test_gateway'} />}
           />
         </Routes>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </MemoryRouter>
 );
 

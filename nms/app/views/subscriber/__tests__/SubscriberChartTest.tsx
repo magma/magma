@@ -12,16 +12,15 @@
  */
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {PromqlReturnObject} from '../../../../generated';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import {render} from '@testing-library/react';
 
@@ -113,23 +112,25 @@ describe('<SubscriberChart />', () => {
           '/nms/test/subscribers/overview/config/IMSI001011234560000/overview',
         ]}
         initialIndex={0}>
-        <MuiPickersUtilsProvider utils={MomentUtils}>
-          <MuiThemeProvider theme={defaultTheme}>
-            <MuiStylesThemeProvider theme={defaultTheme}>
-              <NetworkContext.Provider
-                value={{
-                  networkId: 'test',
-                }}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
-                    element={<SubscriberChart />}
-                  />
-                </Routes>
-              </NetworkContext.Provider>
-            </MuiStylesThemeProvider>
-          </MuiThemeProvider>
-        </MuiPickersUtilsProvider>
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={defaultTheme}>
+              <ThemeProvider theme={defaultTheme}>
+                <NetworkContext.Provider
+                  value={{
+                    networkId: 'test',
+                  }}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/subscribers/overview/config/:subscriberId/overview"
+                      element={<SubscriberChart />}
+                    />
+                  </Routes>
+                </NetworkContext.Provider>
+              </ThemeProvider>
+            </ThemeProvider>
+          </StyledEngineProvider>
+        </LocalizationProvider>
       </MemoryRouter>
     );
   };

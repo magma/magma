@@ -16,7 +16,7 @@ import asyncHandler from '../util/asyncHandler';
 import logging from '../../shared/logging';
 import {AccessRoles} from '../../shared/roles';
 import {AxiosError} from 'axios';
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../shared/types/network';
+import {CWF, FEG, FEG_LTE, LTE} from '../../shared/types/network';
 import {Request, Router} from 'express';
 import {access} from '../auth/access';
 import {difference} from 'lodash';
@@ -151,25 +151,6 @@ router.post(
                 default_rule_id: '',
                 eap_aka: {},
                 network_services: ['policy_enforcement', 'dpi'],
-              },
-            },
-          });
-        } else if (data.networkType === XWFM) {
-          resp = await OrchestratorAPI.carrierWifiNetworks.cwfPost({
-            cwfNetwork: {
-              ...commonField,
-              dns: DEFAULT_DNS_CONFIG,
-              federation: {feg_network_id: data.fegNetworkID!},
-              carrier_wifi: {
-                is_xwfm_variant: true,
-                aaa_server: {
-                  accounting_enabled: true,
-                  create_session_on_auth: true,
-                  idle_session_timeout_ms: 500000,
-                },
-                default_rule_id: '',
-                eap_aka: {},
-                network_services: [],
               },
             },
           });

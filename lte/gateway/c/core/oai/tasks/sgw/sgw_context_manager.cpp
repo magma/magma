@@ -24,6 +24,8 @@
 #define SGW
 #define SGW_CONTEXT_MANAGER_C
 
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -35,14 +37,13 @@ extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#ifdef __cplusplus
-}
-#endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#ifdef __cplusplus
+}
+#endif
 
 //-----------------------------------------------------------------------------
 void sgw_display_sgw_eps_bearer_context(

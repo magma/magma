@@ -1,0 +1,42 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "control_plane",
+    srcs = ["control_plane.go"],
+    importpath = "magma/feg/gateway/services/envoy_controller/control_plane",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//feg/cloud/go/protos:envoy_controller_go_proto",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/cluster/v3:cluster",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/core/v3:core",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/listener/v3:listener",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/route/v3:route",
+        "@com_github_envoyproxy_go_control_plane//envoy/extensions/filters/listener/original_src/v3:original_src",
+        "@com_github_envoyproxy_go_control_plane//envoy/extensions/filters/network/http_connection_manager/v3:http_connection_manager",
+        "@com_github_envoyproxy_go_control_plane//envoy/service/cluster/v3:cluster",
+        "@com_github_envoyproxy_go_control_plane//envoy/service/discovery/v3:discovery",
+        "@com_github_envoyproxy_go_control_plane//envoy/service/endpoint/v3:endpoint",
+        "@com_github_envoyproxy_go_control_plane//envoy/service/listener/v3:listener",
+        "@com_github_envoyproxy_go_control_plane//envoy/service/route/v3:route",
+        "@com_github_envoyproxy_go_control_plane//pkg/cache/types",
+        "@com_github_envoyproxy_go_control_plane//pkg/cache/v3:cache",
+        "@com_github_envoyproxy_go_control_plane//pkg/resource/v3:resource",
+        "@com_github_envoyproxy_go_control_plane//pkg/server/v3:server",
+        "@com_github_envoyproxy_go_control_plane//pkg/wellknown",
+        "@com_github_golang_glog//:glog",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)

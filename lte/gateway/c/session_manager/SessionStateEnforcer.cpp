@@ -875,7 +875,6 @@ bool SessionStateEnforcer::insert_pdr_from_core(
       ->set_gnb_ipv4_adr(ip_addr);
   rule.mutable_activate_flow_req()->set_downlink_tunnel(teid);
   rule.mutable_deactivate_flow_req()->set_downlink_tunnel(teid);
-
   MLOG(MINFO) << " AMF teid: " << teid << " ip address " << ip_addr
               << " of imsi: " << session->get_imsi()
               << " fteid: " << session->get_upf_local_teid()
@@ -894,6 +893,7 @@ uint32_t SessionStateEnforcer::insert_pdr_from_access(
   rule.mutable_pdi()->set_local_f_teid(upf_teid);
   rule.mutable_activate_flow_req()->set_uplink_tunnel(upf_teid);
   rule.mutable_deactivate_flow_req()->set_uplink_tunnel(upf_teid);
+
   // Insert the PDR along with teid into the session
   session->insert_pdr(&rule, session_uc);
   return upf_teid;
@@ -934,6 +934,13 @@ void SessionStateEnforcer::set_pdr_attributes(
       config.common_context.ue_ipv4());
   rule->mutable_deactivate_flow_req()->set_ipv6_addr(
       config.common_context.ue_ipv6());
+  /*Set the AMBR QCI Value */
+  if (config.rat_specific_context.m5gsm_session_context()
+          .has_subscribed_qos()) {
+    const auto& subscribed_qos =
+        config.rat_specific_context.m5gsm_session_context().subscribed_qos();
+    rule->set_session_qfi(subscribed_qos.qos_class_id());
+  }
 }
 
 std::vector<StaticRuleInstall> SessionStateEnforcer::to_vec(

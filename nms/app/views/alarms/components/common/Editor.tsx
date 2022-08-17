@@ -14,12 +14,12 @@
  */
 
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import {GridSize} from '@material-ui/core/Grid';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import {GridSize} from '@mui/material/Grid';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 
 export type Props = {
   children: React.ReactNode;
