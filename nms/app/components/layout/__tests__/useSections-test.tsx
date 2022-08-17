@@ -19,7 +19,7 @@ import {AppContextProvider} from '../../../context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 
 import MagmaAPI from '../../../api/MagmaAPI';
-import {CWF, FEG, FEG_LTE, LTE, XWFM} from '../../../../shared/types/network';
+import {CWF, FEG, FEG_LTE, LTE} from '../../../../shared/types/network';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {mockAPI} from '../../../util/TestUtils';
 
@@ -77,19 +77,12 @@ const testCases = {
     default: 'gateways',
     sections: ['gateways', 'configure', 'metrics', 'alerts'],
   },
-  xwfm: {
-    default: 'gateways',
-    sections: ['gateways', 'configure', 'metrics', 'alerts'],
-  },
 };
 
-describe.each([CWF, FEG, LTE, FEG_LTE, XWFM])('Should render', networkType => {
+describe.each([CWF, FEG, LTE, FEG_LTE])('Should render', networkType => {
   const testCase = testCases[networkType];
-  // XWF-M network selection in NMS creates a CWF network on the API just with
-  // different config defaults
-  const apiNetworkType = networkType === XWFM ? CWF : networkType;
   it(networkType, async () => {
-    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', apiNetworkType);
+    mockAPI(MagmaAPI.networks, 'networksNetworkIdTypeGet', networkType);
 
     const {result, waitForNextUpdate} = renderHook(() => useSections(), {
       wrapper,

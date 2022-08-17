@@ -32,13 +32,10 @@ import {
   FEG,
   FEG_LTE,
   NetworkId,
-  XWFM,
 } from '../../../shared/types/network';
 import {AltFormField} from '../FormField';
 import {OutlinedInput} from '@mui/material';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {triggerAlertSync} from '../../util/SyncAlerts';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 type Props = {
   onClose: () => void;
@@ -57,7 +54,6 @@ type CreateResponse =
     };
 
 export default function NetworkDialog(props: Props) {
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [networkID, setNetworkId] = useState('');
@@ -84,9 +80,6 @@ export default function NetworkDialog(props: Props) {
         if (response.data.success) {
           props.onSave(nullthrows(networkID));
           appContext.addNetworkId(networkID);
-          if (payload.data.networkType === XWFM) {
-            void triggerAlertSync(networkID, enqueueSnackbar);
-          }
         } else {
           setError(response.data.message);
         }
