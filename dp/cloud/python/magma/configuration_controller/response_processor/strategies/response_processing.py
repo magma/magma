@@ -248,7 +248,7 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
         _remove_grant_from_response(response, session)
         return
 
-    # FIXME This code is not tested
+    # FIXME This code is not unit-tested
     grant = _get_grant_from_response(response, session)
     _update_grant_from_response(response, grant)
 

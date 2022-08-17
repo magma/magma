@@ -61,12 +61,8 @@ class DBRequest(Base):
     """
     __tablename__ = "requests"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    type_id = Column(
-        Integer, ForeignKey(
-            "request_types.id", ondelete="CASCADE",
-        ),
-    )
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    type_id = Column(Integer, ForeignKey("request_types.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
@@ -127,7 +123,7 @@ class DBGrant(Base):
             "grant_states.id", ondelete="CASCADE",
         ), nullable=False,
     )
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     grant_id = Column(String, nullable=False)
     grant_expire_time = Column(DateTime(timezone=True))
     transmit_expire_time = Column(DateTime(timezone=True))
@@ -295,7 +291,7 @@ class DBChannel(Base):
     """
     __tablename__ = "channels"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     low_frequency = Column(BigInteger, nullable=False)
     high_frequency = Column(BigInteger, nullable=False)
     channel_type = Column(String, nullable=False)
