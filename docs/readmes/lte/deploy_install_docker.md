@@ -6,7 +6,7 @@ hide_title: true
 
 # Install Docker-based Access Gateway on Ubuntu
 
-## Prerequisites 
+## Prerequisites
 
 To set up a Magma Access Gateway, you will need a machine that
 satisfies the following requirements:
