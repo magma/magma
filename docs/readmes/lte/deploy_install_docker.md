@@ -4,7 +4,7 @@ title: Install Docker AGW
 hide_title: true
 ---
 
-# Install Docker based Access Gateway on Ubuntu
+# Install Docker-based Access Gateway on Ubuntu
 
 ## Prerequisites 
 
