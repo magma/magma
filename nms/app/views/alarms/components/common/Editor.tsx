@@ -23,7 +23,7 @@ import {makeStyles} from '@mui/styles';
 
 export type Props = {
   children: React.ReactNode;
-  onExit: () => void;
+  // onExit: () => void;
   onSave: () => Promise<void> | void;
   isNew: boolean;
   title?: string;
@@ -42,7 +42,7 @@ const useStyles = makeStyles<Theme>(theme => ({
 export default function Editor({
   children,
   isNew,
-  onExit,
+  // onExit,
   onSave,
   title,
   description,

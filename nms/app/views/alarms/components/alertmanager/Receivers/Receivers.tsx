@@ -15,6 +15,7 @@ import * as React from 'react';
 import AddEditReceiver, {
   AddEditReceiverChannels,
   AddEditReceiverInfos,
+  ReceiverDialog,
 } from './AddEditReceiver';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -167,68 +168,25 @@ export default function Receivers() {
   if (isEditGlobalSettings) {
     return (
       <GlobalConfig
-        onExit={() => {
-          setIsEditGlobalSettings(false);
-          setLastRefreshTime(new Date().toLocaleString());
-        }}
+        // onExit={() => {
+        //   setIsEditGlobalSettings(false);
+        //   setLastRefreshTime(new Date().toLocaleString());
+        // }}
       />
     );
   }
 
   return (
     <>
-      <Dialog
+      <ReceiverDialog
+        isNew={isNewReceiver}
+        onClose={() => {
+          setOpen(false)
+          setLastRefreshTime(new Date().toLocaleString())
+        }}
         open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="md"
-        scroll="body"
-        data-testid="FEGGatewayDialog">
-        <DialogTitle
-          label={false ? 'Edit Receiver' : 'Add New Receiver'}
-          onClose={() => setOpen(false)}
-        />
-        <Tabs
-          value={currentTab}
-          className={classes.tabBar}
-          indicatorColor="primary"
-          onChange={(_, tab) => setCurrentTab(tab as number)}>
-          <Tab label="Receiver" />
-          <Tab label="Channels" />
-        </Tabs>
-        <DialogContent>
-          {currentTab === 0 && (
-            <AddEditReceiverInfos
-              receiver={selectedRow || newReceiver()}
-              isNew={isNewReceiver}
-              onExit={() => {
-                setIsAddEditReceiver(false);
-                setLastRefreshTime(new Date().toLocaleString());
-              }}
-            />
-          )}
-          {currentTab === 1 && (
-            <AddEditReceiverChannels
-              receiver={selectedRow || newReceiver()}
-              isNew={isNewReceiver}
-              onExit={() => {
-                setIsAddEditReceiver(false);
-                setLastRefreshTime(new Date().toLocaleString());
-              }}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            onClick={() =>
-              currentTab === 0 ? setCurrentTab(1) : void onSave()
-            }
-            color="primary"
-            variant="contained">
-            {currentTab === 0 ? 'Next' : 'Save and Add Receiver'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        receiver={selectedRow || null}
+      />
       <Grid className={classes.root} container spacing={2} direction="column">
         {alertManagerGlobalConfigEnabled === true && (
           <Grid item>
