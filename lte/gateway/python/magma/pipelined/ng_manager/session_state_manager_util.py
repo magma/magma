@@ -20,8 +20,7 @@ from lte.protos.pipelined_pb2 import (
 
 class FARRuleEntry(NamedTuple):
     apply_action: int
-    o_teid: int
-    gnb_ip_addr: Optional[str]
+    gnb_ip_addr: str
 
 
 class PDRRuleEntry(NamedTuple):
@@ -31,6 +30,7 @@ class PDRRuleEntry(NamedTuple):
     precedence: int
     local_f_teid: int
     ue_ip_addr: Optional[str]
+    o_teid: int
     del_qos_enforce_rule: DeactivateFlowsRequest
     add_qos_enforce_rule: ActivateFlowsRequest
     far_action: Optional[FARRuleEntry]
@@ -42,16 +42,14 @@ class PDRRuleEntry(NamedTuple):
 
 
 def far_create_rule_entry(far_entry) -> FARRuleEntry:
-    o_teid = 0
     fwd_gnb_ip_addr = None
 
     if far_entry.fwd_parm.HasField('outr_head_cr'):
-        o_teid = far_entry.fwd_parm.outr_head_cr.o_teid
         fwd_gnb_ip_addr = far_entry.fwd_parm.outr_head_cr.gnb_ipv4_adr
 
     far_rule = FARRuleEntry(
         far_entry.far_action_to_apply[0],
-        o_teid, fwd_gnb_ip_addr,
+        fwd_gnb_ip_addr,
     )
 
     return far_rule
@@ -67,7 +65,10 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     activate_flow_req = None
     ue_ipv6_addr = None
     session_qfi = 0
+    o_teid = 0
 
+    if pdr_entry.gnb_teid:
+        o_teid = pdr_entry.gnb_teid
     # get local teid
     if pdr_entry.pdi.local_f_teid:
         local_f_teid = pdr_entry.pdi.local_f_teid
@@ -95,7 +96,7 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
     pdr_rule = PDRRuleEntry(
         pdr_entry.pdr_id, pdr_entry.pdr_version,
         pdr_entry.pdr_state, pdr_entry.precedence,
-        local_f_teid, ue_ip_addr,
+        local_f_teid, ue_ip_addr, o_teid,
         deactivate_flow_req, activate_flow_req,
         far_entry, ue_ipv6_addr, session_qfi,
     )

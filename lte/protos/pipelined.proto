@@ -340,14 +340,15 @@ message SetGroupPDR {
   uint32 pdr_id = 1;
   int32 pdr_version = 2;
   uint32 precedence = 3;
-  PdrState pdr_state = 4;
-  PDI pdi = 5;
-  uint32 o_h_remo_desc = 6;
-  string active_pred_rule = 7;
-  SetGroupFAR set_gr_far = 8;
-  DeactivateFlowsRequest deactivate_flow_req = 9;
-  ActivateFlowsRequest activate_flow_req = 10;
-  QCI session_qfi = 11;
+  uint32 gnb_teid = 4;
+  PdrState pdr_state = 5;
+  PDI pdi = 6;
+  uint32 o_h_remo_desc = 7;
+  string active_pred_rule = 8;
+  SetGroupFAR set_gr_far = 9;
+  DeactivateFlowsRequest deactivate_flow_req = 10;
+  ActivateFlowsRequest activate_flow_req = 11;
+  QCI session_qfi = 12;
 }
 
 // FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
