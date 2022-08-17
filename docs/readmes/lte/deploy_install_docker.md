@@ -4,15 +4,14 @@ title: Install Docker AGW
 hide_title: true
 ---
 
-# Install Docker based Access Gateway on Ubuntu (Bare Metal)
+# Install Docker based Access Gateway on Ubuntu
 
-## Prerequisites
+## Prerequisites 
 
 To set up a Magma Access Gateway, you will need a machine that
 satisfies the following requirements:
 
-- AGW_HOST: 64bit-X86 machine, baremetal strongly recommended
-  (not virtualized). You will need two ethernet ports. In this guide,
+- AGW_HOST: aarch64 or 64bit-X86 machine. You will need two ethernet ports. In this guide,
   `enp1s0` and `enp2s0` are used:
     - `enp1s0`: Will carry any traffic that is not S1. That is, data plane traffic (SGi),
     control plane traffic (Orc8r HTTP2) and management (ssh).
@@ -75,7 +74,7 @@ bash agw_install_docker.sh
 
 #### Configure AGW
 
-Once you see the output `Reboot this VM to apply kernel settings`, reboot your AGW host.
+Once you see the output `Reboot this machine to apply kernel settings`, reboot your AGW host.
 
 After reboot again SSH and become root user:
 
