@@ -1,0 +1,10 @@
+---
+name: jans-hello
+on:
+  pull_request: null
+
+jobs:
+  hello-jan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello Jan!"
