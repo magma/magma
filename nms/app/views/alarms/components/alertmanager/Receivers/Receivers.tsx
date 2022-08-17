@@ -12,7 +12,10 @@
  */
 
 import * as React from 'react';
-import AddEditReceiver from './AddEditReceiver';
+import AddEditReceiver, {
+  AddEditReceiverChannels,
+  AddEditReceiverInfos,
+} from './AddEditReceiver';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import GlobalConfig from './GlobalConfig';
@@ -31,6 +34,9 @@ import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertReceiver} from '../../AlarmAPIType';
+import {Dialog, DialogActions, DialogContent, Tab, Tabs} from '@mui/material';
+import DialogTitle from '../../../../../theme/design-system/DialogTitle';
+import {colors} from '../../../../../theme/default';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -41,6 +47,9 @@ const useStyles = makeStyles<Theme>(theme => ({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
   },
 }));
 
@@ -73,6 +82,11 @@ export default function Receivers() {
   const [lastRefreshTime, setLastRefreshTime] = React.useState<string>(
     new Date().toLocaleString(),
   );
+  // const [receiver, setReceiver] = React.useState<AlertReceiver>(
+  //   {name: ''},
+  // );
+  const [currentTab, setCurrentTab] = React.useState(0);
+  const [open, setOpen] = React.useState(false);
   const networkId = useNetworkId();
   const classes = useStyles();
   const snackbars = useSnackbars();
@@ -128,24 +142,27 @@ export default function Receivers() {
     lastRefreshTime,
   );
 
-  if (error) {
-    snackbars.error(`Unable to load receivers: ${getErrorMessage(error)}`);
-  }
+  // if (error) {
+  //   snackbars.error(`Unable to load receivers: ${getErrorMessage(error)}`);
+  // }
 
   const receiversData = response || [];
 
-  if (isAddEditReceiver) {
-    return (
-      <AddEditReceiver
-        receiver={selectedRow || newReceiver()}
-        isNew={isNewReceiver}
-        onExit={() => {
-          setIsAddEditReceiver(false);
-          setLastRefreshTime(new Date().toLocaleString());
-        }}
-      />
-    );
-  }
+  const onSave = () => console.log('save');
+
+  // if (isAddEditReceiver) {
+  // return (
+
+  // <AddEditReceiver
+  //   receiver={selectedRow || newReceiver()}
+  //   isNew={isNewReceiver}
+  //   onExit={() => {
+  //     setIsAddEditReceiver(false);
+  //     setLastRefreshTime(new Date().toLocaleString());
+  //   }}
+  // />
+  // );
+  // }
 
   if (isEditGlobalSettings) {
     return (
@@ -159,73 +176,128 @@ export default function Receivers() {
   }
 
   return (
-    <Grid className={classes.root} container spacing={2} direction="column">
-      {alertManagerGlobalConfigEnabled === true && (
-        <Grid item>
+    <>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="md"
+        scroll="body"
+        data-testid="FEGGatewayDialog">
+        <DialogTitle
+          label={false ? 'Edit Receiver' : 'Add New Receiver'}
+          onClose={() => setOpen(false)}
+        />
+        <Tabs
+          value={currentTab}
+          className={classes.tabBar}
+          indicatorColor="primary"
+          onChange={(_, tab) => setCurrentTab(tab as number)}>
+          <Tab label="Receiver" />
+          <Tab label="Channels" />
+        </Tabs>
+        <DialogContent>
+          {currentTab === 0 && (
+            <AddEditReceiverInfos
+              receiver={selectedRow || newReceiver()}
+              isNew={isNewReceiver}
+              onExit={() => {
+                setIsAddEditReceiver(false);
+                setLastRefreshTime(new Date().toLocaleString());
+              }}
+            />
+          )}
+          {currentTab === 1 && (
+            <AddEditReceiverChannels
+              receiver={selectedRow || newReceiver()}
+              isNew={isNewReceiver}
+              onExit={() => {
+                setIsAddEditReceiver(false);
+                setLastRefreshTime(new Date().toLocaleString());
+              }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
           <Button
-            onClick={() => setIsEditGlobalSettings(true)}
-            startIcon={<SettingsIcon />}
-            variant="outlined">
-            Settings
+            onClick={() =>
+              currentTab === 0 ? setCurrentTab(1) : void onSave()
+            }
+            color="primary"
+            variant="contained">
+            {currentTab === 0 ? 'Next' : 'Save and Add Receiver'}
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Grid className={classes.root} container spacing={2} direction="column">
+        {alertManagerGlobalConfigEnabled === true && (
+          <Grid item>
+            <Button
+              onClick={() => setIsEditGlobalSettings(true)}
+              startIcon={<SettingsIcon />}
+              variant="outlined">
+              Settings
+            </Button>
+          </Grid>
+        )}
+        <Grid item>
+          <>
+            <SimpleTable
+              onRowClick={row => setSelectedRow(row)}
+              columnStruct={receiverColumns}
+              tableData={receiversData}
+              dataTestId="receiver"
+              menuItems={[
+                {
+                  name: 'View',
+                  handleFunc: () => handleViewDialogOpen(),
+                },
+                {
+                  name: 'Edit',
+                  handleFunc: () => handleEdit(),
+                },
+                {
+                  name: 'Delete',
+                  handleFunc: () => handleDelete(),
+                },
+              ]}
+            />
+          </>
         </Grid>
-      )}
-      <Grid item>
-        <>
-          <SimpleTable
-            onRowClick={row => setSelectedRow(row)}
-            columnStruct={receiverColumns}
-            tableData={receiversData}
-            dataTestId="receiver"
-            menuItems={[
-              {
-                name: 'View',
-                handleFunc: () => handleViewDialogOpen(),
-              },
-              {
-                name: 'Edit',
-                handleFunc: () => handleEdit(),
-              },
-              {
-                name: 'Delete',
-                handleFunc: () => handleDelete(),
-              },
-            ]}
-          />
-        </>
+        {isLoading && receiversData.length === 0 && (
+          <div className={classes.loading}>
+            <CircularProgress />
+          </div>
+        )}
+        <Menu
+          anchorEl={menuAnchorEl.current}
+          keepMounted
+          open={isMenuOpen}
+          onClose={handleActionsMenuClose}>
+          <MenuItem onClick={handleViewDialogOpen}>View</MenuItem>
+          <MenuItem onClick={handleEdit}>Edit</MenuItem>
+          <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        </Menu>
+        <TableActionDialog
+          open={isDialogOpen}
+          onClose={handleViewDialogClose}
+          title={'View Receiver'}
+          row={selectedRow || {}}
+          showCopyButton={true}
+          showDeleteButton={false}
+        />
+        <TableAddButton
+          label="Add Receiver"
+          onClick={() => {
+            setIsNewReceiver(true);
+            setIsAddEditReceiver(true);
+            setSelectedRow(null);
+            setOpen(true);
+          }}
+          data-testid="add-receiver-button"
+        />
       </Grid>
-      {isLoading && receiversData.length === 0 && (
-        <div className={classes.loading}>
-          <CircularProgress />
-        </div>
-      )}
-      <Menu
-        anchorEl={menuAnchorEl.current}
-        keepMounted
-        open={isMenuOpen}
-        onClose={handleActionsMenuClose}>
-        <MenuItem onClick={handleViewDialogOpen}>View</MenuItem>
-        <MenuItem onClick={handleEdit}>Edit</MenuItem>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu>
-      <TableActionDialog
-        open={isDialogOpen}
-        onClose={handleViewDialogClose}
-        title={'View Receiver'}
-        row={selectedRow || {}}
-        showCopyButton={true}
-        showDeleteButton={false}
-      />
-      <TableAddButton
-        label="Add Receiver"
-        onClick={() => {
-          setIsNewReceiver(true);
-          setIsAddEditReceiver(true);
-          setSelectedRow(null);
-        }}
-        data-testid="add-receiver-button"
-      />
-    </Grid>
+    </>
   );
 }
 
