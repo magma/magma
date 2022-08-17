@@ -12,11 +12,45 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//bazel:third_party_repositories.bzl", "grpc")
 
+################################################################################
+# Python setup
+################################################################################
+# rules_python have to be imported before we call functions from @com_github_grpc_grpc
+# and @rules_proto, because those will pull rules_python-0.5.0
 http_archive(
-    name = "rules_python",
-    sha256 = "cd6730ed53a002c56ce4e2f396ba3b3be262fd7cb68339f0377a45e8227fe332",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.5.0/rules_python-0.5.0.tar.gz",
+   name = "rules_python",
+   sha256 = "c03246c11efd49266e8e41e12931090b613e12a59e6f55ba2efd29a7cb8b4258",
+   strip_prefix = "rules_python-0.11.0",
+   url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.11.0.tar.gz",
 )
+
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+python_register_toolchains(
+    name = "python3",
+    python_version = "3.8",
+)
+
+load("@python3//:defs.bzl", "interpreter")
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
+    name = "python_deps",
+    extra_pip_args = ["--require-hashes"],
+    python_interpreter_target = interpreter,
+    #python_interpreter = "python3",
+    requirements_lock = "//bazel/external:requirements.txt",
+    visibility = ["//visibility:public"],
+)
+
+load("@python_deps//:requirements.bzl", "install_deps")
+
+install_deps()
+
+load("//bazel:python_swagger.bzl", "load_swagger_repositories")
+
+load_swagger_repositories()
+
 
 ### BUILDIFIER DEPENDENCIES
 # See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
@@ -134,22 +168,10 @@ new_local_repository(
     path = "/",
 )
 
-load("//bazel:python_dependencies.bzl", "configure_python_dependencies")
 
-configure_python_dependencies()
-
-load("@python_deps//:requirements.bzl", "install_deps")
-
-install_deps()
-
-load("//bazel:python_swagger.bzl", "load_swagger_repositories")
-
-load_swagger_repositories()
-
-load("//bazel:python_repositories.bzl", "python_repositories")
-
-python_repositories()
-
+#######################################################################
+# rules_pkg for creating .deb packages
+#######################################################################
 http_archive(
     name = "rules_pkg",
     sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
@@ -163,17 +185,14 @@ load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
 
-
-
-# Experimental rules_docker stuff
-
-# from https://github.com/bazelbuild/rules_docker/releases
+#######################################################################
+# rules_docker for creating docker images
+#######################################################################
 http_archive(
     name = "io_bazel_rules_docker",
     sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
     urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
 )
-
 
 load(
     "@io_bazel_rules_docker//repositories:repositories.bzl",
@@ -188,7 +207,6 @@ load(
 )
 
 _py_image_repos()
-
 
 load(
     "@io_bazel_rules_docker//cc:image.bzl",
@@ -229,9 +247,6 @@ container_pull(
     repository = "library/ubuntu",
 )
 
-
-
-
 # https://github.com/GoogleContainerTools/distroless has an interesting approach to installing .deb packages:
 # .deb files are downloaded via repository rules. Instead of installing the packages with apt which would
 # require to run commands inside the docker container (similar to Dockerfiles), they only extract the .deb
@@ -241,7 +256,6 @@ container_pull(
 #   * Bazel keeps track of the .deb files, including checking their checksums.
 #     This is probably great for reproducability and cacheability.
 #   * We do not require docker in our bazel builds.
-
 
 # TODO: look at https://github.com/GoogleContainerTools/distroless/tree/9c262f5114758891b8e32092aa844de5922342b7/debian_package_manager
 
@@ -254,7 +268,7 @@ http_archive(
     ],
 )
 
-load("@distroless//package_manager:dpkg.bzl", "dpkg_src", "dpkg_list")
+load("@distroless//package_manager:dpkg.bzl", "dpkg_list", "dpkg_src")
 
 # dpkg_src and dpkg_list require a previously built dpkg_parser.par installed in the PATH
 
