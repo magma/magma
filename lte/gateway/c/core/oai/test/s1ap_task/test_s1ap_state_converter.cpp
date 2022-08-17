@@ -128,7 +128,9 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
 
 TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
   ue_description_t* ue = new ue_description_t();
+  EXPECT_TRUE(ue != nullptr);
   ue_description_t* final_ue = new ue_description_t();
+  EXPECT_TRUE(final_ue != nullptr);
 
   // filling with test values
   ue->mme_ue_s1ap_id = 1;
