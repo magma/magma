@@ -35,7 +35,7 @@ const siteConfig = {
     {label: ' | '},  
     {href: 'https://github.com/magma', label: 'Code'},
     {label: ' | '},  
-    {href: 'https://github.com/magma/magma/wiki/', label: 'Contributing'},
+    {href: 'https://github.com/magma/magma/wiki/Contributor-Guide', label: 'Contributing'},
     {label: ' | '},  
     {href: 'https://wiki.magmacore.org/', label: 'Wiki'},
   ],
