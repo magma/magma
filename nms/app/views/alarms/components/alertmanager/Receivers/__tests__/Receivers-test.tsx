@@ -117,7 +117,7 @@ describe('Receivers', () => {
       ...defaultResponse,
       response: [],
     });
-    const {getByTestId, queryByTestId} = render(
+    const {getAllByTestId, getByTestId, queryByTestId} = render(
       <AlarmsWrapper>
         <Receivers />
       </AlarmsWrapper>,
@@ -125,7 +125,7 @@ describe('Receivers', () => {
 
     expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
     act(() => {
-      fireEvent.click(getByTestId('add-receiver-button'));
+      fireEvent.click(getAllByTestId('add-receiver-button')[0]);
     });
     expect(getByTestId('add-edit-receiver')).toBeInTheDocument();
   });
