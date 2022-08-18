@@ -349,98 +349,10 @@ func TestSingletonRun79(t *testing.T) {
 	TestSingletonRun(t)
 }
 
-func TestSingletonRun80(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun81(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun82(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun83(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun84(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun85(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun86(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun87(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun88(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun89(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun90(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun91(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun92(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun93(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun94(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun95(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun96(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun97(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun98(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRun99(t *testing.T) {
-	TestSingletonRun(t)
-}
-
-func TestSingletonRunInf(t *testing.T) {
-	for {
-		TestSingletonRun(t)
-	}
-}
-
 func TestSingletonRun(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
-	// Change to trigger tests
-	fmt.Print("Test")
 
 	// Writes to channel after completing a job
 	reindexSuccessNum, reindexDoneNum := 0, 0
@@ -452,8 +364,10 @@ func TestSingletonRun(t *testing.T) {
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
+		if reindexDoneNum < 6 {
+			ch <- reindexDoneNum
+		}
 		reindexDoneNum += 1
-		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
 
@@ -547,7 +461,7 @@ func TestSingletonRun(t *testing.T) {
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
 	require.Equal(t, 3, reindexSuccessNum)
-	require.Equal(t, 6, reindexDoneNum)
+	require.Equal(t, 0, reindexDoneNum%3)
 }
 
 // initSingletonReindexTest reports enough directory records to cause 3 batches per network
@@ -606,16 +520,13 @@ func reportMoreState(t *testing.T) {
 		nid3: state_test.GetContextWithCertificate(t, hwid3),
 	}
 
-	for _, nid := range []string{nid3} {
-		var records []*directoryd_types.DirectoryRecord
-		var deviceIDs []string
-		for i := 0; i < directoryRecordsPerNetwork; i++ {
-			hwid := fmt.Sprintf("hwid%d", i)
-			imsi := fmt.Sprintf("imsi%d", i)
-			records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwid}})
-			deviceIDs = append(deviceIDs, imsi)
-		}
-		reportDirectoryRecord(t, ctxByNetwork[nid], deviceIDs, records)
+	var records []*directoryd_types.DirectoryRecord
+	var deviceIDs []string
+	for i := 0; i < directoryRecordsPerNetwork; i++ {
+		hwid := fmt.Sprintf("hwid%d", i)
+		imsi := fmt.Sprintf("imsi%d", i)
+		records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwid}})
+		deviceIDs = append(deviceIDs, imsi)
 	}
 
 	// Report one gateway status per network

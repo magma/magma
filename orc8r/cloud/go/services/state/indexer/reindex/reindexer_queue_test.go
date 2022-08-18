@@ -27,6 +27,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -424,7 +425,8 @@ func registerAndPopulate(t *testing.T, q reindex.JobQueue, idx ...indexer.Indexe
 
 func recvCh(t *testing.T, ch chan interface{}) {
 	select {
-	case <-ch:
+	case a := <-ch:
+		glog.Info(a)
 		return
 	case <-time.After(defaultTestTimeout):
 		t.Fatal("receive on hook channel timed out")
@@ -433,7 +435,8 @@ func recvCh(t *testing.T, ch chan interface{}) {
 
 func recvNoCh(t *testing.T, ch chan interface{}) {
 	select {
-	case <-ch:
+	case a := <-ch:
+		glog.Info(a)
 		t.Fatal("should not receive anything from hook channel")
 	case <-time.After(shortTestTimeout):
 		return
