@@ -27,7 +27,7 @@
 		"stackbuild.bazel-stack-vscode-cc",
 		"augustocdias.tasks-shell-input",
 		"ryuta46.multi-command",
-		"coolchyni.beyond-debug",
+		"coolchyni.beyond-debug"
 	],
 	"initializeCommand": "docker pull ghcr.io/magma/magma/devcontainer:latest",
 	"image": "ghcr.io/magma/magma/devcontainer:latest",
@@ -44,7 +44,7 @@
 		},
 		"files.watcherExclude": {
 			"**/.bazel-cache/**": true,
-			"**/.bazel-cache-repo/**": true,
+			"**/.bazel-cache-repo/**": true
 		},
 		"bsv.bazel.buildFlags": [],
 		"bsv.bazel.testFlags": [],
@@ -61,14 +61,14 @@
 		"clangd.arguments": [
 			"-log=verbose",
 			"-pretty",
-			"--background-index",
+			"--background-index"
 		],
 		"clangd.onConfigChanged": "restart",
 		"editor.formatOnSave": true,
 		// Update this field with any new Bazel targets that need compilation database generation
 		"bsv.cc.compdb.targets": [
 			"//orc8r/gateway/c/...",
-			"//lte/gateway/c/...",
+			"//lte/gateway/c/..."
 		],
 		"multiCommand.commands": [
 			{
@@ -109,7 +109,7 @@
 		"--init"
 	],
 	"remoteEnv": {
-		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-	"remoteUser": "vscode",
+	"remoteUser": "vscode"
 }
