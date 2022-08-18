@@ -45,29 +45,71 @@ py_binary(
 )
 
 download_pkgs(
-    name = "enodebd_requisites",
+    name = "enodebd_requisites_amd64",
     packages = [
         "libxml2",
         ],
-    image_tar = "//lte/gateway/python:python_base_image.tar",
+    image_tar = "//lte/gateway/python:python_base_image_amd64.tar",
 )
 
 install_pkgs(
-    name = "enodebd_requisites_layer",
-    image_tar = "//lte/gateway/python:python_base_image.tar",
-    installables_tar = ":enodebd_requisites.tar",
+    name = "enodebd_requisites_layer_amd64",
+    image_tar = "//lte/gateway/python:python_base_image_amd64.tar",
+    installables_tar = ":enodebd_requisites_amd64.tar",
     installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
-    output_image_name = "enodebd_requisites_layer",
+    output_image_name = "enodebd_requisites_layer_amd64",
 )
 
 container_image(
-    name = "enodebd_requisites_layer_wrapper",
-    base = ":enodebd_requisites_layer.tar"
+    name = "enodebd_requisites_layer_wrapper_amd64",
+    base = ":enodebd_requisites_layer_amd64.tar"
 )
 
 py3_image(
-    name = "enodebd_image",
-    base = ":enodebd_requisites_layer_wrapper",
+    name = "enodebd_image_amd64",
+    base = ":enodebd_requisites_layer_wrapper_amd64",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":enodebd_lib",
+        "//lte/gateway/python/magma/enodebd/tr069:server",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+download_pkgs(
+    name = "enodebd_requisites_aarch64",
+    packages = [
+        "libxml2",
+        ],
+    image_tar = "//lte/gateway/python:python_base_image_aarch64.tar",
+)
+
+install_pkgs(
+    name = "enodebd_requisites_layer_aarch64",
+    image_tar = "//lte/gateway/python:python_base_image_aarch64.tar",
+    installables_tar = ":enodebd_requisites_aarch64.tar",
+    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
+    output_image_name = "enodebd_requisites_layer_aarch64",
+)
+
+container_image(
+    name = "enodebd_requisites_layer_wrapper_aarch64",
+    base = ":enodebd_requisites_layer_aarch64.tar"
+)
+
+py3_image(
+    name = "enodebd_image_aarch64",
+    base = ":enodebd_requisites_layer_wrapper_aarch64",
     srcs = ["main.py"],
     imports = [
         LTE_ROOT,

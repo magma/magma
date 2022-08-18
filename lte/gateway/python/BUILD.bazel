@@ -15,24 +15,47 @@ load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "instal
 
 
 download_pkgs(
-    name = "python_interpreters_packages",
+    name = "python_interpreters_packages_amd64",
     packages = [
         "python",  # Python 2 seems to be required during the build
         "python3",
         "python3-distutils",  # make strtobool from deprecated distutils work
         ],
-    image_tar = "@ubuntu_focal//image",
+    image_tar = "@ubuntu_focal_amd64//image",
 )
 
 install_pkgs(
-    name = "python_interpreters_layer",
-    image_tar = "@ubuntu_focal//image",
-    installables_tar = ":python_interpreters_packages.tar",
-    output_image_name = "python_interpreters_layer",
+    name = "python_interpreters_layer_amd64",
+    image_tar = "@ubuntu_focal_amd64//image",
+    installables_tar = ":python_interpreters_packages_amd64.tar",
+    output_image_name = "python_interpreters_layer_amd64",
 )
 
 container_image(
-    name = "python_base_image",
-    base = ":python_interpreters_layer.tar",
+    name = "python_base_image_amd64",
+    base = ":python_interpreters_layer_amd64.tar",
+    visibility = ["//visibility:public"],
+)
+
+download_pkgs(
+    name = "python_interpreters_packages_aarch64",
+    packages = [
+        "python",  # Python 2 seems to be required during the build
+        "python3",
+        "python3-distutils",  # make strtobool from deprecated distutils work
+        ],
+    image_tar = "@ubuntu_focal_aarch64//image",
+)
+
+install_pkgs(
+    name = "python_interpreters_layer_aarch64",
+    image_tar = "@ubuntu_focal_aarch64//image",
+    installables_tar = ":python_interpreters_packages_aarch64.tar",
+    output_image_name = "python_interpreters_layer_aarch64",
+)
+
+container_image(
+    name = "python_base_image_aarch64",
+    base = ":python_interpreters_layer_aarch64.tar",
     visibility = ["//visibility:public"],
 )

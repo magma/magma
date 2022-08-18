@@ -222,9 +222,17 @@ load(
 # For amd64 we get sha256:a06ae92523384c2cd182dcfe7f8b2bf09075062e937d5653d7d0db0375ad2221
 
 container_pull(
-    name = "ubuntu_focal",
+    name = "ubuntu_focal_amd64",
     architecture = "amd64",
     digest = "sha256:a06ae92523384c2cd182dcfe7f8b2bf09075062e937d5653d7d0db0375ad2221",
+    registry = "index.docker.io",
+    repository = "library/ubuntu",
+)
+
+container_pull(
+    name = "ubuntu_focal_aarch64",
+    architecture = "amd64",
+    digest = "sha256:3f8ab90e40ca1d1741effaaab60bae74ca8b6d4500fe3967706b55d700a76ae6",
     registry = "index.docker.io",
     repository = "library/ubuntu",
 )
