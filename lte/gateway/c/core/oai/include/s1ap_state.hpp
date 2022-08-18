@@ -70,11 +70,12 @@ void put_s1ap_ue_state(imsi64_t imsi64);
 void delete_s1ap_ue_state(imsi64_t imsi64);
 
 bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
-                                     struct ue_description_s* elementP, void* parameterP,
-                                     void** resultP);
+                                     struct ue_description_s* elementP,
+                                     void* parameterP, void** resultP);
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
-                            struct  ue_description_s* elementP, void* parameterP, void** resultP);
+                             struct ue_description_s* elementP,
+                             void* parameterP, void** resultP);
 
 void remove_ues_without_imsi_from_ue_id_coll(void);
 
