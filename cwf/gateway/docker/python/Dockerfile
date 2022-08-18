@@ -111,11 +111,8 @@ RUN python3.8 -m pip install --no-cache-dir \
     click \
     pycares \
     python-dateutil \
-    aioeventlet>=0.4 \
+    aioeventlet@git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619 \
     jsonpickle
-
-# TODO: aioeventlet>=0.4 was manually added to fix regression tracked with GH issue 6152
-# Fix to pull the patched aioeventlet build deployed by the aioeventlet_build.sh script
 
 COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.8/dist-packages/ryu/ofproto/
 
