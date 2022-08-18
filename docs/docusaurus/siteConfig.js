@@ -30,13 +30,13 @@ const siteConfig = {
 
   headerLinks: [
     {href: 'https://magmacore.org', label: 'Magma Website'},
-    {label: ' | '},  
+    {label: ' | '},
     {href: baseUrl, label: 'Docs'},
-    {label: ' | '},  
+    {label: ' | '},
     {href: 'https://github.com/magma', label: 'Code'},
-    {label: ' | '},  
+    {label: ' | '},
     {href: 'https://github.com/magma/magma/wiki/Contributor-Guide', label: 'Contributing'},
-    {label: ' | '},  
+    {label: ' | '},
     {href: 'https://wiki.magmacore.org/', label: 'Wiki'},
   ],
 
