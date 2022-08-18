@@ -136,7 +136,7 @@ Depending on whether you already have your AGW and s1aptest images in your regis
 
 ```bash
 ansible-playbook -i agw_hosts magma_docker_s1ap_setup.yml -b
-```bash
+```
 
 #### With registry
 
