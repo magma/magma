@@ -33,10 +33,408 @@ import (
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 )
 
+func TestSingletonRun1(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun2(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun3(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun4(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun5(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun6(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun7(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun8(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun9(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun10(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun11(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun12(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun13(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun14(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun15(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun16(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun17(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun18(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun19(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun20(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun21(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun22(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun23(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun24(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun25(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun26(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun27(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun28(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun29(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun30(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun31(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun32(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun33(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun34(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun35(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun36(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun37(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun38(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun39(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun40(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun41(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun42(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun43(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun44(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun45(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun46(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun47(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun48(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun49(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun50(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun51(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun52(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun53(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun54(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun55(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun56(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun57(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun58(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun59(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun60(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun61(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun62(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun63(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun64(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun65(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun66(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun67(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun68(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun69(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun70(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun71(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun72(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun73(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun74(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun75(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun76(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun77(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun78(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun79(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun80(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun81(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun82(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun83(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun84(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun85(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun86(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun87(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun88(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun89(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun90(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun91(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun92(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun93(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun94(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun95(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun96(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun97(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun98(t *testing.T) {
+	TestSingletonRun(t)
+}
+
+func TestSingletonRun99(t *testing.T) {
+	TestSingletonRun(t)
+}
+
 func TestSingletonRun(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
+	// Change to trigger tests
+	fmt.Print("Test")
 
 	// Writes to channel after completing a job
 	reindexSuccessNum, reindexDoneNum := 0, 0
