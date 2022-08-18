@@ -3,7 +3,7 @@
 This folder contains container image definitions for AGW services.
 
 The containers need to run on a host that has a patched Open vSwitch installation.
-The script [../agw_install_docker.sh](../agw_install_docker.sh) can configure an Ubuntu machine to act as a
+The script [agw_install_docker.sh](../deploy/agw_install_docker.sh) can configure an Ubuntu machine to act as a
 host system for the containerized AGW.
 
 There are Ansible playbooks that create an EC2 instance and prepare it to act as
