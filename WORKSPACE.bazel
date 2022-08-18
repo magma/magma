@@ -247,7 +247,6 @@ container_pull(
     repository = "library/ubuntu",
 )
 
-
 # https://github.com/GoogleContainerTools/distroless has an interesting approach to installing .deb packages:
 # .deb files are downloaded via repository rules. Instead of installing the packages with apt which would
 # require to run commands inside the docker container (similar to Dockerfiles), they only extract the .deb
@@ -269,6 +268,91 @@ http_archive(
     ],
 )
 
-load("//bazel:distroless.bzl", "define_distroless_packages")
+load("@distroless//package_manager:dpkg.bzl", "dpkg_list", "dpkg_src")
 
-define_distroless_packages()
+# dpkg_src and dpkg_list require a previously built dpkg_parser.par installed in the PATH
+
+dpkg_src(
+    name = "debian_bullseye_packages",
+    arch = "amd64",
+    distro = "bullseye",
+    sha256 = "4b7e4609184bab68a9b24e09f053a834870ede8f0610ae8725cbc45796218ca9",
+    snapshot = "20220811T012345Z",
+    url = "http://snapshot.debian.org/archive",
+)
+
+dpkg_list(
+    name = "python_interpreter_deb_package",
+    packages = [
+        "python3.9",
+        # The following are the transitive dependencies of python3.9
+        # Found them via
+        # docker run -it debian:bullseye
+        # apt update
+        # apt-get install --no-install-recommends --download-only --assume-yes python3.9
+        # for a in /var/cache/apt/archives/*.deb; do echo $(basename ${a%%_*}); done
+        "libexpat1",
+        "libmpdec3",
+        "libncursesw6",
+        "libpython3.9-minimal",
+        "libpython3.9-stdlib",
+        "libreadline8",
+        "libsqlite3-0",
+        "media-types",
+        "python3.9-minimal",
+        "readline-common",
+    ],
+    sources = [
+        "@debian_bullseye_packages//file:Packages.json",
+    ],
+)
+
+dpkg_list(
+    name = "libxml2_packages",
+    # Packages were retrieved via
+    # docker run -it debian:bullseye
+    # apt update
+    # apt install --no-install-recommends --assume-yes python3.9  # I later repeated without this line and the result was the same
+    # apt install --no-install-recommends --assume-yes --download-only libxml2
+    # for a in /var/cache/apt/archives/*.deb; do echo $(basename ${a%%_*}); done
+    packages = [
+        "libicu67",
+        "libxml2",
+    ],
+    sources = [
+        "@debian_bullseye_packages//file:Packages.json",
+    ],
+)
+
+dpkg_list(
+    name = "liagentd_dependencies",
+    # docker run -it debian:bullseye
+    # apt update
+    # apt install --no-install-recommends --assume-yes --download-only libpcap0.8 libcurl4 libgflags2.2 libunwind8
+    packages = [
+        "libbrotli1",
+        "libcurl4",
+        "libdbus-1-3",
+        "libgflags2.2",
+        "libldap-2.4-2",
+        "libnghttp2-14",
+        "libpcap0.8",
+        "libpsl5",
+        "librtmp1",
+        "libsasl2-2",
+        "libsasl2-modules-db",
+        "libssh2-1",
+        "libunwind8",
+    ],
+    sources = [
+        "@debian_bullseye_packages//file:Packages.json",
+    ],
+)
+
+container_pull(
+    name = "debian_bullseye_image",
+    architecture = "amd64",
+    digest = "sha256:3b0233f376e6df3bc3d68a8912fb82f6f3068334931ab3943572eef5fe3d3f50",  # bullseye-20220801
+    registry = "index.docker.io",
+    repository = "debian/snapshot",
+)
