@@ -2189,11 +2189,16 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
                  ->qosFlowAddOrModifyResponseList->list.array[index]);
       }
 
-      free(pDUSessionResourceModifyResponseTransfer
+      if (pDUSessionResourceModifyResponseTransfer
+               ->qosFlowAddOrModifyResponseList->list.array)
+       free(pDUSessionResourceModifyResponseTransfer
                ->qosFlowAddOrModifyResponseList->list.array);
-      free(pDUSessionResourceModifyResponseTransfer
-               ->qosFlowAddOrModifyResponseList);
-      free(pDUSessionResourceModifyResponseTransfer);
+      if (pDUSessionResourceModifyResponseTransfer
+              ->qosFlowAddOrModifyResponseList)
+        free(pDUSessionResourceModifyResponseTransfer
+                 ->qosFlowAddOrModifyResponseList);
+      if (pDUSessionResourceModifyResponseTransfer)
+        free(pDUSessionResourceModifyResponseTransfer);
     }
   }
 
