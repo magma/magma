@@ -42,7 +42,7 @@ Magma has three major components
 - [Magma Website](https://magmacore.org/): Project landing page
 - [Docs](https://docs.magmacore.org/): Deployment, configuration and usage information
 - [Code](https://github.com/magma): Source code
-- [Contributing](https://github.com/magma/magma/wiki/): Contributor Guide
+- [Contributing](https://github.com/magma/magma/wiki/Contributor-Guide): Contributor Guide
 - [Wiki](https://wiki.magmacore.org/): Meeting notes and project team resources
 
 ## Join the Magma community
