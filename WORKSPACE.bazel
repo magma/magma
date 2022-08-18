@@ -310,31 +310,6 @@ dpkg_list(
     ],
 )
 
-dpkg_list(
-    name = "liagentd_dependencies",
-    # docker run -it debian:bullseye
-    # apt update
-    # apt install --no-install-recommends --assume-yes --download-only libpcap0.8 libcurl4 libgflags2.2 libunwind8
-    packages = [
-        "libbrotli1",
-        "libcurl4",
-        "libdbus-1-3",
-        "libgflags2.2",
-        "libldap-2.4-2",
-        "libnghttp2-14",
-        "libpcap0.8",
-        "libpsl5",
-        "librtmp1",
-        "libsasl2-2",
-        "libsasl2-modules-db",
-        "libssh2-1",
-        "libunwind8",
-    ],
-    sources = [
-        "@debian_bullseye_packages//file:Packages.json",
-    ],
-)
-
 container_pull(
     name = "debian_bullseye_image",
     architecture = "amd64",
