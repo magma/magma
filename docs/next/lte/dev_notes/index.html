@@ -112,14 +112,15 @@ testing to physical UE and eNodeB.
 To connect a physical eNodeB to the gateway VM:</p>
 <ol>
 <li>Connect the eNodeB to a port on the host machine, say it is interface <code>en9</code>.</li>
-<li>From the VirtualBox GUI, switch the Adapter 1 (for <code>eth1</code> interface) from
+<li>From the VirtualBox GUI, switch the Adapter 2 (for <code>eth1</code> interface) from
 <code>Host-only</code> to <code>Bridged</code> mode and bridge it to interface <code>en9</code> from above.</li>
 <li>In gateway VM, modify the <code>nat_iface</code> in <code>/etc/magma/pipelined.yml</code> from
 <code>eth2</code> to <code>eth0</code>. Restart all services.</li>
 <li>In the gateway VM, follow the steps in <a href="enodebd#basic-troubleshooting">EnodeB
 Configuration</a>. Make sure the <code>earfcn</code> set in the
 enodebd section of <code>gateway.mconfig</code> is the one that is supported by the eNodeB
-under consideration.</li>
+under consideration. Use this <a href="https://www.sqimway.com/lte_band.php">calculator</a> to
+get the <code>earfcn</code> corresponding to the frequency range listed on the eNodeB.</li>
 </ol>
 <p>To connect a physical UE to the gateway VM,</p>
 <ol>
