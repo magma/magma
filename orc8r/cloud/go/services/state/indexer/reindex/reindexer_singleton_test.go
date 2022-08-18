@@ -429,6 +429,12 @@ func TestSingletonRun99(t *testing.T) {
 	TestSingletonRun(t)
 }
 
+func TestSingletonRunInf(t *testing.T) {
+	for {
+		TestSingletonRun(t)
+	}
+}
+
 func TestSingletonRun(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
