@@ -173,8 +173,9 @@ ovs_gtp_stats_polling_interval: 180
 
 # Make as a True when gnb ip will support for uplink
 ovs_multi_tunnel: False
-# Paging timeout value
+# Paging timeout value for idle mode
 paging_timeout: 30
+# ID used for RYU controller identification
 classifier_controller_id: 5
 
 # Internal port for processing internal conntrack
@@ -183,6 +184,7 @@ ovs_internal_conntrack_port_number: 15579
 # Table to forward packets from the internal conntrack
 ovs_internal_conntrack_fwd_tbl_number: 202
 
+# UPF node ID
 upf_node_identifier: 192.168.200.1
 
 dp_irq:
