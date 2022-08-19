@@ -61,8 +61,6 @@
 
 !protos/
 
-!xwf/gateway/
-
 !bazel/
 !*.bzl
 !*.bazel
