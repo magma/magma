@@ -112,6 +112,6 @@ RUN make && \
   $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/clone_s1_tester.sh && \
   $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/build_s1_tester.sh && \
   pip3 install --cache-dir $PIP_CACHE_HOME pyparsing && \
-  python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py && \
-  sed -i 's/magtivate_cmd =.*/magtivate_cmd = ":"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py && \
-  sed -i 's/"vagrant"/"ubuntu"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py
+  python3 $MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/c_parser.py
+#  sed -i 's/magtivate_cmd =.*/magtivate_cmd = ":"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py && \
+#  sed -i 's/"vagrant"/"ubuntu"/g' $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py

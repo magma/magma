@@ -26,6 +26,7 @@ x-generic-service: &service
   logging: *logging_anchor
   restart: always
   network_mode: host
+  env_file: .env
 
 # Generic python anchor to avoid repetition for agw python services
 x-agw-python-service: &pyservice
