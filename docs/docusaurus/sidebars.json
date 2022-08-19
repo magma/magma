@@ -310,7 +310,7 @@
           "lte/integrated_5G_sa",
           "lte/extended_5G_sa_features",
           "lte/suci_extensions",
-	  "lte/GTPU_Ext_Header"
+          "lte/GTPU_Ext_Header"
         ]
       },
       {
