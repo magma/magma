@@ -409,7 +409,7 @@ class TrafficTest(object):
             ifname=TrafficTest._net_iface_ipv6,
         )[0]
         TrafficTest._iproute.addr(
-            'add', index=net_iface_index, address=ip.exploded,
+            'add', index=net_iface_index, address=ip.exploded, prefixlen=128
         )
         os.system(
             'sudo route -A inet6 add 3001::10/64 dev eth3',
