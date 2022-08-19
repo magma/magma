@@ -74,10 +74,6 @@ services:
     environment:
       - MAGMA_DEV_MODE=1
 
-  oai_config:
-    environment:
-      - MAGMA_DEV_MODE=1
-
   oai_mme:
     environment:
       - MAGMA_DEV_MODE=1
