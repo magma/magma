@@ -256,11 +256,10 @@ class UplinkBridgeController(MagmaController):
             actions = "output:LOCAL"
             self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
 
-        # forward the node solicite msg to host and UE
-        addr = SOLICITED_NODE_MULTICAST
+        # forward the node solicite msg to local machine
         match = "in_port=%s,ipv6,ipv6_dst=%s" % (
                 self.config.uplink_eth_port_name,
-                addr,
+                SOLICITED_NODE_MULTICAST,
         )
         self._install_flow(flows.MEDIUM_PRIORITY + 1, match, "output:LOCAL")
 
