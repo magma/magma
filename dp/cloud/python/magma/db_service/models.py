@@ -81,9 +81,8 @@ class DBRequest(Base):
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        type_name = self.type.name
         return f"<{class_name}(id='{self.id}', " \
-            f"type='{type_name}', " \
+            f"type_id='{self.type_id}', " \
             f"cbsd_id='{self.cbsd_id}' " \
             f"created_date='{self.created_date}' " \
             f"updated_date='{self.updated_date}' " \
@@ -274,9 +273,8 @@ class DBCbsd(Base):
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        state_name = self.state.name
         return f"<{class_name}(id='{self.id}', " \
-               f"state='{state_name}', " \
+               f"state_id='{self.state_id}', " \
                f"cbsd_id='{self.cbsd_id}', " \
                f"user_id='{self.user_id}', " \
                f"fcc_id='{self.fcc_id}', " \

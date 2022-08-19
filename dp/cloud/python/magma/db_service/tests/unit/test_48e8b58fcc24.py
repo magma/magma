@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from magma.db_service.tests.alembic_testcase import AlembicTestCase
 

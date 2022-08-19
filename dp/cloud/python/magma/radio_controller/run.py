@@ -22,6 +22,7 @@ from dp.protos.active_mode_pb2_grpc import (
     add_ActiveModeControllerServicer_to_server,
 )
 from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
+from magma.db_service.models import DBCbsdState, DBRequestType
 from magma.db_service.session_manager import SessionManager
 from magma.metricsd_client.client import get_metricsd_client, process_metrics
 from magma.radio_controller.config import get_config
@@ -70,9 +71,14 @@ def run():
         max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine)
+    with session_manager.session_scope() as session:
+        cbsd_states = {state.name: state.id for state in session.query(DBCbsdState).all()}
+        request_types = {req_type.name: req_type.id for req_type in session.query(DBRequestType).all()}
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     add_RadioControllerServicer_to_server(
-        RadioControllerService(session_manager=session_manager), server,
+        RadioControllerService(
+            session_manager=session_manager, cbsd_states_map=cbsd_states, request_types_map=request_types,
+        ), server,
     )
     add_ActiveModeControllerServicer_to_server(
         ActiveModeControllerService(session_manager=session_manager), server,
