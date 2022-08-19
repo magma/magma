@@ -292,7 +292,7 @@
         "title": "Migrate AGWs to Ubuntu"
       },
       "lte/GTPU_Ext_Header": {
-        "title": "GTP Extensions"
+        "title": "GTP-U Extensions"
       },
       "nms/admin": {
         "title": "Admin"
