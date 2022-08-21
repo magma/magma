@@ -20,6 +20,11 @@
     - traffic_server.py
   when: full_provision
 
+- name: Set hostname
+  become: yes
+  ansible.builtin.hostname:
+    name: magma-trfserver
+  when: full_provision
 
 #################################
 # Add common convenience aliases

@@ -22,22 +22,22 @@ import type {
   VirtualApnRule,
 } from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FEGGatewayContext from '../../context/FEGGatewayContext';
 import KeyValueFields from '../KeyValueFields';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import MagmaAPI from '../../api/MagmaAPI';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {ChangeEvent, useContext, useState} from 'react';
-import Select from '@material-ui/core/Select';
-import Switch from '@material-ui/core/Switch';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {
@@ -48,7 +48,7 @@ import {
 import {AltFormField} from '../FormField';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 

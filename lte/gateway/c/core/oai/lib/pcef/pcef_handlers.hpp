@@ -27,7 +27,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 struct pcef_create_session_data {
   char msisdn[MSISDN_LENGTH + 1];

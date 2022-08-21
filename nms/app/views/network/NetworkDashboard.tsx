@@ -12,9 +12,9 @@
  */
 
 import AddEditNetworkButton from './NetworkEdit';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import LteNetworkContext, {
   UpdateNetworkContextParams,
@@ -34,11 +34,11 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
-import {NetworkCheck} from '@material-ui/icons';
-import {Theme} from '@material-ui/core/styles';
+import {NetworkCheck} from '@mui/icons-material';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 

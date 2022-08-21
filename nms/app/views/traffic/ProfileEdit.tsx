@@ -13,37 +13,21 @@
 
 import type {PolicyQosProfile} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
 
 import {AltFormField} from '../../components/FormField';
-import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-
-const useStyles = makeStyles({
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
-  },
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '50%',
-    fullWidth: true,
-  },
-});
 
 type Props = {
   open: boolean;
@@ -52,7 +36,6 @@ type Props = {
 };
 
 export default function ProfileEditDialog(props: Props) {
-  const classes = useStyles();
   const ctx = useContext(PolicyContext);
   const qosProfiles = ctx.qosProfiles;
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -124,16 +107,14 @@ export default function ProfileEditDialog(props: Props) {
       <DialogContent>
         <List>
           {error !== '' && (
-            <AltFormField disableGutters label={''}>
+            <AltFormField label={''}>
               <FormLabel data-testid="configEditError" error>
                 {error}
               </FormLabel>
             </AltFormField>
           )}
-          <ListItem dense disableGutters />
-          <AltFormField label={'Profile ID'} disableGutters>
+          <AltFormField label={'Profile ID'}>
             <OutlinedInput
-              className={classes.input}
               fullWidth={true}
               data-testid="profileID"
               placeholder="test_profile"
@@ -141,9 +122,8 @@ export default function ProfileEditDialog(props: Props) {
               onChange={({target}) => handleProfileChange('id', target.value)}
             />
           </AltFormField>
-          <AltFormField label={'Class ID'} disableGutters>
+          <AltFormField label={'Class ID'}>
             <OutlinedInput
-              className={classes.input}
               type="number"
               fullWidth={true}
               data-testid="profileClassID"
@@ -154,9 +134,8 @@ export default function ProfileEditDialog(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Max Bandwidth Downlink(bps)'} disableGutters>
+          <AltFormField label={'Max Bandwidth Downlink(bps)'}>
             <OutlinedInput
-              className={classes.input}
               type="number"
               fullWidth={true}
               inputProps={{min: 0}}
@@ -171,9 +150,8 @@ export default function ProfileEditDialog(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Max Bandwidth Uplink(bps)'} disableGutters>
+          <AltFormField label={'Max Bandwidth Uplink(bps)'}>
             <OutlinedInput
-              className={classes.input}
               type="number"
               fullWidth={true}
               data-testid="maxReqBwUl"

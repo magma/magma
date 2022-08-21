@@ -44,36 +44,65 @@ py_library(
     name = "mobilityd_lib",
     srcs = [
         "dhcp_client.py",
-        "dhcp_desc.py",
         "ip_address_man.py",
         "ip_allocator_base.py",
         "ip_allocator_dhcp.py",
         "ip_allocator_multi_apn.py",
         "ip_allocator_pool.py",
         "ip_allocator_static.py",
-        "ip_descriptor.py",
-        "ip_descriptor_map.py",
         "ipv6_allocator_pool.py",
-        "mac.py",
         "metrics.py",
-        "mobility_store.py",
         "rpc_servicer.py",
         "serialize_utils.py",
         "subscriberdb_client.py",
-        "uplink_gw.py",
-        "utils.py",
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":dhcp_desc",
+        ":mobility_store",
         "//lte/gateway/python/magma/subscriberdb:sid",
-        "//lte/protos:keyval_python_proto",
         "//lte/protos:mobilityd_python_grpc",
         "//lte/protos:mobilityd_python_proto",
         "//lte/protos:subscriberdb_python_grpc",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common/redis:client",
-        requirement("netifaces"),
         requirement("scapy"),
         requirement("prometheus_client"),
     ],
+)
+
+py_library(
+    name = "mobility_store",
+    srcs = [
+        "ip_descriptor_map.py",
+        "mobility_store.py",
+        "uplink_gw.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":serialize_utils",
+        "//orc8r/gateway/python/magma/common/redis:containers",
+        requirement("redis"),
+        requirement("netifaces"),
+    ],
+)
+
+py_library(
+    name = "dhcp_desc",
+    srcs = [
+        "dhcp_desc.py",
+        "mac.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "serialize_utils",
+    srcs = [
+        "ip_descriptor.py",
+        "serialize_utils.py",
+        "utils.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//lte/protos:keyval_python_proto"],
 )

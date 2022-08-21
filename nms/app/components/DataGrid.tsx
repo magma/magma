@@ -11,27 +11,27 @@
  * limitations under the License.
  */
 
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import Collapse from '@material-ui/core/Collapse';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import Collapse from '@mui/material/Collapse';
 import DeviceStatusCircle from '../theme/design-system/DeviceStatusCircle';
-import Divider from '@material-ui/core/Divider';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Input from '@material-ui/core/Input';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
+import Divider from '@mui/material/Divider';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Input from '@mui/material/Input';
+import InputAdornment from '@mui/material/InputAdornment';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import React from 'react';
-import SvgIcon from '@material-ui/core/SvgIcon';
-import Visibility from '@material-ui/icons/Visibility';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
-import {Theme} from '@material-ui/core/styles';
+import SvgIcon from '@mui/material/SvgIcon';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme, ConfigureStyleParameters>(theme => ({
   dataHeaderBlock: {
@@ -160,7 +160,8 @@ function DataObscure(
           <IconButton
             aria-label="toggle password visibility"
             onClick={() => setShowPassword(!showPassword)}
-            onMouseDown={event => event.preventDefault()}>
+            onMouseDown={event => event.preventDefault()}
+            size="large">
             {showPassword ? <Visibility /> : <VisibilityOff />}
           </IconButton>
         </InputAdornment>
@@ -218,7 +219,11 @@ function DataCollapse(data: Data) {
 }
 
 function DataLink(data: string) {
-  return <Link href={data}>{data}</Link>;
+  return (
+    <Link href={data} underline="hover">
+      {data}
+    </Link>
+  );
 }
 
 type Data = {

@@ -14,13 +14,12 @@
 import * as customHistogram from '../../../components/CustomMetrics';
 import GatewayLogs from '../GatewayLogs';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
 
@@ -31,18 +30,18 @@ const LogTableWrapper = () => (
   <MemoryRouter
     initialEntries={['/nms/mynetwork/gateway/mygateway/logs']}
     initialIndex={0}>
-    <MuiPickersUtilsProvider utils={MomentUtils}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+    <LocalizationProvider dateAdapter={AdapterMoment}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <Routes>
             <Route
               path="/nms/:networkId/gateway/:gatewayId/logs"
               element={<GatewayLogs />}
             />
           </Routes>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MuiPickersUtilsProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
+    </LocalizationProvider>
   </MemoryRouter>
 );
 

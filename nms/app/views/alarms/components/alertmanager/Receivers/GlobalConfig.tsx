@@ -15,21 +15,21 @@
  */
 
 import * as React from 'react';
-import Checkbox from '@material-ui/core/Checkbox';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import Checkbox from '@mui/material/Checkbox';
+import CircularProgress from '@mui/material/CircularProgress';
 import Editor from '../../common/Editor';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import useForm from '../../../hooks/useForm';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
 import type {Props as EditorProps} from '../../common/Editor';
@@ -121,6 +121,7 @@ export default function GlobalConfig(props: Props) {
             <Grid container item direction="column" spacing={4}>
               <Grid item>
                 <TextField
+                  variant="standard"
                   label="Resolve Timeout"
                   placeholder="Ex: 5s"
                   {...getIdProps('resolve_timeout')}
@@ -134,6 +135,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="Slack">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API URL"
                     placeholder="Ex: https://hooks.slack.com/services/T0/B0/XXX"
                     {...getIdProps('slack_api_url')}
@@ -148,6 +150,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="Pagerduty">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API URL"
                     placeholder="Ex: https://api.pagerduty.com"
                     {...getIdProps('pagerduty_url')}
@@ -162,6 +165,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="SMTP">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="From"
                     placeholder="Ex: alert@terragraph.link"
                     {...getIdProps('smtp_from')}
@@ -174,6 +178,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="SMTP Hello"
                     placeholder="Ex: terragraph.link"
                     {...getIdProps('smtp_hello')}
@@ -186,6 +191,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Smarthost"
                     {...getIdProps('smtp_smarthost')}
                     value={formState.smtp_smarthost || ''}
@@ -197,6 +203,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Username"
                     {...getIdProps('smtp_auth_username')}
                     value={formState.smtp_auth_username || ''}
@@ -208,6 +215,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Password"
                     {...getIdProps('smtp_auth_password')}
                     value={formState.smtp_auth_password || ''}
@@ -219,6 +227,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Secret"
                     {...getIdProps('smtp_auth_secret')}
                     value={formState.smtp_auth_secret || ''}
@@ -230,6 +239,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Identity"
                     {...getIdProps('smtp_auth_identity')}
                     value={formState.smtp_auth_identity || ''}
@@ -263,6 +273,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="Opsgenie">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API URL"
                     placeholder="Ex: https://api.opsgenie.com/"
                     {...getIdProps('opsgenie_api_url')}
@@ -275,6 +286,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API Key"
                     placeholder="Ex: xxxxxxxx-xxxx-xxxx-xxxxx-xxxxxxxxxxxx"
                     {...getIdProps('opsgenie_api_key')}
@@ -289,6 +301,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="Hipchat">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API URL"
                     placeholder="Ex: https://api.hipchat.com/v2"
                     {...getIdProps('hipchat_api_url')}
@@ -301,6 +314,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API Key"
                     placeholder="Ex: xxx-xxx-xxxx"
                     {...getIdProps('hipchat_auth_token')}
@@ -315,6 +329,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="WeChat">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API URL"
                     placeholder="Ex: https://qyapi.weixin.qq.com/cgi-bin/"
                     {...getIdProps('wechat_api_url')}
@@ -327,6 +342,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API Key"
                     placeholder="Ex: xxxxx"
                     {...getIdProps('wechat_api_secret')}
@@ -339,6 +355,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Corp ID"
                     placeholder="Ex: xxxxx"
                     {...getIdProps('wechat_api_corp_id')}
@@ -353,6 +370,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="VictorOps">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API URL"
                     placeholder="Ex: https://api.hipchat.com/v2"
                     {...getIdProps('victorops_api_url')}
@@ -365,6 +383,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="API Key"
                     placeholder="Ex: xxx-xxx-xxxx"
                     {...getIdProps('victorops_api_key')}
@@ -379,6 +398,7 @@ export default function GlobalConfig(props: Props) {
               <ConfigSection title="HTTP">
                 <Grid item>
                   <TextField
+                    variant="standard"
                     {...getIdProps('http_config_bearer_token')}
                     label="Bearer Token"
                     value={formState.http_config?.bearer_token || ''}
@@ -392,6 +412,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Proxy URL"
                     {...getIdProps('http_config_proxy_url')}
                     value={formState.http_config?.proxy_url || ''}
@@ -405,6 +426,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Basic Auth Username"
                     {...getIdProps('basic_auth_username')}
                     value={formState.http_config?.basic_auth?.username || ''}
@@ -422,6 +444,7 @@ export default function GlobalConfig(props: Props) {
                 </Grid>
                 <Grid item>
                   <TextField
+                    variant="standard"
                     label="Basic Auth Password"
                     {...getIdProps('basic_auth_password')}
                     value={formState.http_config?.basic_auth?.password || ''}

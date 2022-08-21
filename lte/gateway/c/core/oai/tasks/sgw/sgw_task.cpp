@@ -44,7 +44,7 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"

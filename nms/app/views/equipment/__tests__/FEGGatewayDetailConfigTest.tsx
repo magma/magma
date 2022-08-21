@@ -13,12 +13,11 @@
 
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import type {
@@ -175,8 +174,8 @@ describe('<FEGGatewayDetailConfig />', () => {
         '/nms/mynetwork/equipment/overview/gateway/test_feg_gw0/config',
       ]}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <FEGGatewayContextProvider networkId="mynetwork">
             <Routes>
               <Route
@@ -185,8 +184,8 @@ describe('<FEGGatewayDetailConfig />', () => {
               />
             </Routes>
           </FEGGatewayContextProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 
@@ -197,18 +196,20 @@ describe('<FEGGatewayDetailConfig />', () => {
           '/nms/mynetwork/equipment/overview/gateway/test_feg_gw0/config',
         ]}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGGatewayContextProvider networkId="mynetwork">
-              <Routes>
-                <Route
-                  path="/nms/:networkId/equipment/overview/gateway/:gatewayId/config"
-                  element={<FEGGatewayDetailConfig />}
-                />
-              </Routes>
-            </FEGGatewayContextProvider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <FEGGatewayContextProvider networkId="mynetwork">
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/equipment/overview/gateway/:gatewayId/config"
+                    element={<FEGGatewayDetailConfig />}
+                  />
+                </Routes>
+              </FEGGatewayContextProvider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

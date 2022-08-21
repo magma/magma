@@ -88,10 +88,22 @@ type Service struct {
 	Config *config.Map
 }
 
-// NewServiceWithOptions returns a new GRPC orchestrator service implementing
+// NewGatewayServiceWithOptions calls newServiceWithOptions and specifies the
+// service type to be not protected.
+func NewGatewayServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+	return newServiceWithOptions(moduleName, serviceName, false, serverOptions...)
+}
+
+// NewOrc8rServiceWithOptions calls newServiceWithOptions and specifies the
+// service type to be protected.
+func NewOrc8rServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+	return newServiceWithOptions(moduleName, serviceName, true, serverOptions...)
+}
+
+// newServiceWithOptions returns a new GRPC orchestrator service implementing
 // service303 with the specified grpc server options.
 // It will not instantiate the service with the identity checking middleware.
-func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+func newServiceWithOptions(moduleName string, serviceName string, protected303Server bool, serverOptions ...grpc.ServerOption) (*Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
@@ -119,7 +131,11 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 		StartTimeSecs:       uint64(time.Now().Unix()),
 		Config:              configMap,
 	}
-	protos.RegisterService303Server(service.GrpcServer, service)
+	if protected303Server {
+		protos.RegisterService303Server(service.ProtectedGrpcServer, service)
+	} else {
+		protos.RegisterService303Server(service.GrpcServer, service)
+	}
 
 	// Store into global for future access
 	currentlyRunningServicesMu.Lock()

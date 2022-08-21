@@ -11,15 +11,15 @@
  * limitations under the License.
  */
 
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {policyStyles} from './PolicyStyles';
 import type {
   PolicyRule,

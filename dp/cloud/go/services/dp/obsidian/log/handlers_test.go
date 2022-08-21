@@ -39,6 +39,7 @@ import (
 )
 
 const (
+	someTimeStamp                 = "2022-01-14T10:23:49.000Z"
 	successfulElasticSearchResult = `{
    "took":982,
    "timed_out":false,
@@ -61,7 +62,7 @@ const (
             "_id":"2ds34f6w-43f5-2344-dsf4-kf9ekw9fke9w",
             "_score":1.0,
             "_source":{
-               "event_timestamp": "2022-01-14T10:23:49.871Z",
+               "event_timestamp": 1642155829,
                "log_message":"some message1",
                "fcc_id":"some_fcc_id",
                "log_from":"SAS",
@@ -77,7 +78,7 @@ const (
             "_id":"2ds34f6w-43f5-2344-dsf4-kf9ekw9fke9w",
             "_score":1.0,
             "_source":{
-               "event_timestamp": "2022-01-14T10:23:49.871Z",
+               "event_timestamp": 1642155829,
                "log_message":"some message2",
                "fcc_id":"some_fcc_id",
                "log_from":"SAS",
@@ -149,10 +150,10 @@ func (s *HandlersTestSuite) TestBoolQuery() {
 				Index:     "dp",
 				NetworkId: "someNetworkId",
 				Filter: &LogsFilter{
-					LogTo:             "SAS",
-					Name:              "someLog",
-					SerialNumber:      "someSerialNumber123",
-					EndTimestampMilli: to_pointer.Int64(1000),
+					LogTo:           "SAS",
+					Name:            "someLog",
+					SerialNumber:    "someSerialNumber123",
+					EndTimestampSec: to_pointer.Int64(1000),
 				},
 			},
 			expectedPayload: []byte(`{
@@ -204,14 +205,14 @@ func (s *HandlersTestSuite) TestBoolQuery() {
 				Index:     "dp",
 				NetworkId: "someNetworkId",
 				Filter: &LogsFilter{
-					LogFrom:             "DP",
-					LogTo:               "SAS",
-					Name:                "someLog",
-					SerialNumber:        "someSerialNumber123",
-					FccId:               "someFccId123",
-					ResponseCode:        to_pointer.Int64(0),
-					BeginTimestampMilli: to_pointer.Int64(100),
-					EndTimestampMilli:   to_pointer.Int64(1000),
+					LogFrom:           "DP",
+					LogTo:             "SAS",
+					Name:              "someLog",
+					SerialNumber:      "someSerialNumber123",
+					FccId:             "someFccId123",
+					ResponseCode:      to_pointer.Int64(0),
+					BeginTimestampSec: to_pointer.Int64(100),
+					EndTimestampSec:   to_pointer.Int64(1000),
 				},
 			},
 			expectedPayload: []byte(`{
@@ -442,7 +443,7 @@ func (s *HandlersTestSuite) TestListLogs() {
             {
                "range":{
                   "event_timestamp":{
-                     "from":1642155829871,
+                     "from":1642155829,
                      "include_lower":true,
                      "include_upper":true,
                      "to":null
@@ -611,8 +612,8 @@ func (s *HandlersTestSuite) TestGetLogsFilter() {
 			expectedSerialNumber: "some_serial_number",
 			expectedFccId:        "some_fcc_id",
 			expectedResponseCode: to_pointer.Int64(0),
-			expectedBeginTS:      to_pointer.Int64(1642155829871),
-			expectedEndTS:        to_pointer.Int64(1642242229871),
+			expectedBeginTS:      to_pointer.Int64(1642155829),
+			expectedEndTS:        to_pointer.Int64(1642242229),
 		},
 		{
 			testName:             "test filter without params",
@@ -647,14 +648,14 @@ func (s *HandlersTestSuite) TestGetLogsFilter() {
 					s.Nil(tc.expectedResponseCode, f.ResponseCode)
 				}
 				if tc.expectedBeginTS != nil {
-					s.Equal(tc.expectedBeginTS, f.BeginTimestampMilli)
+					s.Equal(tc.expectedBeginTS, f.BeginTimestampSec)
 				} else {
-					s.Nil(tc.expectedBeginTS, f.BeginTimestampMilli)
+					s.Nil(tc.expectedBeginTS, f.BeginTimestampSec)
 				}
 				if tc.expectedEndTS != nil {
-					s.Equal(tc.expectedEndTS, f.EndTimestampMilli)
+					s.Equal(tc.expectedEndTS, f.EndTimestampSec)
 				} else {
-					s.Nil(tc.expectedEndTS, f.EndTimestampMilli)
+					s.Nil(tc.expectedEndTS, f.EndTimestampSec)
 				}
 			}
 		})
@@ -674,7 +675,7 @@ func getPaginatedLogs() *models.PaginatedLogs {
 				FccID:        "some_fcc_id",
 				From:         "SAS",
 				SerialNumber: "some_serial_number",
-				Time:         getTestDateTime("2022-01-14T10:23:49.871036Z"),
+				Time:         getTestDateTime(someTimeStamp),
 				To:           "DP",
 				Type:         "grantResponse",
 			},
@@ -683,7 +684,7 @@ func getPaginatedLogs() *models.PaginatedLogs {
 				FccID:        "some_fcc_id",
 				From:         "SAS",
 				SerialNumber: "some_serial_number",
-				Time:         getTestDateTime("2022-01-14T10:23:49.871036Z"),
+				Time:         getTestDateTime(someTimeStamp),
 				To:           "DP",
 				Type:         "grantResponse",
 			},

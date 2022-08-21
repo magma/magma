@@ -9,7 +9,7 @@ const (
 	distanceThresholdM = 10
 )
 
-func ShouldENodeBDUpdate(prev *DBCbsd, next *DBCbsd) bool {
+func ShouldEnodebdUpdateInstallationParams(prev *DBCbsd, next *DBCbsd) bool {
 	return canUpdate(prev) &&
 		(paramsChanges(next, prev) || coordinatesChanged(next, prev))
 }

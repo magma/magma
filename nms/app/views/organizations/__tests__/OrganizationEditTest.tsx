@@ -12,7 +12,6 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import OrganizationEdit from '../OrganizationEdit';
 import Organizations from '../Organizations';
 import axios from 'axios';
@@ -21,10 +20,11 @@ import defaultTheme from '../../../theme/default';
 import {AppContextProvider} from '../../../context/AppContext';
 import {EmbeddedData} from '../../../../shared/types/embeddedData';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {mockUseAxios} from '../useAxiosTestHelper';
+import {render} from '../../../util/TestingLibrary';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useAxios');
@@ -129,8 +129,8 @@ window.CONFIG = {
 const WrappedOrganizations = () => {
   return (
     <MemoryRouter initialEntries={['/organizations']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <SnackbarProvider>
             <AppContextProvider>
               <Routes>
@@ -142,8 +142,8 @@ const WrappedOrganizations = () => {
               </Routes>
             </AppContextProvider>
           </SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 };
@@ -153,8 +153,8 @@ const WrappedOrganizationsEdit = () => {
     <MemoryRouter
       initialEntries={['/organizations/detail/magma-test']}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <SnackbarProvider>
             <AppContextProvider>
               <Routes>
@@ -165,8 +165,8 @@ const WrappedOrganizationsEdit = () => {
               </Routes>
             </AppContextProvider>
           </SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 };
@@ -191,9 +191,12 @@ describe('<OrganizationEdit />', () => {
       data: hostUserMock,
     });
 
-    const {getByTestId, getByText, queryByTestId, getAllByTitle} = render(
-      <WrappedOrganizations />,
-    );
+    const {
+      getByTestId,
+      getByText,
+      queryByTestId,
+      openActionsTableMenu,
+    } = render(<WrappedOrganizations />);
 
     await waitFor(() => {
       expect(getByTestId('organizationTitle')).toBeInTheDocument();
@@ -205,10 +208,7 @@ describe('<OrganizationEdit />', () => {
     expect(queryByTestId('onboardingDialog')).toBeNull();
 
     // Open menu to go to organization detail page
-    const actionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(actionList[0]);
-    expect(getByTestId('actions-menu')).toBeVisible();
+    await openActionsTableMenu(0);
     await waitFor(() => {
       fireEvent.click(getByText('View'));
     });

@@ -12,7 +12,7 @@
  */
 
 import ActionTable from '../../components/ActionTable';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import LoadingFiller from '../../components/LoadingFiller';
 import React, {useEffect, useState} from 'react';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -142,7 +142,8 @@ export default function ServicingAccessGatewayInfo() {
                   window.open(
                     `${window.location.origin}/nms/${currRow.networkId}/equipment/overview/gateway/${currRow.gatewayId}`,
                   );
-                }}>
+                }}
+                underline="hover">
                 {currRow.gatewayName}
               </Link>
             ),

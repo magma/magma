@@ -13,18 +13,18 @@
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import GatewayPoolsContext from '../../context/GatewayPoolsContext';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import React from 'react';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import withAlert from '../../components/Alert/withAlert';
 import {GatewayPoolEditDialog} from './GatewayPoolEdit';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
@@ -110,7 +110,8 @@ function GatewayPoolsTableRaw(props: WithAlert) {
                         `gateway/${gw.gateway_id}`,
                       ),
                     );
-                  }}>
+                  }}
+                  underline="hover">
                   {gw.gateway_id}
                 </Link>
               </ListItem>

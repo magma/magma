@@ -13,8 +13,8 @@
 
 import * as React from 'react';
 import ConfigEditor from './ConfigEditor';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverWebhookConfig} from '../../AlarmAPIType';
 
@@ -30,6 +30,7 @@ export default function WebhookConfigEditor({
         <>
           <Grid item>
             <TextField
+              variant="standard"
               required
               label="Url"
               placeholder="Ex: webhook.example.com"

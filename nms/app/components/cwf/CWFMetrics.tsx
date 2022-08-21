@@ -12,15 +12,15 @@
  */
 
 import APMetrics from './APMetrics';
-import AppBar from '@material-ui/core/AppBar';
+import AppBar from '@mui/material/AppBar';
 import AppContext from '../../context/AppContext';
 import CWFNetworkMetrics from './CWFNetworkMetrics';
 import Grafana from '../Grafana';
 import IMSIMetrics from './IMSIMetrics';
 import NestedRouteLink from '../NestedRouteLink';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TopBar from '../../components/TopBar';
 
 import {
@@ -32,7 +32,7 @@ import {
 } from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 
 const useStyles = makeStyles({
@@ -41,7 +41,6 @@ const useStyles = makeStyles({
   },
   tabs: {
     flex: 1,
-    color: colors.primary.white,
   },
 });
 

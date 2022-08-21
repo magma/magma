@@ -16,13 +16,12 @@ import ApnContext from '../../../context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
 import LteNetworkContext from '../../../context/LteNetworkContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {DynamicServices} from '../../../components/GatewayUtils';
 import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
@@ -181,35 +180,37 @@ describe('<AddEditGatewayButton />', () => {
   const AddWrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/test/gateway']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <ApnContext.Provider
-              value={{
-                state: mockApns,
-                setState: async () => {},
-              }}>
-              <LteNetworkContext.Provider
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <ApnContext.Provider
                 value={{
-                  state: mockNw,
-                  updateNetworks: async () => {},
+                  state: mockApns,
+                  setState: async () => {},
                 }}>
-                <GatewayContextProvider networkId="test">
-                  <Routes>
-                    <Route
-                      path="/nms/:networkId/gateway"
-                      element={
-                        <AddEditGatewayButton
-                          title="Add Gateway"
-                          isLink={false}
-                        />
-                      }
-                    />
-                  </Routes>
-                </GatewayContextProvider>
-              </LteNetworkContext.Provider>
-            </ApnContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+                <LteNetworkContext.Provider
+                  value={{
+                    state: mockNw,
+                    updateNetworks: async () => {},
+                  }}>
+                  <GatewayContextProvider networkId="test">
+                    <Routes>
+                      <Route
+                        path="/nms/:networkId/gateway"
+                        element={
+                          <AddEditGatewayButton
+                            title="Add Gateway"
+                            isLink={false}
+                          />
+                        }
+                      />
+                    </Routes>
+                  </GatewayContextProvider>
+                </LteNetworkContext.Provider>
+              </ApnContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -219,18 +220,20 @@ describe('<AddEditGatewayButton />', () => {
       <MemoryRouter
         initialEntries={['/nms/test/gateway/testGatewayId0/config']}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContextProvider networkId={'test'}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/gateway/:gatewayId/config"
-                  element={<GatewayConfig />}
-                />
-              </Routes>
-            </GatewayContextProvider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <GatewayContextProvider networkId={'test'}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/gateway/:gatewayId/config"
+                    element={<GatewayConfig />}
+                  />
+                </Routes>
+              </GatewayContextProvider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -398,11 +401,8 @@ describe('<AddEditGatewayButton />', () => {
 
     // Verify Dynamic Services Edit
     const monitordService = getByTestId('monitordService').firstChild;
-    if (
-      monitordService instanceof HTMLElement &&
-      monitordService.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(monitordService.firstChild);
+    if (monitordService instanceof HTMLInputElement) {
+      fireEvent.click(monitordService);
     } else {
       throw 'invalid type';
     }
@@ -447,13 +447,12 @@ describe('<AddEditGatewayButton />', () => {
     const sgiStaticIpv6 = getByTestId('sgiStaticIpv6').firstChild;
     const ipv6Block = getByTestId('ipv6Block').firstChild;
     if (
-      natEnabled instanceof HTMLElement &&
-      natEnabled.firstChild instanceof HTMLElement &&
+      natEnabled instanceof HTMLInputElement &&
       gwSgiIpv6 instanceof HTMLInputElement &&
       sgiStaticIpv6 instanceof HTMLInputElement &&
       ipv6Block instanceof HTMLInputElement
     ) {
-      fireEvent.click(natEnabled.firstChild);
+      fireEvent.click(natEnabled);
       fireEvent.change(gwSgiIpv6, {
         target: {value: '2001:4860:4860:0:0:0:0:1'},
       });
@@ -504,11 +503,8 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     const enbDhcpService = getByTestId('enbDhcpService').firstChild;
-    if (
-      enbDhcpService instanceof HTMLElement &&
-      enbDhcpService.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(enbDhcpService.firstChild);
+    if (enbDhcpService instanceof HTMLInputElement) {
+      fireEvent.click(enbDhcpService);
     } else {
       throw 'invalid type';
     }
@@ -655,21 +651,15 @@ describe('<AddEditGatewayButton />', () => {
     expect(queryByTestId('headerEnrichmentEdit')).not.toBeNull();
     // Verify Header Enrichment Edit
     const HeEnabled = getByTestId('enableHE').firstChild;
-    if (
-      HeEnabled instanceof HTMLElement &&
-      HeEnabled.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(HeEnabled.firstChild);
+    if (HeEnabled instanceof HTMLInputElement) {
+      fireEvent.click(HeEnabled);
     } else {
       throw 'invalid type';
     }
     expect(queryByTestId('encryptionEdit')).toBeNull();
     const encryptionEnabled = getByTestId('enableEncryption').firstChild;
-    if (
-      encryptionEnabled instanceof HTMLElement &&
-      encryptionEnabled.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(encryptionEnabled.firstChild);
+    if (encryptionEnabled instanceof HTMLInputElement) {
+      fireEvent.click(encryptionEnabled);
     } else {
       throw 'invalid type';
     }
@@ -748,11 +738,8 @@ describe('<AddEditGatewayButton />', () => {
     }
 
     const enbDhcpService = getByTestId('enbDhcpService').firstChild;
-    if (
-      enbDhcpService instanceof HTMLElement &&
-      enbDhcpService.firstChild instanceof HTMLElement
-    ) {
-      fireEvent.click(enbDhcpService.firstChild);
+    if (enbDhcpService instanceof HTMLInputElement) {
+      fireEvent.click(enbDhcpService);
     } else {
       throw 'invalid type';
     }

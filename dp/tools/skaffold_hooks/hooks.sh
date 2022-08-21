@@ -71,6 +71,7 @@ apply_secrets() {
   cd "$MAGMA_ROOT/orc8r/cloud/helm/orc8r" || exit 1
   helm template orc8r charts/secrets \
     --namespace default \
+    -f "${MAGMA_ROOT}/dp/cloud/helm/dp/charts/domain-proxy/examples/orc8r_secrets_values.yaml" \
     --set-string secret.certs.enabled=true \
     --set-file secret.certs.files."rootCA\.pem=${CERTS_DIR}/rootCA.pem" \
     --set-file secret.certs.files."bootstrapper\.key=${CERTS_DIR}/bootstrapper.key" \

@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';

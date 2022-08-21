@@ -11,34 +11,17 @@
  * limitations under the License.
  */
 
-import type {ComponentType} from 'react';
-
-import AppBar from '@material-ui/core/AppBar';
-import NestedRouteLink from '../NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
+import Paper from '@mui/material/Paper';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import TopBar from '../../components/TopBar';
-
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useResolvedPath,
-} from 'react-router-dom';
-import {Theme} from '@material-ui/core/styles';
-import {findIndex} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {Navigate, Route, Routes, useLocation} from 'react-router-dom';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
+import type {ComponentType} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({
   paper: {
     margin: theme.spacing(3),
-  },
-  tabs: {
-    flex: 1,
   },
 }));
 
@@ -55,15 +38,7 @@ type TabRoute = {
 export default function Configure(props: Props) {
   const classes = useStyles();
   const location = useLocation();
-  const resolvedPath = useResolvedPath('');
   const {tabRoutes} = props;
-
-  const initialTab = findIndex(tabRoutes, route =>
-    location.pathname.startsWith(resolvedPath.pathname + '/' + route.path),
-  );
-  const [currentTab, setCurrentTab] = useState(
-    initialTab !== -1 ? initialTab : 0,
-  );
 
   if (location.pathname.endsWith('/configure')) {
     return <Navigate to={tabRoutes[0].path} replace />;
@@ -71,25 +46,11 @@ export default function Configure(props: Props) {
 
   return (
     <>
-      <TopBar header="Configure" tabs={[]} />
+      <TopBar
+        header="Configure"
+        tabs={tabRoutes.map(route => ({to: route.path, label: route.label}))}
+      />
       <Paper className={classes.paper} elevation={2}>
-        <AppBar position="static" color="default">
-          <Tabs
-            value={currentTab}
-            indicatorColor="primary"
-            textColor="primary"
-            onChange={(_, tab) => setCurrentTab(tab as number)}
-            className={classes.tabs}>
-            {tabRoutes.map((route, i) => (
-              <Tab
-                key={i}
-                component={NestedRouteLink}
-                label={route.label}
-                to={route.path}
-              />
-            ))}
-          </Tabs>
-        </AppBar>
         <Routes>
           {tabRoutes.map((route, i) => (
             <Route

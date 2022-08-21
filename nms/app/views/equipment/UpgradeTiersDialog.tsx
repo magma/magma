@@ -11,31 +11,31 @@
  * limitations under the License.
  */
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
-import Collapse from '@material-ui/core/Collapse';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Collapse from '@mui/material/Collapse';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import Divider from '@material-ui/core/Divider';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import FormLabel from '@material-ui/core/FormLabel';
+import Divider from '@mui/material/Divider';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import FormLabel from '@mui/material/FormLabel';
 import GatewayTierContext from '../../context/GatewayTierContext';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Paper from '@mui/material/Paper';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Text from '../../theme/design-system/Text';
 import {AutoCompleteEditComponent} from '../../components/ActionTable';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -50,7 +50,6 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   tabs: {
     color: colors.primary.white,

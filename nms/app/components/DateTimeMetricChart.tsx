@@ -12,18 +12,19 @@
  */
 
 import AsyncMetric from './insights/AsyncMetric';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
-import Grid from '@material-ui/core/Grid';
+import DataUsageIcon from '@mui/icons-material/DataUsage';
+import Grid from '@mui/material/Grid';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 import moment from 'moment';
 
-import {DateTimePicker} from '@material-ui/pickers';
+import TextField from '@mui/material/TextField';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useState} from 'react';
 
 export type DateTimeMetricChartProps = {
@@ -58,12 +59,11 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date!)}
+            onChange={date => setStartDate(date as moment.Moment)}
           />
         </Grid>
         <Grid item>
@@ -73,11 +73,10 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
         </Grid>
         <Grid item>
           <DateTimePicker
-            autoOk
-            inputVariant="outlined"
+            renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date!)}
+            onChange={date => setEndDate(date as moment.Moment)}
           />
         </Grid>
       </Grid>

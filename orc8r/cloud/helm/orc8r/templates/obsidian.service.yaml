@@ -33,4 +33,7 @@ spec:
     - name: http
       port: 8080
       targetPort: 9081
+    - name: grpc-internal
+      port: 9190
+      targetPort: 9193
 {{- end -}}

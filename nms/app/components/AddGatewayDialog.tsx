@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import LoadingFillerBackdrop from './LoadingFillerBackdrop';
 import MagmaAPI from '../api/MagmaAPI';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useState} from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
 import {AltFormField} from './FormField';
@@ -177,7 +177,7 @@ export const AddGatewayFields = (props: {
           inputProps={{'data-testid': 'upgradeTier'}}
           value={props.values.tier}
           onChange={({target}) =>
-            props.onChange({...props.values, tier: target.value as string})
+            props.onChange({...props.values, tier: target.value})
           }>
           {props.tiers.map(tier => (
             <MenuItem key={tier} value={tier}>

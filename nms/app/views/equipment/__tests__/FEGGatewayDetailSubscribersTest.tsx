@@ -14,12 +14,11 @@
 import FEGGatewayDetailSubscribers from '../FEGGatewayDetailSubscribers';
 import FEGSubscriberContext from '../../../context/FEGSubscriberContext';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {AxiosResponse} from 'axios';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {SubscriberId} from '../../../../shared/types/network';
 import {render, waitFor} from '@testing-library/react';
 import type {FederationGateway, SubscriberState} from '../../../../generated';
@@ -138,8 +137,8 @@ describe('<FEGGatewayDetailSubscribers />', () => {
         '/nms/mynetwork/equipment/overview/gateway/test_feg_gw0/overview',
       ]}
       initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <FEGSubscriberContext.Provider
             value={{
               refetch: () => {},
@@ -161,8 +160,8 @@ describe('<FEGGatewayDetailSubscribers />', () => {
               />
             </Routes>
           </FEGSubscriberContext.Provider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 

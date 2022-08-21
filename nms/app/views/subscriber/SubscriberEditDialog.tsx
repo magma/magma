@@ -11,27 +11,27 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EditSubscriberApnStaticIps from './SubscriberApnStaticIpsEdit';
 import EditSubscriberTrafficPolicy from './SubscriberTrafficPolicyEdit';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
-import ListItemText from '@material-ui/core/ListItemText';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import ListItemText from '@mui/material/ListItemText';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import PolicyContext from '../../context/PolicyContext';
 import React, {useContext, useEffect, useState} from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import SubscriberContext from '../../context/SubscriberContext';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TypedSelect from '../../components/TypedSelect';
 import nullthrows from '../../../shared/util/nullthrows';
 import {AltFormField, PasswordInput} from '../../components/FormField';
@@ -40,7 +40,7 @@ import {LteSubscription} from '../../../generated';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import type {
@@ -57,7 +57,6 @@ import type {
 const useStyles = makeStyles(() => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   input: {
     display: 'inline-flex',
@@ -386,11 +385,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
                   target.value as Array<SubscriberForbiddenNetworkTypesEnum>,
                 );
               }}
-              renderValue={selected =>
-                (selected as Array<SubscriberForbiddenNetworkTypesEnum>).join(
-                  ', ',
-                )
-              }
+              renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
               {forbiddenNetworkTypes.map((value, idx: number) => (
                 <MenuItem key={idx} value={value}>

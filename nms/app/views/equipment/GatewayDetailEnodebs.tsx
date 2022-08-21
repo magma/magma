@@ -15,7 +15,7 @@ import type {GatewayDetailType} from './GatewayDetailMain';
 
 import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../context/EnodebContext';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import React, {useContext} from 'react';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
@@ -88,7 +88,8 @@ export default function GatewayDetailEnodebs(props: GatewayDetailType) {
                     `enodeb/${currRow.id}`,
                   ),
                 );
-              }}>
+              }}
+              underline="hover">
               {currRow.id}
             </Link>
           ),

@@ -27,7 +27,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
 #include "lte/protos/oai/sgw_state.pb.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 namespace magma {
 namespace lte {

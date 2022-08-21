@@ -9,7 +9,7 @@ BOX_FILE=$1
 
 USER=magmacore
 BOX=$(basename $BOX_FILE | cut -d_ -f1-2 | cut -d. -f1)
-VERSION="1.1.$(date +"%Y%m%d")"
+VERSION="1.2.$(date +"%Y%m%d")"
 BOX_PROVIDER=virtualbox
 if echo $BOX_FILE | grep -q libvirt; then
   BOX_PROVIDER=libvirt

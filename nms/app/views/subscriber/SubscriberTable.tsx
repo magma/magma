@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 import ActionTable, {TableRef} from '../../components/ActionTable';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import Button from '@material-ui/core/Button';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EmptyState from '../../components/EmptyState';
-import Grid from '@material-ui/core/Grid';
-import LaunchIcon from '@material-ui/icons/Launch';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import Grid from '@mui/material/Grid';
+import LaunchIcon from '@mui/icons-material/Launch';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import React, {
   SyntheticEvent,
   useContext,
@@ -26,7 +26,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -52,19 +52,19 @@ import type {OptionsObject} from 'notistack';
 import type {SubscriberActionType, SubscriberInfo} from './SubscriberUtils';
 import type {WithAlert} from '../../components/Alert/withAlert';
 
+import withStyles from '@mui/styles/withStyles';
 import {Column} from '@material-table/core';
-import {MenuProps} from '@material-ui/core/Menu/Menu';
-import {Theme} from '@material-ui/core/styles';
+import {MenuProps} from '@mui/material/Menu/Menu';
+import {Theme} from '@mui/material/styles';
 import {base64ToHex, hexToBase64, isValidHex} from '../../util/strings';
 import {
   fetchSubscribers,
   handleSubscriberQuery,
 } from '../../util/SubscriberState';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
 
 // number of subscriber in a chunk
 const SUBSCRIBERS_CHUNK_SIZE = 1000;
@@ -194,7 +194,6 @@ const StyledMenu = withStyles({
 })((props: MenuProps) => (
   <Menu
     elevation={0}
-    getContentAnchorEl={null}
     anchorOrigin={{
       vertical: 'bottom',
       horizontal: 'center',

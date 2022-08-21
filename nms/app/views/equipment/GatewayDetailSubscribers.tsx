@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 import ActionTable from '../../components/ActionTable';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import React from 'react';
 import SubscriberContext from '../../context/SubscriberContext';
 
@@ -70,7 +70,8 @@ export default function GatewayDetailSubscribers(props: GatewayDetailType) {
                     `subscribers/overview/${currRow.id}`,
                   ),
                 );
-              }}>
+              }}
+              underline="hover">
               {currRow.id}
             </Link>
           ),

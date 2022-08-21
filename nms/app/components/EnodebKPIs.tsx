@@ -14,7 +14,7 @@
 import DataGrid from './DataGrid';
 import EnodebContext from '../context/EnodebContext';
 import React from 'react';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import {useContext} from 'react';
 import type {DataRows} from './DataGrid';
 import type {EnodebInfo} from './lte/EnodebUtils';

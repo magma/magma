@@ -15,18 +15,19 @@ import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import EventAlertChart from '../../../components/EventAlertChart';
 import EventsTable from '../../events/EventsTable';
 import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {EVENT_STREAM} from '../../events/EventsTable';
 import {Navigate, Route, Routes} from 'react-router-dom';
-import {NetworkCheck} from '@material-ui/icons';
-import {Theme} from '@material-ui/core/styles';
+import {NetworkCheck} from '@mui/icons-material';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
@@ -146,28 +147,28 @@ function FEGNetworkTab(props: Props) {
           Filter By Date
         </Text>
       </Grid>
-      <DateTimePicker
-        autoOk
-        variant="inline"
-        inputVariant="outlined"
-        maxDate={endDate}
-        disableFuture
-        value={startDate}
-        onChange={date => setStartDate(date!)}
-      />
+      <Grid item>
+        <DateTimePicker
+          renderInput={props => <TextField {...props} />}
+          maxDate={endDate}
+          disableFuture
+          value={startDate}
+          onChange={date => setStartDate(date as moment.Moment)}
+        />
+      </Grid>
       <Grid item>
         <Text variant="body3" className={classes.dateTimeText}>
           to
         </Text>
       </Grid>
-      <DateTimePicker
-        autoOk
-        variant="inline"
-        inputVariant="outlined"
-        disableFuture
-        value={endDate}
-        onChange={date => setEndDate(date!)}
-      />
+      <Grid item>
+        <DateTimePicker
+          renderInput={props => <TextField {...props} />}
+          disableFuture
+          value={endDate}
+          onChange={date => setEndDate(date as moment.Moment)}
+        />
+      </Grid>
     </Grid>
   );
 }

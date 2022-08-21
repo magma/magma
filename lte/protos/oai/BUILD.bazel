@@ -94,6 +94,49 @@ cpp_proto_library(
     ],
 )
 
+python_proto_library(
+    name = "spgw_state_python_proto",
+    protos = [":spgw_state_proto"],
+    deps = [
+        ":common_types_python_proto",
+        ":std_3gpp_types_python_proto",
+    ],
+)
+
+python_proto_library(
+    name = "nas_state_python_proto",
+    protos = [":nas_state_proto"],
+    deps = [
+        ":common_types_python_proto",
+        ":spgw_state_python_proto",
+    ],
+)
+
+python_proto_library(
+    name = "common_types_python_proto",
+    protos = [":common_types_proto"],
+)
+
+python_proto_library(
+    name = "std_3gpp_types_python_proto",
+    protos = [":std_3gpp_types_proto"],
+)
+
+python_proto_library(
+    name = "mme_nas_state_python_proto",
+    protos = [":mme_nas_state_proto"],
+    deps = [
+        ":common_types_python_proto",
+        ":nas_state_python_proto",
+        ":std_3gpp_types_python_proto",
+    ],
+)
+
+python_proto_library(
+    name = "s1ap_state_python_proto",
+    protos = [":s1ap_state_proto"],
+)
+
 proto_library(
     name = "s1ap_state_proto",
     srcs = ["s1ap_state.proto"],

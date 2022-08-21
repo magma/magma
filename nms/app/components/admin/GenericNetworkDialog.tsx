@@ -12,29 +12,19 @@
  */
 
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
-
-import {makeStyles} from '@material-ui/styles';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import {useState} from 'react';
 
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-}));
+import {AltFormField} from '../FormField';
+import {OutlinedInput} from '@mui/material';
 
 export type GenericConfig = {
   id: string;
@@ -51,7 +41,6 @@ type Props = {
 };
 
 export default function GenericNetworkDialog(props: Props) {
-  const classes = useStyles();
   const [networkConfig, setNetworkConfig] = useState(props.networkConfig);
 
   const updateNetwork = (
@@ -67,34 +56,35 @@ export default function GenericNetworkDialog(props: Props) {
     <Dialog open={true} onClose={props.onClose}>
       <DialogTitle>Editing "{networkConfig.id}"</DialogTitle>
       <DialogContent>
-        <TextField
-          name="name"
-          label="Name"
-          className={classes.input}
-          value={networkConfig.name}
-          onChange={({target}) => updateNetwork('name', target.value)}
-        />
-        <TextField
-          name="description"
-          label="Description"
-          className={classes.input}
-          value={networkConfig.description}
-          onChange={({target}) => updateNetwork('description', target.value)}
-        />
-        <FormControl className={classes.input}>
-          <InputLabel htmlFor="types">Network Type</InputLabel>
-          <Select
-            value={networkConfig.type}
-            onChange={({target}) =>
-              updateNetwork('type', target.value as string)
-            }
-            input={<Input id="types" />}
-            disabled={true}>
-            <MenuItem key={networkConfig.type} value={networkConfig.type}>
-              <ListItemText primary={networkConfig.type} />
-            </MenuItem>
-          </Select>
-        </FormControl>
+        <AltFormField label="Name">
+          <OutlinedInput
+            name="name"
+            fullWidth
+            value={networkConfig.name}
+            onChange={({target}) => updateNetwork('name', target.value)}
+          />
+        </AltFormField>
+        <AltFormField label="Description">
+          <OutlinedInput
+            name="description"
+            fullWidth
+            value={networkConfig.description}
+            onChange={({target}) => updateNetwork('description', target.value)}
+          />
+        </AltFormField>
+        <AltFormField label="Network Type">
+          <FormControl fullWidth>
+            <Select
+              value={networkConfig.type}
+              onChange={({target}) => updateNetwork('type', target.value)}
+              input={<OutlinedInput id="types" />}
+              disabled={true}>
+              <MenuItem key={networkConfig.type} value={networkConfig.type}>
+                <ListItemText primary={networkConfig.type} />
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </AltFormField>
         {props.children}
       </DialogContent>
       <DialogActions>

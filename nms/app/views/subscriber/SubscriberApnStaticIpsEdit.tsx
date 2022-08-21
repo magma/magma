@@ -11,28 +11,28 @@
  * limitations under the License.
  */
 
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AddIcon from '@material-ui/icons/Add';
-import Button from '@material-ui/core/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import FormControl from '@material-ui/core/FormControl';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AddIcon from '@mui/icons-material/Add';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import Text from '../../theme/design-system/Text';
 import {AltFormField} from '../../components/FormField';
 import {EditSubscriberProps} from './SubscriberUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -87,7 +87,8 @@ export default function EditSubscriberApnStaticIps(props: EditSubscriberProps) {
                     onClick={event => {
                       event.stopPropagation();
                       props.onDeleteApn(apn);
-                    }}>
+                    }}
+                    size="large">
                     <DeleteIcon />
                   </IconButton>
                 </ListItemSecondaryAction>
@@ -104,10 +105,10 @@ export default function EditSubscriberApnStaticIps(props: EditSubscriberProps) {
                       apn => apn.apnName,
                     );
 
-                    if (!staticIpApn.includes(target.value as string)) {
+                    if (!staticIpApn.includes(target.value)) {
                       props.onTrafficPolicyChange(
                         'apnName',
-                        target.value as string,
+                        target.value,
                         index,
                       );
                     }

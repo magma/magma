@@ -12,30 +12,30 @@
  */
 
 import ActionTable from '../../components/ActionTable';
-import BusinessIcon from '@material-ui/icons/Business';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
+import BusinessIcon from '@mui/icons-material/Business';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import LoadingFiller from '../../components/LoadingFiller';
 import OrganizationDialog from './OrganizationDialog';
-import PersonAdd from '@material-ui/icons/PersonAdd';
-import PersonIcon from '@material-ui/icons/Person';
+import PersonAdd from '@mui/icons-material/PersonAdd';
+import PersonIcon from '@mui/icons-material/Person';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import axios, {AxiosResponse} from 'axios';
 import withAlert from '../../components/Alert/withAlert';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAxios} from '../../hooks';
 import {useCallback, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -248,7 +248,7 @@ function Organizations(props: WithAlert) {
 
   const renderLinkColumn = useCallback((rowData: OrganizationRowType) => {
     return (
-      <Link href={rowData.portalLink}>
+      <Link href={rowData.portalLink} underline="hover">
         {`Visit ${rowData.name} Organization Portal`}
       </Link>
     );
