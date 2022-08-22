@@ -60,12 +60,8 @@ Federated Integration Tests</strong> is to provide a test platform
 to run Magma with all of its components. That is, end-to-end tests with all
 components of Magma: AGW, Orc8r and FeG.</p>
 <p>Currently, these tests are in an experimental phase, so we are only testing the connectivity of
-AGW - Orc8r - FeG, and we are able to run the following tests using the S1AP tester
+AGW - Orc8r - FeG, and we are able to run the basic authentication related tests using the S1AP tester
 and our mock HSS.</p>
-<ul>
-<li>An attach/detach test</li>
-<li>An attach/detach test with multiple UEs (for 32 UEs)</li>
-</ul>
 <h2><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h2>
 <p>As the diagram indicates, these tests spin up <strong>AGW</strong>, <strong>FeG</strong>, and <strong>Orc8r</strong>
 and use <code>S1AP</code> and <code>magma_trfserver</code> as an eNb and SGi emulator to run tests.</p>
@@ -208,13 +204,14 @@ vagrant up magma_trfserver
 <h4><a class="anchor" aria-hidden="true" id="run-tests-manually"></a><a href="#run-tests-manually" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run tests manually</h4>
 <p>Once you have built all of the VMs, you can try to run the tests from the
 <code>magma_test</code> VM.</p>
+<p><strong>Note</strong>: Currently only <a href="https://github.com/magma/magma/blob/master/lte/gateway/python/integ_tests/defs.mk#L288">s6a related LTE Integ tests</a> can be run in federated mode.</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/lte/gateway
 vagrant ssh magma_test
 
 <span class="hljs-comment"># inside vagrant vm</span>
 <span class="hljs-built_in">cd</span> magma/lte/gateway/python/integ_tests
 <span class="hljs-comment">## Individual test(s), e.g.:</span>
-make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
+make fed_integ_test TESTS=s1aptests/test_attach_detach.py
 
 <span class="hljs-comment">## All tests</span>
 make fed_integ_test
