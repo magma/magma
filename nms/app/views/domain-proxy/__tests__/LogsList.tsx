@@ -12,16 +12,15 @@
  */
 
 import LogsList from '../LogsList';
-import MomentUtils from '@date-io/moment';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import moment from 'moment';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {
   fireEvent,
   render,
@@ -36,6 +35,13 @@ jest.mock('../../../hooks/useSnackbar', () => ({
   useEnqueueSnackbar: () => mockEnqueueSnackbar,
 }));
 
+jest.mock('@mui/x-date-pickers/DateTimePicker', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+  DateTimePicker: jest.requireActual(
+    '@mui/x-date-pickers/DesktopDateTimePicker',
+  ).DesktopDateTimePicker,
+}));
+
 const networkId = 'test-network';
 
 const renderWithProviders = (jsx: React.ReactNode) => {
@@ -43,19 +49,20 @@ const renderWithProviders = (jsx: React.ReactNode) => {
     <MemoryRouter
       initialEntries={[`/nms/${networkId}/metrics/domain-proxy-logs`]}
       initialIndex={0}>
-      <MuiPickersUtilsProvider utils={MomentUtils}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <Routes>
-              <Route
-                path="/nms/:networkId/metrics/domain-proxy-logs"
-                element={jsx}
-              />
-            </Routes>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
-        ,
-      </MuiPickersUtilsProvider>
+      <LocalizationProvider dateAdapter={AdapterMoment}>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <Routes>
+                <Route
+                  path="/nms/:networkId/metrics/domain-proxy-logs"
+                  element={jsx}
+                />
+              </Routes>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
+      </LocalizationProvider>
     </MemoryRouter>,
   );
 };

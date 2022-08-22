@@ -60,7 +60,6 @@ pytest_test(
     ],
     deps = [
         "//dp/protos:cbsd_python_proto",
-        "//dp/protos:enodebd_dp_python_proto",
         "//lte/gateway/python/magma/enodebd/data_models:data_model",
         "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
         "//lte/gateway/python/magma/enodebd/devices:baicells_qrtb",
@@ -223,7 +222,6 @@ pytest_test(
     ],
     deps = [
         "//dp/protos:cbsd_python_proto",
-        "//dp/protos:enodebd_dp_python_proto",
         "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
         "//lte/gateway/python/magma/enodebd/device_config:cbrs_consts",
         "//lte/gateway/python/magma/enodebd/device_config:configuration_init",

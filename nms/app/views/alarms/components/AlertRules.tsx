@@ -12,21 +12,26 @@
  */
 import * as React from 'react';
 import AddEditRule from './rules/AddEditRule';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Grid from '@material-ui/core/Grid';
+import Button from '@mui/material/Button';
+import CardTitleRow from '../../../components/layout/CardTitleRow';
+import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
 import SeverityIndicator from './severity/SeverityIndicator';
 import SimpleTable, {SimpleTableProps} from './table/SimpleTable';
 import TableActionDialog from './table/TableActionDialog';
-import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
+import nullthrows from '../../../../shared/util/nullthrows';
+
+import {NotificationsActive} from '@mui/icons-material';
 import {PROMETHEUS_RULE_TYPE, useAlarmContext} from './AlarmContext';
 import {Parse} from './prometheus/PromQLParser';
-import {makeStyles} from '@material-ui/styles';
-import {useLoadRules} from './hooks';
-import {useSnackbars} from '../../../hooks/useSnackbar';
-
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
+import {colors} from '../../../theme/default';
 import {getErrorMessage} from '../../../util/ErrorUtils';
+import {makeStyles} from '@mui/styles';
+import {triggerAlertSync} from '../../../util/SyncAlerts';
+import {useEnqueueSnackbar, useSnackbars} from '../../../hooks/useSnackbar';
+import {useLoadRules} from './hooks';
 import {useParams} from 'react-router-dom';
 import type {GenericRule} from './rules/RuleInterface';
 
@@ -34,22 +39,75 @@ const useStyles = makeStyles<Theme>(theme => ({
   root: {
     paddingTop: theme.spacing(4),
   },
-  addButton: {
-    position: 'fixed',
-    bottom: 0,
-    right: 0,
-    margin: theme.spacing(2),
-  },
   loading: {
     display: 'flex',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  helpButton: {
-    color: 'black',
+  emptyRulesTitle: {
+    color: colors.primary.comet,
+  },
+  emptyRulesDescription: {
+    color: colors.primary.comet,
+    fontSize: '12px',
+    marginBottom: '8px',
   },
 }));
+
+function AlertRulesFilter(props: {
+  onAddRuleClick: () => void;
+  refresh: () => void;
+}) {
+  const params = useParams();
+  const networkId = nullthrows(params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  return (
+    <Grid container justifyContent="center" alignItems="center" spacing={2}>
+      <Grid item>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => {
+            void triggerAlertSync(networkId, enqueueSnackbar);
+            props.refresh();
+          }}>
+          Sync Predefined Alerts
+        </Button>
+      </Grid>
+      <Grid item>
+        <Button
+          data-testid="add-edit-alert-button"
+          variant="contained"
+          color="primary"
+          onClick={() => props.onAddRuleClick()}>
+          Create Custom Rule
+        </Button>
+      </Grid>
+    </Grid>
+  );
+}
+
+function AlertRulesEmpty(props: {
+  onAddRuleClick: () => void;
+  refresh: () => void;
+}) {
+  const classes = useStyles();
+
+  return (
+    <Grid container direction="column" alignItems="center">
+      <div className={classes.emptyRulesTitle}>No Rules Added</div>
+      <div className={classes.emptyRulesDescription}>
+        Find out about possible issues in the network by syncing predefined
+        alerts or creating custom rules.
+      </div>
+      <AlertRulesFilter
+        onAddRuleClick={() => props.onAddRuleClick()}
+        refresh={() => props.refresh()}
+      />
+    </Grid>
+  );
+}
 
 export default function AlertRules<TRuleUnion>() {
   const {apiUtil, ruleMap} = useAlarmContext();
@@ -162,6 +220,11 @@ export default function AlertRules<TRuleUnion>() {
     [],
   );
 
+  const openAddRule = () => {
+    setIsNewAlert(true);
+    setSelectedRow(null);
+    setIsAddEditAlert(true);
+  };
   if (isAddEditAlert) {
     return (
       <AddEditRule
@@ -178,7 +241,27 @@ export default function AlertRules<TRuleUnion>() {
 
   return (
     <Grid className={classes.root}>
+      <CardTitleRow
+        label="Alert rules"
+        icon={NotificationsActive}
+        filter={() => (
+          <AlertRulesFilter
+            onAddRuleClick={() => openAddRule()}
+            refresh={() => setLastRefreshTime(new Date().toLocaleString())}
+          />
+        )}
+      />
       <SimpleTable
+        localization={{
+          body: {
+            emptyDataSourceMessage: (
+              <AlertRulesEmpty
+                onAddRuleClick={() => openAddRule()}
+                refresh={() => setLastRefreshTime(new Date().toLocaleString())}
+              />
+            ),
+          },
+        }}
         onRowClick={row => setSelectedRow(row)}
         columnStruct={columns}
         tableData={rules || []}
@@ -233,15 +316,6 @@ export default function AlertRules<TRuleUnion>() {
           }
         />
       )}
-      <TableAddButton
-        onClick={() => {
-          setIsNewAlert(true);
-          setSelectedRow(null);
-          setIsAddEditAlert(true);
-        }}
-        label="Add Alert"
-        data-testid="add-edit-alert-button"
-      />
     </Grid>
   );
 }

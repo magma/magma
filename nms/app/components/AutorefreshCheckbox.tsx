@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import React from 'react';
 import Text from '../theme/design-system/Text';
-import makeStyles from '@material-ui/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles';
 import moment from 'moment';
 import {colors} from '../theme/default';
 import {useCallback, useEffect, useState} from 'react';

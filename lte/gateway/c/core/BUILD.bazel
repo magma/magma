@@ -566,14 +566,14 @@ MME_HDRS = [
     "oai/include/sgs_messages_types.h",
     "oai/include/sgs_service_handler.h",
     "oai/include/sgw_config.h",
-    "oai/include/sgw_context_manager.h",
+    "oai/include/sgw_context_manager.hpp",
     "oai/include/sgw_ie_defs.h",
     "oai/include/sgw_s8_state.hpp",
     "oai/include/sms_orc8r_service_handler.h",
     "oai/include/spgw_config.h",
-    "oai/include/spgw_service_handler.h",
+    "oai/include/spgw_service_handler.hpp",
     "oai/include/spgw_state.hpp",
-    "oai/include/spgw_types.h",
+    "oai/include/spgw_types.hpp",
     "oai/include/state_converter.hpp",
     "oai/include/state_manager.hpp",
     "oai/include/tasks_def.h",
@@ -1000,8 +1000,8 @@ MME_HDRS = [
     "oai/tasks/sgw/sgw_paging.hpp",
     "oai/tasks/sgw/spgw_state_converter.hpp",
     "oai/tasks/sgw/spgw_state_manager.hpp",
-    "oai/tasks/sgw_s8/sgw_s8_defs.h",
-    "oai/tasks/sgw_s8/sgw_s8_s11_handlers.h",
+    "oai/tasks/sgw_s8/sgw_s8_defs.hpp",
+    "oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp",
     "oai/tasks/sgw_s8/sgw_s8_state_converter.hpp",
     "oai/tasks/sgw_s8/sgw_s8_state_manager.hpp",
     "oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h",
@@ -1116,11 +1116,11 @@ SGW_C = [
 ]
 
 SGW_S8_C = [
-    "oai/tasks/sgw_s8/sgw_s8_handlers.c",
+    "oai/tasks/sgw_s8/sgw_s8_handlers.cpp",
     "oai/tasks/sgw_s8/sgw_s8_state.cpp",
     "oai/tasks/sgw_s8/sgw_s8_state_converter.cpp",
     "oai/tasks/sgw_s8/sgw_s8_state_manager.cpp",
-    "oai/tasks/sgw_s8/sgw_s8_task.c",
+    "oai/tasks/sgw_s8/sgw_s8_task.cpp",
 ]
 
 MISC_C = [

@@ -1,0 +1,45 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "envoy_controller_servicers",
+    srcs = ["envoy_controller.go"],
+    importpath = "magma/feg/gateway/services/envoy_controller/servicers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//feg/cloud/go/protos:envoy_controller_go_proto",
+        "//feg/gateway/services/envoy_controller/control_plane",
+        "@com_github_golang_glog//:glog",
+    ],
+)
+
+go_test(
+    name = "envoy_controller_test",
+    srcs = ["envoy_controller_test.go"],
+    deps = [
+        "//feg/cloud/go/protos:envoy_controller_go_proto",
+        "//feg/gateway/services/envoy_controller/control_plane",
+        "//feg/gateway/services/envoy_controller/control_plane/mocks:envoy_controller_mocks",
+        "//feg/gateway/services/envoy_controller/servicers:envoy_controller_servicers",
+        "//lte/cloud/go/protos:mobilityd_go_proto",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/core/v3:core",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/listener/v3:listener",
+        "@com_github_envoyproxy_go_control_plane//envoy/config/route/v3:route",
+        "@com_github_envoyproxy_go_control_plane//envoy/extensions/filters/listener/original_src/v3:original_src",
+        "@com_github_envoyproxy_go_control_plane//envoy/extensions/filters/network/http_connection_manager/v3:http_connection_manager",
+        "@com_github_envoyproxy_go_control_plane//pkg/wellknown",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_stretchr_testify//assert",
+        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+    ],
+)

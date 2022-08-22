@@ -16,23 +16,15 @@ import type {GenericConfig} from './GenericNetworkDialog';
 import * as React from 'react';
 import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import useMagmaAPI from '../../api/useMagmaAPI';
+import {AltFormField} from '../FormField';
 import {CwfNetwork} from '../../../generated';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-}));
 
 type Props = {
   onClose: () => void;
@@ -41,7 +33,6 @@ type Props = {
 };
 
 export default function CWFNetworkDialog(props: Props) {
-  const classes = useStyles();
   const [fegNetworkID, setFegNetworkID] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -89,13 +80,14 @@ export default function CWFNetworkDialog(props: Props) {
       onSave={onSave}
       onClose={props.onClose}
       networkConfig={props.networkConfig}>
-      <TextField
-        name="fegNetworkID"
-        label="Federation Network ID"
-        className={classes.input}
-        value={fegNetworkID}
-        onChange={({target}) => setFegNetworkID(target.value)}
-      />
+      <AltFormField label="Federation Network ID">
+        <TextField
+          name="fegNetworkID"
+          fullWidth
+          value={fegNetworkID}
+          onChange={({target}) => setFegNetworkID(target.value)}
+        />
+      </AltFormField>
     </GenericNetworkDialog>
   );
 }

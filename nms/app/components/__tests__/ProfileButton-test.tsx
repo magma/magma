@@ -11,15 +11,14 @@
  * limitations under the License.
  */
 
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
 import defaultTheme from '../../theme/default';
 import {AppContextProvider} from '../../context/AppContext';
 import {EmbeddedData, User} from '../../../shared/types/embeddedData';
 import {MemoryRouter} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import type {FeatureID} from '../../../shared/types/features';
 
@@ -33,8 +32,8 @@ const WrappedProfileButton = (props: Props) => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   return (
     <MemoryRouter initialEntries={[props.path]} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <SnackbarProvider>
             <AppContextProvider isOrganizations={props.isOrganizations}>
               <ProfileButton
@@ -44,8 +43,8 @@ const WrappedProfileButton = (props: Props) => {
               />
             </AppContextProvider>
           </SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 };

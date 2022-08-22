@@ -12,25 +12,22 @@
  */
 
 import * as React from 'react';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import SimpleTable, {LabelsCell} from '../SimpleTable';
 import defaultTheme from '../../../../../theme/default';
-import {ChipProps} from '@material-ui/core/Chip';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {ChipProps} from '@mui/material/Chip';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {render} from '@testing-library/react';
 
 // replace the default chip with a more easily queryable version
-jest.mock('@material-ui/core/Chip', () => ({label, ...props}: ChipProps) => (
+jest.mock('@mui/material/Chip', () => ({label, ...props}: ChipProps) => (
   <div data-chip {...props} children={label} />
 ));
 
 function Wrapper(props: {route?: string; children: React.ReactNode}) {
   return (
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        {props.children}
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>{props.children}</ThemeProvider>
+    </StyledEngineProvider>
   );
 }
 
@@ -88,7 +85,7 @@ test('rendered row is transformed by path expression', () => {
 });
 
 test('if menuItems is passed, actions menu is rendered', () => {
-  const {getAllByTitle} = render(
+  const {getAllByRole} = render(
     <Wrapper>
       <SimpleTable
         columnStruct={mockColumns()}
@@ -101,7 +98,7 @@ test('if menuItems is passed, actions menu is rendered', () => {
       />
     </Wrapper>,
   );
-  expect(getAllByTitle('Actions')[0]).toBeInTheDocument();
+  expect(getAllByRole('button', {name: 'Actions'})[0]).toBeInTheDocument();
 });
 
 describe('column renderers', () => {

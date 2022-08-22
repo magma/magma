@@ -12,26 +12,26 @@
  */
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
 
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '@material-ui/core/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import FormLabel from '@material-ui/core/FormLabel';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormLabel from '@mui/material/FormLabel';
 import GatewayContext from '../../context/GatewayContext';
 import GatewayPoolsContext, {
   GatewayPoolRecordsType,
 } from '../../context/GatewayPoolsContext';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Paper from '@mui/material/Paper';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import {AltFormField} from '../../components/FormField';
 import {
   DEFAULT_GW_POOL_CONFIG,
@@ -39,7 +39,7 @@ import {
   DEFAULT_GW_SECONDARY_CONFIG,
 } from '../../components/GatewayUtils';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -171,21 +171,17 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
                     displayEmpty={true}
                     value={gw.gateway_id}
                     renderValue={selected => {
-                      if (!(selected as string).length) {
+                      if (!selected.length) {
                         return (
                           <em>{`Select ${
                             isPrimary ? 'Primary' : 'Secondary'
                           } Gateway ID`}</em>
                         );
                       }
-                      return selected as string;
+                      return selected;
                     }}
                     onChange={({target}) => {
-                      handleGwIdChange(
-                        target.value as string,
-                        index,
-                        gw.gateway_id,
-                      );
+                      handleGwIdChange(target.value, index, gw.gateway_id);
                     }}
                     input={
                       <OutlinedInput
@@ -240,7 +236,8 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    onClick={() => handleGwDelete(gw.gateway_id)}>
+                    onClick={() => handleGwDelete(gw.gateway_id)}
+                    size="large">
                     <DeleteIcon />
                   </IconButton>
                 </ListItemSecondaryAction>
@@ -251,7 +248,8 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
             <IconButton
               data-testid="addGwButton"
               onClick={handleGwAdd}
-              disabled={isPrimary ? false : gateways.length > 0}>
+              disabled={isPrimary ? false : gateways.length > 0}
+              size="large">
               <AddCircleOutline />
             </IconButton>
           </>

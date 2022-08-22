@@ -15,24 +15,26 @@ import ActionTable, {TableRef} from '../../components/ActionTable';
 import AutorefreshCheckbox, {
   useRefreshingDateRange,
 } from '../../components/AutorefreshCheckbox';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import Grid from '@material-ui/core/Grid';
-import LaunchIcon from '@material-ui/icons/Launch';
-import ListAltIcon from '@material-ui/icons/ListAlt';
+import Grid from '@mui/material/Grid';
+import LaunchIcon from '@mui/icons-material/Launch';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import LogChart from './GatewayLogChart';
 import MagmaAPI from '../../api/MagmaAPI';
 import React, {useMemo, useRef, useState} from 'react';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
+import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CsvBuilder} from 'filefy';
-import {DateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {OptionsObject} from 'notistack';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {getStep} from '../../components/CustomMetrics';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import type {ActionQuery} from '../../components/ActionTable';
@@ -278,14 +280,12 @@ export default function GatewayLogs() {
           </Grid>
           <Grid item>
             <DateTimePicker
-              autoOk
-              variant="inline"
-              inputVariant="outlined"
+              renderInput={props => <TextField {...props} />}
               maxDate={endDate}
               disableFuture
               value={startDate}
               onChange={val => {
-                setStartDate(val!);
+                setStartDate(val as moment.Moment);
                 setIsAutoRefreshing(false);
               }}
             />
@@ -297,13 +297,11 @@ export default function GatewayLogs() {
           </Grid>
           <Grid item>
             <DateTimePicker
-              autoOk
-              variant="inline"
-              inputVariant="outlined"
+              renderInput={props => <TextField {...props} />}
               disableFuture
               value={endDate}
               onChange={val => {
-                setEndDate(val!);
+                setEndDate(val as moment.Moment);
                 setIsAutoRefreshing(false);
               }}
             />

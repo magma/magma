@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
@@ -20,7 +19,7 @@ import defaultTheme from '../../../theme/default';
 import {ApnContextProvider} from '../../../context/ApnContext';
 import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 
@@ -85,8 +84,8 @@ describe('<TrafficDashboard />', () => {
 
   const ApnWrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <NetworkContext.Provider
             value={{
               networkId: 'test',
@@ -102,8 +101,8 @@ describe('<TrafficDashboard />', () => {
               </ApnContextProvider>
             </LteNetworkContextProvider>
           </NetworkContext.Provider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 
@@ -166,6 +165,8 @@ describe('<TrafficDashboard />', () => {
       apnPriority instanceof HTMLInputElement &&
       apnBandwidthUL instanceof HTMLInputElement &&
       apnBandwidthDL instanceof HTMLInputElement &&
+      preemptionCapability instanceof HTMLInputElement &&
+      preemptionVulnerability instanceof HTMLInputElement &&
       pdnType instanceof HTMLElement
     ) {
       fireEvent.change(apnID, {target: {value: 'apn_2'}});
@@ -173,12 +174,8 @@ describe('<TrafficDashboard />', () => {
       fireEvent.change(apnPriority, {target: {value: 15}});
       fireEvent.change(apnBandwidthUL, {target: {value: 1000000}});
       fireEvent.change(apnBandwidthDL, {target: {value: 1000000}});
-      if (preemptionCapability?.firstChild instanceof HTMLElement) {
-        fireEvent.click(preemptionCapability.firstChild);
-      }
-      if (preemptionVulnerability?.firstChild instanceof HTMLElement) {
-        fireEvent.click(preemptionVulnerability.firstChild);
-      }
+      fireEvent.click(preemptionCapability);
+      fireEvent.click(preemptionVulnerability);
       fireEvent.mouseDown(pdnType);
       fireEvent.click(await findByText('IPv6'));
     } else {

@@ -13,26 +13,26 @@
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import CardHeader from '@mui/material/CardHeader';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EmptyState from '../../components/EmptyState';
 import EnodebContext from '../../context/EnodebContext';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
 import React from 'react';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import withAlert from '../../components/Alert/withAlert';
 import {EnodeEditDialog} from './EnodebDetailConfigEdit';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useInterval} from '../../hooks';
@@ -145,7 +145,8 @@ function AddEnodebInstructions(props: {setOpen: () => void}) {
               <Grid item>
                 <Link
                   href="https://docs.magmacore.org/docs/next/lte/deploy_config_enodebd#configure-enodeb"
-                  target="_blank">
+                  target="_blank"
+                  underline="hover">
                   Learn more about the supported eNodeB and protocols
                 </Link>
               </Grid>
@@ -171,7 +172,8 @@ function AddEnodebInstructions(props: {setOpen: () => void}) {
           <CardActions disableSpacing={true}>
             <Link
               href="https://docs.magmacore.org/docs/next/lte/deploy_config_enodebd#manual-configuration"
-              target="_blank">
+              target="_blank"
+              underline="hover">
               How to configure an unmanaged eNodeB
             </Link>
           </CardActions>
@@ -306,7 +308,8 @@ function EnodebTableRaw(props: WithAlert) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => navigate(currRow.id)}>
+                onClick={() => navigate(currRow.id)}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),

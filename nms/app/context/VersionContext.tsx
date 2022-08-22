@@ -38,23 +38,21 @@ export function VersionContextProvider(props: Props) {
 
   useEffect(() => {
     const fetchNmsVersion = async () => {
-      axios
-        .get<string>('/version')
-        .then(response => {
-          setNmsVersion(`v${response.data}`);
-        })
-        .catch(() => {
-          enqueueSnackbar?.('failed fetching NMS version information', {
-            variant: 'error',
-          });
-        });
+      try {
+        const response = await axios.get<string>('/version');
+        setNmsVersion(`v${response.data}`);
+        const version = (await MagmaAPI.about.aboutVersionGet()).data;
 
-      const version = (await MagmaAPI.about.aboutVersionGet()).data;
-      setOrc8rVersion(`v${version.container_image_version!}`);
+        setOrc8rVersion(`v${version.container_image_version!}`);
+      } catch (e) {
+        enqueueSnackbar?.('failed fetching NMS version information', {
+          variant: 'error',
+        });
+      }
     };
 
     void fetchNmsVersion();
-  });
+  }, [enqueueSnackbar]);
 
   return (
     <VersionContext.Provider

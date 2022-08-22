@@ -17,7 +17,7 @@ RUN [ "/bin/bash", "-c", "echo \"Install general purpose packages\" && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
-    libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
+    libtool curl make g++ unzip git build-essential autoconf libtool pkg-config libsqlite3-dev libsqlite3-0 \
     gcc-7 g++-7 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
     libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-7 && \
     echo \"Configure C/C++ compiler v7.5 as primary\" && \
@@ -275,6 +275,7 @@ RUN apt-get update && \
       net-tools \
       tshark \
       tzdata \
+      libsqlite3-0 \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files

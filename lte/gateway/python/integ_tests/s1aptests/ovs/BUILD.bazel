@@ -15,13 +15,11 @@ package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "constants",
-    testonly = 1,
     srcs = ["__init__.py"],
 )
 
 py_library(
     name = "rest_api",
-    testonly = 1,
     srcs = ["rest_api.py"],
     deps = [":constants"],
 )

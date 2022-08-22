@@ -40,7 +40,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:dev"
+    command: "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 -- yarn run start:prod"
     volumes:
       - ./api:/usr/src/api
       - ./app:/usr/src/app

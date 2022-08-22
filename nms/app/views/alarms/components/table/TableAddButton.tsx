@@ -14,10 +14,10 @@
  */
 
 import * as React from 'react';
-import AddIcon from '@material-ui/icons/Add';
-import Fab from '@material-ui/core/Fab';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import AddIcon from '@mui/icons-material/Add';
+import Fab from '@mui/material/Fab';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 
 type Props = {
   label: string;

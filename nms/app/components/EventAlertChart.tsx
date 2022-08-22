@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
 import CardTitleRow from './layout/CardTitleRow';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
+import DataUsageIcon from '@mui/icons-material/DataUsage';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';

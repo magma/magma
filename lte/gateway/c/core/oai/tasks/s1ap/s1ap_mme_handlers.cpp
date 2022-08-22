@@ -445,6 +445,11 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
   unsigned int num_elements = 0;
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
 
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "s1ap_ue_state map doesn't exist");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   for (auto itr = s1ap_ue_state->map->begin(); itr != s1ap_ue_state->map->end();
        itr++) {
     if ((itr->second) && (sctp_assoc_id == itr->second->sctp_assoc_id())) {

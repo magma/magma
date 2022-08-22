@@ -12,12 +12,12 @@
  */
 
 import AppContext from '../../context/AppContext';
-import AssessmentIcon from '@material-ui/icons/Assessment';
-import ExploreIcon from '@material-ui/icons/Explore';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import ExploreIcon from '@mui/icons-material/Explore';
 import Explorer from '../../views/metrics/Explorer';
 import GatewayMetrics from '../insights/GatewayMetrics';
 import Grafana from '../Grafana';
-import ListIcon from '@material-ui/icons/ListAlt';
+import ListIcon from '@mui/icons-material/ListAlt';
 import LogsList from '../../views/domain-proxy/LogsList';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';

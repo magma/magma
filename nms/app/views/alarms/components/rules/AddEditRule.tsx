@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React from 'react';
 import RuleContext from './RuleContext';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useState} from 'react';
 

@@ -14,7 +14,6 @@ import ApnContext from '../../../context/ApnContext';
 import LteNetworkContext, {
   LteNetworkContextType,
 } from '../../../context/LteNetworkContext';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
 import SubscriberDashboard from '../SubscriberOverview';
@@ -24,19 +23,21 @@ import {SubscriberContextProvider} from '../../../context/SubscriberContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {
   NetworkEpcConfigs,
   NetworkRanConfigs,
   PolicyRule,
   Subscriber,
 } from '../../../../generated';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 
 jest.mock('../../../hooks/useSnackbar');
+
+jest.setTimeout(30000);
 
 const subscribersMock: Record<string, Subscriber> = {
   IMSI00000000001002: {
@@ -250,24 +251,26 @@ describe('<AddSubscriberButton />', () => {
 
     return (
       <MemoryRouter initialEntries={['/nms/test/subscribers']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <LteNetworkContext.Provider value={networkCtx}>
-              <PolicyContext.Provider value={policyCtx}>
-                <ApnContext.Provider value={apnCtx}>
-                  <SubscriberContextProvider networkId="test">
-                    <Routes>
-                      <Route
-                        path="/nms/:networkId/subscribers/*"
-                        element={<SubscriberDashboard />}
-                      />
-                    </Routes>
-                  </SubscriberContextProvider>
-                </ApnContext.Provider>
-              </PolicyContext.Provider>
-            </LteNetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <LteNetworkContext.Provider value={networkCtx}>
+                <PolicyContext.Provider value={policyCtx}>
+                  <ApnContext.Provider value={apnCtx}>
+                    <SubscriberContextProvider networkId="test">
+                      <Routes>
+                        <Route
+                          path="/nms/:networkId/subscribers/*"
+                          element={<SubscriberDashboard />}
+                        />
+                      </Routes>
+                    </SubscriberContextProvider>
+                  </ApnContext.Provider>
+                </PolicyContext.Provider>
+              </LteNetworkContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -306,24 +309,26 @@ describe('<AddSubscriberButton />', () => {
           '/nms/test/subscribers/overview/IMSI00000000001002/config',
         ]}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <LteNetworkContext.Provider value={networkCtx}>
-              <PolicyContext.Provider value={policyCtx}>
-                <ApnContext.Provider value={apnCtx}>
-                  <SubscriberContextProvider networkId="test">
-                    <Routes>
-                      <Route
-                        path="/nms/:networkId/subscribers/overview/:subscriberId/config"
-                        element={<SubscriberDetailConfig />}
-                      />
-                    </Routes>
-                  </SubscriberContextProvider>
-                </ApnContext.Provider>
-              </PolicyContext.Provider>
-            </LteNetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <LteNetworkContext.Provider value={networkCtx}>
+                <PolicyContext.Provider value={policyCtx}>
+                  <ApnContext.Provider value={apnCtx}>
+                    <SubscriberContextProvider networkId="test">
+                      <Routes>
+                        <Route
+                          path="/nms/:networkId/subscribers/overview/:subscriberId/config"
+                          element={<SubscriberDetailConfig />}
+                        />
+                      </Routes>
+                    </SubscriberContextProvider>
+                  </ApnContext.Provider>
+                </PolicyContext.Provider>
+              </LteNetworkContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -332,8 +337,8 @@ describe('<AddSubscriberButton />', () => {
     const {
       getByTestId,
       queryByTestId,
-      getByTitle,
-      findByTitle,
+      getByRole,
+      findByRole,
       findByTestId,
       findByText,
     } = render(<AddWrapper />);
@@ -359,7 +364,7 @@ describe('<AddSubscriberButton />', () => {
     expect(rowHeader[0]).toHaveTextContent('Active Policies');
 
     //Add subscriber
-    fireEvent.click(await findByTitle('Add'));
+    fireEvent.click(await findByRole('button', {name: 'Add'}));
 
     const name = (await findByTestId('name')).firstChild;
     const IMSI = getByTestId('IMSI').firstChild;
@@ -389,7 +394,7 @@ describe('<AddSubscriberButton />', () => {
     }
 
     // Add subscriber
-    fireEvent.click(getByTitle('Save'));
+    fireEvent.click(getByRole('button', {name: 'Save'}));
 
     // Verify new subscriber row before saving
     const rowItems = await within(detailsTable).findAllByRole('row', {

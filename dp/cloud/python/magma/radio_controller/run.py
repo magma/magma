@@ -13,9 +13,7 @@ limitations under the License.
 
 import logging
 from concurrent import futures
-from datetime import datetime
 from signal import SIGTERM, signal
-from time import sleep
 
 import grpc
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -23,16 +21,13 @@ from apscheduler.triggers.interval import IntervalTrigger
 from dp.protos.active_mode_pb2_grpc import (
     add_ActiveModeControllerServicer_to_server,
 )
-from dp.protos.enodebd_dp_pb2_grpc import add_DPServiceServicer_to_server
 from dp.protos.requests_pb2_grpc import add_RadioControllerServicer_to_server
 from magma.db_service.session_manager import SessionManager
-from magma.fluentd_client.client import FluentdClient
 from magma.metricsd_client.client import get_metricsd_client, process_metrics
 from magma.radio_controller.config import get_config
 from magma.radio_controller.services.active_mode_controller.service import (
     ActiveModeControllerService,
 )
-from magma.radio_controller.services.dp.service import DPService
 from magma.radio_controller.services.radio_controller.service import (
     RadioControllerService,
 )
@@ -81,13 +76,6 @@ def run():
     )
     add_ActiveModeControllerServicer_to_server(
         ActiveModeControllerService(session_manager=session_manager), server,
-    )
-    add_DPServiceServicer_to_server(
-        DPService(
-            session_manager=session_manager,
-            now_func=datetime.now,
-            fluentd_client=FluentdClient(),
-        ), server,
     )
     server.add_insecure_port(f"[::]:{config.GRPC_PORT}")
     server.start()

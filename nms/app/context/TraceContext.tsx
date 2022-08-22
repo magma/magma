@@ -47,8 +47,7 @@ async function initTraceState(params: {
     ).data;
 
     if (traces) {
-      // TODO[ts-migration] type of generated API is incorrect - fix swagger.yaml
-      setTraceMap((traces as unknown) as Record<string, CallTrace>);
+      setTraceMap(traces);
     }
   } catch (e) {
     enqueueSnackbar?.('failed fetching call trace information', {

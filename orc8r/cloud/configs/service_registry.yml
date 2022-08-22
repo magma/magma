@@ -25,6 +25,7 @@ services:
   analytics:
     host: "localhost"
     port: 9200
+    protected_port: 9300
     proxy_type: "clientcert"
 
   dp_service:
@@ -60,6 +61,7 @@ services:
   streamer:
     host: "localhost"
     port: 9082
+    protected_port: 9182
     proxy_type: "clientcert"
 
   metricsd:
@@ -96,6 +98,7 @@ services:
   bootstrapper:
     host: "localhost"
     port: 9088
+    protected_port: 9188
     proxy_type: "open"
 
   accessd:
@@ -121,11 +124,13 @@ services:
   obsidian:
     host: "localhost"
     port: 9093
+    protected_port: 9193
     proxy_type: "obsidian"
 
   dispatcher:
     host: "localhost"
     port: 9096
+    protected_port: 9196
     proxy_type: "clientcert"
 
   directoryd:
@@ -143,6 +148,7 @@ services:
   orc8r_worker:
     host: "localhost"
     port: 9122
+    protected_port: 9222
     proxy_type: "clientcert"
 
   device:

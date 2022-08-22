@@ -36,7 +36,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/protos/session_manager.pb.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 

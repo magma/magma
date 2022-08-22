@@ -12,15 +12,15 @@
  */
 
 import AppContext from '../../context/AppContext';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import LteMetrics from '../lte/LteMetrics';
-import Paper from '@material-ui/core/Paper';
+import Paper from '@mui/material/Paper';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({

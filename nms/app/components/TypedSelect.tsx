@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-import MenuItem from '@material-ui/core/MenuItem';
+import MenuItem from '@mui/material/MenuItem';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import {InputBaseComponentProps} from '@material-ui/core/InputBase/InputBase';
+import Select from '@mui/material/Select';
+import {InputBaseComponentProps} from '@mui/material/InputBase/InputBase';
 
 type Props<T extends string | number> = {
   value: T;

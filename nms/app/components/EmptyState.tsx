@@ -11,16 +11,16 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import CardHeader from '@mui/material/CardHeader';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
 import Text from './../theme/design-system/Text';
-import {Theme} from '@material-ui/core';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   card: {
@@ -113,7 +113,8 @@ export default function (props: emptyStateProps) {
                   <Link
                     target="_blank"
                     className={classes.emptyStateLink}
-                    href={props.cardActions?.link}>
+                    href={props.cardActions?.link}
+                    underline="hover">
                     {props.cardActions?.linkText}
                   </Link>
                 </Grid>

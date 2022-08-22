@@ -12,14 +12,14 @@
  */
 
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import React from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SubscriberContext from '../../context/SubscriberContext';
 import nullthrows from '../../../shared/util/nullthrows';
 import {EditSubscriberButton} from './SubscriberEditDialog';
@@ -28,10 +28,10 @@ import {
   Subscriber,
   SubscriberForbiddenNetworkTypesEnum,
 } from '../../../generated';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
@@ -302,7 +302,8 @@ function SubscriberApnStaticIpsTable({
                     `traffic/apn`,
                   ),
                 );
-              }}>
+              }}
+              underline="hover">
               {currRow.apnName}
             </Link>
           ),

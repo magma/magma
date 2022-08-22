@@ -12,22 +12,22 @@
  */
 
 import ApnContext from '../../context/ApnContext';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControl from '@material-ui/core/FormControl';
-import List from '@material-ui/core/List';
-import ListItemText from '@material-ui/core/ListItemText';
+import Checkbox from '@mui/material/Checkbox';
+import FormControl from '@mui/material/FormControl';
+import List from '@mui/material/List';
+import ListItemText from '@mui/material/ListItemText';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import PolicyContext from '../../context/PolicyContext';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {AltFormField} from '../../components/FormField';
 import {EditSubscriberProps} from './SubscriberUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 
@@ -74,7 +74,7 @@ export default function EditSubscriberTrafficPolicy(
                   target.value as Array<string>,
                 );
               }}
-              renderValue={selected => (selected as Array<string>).join(', ')}
+              renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
               {apns.map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
@@ -103,7 +103,7 @@ export default function EditSubscriberTrafficPolicy(
                   target.value as Array<string>,
                 );
               }}
-              renderValue={selected => (selected as Array<string>).join(', ')}
+              renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
               {(baseNames || []).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
@@ -133,7 +133,7 @@ export default function EditSubscriberTrafficPolicy(
                   target.value as Array<string>,
                 );
               }}
-              renderValue={selected => (selected as Array<string>).join(', ')}
+              renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
               {Object.keys(policyCtx.state).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>

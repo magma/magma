@@ -13,23 +13,24 @@
 
 import * as React from 'react';
 import AddEditReceiver from './AddEditReceiver';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@mui/material/Button';
+import CardTitleRow from '../../../../../components/layout/CardTitleRow';
+import CircularProgress from '@mui/material/CircularProgress';
 import GlobalConfig from './GlobalConfig';
-import Grid from '@material-ui/core/Grid';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import SettingsIcon from '@material-ui/icons/Settings';
+import Grid from '@mui/material/Grid';
+import GroupIcon from '@mui/icons-material/Group';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import SimpleTable, {LabelsCell} from '../../table/SimpleTable';
 import TableActionDialog from '../../table/TableActionDialog';
-import TableAddButton from '../../table/TableAddButton';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+
+import {Theme} from '@mui/material/styles';
+import {colors} from '../../../../../theme/default';
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
+import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
-
-import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {AlertReceiver} from '../../AlarmAPIType';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -41,6 +42,10 @@ const useStyles = makeStyles<Theme>(theme => ({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  emptyReceiverTitle: {
+    color: colors.primary.comet,
+    marginBottom: '8px',
   },
 }));
 
@@ -58,6 +63,55 @@ const receiverColumns = [
     },
   },
 ];
+
+function CreateReceiverButton(props: {onAddReceiverClick: () => void}) {
+  return (
+    <Grid item>
+      <Button
+        data-testid="add-receiver-button"
+        variant="contained"
+        color="primary"
+        onClick={() => props.onAddReceiverClick()}>
+        Create Receiver
+      </Button>
+    </Grid>
+  );
+}
+
+function ReceiverFilter(props: {
+  onAddReceiverClick: () => void;
+  showGlobalConfig: boolean;
+  setShowGlobalSettings: () => void;
+}) {
+  return (
+    <Grid container justifyContent="flex-end" alignItems="center" spacing={2}>
+      {props.showGlobalConfig === true && (
+        <Grid item>
+          <Button
+            onClick={() => props.setShowGlobalSettings()}
+            variant="outlined">
+            Settings
+          </Button>
+        </Grid>
+      )}
+      <CreateReceiverButton
+        onAddReceiverClick={() => props.onAddReceiverClick()}
+      />
+    </Grid>
+  );
+}
+
+function ReceiverEmpty(props: {onAddReceiverClick: () => void}) {
+  const classes = useStyles();
+  return (
+    <Grid container direction="column" alignItems="center">
+      <div className={classes.emptyReceiverTitle}>No Receiver Added</div>
+      <CreateReceiverButton
+        onAddReceiverClick={() => props.onAddReceiverClick()}
+      />
+    </Grid>
+  );
+}
 
 export default function Receivers() {
   const {apiUtil, alertManagerGlobalConfigEnabled} = useAlarmContext();
@@ -132,6 +186,12 @@ export default function Receivers() {
     snackbars.error(`Unable to load receivers: ${getErrorMessage(error)}`);
   }
 
+  const openAddReceiver = () => {
+    setIsNewReceiver(true);
+    setIsAddEditReceiver(true);
+    setSelectedRow(null);
+  };
+
   const receiversData = response || [];
 
   if (isAddEditReceiver) {
@@ -160,39 +220,45 @@ export default function Receivers() {
 
   return (
     <Grid className={classes.root} container spacing={2} direction="column">
-      {alertManagerGlobalConfigEnabled === true && (
-        <Grid item>
-          <Button
-            onClick={() => setIsEditGlobalSettings(true)}
-            startIcon={<SettingsIcon />}
-            variant="outlined">
-            Settings
-          </Button>
-        </Grid>
-      )}
       <Grid item>
-        <>
-          <SimpleTable
-            onRowClick={row => setSelectedRow(row)}
-            columnStruct={receiverColumns}
-            tableData={receiversData}
-            dataTestId="receiver"
-            menuItems={[
-              {
-                name: 'View',
-                handleFunc: () => handleViewDialogOpen(),
-              },
-              {
-                name: 'Edit',
-                handleFunc: () => handleEdit(),
-              },
-              {
-                name: 'Delete',
-                handleFunc: () => handleDelete(),
-              },
-            ]}
-          />
-        </>
+        <CardTitleRow
+          label="Alert rules"
+          icon={GroupIcon}
+          filter={() => (
+            <ReceiverFilter
+              showGlobalConfig={alertManagerGlobalConfigEnabled ?? false}
+              setShowGlobalSettings={() => setIsEditGlobalSettings(true)}
+              onAddReceiverClick={() => openAddReceiver()}
+            />
+          )}
+        />
+        <SimpleTable
+          localization={{
+            body: {
+              emptyDataSourceMessage: (
+                <ReceiverEmpty onAddReceiverClick={() => openAddReceiver()} />
+              ),
+            },
+          }}
+          onRowClick={row => setSelectedRow(row)}
+          columnStruct={receiverColumns}
+          tableData={receiversData}
+          dataTestId="receiver"
+          menuItems={[
+            {
+              name: 'View',
+              handleFunc: () => handleViewDialogOpen(),
+            },
+            {
+              name: 'Edit',
+              handleFunc: () => handleEdit(),
+            },
+            {
+              name: 'Delete',
+              handleFunc: () => handleDelete(),
+            },
+          ]}
+        />
       </Grid>
       {isLoading && receiversData.length === 0 && (
         <div className={classes.loading}>
@@ -215,15 +281,6 @@ export default function Receivers() {
         row={selectedRow || {}}
         showCopyButton={true}
         showDeleteButton={false}
-      />
-      <TableAddButton
-        label="Add Receiver"
-        onClick={() => {
-          setIsNewReceiver(true);
-          setIsAddEditReceiver(true);
-          setSelectedRow(null);
-        }}
-        data-testid="add-receiver-button"
       />
     </Grid>
   );

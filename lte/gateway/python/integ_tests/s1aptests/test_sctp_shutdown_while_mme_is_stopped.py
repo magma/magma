@@ -67,7 +67,7 @@ class TestSctpShutdowniWhileStatelessMmeIsStopped(unittest.TestCase):
         print("Redis state after SCTP shutdown")
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
-        print("Starting MME service and waiting for 20 seconds")
+        print("Starting MME service and waiting for 30 seconds")
         self._s1ap_wrapper.magmad_util.exec_command(
             "sudo service magma@mobilityd start",
         )

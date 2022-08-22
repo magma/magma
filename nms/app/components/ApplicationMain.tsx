@@ -13,12 +13,13 @@
 
 import * as React from 'react';
 import Alert from './Alert/Alert';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import CssBaseline from '@mui/material/CssBaseline';
 import axios, {AxiosError} from 'axios';
 import defaultTheme from '../theme/default';
 import {ErrorCodes} from '../../shared/errorCodes';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider} from '@mui/styled-engine';
+import {ThemeProvider} from '@mui/material/styles';
 import {useEffect, useState} from 'react';
 
 const DIALOG_MESSAGE =
@@ -64,28 +65,30 @@ const ApplicationMain = (props: Props) => {
   }, []);
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <SnackbarProvider
-        maxSnack={3}
-        autoHideDuration={10000}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}>
-        <CssBaseline />
-        {props.children}
-      </SnackbarProvider>
-      <Alert
-        confirmLabel="Reload Page"
-        cancelLabel="Cancel"
-        message={DIALOG_MESSAGE}
-        title="You have been logged out"
-        open={loggedOutAlertOpen}
-        onClose={() => setLoggedOutAlertOpen(false)}
-        onCancel={() => setLoggedOutAlertOpen(false)}
-        onConfirm={() => location.reload()}
-      />
-    </ThemeProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={10000}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}>
+          <CssBaseline />
+          {props.children}
+        </SnackbarProvider>
+        <Alert
+          confirmLabel="Reload Page"
+          cancelLabel="Cancel"
+          message={DIALOG_MESSAGE}
+          title="You have been logged out"
+          open={loggedOutAlertOpen}
+          onClose={() => setLoggedOutAlertOpen(false)}
+          onCancel={() => setLoggedOutAlertOpen(false)}
+          onConfirm={() => location.reload()}
+        />
+      </ThemeProvider>
+    </StyledEngineProvider>
   );
 };
 

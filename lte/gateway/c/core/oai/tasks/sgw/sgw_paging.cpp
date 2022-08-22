@@ -36,7 +36,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 void sgw_send_paging_request(const struct in_addr* dest_ipv4,
                              const struct in6_addr* dest_ipv6) {

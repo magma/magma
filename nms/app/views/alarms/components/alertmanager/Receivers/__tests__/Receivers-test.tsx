@@ -14,7 +14,8 @@
 import * as React from 'react';
 import Receivers from '../Receivers';
 import {MockApiUtil, alarmTestUtil} from '../../../../test/testHelpers';
-import {act, fireEvent, render, waitFor} from '@testing-library/react';
+import {act, fireEvent, waitFor} from '@testing-library/react';
+import {render} from '../../../../../../util/TestingLibrary';
 import type {AlarmsWrapperProps} from '../../../../test/testHelpers';
 
 describe('Receivers', () => {
@@ -55,16 +56,12 @@ describe('Receivers', () => {
         },
       ],
     });
-    const {getByText, getAllByText, getAllByTitle, queryByText} = render(
+    const {getByText, getAllByText, queryByText, openActionsTableMenu} = render(
       <AlarmsWrapper>
         <Receivers />
       </AlarmsWrapper>,
     );
-    const actionMenu = getAllByTitle('Actions');
-    expect(actionMenu[0]).toBeInTheDocument();
-    act(() => {
-      fireEvent.click(actionMenu[0]);
-    });
+    await openActionsTableMenu(0);
     act(() => {
       fireEvent.click(getAllByText('View')[0]);
     });
@@ -79,7 +76,7 @@ describe('Receivers', () => {
     );
   });
 
-  it('clicking edit button should show AddEditReceiver in edit mode', () => {
+  it('clicking edit button should show AddEditReceiver in edit mode', async () => {
     jest.spyOn(apiUtil, 'useAlarmsApi').mockReturnValueOnce({
       ...defaultResponse,
       response: [
@@ -96,17 +93,18 @@ describe('Receivers', () => {
         },
       ],
     });
-    const {getAllByText, getByTestId, queryByTestId, getAllByTitle} = render(
+    const {
+      getAllByText,
+      getByTestId,
+      queryByTestId,
+      openActionsTableMenu,
+    } = render(
       <AlarmsWrapper>
         <Receivers />
       </AlarmsWrapper>,
     );
 
-    const actionMenu = getAllByTitle('Actions');
-    expect(actionMenu[0]).toBeInTheDocument();
-    act(() => {
-      fireEvent.click(actionMenu[0]);
-    });
+    await openActionsTableMenu(0);
     expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
     act(() => {
       fireEvent.click(getAllByText('Edit')[0]);
@@ -119,7 +117,7 @@ describe('Receivers', () => {
       ...defaultResponse,
       response: [],
     });
-    const {getByTestId, queryByTestId} = render(
+    const {getAllByTestId, getByTestId, queryByTestId} = render(
       <AlarmsWrapper>
         <Receivers />
       </AlarmsWrapper>,
@@ -127,7 +125,7 @@ describe('Receivers', () => {
 
     expect(queryByTestId('add-edit-receiver')).not.toBeInTheDocument();
     act(() => {
-      fireEvent.click(getByTestId('add-receiver-button'));
+      fireEvent.click(getAllByTestId('add-receiver-button')[0]);
     });
     expect(getByTestId('add-edit-receiver')).toBeInTheDocument();
   });

@@ -232,15 +232,6 @@ class IngressController(RestartMixin, MagmaController):
 
         return msgs
 
-    def _install_default_flows(self, datapath):
-        default_msg_map = self._get_default_flow_msgs(datapath)
-        default_msgs = []
-
-        for _, msgs in default_msg_map.items():
-            default_msgs.extend(msgs)
-        chan = self._msg_hub.send(default_msgs, datapath)
-        self._wait_for_responses(chan, len(default_msgs))
-
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
             self.logger.error("Failed to install rule with error: %s", err)
@@ -276,10 +267,6 @@ class IngressController(RestartMixin, MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        # TODO possibly investigate stateless XWF(no sessiond)
-        if self.config.setup_type == 'XWF':
-            self.delete_all_flows(datapath)
-            self._install_default_flows(datapath)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)

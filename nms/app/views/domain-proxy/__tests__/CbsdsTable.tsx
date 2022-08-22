@@ -12,12 +12,12 @@
  */
 import CbsdContext, {CbsdContextType} from '../../../context/CbsdContext';
 import CbsdsTable from '../CbsdsTable';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 
-import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, within} from '@testing-library/react';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
+import {fireEvent, within} from '@testing-library/react';
+import {render} from '../../../util/TestingLibrary';
 
 jest.mock('axios');
 
@@ -103,13 +103,13 @@ const cbsdState = {
 
 const renderTable = () => {
   return render(
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
         <CbsdContext.Provider value={cbsdState}>
           <CbsdsTable />
         </CbsdContext.Provider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>,
+      </ThemeProvider>
+    </StyledEngineProvider>,
   );
 };
 
@@ -127,21 +127,8 @@ describe('<CbsdsTable /> with 2 cbsds', () => {
 
   it('Opens edit modal when Edit button is clicked', async () => {
     const component = renderTable();
-
-    const tables = await component.findAllByRole('table');
-    const table = tables[0];
-
-    const rows = await within(table).findAllByRole('row');
-    // 0 is headings, 1 is the first row
-    const row = rows[1];
-
-    const menuButton = await within(row).findByRole(
-      (role, element) => element?.getAttribute('title') === 'Actions',
-    );
-
-    fireEvent.click(menuButton);
-
-    const menu = await component.findByTestId('actions-menu');
+    await component.findAllByRole('table');
+    const menu = await component.openActionsTableMenu(0);
 
     const editButton = await within(menu).findByText('Edit');
 

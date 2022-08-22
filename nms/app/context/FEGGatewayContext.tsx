@@ -25,11 +25,8 @@ import {useEffect, useState} from 'react';
 
 export type FEGGatewayContextType = {
   state: Record<string, FederationGateway>;
-  setState: (
-    key: GatewayId,
-    val?: MutableFederationGateway,
-    newState?: Record<string, FederationGateway>,
-  ) => Promise<void>;
+  setState: (key: GatewayId, val?: MutableFederationGateway) => Promise<void>;
+  updateGateway: (props: UpdateFegGatewayParams) => Promise<void>;
   refetch: (id?: GatewayId) => void;
   health: Record<GatewayId, FederationGatewayHealthStatus>;
   activeFegGatewayId: GatewayId;
@@ -84,7 +81,6 @@ async function initGatewayState(params: {
  * @property {(gatewayId:gateway_id) => void} setActiveFegGatewayId Sets the active gateway id.
  * @property {gateway_id} key Id of the gateway to be added, deleted or edited.
  * @property {mutable_federation_gateway} value New Value for the gateway with the id: key.
- * @property {[gateway_id]: federation_gateway} newState New State of the Federation Gateway.
  * @property {(msg, cfg,) => ?(string | number),} enqueueSnackbar Snackbar to display error
  */
 type GatewayStateParams = {
@@ -157,6 +153,22 @@ async function setGatewayState(params: GatewayStateParams) {
   setActiveFegGatewayId(
     await getActiveFegGatewayId(networkId, fegGateways, enqueueSnackbar),
   );
+}
+
+export type UpdateFegGatewayParams = {
+  gatewayId: GatewayId;
+  tierId: string;
+};
+
+async function updateGateway(
+  params: {networkId: NetworkId} & UpdateFegGatewayParams,
+) {
+  const {networkId, gatewayId, tierId} = params;
+  await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdTierPut({
+    networkId,
+    gatewayId: gatewayId,
+    tierId: JSON.stringify(`"${tierId}"`),
+  });
 }
 
 /**
@@ -338,6 +350,11 @@ export function FEGGatewayContextProvider(props: {
             enqueueSnackbar,
           });
         },
+        updateGateway: props =>
+          updateGateway({
+            networkId,
+            ...props,
+          }),
         refetch: (id?: GatewayId) => {
           if (id) {
             void fetchFegGateway({id, networkId, enqueueSnackbar}).then(

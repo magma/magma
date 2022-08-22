@@ -153,7 +153,11 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    auto* ue_context = new UeDescription();
+    auto* ue_context = new ue_description_t();
+    if (!ue_context) {
+      OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
+      return RETURNerror;
+    }
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
@@ -230,5 +234,6 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
 map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
+
 }  // namespace lte
 }  // namespace magma

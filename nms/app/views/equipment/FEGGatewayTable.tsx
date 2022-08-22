@@ -17,17 +17,25 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
-import CheckIcon from '@material-ui/icons/Check';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
+import CheckIcon from '@mui/icons-material/Check';
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import FEGGatewayContext from '../../context/FEGGatewayContext';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
+import GatewayTierContext from '../../context/GatewayTierContext';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useContext, useState} from 'react';
+import Select from '@mui/material/Select';
+import Text from '../../theme/design-system/Text';
+
 import withAlert from '../../components/Alert/withAlert';
 import {GatewayId} from '../../../shared/types/network';
 import {GatewayTypeEnum, HEALTHY_STATUS} from '../../components/GatewayUtils';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
+import {SelectEditComponent} from '../../components/ActionTable';
+import {getErrorMessage} from '../../util/ErrorUtils';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useInterval} from '../../hooks';
 import {useNavigate} from 'react-router-dom';
@@ -45,6 +53,10 @@ type EquipmentFegGatewayRowType = {
   csfb: string;
 };
 
+const ViewTypes = {
+  STATUS: 'Status',
+  UPGRADE: 'Upgrade',
+};
 /**
  * Displays the number of federation gateways alonside with a table showing
  * each federation gateway.
@@ -52,6 +64,9 @@ type EquipmentFegGatewayRowType = {
 export default function GatewayTable() {
   const ctx = useContext(FEGGatewayContext);
   const [refresh, setRefresh] = useState(true);
+  const [currentView, setCurrentView] = useState<
+    typeof ViewTypes[keyof typeof ViewTypes]
+  >('Status');
 
   return (
     <>
@@ -65,16 +80,38 @@ export default function GatewayTable() {
             justifyContent="flex-end"
             alignItems="center"
             spacing={1}>
+            {currentView !== ViewTypes.UPGRADE && (
+              <Grid item>
+                <AutorefreshCheckbox
+                  autorefreshEnabled={refresh}
+                  onToggle={() => setRefresh(current => !current)}
+                />
+              </Grid>
+            )}
             <Grid item>
-              <AutorefreshCheckbox
-                autorefreshEnabled={refresh}
-                onToggle={() => setRefresh(current => !current)}
-              />
+              <Text variant="body3">View</Text>
+            </Grid>
+            <Grid item>
+              <Select
+                value={currentView}
+                input={<OutlinedInput />}
+                onChange={({target}) => setCurrentView(target.value)}>
+                <MenuItem key={ViewTypes.STATUS} value={ViewTypes.STATUS}>
+                  Status
+                </MenuItem>
+                <MenuItem key={ViewTypes.UPGRADE} value={ViewTypes.UPGRADE}>
+                  Upgrade
+                </MenuItem>
+              </Select>
             </Grid>
           </Grid>
         )}
       />
-      <StatusTable refresh={refresh} />
+      {currentView === ViewTypes.UPGRADE ? (
+        <UpgradeTable />
+      ) : (
+        <StatusTable refresh={refresh} />
+      )}
     </>
   );
 }
@@ -130,7 +167,8 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => navigate(currRow.id)}>
+                onClick={() => navigate(currRow.id)}
+                underline="hover">
                 {currRow.name}
               </Link>
             ),
@@ -209,3 +247,113 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
   );
 }
 const StatusTable = withAlert(GatewayStatusTable);
+
+type EquipmentGatewayUpgradeType = {
+  name: string;
+  id: GatewayId;
+  hardwareId: string;
+  tier: string;
+  currentVersion: string;
+};
+function UpgradeTable() {
+  const tierCtx = useContext(GatewayTierContext);
+  const gwCtx = useContext(FEGGatewayContext);
+  const navigate = useNavigate();
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const fegGatewayRows: Array<EquipmentGatewayUpgradeType> = [];
+  Object.keys(gwCtx.state)
+    .map((gwId: string) => gwCtx.state[gwId])
+    .map((gateway: FederationGateway) => {
+      const packages = gateway.status?.platform_info?.packages || [];
+      fegGatewayRows.push({
+        name: gateway.name,
+        id: gateway.id,
+        hardwareId: gateway.device?.hardware_id || '-',
+        tier: gateway.tier,
+        currentVersion:
+          packages.find(p => p.name === 'magma')?.version || 'Not Reported',
+      });
+    });
+  const [fegGatewayUpgradeRows, setFegGatewayUpgradeRows] = useState(
+    fegGatewayRows,
+  );
+  return (
+    <ActionTable
+      data={fegGatewayUpgradeRows}
+      columns={[
+        {title: 'Name', field: 'name', editable: 'never'},
+        {
+          title: 'ID',
+          field: 'id',
+          editable: 'never',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => navigate(currRow.id)}>
+              {currRow.id}
+            </Link>
+          ),
+        },
+        {
+          title: 'Hardware ID',
+          field: 'hardwareId',
+          editable: 'never',
+        },
+        {
+          title: 'Current Version',
+          field: 'currentVersion',
+          editable: 'never',
+          width: 250,
+        },
+        {
+          title: 'Tier',
+          field: 'tier',
+          width: 100,
+          editComponent: props => (
+            <SelectEditComponent
+              {...props}
+              defaultValue={props.value as string}
+              value={props.value as string}
+              content={Object.keys(tierCtx.state.tiers)}
+              onChange={value => props.onChange(value)}
+            />
+          ),
+        },
+      ]}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [5, 10],
+      }}
+      editable={{
+        onRowUpdate: async (newData, oldData) => {
+          try {
+            if (newData.tier) {
+              // Update tier id
+              await gwCtx.updateGateway({
+                gatewayId: newData.id,
+                tierId: newData.tier,
+              });
+              const dataUpdate = [...fegGatewayUpgradeRows];
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              const index = (oldData as any).tableData.index as number;
+              dataUpdate[index] = newData;
+              setFegGatewayUpgradeRows([...dataUpdate]);
+            } else {
+              throw Error('Invalid tier');
+            }
+          } catch (e) {
+            enqueueSnackbar(
+              `failed saving gateway tier information: ${getErrorMessage(e)}`,
+              {
+                variant: 'error',
+              },
+            );
+            throw e;
+          }
+        },
+      }}
+    />
+  );
+}
