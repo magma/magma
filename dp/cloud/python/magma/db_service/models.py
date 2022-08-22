@@ -61,12 +61,8 @@ class DBRequest(Base):
     """
     __tablename__ = "requests"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    type_id = Column(
-        Integer, ForeignKey(
-            "request_types.id", ondelete="CASCADE",
-        ),
-    )
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    type_id = Column(Integer, ForeignKey("request_types.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
@@ -85,9 +81,8 @@ class DBRequest(Base):
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        type_name = self.type.name
         return f"<{class_name}(id='{self.id}', " \
-            f"type='{type_name}', " \
+            f"type_id='{self.type_id}', " \
             f"cbsd_id='{self.cbsd_id}' " \
             f"created_date='{self.created_date}' " \
             f"updated_date='{self.updated_date}' " \
@@ -127,7 +122,7 @@ class DBGrant(Base):
             "grant_states.id", ondelete="CASCADE",
         ), nullable=False,
     )
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     grant_id = Column(String, nullable=False)
     grant_expire_time = Column(DateTime(timezone=True))
     transmit_expire_time = Column(DateTime(timezone=True))
@@ -278,9 +273,8 @@ class DBCbsd(Base):
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        state_name = self.state.name
         return f"<{class_name}(id='{self.id}', " \
-               f"state='{state_name}', " \
+               f"state_id='{self.state_id}', " \
                f"cbsd_id='{self.cbsd_id}', " \
                f"user_id='{self.user_id}', " \
                f"fcc_id='{self.fcc_id}', " \
@@ -295,7 +289,7 @@ class DBChannel(Base):
     """
     __tablename__ = "channels"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     low_frequency = Column(BigInteger, nullable=False)
     high_frequency = Column(BigInteger, nullable=False)
     channel_type = Column(String, nullable=False)
