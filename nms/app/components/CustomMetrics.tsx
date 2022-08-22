@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+import 'chartjs-adapter-dayjs-3';
 import React from 'react';
 import dayjs, {ManipulateType} from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -101,7 +102,7 @@ type Props = {
 
 export function defaultTooltip(
   tooltipItem: TooltipItem<'bar'> | TooltipItem<'line'>,
-  props: {unit?: string | TimeUnit},
+  props: {unit?: string | ManipulateType},
 ) {
   const {dataset, dataIndex} = tooltipItem;
   const value = (dataset.data[dataIndex] as ScatterDataPoint).y;
@@ -122,7 +123,7 @@ export default function CustomHistogram(props: Props) {
               grid: {
                 display: false,
               },
-              type: 'time',
+              type: 'timeseries',
               ticks: {
                 source: 'data',
               },
@@ -189,7 +190,7 @@ export function CustomLineChart(props: Props) {
               ticks: {
                 maxTicksLimit: 10,
               },
-              type: 'time',
+              type: 'timeseries',
               time: {
                 unit: props?.unit,
                 round: 'second',
