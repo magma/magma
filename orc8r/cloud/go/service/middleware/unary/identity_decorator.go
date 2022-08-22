@@ -85,7 +85,6 @@ func init() {
 // SetIdentityFromContext will bypass the Identity checks for local callers
 // (other services on the cloud) and allowlisted RPCs (methods in
 // identityDecoratorBypassList)
-// TODO(hcgatewood): refactor this to clean up the convoluted logic
 func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.UnaryServerInfo) (newCtx context.Context, newReq interface{}, resp interface{}, err error) {
 	// There are 5 possible outcomes:
 	// 1. !ok -> type assertion: mdIncomingKey{} is present, but it's not of MD type
@@ -102,80 +101,120 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 
 	ctxMetadata, ok := metadata.FromIncomingContext(ctx)
 	if !ok || ctxMetadata == nil {
-		glog.Info(ERROR_MSG_NO_METADATA)
 		// Metadata should always be present for GRPC client calls
 		// If we want to enable ANY calls from local clients, we need to
 		// change the return statement to:
 		//   return newCtx, newReq, resp, ensureLocalPeer(ctx)
-		// but, it may present a se3curity risk
-		err = status.Error(codes.Unauthenticated, ERROR_MSG_NO_METADATA)
-		return newCtx, newReq, resp, err
+		// but, it may present a security risk
+		return newCtx, newReq, resp, noMetadata()
 	}
 
-	// First, try to find the caller's identity
 	snlist, snok := ctxMetadata[CLIENT_CERT_SN_KEY]
-	if snok { // there is a certificate serial number (CSN) list in CTX
-		if len(snlist) != 1 {
-			// there can be only one CSN, error out if not
-			glog.Infof("Multiple CSNs found in metadata: %+v", ctxMetadata)
-			err = status.Error(codes.Unauthenticated, "Multiple CSNs present")
-		} else {
-			// One CSN is found, find Identity associated with it
-			var gwIdentity *protos.Identity
-			var certExpTime int64
-			// Check if SN is the reserved value used for all inter-orc8r calls
-			if snlist[0] == registry.ORC8R_CLIENT_CERT_VALUE {
-				return newCtx, newReq, resp, nil
-			}
-			gwIdentity, certExpTime, err = findGatewayIdentity(ctx, snlist[0], ctxMetadata)
-			if err == nil {
-				// If a valid GW Identity is found, add it into CTX for use
-				// by the callee
-				newCtx = gwIdentity.NewContextWithIdentity(protos.NewContextWithCertExpiration(ctx, certExpTime))
-				return newCtx, newReq, resp, err
-			}
-		}
+	if snok {
+		newCtx, err = findIdentity(ctx, snlist, ctxMetadata, info)
+		return newCtx, newReq, resp, err
+	} else if noCCNHeader(ctxMetadata) {
+		return newCtx, newReq, resp, checkLocalClientCall(ctx, info)
 	} else {
-		// No CSNs found, check there is also no Certificate Common Names
-		if _, ok = ctxMetadata[CLIENT_CERT_CN_KEY]; ok {
-			// CN header is present while SN header is missing - possible
-			// security hack, either both or neither of the headers should be
-			// set
-			glog.Infof("CCN is present without SCN in metadata: %+v", ctxMetadata)
-			err = status.Error(codes.Unauthenticated, "Inconsistent Request Signature")
-		}
+		return newCtx, newReq, resp, unexpectedHeaders(ctxMetadata, info)
 	}
+}
 
+func findIdentity(ctx context.Context, snlist []string, ctxMetadata metadata.MD, info *grpc.UnaryServerInfo) (newCtx context.Context, err error) {
+	newCtx, err = findIdentityFromCSNList(ctx, snlist, ctxMetadata)
+	if err == nil || isAllowlistedCall(info) {
+		return newCtx, nil
+	}
+	return newCtx, err
+}
+
+func findIdentityFromCSNList(ctx context.Context, snlist []string, ctxMetadata metadata.MD) (context.Context, error) {
+	if len(snlist) == 1 {
+		// One CSN is found, find Caller's Identity associated with it
+		return findIdentityFromUniqueCSN(ctx, snlist[0], ctxMetadata)
+	} else {
+		// there is a certificate serial number (CSN) list in CTX
+		// there can be only one CSN, error out if not
+		return nil, multipleCSN(ctxMetadata)
+	}
+}
+
+func findIdentityFromUniqueCSN(ctx context.Context, sn string, ctxMetadata metadata.MD) (newCtx context.Context, err error) {
+	// Check if SN is the reserved value used for all inter-orc8r calls
+	if sn == registry.ORC8R_CLIENT_CERT_VALUE {
+		return newCtx, nil
+	}
+	var gwIdentity *protos.Identity
+	var certExpTime int64
+	gwIdentity, certExpTime, err = findGatewayIdentity(ctx, sn, ctxMetadata)
+	if err == nil {
+		// If a valid GW Identity is found, add it into CTX for use
+		// by the callee
+		return gwIdentity.NewContextWithIdentity(protos.NewContextWithCertExpiration(ctx, certExpTime)), nil
+	}
+	return newCtx, err
+}
+
+func unexpectedHeaders(ctxMetadata metadata.MD, info *grpc.UnaryServerInfo) error {
+	// CN header is present while SN header is missing - possible
+	// security hack, either both or neither of the headers should be
+	// set
+	glog.Infof("CCN is present without SCN in metadata: %+v", ctxMetadata)
+	if isAllowlistedCall(info) {
+		return nil
+	}
+	return status.Error(codes.Unauthenticated, "Inconsistent Request Signature")
+}
+
+func noMetadata() error {
+	glog.Info(ERROR_MSG_NO_METADATA)
+	return status.Error(codes.Unauthenticated, ERROR_MSG_NO_METADATA)
+}
+
+func noCCNHeader(ctxMetadata metadata.MD) bool {
+	_, ok := ctxMetadata[CLIENT_CERT_CN_KEY]
+	return !ok
+}
+
+func multipleCSN(ctxMetadata metadata.MD) error {
+	glog.Infof("Multiple CSNs found in metadata: %+v", ctxMetadata)
+	return status.Error(codes.Unauthenticated, "Multiple CSNs present")
+}
+
+func checkLocalClientCall(ctx context.Context, info *grpc.UnaryServerInfo) (err error) {
+	// We assume that only external calls forwarded by cloud proxy (or unit
+	// tests) will have CSN & CCN headers set. The absence of the headers
+	// along with client IP verification will indicate a local service to
+	// service or Obsidian to service call
+	if isAllowlistedCall(info) {
+		return nil
+	}
+	// For internal calls, no identity verification needed, just make sure
+	// it's a local client
+	err = ensureLocalPeer(ctx)
+	if err != nil {
+		var rpc string
+		if info != nil {
+			rpc = info.FullMethod
+		} else {
+			rpc = "Undefined"
+		}
+		glog.Infof("Empty CTX Metadata from non-local %s client: %v", rpc, err)
+	}
+	return err
+}
+
+func isAllowlistedCall(info *grpc.UnaryServerInfo) bool {
 	if info != nil {
 		// Check if the call is for a allowlisted method - anything is allowed
 		// do this check past possible identity decoration to still allow to add
 		// valid identity even to allowlisted requests
-		if _, ok := identityDecoratorBypassList[info.FullMethod]; ok {
-			// Bypass method (Bootstrapper & Co.), shortcut...
-			return newCtx, newReq, resp, nil
-		}
-	}
+		_, ok := identityDecoratorBypassList[info.FullMethod]
 
-	// Only allow local clients if there is no previous errors (snok == false)
-	if err == nil {
-		// We assume that only external calls forwarded by cloud proxy (or unit
-		// tests) will have CSN & CCN headers set. The absence of the headers
-		// along with client IP verification will indicate a local service to
-		// service or Obsidian to service call
-		// For internal calls, no identity verification needed, just make sure
-		// it's a local client
-		err = ensureLocalPeer(ctx)
-		if err != nil {
-			var rpc string
-			if info != nil {
-				rpc = info.FullMethod
-			} else {
-				rpc = "Undefined"
-			}
-			glog.Infof("Empty CTX Metadata from non-local %s client: %v", rpc, err)
-		}
+		// Bypass method (Bootstrapper & Co.), shortcut...
+		return ok
 	}
-	return newCtx, newReq, resp, err
+	return false
 }
 
 // findGatewayIdentity returns 'decorated' Gateway Identity corresponding to the
