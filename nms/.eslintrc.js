@@ -31,7 +31,10 @@ const restrictedImportsRule = [
 ];
 
 module.exports = {
-  extends: ['plugin:import/typescript'],
+  extends: [
+    'plugin:import/typescript',
+    'plugin:you-dont-need-momentjs/recommended',
+  ],
   env: {
     browser: true,
     es6: true,
