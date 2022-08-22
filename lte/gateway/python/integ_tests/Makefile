@@ -63,6 +63,7 @@ endif
 endif
 
 .PHONY: fed_integ_test
+export FEDERATED_MODE = True
 fed_integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
 ifdef TESTS
