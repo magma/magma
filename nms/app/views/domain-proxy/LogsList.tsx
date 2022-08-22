@@ -321,7 +321,7 @@ function LogsList() {
                   disableFuture
                   value={startDate}
                   onChange={newValue => {
-                    setStartDate(newValue);
+                    setStartDate(newValue!);
                   }}
                   inputFormat="yyyy/MM/DD HH:mm"
                 />
@@ -424,7 +424,7 @@ function LogsList() {
                   )}
                   disableFuture
                   value={endDate}
-                  onChange={newValue => setEndDate(newValue)}
+                  onChange={newValue => setEndDate(newValue!)}
                   inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>

@@ -285,7 +285,7 @@ export default function GatewayLogs() {
               disableFuture
               value={startDate}
               onChange={val => {
-                setStartDate(val);
+                setStartDate(val!);
                 setIsAutoRefreshing(false);
               }}
             />
@@ -301,7 +301,7 @@ export default function GatewayLogs() {
               disableFuture
               value={endDate}
               onChange={val => {
-                setEndDate(val);
+                setEndDate(val!);
                 setIsAutoRefreshing(false);
               }}
             />

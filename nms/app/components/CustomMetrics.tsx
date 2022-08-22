@@ -15,7 +15,7 @@ import React from 'react';
 import dayjs, {ManipulateType} from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import {Bar, Line} from 'react-chartjs-2';
-import {ScatterDataPoint, TimeUnit, TooltipItem} from 'chart.js';
+import {ScatterDataPoint, TooltipItem} from 'chart.js';
 
 dayjs.extend(duration);
 
@@ -26,7 +26,7 @@ export function getStepString(delta: number, unit: string) {
 export function getStep(
   start: dayjs.Dayjs,
   end: dayjs.Dayjs,
-): [number, TimeUnit, string] {
+): [number, ManipulateType, string] {
   const d = dayjs.duration(end.diff(start));
   if (d.asMinutes() <= 60.5) {
     return [5, 'minute', 'HH:mm'];
@@ -92,7 +92,7 @@ type Props = {
   end?: dayjs.Dayjs;
   delta?: number;
   dataset: Array<Dataset>;
-  unit?: TimeUnit;
+  unit?: ManipulateType;
   yLabel?: string;
   tooltipHandler?: (
     tooltipItem: TooltipItem<'bar'> | TooltipItem<'line'>,

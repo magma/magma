@@ -387,7 +387,7 @@ export default function EventsTable(props: EventTableProps) {
                       disableFuture
                       value={startDate}
                       onChange={date => {
-                        setStartDate(date);
+                        setStartDate(date!);
                         setIsAutoRefreshing(false);
                       }}
                     />
@@ -403,7 +403,7 @@ export default function EventsTable(props: EventTableProps) {
                       disableFuture
                       value={endDate}
                       onChange={date => {
-                        setEndDate(date);
+                        setEndDate(date!);
                         setIsAutoRefreshing(false);
                       }}
                     />

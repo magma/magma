@@ -27,6 +27,7 @@ import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
 import TimeRangeSelector from './TimeRangeSelector';
 
+import {ManipulateType} from 'dayjs';
 import {Theme} from '@mui/material/styles';
 import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
@@ -171,7 +172,7 @@ export default function (props: {
                 <div style={{height: 250}}>
                   <AsyncMetric
                     label={config.label}
-                    unit={config.unit || ''}
+                    unit={(config.unit || '') as ManipulateType}
                     queries={resolveQuery(
                       config,
                       props.selectorName,

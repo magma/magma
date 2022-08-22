@@ -178,7 +178,7 @@ function Overview() {
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date)}
+            onChange={date => setStartDate(date!)}
           />
         </Grid>
         <Grid item>
@@ -191,7 +191,7 @@ function Overview() {
             renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date)}
+            onChange={date => setEndDate(date!)}
           />
         </Grid>
       </Grid>
@@ -239,8 +239,8 @@ function Overview() {
 }
 
 type Props = {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
+  startDate: dayjs.Dayjs;
+  endDate: dayjs.Dayjs;
 };
 
 function EnodebMetricChart(props: Props) {

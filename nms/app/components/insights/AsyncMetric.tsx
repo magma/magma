@@ -15,9 +15,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import dayjs from 'dayjs';
+import dayjs, {ManipulateType} from 'dayjs';
+import {LayoutPosition} from 'chart.js';
 import {Line} from 'react-chartjs-2';
-import {LayoutPosition, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated';
 import {defaultTooltip} from '../CustomMetrics';
 import {makeStyles} from '@mui/styles';
@@ -52,7 +52,7 @@ export type ChartStyle = {
 
 type Props = {
   label: string;
-  unit: string;
+  unit: ManipulateType;
   queries: Array<string>;
   legendLabels?: Array<string>;
   timeRange: TimeRange;
@@ -83,7 +83,7 @@ type RangeValue = {
   days?: number;
   hours?: number;
   step: string;
-  unit: TimeUnit;
+  unit: ManipulateType;
 };
 
 type Dataset = {
@@ -204,7 +204,9 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
-function getStepUnit(startEnd: [dayjs.Dayjs, dayjs.Dayjs]): [string, TimeUnit] {
+function getStepUnit(
+  startEnd: [dayjs.Dayjs, dayjs.Dayjs],
+): [string, ManipulateType] {
   const [start, end] = startEnd;
   const d = dayjs.duration(end.diff(start));
   const hrs = d.asHours();
@@ -358,7 +360,7 @@ export default function AsyncMetric(props: Props) {
   }
   const {style} = props;
   const {startEnd} = props;
-  let unit: TimeUnit;
+  let unit: ManipulateType;
   if (startEnd) {
     [, unit] = getStepUnit(startEnd);
   } else {
