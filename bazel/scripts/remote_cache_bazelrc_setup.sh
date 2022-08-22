@@ -28,8 +28,17 @@ then
   exit 1
 fi
 
-# The BAZEL_REMOTE_PASSWORD is an optional second argument.
-BAZEL_REMOTE_PASSWORD=${2:-}
+# The REMOTE_DOWNLOAD_OPTIMIZATION is the mandatory second argument.
+REMOTE_DOWNLOAD_OPTIMIZATION=${2:-}
+
+if [[ -z "$REMOTE_DOWNLOAD_OPTIMIZATION" ]]
+then
+  echo "Required argument REMOTE_DOWNLOAD_OPTIMIZATION ('true'|'false') not set!" >&2
+  exit 1
+fi
+
+# The BAZEL_REMOTE_PASSWORD is an optional third argument.
+BAZEL_REMOTE_PASSWORD=${3:-}
 
 ###############################################################################
 # FUNCTIONS SECTION
@@ -37,12 +46,19 @@ BAZEL_REMOTE_PASSWORD=${2:-}
 
 create_config () {
   local cache_key=$1
-  local bazel_remote_password=$2
+  local remote_download_optimization=$2
+  local bazel_remote_password=$3
   if [[ -n "$bazel_remote_password" ]]
   then
-    create_config_for_rw_remote_cache "$cache_key" "$bazel_remote_password"
+    create_config_for_rw_remote_cache "$cache_key" "$bazel_remote_password" > bazel/bazelrcs/cache.bazelrc
   else
-    create_config_for_ro_remote_cache "$cache_key"
+    create_config_for_ro_remote_cache "$cache_key" > bazel/bazelrcs/cache.bazelrc
+  fi
+
+  if [[ "${remote_download_optimization,,}" == "true" ]]
+  then
+    echo "The REMOTE_DOWNLOAD_OPTIMIZATION option has been set."
+    echo "build --config=remote_download_optimization" >> bazel/bazelrcs/cache.bazelrc
   fi
 }
 
@@ -68,4 +84,4 @@ create_config_for_ro_remote_cache () {
 # SCRIPT SECTION
 ###############################################################################
 
-create_config "$CACHE_KEY" "$BAZEL_REMOTE_PASSWORD" > bazel/bazelrcs/cache.bazelrc
+create_config "$CACHE_KEY" "$REMOTE_DOWNLOAD_OPTIMIZATION" "$BAZEL_REMOTE_PASSWORD"
