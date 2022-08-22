@@ -69,6 +69,10 @@ status_code_e mock_read_s1ap_ue_state_db(
     }
 
     ue_description_t* ue_context_p = new ue_description_t();
+    if (!ue_context_p) {
+      std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
+      return RETURNerror;
+    }
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
     proto_map_rc_t rc =

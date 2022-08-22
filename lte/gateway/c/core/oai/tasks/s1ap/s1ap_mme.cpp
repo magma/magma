@@ -419,6 +419,10 @@ ue_description_t* s1ap_new_ue(s1ap_state_t* state,
       S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
 
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return NULL;
+  }
   magma::proto_map_rc_t rc =
       s1ap_ue_state->insert(ue_ref->comp_s1ap_id, ue_ref);
 
@@ -460,6 +464,10 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   }
 
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return;
+  }
   s1ap_ue_state->remove(ue_ref->comp_s1ap_id);
   state->mmeid2associd.remove(mme_ue_s1ap_id);
   enb_ref->ue_id_coll.remove(mme_ue_s1ap_id);

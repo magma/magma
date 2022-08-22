@@ -84,8 +84,16 @@ s1ap_state_t* create_s1ap_state(void) {
 
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state();
+  if (!state_cache_p) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to create s1ap state");
+    return;
+  }
 
   state_ue_map.map = new google::protobuf::Map<uint64_t, ue_description_s*>();
+  if (!(state_ue_map.map)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
+    return;
+  }
   state_ue_map.set_name(S1AP_STATE_UE_MAP);
   state_ue_map.bind_callback(free_cpp_wrapper);
 
