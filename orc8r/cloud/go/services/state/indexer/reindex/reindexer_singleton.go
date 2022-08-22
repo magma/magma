@@ -57,7 +57,6 @@ func (r *reindexerSingleton) Run(ctx context.Context) {
 		if err != nil {
 			glog.Errorf("Failed to getJobs for indexerID %s: %v", indexerID, err)
 		}
-
 		clock.Sleep(reindexLoopInterval)
 		glog.Infof("Sleeping for %v minute(s) before looking for new jobs to reindex", reindexLoopInterval.Minutes())
 	}

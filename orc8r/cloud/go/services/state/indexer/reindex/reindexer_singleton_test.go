@@ -365,7 +365,7 @@ func TestSingletonRun(t *testing.T) {
 
 	reindex.TestHookReindexDone = func() {
 		if reindexDoneNum < 6 {
-			ch <- reindexDoneNum
+			ch <- nil
 		}
 		reindexDoneNum += 1
 	}
@@ -390,8 +390,8 @@ func TestSingletonRun(t *testing.T) {
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
-	require.Equal(t, reindexSuccessNum, 1)
-	require.Equal(t, reindexDoneNum, 1)
+	require.Equal(t, 1, reindexSuccessNum)
+	require.Equal(t, 1, reindexDoneNum)
 
 	// Bump existing indexer version
 	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
@@ -405,8 +405,8 @@ func TestSingletonRun(t *testing.T) {
 	recvNoCh(t, ch)
 
 	idx0a.AssertExpectations(t)
-	require.Equal(t, reindexSuccessNum, 2)
-	require.Equal(t, reindexDoneNum, 2)
+	require.Equal(t, 2, reindexSuccessNum)
+	require.Equal(t, 2, reindexDoneNum)
 
 	// Test that a network/hardware pair that has been added after Run
 	// will have its states reindexed as well
@@ -516,9 +516,7 @@ func reportMoreState(t *testing.T) {
 	configurator_test.RegisterNetwork(t, nid3, "Network 3 for reindex test")
 	configurator_test.RegisterGateway(t, nid3, hwid3, &models.GatewayDevice{HardwareID: hwid3})
 
-	ctxByNetwork := map[string]context.Context{
-		nid3: state_test.GetContextWithCertificate(t, hwid3),
-	}
+	ctx := state_test.GetContextWithCertificate(t, hwid3)
 
 	var records []*directoryd_types.DirectoryRecord
 	var deviceIDs []string
@@ -528,10 +526,9 @@ func reportMoreState(t *testing.T) {
 		records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwid}})
 		deviceIDs = append(deviceIDs, imsi)
 	}
+	reportDirectoryRecord(t, ctx, deviceIDs, records)
 
 	// Report one gateway status per network
 	gwStatus := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	for _, nid := range []string{nid3} {
-		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
-	}
+	reportGatewayStatus(t, ctx, gwStatus)
 }
