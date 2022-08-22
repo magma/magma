@@ -220,6 +220,7 @@ type DBCbsd struct {
 	NumberOfPorts             sql.NullInt64
 	IsDeleted                 sql.NullBool
 	ShouldDeregister          sql.NullBool
+	ShouldRelinquish          sql.NullBool
 	SingleStepEnabled         sql.NullBool
 	CbsdCategory              sql.NullString
 	LatitudeDeg               sql.NullFloat64
@@ -258,6 +259,7 @@ func (c *DBCbsd) Fields() []db.BaseType {
 		db.IntType{X: &c.NumberOfPorts},
 		db.BoolType{X: &c.IsDeleted},
 		db.BoolType{X: &c.ShouldDeregister},
+		db.BoolType{X: &c.ShouldRelinquish},
 		db.BoolType{X: &c.SingleStepEnabled},
 		db.StringType{X: &c.CbsdCategory},
 		db.FloatType{X: &c.LatitudeDeg},
@@ -362,6 +364,12 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 			},
 			{
 				Name:         "should_deregister",
+				SqlType:      sqorc.ColumnTypeBool,
+				HasDefault:   true,
+				DefaultValue: false,
+			},
+			{
+				Name:         "should_relinquish",
 				SqlType:      sqorc.ColumnTypeBool,
 				HasDefault:   true,
 				DefaultValue: false,

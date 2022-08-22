@@ -34,6 +34,10 @@ class DBCbsdBuilder:
         self.cbsd.should_deregister = True
         return self
 
+    def relinquished(self):
+        self.cbsd.should_relinquish = True
+        return self
+
     def with_id(self, db_id: int) -> DBCbsdBuilder:
         self.cbsd.id = db_id
         return self

@@ -3,7 +3,7 @@ from typing import Dict, List
 from magma.db_service.tests.alembic_testcase import AlembicTestCase
 
 
-class Test48e8b58fcc24TestCase(AlembicTestCase):
+class TestAddIndicesForRelations(AlembicTestCase):
     down_revision = '98f7ccfbd2f8'
     up_revision = '48e8b58fcc24'
 
