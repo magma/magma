@@ -31,6 +31,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/olivere/elastic/v7 v7.0.6
+	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.28.0
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
@@ -80,7 +81,6 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.9.1 // indirect
 	github.com/prometheus/procfs v0.0.8 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/thoas/go-funk v0.7.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
@@ -93,4 +93,5 @@ require (
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	magma/gateway v0.0.0 // indirect
 )

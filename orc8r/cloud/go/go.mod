@@ -19,8 +19,10 @@ replace (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/bmatcuk/doublestar v1.3.4
+	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/facebookincubator/prometheus-edge-hub v1.1.0
 	github.com/go-openapi/errors v0.20.2
@@ -35,6 +37,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/imdario/mergo v0.3.5
 	github.com/jxskiss/base62 v1.0.0
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
@@ -59,6 +62,7 @@ require (
 	golang.org/x/tools v0.1.8
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.28.0
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.8.0
 	k8s.io/api v0.0.0-20191016110408-35e52d86657a
@@ -80,6 +84,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
+	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -123,6 +128,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 // indirect
+	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/ory/viper v1.7.5 // indirect
@@ -158,6 +164,7 @@ require (
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/klog v0.4.0 // indirect
+	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf // indirect
 	k8s.io/utils v0.0.0-20190801114015-581e00157fb1 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )

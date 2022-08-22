@@ -31,6 +31,7 @@ require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/docker/docker v1.13.1
+	github.com/fiorix/go-diameter/v4 v4.0.4
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -69,7 +70,6 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/emakeev/milenage v1.0.0 // indirect
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe // indirect
-	github.com/fiorix/go-diameter/v4 v4.0.4 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-openapi/analysis v0.21.2 // indirect
 	github.com/go-openapi/errors v0.20.2 // indirect
@@ -112,6 +112,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/thoas/go-funk v0.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	github.com/tklauser/numcpus v0.2.1 // indirect
