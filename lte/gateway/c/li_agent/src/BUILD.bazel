@@ -10,7 +10,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
@@ -50,14 +50,14 @@ install_pkgs(
 )
 
 container_image(
-    name = "liagentd_requisites_layer_wrapper",
+    name = "liagentd_base_image",
     base = ":liagentd_requisites_layer.tar",
 )
 
 cc_image(
     name = "liagentd_image",
     binary = ":liagentd",
-    base = ":liagentd_requisites_layer_wrapper",  # cc_image cannot directly use install_pkgs target as base
+    base = ":liagentd_base_image",
 )
 
 cc_library(

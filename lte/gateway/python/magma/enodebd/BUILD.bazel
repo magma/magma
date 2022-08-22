@@ -12,7 +12,7 @@
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer", "container_push")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 
@@ -47,7 +47,7 @@ py_binary(
 download_pkgs(
     name = "enodebd_requisites",
     packages = [
-        "libxml2",
+        "libxml2",  # For lxml library
         ],
     image_tar = "//lte/gateway/python:python_base_image.tar",
 )
@@ -61,13 +61,13 @@ install_pkgs(
 )
 
 container_image(
-    name = "enodebd_requisites_layer_wrapper",
+    name = "enodebd_base_image",
     base = ":enodebd_requisites_layer.tar"
 )
 
 py3_image(
     name = "enodebd_image",
-    base = ":enodebd_requisites_layer_wrapper",
+    base = ":enodebd_base_image",
     srcs = ["main.py"],
     imports = [
         LTE_ROOT,

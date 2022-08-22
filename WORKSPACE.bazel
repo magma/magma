@@ -163,17 +163,12 @@ load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
 
-
-
-# Experimental rules_docker stuff
-
-# from https://github.com/bazelbuild/rules_docker/releases
+### DOCKER IMAGES ###
 http_archive(
     name = "io_bazel_rules_docker",
     sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
     urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
 )
-
 
 load(
     "@io_bazel_rules_docker//repositories:repositories.bzl",
@@ -189,7 +184,6 @@ load(
 
 _py_image_repos()
 
-
 load(
     "@io_bazel_rules_docker//cc:image.bzl",
     _cc_image_repos = "repositories",
@@ -201,25 +195,6 @@ load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_pull",
 )
-
-# in order to determine the digest I first did as described here: https://stackoverflow.com/a/33511811
-# docker inspect --format='{{ index .RepoDigests 0}}' ubuntu:focal # View sha256 of the ubuntu:focal image
-
-# That led to the following error:
-# Error in fail: SHA256 of the image specified does not match SHA256 of the
-# pulled image. Expected
-# sha256:af5efa9c28de78b754777af9b4d850112cad01899a5d37d2617bb94dc63a49aa, but
-# pulled image with
-# sha256:a06ae92523384c2cd182dcfe7f8b2bf09075062e937d5653d7d0db0375ad2221. It is
-# possible that you have a pin to a manifest list which points to another image,
-# if so, change the pin to point at the actual Docker image
-
-# As described here https://github.com/bazelbuild/rules_docker/issues/1125#issuecomment-528056250
-# rules_docker used to allow Manifest SHAs and resolve the image, but discontinued that.
-# The same comment suggests to
-# docker manifest inspect ubuntu@sha256:af5efa9c28de78b754777af9b4d850112cad01899a5d37d2617bb94dc63a49aa
-# -> this gives a lit of different architectures.
-# For amd64 we get sha256:a06ae92523384c2cd182dcfe7f8b2bf09075062e937d5653d7d0db0375ad2221
 
 container_pull(
     name = "ubuntu_focal_amd64",
