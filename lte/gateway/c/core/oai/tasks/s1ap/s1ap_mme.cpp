@@ -406,7 +406,7 @@ UeDescription* s1ap_new_ue(s1ap_state_t* state,
   DevAssert(enb_ref != NULL);
   ue_ref = new UeDescription();
   /*
-   * Something bad happened during malloc...
+   * Something bad happened during memory allocation...
    * * * * May be we are running out of memory.
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */

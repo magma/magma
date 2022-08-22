@@ -23,9 +23,12 @@
 */
 
 #pragma once
+
+#include "lte/protos/oai/s1ap_state.pb.h"
+
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
-#include "lte/protos/oai/s1ap_state.pb.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

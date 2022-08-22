@@ -19,9 +19,12 @@
 
 #include <stdint.h>
 
+#include "lte/protos/oai/s1ap_state.pb.h"
+
 #include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,7 +32,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/protos/oai/s1ap_state.pb.h"
 
 // Forward declarations
 struct enb_description_s;

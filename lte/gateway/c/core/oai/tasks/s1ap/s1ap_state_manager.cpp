@@ -153,7 +153,7 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    auto* ue_context = new ue_description_t();
+    auto* ue_context = new UeDescription();
     if (!ue_context) {
       OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
       return RETURNerror;
