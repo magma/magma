@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+import 'chartjs-adapter-dayjs-3';
 import CircularProgress from '@mui/material/CircularProgress';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
@@ -376,7 +377,7 @@ export default function AsyncMetric(props: Props) {
           x: {
             grid: style ? style.options.xAxes.gridLines : {},
             ticks: style ? style.options.xAxes.ticks : {},
-            type: 'time',
+            type: 'timeseries',
             time: {
               unit,
               round: 'second',
