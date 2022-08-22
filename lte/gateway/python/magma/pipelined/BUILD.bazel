@@ -111,7 +111,6 @@ py_library(
         "//lte/gateway/python/magma/pipelined/app:tunnel_learn",
         "//lte/gateway/python/magma/pipelined/app:uplink_bridge",
         "//lte/gateway/python/magma/pipelined/app:vlan_learn",
-        "//lte/gateway/python/magma/pipelined/app:xwf_passthru",
         "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
         "//lte/gateway/python/magma/pipelined/qos:common",
         "//lte/protos:mobilityd_python_grpc",

@@ -64,6 +64,7 @@ export type SimpleTableProps<T extends object> = {
   actions?: MaterialTableProps<T>['actions'];
   tableData: MaterialTableProps<T>['data'];
   dataTestId?: string;
+  localization?: MaterialTableProps<T>['localization'];
 };
 
 const renderLabelValue = (labelValue: LabelVal) => {
@@ -266,6 +267,7 @@ export default function SimpleTable<T extends object>(
           toolbar: false,
         }}
         localization={{
+          ...(props.localization || {}),
           // hide 'Actions' in table header
           header: {actions: ''},
         }}
