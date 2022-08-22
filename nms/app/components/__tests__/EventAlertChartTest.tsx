@@ -14,8 +14,8 @@
 import EventAlertChart from '../EventAlertChart';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
+import dayjs from 'dayjs';
 import defaultTheme from '../../theme/default';
-import moment from 'moment';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../util/TestUtils';
@@ -56,28 +56,28 @@ describe('<EventAlertChart/>', () => {
 
   const testCases = [
     {
-      startDate: moment().subtract(2, 'hours'),
-      endDate: moment(),
+      startDate: dayjs().subtract(2, 'hours'),
+      endDate: dayjs(),
       step: '15m',
       valid: true,
     },
     {
-      startDate: moment().subtract(10, 'day'),
-      endDate: moment(),
+      startDate: dayjs().subtract(10, 'day'),
+      endDate: dayjs(),
       step: '24h',
       valid: true,
     },
     {
-      startDate: moment(),
-      endDate: moment().subtract(10, 'day'),
+      startDate: dayjs(),
+      endDate: dayjs().subtract(10, 'day'),
       step: '24h',
       valid: false,
     },
   ];
 
   it.each(testCases)('renders', async tc => {
-    // const endDate = moment();
-    // const startDate = moment().subtract(3, 'hours');
+    // const endDate = dayjs();
+    // const startDate = dayjs().subtract(3, 'hours');
     const Wrapper = () => (
       <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
         <StyledEngineProvider injectFirst>

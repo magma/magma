@@ -20,7 +20,7 @@ import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
 import TopBar from '../../../components/TopBar';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {EVENT_STREAM} from '../../events/EventsTable';
 import {Navigate, Route, Routes} from 'react-router-dom';
@@ -45,8 +45,8 @@ const useStyles = makeStyles<Theme>(theme => ({
  */
 function FEGDashboard() {
   // datetime picker
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(dayjs().subtract(3, 'days'));
+  const [endDate, setEndDate] = useState(dayjs());
 
   return (
     <>
@@ -92,7 +92,7 @@ function FEGDashboard() {
 function FEGNetworkDashboard({
   startEnd,
 }: {
-  startEnd: [moment.Moment, moment.Moment];
+  startEnd: [dayjs.Dayjs, dayjs.Dayjs];
 }) {
   const classes = useStyles();
 
@@ -131,10 +131,10 @@ function FEGNetworkDashboard({
  */
 
 type Props = {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
-  setStartDate: (startDate: moment.Moment) => void;
-  setEndDate: (endDate: moment.Moment) => void;
+  startDate: dayjs.Dayjs;
+  endDate: dayjs.Dayjs;
+  setStartDate: (startDate: dayjs.Dayjs) => void;
+  setEndDate: (endDate: dayjs.Dayjs) => void;
 };
 
 function FEGNetworkTab(props: Props) {
@@ -153,7 +153,7 @@ function FEGNetworkTab(props: Props) {
           maxDate={endDate}
           disableFuture
           value={startDate}
-          onChange={date => setStartDate(date as moment.Moment)}
+          onChange={date => setStartDate(date as dayjs.Dayjs)}
         />
       </Grid>
       <Grid item>
@@ -166,7 +166,7 @@ function FEGNetworkTab(props: Props) {
           renderInput={props => <TextField {...props} />}
           disableFuture
           value={endDate}
-          onChange={date => setEndDate(date as moment.Moment)}
+          onChange={date => setEndDate(date as dayjs.Dayjs)}
         />
       </Grid>
     </Grid>

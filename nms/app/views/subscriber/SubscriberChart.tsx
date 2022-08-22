@@ -23,7 +23,7 @@ import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CustomLineChart, DatasetType} from '../../components/CustomMetrics';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
@@ -49,8 +49,8 @@ const useStyles = makeStyles({
 type DatasetFetchProps = {
   networkId: NetworkId;
   subscriberId: SubscriberId;
-  start: moment.Moment;
-  end: moment.Moment;
+  start: dayjs.Dayjs;
+  end: dayjs.Dayjs;
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
@@ -220,8 +220,8 @@ export default function SubscriberChart() {
   const [datasets, setDatasets] = useState<Array<Dataset>>([]);
   const [toolTipHint, setToolTipHint] = useState('');
   const [unit, setUnit] = useState('' as TimeUnit);
-  const [start, setStart] = useState(moment().subtract(3, 'hours'));
-  const [end, setEnd] = useState(moment());
+  const [start, setStart] = useState(dayjs().subtract(3, 'hours'));
+  const [end, setEnd] = useState(dayjs());
   const [isLoading, setIsLoading] = useState(true);
   const yLabelUnit = 'MB/s';
 
@@ -239,7 +239,7 @@ export default function SubscriberChart() {
             maxDate={end}
             disableFuture
             value={start}
-            onChange={date => setStart(date as moment.Moment)}
+            onChange={date => setStart(date as dayjs.Dayjs)}
           />
         </Grid>
         <Grid item>
@@ -252,7 +252,7 @@ export default function SubscriberChart() {
             renderInput={props => <TextField {...props} />}
             disableFuture
             value={end}
-            onChange={date => setEnd(date as moment.Moment)}
+            onChange={date => setEnd(date as dayjs.Dayjs)}
           />
         </Grid>
       </Grid>

@@ -12,14 +12,13 @@
  */
 
 import LogsList from '../LogsList';
+import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
+import dayjs from 'dayjs';
 import defaultTheme from '../../../theme/default';
 import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-
-import MagmaAPI from '../../../api/MagmaAPI';
-import moment from 'moment';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {
   fireEvent,
@@ -138,7 +137,7 @@ describe('<LogsList />', () => {
       clickSearchButton();
       await expectApiCallParam(
         'begin',
-        moment(filterValues.startDate).toISOString(),
+        dayjs(filterValues.startDate).toISOString(),
       );
     });
 
@@ -165,7 +164,7 @@ describe('<LogsList />', () => {
       clickSearchButton();
       await expectApiCallParam(
         'end',
-        moment(filterValues.endDate).toISOString(),
+        dayjs(filterValues.endDate).toISOString(),
       );
     });
   });

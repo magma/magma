@@ -26,7 +26,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
 import TopBar from '../../components/TopBar';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
@@ -160,8 +160,8 @@ const EnodebRebootButton = withAlert(EnodebRebootButtonInternal);
 
 function Overview() {
   const classes = useStyles();
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(dayjs().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(dayjs());
   const [refresh, setRefresh] = useState(true);
 
   function MetricChartFilter() {
@@ -178,7 +178,7 @@ function Overview() {
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date as moment.Moment)}
+            onChange={date => setStartDate(date)}
           />
         </Grid>
         <Grid item>
@@ -191,7 +191,7 @@ function Overview() {
             renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date as moment.Moment)}
+            onChange={date => setEndDate(date)}
           />
         </Grid>
       </Grid>

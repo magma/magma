@@ -19,9 +19,8 @@ import DataUsageIcon from '@mui/icons-material/DataUsage';
 import Grid from '@mui/material/Grid';
 import React from 'react';
 import Text from '../theme/design-system/Text';
-import moment from 'moment';
-
 import TextField from '@mui/material/TextField';
+import dayjs from 'dayjs';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {colors} from '../theme/default';
 import {makeStyles} from '@mui/styles';
@@ -32,8 +31,8 @@ export type DateTimeMetricChartProps = {
   queries: Array<string>;
   legendLabels: Array<string>;
   unit?: string;
-  startDate?: moment.Moment;
-  endDate?: moment.Moment;
+  startDate?: dayjs.Dayjs;
+  endDate?: dayjs.Dayjs;
 };
 
 const useStyles = makeStyles({
@@ -46,8 +45,8 @@ const CHART_COLORS = [colors.secondary.dodgerBlue, colors.data.flamePea];
 
 export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const classes = useStyles();
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(dayjs().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(dayjs());
 
   function Filter() {
     return (
@@ -63,7 +62,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date as moment.Moment)}
+            onChange={date => setStartDate(date as dayjs.Dayjs)}
           />
         </Grid>
         <Grid item>
@@ -76,7 +75,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
             renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date as moment.Moment)}
+            onChange={date => setEndDate(date as dayjs.Dayjs)}
           />
         </Grid>
       </Grid>

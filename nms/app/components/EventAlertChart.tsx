@@ -18,7 +18,7 @@ import DataUsageIcon from '@mui/icons-material/DataUsage';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';
-import moment from 'moment';
+import dayjs, {ManipulateType} from 'dayjs';
 import nullthrows from '../../shared/util/nullthrows';
 import {
   CustomLineChart,
@@ -26,7 +26,6 @@ import {
   getStep,
   getStepString,
 } from './CustomMetrics';
-import {TimeUnit} from 'chart.js';
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
@@ -36,15 +35,15 @@ import type {NetworkId} from '../../shared/types/network';
 import type {OptionsObject} from 'notistack';
 
 type Props = {
-  startEnd: [moment.Moment, moment.Moment];
+  startEnd: [dayjs.Dayjs, dayjs.Dayjs];
 };
 
 type DatasetFetchProps = {
   networkId: NetworkId;
-  start: moment.Moment;
-  end: moment.Moment;
+  start: dayjs.Dayjs;
+  end: dayjs.Dayjs;
   delta: number;
-  unit: TimeUnit;
+  unit: ManipulateType;
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,

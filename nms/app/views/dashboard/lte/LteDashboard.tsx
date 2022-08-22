@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import DashboardKPIs from '../../../components/DashboardKPIs';
 import EventAlertChart from '../../../components/EventAlertChart';
@@ -17,10 +18,9 @@ import EventsTable from '../../events/EventsTable';
 import Grid from '@mui/material/Grid';
 import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
-import TopBar from '../../../components/TopBar';
-import moment from 'moment';
-
 import TextField from '@mui/material/TextField';
+import TopBar from '../../../components/TopBar';
+import dayjs from 'dayjs';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {Navigate, Route, Routes} from 'react-router-dom';
 import {NetworkCheck} from '@mui/icons-material';
@@ -41,8 +41,8 @@ function LteDashboard() {
   const classes = useStyles();
 
   // datetime picker
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(dayjs().subtract(3, 'days'));
+  const [endDate, setEndDate] = useState(dayjs());
 
   return (
     <>
@@ -71,7 +71,7 @@ function LteDashboard() {
                     maxDate={endDate}
                     disableFuture
                     value={startDate}
-                    onChange={date => setStartDate(date as moment.Moment)}
+                    onChange={date => setStartDate(date as dayjs.Dayjs)}
                   />
                 </Grid>
                 <Grid item>
@@ -84,7 +84,7 @@ function LteDashboard() {
                     renderInput={props => <TextField {...props} />}
                     disableFuture
                     value={endDate}
-                    onChange={date => setEndDate(date as moment.Moment)}
+                    onChange={date => setEndDate(date as dayjs.Dayjs)}
                   />
                 </Grid>
               </Grid>
@@ -107,7 +107,7 @@ function LteDashboard() {
 function LteNetworkDashboard({
   startEnd,
 }: {
-  startEnd: [moment.Moment, moment.Moment];
+  startEnd: [dayjs.Dayjs, dayjs.Dayjs];
 }) {
   const classes = useStyles();
 

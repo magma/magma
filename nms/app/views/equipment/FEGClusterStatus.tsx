@@ -11,8 +11,6 @@
  * limitations under the License.
  */
 
-import type {DataRows} from '../../components/DataGrid';
-
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import FEGGatewayContext from '../../context/FEGGatewayContext';
@@ -21,7 +19,8 @@ import MagmaAPI from '../../api/MagmaAPI';
 import Paper from '@mui/material/Paper';
 import React from 'react';
 import Typography from '@mui/material/Typography';
-import moment from 'moment';
+import calendar from 'dayjs/plugin/calendar';
+import dayjs from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {FederationGateway, PromqlReturnObject} from '../../../generated';
@@ -34,6 +33,9 @@ import {GatewayId} from '../../../shared/types/network';
 import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
+import type {DataRows} from '../../components/DataGrid';
+
+dayjs.extend(calendar);
 
 const useStyles = makeStyles({
   paperRoot: {
@@ -90,7 +92,7 @@ export default function FEGClusterStatus() {
       lastFalloverTime = Math.max(lastFalloverTime, curUpdate);
     });
     lastFalloverTime &&
-      (lastFalloverStatus = moment.unix(lastFalloverTime).calendar());
+      (lastFalloverStatus = dayjs(lastFalloverTime).calendar());
     return lastFalloverStatus;
   };
   const getSecondaryFegGatewayId = (

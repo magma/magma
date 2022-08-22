@@ -10,29 +10,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '../../components/LoadingFiller';
-import React from 'react';
-import moment from 'moment';
-import nullthrows from '../../../shared/util/nullthrows';
-
 import MagmaAPI from '../../api/MagmaAPI';
-import {TimeUnit} from 'chart.js';
+import React from 'react';
+import dayjs, {ManipulateType} from 'dayjs';
+import nullthrows from '../../../shared/util/nullthrows';
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 type Props = {
-  start: moment.Moment;
-  end: moment.Moment;
+  start: dayjs.Dayjs;
+  end: dayjs.Dayjs;
   delta: number;
-  unit: TimeUnit;
+  unit: ManipulateType;
   format: string;
   streams: string;
   tags: string;

@@ -25,7 +25,7 @@ import MagmaAPI from '../../api/MagmaAPI';
 import React, {useMemo, useRef, useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
@@ -117,8 +117,8 @@ async function searchLogs(
   gatewayId: string,
   from: number,
   size: number,
-  start: moment.Moment,
-  end: moment.Moment,
+  start: dayjs.Dayjs,
+  end: dayjs.Dayjs,
   query: ActionQuery,
 ) {
   const logs = (
@@ -151,8 +151,8 @@ async function exportLogs(
   gatewayId: string,
   from: number,
   size: number,
-  start: moment.Moment,
-  end: moment.Moment,
+  start: dayjs.Dayjs,
+  end: dayjs.Dayjs,
   query: ActionQuery,
   enqueueSnackbar: (message: string, config: OptionsObject) => string | number,
 ) {
@@ -188,8 +188,8 @@ async function handleLogQuery(
   gatewayId: string,
   from: number,
   size: number,
-  start: moment.Moment,
-  end: moment.Moment,
+  start: dayjs.Dayjs,
+  end: dayjs.Dayjs,
   query: ActionQuery,
 ) {
   try {
@@ -285,7 +285,7 @@ export default function GatewayLogs() {
               disableFuture
               value={startDate}
               onChange={val => {
-                setStartDate(val as moment.Moment);
+                setStartDate(val);
                 setIsAutoRefreshing(false);
               }}
             />
@@ -301,7 +301,7 @@ export default function GatewayLogs() {
               disableFuture
               value={endDate}
               onChange={val => {
-                setEndDate(val as moment.Moment);
+                setEndDate(val);
                 setIsAutoRefreshing(false);
               }}
             />

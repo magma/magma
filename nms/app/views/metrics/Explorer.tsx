@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import ExpandLess from '@mui/icons-material/ExpandLess';
@@ -17,12 +18,11 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExploreIcon from '@mui/icons-material/Explore';
 import Grid from '@mui/material/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
-
-import MagmaAPI from '../../api/MagmaAPI';
 import {PrometheusLabelSet} from '../alarms/components/AlarmAPIType';
 import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
@@ -76,8 +76,8 @@ export default function MetricsExplorer() {
   const networkId = nullthrows(params.networkId);
   const startEnd = useMemo(() => {
     return {
-      start: moment().subtract(3, 'hours'),
-      end: moment(),
+      start: dayjs().subtract(3, 'hours'),
+      end: dayjs(),
     };
   }, []);
 

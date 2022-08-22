@@ -14,8 +14,8 @@
 import FEGEquipmentDashboard from '../FEGEquipmentDashboard';
 import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
+import dayjs from 'dayjs';
 import defaultTheme from '../../../theme/default';
-import moment from 'moment';
 import {AxiosResponse} from 'axios';
 import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {
@@ -167,11 +167,11 @@ const mockKPIMetric: PromqlReturnObject = {
   },
 };
 
-const lastFalloverTimeResponse1 = moment().unix();
+const lastFalloverTimeResponse1 = dayjs().unix();
 
-const lastFalloverTimeResponse2 = moment().unix();
+const lastFalloverTimeResponse2 = dayjs().unix();
 
-const lastFalloverTime = `${moment.unix(lastFalloverTimeResponse2).calendar()}`;
+const lastFalloverTime = `${dayjs(lastFalloverTimeResponse2).calendar()}`;
 
 const mockFalloverStatus: PromqlReturnObject = {
   status: 'success',

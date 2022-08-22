@@ -15,8 +15,8 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import React from 'react';
 import Text from '../theme/design-system/Text';
+import dayjs from 'dayjs';
 import makeStyles from '@mui/styles/makeStyles';
-import moment from 'moment';
 import {colors} from '../theme/default';
 import {useCallback, useEffect, useState} from 'react';
 
@@ -25,10 +25,10 @@ export type UseRefreshingDateRangeHook = (
   updateInterval: number,
   onDateRangeChange: () => void,
 ) => {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
-  setStartDate: (date: moment.Moment) => void;
-  setEndDate: (date: moment.Moment) => void;
+  startDate: dayjs.Dayjs;
+  endDate: dayjs.Dayjs;
+  setStartDate: (date: dayjs.Dayjs) => void;
+  setEndDate: (date: dayjs.Dayjs) => void;
 };
 
 export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
@@ -36,13 +36,13 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   updateInterval,
   onDateRangeChange,
 ) => {
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(dayjs().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(dayjs());
 
   useEffect(() => {
     if (isAutoRefreshing) {
       const interval = setInterval(() => {
-        setEndDate(moment());
+        setEndDate(dayjs());
         onDateRangeChange();
       }, updateInterval);
 
@@ -51,7 +51,7 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   }, [endDate, startDate, onDateRangeChange, isAutoRefreshing, updateInterval]);
 
   const modifiedSetStartDate = useCallback(
-    (date: moment.Moment) => {
+    (date: dayjs.Dayjs) => {
       setStartDate(date);
       onDateRangeChange();
     },
@@ -59,7 +59,7 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   );
 
   const modifiedSetEndDate = useCallback(
-    (date: moment.Moment) => {
+    (date: dayjs.Dayjs) => {
       setEndDate(date);
       onDateRangeChange();
     },

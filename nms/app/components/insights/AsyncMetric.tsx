@@ -12,12 +12,11 @@
  */
 
 import CircularProgress from '@mui/material/CircularProgress';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {Line} from 'react-chartjs-2';
-
-import MagmaAPI from '../../api/MagmaAPI';
 import {LayoutPosition, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated';
 import {defaultTooltip} from '../CustomMetrics';
@@ -57,7 +56,7 @@ type Props = {
   queries: Array<string>;
   legendLabels?: Array<string>;
   timeRange: TimeRange;
-  startEnd?: [moment.Moment, moment.Moment];
+  startEnd?: [dayjs.Dayjs, dayjs.Dayjs];
   networkId?: string;
   style?: ChartStyle;
   height?: number;
@@ -188,10 +187,10 @@ function Progress() {
 
 function getStartEnd(timeRange: TimeRange) {
   const {days, hours, step} = RANGE_VALUES[timeRange];
-  const end = moment();
-  const endUnix = end.unix() * 1000;
-  const start = end.clone().subtract({days, hours});
-  const startUnix = start.unix() * 1000;
+  const end = dayjs();
+  const endUnix = end.valueOf();
+  const start = end.clone().subtract(days!, 'days').subtract(hours!, 'hours');
+  const startUnix = start.valueOf();
   return {
     start: start.toISOString(),
     startUnix: startUnix,
@@ -205,11 +204,9 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
-function getStepUnit(
-  startEnd: [moment.Moment, moment.Moment],
-): [string, TimeUnit] {
+function getStepUnit(startEnd: [dayjs.Dayjs, dayjs.Dayjs]): [string, TimeUnit] {
   const [start, end] = startEnd;
-  const d = moment.duration(end.diff(start));
+  const d = dayjs.duration(end.diff(start));
   const hrs = d.asHours();
   const days = d.asDays();
   let r: RangeValue;

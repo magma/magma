@@ -23,7 +23,7 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {MaterialTableProps} from '@material-table/core';
@@ -162,8 +162,8 @@ async function handleEventQuery(
   tags: string,
   query: ActionQuery,
   from: number,
-  start: moment.Moment,
-  end: moment.Moment,
+  start: dayjs.Dayjs,
+  end: dayjs.Dayjs,
 ): Promise<{data: Array<EventRowType>; page: number; totalCount: number}> {
   const filters = buildEventQueryFromFilters(query);
   try {
@@ -225,8 +225,8 @@ type EventTableProps = {
   tags?: string;
   hardwareId?: string;
   sz: 'sm' | 'md' | 'lg';
-  inStartDate?: moment.Moment;
-  inEndDate?: moment.Moment;
+  inStartDate?: dayjs.Dayjs;
+  inEndDate?: dayjs.Dayjs;
   isAutoRefreshing?: boolean;
 };
 
@@ -387,7 +387,7 @@ export default function EventsTable(props: EventTableProps) {
                       disableFuture
                       value={startDate}
                       onChange={date => {
-                        setStartDate(date as moment.Moment);
+                        setStartDate(date);
                         setIsAutoRefreshing(false);
                       }}
                     />
@@ -403,7 +403,7 @@ export default function EventsTable(props: EventTableProps) {
                       disableFuture
                       value={endDate}
                       onChange={date => {
-                        setEndDate(date as moment.Moment);
+                        setEndDate(date);
                         setIsAutoRefreshing(false);
                       }}
                     />

@@ -10,21 +10,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
-import moment from 'moment';
 
+import React from 'react';
+import dayjs, {ManipulateType} from 'dayjs';
+import duration from 'dayjs/plugin/duration';
 import {Bar, Line} from 'react-chartjs-2';
 import {ScatterDataPoint, TimeUnit, TooltipItem} from 'chart.js';
+
+dayjs.extend(duration);
 
 export function getStepString(delta: number, unit: string) {
   return delta.toString() + unit[0];
 }
 
 export function getStep(
-  start: moment.Moment,
-  end: moment.Moment,
+  start: dayjs.Dayjs,
+  end: dayjs.Dayjs,
 ): [number, TimeUnit, string] {
-  const d = moment.duration(end.diff(start));
+  const d = dayjs.duration(end.diff(start));
   if (d.asMinutes() <= 60.5) {
     return [5, 'minute', 'HH:mm'];
   } else if (d.asHours() <= 3.5) {
@@ -49,12 +52,12 @@ export function getStep(
 // hence we have to split the start and end window into several sets of
 // [start, end] queries which can then be queried in parallel
 export function getQueryRanges(
-  start: moment.Moment,
-  end: moment.Moment,
+  start: dayjs.Dayjs,
+  end: dayjs.Dayjs,
   delta: number,
-  unit: TimeUnit,
-): Array<[moment.Moment, moment.Moment]> {
-  const queries: Array<[moment.Moment, moment.Moment]> = [];
+  unit: ManipulateType,
+): Array<[dayjs.Dayjs, dayjs.Dayjs]> {
+  const queries: Array<[dayjs.Dayjs, dayjs.Dayjs]> = [];
   let s = start.clone();
   // go back delta time so that we get the total number of events
   // or logs at that 's' point of time
@@ -85,8 +88,8 @@ export type Dataset = {
 };
 
 type Props = {
-  start?: moment.Moment;
-  end?: moment.Moment;
+  start?: dayjs.Dayjs;
+  end?: dayjs.Dayjs;
   delta?: number;
   dataset: Array<Dataset>;
   unit?: TimeUnit;

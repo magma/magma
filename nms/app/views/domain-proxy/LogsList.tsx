@@ -10,32 +10,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Button from '@mui/material/Button';
-import FormControl from '@mui/material/FormControl';
-import Grid from '@mui/material/Grid';
-import ListIcon from '@mui/icons-material/ListAlt';
-import MenuItem from '@mui/material/MenuItem';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import React, {useCallback, useRef, useState} from 'react';
-import Select from '@mui/material/Select';
-import moment from 'moment';
-import nullthrows from '../../../shared/util/nullthrows';
-import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
-import {isFinite} from 'lodash';
-import {makeStyles} from '@mui/styles';
-import {useParams} from 'react-router-dom';
 
 import ActionTable, {TableRef} from '../../components/ActionTable';
 import AutorefreshCheckbox, {
   useRefreshingDateRange,
 } from '../../components/AutorefreshCheckbox';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
+import ListIcon from '@mui/icons-material/ListAlt';
 import MagmaAPI from '../../api/MagmaAPI';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import React, {useCallback, useRef, useState} from 'react';
+import Select from '@mui/material/Select';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
+import dayjs from 'dayjs';
+import nullthrows from '../../../shared/util/nullthrows';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
+import {isFinite} from 'lodash';
+import {makeStyles} from '@mui/styles';
+import {useParams} from 'react-router-dom';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -177,7 +177,7 @@ function LogsList() {
               from: item.from,
               to: item.to,
               serialNumber: item.serial_number,
-              time: moment(item.time)?.toLocaleString(),
+              time: dayjs(item.time)?.toLocaleString(),
               type: item.type,
             };
           })
@@ -321,7 +321,7 @@ function LogsList() {
                   disableFuture
                   value={startDate}
                   onChange={newValue => {
-                    setStartDate(newValue as moment.Moment);
+                    setStartDate(newValue);
                   }}
                   inputFormat="yyyy/MM/DD HH:mm"
                 />
@@ -424,7 +424,7 @@ function LogsList() {
                   )}
                   disableFuture
                   value={endDate}
-                  onChange={newValue => setEndDate(newValue as moment.Moment)}
+                  onChange={newValue => setEndDate(newValue)}
                   inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>

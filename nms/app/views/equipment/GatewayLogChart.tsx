@@ -17,9 +17,8 @@ import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
-import moment from 'moment';
+import dayjs, {ManipulateType} from 'dayjs';
 import nullthrows from '../../../shared/util/nullthrows';
-import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
@@ -28,10 +27,10 @@ import {useParams} from 'react-router-dom';
 import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 type Props = {
-  start: moment.Moment;
-  end: moment.Moment;
+  start: dayjs.Dayjs;
+  end: dayjs.Dayjs;
   delta: number;
-  unit: TimeUnit;
+  unit: ManipulateType;
   format: string;
   setLogCount: (logCount: number) => void;
 };

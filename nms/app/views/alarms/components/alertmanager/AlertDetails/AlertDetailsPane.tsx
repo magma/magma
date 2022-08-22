@@ -30,7 +30,9 @@ import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@mui/material/Typography';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
 import {PromFiringAlert} from '../../../../../../generated';
 import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
@@ -43,6 +45,9 @@ import type {
 } from '../../rules/RuleInterface';
 import type {Labels} from '../../AlarmAPIType';
 import type {SvgIconProps} from '@mui/material';
+
+dayjs.extend(utc);
+dayjs.extend(relativeTime);
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -158,9 +163,9 @@ function MetricAlertViewer({alert}: AlertViewerProps) {
 
 function AlertDate({date}: {date: string}) {
   const classes = useStyles();
-  const fromNow = React.useMemo(() => moment(date).local().fromNow(), [date]);
+  const fromNow = React.useMemo(() => dayjs(date).local().fromNow(), [date]);
   const startDate = React.useMemo(
-    () => moment(date).local().format('MMM Do YYYY, h:mm:ss a'),
+    () => dayjs(date).local().format('MMM Do YYYY, h:mm:ss a'),
     [date],
   );
   return (
