@@ -97,10 +97,7 @@ class DBGrantState(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
 
-    grants = relationship(
-        "DBGrant", back_populates="state", cascade="all, delete",
-        passive_deletes=True,
-    )
+    grants = relationship("DBGrant", back_populates="state")
 
     def __repr__(self):
         """
@@ -141,14 +138,8 @@ class DBGrant(Base):
         server_default=now(), onupdate=now(),
     )
 
-    state = relationship(
-        "DBGrantState", back_populates="grants", cascade="all, delete",
-        passive_deletes=True,
-    )
-    cbsd = relationship(
-        "DBCbsd", back_populates="grants", cascade="all, delete",
-        passive_deletes=True,
-    )
+    state = relationship("DBGrantState", back_populates="grants")
+    cbsd = relationship("DBCbsd", back_populates="grants")
 
     def __repr__(self):
         """
@@ -247,26 +238,11 @@ class DBCbsd(Base):
         server_default=now(), onupdate=now(),
     )
 
-    state = relationship(
-        "DBCbsdState", cascade="all, delete",
-        foreign_keys=[state_id], passive_deletes=True,
-    )
-    desired_state = relationship(
-        "DBCbsdState", cascade="all, delete",
-        foreign_keys=[desired_state_id], passive_deletes=True,
-    )
-    requests = relationship(
-        "DBRequest", back_populates="cbsd", cascade="all, delete",
-        passive_deletes=True,
-    )
-    grants = relationship(
-        "DBGrant", back_populates="cbsd", cascade="all, delete",
-        passive_deletes=True,
-    )
-    channels = relationship(
-        "DBChannel", back_populates="cbsd", cascade="all, delete",
-        passive_deletes=True,
-    )
+    state = relationship("DBCbsdState", foreign_keys=[state_id])
+    desired_state = relationship("DBCbsdState", foreign_keys=[desired_state_id])
+    requests = relationship("DBRequest", back_populates="cbsd")
+    grants = relationship("DBGrant", back_populates="cbsd")
+    channels = relationship("DBChannel", back_populates="cbsd")
 
     def __repr__(self):
         """
@@ -304,10 +280,7 @@ class DBChannel(Base):
         server_default=now(), onupdate=now(),
     )
 
-    cbsd = relationship(
-        "DBCbsd", back_populates="channels", cascade="all, delete",
-        passive_deletes=True,
-    )
+    cbsd = relationship("DBCbsd", back_populates="channels")
 
     def __repr__(self):
         """
