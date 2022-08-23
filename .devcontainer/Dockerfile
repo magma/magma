@@ -79,7 +79,7 @@ RUN echo "Install general purpose packages" && \
 WORKDIR /usr/local
 ARG GOLANG_VERSION="1.19"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && curl https://go.dev/dl//${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && rm ${GO_TARBALL}
 ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/go/bin

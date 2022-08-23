@@ -350,7 +350,7 @@
 
 - name: Download golang tar
   get_url:
-    url: "https://artifactory.magmacore.org/artifactory/generic/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    url: "https://go.dev/dl//go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
   when: preburn

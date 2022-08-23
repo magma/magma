@@ -65,7 +65,7 @@ ARG GOLANG_VERSION="1.19"
 RUN if [ "$ENV" = "testframework" ]; \
     then \
         GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
-     && wget --no-verbose https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} \
+     && wget --no-verbose https://go.dev/dl//${GO_TARBALL} \
      && tar --strip-components=2 -C /usr/local/bin -xzf ${GO_TARBALL} go/bin/go go/bin/gofmt \
      && rm ${GO_TARBALL}; \
     fi
