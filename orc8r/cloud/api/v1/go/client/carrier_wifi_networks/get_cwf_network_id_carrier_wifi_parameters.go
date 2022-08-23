@@ -56,7 +56,8 @@ func NewGetCwfNetworkIDCarrierWifiParamsWithHTTPClient(client *http.Client) *Get
 	}
 }
 
-/*GetCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
+/*
+GetCwfNetworkIDCarrierWifiParams contains all the parameters to send to the API endpoint
 for the get cwf network ID carrier wifi operation typically these are written to a http.Request
 */
 type GetCwfNetworkIDCarrierWifiParams struct {

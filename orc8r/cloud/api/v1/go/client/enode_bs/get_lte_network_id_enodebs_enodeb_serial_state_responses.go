@@ -47,7 +47,8 @@ func NewGetLTENetworkIDEnodebsENODEBSerialStateOK() *GetLTENetworkIDEnodebsENODE
 	return &GetLTENetworkIDEnodebsENODEBSerialStateOK{}
 }
 
-/*GetLTENetworkIDEnodebsENODEBSerialStateOK handles this case with default header values.
+/*
+GetLTENetworkIDEnodebsENODEBSerialStateOK handles this case with default header values.
 
 The requested enodeB's configuration
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDEnodebsENODEBSerialStateDefault(code int) *GetLTENetworkI
 	}
 }
 
-/*GetLTENetworkIDEnodebsENODEBSerialStateDefault handles this case with default header values.
+/*
+GetLTENetworkIDEnodebsENODEBSerialStateDefault handles this case with default header values.
 
 Unexpected Error
 */

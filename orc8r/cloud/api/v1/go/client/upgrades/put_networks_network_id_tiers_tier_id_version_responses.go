@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDTiersTierIDVersionNoContent() *PutNetworksNetworkIDT
 	return &PutNetworksNetworkIDTiersTierIDVersionNoContent{}
 }
 
-/*PutNetworksNetworkIDTiersTierIDVersionNoContent handles this case with default header values.
+/*
+PutNetworksNetworkIDTiersTierIDVersionNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutNetworksNetworkIDTiersTierIDVersionDefault(code int) *PutNetworksNetw
 	}
 }
 
-/*PutNetworksNetworkIDTiersTierIDVersionDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDTiersTierIDVersionDefault handles this case with default header values.
 
 Unexpected Error
 */

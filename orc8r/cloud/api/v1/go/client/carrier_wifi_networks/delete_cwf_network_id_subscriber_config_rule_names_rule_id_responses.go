@@ -47,7 +47,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent() *DeleteCwfN
 	return &DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent{}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Dele
 	}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPutLTENetworkIDEnodebsENODEBSerialNoContent() *PutLTENetworkIDEnodebsENO
 	return &PutLTENetworkIDEnodebsENODEBSerialNoContent{}
 }
 
-/*PutLTENetworkIDEnodebsENODEBSerialNoContent handles this case with default header values.
+/*
+PutLTENetworkIDEnodebsENODEBSerialNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDEnodebsENODEBSerialDefault(code int) *PutLTENetworkIDEnod
 	}
 }
 
-/*PutLTENetworkIDEnodebsENODEBSerialDefault handles this case with default header values.
+/*
+PutLTENetworkIDEnodebsENODEBSerialDefault handles this case with default header values.
 
 Unexpected Error
 */

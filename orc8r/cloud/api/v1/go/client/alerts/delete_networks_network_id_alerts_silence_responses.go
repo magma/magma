@@ -45,7 +45,8 @@ func NewDeleteNetworksNetworkIDAlertsSilenceOK() *DeleteNetworksNetworkIDAlertsS
 	return &DeleteNetworksNetworkIDAlertsSilenceOK{}
 }
 
-/*DeleteNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
+/*
+DeleteNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
 
 Successfully deleted silencer
 */
@@ -78,7 +79,8 @@ func NewDeleteNetworksNetworkIDAlertsSilenceDefault(code int) *DeleteNetworksNet
 	}
 }
 
-/*DeleteNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
 
 Network ID
 */

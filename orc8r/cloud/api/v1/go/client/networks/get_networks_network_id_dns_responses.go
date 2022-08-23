@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDDNSOK() *GetNetworksNetworkIDDNSOK {
 	return &GetNetworksNetworkIDDNSOK{}
 }
 
-/*GetNetworksNetworkIDDNSOK handles this case with default header values.
+/*
+GetNetworksNetworkIDDNSOK handles this case with default header values.
 
 DNS configuration of the network
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDDNSDefault(code int) *GetNetworksNetworkIDDNSDefault
 	}
 }
 
-/*GetNetworksNetworkIDDNSDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDDNSDefault handles this case with default header values.
 
 Unexpected Error
 */

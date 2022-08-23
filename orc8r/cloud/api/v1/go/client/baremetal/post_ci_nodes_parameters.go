@@ -58,7 +58,8 @@ func NewPostCiNodesParamsWithHTTPClient(client *http.Client) *PostCiNodesParams 
 	}
 }
 
-/*PostCiNodesParams contains all the parameters to send to the API endpoint
+/*
+PostCiNodesParams contains all the parameters to send to the API endpoint
 for the post ci nodes operation typically these are written to a http.Request
 */
 type PostCiNodesParams struct {

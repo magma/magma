@@ -56,7 +56,8 @@ func NewGetFegNetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient(client *htt
 	}
 }
 
-/*GetFegNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
+/*
+GetFegNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
 for the get feg network ID subscriber config rule names operation typically these are written to a http.Request
 */
 type GetFegNetworkIDSubscriberConfigRuleNamesParams struct {

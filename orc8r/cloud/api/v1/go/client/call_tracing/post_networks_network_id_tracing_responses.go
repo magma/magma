@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDTracingCreated() *PostNetworksNetworkIDTracingCreat
 	return &PostNetworksNetworkIDTracingCreated{}
 }
 
-/*PostNetworksNetworkIDTracingCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDTracingCreated handles this case with default header values.
 
 ID of created call trace
 */
@@ -80,7 +81,8 @@ func NewPostNetworksNetworkIDTracingDefault(code int) *PostNetworksNetworkIDTrac
 	}
 }
 
-/*PostNetworksNetworkIDTracingDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDTracingDefault handles this case with default header values.
 
 Unexpected Error
 */

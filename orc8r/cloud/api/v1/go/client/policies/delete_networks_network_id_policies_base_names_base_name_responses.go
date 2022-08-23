@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent() *DeleteNetwo
 	return &DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent{}
 }
 
-/*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault(code int) *Delet
 	}
 }
 
-/*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -45,6 +45,7 @@ var tierRoutings map[string]map[string]string
 var serviceTiers map[string][]string
 
 // Init module interface implementation
+//
 //nolint:unparam
 func Init(c *config.ServerConfig) error {
 	lbConfig = &c.LoadBalance

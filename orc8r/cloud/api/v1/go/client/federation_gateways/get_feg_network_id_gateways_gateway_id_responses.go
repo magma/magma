@@ -47,7 +47,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDOK() *GetFegNetworkIDGatewaysGatewayIDOK
 	return &GetFegNetworkIDGatewaysGatewayIDOK{}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDOK handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDOK handles this case with default header values.
 
 The requested federation gateway
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDDefault(code int) *GetFegNetworkIDGatewa
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
 
 Unexpected Error
 */

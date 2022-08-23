@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDLogsCountParamsWithHTTPClient(client *http.Client) *
 	}
 }
 
-/*GetNetworksNetworkIDLogsCountParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDLogsCountParams contains all the parameters to send to the API endpoint
 for the get networks network ID logs count operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDLogsCountParams struct {

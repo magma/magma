@@ -47,7 +47,8 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated() *PostCwfNetwork
 	return &PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated{}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
+/*
+PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *PostCw
 	}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
 
 Unexpected Error
 */

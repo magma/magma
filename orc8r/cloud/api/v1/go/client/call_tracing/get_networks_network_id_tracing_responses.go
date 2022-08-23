@@ -52,7 +52,8 @@ func NewGetNetworksNetworkIDTracingOK() *GetNetworksNetworkIDTracingOK {
 	return &GetNetworksNetworkIDTracingOK{}
 }
 
-/*GetNetworksNetworkIDTracingOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingOK handles this case with default header values.
 
 Success
 */
@@ -87,7 +88,8 @@ func NewGetNetworksNetworkIDTracingDefault(code int) *GetNetworksNetworkIDTracin
 	}
 }
 
-/*GetNetworksNetworkIDTracingDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingDefault handles this case with default header values.
 
 Unexpected Error
 */
@@ -122,7 +124,8 @@ func (o *GetNetworksNetworkIDTracingDefault) readResponse(response runtime.Clien
 	return nil
 }
 
-/*GetNetworksNetworkIDTracingOKBodyTuple0 GetNetworksNetworkIDTracingOKBodyTuple0 a representation of an anonymous Tuple type
+/*
+GetNetworksNetworkIDTracingOKBodyTuple0 GetNetworksNetworkIDTracingOKBodyTuple0 a representation of an anonymous Tuple type
 swagger:model GetNetworksNetworkIDTracingOKBodyTuple0
 */
 type GetNetworksNetworkIDTracingOKBodyTuple0 struct {

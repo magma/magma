@@ -56,7 +56,8 @@ func NewGetLTEParamsWithHTTPClient(client *http.Client) *GetLTEParams {
 	}
 }
 
-/*GetLTEParams contains all the parameters to send to the API endpoint
+/*
+GetLTEParams contains all the parameters to send to the API endpoint
 for the get LTE operation typically these are written to a http.Request
 */
 type GetLTEParams struct {

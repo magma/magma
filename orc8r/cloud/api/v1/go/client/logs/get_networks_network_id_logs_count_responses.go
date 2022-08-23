@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDLogsCountOK() *GetNetworksNetworkIDLogsCountOK {
 	return &GetNetworksNetworkIDLogsCountOK{}
 }
 
-/*GetNetworksNetworkIDLogsCountOK handles this case with default header values.
+/*
+GetNetworksNetworkIDLogsCountOK handles this case with default header values.
 
 Success
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDLogsCountDefault(code int) *GetNetworksNetworkIDLogs
 	}
 }
 
-/*GetNetworksNetworkIDLogsCountDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDLogsCountDefault handles this case with default header values.
 
 Unexpected Error
 */

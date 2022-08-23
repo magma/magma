@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewayPoolsGatewayPoolIDOK() *GetLTENetworkIDGatewayPool
 	return &GetLTENetworkIDGatewayPoolsGatewayPoolIDOK{}
 }
 
-/*GetLTENetworkIDGatewayPoolsGatewayPoolIDOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewayPoolsGatewayPoolIDOK handles this case with default header values.
 
 HA gateway pool
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewayPoolsGatewayPoolIDDefault(code int) *GetLTENetwork
 	}
 }
 
-/*GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault handles this case with default header values.
 
 Unexpected Error
 */

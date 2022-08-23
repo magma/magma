@@ -58,7 +58,8 @@ func NewPutNetworksNetworkIDPrometheusAlertConfigAlertNameParamsWithHTTPClient(c
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigAlertNameParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDPrometheusAlertConfigAlertNameParams contains all the parameters to send to the API endpoint
 for the put networks network ID prometheus alert config alert name operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDPrometheusAlertConfigAlertNameParams struct {

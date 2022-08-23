@@ -115,15 +115,15 @@ func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManag
 	tr.WaitForPoliciesToSync()
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M.
-//   Generate traffic and assert the CCR-I is received.
-// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
-// 	 OCS, to which it will response with more quota.
-//   Generate traffic and assert the CCR-U is received with final quota grant.
-// - Generate 5M traffic to exceed 100% of the quota and trigger session termination
-// - Assert that UE flows are deleted.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     respond with a quota grant of 4M.
+//     Generate traffic and assert the CCR-I is received.
+//   - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+//     OCS, to which it will response with more quota.
+//     Generate traffic and assert the CCR-U is received with final quota grant.
+//   - Generate 5M traffic to exceed 100% of the quota and trigger session termination
+//   - Assert that UE flows are deleted.
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionWithCRRU...")
 	tr, ruleManager, ue := ocsTestSetup(t)
@@ -274,12 +274,12 @@ func TestGyCreditValidityTime(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M.
-//   Generate traffic and assert the CCR-I is received.
-// - Generate 5M traffic to exceed 100% of the quota and trigger session termination
-// - Assert that UE flows are deleted.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     respond with a quota grant of 4M.
+//     Generate traffic and assert the CCR-I is received.
+//   - Generate 5M traffic to exceed 100% of the quota and trigger session termination
+//   - Assert that UE flows are deleted.
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 func TestGyCreditExhaustionWithoutCCRU(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionWithoutCCRU...")
 
@@ -342,9 +342,9 @@ func TestGyCreditExhaustionWithoutCCRU(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   NOT respond with any answer.
-// - Asset that authentication fails and that no rules were installed
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     NOT respond with any answer.
+//   - Asset that authentication fails and that no rules were installed
 func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	fmt.Println("\nRunning TestGyLinksFailureOCStoFEG...")
 
@@ -378,22 +378,24 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	assert.Empty(t, recordsBySubID["IMSI"+ue.Imsi])
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M and final action set to redirect.
-//   Generate traffic and assert the CCR-I is received.
-// - Generate 5M traffic to exceed 100% of the quota to trigger redirection.
-// - When redirection happens, redirect rule is installed on top of the actual rules
-// 	 Assert that UE flows are NOT deleted and data was passed
-// - Assert redirect rule is installed
-// - Send a Charging ReAuth request to top up quota and assert that the
-//   response is successful
-// - Assert that CCR-U was is generated
-// - Assert the redirect rule is gone
-// - Generate  traffic and assert that UE flows are NOT deleted and data was passed.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     respond with a quota grant of 4M and final action set to redirect.
+//     Generate traffic and assert the CCR-I is received.
+//   - Generate 5M traffic to exceed 100% of the quota to trigger redirection.
+//   - When redirection happens, redirect rule is installed on top of the actual rules
+//     Assert that UE flows are NOT deleted and data was passed
+//   - Assert redirect rule is installed
+//   - Send a Charging ReAuth request to top up quota and assert that the
+//     response is successful
+//   - Assert that CCR-U was is generated
+//   - Assert the redirect rule is gone
+//   - Generate  traffic and assert that UE flows are NOT deleted and data was passed.
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//
 // NOTE : the test is only verifying that session was not terminated.
-//        Improvement is needed to validate that ovs rule is well added and
-//        traffic is being redirected.
+//
+//	Improvement is needed to validate that ovs rule is well added and
+//	traffic is being redirected.
 func TestGyCreditExhaustionRedirect(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRedirect...")
 
@@ -655,16 +657,16 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M and final action set to redirect.
-//   Generate traffic and assert the CCR-I is received.
-// - Generate 5M traffic to exceed 100% of the quota to trigger service restriction.
-// - Assert that UE flows are NOT deleted and data was passed.
-// - Generate an additional 2M traffic and assert that only Gy flows matched.
-// - Send a Charging ReAuth request to top up quota and assert that the
-//   response is successful
-// - Assert that CCR-U was is generated
-// - Generate 2M traffic and assert that UE flows are NOT deleted and data was passed.
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     respond with a quota grant of 4M and final action set to redirect.
+//     Generate traffic and assert the CCR-I is received.
+//   - Generate 5M traffic to exceed 100% of the quota to trigger service restriction.
+//   - Assert that UE flows are NOT deleted and data was passed.
+//   - Generate an additional 2M traffic and assert that only Gy flows matched.
+//   - Send a Charging ReAuth request to top up quota and assert that the
+//     response is successful
+//   - Assert that CCR-U was is generated
+//   - Generate 2M traffic and assert that UE flows are NOT deleted and data was passed.
 func TestGyCreditExhaustionRestrict(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRestrict...")
 
@@ -780,15 +782,15 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Send a CCA-I with valid credit for a RG but with 4012 error code (transient)
-// - Assert that UE flows for that RG are deleted
-// - Generate an additional 2M traffic and assert that only Gy flows matched.
-// - Assert that Redirect flows are installed
-// - Send a Charging ReAuth request to top up quota and assert that the
-//   response is successful
-// - Assert that CCR-U was is generated
-// - Generate 2M traffic and assert that UE flows are reinstalled for RG
-//   and traffic goes through them.
+//   - Send a CCA-I with valid credit for a RG but with 4012 error code (transient)
+//   - Assert that UE flows for that RG are deleted
+//   - Generate an additional 2M traffic and assert that only Gy flows matched.
+//   - Assert that Redirect flows are installed
+//   - Send a Charging ReAuth request to top up quota and assert that the
+//     response is successful
+//   - Assert that CCR-U was is generated
+//   - Generate 2M traffic and assert that UE flows are reinstalled for RG
+//     and traffic goes through them.
 func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditTransientErrorRestrict...")
 
@@ -904,14 +906,14 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M with two rules.
-// - Generate traffic and assert the CCR-I is received.
-// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
-// 	 OCS, to which it will respond with an ERROR CODE
-// - Send an CCA-U with a 4012 code transient failure which should trigger suspend that credit
-// - Assert that UE flows for one rule are delete.
-// - Assert that UE flows for the other rule are still valid
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     respond with a quota grant of 4M with two rules.
+//   - Generate traffic and assert the CCR-I is received.
+//   - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+//     OCS, to which it will respond with an ERROR CODE
+//   - Send an CCA-U with a 4012 code transient failure which should trigger suspend that credit
+//   - Assert that UE flows for one rule are delete.
+//   - Assert that UE flows for the other rule are still valid
 func TestGyWithTransientErrorCode(t *testing.T) {
 	fmt.Println("\nRunning TestGyWithTransientErrorCode...")
 
@@ -999,13 +1001,13 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
-//   respond with a quota grant of 4M.
-//   Generate traffic and assert the CCR-I is received.
-// - Generate traffic over 80% and under 100% not to trigger termination
-// - Send an CCA-U with a 5xxx code which should trigger termination
-// - Assert that UE flows are deleted.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//   - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//     respond with a quota grant of 4M.
+//     Generate traffic and assert the CCR-I is received.
+//   - Generate traffic over 80% and under 100% not to trigger termination
+//   - Send an CCA-U with a 5xxx code which should trigger termination
+//   - Assert that UE flows are deleted.
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 func TestGyWithPermanentErrorCode(t *testing.T) {
 	fmt.Println("\nRunning TestGyWithPermanentErrorCode...")
 

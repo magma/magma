@@ -47,7 +47,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusOK() *GetFegNetworkIDGateway
 	return &GetFegNetworkIDGatewaysGatewayIDHealthStatusOK{}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDHealthStatusOK handles this case with default header values.
 
 Health Status of Federation Gateway
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusDefault(code int) *GetFegNet
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault handles this case with default header values.
 
 Unexpected Error
 */

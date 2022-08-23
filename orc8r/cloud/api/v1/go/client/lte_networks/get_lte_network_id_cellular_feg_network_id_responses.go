@@ -47,7 +47,8 @@ func NewGetLTENetworkIDCellularFegNetworkIDOK() *GetLTENetworkIDCellularFegNetwo
 	return &GetLTENetworkIDCellularFegNetworkIDOK{}
 }
 
-/*GetLTENetworkIDCellularFegNetworkIDOK handles this case with default header values.
+/*
+GetLTENetworkIDCellularFegNetworkIDOK handles this case with default header values.
 
 ID of the Federation Gateway network
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDCellularFegNetworkIDDefault(code int) *GetLTENetworkIDCel
 	}
 }
 
-/*GetLTENetworkIDCellularFegNetworkIDDefault handles this case with default header values.
+/*
+GetLTENetworkIDCellularFegNetworkIDDefault handles this case with default header values.
 
 Unexpected Error
 */

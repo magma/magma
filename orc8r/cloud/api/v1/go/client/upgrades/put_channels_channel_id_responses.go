@@ -47,7 +47,8 @@ func NewPutChannelsChannelIDNoContent() *PutChannelsChannelIDNoContent {
 	return &PutChannelsChannelIDNoContent{}
 }
 
-/*PutChannelsChannelIDNoContent handles this case with default header values.
+/*
+PutChannelsChannelIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutChannelsChannelIDDefault(code int) *PutChannelsChannelIDDefault {
 	}
 }
 
-/*PutChannelsChannelIDDefault handles this case with default header values.
+/*
+PutChannelsChannelIDDefault handles this case with default header values.
 
 Unexpected Error
 */

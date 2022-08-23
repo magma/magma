@@ -58,7 +58,8 @@ func NewPostCwfNetworkIDHaPairsParamsWithHTTPClient(client *http.Client) *PostCw
 	}
 }
 
-/*PostCwfNetworkIDHaPairsParams contains all the parameters to send to the API endpoint
+/*
+PostCwfNetworkIDHaPairsParams contains all the parameters to send to the API endpoint
 for the post cwf network ID ha pairs operation typically these are written to a http.Request
 */
 type PostCwfNetworkIDHaPairsParams struct {

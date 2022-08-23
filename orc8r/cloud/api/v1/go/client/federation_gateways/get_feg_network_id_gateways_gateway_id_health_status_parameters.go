@@ -56,7 +56,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParamsWithHTTPClient(client 
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDHealthStatusParams contains all the parameters to send to the API endpoint
+/*
+GetFegNetworkIDGatewaysGatewayIDHealthStatusParams contains all the parameters to send to the API endpoint
 for the get feg network ID gateways gateway ID health status operation typically these are written to a http.Request
 */
 type GetFegNetworkIDGatewaysGatewayIDHealthStatusParams struct {

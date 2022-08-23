@@ -58,7 +58,8 @@ func NewPostFegParamsWithHTTPClient(client *http.Client) *PostFegParams {
 	}
 }
 
-/*PostFegParams contains all the parameters to send to the API endpoint
+/*
+PostFegParams contains all the parameters to send to the API endpoint
 for the post feg operation typically these are written to a http.Request
 */
 type PostFegParams struct {

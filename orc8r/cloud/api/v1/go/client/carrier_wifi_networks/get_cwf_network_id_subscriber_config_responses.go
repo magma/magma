@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDSubscriberConfigOK() *GetCwfNetworkIDSubscriberConfigOK {
 	return &GetCwfNetworkIDSubscriberConfigOK{}
 }
 
-/*GetCwfNetworkIDSubscriberConfigOK handles this case with default header values.
+/*
+GetCwfNetworkIDSubscriberConfigOK handles this case with default header values.
 
 Subscriber Config
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDSubscriberConfigDefault(code int) *GetCwfNetworkIDSubscri
 	}
 }
 
-/*GetCwfNetworkIDSubscriberConfigDefault handles this case with default header values.
+/*
+GetCwfNetworkIDSubscriberConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

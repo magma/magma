@@ -47,7 +47,8 @@ func NewPutLTENetworkIDDNSRecordsDomainNoContent() *PutLTENetworkIDDNSRecordsDom
 	return &PutLTENetworkIDDNSRecordsDomainNoContent{}
 }
 
-/*PutLTENetworkIDDNSRecordsDomainNoContent handles this case with default header values.
+/*
+PutLTENetworkIDDNSRecordsDomainNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDDNSRecordsDomainDefault(code int) *PutLTENetworkIDDNSReco
 	}
 }
 
-/*PutLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/*
+PutLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
 
 Unexpected Error
 */

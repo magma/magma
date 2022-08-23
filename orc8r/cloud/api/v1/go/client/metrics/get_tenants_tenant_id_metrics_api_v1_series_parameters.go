@@ -57,7 +57,8 @@ func NewGetTenantsTenantIDMetricsAPIV1SeriesParamsWithHTTPClient(client *http.Cl
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1SeriesParams contains all the parameters to send to the API endpoint
+/*
+GetTenantsTenantIDMetricsAPIV1SeriesParams contains all the parameters to send to the API endpoint
 for the get tenants tenant ID metrics API v1 series operation typically these are written to a http.Request
 */
 type GetTenantsTenantIDMetricsAPIV1SeriesParams struct {

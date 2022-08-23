@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDAlertsSilenceParamsWithHTTPClient(client *http.Cl
 	}
 }
 
-/*DeleteNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
 for the delete networks network ID alerts silence operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDAlertsSilenceParams struct {

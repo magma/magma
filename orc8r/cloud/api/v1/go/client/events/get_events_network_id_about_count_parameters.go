@@ -56,7 +56,8 @@ func NewGetEventsNetworkIDAboutCountParamsWithHTTPClient(client *http.Client) *G
 	}
 }
 
-/*GetEventsNetworkIDAboutCountParams contains all the parameters to send to the API endpoint
+/*
+GetEventsNetworkIDAboutCountParams contains all the parameters to send to the API endpoint
 for the get events network ID about count operation typically these are written to a http.Request
 */
 type GetEventsNetworkIDAboutCountParams struct {

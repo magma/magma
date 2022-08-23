@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent() *GetLTENetwork
 	return &GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent handles this case with default header values.
 
 Non-EPS configuration
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault(code int) *GetLTEN
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault handles this case with default header values.
 
 Unexpected Error
 */

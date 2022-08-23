@@ -58,7 +58,8 @@ func NewPutLTENetworkIDSubscribersSubscriberIDLTESubProfileParamsWithHTTPClient(
 	}
 }
 
-/*PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams contains all the parameters to send to the API endpoint
+/*
+PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams contains all the parameters to send to the API endpoint
 for the put LTE network ID subscribers subscriber ID LTE sub profile operation typically these are written to a http.Request
 */
 type PutLTENetworkIDSubscribersSubscriberIDLTESubProfileParams struct {

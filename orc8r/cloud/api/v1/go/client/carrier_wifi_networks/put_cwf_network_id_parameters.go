@@ -58,7 +58,8 @@ func NewPutCwfNetworkIDParamsWithHTTPClient(client *http.Client) *PutCwfNetworkI
 	}
 }
 
-/*PutCwfNetworkIDParams contains all the parameters to send to the API endpoint
+/*
+PutCwfNetworkIDParams contains all the parameters to send to the API endpoint
 for the put cwf network ID operation typically these are written to a http.Request
 */
 type PutCwfNetworkIDParams struct {

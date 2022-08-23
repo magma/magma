@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDHaPairsOK() *GetCwfNetworkIDHaPairsOK {
 	return &GetCwfNetworkIDHaPairsOK{}
 }
 
-/*GetCwfNetworkIDHaPairsOK handles this case with default header values.
+/*
+GetCwfNetworkIDHaPairsOK handles this case with default header values.
 
 All high availability gateway pairs in Carrier Wifi network
 */
@@ -80,7 +81,8 @@ func NewGetCwfNetworkIDHaPairsDefault(code int) *GetCwfNetworkIDHaPairsDefault {
 	}
 }
 
-/*GetCwfNetworkIDHaPairsDefault handles this case with default header values.
+/*
+GetCwfNetworkIDHaPairsDefault handles this case with default header values.
 
 Unexpected Error
 */

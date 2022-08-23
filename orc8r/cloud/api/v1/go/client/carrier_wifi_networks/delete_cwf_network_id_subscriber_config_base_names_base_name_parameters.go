@@ -56,7 +56,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient(
 	}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the delete cwf network ID subscriber config base names base name operation typically these are written to a http.Request
 */
 type DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameParams struct {

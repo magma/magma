@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDHealthStatusOK() *GetCwfNetworkIDGateway
 	return &GetCwfNetworkIDGatewaysGatewayIDHealthStatusOK{}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDHealthStatusOK handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysGatewayIDHealthStatusOK handles this case with default header values.
 
 Health Status of Carrier Wifi Gateway
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDHealthStatusDefault(code int) *GetCwfNet
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDHealthStatusDefault handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysGatewayIDHealthStatusDefault handles this case with default header values.
 
 Unexpected Error
 */

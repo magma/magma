@@ -47,7 +47,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent() *PutLT
 	return &PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code int) 
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
 
 Unexpected Error
 */

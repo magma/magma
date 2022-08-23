@@ -47,7 +47,8 @@ func NewDeleteFegNetworkIDNoContent() *DeleteFegNetworkIDNoContent {
 	return &DeleteFegNetworkIDNoContent{}
 }
 
-/*DeleteFegNetworkIDNoContent handles this case with default header values.
+/*
+DeleteFegNetworkIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteFegNetworkIDDefault(code int) *DeleteFegNetworkIDDefault {
 	}
 }
 
-/*DeleteFegNetworkIDDefault handles this case with default header values.
+/*
+DeleteFegNetworkIDDefault handles this case with default header values.
 
 Unexpected Error
 */

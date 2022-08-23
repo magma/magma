@@ -47,7 +47,8 @@ func NewPostLTENetworkIDGatewayPoolsCreated() *PostLTENetworkIDGatewayPoolsCreat
 	return &PostLTENetworkIDGatewayPoolsCreated{}
 }
 
-/*PostLTENetworkIDGatewayPoolsCreated handles this case with default header values.
+/*
+PostLTENetworkIDGatewayPoolsCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDGatewayPoolsDefault(code int) *PostLTENetworkIDGatewayPo
 	}
 }
 
-/*PostLTENetworkIDGatewayPoolsDefault handles this case with default header values.
+/*
+PostLTENetworkIDGatewayPoolsDefault handles this case with default header values.
 
 Unexpected Error
 */

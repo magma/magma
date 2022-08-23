@@ -59,13 +59,13 @@ func gxReAuthTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UECo
 	return tr, ruleManager, ue
 }
 
-// - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
-//   and a rule base "base-raa1"
-// - Generate traffic and assert that there's > 0 data usage for the rule with the
-//   highest priority.
-// - Send a PCRF ReAuth request to delete "static-pass-all-raa2" and "base-raa1"
-//   and assert that the response is successful
-// - Assert that the requested rules were removed
+//   - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
+//     and a rule base "base-raa1"
+//   - Generate traffic and assert that there's > 0 data usage for the rule with the
+//     highest priority.
+//   - Send a PCRF ReAuth request to delete "static-pass-all-raa2" and "base-raa1"
+//     and assert that the response is successful
+//   - Assert that the requested rules were removed
 func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	fmt.Println("\nRunning TestGxReAuthWithMidSessionPolicyRemoval...")
 
@@ -136,14 +136,14 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
-//   and a rule base "base-raa1"
-// - Generate traffic and assert that there's > 0 data usage for the rule with the
-//   highest priority.
-// - Send a PCRF ReAuth request to delete all the installed rules and assert
-//   that the response is successful
-// - Assert that the requested rules were removed
-// - Assert that session was deleted
+//   - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
+//     and a rule base "base-raa1"
+//   - Generate traffic and assert that there's > 0 data usage for the rule with the
+//     highest priority.
+//   - Send a PCRF ReAuth request to delete all the installed rules and assert
+//     that the response is successful
+//   - Assert that the requested rules were removed
+//   - Assert that session was deleted
 func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	fmt.Println("\nRunning TestGxReAuthWithMidSessionPoliciesRemoval...")
 
@@ -207,14 +207,14 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
-//   and a rule base "base-raa1"
-// - Generate traffic and assert that there's > 0 data usage for the rule with the
-//   highest priority.
-// - Send a PCRF ReAuth request to install a new pass all rule with higher priority
-//   and assert that the response is successful
-// - Generate traffic and assert that there's > 0 data usage for the newly installed
-//   rule.
+//   - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
+//     and a rule base "base-raa1"
+//   - Generate traffic and assert that there's > 0 data usage for the rule with the
+//     highest priority.
+//   - Send a PCRF ReAuth request to install a new pass all rule with higher priority
+//     and assert that the response is successful
+//   - Generate traffic and assert that there's > 0 data usage for the newly installed
+//     rule.
 func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	fmt.Println("\nRunning TestGxReAuthWithMidSessionPolicyInstall...")
 
@@ -291,15 +291,15 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
-//   and a rule base "base-raa1"
-// - Generate traffic and assert that there's > 0 data usage for the rule with the
-//   highest priority.
-// - Send a PCRF ReAuth request to install a new pass all rule with second higher priority
-//   and remove the rule with the highest priority
-// - Assert that the response is successful
-// - Generate traffic and assert that there's > 0 data usage for the newly installed
-//   rule.
+//   - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
+//     and a rule base "base-raa1"
+//   - Generate traffic and assert that there's > 0 data usage for the rule with the
+//     highest priority.
+//   - Send a PCRF ReAuth request to install a new pass all rule with second higher priority
+//     and remove the rule with the highest priority
+//   - Assert that the response is successful
+//   - Generate traffic and assert that there's > 0 data usage for the newly installed
+//     rule.
 func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	fmt.Println("\nRunning TestGxReAuthWithMidSessionPolicyInstallAndRemoval...")
 
@@ -383,15 +383,15 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
-//   and a rule base "base-raa1"
-// - Generate traffic and assert that there's > 0 data usage for the rule with the
-//   highest priority.
-// - Send a PCRF ReAuth request to refill quota for a session
-// - Assert that the response is successful
-// - Generate traffic and assert that there's > 0 data usage for the newly installed
-//   rule.
-// - Asserting that quota was updated is still needed.
+//   - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
+//     and a rule base "base-raa1"
+//   - Generate traffic and assert that there's > 0 data usage for the rule with the
+//     highest priority.
+//   - Send a PCRF ReAuth request to refill quota for a session
+//   - Assert that the response is successful
+//   - Generate traffic and assert that there's > 0 data usage for the newly installed
+//     rule.
+//   - Asserting that quota was updated is still needed.
 func TestGxReAuthQuotaRefill(t *testing.T) {
 	fmt.Println("\nRunning TestGxReAuthQuotaRefill...")
 

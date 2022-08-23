@@ -47,7 +47,8 @@ func NewGetLTENetworkIDAPNSAPNNameOK() *GetLTENetworkIDAPNSAPNNameOK {
 	return &GetLTENetworkIDAPNSAPNNameOK{}
 }
 
-/*GetLTENetworkIDAPNSAPNNameOK handles this case with default header values.
+/*
+GetLTENetworkIDAPNSAPNNameOK handles this case with default header values.
 
 APN Info
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDAPNSAPNNameDefault(code int) *GetLTENetworkIDAPNSAPNNameD
 	}
 }
 
-/*GetLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
+/*
+GetLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
 
 Unexpected Error
 */

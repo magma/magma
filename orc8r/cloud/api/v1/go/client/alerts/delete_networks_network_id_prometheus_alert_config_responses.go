@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDPrometheusAlertConfigOK() *DeleteNetworksNetworkI
 	return &DeleteNetworksNetworkIDPrometheusAlertConfigOK{}
 }
 
-/*DeleteNetworksNetworkIDPrometheusAlertConfigOK handles this case with default header values.
+/*
+DeleteNetworksNetworkIDPrometheusAlertConfigOK handles this case with default header values.
 
 Deleted
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDPrometheusAlertConfigDefault(code int) *DeleteNet
 	}
 }
 
-/*DeleteNetworksNetworkIDPrometheusAlertConfigDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDPrometheusAlertConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

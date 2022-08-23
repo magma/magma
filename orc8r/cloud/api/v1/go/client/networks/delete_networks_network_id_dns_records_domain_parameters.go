@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http
 	}
 }
 
-/*DeleteNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
 for the delete networks network ID DNS records domain operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDDNSRecordsDomainParams struct {

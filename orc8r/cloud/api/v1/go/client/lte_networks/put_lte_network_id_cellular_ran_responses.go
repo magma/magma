@@ -47,7 +47,8 @@ func NewPutLTENetworkIDCellularRanNoContent() *PutLTENetworkIDCellularRanNoConte
 	return &PutLTENetworkIDCellularRanNoContent{}
 }
 
-/*PutLTENetworkIDCellularRanNoContent handles this case with default header values.
+/*
+PutLTENetworkIDCellularRanNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDCellularRanDefault(code int) *PutLTENetworkIDCellularRanD
 	}
 }
 
-/*PutLTENetworkIDCellularRanDefault handles this case with default header values.
+/*
+PutLTENetworkIDCellularRanDefault handles this case with default header values.
 
 Unexpected Error
 */

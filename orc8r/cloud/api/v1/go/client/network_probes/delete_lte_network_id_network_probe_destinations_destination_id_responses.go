@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent() *Dele
 	return &DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent{}
 }
 
-/*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault(code int)
 	}
 }
 
-/*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault handles this case with default header values.
 
 Unexpected Error
 */

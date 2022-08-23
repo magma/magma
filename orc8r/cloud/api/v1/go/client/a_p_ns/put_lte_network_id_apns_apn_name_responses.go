@@ -47,7 +47,8 @@ func NewPutLTENetworkIDAPNSAPNNameNoContent() *PutLTENetworkIDAPNSAPNNameNoConte
 	return &PutLTENetworkIDAPNSAPNNameNoContent{}
 }
 
-/*PutLTENetworkIDAPNSAPNNameNoContent handles this case with default header values.
+/*
+PutLTENetworkIDAPNSAPNNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDAPNSAPNNameDefault(code int) *PutLTENetworkIDAPNSAPNNameD
 	}
 }
 
-/*PutLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
+/*
+PutLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
 
 Unexpected Error
 */

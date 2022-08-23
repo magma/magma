@@ -56,7 +56,8 @@ func NewPostCiReserveParamsWithHTTPClient(client *http.Client) *PostCiReservePar
 	}
 }
 
-/*PostCiReserveParams contains all the parameters to send to the API endpoint
+/*
+PostCiReserveParams contains all the parameters to send to the API endpoint
 for the post ci reserve operation typically these are written to a http.Request
 */
 type PostCiReserveParams struct {

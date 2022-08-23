@@ -47,7 +47,8 @@ func NewPutLTENetworkIDNetworkProbeTasksTaskIDNoContent() *PutLTENetworkIDNetwor
 	return &PutLTENetworkIDNetworkProbeTasksTaskIDNoContent{}
 }
 
-/*PutLTENetworkIDNetworkProbeTasksTaskIDNoContent handles this case with default header values.
+/*
+PutLTENetworkIDNetworkProbeTasksTaskIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDNetworkProbeTasksTaskIDDefault(code int) *PutLTENetworkID
 	}
 }
 
-/*PutLTENetworkIDNetworkProbeTasksTaskIDDefault handles this case with default header values.
+/*
+PutLTENetworkIDNetworkProbeTasksTaskIDDefault handles this case with default header values.
 
 Unexpected Error
 */

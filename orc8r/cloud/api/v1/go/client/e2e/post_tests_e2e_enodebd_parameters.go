@@ -58,7 +58,8 @@ func NewPostTestsE2eEnodebdParamsWithHTTPClient(client *http.Client) *PostTestsE
 	}
 }
 
-/*PostTestsE2eEnodebdParams contains all the parameters to send to the API endpoint
+/*
+PostTestsE2eEnodebdParams contains all the parameters to send to the API endpoint
 for the post tests e2e enodebd operation typically these are written to a http.Request
 */
 type PostTestsE2eEnodebdParams struct {

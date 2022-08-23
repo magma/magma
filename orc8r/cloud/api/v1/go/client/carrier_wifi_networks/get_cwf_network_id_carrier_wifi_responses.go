@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDCarrierWifiOK() *GetCwfNetworkIDCarrierWifiOK {
 	return &GetCwfNetworkIDCarrierWifiOK{}
 }
 
-/*GetCwfNetworkIDCarrierWifiOK handles this case with default header values.
+/*
+GetCwfNetworkIDCarrierWifiOK handles this case with default header values.
 
 Retrieve Network Carrier Wifi Configs
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDCarrierWifiDefault(code int) *GetCwfNetworkIDCarrierWifiD
 	}
 }
 
-/*GetCwfNetworkIDCarrierWifiDefault handles this case with default header values.
+/*
+GetCwfNetworkIDCarrierWifiDefault handles this case with default header values.
 
 Unexpected Error
 */

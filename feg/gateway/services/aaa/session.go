@@ -16,7 +16,6 @@ limitations under the License.
 //go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/context.proto protos/eap.proto
 //go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/accounting.proto
 //go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/authorization.proto
-//
 package aaa
 
 import (

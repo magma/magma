@@ -47,7 +47,8 @@ func NewGetNetworksOK() *GetNetworksOK {
 	return &GetNetworksOK{}
 }
 
-/*GetNetworksOK handles this case with default header values.
+/*
+GetNetworksOK handles this case with default header values.
 
 List of network IDs
 */
@@ -80,7 +81,8 @@ func NewGetNetworksDefault(code int) *GetNetworksDefault {
 	}
 }
 
-/*GetNetworksDefault handles this case with default header values.
+/*
+GetNetworksDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -58,7 +58,8 @@ func NewPostLTENetworkIDAPNSParamsWithHTTPClient(client *http.Client) *PostLTENe
 	}
 }
 
-/*PostLTENetworkIDAPNSParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDAPNSParams contains all the parameters to send to the API endpoint
 for the post LTE network ID APNS operation typically these are written to a http.Request
 */
 type PostLTENetworkIDAPNSParams struct {

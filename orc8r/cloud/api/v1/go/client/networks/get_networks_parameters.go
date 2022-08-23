@@ -56,7 +56,8 @@ func NewGetNetworksParamsWithHTTPClient(client *http.Client) *GetNetworksParams 
 	}
 }
 
-/*GetNetworksParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksParams contains all the parameters to send to the API endpoint
 for the get networks operation typically these are written to a http.Request
 */
 type GetNetworksParams struct {

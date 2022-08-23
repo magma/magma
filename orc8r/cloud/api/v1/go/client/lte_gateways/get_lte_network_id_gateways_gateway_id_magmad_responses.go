@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDMagmadOK() *GetLTENetworkIDGatewaysGatew
 	return &GetLTENetworkIDGatewaysGatewayIDMagmadOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
 
 Magmad agent configuration
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDMagmadDefault(code int) *GetLTENetworkID
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -56,7 +56,8 @@ func NewGetLTENetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.Client)
 	}
 }
 
-/*GetLTENetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
 for the get LTE network ID DNS records domain operation typically these are written to a http.Request
 */
 type GetLTENetworkIDDNSRecordsDomainParams struct {

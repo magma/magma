@@ -47,7 +47,8 @@ func NewDeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent() *DeleteFe
 	return &DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent{}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
+/*
+DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *De
 	}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+DeleteFegNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

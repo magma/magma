@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDDeviceOK() *GetNetworksNetworkIDGat
 	return &GetNetworksNetworkIDGatewaysGatewayIDDeviceOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDDeviceOK handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDDeviceOK handles this case with default header values.
 
 The physical device for the gateway
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDDeviceDefault(code int) *GetNetwork
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDDeviceDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDDeviceDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDTracingTraceIDOK() *GetNetworksNetworkIDTracingTrace
 	return &GetNetworksNetworkIDTracingTraceIDOK{}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingTraceIDOK handles this case with default header values.
 
 Show tracing status
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDTracingTraceIDDefault(code int) *GetNetworksNetworkI
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
 
 Unexpected Error
 */

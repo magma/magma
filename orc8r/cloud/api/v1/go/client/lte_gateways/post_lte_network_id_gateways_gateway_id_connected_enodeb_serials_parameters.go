@@ -56,7 +56,8 @@ func NewPostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithHTTPCli
 	}
 }
 
-/*PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams contains all the parameters to send to the API endpoint
 for the post LTE network ID gateways gateway ID connected ENODEB serials operation typically these are written to a http.Request
 */
 type PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams struct {

@@ -47,7 +47,8 @@ func NewPutFegNetworkIDSubscriberConfigNoContent() *PutFegNetworkIDSubscriberCon
 	return &PutFegNetworkIDSubscriberConfigNoContent{}
 }
 
-/*PutFegNetworkIDSubscriberConfigNoContent handles this case with default header values.
+/*
+PutFegNetworkIDSubscriberConfigNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutFegNetworkIDSubscriberConfigDefault(code int) *PutFegNetworkIDSubscri
 	}
 }
 
-/*PutFegNetworkIDSubscriberConfigDefault handles this case with default header values.
+/*
+PutFegNetworkIDSubscriberConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

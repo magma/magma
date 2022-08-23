@@ -56,7 +56,8 @@ func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient(cl
 	}
 }
 
-/*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the post feg network ID subscriber config base names base name operation typically these are written to a http.Request
 */
 type PostFegNetworkIDSubscriberConfigBaseNamesBaseNameParams struct {

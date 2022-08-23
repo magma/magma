@@ -56,7 +56,8 @@ func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClie
 	}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the delete feg LTE network ID subscriber config base names base name operation typically these are written to a http.Request
 */
 type DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams struct {

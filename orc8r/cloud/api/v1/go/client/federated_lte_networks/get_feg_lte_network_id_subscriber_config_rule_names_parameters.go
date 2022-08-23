@@ -56,7 +56,8 @@ func NewGetFegLTENetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient(client *
 	}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
+/*
+GetFegLTENetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
 for the get feg LTE network ID subscriber config rule names operation typically these are written to a http.Request
 */
 type GetFegLTENetworkIDSubscriberConfigRuleNamesParams struct {

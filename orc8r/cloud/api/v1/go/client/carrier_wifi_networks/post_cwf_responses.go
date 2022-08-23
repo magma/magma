@@ -47,7 +47,8 @@ func NewPostCwfCreated() *PostCwfCreated {
 	return &PostCwfCreated{}
 }
 
-/*PostCwfCreated handles this case with default header values.
+/*
+PostCwfCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostCwfDefault(code int) *PostCwfDefault {
 	}
 }
 
-/*PostCwfDefault handles this case with default header values.
+/*
+PostCwfDefault handles this case with default header values.
 
 Unexpected Error
 */

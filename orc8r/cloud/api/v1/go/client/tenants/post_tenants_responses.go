@@ -47,7 +47,8 @@ func NewPostTenantsCreated() *PostTenantsCreated {
 	return &PostTenantsCreated{}
 }
 
-/*PostTenantsCreated handles this case with default header values.
+/*
+PostTenantsCreated handles this case with default header values.
 
 Successfully created
 */
@@ -70,7 +71,8 @@ func NewPostTenantsDefault(code int) *PostTenantsDefault {
 	}
 }
 
-/*PostTenantsDefault handles this case with default header values.
+/*
+PostTenantsDefault handles this case with default header values.
 
 Unexpected Error
 */

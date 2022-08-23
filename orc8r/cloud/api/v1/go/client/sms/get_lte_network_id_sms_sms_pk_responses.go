@@ -47,7 +47,8 @@ func NewGetLTENetworkIDSMSSMSPkOK() *GetLTENetworkIDSMSSMSPkOK {
 	return &GetLTENetworkIDSMSSMSPkOK{}
 }
 
-/*GetLTENetworkIDSMSSMSPkOK handles this case with default header values.
+/*
+GetLTENetworkIDSMSSMSPkOK handles this case with default header values.
 
 Requested SMS message
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDSMSSMSPkDefault(code int) *GetLTENetworkIDSMSSMSPkDefault
 	}
 }
 
-/*GetLTENetworkIDSMSSMSPkDefault handles this case with default header values.
+/*
+GetLTENetworkIDSMSSMSPkDefault handles this case with default header values.
 
 Unexpected Error
 */

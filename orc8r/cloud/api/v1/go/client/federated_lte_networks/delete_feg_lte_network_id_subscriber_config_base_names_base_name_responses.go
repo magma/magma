@@ -47,7 +47,8 @@ func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent() *Delet
 	return &DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent{}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
+/*
+DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) 
 	}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

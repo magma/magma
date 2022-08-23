@@ -58,7 +58,8 @@ func NewPostCwfParamsWithHTTPClient(client *http.Client) *PostCwfParams {
 	}
 }
 
-/*PostCwfParams contains all the parameters to send to the API endpoint
+/*
+PostCwfParams contains all the parameters to send to the API endpoint
 for the post cwf operation typically these are written to a http.Request
 */
 type PostCwfParams struct {

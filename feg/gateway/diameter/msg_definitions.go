@@ -40,7 +40,9 @@ type ASR struct {
 	OriginStateId     datatype.Unsigned32       `avp:"Origin-State-Id"`
 }
 
-/*  Abort-Session Answer (ASA)
+/*
+	Abort-Session Answer (ASA)
+
 < Session-Id >
 { Origin-Host }
 { Origin-Realm }

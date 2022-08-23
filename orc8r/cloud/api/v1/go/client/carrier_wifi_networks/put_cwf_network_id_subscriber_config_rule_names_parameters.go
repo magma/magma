@@ -58,7 +58,8 @@ func NewPutCwfNetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient(client *htt
 	}
 }
 
-/*PutCwfNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
+/*
+PutCwfNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
 for the put cwf network ID subscriber config rule names operation typically these are written to a http.Request
 */
 type PutCwfNetworkIDSubscriberConfigRuleNamesParams struct {

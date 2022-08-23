@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDAlertsSilenceOK() *PostNetworksNetworkIDAlertsSilen
 	return &PostNetworksNetworkIDAlertsSilenceOK{}
 }
 
-/*PostNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
+/*
+PostNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
 
 ID of successfully created silencer
 */
@@ -80,7 +81,8 @@ func NewPostNetworksNetworkIDAlertsSilenceDefault(code int) *PostNetworksNetwork
 	}
 }
 
-/*PostNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
 
 Unexpected Error
 */

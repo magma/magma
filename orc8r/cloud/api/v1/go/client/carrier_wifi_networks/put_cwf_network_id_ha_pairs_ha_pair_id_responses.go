@@ -47,7 +47,8 @@ func NewPutCwfNetworkIDHaPairsHaPairIDOK() *PutCwfNetworkIDHaPairsHaPairIDOK {
 	return &PutCwfNetworkIDHaPairsHaPairIDOK{}
 }
 
-/*PutCwfNetworkIDHaPairsHaPairIDOK handles this case with default header values.
+/*
+PutCwfNetworkIDHaPairsHaPairIDOK handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutCwfNetworkIDHaPairsHaPairIDDefault(code int) *PutCwfNetworkIDHaPairsH
 	}
 }
 
-/*PutCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
+/*
+PutCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
 
 Unexpected Error
 */

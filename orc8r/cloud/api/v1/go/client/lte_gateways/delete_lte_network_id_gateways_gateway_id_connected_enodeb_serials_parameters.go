@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParamsWithHTTPC
 	}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID gateways gateway ID connected ENODEB serials operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsParams struct {

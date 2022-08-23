@@ -56,7 +56,8 @@ func NewGetCwfNetworkIDHaPairsHaPairIDParamsWithHTTPClient(client *http.Client) 
 	}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDParams contains all the parameters to send to the API endpoint
+/*
+GetCwfNetworkIDHaPairsHaPairIDParams contains all the parameters to send to the API endpoint
 for the get cwf network ID ha pairs ha pair ID operation typically these are written to a http.Request
 */
 type GetCwfNetworkIDHaPairsHaPairIDParams struct {

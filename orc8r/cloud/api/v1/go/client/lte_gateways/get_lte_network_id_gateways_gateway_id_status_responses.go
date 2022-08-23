@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDStatusOK() *GetLTENetworkIDGatewaysGatew
 	return &GetLTENetworkIDGatewaysGatewayIDStatusOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDStatusOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDStatusOK handles this case with default header values.
 
 The status of the gateway
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDStatusDefault(code int) *GetLTENetworkID
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDStatusDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDStatusDefault handles this case with default header values.
 
 Unexpected Error
 */

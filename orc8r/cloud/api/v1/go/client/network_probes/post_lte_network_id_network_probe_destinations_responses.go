@@ -47,7 +47,8 @@ func NewPostLTENetworkIDNetworkProbeDestinationsCreated() *PostLTENetworkIDNetwo
 	return &PostLTENetworkIDNetworkProbeDestinationsCreated{}
 }
 
-/*PostLTENetworkIDNetworkProbeDestinationsCreated handles this case with default header values.
+/*
+PostLTENetworkIDNetworkProbeDestinationsCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDNetworkProbeDestinationsDefault(code int) *PostLTENetwor
 	}
 }
 
-/*PostLTENetworkIDNetworkProbeDestinationsDefault handles this case with default header values.
+/*
+PostLTENetworkIDNetworkProbeDestinationsDefault handles this case with default header values.
 
 Unexpected Error
 */

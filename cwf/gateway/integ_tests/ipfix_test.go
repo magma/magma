@@ -32,17 +32,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (usage-enforcement-static-pass-all), 250KB of
-//   quota.
-//   Generate traffic and assert the CCR-I is received.
-// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
-// 	 PCRF, to which it will response with more quota.
-//   Generate traffic and assert the CCR-U is received.
-// - Generate traffic to put traffic through the newly installed rule.
-//   Assert that there's > 0 data usage in the rule.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-// - Assert that IPDR records were properly exported
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (usage-enforcement-static-pass-all), 250KB of
+//     quota.
+//     Generate traffic and assert the CCR-I is received.
+//   - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+//     PCRF, to which it will response with more quota.
+//     Generate traffic and assert the CCR-U is received.
+//   - Generate traffic to put traffic through the newly installed rule.
+//     Assert that there's > 0 data usage in the rule.
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//   - Assert that IPDR records were properly exported
 func TestIpfixEnforcement(t *testing.T) {
 	t.Skip("Skipping test due to DPI changes")
 	fmt.Println("\nRunning IPFIX TEST...")

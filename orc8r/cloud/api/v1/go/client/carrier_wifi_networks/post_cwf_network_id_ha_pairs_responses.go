@@ -47,7 +47,8 @@ func NewPostCwfNetworkIDHaPairsCreated() *PostCwfNetworkIDHaPairsCreated {
 	return &PostCwfNetworkIDHaPairsCreated{}
 }
 
-/*PostCwfNetworkIDHaPairsCreated handles this case with default header values.
+/*
+PostCwfNetworkIDHaPairsCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostCwfNetworkIDHaPairsDefault(code int) *PostCwfNetworkIDHaPairsDefault
 	}
 }
 
-/*PostCwfNetworkIDHaPairsDefault handles this case with default header values.
+/*
+PostCwfNetworkIDHaPairsDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPostCiReserveOK() *PostCiReserveOK {
 	return &PostCiReserveOK{}
 }
 
-/*PostCiReserveOK handles this case with default header values.
+/*
+PostCiReserveOK handles this case with default header values.
 
 Lease information about the reserved node
 */
@@ -82,7 +83,8 @@ func NewPostCiReserveDefault(code int) *PostCiReserveDefault {
 	}
 }
 
-/*PostCiReserveDefault handles this case with default header values.
+/*
+PostCiReserveDefault handles this case with default header values.
 
 Unexpected Error
 */

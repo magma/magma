@@ -47,7 +47,8 @@ func NewPostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated() *PostFegLT
 	return &PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated{}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
+/*
+PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *P
 	}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDAlertsOK() *GetNetworksNetworkIDAlertsOK {
 	return &GetNetworksNetworkIDAlertsOK{}
 }
 
-/*GetNetworksNetworkIDAlertsOK handles this case with default header values.
+/*
+GetNetworksNetworkIDAlertsOK handles this case with default header values.
 
 List of currently firing alerts
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDAlertsDefault(code int) *GetNetworksNetworkIDAlertsD
 	}
 }
 
-/*GetNetworksNetworkIDAlertsDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDAlertsDefault handles this case with default header values.
 
 Unexpected Error
 */

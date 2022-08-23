@@ -16,7 +16,6 @@ limitations under the License.
 // and periodically (MCONFOG_REFRESH_INTERVAL) refreshed by a dedicated routine
 //
 //go:generate bash -c "MAGMA_MODULES='$MAGMA_ROOT/orc8r $MAGMA_ROOT/lte $MAGMA_ROOT/feg' make -C $MAGMA_ROOT/orc8r/cloud gen"
-//
 package mconfig
 
 import "time"

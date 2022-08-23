@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericParamsWithHTTPClient
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams contains all the parameters to send to the API endpoint
 for the post networks network ID gateways gateway ID command generic operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDGatewaysGatewayIDCommandGenericParams struct {

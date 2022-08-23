@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent() *DeleteLTENetworkID
 	return &DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent{}
 }
 
-/*DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDNetworkProbeTasksTaskIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDNetworkProbeTasksTaskIDDefault(code int) *DeleteLTENet
 	}
 }
 
-/*DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDNetworkProbeTasksTaskIDDefault handles this case with default header values.
 
 Unexpected Error
 */

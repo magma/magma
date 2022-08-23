@@ -56,7 +56,8 @@ func NewGetFegLTEParamsWithHTTPClient(client *http.Client) *GetFegLTEParams {
 	}
 }
 
-/*GetFegLTEParams contains all the parameters to send to the API endpoint
+/*
+GetFegLTEParams contains all the parameters to send to the API endpoint
 for the get feg LTE operation typically these are written to a http.Request
 */
 type GetFegLTEParams struct {

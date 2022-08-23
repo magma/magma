@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDTierOK() *GetNetworksNetworkIDGatew
 	return &GetNetworksNetworkIDGatewaysGatewayIDTierOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDTierOK handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDTierOK handles this case with default header values.
 
 The ID of the upgrade tier
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDTierDefault(code int) *GetNetworksN
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDTierDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDTierDefault handles this case with default header values.
 
 Unexpected Error
 */

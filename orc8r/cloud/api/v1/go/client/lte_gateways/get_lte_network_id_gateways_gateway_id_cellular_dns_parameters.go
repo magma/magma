@@ -56,7 +56,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularDNSParamsWithHTTPClient(client *
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularDNSParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularDNSParams contains all the parameters to send to the API endpoint
 for the get LTE network ID gateways gateway ID cellular DNS operation typically these are written to a http.Request
 */
 type GetLTENetworkIDGatewaysGatewayIDCellularDNSParams struct {

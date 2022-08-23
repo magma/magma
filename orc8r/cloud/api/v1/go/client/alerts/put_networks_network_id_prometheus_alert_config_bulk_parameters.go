@@ -58,7 +58,8 @@ func NewPutNetworksNetworkIDPrometheusAlertConfigBulkParamsWithHTTPClient(client
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigBulkParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDPrometheusAlertConfigBulkParams contains all the parameters to send to the API endpoint
 for the put networks network ID prometheus alert config bulk operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDPrometheusAlertConfigBulkParams struct {

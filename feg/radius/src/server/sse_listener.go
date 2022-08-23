@@ -297,8 +297,9 @@ func (l *SSEListener) handleCoaRequest(evt eventsource.Event) {
 }
 
 // TODO: This piece of code is used to convert JSON formatted CoA into
-//       RADIUS packet. If we serialize this in the AAA server, and
-//       send the serialized RADIUS packet, we can just pass it on here.
+//
+//	RADIUS packet. If we serialize this in the AAA server, and
+//	send the serialized RADIUS packet, we can just pass it on here.
 func getFirstAttrValue(attrs map[string][]interface{}, attr string) string {
 	values, ok := attrs[attr]
 	if !ok {

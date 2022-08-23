@@ -13,23 +13,23 @@
 //
 // Goals:
 //
-//   1. Allow packages to log against an abstraction so that they can be
-//      deployed in different environments and logging implementations can be
-//      injected. e.g. `magma/imsi` could be used in AGW as well as cloud
-//      components. On an AGW machine, code could log out to console via a
-//      logging library like `uber/zap` or it could use `log/syslog` to stream
-//      directly to a syslog-ng server. When `magma/imsi` is used in a cloud
-//      service, an adapter to a cloud native logging solution, e.g. Google
-//      Cloud Logging or Amazon CLoudWatch Logs, could be injected instead.
+//  1. Allow packages to log against an abstraction so that they can be
+//     deployed in different environments and logging implementations can be
+//     injected. e.g. `magma/imsi` could be used in AGW as well as cloud
+//     components. On an AGW machine, code could log out to console via a
+//     logging library like `uber/zap` or it could use `log/syslog` to stream
+//     directly to a syslog-ng server. When `magma/imsi` is used in a cloud
+//     service, an adapter to a cloud native logging solution, e.g. Google
+//     Cloud Logging or Amazon CLoudWatch Logs, could be injected instead.
 //
-//   2. Provide a scoped/named log tree, e.g. "module.operation.function" tags
-//      on log output. This allows shared code to be re-used in various
-//      contexts with logging output that tracks with its calling scope.
+//  2. Provide a scoped/named log tree, e.g. "module.operation.function" tags
+//     on log output. This allows shared code to be re-used in various
+//     contexts with logging output that tracks with its calling scope.
 //
-//   3. Explicit key/value parameterized logging, e.g. "IMSI=1234". This is
-//      important so parameters can be machine-parsed easily and reliably. A
-//      common use case is to elide sensitive information before logs are
-//      shared.
+//  3. Explicit key/value parameterized logging, e.g. "IMSI=1234". This is
+//     important so parameters can be machine-parsed easily and reliably. A
+//     common use case is to elide sensitive information before logs are
+//     shared.
 //
 // Examples:
 //
@@ -56,24 +56,27 @@
 //
 //	// Output: [component.DoFoo] [val=42] doing stuff
 //
-// FAQs
+// # FAQs
 //
 // Q. Why isn't `Fatal` a supported level?
 // A. Implementations of `Fatal` often call `os.Exit(1)`. This immediately ends
-//    the process and does not allow any panic recovery / crash handling to
-//    occur. We strongly discourage `os.Exit` anywhere in the codebase; handle
-//    errors when possible and `panic` if not possible.
+//
+//	the process and does not allow any panic recovery / crash handling to
+//	occur. We strongly discourage `os.Exit` anywhere in the codebase; handle
+//	errors when possible and `panic` if not possible.
 //
 // Q. Why `Debug` instead of verbosity levels (e.g. `V(level Level)` in glog)?
 // A. Using a scoped/named log tree is a more precise way to control logging
-//    and combined with a `Debug` level should satisfy most use cases. Also,
-//    those unfamiliar with glog may be confused by `V` level logging usage.
+//
+//	and combined with a `Debug` level should satisfy most use cases. Also,
+//	those unfamiliar with glog may be confused by `V` level logging usage.
 //
 // Q. What about the built-in `log` package or using `glog` directly?
 // A. Many log packages lack features (see Goals above) and do not have
-//    mockable interfaces. While log output can be redirected to achieve
-//    similar results, our code then becomes tightly coupled/dependent on the
-//    specific logging library.
+//
+//	mockable interfaces. While log output can be redirected to achieve
+//	similar results, our code then becomes tightly coupled/dependent on the
+//	specific logging library.
 package log
 
 import (

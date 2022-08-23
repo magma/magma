@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent() *De
 	return &DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent{}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code in
 	}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
 
 Unexpected Error
 */

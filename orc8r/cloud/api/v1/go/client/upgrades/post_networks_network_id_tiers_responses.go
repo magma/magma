@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDTiersCreated() *PostNetworksNetworkIDTiersCreated {
 	return &PostNetworksNetworkIDTiersCreated{}
 }
 
-/*PostNetworksNetworkIDTiersCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDTiersCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDTiersDefault(code int) *PostNetworksNetworkIDTiersD
 	}
 }
 
-/*PostNetworksNetworkIDTiersDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDTiersDefault handles this case with default header values.
 
 Unexpected Error
 */

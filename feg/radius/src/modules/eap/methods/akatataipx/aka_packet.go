@@ -9,7 +9,7 @@ import (
 // AkaSubtype the subtypes of AKA packet as defined in RFC4187 section 11
 type AkaSubtype int
 
-//@no-lint
+// @no-lint
 const (
 	AkaChallenge              AkaSubtype = 1
 	AkaAuthenticationReject   AkaSubtype = 2
@@ -25,7 +25,7 @@ const (
 // AttributeType as enumerated in RFC4187 section 11
 type AttributeType uint8
 
-//nolint
+// nolint
 const (
 	AT_RAND              AttributeType = 1
 	AT_AUTN              AttributeType = 2

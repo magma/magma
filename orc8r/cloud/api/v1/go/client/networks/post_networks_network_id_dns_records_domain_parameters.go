@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.C
 	}
 }
 
-/*PostNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
 for the post networks network ID DNS records domain operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDDNSRecordsDomainParams struct {

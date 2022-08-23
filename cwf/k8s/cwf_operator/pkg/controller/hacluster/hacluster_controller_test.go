@@ -330,7 +330,7 @@ func createSvc(instanceName string, namespace string, port int32) *corev1.Servic
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
+				{
 					Port: port,
 				},
 			},

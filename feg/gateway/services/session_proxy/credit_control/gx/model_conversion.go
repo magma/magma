@@ -380,7 +380,7 @@ func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
 	}
 }
 
-//Int32ToBoolean converts int32 to true if diffent than 0
+// Int32ToBoolean converts int32 to true if diffent than 0
 func Int32ToBoolean(val int32) bool {
 	return val != 0
 }

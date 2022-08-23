@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDTiersTierIDImagesNoContent() *PostNetworksNetworkID
 	return &PostNetworksNetworkIDTiersTierIDImagesNoContent{}
 }
 
-/*PostNetworksNetworkIDTiersTierIDImagesNoContent handles this case with default header values.
+/*
+PostNetworksNetworkIDTiersTierIDImagesNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDTiersTierIDImagesDefault(code int) *PostNetworksNet
 	}
 }
 
-/*PostNetworksNetworkIDTiersTierIDImagesDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDTiersTierIDImagesDefault handles this case with default header values.
 
 Unexpected Error
 */

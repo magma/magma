@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDMagmadOK() *GetNetworksNetworkIDGat
 	return &GetNetworksNetworkIDGatewaysGatewayIDMagmadOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
 
 Magmad agent configuration
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDMagmadDefault(code int) *GetNetwork
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
 
 Unexpected Error
 */

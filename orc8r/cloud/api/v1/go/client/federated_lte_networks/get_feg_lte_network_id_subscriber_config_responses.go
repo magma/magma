@@ -47,7 +47,8 @@ func NewGetFegLTENetworkIDSubscriberConfigOK() *GetFegLTENetworkIDSubscriberConf
 	return &GetFegLTENetworkIDSubscriberConfigOK{}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigOK handles this case with default header values.
+/*
+GetFegLTENetworkIDSubscriberConfigOK handles this case with default header values.
 
 Subscriber Config
 */
@@ -82,7 +83,8 @@ func NewGetFegLTENetworkIDSubscriberConfigDefault(code int) *GetFegLTENetworkIDS
 	}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigDefault handles this case with default header values.
+/*
+GetFegLTENetworkIDSubscriberConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

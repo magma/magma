@@ -47,7 +47,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsNoContent() *PutLTENet
 	return &PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsDefault(code int) *Put
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularDNSRecordsDefault handles this case with default header values.
 
 Unexpected Error
 */

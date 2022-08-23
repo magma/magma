@@ -56,7 +56,8 @@ func NewPostCiNodesNodeIDReserveParamsWithHTTPClient(client *http.Client) *PostC
 	}
 }
 
-/*PostCiNodesNodeIDReserveParams contains all the parameters to send to the API endpoint
+/*
+PostCiNodesNodeIDReserveParams contains all the parameters to send to the API endpoint
 for the post ci nodes node ID reserve operation typically these are written to a http.Request
 */
 type PostCiNodesNodeIDReserveParams struct {

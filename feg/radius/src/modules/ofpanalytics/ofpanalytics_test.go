@@ -118,7 +118,7 @@ func TestV2(t *testing.T) {
 			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				// Returning radius auth response
 				jsonPacket, _ := json.Marshal(map[string][]string{
-					"config:Auth-Type": []string{tc.authCode},
+					"config:Auth-Type": {tc.authCode},
 				})
 				w.Write(jsonPacket)
 			}))

@@ -47,7 +47,8 @@ func NewGetLTENetworkIDPolicyQosProfilesProfileIDOK() *GetLTENetworkIDPolicyQosP
 	return &GetLTENetworkIDPolicyQosProfilesProfileIDOK{}
 }
 
-/*GetLTENetworkIDPolicyQosProfilesProfileIDOK handles this case with default header values.
+/*
+GetLTENetworkIDPolicyQosProfilesProfileIDOK handles this case with default header values.
 
 Policy QoS profie
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDPolicyQosProfilesProfileIDDefault(code int) *GetLTENetwor
 	}
 }
 
-/*GetLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
+/*
+GetLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
 
 Unexpected Error
 */

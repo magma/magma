@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDRatingGroupsParamsWithHTTPClient(client *http.Clien
 	}
 }
 
-/*PostNetworksNetworkIDRatingGroupsParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDRatingGroupsParams contains all the parameters to send to the API endpoint
 for the post networks network ID rating groups operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDRatingGroupsParams struct {

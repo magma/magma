@@ -47,7 +47,8 @@ func NewGetTestsE2eOK() *GetTestsE2eOK {
 	return &GetTestsE2eOK{}
 }
 
-/*GetTestsE2eOK handles this case with default header values.
+/*
+GetTestsE2eOK handles this case with default header values.
 
 List of test configurations
 */
@@ -80,7 +81,8 @@ func NewGetTestsE2eDefault(code int) *GetTestsE2eDefault {
 	}
 }
 
-/*GetTestsE2eDefault handles this case with default header values.
+/*
+GetTestsE2eDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPutCwfNetworkIDGatewaysGatewayIDMagmadNoContent() *PutCwfNetworkIDGatewa
 	return &PutCwfNetworkIDGatewaysGatewayIDMagmadNoContent{}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDMagmadNoContent handles this case with default header values.
+/*
+PutCwfNetworkIDGatewaysGatewayIDMagmadNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutCwfNetworkIDGatewaysGatewayIDMagmadDefault(code int) *PutCwfNetworkID
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
+/*
+PutCwfNetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -50,7 +50,8 @@ func NewGetNetworksNetworkIDTracingTraceIDDownloadOK(writer io.Writer) *GetNetwo
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDownloadOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingTraceIDDownloadOK handles this case with default header values.
 
 Show tracing status
 */
@@ -88,7 +89,8 @@ func NewGetNetworksNetworkIDTracingTraceIDDownloadDefault(code int) *GetNetworks
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDownloadDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingTraceIDDownloadDefault handles this case with default header values.
 
 Unexpected Error
 */

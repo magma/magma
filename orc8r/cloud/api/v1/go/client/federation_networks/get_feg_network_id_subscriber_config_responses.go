@@ -47,7 +47,8 @@ func NewGetFegNetworkIDSubscriberConfigOK() *GetFegNetworkIDSubscriberConfigOK {
 	return &GetFegNetworkIDSubscriberConfigOK{}
 }
 
-/*GetFegNetworkIDSubscriberConfigOK handles this case with default header values.
+/*
+GetFegNetworkIDSubscriberConfigOK handles this case with default header values.
 
 Subscriber Config
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDSubscriberConfigDefault(code int) *GetFegNetworkIDSubscri
 	}
 }
 
-/*GetFegNetworkIDSubscriberConfigDefault handles this case with default header values.
+/*
+GetFegNetworkIDSubscriberConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

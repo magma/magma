@@ -47,7 +47,8 @@ func NewDeleteFegNetworkIDGatewaysGatewayIDFederationNoContent() *DeleteFegNetwo
 	return &DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent{}
 }
 
-/*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent handles this case with default header values.
+/*
+DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *DeleteFe
 	}
 }
 
-/*DeleteFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/*
+DeleteFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
 
 Unexpected Error
 */

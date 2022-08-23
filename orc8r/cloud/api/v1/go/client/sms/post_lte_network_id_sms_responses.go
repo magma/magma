@@ -47,7 +47,8 @@ func NewPostLTENetworkIDSMSCreated() *PostLTENetworkIDSMSCreated {
 	return &PostLTENetworkIDSMSCreated{}
 }
 
-/*PostLTENetworkIDSMSCreated handles this case with default header values.
+/*
+PostLTENetworkIDSMSCreated handles this case with default header values.
 
 PK of the created message
 */
@@ -80,7 +81,8 @@ func NewPostLTENetworkIDSMSDefault(code int) *PostLTENetworkIDSMSDefault {
 	}
 }
 
-/*PostLTENetworkIDSMSDefault handles this case with default header values.
+/*
+PostLTENetworkIDSMSDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetTenantsOK() *GetTenantsOK {
 	return &GetTenantsOK{}
 }
 
-/*GetTenantsOK handles this case with default header values.
+/*
+GetTenantsOK handles this case with default header values.
 
 List of tenants
 */
@@ -80,7 +81,8 @@ func NewGetTenantsDefault(code int) *GetTenantsDefault {
 	}
 }
 
-/*GetTenantsDefault handles this case with default header values.
+/*
+GetTenantsDefault handles this case with default header values.
 
 Unexpected Error
 */

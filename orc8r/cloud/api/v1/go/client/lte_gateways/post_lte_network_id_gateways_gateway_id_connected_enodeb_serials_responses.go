@@ -47,7 +47,8 @@ func NewPostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent() *Post
 	return &PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent{}
 }
 
-/*PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
+/*
+PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code int)
 	}
 }
 
-/*PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/*
+PostLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
 
 Unexpected Error
 */

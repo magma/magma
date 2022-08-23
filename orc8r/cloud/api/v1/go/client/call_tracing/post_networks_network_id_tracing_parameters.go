@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDTracingParamsWithHTTPClient(client *http.Client) *P
 	}
 }
 
-/*PostNetworksNetworkIDTracingParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDTracingParams contains all the parameters to send to the API endpoint
 for the post networks network ID tracing operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDTracingParams struct {

@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDAPNSAPNNameParamsWithHTTPClient(client *http.Client) *
 	}
 }
 
-/*DeleteLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDAPNSAPNNameParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID APNS APN name operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDAPNSAPNNameParams struct {

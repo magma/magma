@@ -56,7 +56,8 @@ func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParamsWithHTTPClien
 	}
 }
 
-/*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams contains all the parameters to send to the API endpoint
+/*
+GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams contains all the parameters to send to the API endpoint
 for the get cwf network ID subscribers subscriber ID directory record operation typically these are written to a http.Request
 */
 type GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordParams struct {

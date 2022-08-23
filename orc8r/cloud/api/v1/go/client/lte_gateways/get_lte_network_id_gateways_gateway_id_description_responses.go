@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDDescriptionOK() *GetLTENetworkIDGateways
 	return &GetLTENetworkIDGatewaysGatewayIDDescriptionOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDDescriptionOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDDescriptionOK handles this case with default header values.
 
 The description of the gateway
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDDescriptionDefault(code int) *GetLTENetw
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDDescriptionDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDDescriptionDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -56,7 +56,8 @@ func NewGetLTENetworkIDEnodebsENODEBSerialParamsWithHTTPClient(client *http.Clie
 	}
 }
 
-/*GetLTENetworkIDEnodebsENODEBSerialParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDEnodebsENODEBSerialParams contains all the parameters to send to the API endpoint
 for the get LTE network ID enodebs ENODEB serial operation typically these are written to a http.Request
 */
 type GetLTENetworkIDEnodebsENODEBSerialParams struct {

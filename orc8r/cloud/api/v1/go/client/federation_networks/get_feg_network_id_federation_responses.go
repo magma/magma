@@ -47,7 +47,8 @@ func NewGetFegNetworkIDFederationOK() *GetFegNetworkIDFederationOK {
 	return &GetFegNetworkIDFederationOK{}
 }
 
-/*GetFegNetworkIDFederationOK handles this case with default header values.
+/*
+GetFegNetworkIDFederationOK handles this case with default header values.
 
 Retrieved Network Federation Configs
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDFederationDefault(code int) *GetFegNetworkIDFederationDef
 	}
 }
 
-/*GetFegNetworkIDFederationDefault handles this case with default header values.
+/*
+GetFegNetworkIDFederationDefault handles this case with default header values.
 
 Unexpected Error
 */

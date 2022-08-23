@@ -47,7 +47,8 @@ func NewPostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated() *PostLTENetwo
 	return &PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated{}
 }
 
-/*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
+/*
+PostLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *Post
 	}
 }
 
-/*PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+PostLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

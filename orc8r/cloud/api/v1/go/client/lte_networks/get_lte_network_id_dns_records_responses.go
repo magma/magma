@@ -47,7 +47,8 @@ func NewGetLTENetworkIDDNSRecordsOK() *GetLTENetworkIDDNSRecordsOK {
 	return &GetLTENetworkIDDNSRecordsOK{}
 }
 
-/*GetLTENetworkIDDNSRecordsOK handles this case with default header values.
+/*
+GetLTENetworkIDDNSRecordsOK handles this case with default header values.
 
 Custom DNS records for the network
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDDNSRecordsDefault(code int) *GetLTENetworkIDDNSRecordsDef
 	}
 }
 
-/*GetLTENetworkIDDNSRecordsDefault handles this case with default header values.
+/*
+GetLTENetworkIDDNSRecordsDefault handles this case with default header values.
 
 Unexpected Error
 */

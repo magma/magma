@@ -58,7 +58,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularPoolingParamsWithHTTPClient(clie
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularPoolingParams contains all the parameters to send to the API endpoint
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularPoolingParams contains all the parameters to send to the API endpoint
 for the put LTE network ID gateways gateway ID cellular pooling operation typically these are written to a http.Request
 */
 type PutLTENetworkIDGatewaysGatewayIDCellularPoolingParams struct {

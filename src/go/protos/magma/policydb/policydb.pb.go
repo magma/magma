@@ -1693,7 +1693,8 @@ func (x *InstalledPolicies) GetInstalledPolicies() []string {
 // SubscriberPolicySet contains the base names and policy rules currently
 // assigned to a subscriber, keyed by APN
 // NOTE: This does not include the policy used to define the default bearer
-//       flow
+//
+//	flow
 type SubscriberPolicySet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1760,7 +1761,8 @@ func (x *SubscriberPolicySet) GetGlobalPolicies() []string {
 // ApnPolicySet contains the base names and policy rules currently assigned to
 // a (subscriber, APN) tuple
 // NOTE: This does not include the policy used to define the default bearer
-//       flow
+//
+//	flow
 type ApnPolicySet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

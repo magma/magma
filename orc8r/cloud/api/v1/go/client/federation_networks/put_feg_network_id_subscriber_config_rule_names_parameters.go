@@ -58,7 +58,8 @@ func NewPutFegNetworkIDSubscriberConfigRuleNamesParamsWithHTTPClient(client *htt
 	}
 }
 
-/*PutFegNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
+/*
+PutFegNetworkIDSubscriberConfigRuleNamesParams contains all the parameters to send to the API endpoint
 for the put feg network ID subscriber config rule names operation typically these are written to a http.Request
 */
 type PutFegNetworkIDSubscriberConfigRuleNamesParams struct {

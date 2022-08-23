@@ -47,7 +47,8 @@ func NewGetFegNetworkIDClusterStatusOK() *GetFegNetworkIDClusterStatusOK {
 	return &GetFegNetworkIDClusterStatusOK{}
 }
 
-/*GetFegNetworkIDClusterStatusOK handles this case with default header values.
+/*
+GetFegNetworkIDClusterStatusOK handles this case with default header values.
 
 Cluster status of Federation Network
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDClusterStatusDefault(code int) *GetFegNetworkIDClusterSta
 	}
 }
 
-/*GetFegNetworkIDClusterStatusDefault handles this case with default header values.
+/*
+GetFegNetworkIDClusterStatusDefault handles this case with default header values.
 
 Unexpected Error
 */

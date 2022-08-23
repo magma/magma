@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithHTTPClient(client
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the get networks network ID policies base names base name operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDPoliciesBaseNamesBaseNameParams struct {

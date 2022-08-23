@@ -56,7 +56,8 @@ func NewDeleteChannelsChannelIDParamsWithHTTPClient(client *http.Client) *Delete
 	}
 }
 
-/*DeleteChannelsChannelIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteChannelsChannelIDParams contains all the parameters to send to the API endpoint
 for the delete channels channel ID operation typically these are written to a http.Request
 */
 type DeleteChannelsChannelIDParams struct {

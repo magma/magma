@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDTracingTraceIDParamsWithHTTPClient(client *http.C
 	}
 }
 
-/*DeleteNetworksNetworkIDTracingTraceIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDTracingTraceIDParams contains all the parameters to send to the API endpoint
 for the delete networks network ID tracing trace ID operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDTracingTraceIDParams struct {

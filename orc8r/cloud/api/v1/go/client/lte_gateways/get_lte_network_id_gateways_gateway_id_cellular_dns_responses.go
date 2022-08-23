@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularDNSOK() *GetLTENetworkIDGateways
 	return &GetLTENetworkIDGatewaysGatewayIDCellularDNSOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularDNSOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularDNSOK handles this case with default header values.
 
 DNS configuration of the gateway
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularDNSDefault(code int) *GetLTENetw
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularDNSDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularDNSDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDLiUesOK() *GetCwfNetworkIDLiUesOK {
 	return &GetCwfNetworkIDLiUesOK{}
 }
 
-/*GetCwfNetworkIDLiUesOK handles this case with default header values.
+/*
+GetCwfNetworkIDLiUesOK handles this case with default header values.
 
 Monitored LI UEs
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDLiUesDefault(code int) *GetCwfNetworkIDLiUesDefault {
 	}
 }
 
-/*GetCwfNetworkIDLiUesDefault handles this case with default header values.
+/*
+GetCwfNetworkIDLiUesDefault handles this case with default header values.
 
 Unexpected Error
 */

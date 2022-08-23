@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent() *PutNetworksNetwo
 	return &PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent{}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent handles this case with default header values.
+/*
+PutNetworksNetworkIDGatewaysGatewayIDDeviceNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutNetworksNetworkIDGatewaysGatewayIDDeviceDefault(code int) *PutNetwork
 	}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDGatewaysGatewayIDDeviceDefault handles this case with default header values.
 
 Unexpected Error
 */

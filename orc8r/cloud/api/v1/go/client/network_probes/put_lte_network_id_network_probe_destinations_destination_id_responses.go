@@ -47,7 +47,8 @@ func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent() *PutLTEN
 	return &PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent{}
 }
 
-/*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent handles this case with default header values.
+/*
+PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault(code int) *P
 	}
 }
 
-/*PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault handles this case with default header values.
+/*
+PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault handles this case with default header values.
 
 Unexpected Error
 */

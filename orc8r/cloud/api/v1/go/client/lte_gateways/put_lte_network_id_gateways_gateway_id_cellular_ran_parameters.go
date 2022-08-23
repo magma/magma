@@ -58,7 +58,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularRanParamsWithHTTPClient(client *
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularRanParams contains all the parameters to send to the API endpoint
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularRanParams contains all the parameters to send to the API endpoint
 for the put LTE network ID gateways gateway ID cellular ran operation typically these are written to a http.Request
 */
 type PutLTENetworkIDGatewaysGatewayIDCellularRanParams struct {

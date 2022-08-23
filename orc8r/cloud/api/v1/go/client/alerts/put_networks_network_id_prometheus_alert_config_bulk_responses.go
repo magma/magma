@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDPrometheusAlertConfigBulkOK() *PutNetworksNetworkIDP
 	return &PutNetworksNetworkIDPrometheusAlertConfigBulkOK{}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigBulkOK handles this case with default header values.
+/*
+PutNetworksNetworkIDPrometheusAlertConfigBulkOK handles this case with default header values.
 
 Success
 */
@@ -82,7 +83,8 @@ func NewPutNetworksNetworkIDPrometheusAlertConfigBulkDefault(code int) *PutNetwo
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigBulkDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDPrometheusAlertConfigBulkDefault handles this case with default header values.
 
 Unexpected Error
 */

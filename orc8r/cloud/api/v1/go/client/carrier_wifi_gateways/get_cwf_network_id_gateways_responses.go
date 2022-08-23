@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDGatewaysOK() *GetCwfNetworkIDGatewaysOK {
 	return &GetCwfNetworkIDGatewaysOK{}
 }
 
-/*GetCwfNetworkIDGatewaysOK handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysOK handles this case with default header values.
 
 List of all carrier wifi gateways inside the network
 */
@@ -80,7 +81,8 @@ func NewGetCwfNetworkIDGatewaysDefault(code int) *GetCwfNetworkIDGatewaysDefault
 	}
 }
 
-/*GetCwfNetworkIDGatewaysDefault handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPostLTENetworkIDMsisdnsCreated() *PostLTENetworkIDMsisdnsCreated {
 	return &PostLTENetworkIDMsisdnsCreated{}
 }
 
-/*PostLTENetworkIDMsisdnsCreated handles this case with default header values.
+/*
+PostLTENetworkIDMsisdnsCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDMsisdnsDefault(code int) *PostLTENetworkIDMsisdnsDefault
 	}
 }
 
-/*PostLTENetworkIDMsisdnsDefault handles this case with default header values.
+/*
+PostLTENetworkIDMsisdnsDefault handles this case with default header values.
 
 Unexpected Error
 */

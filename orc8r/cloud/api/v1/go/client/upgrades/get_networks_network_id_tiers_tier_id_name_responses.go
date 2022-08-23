@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDTiersTierIDNameOK() *GetNetworksNetworkIDTiersTierID
 	return &GetNetworksNetworkIDTiersTierIDNameOK{}
 }
 
-/*GetNetworksNetworkIDTiersTierIDNameOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTiersTierIDNameOK handles this case with default header values.
 
 Success
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDTiersTierIDNameDefault(code int) *GetNetworksNetwork
 	}
 }
 
-/*GetNetworksNetworkIDTiersTierIDNameDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTiersTierIDNameDefault handles this case with default header values.
 
 Unexpected Error
 */

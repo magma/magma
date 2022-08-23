@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDRatingGroupsRatingGroupIDOK() *GetNetworksNetworkIDR
 	return &GetNetworksNetworkIDRatingGroupsRatingGroupIDOK{}
 }
 
-/*GetNetworksNetworkIDRatingGroupsRatingGroupIDOK handles this case with default header values.
+/*
+GetNetworksNetworkIDRatingGroupsRatingGroupIDOK handles this case with default header values.
 
 Rating group on success
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDRatingGroupsRatingGroupIDDefault(code int) *GetNetwo
 	}
 }
 
-/*GetNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
 
 Unexpected Error
 */

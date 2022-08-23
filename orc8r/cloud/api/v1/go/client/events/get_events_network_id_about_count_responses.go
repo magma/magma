@@ -47,7 +47,8 @@ func NewGetEventsNetworkIDAboutCountOK() *GetEventsNetworkIDAboutCountOK {
 	return &GetEventsNetworkIDAboutCountOK{}
 }
 
-/*GetEventsNetworkIDAboutCountOK handles this case with default header values.
+/*
+GetEventsNetworkIDAboutCountOK handles this case with default header values.
 
 Success
 */
@@ -80,7 +81,8 @@ func NewGetEventsNetworkIDAboutCountDefault(code int) *GetEventsNetworkIDAboutCo
 	}
 }
 
-/*GetEventsNetworkIDAboutCountDefault handles this case with default header values.
+/*
+GetEventsNetworkIDAboutCountDefault handles this case with default header values.
 
 Unexpected Error
 */

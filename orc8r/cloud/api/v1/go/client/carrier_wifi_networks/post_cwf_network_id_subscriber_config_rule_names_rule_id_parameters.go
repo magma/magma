@@ -56,7 +56,8 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithHTTPClient(clie
 	}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
+/*
+PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
 for the post cwf network ID subscriber config rule names rule ID operation typically these are written to a http.Request
 */
 type PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams struct {

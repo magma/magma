@@ -58,7 +58,8 @@ func NewPostLTENetworkIDSMSParamsWithHTTPClient(client *http.Client) *PostLTENet
 	}
 }
 
-/*PostLTENetworkIDSMSParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDSMSParams contains all the parameters to send to the API endpoint
 for the post LTE network ID SMS operation typically these are written to a http.Request
 */
 type PostLTENetworkIDSMSParams struct {

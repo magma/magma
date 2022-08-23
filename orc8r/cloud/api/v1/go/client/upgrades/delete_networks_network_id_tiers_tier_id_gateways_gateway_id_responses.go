@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent() *DeleteNe
 	return &DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent{}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDDefault(code int) *De
 	}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDTiersTierIDGatewaysGatewayIDDefault handles this case with default header values.
 
 Unexpected Error
 */

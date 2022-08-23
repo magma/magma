@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDMetricsPushParamsWithHTTPClient(client *http.Client
 	}
 }
 
-/*PostNetworksNetworkIDMetricsPushParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDMetricsPushParams contains all the parameters to send to the API endpoint
 for the post networks network ID metrics push operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDMetricsPushParams struct {

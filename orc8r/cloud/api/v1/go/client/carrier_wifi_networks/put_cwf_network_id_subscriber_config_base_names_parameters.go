@@ -58,7 +58,8 @@ func NewPutCwfNetworkIDSubscriberConfigBaseNamesParamsWithHTTPClient(client *htt
 	}
 }
 
-/*PutCwfNetworkIDSubscriberConfigBaseNamesParams contains all the parameters to send to the API endpoint
+/*
+PutCwfNetworkIDSubscriberConfigBaseNamesParams contains all the parameters to send to the API endpoint
 for the put cwf network ID subscriber config base names operation typically these are written to a http.Request
 */
 type PutCwfNetworkIDSubscriberConfigBaseNamesParams struct {

@@ -58,7 +58,8 @@ func NewPutFegNetworkIDFederationParamsWithHTTPClient(client *http.Client) *PutF
 	}
 }
 
-/*PutFegNetworkIDFederationParams contains all the parameters to send to the API endpoint
+/*
+PutFegNetworkIDFederationParams contains all the parameters to send to the API endpoint
 for the put feg network ID federation operation typically these are written to a http.Request
 */
 type PutFegNetworkIDFederationParams struct {

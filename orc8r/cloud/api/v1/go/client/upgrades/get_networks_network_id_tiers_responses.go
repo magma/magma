@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDTiersOK() *GetNetworksNetworkIDTiersOK {
 	return &GetNetworksNetworkIDTiersOK{}
 }
 
-/*GetNetworksNetworkIDTiersOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTiersOK handles this case with default header values.
 
 List of tier IDs
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDTiersDefault(code int) *GetNetworksNetworkIDTiersDef
 	}
 }
 
-/*GetNetworksNetworkIDTiersDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTiersDefault handles this case with default header values.
 
 Unexpected Error
 */

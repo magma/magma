@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPrometheusAlertReceiverOK() *GetNetworksNetworkIDPro
 	return &GetNetworksNetworkIDPrometheusAlertReceiverOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertReceiverOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertReceiverOK handles this case with default header values.
 
 List of alert receivers
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDPrometheusAlertReceiverDefault(code int) *GetNetwork
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertReceiverDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertReceiverDefault handles this case with default header values.
 
 Unexpected Error
 */

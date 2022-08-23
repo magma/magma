@@ -47,7 +47,8 @@ func NewGetTenantsTargetsMetadataOK() *GetTenantsTargetsMetadataOK {
 	return &GetTenantsTargetsMetadataOK{}
 }
 
-/*GetTenantsTargetsMetadataOK handles this case with default header values.
+/*
+GetTenantsTargetsMetadataOK handles this case with default header values.
 
 Info of metrics
 */
@@ -80,7 +81,8 @@ func NewGetTenantsTargetsMetadataDefault(code int) *GetTenantsTargetsMetadataDef
 	}
 }
 
-/*GetTenantsTargetsMetadataDefault handles this case with default header values.
+/*
+GetTenantsTargetsMetadataDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent() *DeleteNetwo
 	return &DeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent{}
 }
 
-/*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDDefault(code int) *Delet
 	}
 }
 
-/*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
 
 Unexpected Error
 */

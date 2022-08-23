@@ -58,7 +58,8 @@ func NewPutNetworksNetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.Cl
 	}
 }
 
-/*PutNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
 for the put networks network ID DNS records domain operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDDNSRecordsDomainParams struct {

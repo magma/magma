@@ -47,7 +47,8 @@ func NewPostLTENetworkIDEnodebsCreated() *PostLTENetworkIDEnodebsCreated {
 	return &PostLTENetworkIDEnodebsCreated{}
 }
 
-/*PostLTENetworkIDEnodebsCreated handles this case with default header values.
+/*
+PostLTENetworkIDEnodebsCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDEnodebsDefault(code int) *PostLTENetworkIDEnodebsDefault
 	}
 }
 
-/*PostLTENetworkIDEnodebsDefault handles this case with default header values.
+/*
+PostLTENetworkIDEnodebsDefault handles this case with default header values.
 
 Unexpected Error
 */

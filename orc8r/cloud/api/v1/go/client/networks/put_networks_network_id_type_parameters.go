@@ -56,7 +56,8 @@ func NewPutNetworksNetworkIDTypeParamsWithHTTPClient(client *http.Client) *PutNe
 	}
 }
 
-/*PutNetworksNetworkIDTypeParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDTypeParams contains all the parameters to send to the API endpoint
 for the put networks network ID type operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDTypeParams struct {

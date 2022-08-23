@@ -47,7 +47,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularPoolingCreated() *PutLTENetworkI
 	return &PutLTENetworkIDGatewaysGatewayIDCellularPoolingCreated{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularPoolingCreated handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularPoolingCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularPoolingDefault(code int) *PutLTE
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularPoolingDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularPoolingDefault handles this case with default header values.
 
 Unexpected Error
 */

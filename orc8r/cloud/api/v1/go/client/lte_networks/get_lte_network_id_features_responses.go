@@ -47,7 +47,8 @@ func NewGetLTENetworkIDFeaturesOK() *GetLTENetworkIDFeaturesOK {
 	return &GetLTENetworkIDFeaturesOK{}
 }
 
-/*GetLTENetworkIDFeaturesOK handles this case with default header values.
+/*
+GetLTENetworkIDFeaturesOK handles this case with default header values.
 
 Feature flags of the network
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDFeaturesDefault(code int) *GetLTENetworkIDFeaturesDefault
 	}
 }
 
-/*GetLTENetworkIDFeaturesDefault handles this case with default header values.
+/*
+GetLTENetworkIDFeaturesDefault handles this case with default header values.
 
 Unexpected Error
 */

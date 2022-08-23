@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDNameOK() *GetNetworksNetworkIDGatew
 	return &GetNetworksNetworkIDGatewaysGatewayIDNameOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDNameOK handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDNameOK handles this case with default header values.
 
 The name of the gateway
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDNameDefault(code int) *GetNetworksN
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDNameDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDNameDefault handles this case with default header values.
 
 Unexpected Error
 */

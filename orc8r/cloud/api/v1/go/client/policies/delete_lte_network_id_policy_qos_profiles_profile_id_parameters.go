@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDPolicyQosProfilesProfileIDParamsWithHTTPClient(client 
 	}
 }
 
-/*DeleteLTENetworkIDPolicyQosProfilesProfileIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDPolicyQosProfilesProfileIDParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID policy qos profiles profile ID operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDPolicyQosProfilesProfileIDParams struct {

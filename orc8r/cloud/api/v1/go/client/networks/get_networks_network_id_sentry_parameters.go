@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDSentryParamsWithHTTPClient(client *http.Client) *Get
 	}
 }
 
-/*GetNetworksNetworkIDSentryParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDSentryParams contains all the parameters to send to the API endpoint
 for the get networks network ID sentry operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDSentryParams struct {

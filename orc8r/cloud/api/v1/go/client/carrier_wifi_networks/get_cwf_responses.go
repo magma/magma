@@ -47,7 +47,8 @@ func NewGetCwfOK() *GetCwfOK {
 	return &GetCwfOK{}
 }
 
-/*GetCwfOK handles this case with default header values.
+/*
+GetCwfOK handles this case with default header values.
 
 List of Carrier Wifi network IDs
 */
@@ -80,7 +81,8 @@ func NewGetCwfDefault(code int) *GetCwfDefault {
 	}
 }
 
-/*GetCwfDefault handles this case with default header values.
+/*
+GetCwfDefault handles this case with default header values.
 
 Unexpected Error
 */

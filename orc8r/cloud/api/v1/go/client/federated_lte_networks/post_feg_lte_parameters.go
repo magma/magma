@@ -58,7 +58,8 @@ func NewPostFegLTEParamsWithHTTPClient(client *http.Client) *PostFegLTEParams {
 	}
 }
 
-/*PostFegLTEParams contains all the parameters to send to the API endpoint
+/*
+PostFegLTEParams contains all the parameters to send to the API endpoint
 for the post feg LTE operation typically these are written to a http.Request
 */
 type PostFegLTEParams struct {

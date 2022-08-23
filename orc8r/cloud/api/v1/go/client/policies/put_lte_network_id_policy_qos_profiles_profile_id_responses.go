@@ -47,7 +47,8 @@ func NewPutLTENetworkIDPolicyQosProfilesProfileIDNoContent() *PutLTENetworkIDPol
 	return &PutLTENetworkIDPolicyQosProfilesProfileIDNoContent{}
 }
 
-/*PutLTENetworkIDPolicyQosProfilesProfileIDNoContent handles this case with default header values.
+/*
+PutLTENetworkIDPolicyQosProfilesProfileIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDPolicyQosProfilesProfileIDDefault(code int) *PutLTENetwor
 	}
 }
 
-/*PutLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
+/*
+PutLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
 
 Unexpected Error
 */

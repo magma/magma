@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingOK() *PostNetworksNetwo
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK{}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandPingOK handles this case with default header values.
 
 Success
 */
@@ -82,7 +83,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingDefault(code int) *Post
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandPingDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandPingDefault handles this case with default header values.
 
 Unexpected Error
 */

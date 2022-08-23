@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDTracingTraceIDNoContent() *PutNetworksNetworkIDTraci
 	return &PutNetworksNetworkIDTracingTraceIDNoContent{}
 }
 
-/*PutNetworksNetworkIDTracingTraceIDNoContent handles this case with default header values.
+/*
+PutNetworksNetworkIDTracingTraceIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutNetworksNetworkIDTracingTraceIDDefault(code int) *PutNetworksNetworkI
 	}
 }
 
-/*PutNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
 
 Unexpected Error
 */

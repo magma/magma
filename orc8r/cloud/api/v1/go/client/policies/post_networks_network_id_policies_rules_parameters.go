@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDPoliciesRulesParamsWithHTTPClient(client *http.Clie
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesRulesParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDPoliciesRulesParams contains all the parameters to send to the API endpoint
 for the post networks network ID policies rules operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDPoliciesRulesParams struct {

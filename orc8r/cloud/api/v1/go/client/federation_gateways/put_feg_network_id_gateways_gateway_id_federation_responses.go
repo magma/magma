@@ -47,7 +47,8 @@ func NewPutFegNetworkIDGatewaysGatewayIDFederationOK() *PutFegNetworkIDGatewaysG
 	return &PutFegNetworkIDGatewaysGatewayIDFederationOK{}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDFederationOK handles this case with default header values.
+/*
+PutFegNetworkIDGatewaysGatewayIDFederationOK handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *PutFegNetwo
 	}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/*
+PutFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
 
 Unexpected Error
 */

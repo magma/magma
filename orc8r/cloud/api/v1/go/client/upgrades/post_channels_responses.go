@@ -47,7 +47,8 @@ func NewPostChannelsCreated() *PostChannelsCreated {
 	return &PostChannelsCreated{}
 }
 
-/*PostChannelsCreated handles this case with default header values.
+/*
+PostChannelsCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostChannelsDefault(code int) *PostChannelsDefault {
 	}
 }
 
-/*PostChannelsDefault handles this case with default header values.
+/*
+PostChannelsDefault handles this case with default header values.
 
 Unexpected Error
 */

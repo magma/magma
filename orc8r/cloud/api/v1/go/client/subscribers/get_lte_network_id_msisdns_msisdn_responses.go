@@ -47,7 +47,8 @@ func NewGetLTENetworkIDMsisdnsMsisdnOK() *GetLTENetworkIDMsisdnsMsisdnOK {
 	return &GetLTENetworkIDMsisdnsMsisdnOK{}
 }
 
-/*GetLTENetworkIDMsisdnsMsisdnOK handles this case with default header values.
+/*
+GetLTENetworkIDMsisdnsMsisdnOK handles this case with default header values.
 
 Subscriber ID
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDMsisdnsMsisdnDefault(code int) *GetLTENetworkIDMsisdnsMsi
 	}
 }
 
-/*GetLTENetworkIDMsisdnsMsisdnDefault handles this case with default header values.
+/*
+GetLTENetworkIDMsisdnsMsisdnDefault handles this case with default header values.
 
 Unexpected Error
 */

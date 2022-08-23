@@ -56,7 +56,8 @@ func NewGetLTENetworkIDMsisdnsParamsWithHTTPClient(client *http.Client) *GetLTEN
 	}
 }
 
-/*GetLTENetworkIDMsisdnsParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDMsisdnsParams contains all the parameters to send to the API endpoint
 for the get LTE network ID msisdns operation typically these are written to a http.Request
 */
 type GetLTENetworkIDMsisdnsParams struct {

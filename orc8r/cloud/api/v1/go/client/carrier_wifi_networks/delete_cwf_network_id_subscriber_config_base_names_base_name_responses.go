@@ -47,7 +47,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent() *DeleteCw
 	return &DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent{}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *De
 	}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDDNSRecordsDomainOK() *GetNetworksNetworkIDDNSRecords
 	return &GetNetworksNetworkIDDNSRecordsDomainOK{}
 }
 
-/*GetNetworksNetworkIDDNSRecordsDomainOK handles this case with default header values.
+/*
+GetNetworksNetworkIDDNSRecordsDomainOK handles this case with default header values.
 
 DNS config record
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDDNSRecordsDomainDefault(code int) *GetNetworksNetwor
 	}
 }
 
-/*GetNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDEnodebsENODEBSerialParamsWithHTTPClient(client *http.C
 	}
 }
 
-/*DeleteLTENetworkIDEnodebsENODEBSerialParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDEnodebsENODEBSerialParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID enodebs ENODEB serial operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDEnodebsENODEBSerialParams struct {

@@ -47,7 +47,8 @@ func NewGetTenantsTenantIDOK() *GetTenantsTenantIDOK {
 	return &GetTenantsTenantIDOK{}
 }
 
-/*GetTenantsTenantIDOK handles this case with default header values.
+/*
+GetTenantsTenantIDOK handles this case with default header values.
 
 Requested Tenant Information
 */
@@ -82,7 +83,8 @@ func NewGetTenantsTenantIDDefault(code int) *GetTenantsTenantIDDefault {
 	}
 }
 
-/*GetTenantsTenantIDDefault handles this case with default header values.
+/*
+GetTenantsTenantIDDefault handles this case with default header values.
 
 Unexpected Error
 */

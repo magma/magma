@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDPoliciesRulesRuleIDParamsWithHTTPClient(client *h
 	}
 }
 
-/*DeleteNetworksNetworkIDPoliciesRulesRuleIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDPoliciesRulesRuleIDParams contains all the parameters to send to the API endpoint
 for the delete networks network ID policies rules rule ID operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDPoliciesRulesRuleIDParams struct {

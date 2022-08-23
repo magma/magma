@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularRanNoContent() *GetLTENetworkIDG
 	return &GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent handles this case with default header values.
 
 RAN configuration
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularRanDefault(code int) *GetLTENetw
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularRanDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularRanDefault handles this case with default header values.
 
 Unexpected Error
 */

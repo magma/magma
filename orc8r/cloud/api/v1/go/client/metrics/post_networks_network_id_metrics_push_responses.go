@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDMetricsPushOK() *PostNetworksNetworkIDMetricsPushOK
 	return &PostNetworksNetworkIDMetricsPushOK{}
 }
 
-/*PostNetworksNetworkIDMetricsPushOK handles this case with default header values.
+/*
+PostNetworksNetworkIDMetricsPushOK handles this case with default header values.
 
 Submitted
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDMetricsPushDefault(code int) *PostNetworksNetworkID
 	}
 }
 
-/*PostNetworksNetworkIDMetricsPushDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDMetricsPushDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewDeleteTestsE2eEnodebdTestPkNoContent() *DeleteTestsE2eEnodebdTestPkNoCon
 	return &DeleteTestsE2eEnodebdTestPkNoContent{}
 }
 
-/*DeleteTestsE2eEnodebdTestPkNoContent handles this case with default header values.
+/*
+DeleteTestsE2eEnodebdTestPkNoContent handles this case with default header values.
 
 Deleted
 */
@@ -70,7 +71,8 @@ func NewDeleteTestsE2eEnodebdTestPkDefault(code int) *DeleteTestsE2eEnodebdTestP
 	}
 }
 
-/*DeleteTestsE2eEnodebdTestPkDefault handles this case with default header values.
+/*
+DeleteTestsE2eEnodebdTestPkDefault handles this case with default header values.
 
 Unexpected Error
 */

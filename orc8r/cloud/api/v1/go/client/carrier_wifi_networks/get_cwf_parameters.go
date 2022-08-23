@@ -56,7 +56,8 @@ func NewGetCwfParamsWithHTTPClient(client *http.Client) *GetCwfParams {
 	}
 }
 
-/*GetCwfParams contains all the parameters to send to the API endpoint
+/*
+GetCwfParams contains all the parameters to send to the API endpoint
 for the get cwf operation typically these are written to a http.Request
 */
 type GetCwfParams struct {

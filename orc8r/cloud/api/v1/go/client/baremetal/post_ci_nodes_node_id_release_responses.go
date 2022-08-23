@@ -47,7 +47,8 @@ func NewPostCiNodesNodeIDReleaseNoContent() *PostCiNodesNodeIDReleaseNoContent {
 	return &PostCiNodesNodeIDReleaseNoContent{}
 }
 
-/*PostCiNodesNodeIDReleaseNoContent handles this case with default header values.
+/*
+PostCiNodesNodeIDReleaseNoContent handles this case with default header values.
 
 Node released successfully
 */
@@ -70,7 +71,8 @@ func NewPostCiNodesNodeIDReleaseDefault(code int) *PostCiNodesNodeIDReleaseDefau
 	}
 }
 
-/*PostCiNodesNodeIDReleaseDefault handles this case with default header values.
+/*
+PostCiNodesNodeIDReleaseDefault handles this case with default header values.
 
 Unexpected Error
 */

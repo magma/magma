@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDTiersTierIDImagesImageNameParamsWithHTTPClient(cl
 	}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams contains all the parameters to send to the API endpoint
 for the delete networks network ID tiers tier ID images image name operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDTiersTierIDImagesImageNameParams struct {

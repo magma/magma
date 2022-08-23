@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient(client *ht
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
 for the get networks network ID prometheus alert config operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDPrometheusAlertConfigParams struct {

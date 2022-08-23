@@ -47,7 +47,8 @@ func NewGetCiNodesOK() *GetCiNodesOK {
 	return &GetCiNodesOK{}
 }
 
-/*GetCiNodesOK handles this case with default header values.
+/*
+GetCiNodesOK handles this case with default header values.
 
 All CI worker nodes
 */
@@ -80,7 +81,8 @@ func NewGetCiNodesDefault(code int) *GetCiNodesDefault {
 	}
 }
 
-/*GetCiNodesDefault handles this case with default header values.
+/*
+GetCiNodesDefault handles this case with default header values.
 
 Unexpected Error
 */

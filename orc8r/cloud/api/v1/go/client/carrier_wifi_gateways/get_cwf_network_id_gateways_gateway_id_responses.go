@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDOK() *GetCwfNetworkIDGatewaysGatewayIDOK
 	return &GetCwfNetworkIDGatewaysGatewayIDOK{}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDOK handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysGatewayIDOK handles this case with default header values.
 
 The requested carrier wifi gateway
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDDefault(code int) *GetCwfNetworkIDGatewa
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetLTENetworkIDMsisdnsOK() *GetLTENetworkIDMsisdnsOK {
 	return &GetLTENetworkIDMsisdnsOK{}
 }
 
-/*GetLTENetworkIDMsisdnsOK handles this case with default header values.
+/*
+GetLTENetworkIDMsisdnsOK handles this case with default header values.
 
 List of all MSISDNS in the network, mapped to their subscriber ID
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDMsisdnsDefault(code int) *GetLTENetworkIDMsisdnsDefault {
 	}
 }
 
-/*GetLTENetworkIDMsisdnsDefault handles this case with default header values.
+/*
+GetLTENetworkIDMsisdnsDefault handles this case with default header values.
 
 Unexpected Error
 */

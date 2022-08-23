@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPrometheusSeriesOK() *GetNetworksNetworkIDPrometheus
 	return &GetNetworksNetworkIDPrometheusSeriesOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusSeriesOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusSeriesOK handles this case with default header values.
 
 List of metric names
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDPrometheusSeriesDefault(code int) *GetNetworksNetwor
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusSeriesDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusSeriesDefault handles this case with default header values.
 
 Unexpected Error
 */

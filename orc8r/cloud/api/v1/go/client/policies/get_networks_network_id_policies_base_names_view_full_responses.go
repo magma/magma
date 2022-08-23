@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesViewFullOK() *GetNetworksNetworkIDP
 	return &GetNetworksNetworkIDPoliciesBaseNamesViewFullOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesViewFullOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesBaseNamesViewFullOK handles this case with default header values.
 
 Map of all base names in the network by name
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesViewFullDefault(code int) *GetNetwo
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesBaseNamesViewFullDefault handles this case with default header values.
 
 Unexpected Error
 */

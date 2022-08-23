@@ -58,7 +58,8 @@ func NewPostLTENetworkIDSubscribersParamsWithHTTPClient(client *http.Client) *Po
 	}
 }
 
-/*PostLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
 for the post LTE network ID subscribers operation typically these are written to a http.Request
 */
 type PostLTENetworkIDSubscribersParams struct {

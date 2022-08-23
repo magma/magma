@@ -58,7 +58,8 @@ func NewPutNetworksNetworkIDTracingTraceIDParamsWithHTTPClient(client *http.Clie
 	}
 }
 
-/*PutNetworksNetworkIDTracingTraceIDParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDTracingTraceIDParams contains all the parameters to send to the API endpoint
 for the put networks network ID tracing trace ID operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDTracingTraceIDParams struct {

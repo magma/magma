@@ -56,7 +56,8 @@ func NewGetTenantsParamsWithHTTPClient(client *http.Client) *GetTenantsParams {
 	}
 }
 
-/*GetTenantsParams contains all the parameters to send to the API endpoint
+/*
+GetTenantsParams contains all the parameters to send to the API endpoint
 for the get tenants operation typically these are written to a http.Request
 */
 type GetTenantsParams struct {

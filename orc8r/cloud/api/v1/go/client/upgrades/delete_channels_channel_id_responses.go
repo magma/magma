@@ -47,7 +47,8 @@ func NewDeleteChannelsChannelIDNoContent() *DeleteChannelsChannelIDNoContent {
 	return &DeleteChannelsChannelIDNoContent{}
 }
 
-/*DeleteChannelsChannelIDNoContent handles this case with default header values.
+/*
+DeleteChannelsChannelIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteChannelsChannelIDDefault(code int) *DeleteChannelsChannelIDDefault
 	}
 }
 
-/*DeleteChannelsChannelIDDefault handles this case with default header values.
+/*
+DeleteChannelsChannelIDDefault handles this case with default header values.
 
 Unexpected Error
 */

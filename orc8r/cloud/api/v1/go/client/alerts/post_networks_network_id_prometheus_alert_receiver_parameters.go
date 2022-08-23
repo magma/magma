@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDPrometheusAlertReceiverParamsWithHTTPClient(client 
 	}
 }
 
-/*PostNetworksNetworkIDPrometheusAlertReceiverParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDPrometheusAlertReceiverParams contains all the parameters to send to the API endpoint
 for the post networks network ID prometheus alert receiver operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDPrometheusAlertReceiverParams struct {

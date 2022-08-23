@@ -47,7 +47,8 @@ func NewPutTestsE2eEnodebdTestPkNoContent() *PutTestsE2eEnodebdTestPkNoContent {
 	return &PutTestsE2eEnodebdTestPkNoContent{}
 }
 
-/*PutTestsE2eEnodebdTestPkNoContent handles this case with default header values.
+/*
+PutTestsE2eEnodebdTestPkNoContent handles this case with default header values.
 
 Updated
 */
@@ -70,7 +71,8 @@ func NewPutTestsE2eEnodebdTestPkDefault(code int) *PutTestsE2eEnodebdTestPkDefau
 	}
 }
 
-/*PutTestsE2eEnodebdTestPkDefault handles this case with default header values.
+/*
+PutTestsE2eEnodebdTestPkDefault handles this case with default header values.
 
 Unexpected Error
 */

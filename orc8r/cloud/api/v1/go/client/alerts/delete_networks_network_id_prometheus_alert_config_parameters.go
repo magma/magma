@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDPrometheusAlertConfigParamsWithHTTPClient(client 
 	}
 }
 
-/*DeleteNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDPrometheusAlertConfigParams contains all the parameters to send to the API endpoint
 for the delete networks network ID prometheus alert config operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDPrometheusAlertConfigParams struct {

@@ -47,7 +47,8 @@ func NewGetLTENetworkIDNetworkProbeTasksOK() *GetLTENetworkIDNetworkProbeTasksOK
 	return &GetLTENetworkIDNetworkProbeTasksOK{}
 }
 
-/*GetLTENetworkIDNetworkProbeTasksOK handles this case with default header values.
+/*
+GetLTENetworkIDNetworkProbeTasksOK handles this case with default header values.
 
 Provisioned NetworkProbeTasks
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDNetworkProbeTasksDefault(code int) *GetLTENetworkIDNetwor
 	}
 }
 
-/*GetLTENetworkIDNetworkProbeTasksDefault handles this case with default header values.
+/*
+GetLTENetworkIDNetworkProbeTasksDefault handles this case with default header values.
 
 Unexpected Error
 */

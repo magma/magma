@@ -47,7 +47,8 @@ func NewGetChannelsOK() *GetChannelsOK {
 	return &GetChannelsOK{}
 }
 
-/*GetChannelsOK handles this case with default header values.
+/*
+GetChannelsOK handles this case with default header values.
 
 List of release channel IDs
 */
@@ -80,7 +81,8 @@ func NewGetChannelsDefault(code int) *GetChannelsDefault {
 	}
 }
 
-/*GetChannelsDefault handles this case with default header values.
+/*
+GetChannelsDefault handles this case with default header values.
 
 Unexpected Error
 */

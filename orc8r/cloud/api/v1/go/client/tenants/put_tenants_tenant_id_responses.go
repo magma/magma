@@ -47,7 +47,8 @@ func NewPutTenantsTenantIDNoContent() *PutTenantsTenantIDNoContent {
 	return &PutTenantsTenantIDNoContent{}
 }
 
-/*PutTenantsTenantIDNoContent handles this case with default header values.
+/*
+PutTenantsTenantIDNoContent handles this case with default header values.
 
 Ok
 */
@@ -70,7 +71,8 @@ func NewPutTenantsTenantIDDefault(code int) *PutTenantsTenantIDDefault {
 	}
 }
 
-/*PutTenantsTenantIDDefault handles this case with default header values.
+/*
+PutTenantsTenantIDDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDRatingGroupsCreated() *PostNetworksNetworkIDRatingG
 	return &PostNetworksNetworkIDRatingGroupsCreated{}
 }
 
-/*PostNetworksNetworkIDRatingGroupsCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDRatingGroupsCreated handles this case with default header values.
 
 Rating group id
 */
@@ -80,7 +81,8 @@ func NewPostNetworksNetworkIDRatingGroupsDefault(code int) *PostNetworksNetworkI
 	}
 }
 
-/*PostNetworksNetworkIDRatingGroupsDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDRatingGroupsDefault handles this case with default header values.
 
 Unexpected Error
 */

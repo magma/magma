@@ -86,7 +86,7 @@ func NewLocalBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrappe
 
 // Initialize loads HW ID and challenge key and verifies its validity.
 // snowflakeArgs by index
-//	- 0: set snowflake filepath, overriding default
+//   - 0: set snowflake filepath, overriding default
 func (b *Bootstrapper) Initialize(snowflakeArgs ...string) error {
 	if b == nil {
 		return fmt.Errorf("Invalid (nil) Bootstrapper")

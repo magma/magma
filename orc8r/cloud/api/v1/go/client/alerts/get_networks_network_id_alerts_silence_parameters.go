@@ -57,7 +57,8 @@ func NewGetNetworksNetworkIDAlertsSilenceParamsWithHTTPClient(client *http.Clien
 	}
 }
 
-/*GetNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
 for the get networks network ID alerts silence operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDAlertsSilenceParams struct {

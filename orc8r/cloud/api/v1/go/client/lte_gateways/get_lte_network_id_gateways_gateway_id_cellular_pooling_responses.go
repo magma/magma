@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularPoolingOK() *GetLTENetworkIDGate
 	return &GetLTENetworkIDGatewaysGatewayIDCellularPoolingOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularPoolingOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularPoolingOK handles this case with default header values.
 
 Gateway pool records
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularPoolingDefault(code int) *GetLTE
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularPoolingDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularPoolingDefault handles this case with default header values.
 
 Unexpected Error
 */

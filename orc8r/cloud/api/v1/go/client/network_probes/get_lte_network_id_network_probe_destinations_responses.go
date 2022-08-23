@@ -47,7 +47,8 @@ func NewGetLTENetworkIDNetworkProbeDestinationsOK() *GetLTENetworkIDNetworkProbe
 	return &GetLTENetworkIDNetworkProbeDestinationsOK{}
 }
 
-/*GetLTENetworkIDNetworkProbeDestinationsOK handles this case with default header values.
+/*
+GetLTENetworkIDNetworkProbeDestinationsOK handles this case with default header values.
 
 Provisioned NetworkProbe Destinations
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDNetworkProbeDestinationsDefault(code int) *GetLTENetworkI
 	}
 }
 
-/*GetLTENetworkIDNetworkProbeDestinationsDefault handles this case with default header values.
+/*
+GetLTENetworkIDNetworkProbeDestinationsDefault handles this case with default header values.
 
 Unexpected Error
 */

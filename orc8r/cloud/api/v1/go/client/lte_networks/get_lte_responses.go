@@ -47,7 +47,8 @@ func NewGetLTEOK() *GetLTEOK {
 	return &GetLTEOK{}
 }
 
-/*GetLTEOK handles this case with default header values.
+/*
+GetLTEOK handles this case with default header values.
 
 List of LTE network IDs
 */
@@ -80,7 +81,8 @@ func NewGetLTEDefault(code int) *GetLTEDefault {
 	}
 }
 
-/*GetLTEDefault handles this case with default header values.
+/*
+GetLTEDefault handles this case with default header values.
 
 Unexpected Error
 */

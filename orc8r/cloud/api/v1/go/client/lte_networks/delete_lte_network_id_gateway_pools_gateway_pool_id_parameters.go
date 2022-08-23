@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDGatewayPoolsGatewayPoolIDParamsWithHTTPClient(client *
 	}
 }
 
-/*DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID gateway pools gateway pool ID operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDGatewayPoolsGatewayPoolIDParams struct {

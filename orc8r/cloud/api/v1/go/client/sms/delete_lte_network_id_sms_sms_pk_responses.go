@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDSMSSMSPkNoContent() *DeleteLTENetworkIDSMSSMSPkNoConte
 	return &DeleteLTENetworkIDSMSSMSPkNoContent{}
 }
 
-/*DeleteLTENetworkIDSMSSMSPkNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDSMSSMSPkNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDSMSSMSPkDefault(code int) *DeleteLTENetworkIDSMSSMSPkD
 	}
 }
 
-/*DeleteLTENetworkIDSMSSMSPkDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDSMSSMSPkDefault handles this case with default header values.
 
 Unexpected Error
 */

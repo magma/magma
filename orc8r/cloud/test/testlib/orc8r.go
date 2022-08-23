@@ -18,7 +18,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-//GetDefaultLteNetwork gets a default LTE network instance
+// GetDefaultLteNetwork gets a default LTE network instance
 func GetDefaultLteNetwork(networkID string) *models.LTENetwork {
 	return &models.LTENetwork{
 		ID:          models.NetworkID(networkID),
@@ -54,7 +54,7 @@ func GetDefaultLteNetwork(networkID string) *models.LTENetwork {
 	}
 }
 
-//GetDefaultLteGateway gets a default LTE gateway instance
+// GetDefaultLteGateway gets a default LTE gateway instance
 func GetDefaultLteGateway(gatewayID string, hardwareID string) *models.MutableLTEGateway {
 	return &models.MutableLTEGateway{
 		Device: &models.GatewayDevice{
@@ -86,7 +86,7 @@ func GetDefaultLteGateway(gatewayID string, hardwareID string) *models.MutableLT
 	}
 }
 
-//GetDefaultTier gets the default tier
+// GetDefaultTier gets the default tier
 func GetDefaultTier() *models.Tier {
 	return &models.Tier{
 		ID:       "default",

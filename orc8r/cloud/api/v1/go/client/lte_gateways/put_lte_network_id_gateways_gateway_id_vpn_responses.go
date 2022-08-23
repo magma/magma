@@ -47,7 +47,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDVpnNoContent() *PutLTENetworkIDGatewaysG
 	return &PutLTENetworkIDGatewaysGatewayIDVpnNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDVpnNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDVpnNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDVpnDefault(code int) *PutLTENetworkIDGat
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDVpnDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDVpnDefault handles this case with default header values.
 
 Unexpected Error
 */

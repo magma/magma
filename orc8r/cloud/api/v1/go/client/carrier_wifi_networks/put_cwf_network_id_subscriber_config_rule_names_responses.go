@@ -47,7 +47,8 @@ func NewPutCwfNetworkIDSubscriberConfigRuleNamesNoContent() *PutCwfNetworkIDSubs
 	return &PutCwfNetworkIDSubscriberConfigRuleNamesNoContent{}
 }
 
-/*PutCwfNetworkIDSubscriberConfigRuleNamesNoContent handles this case with default header values.
+/*
+PutCwfNetworkIDSubscriberConfigRuleNamesNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutCwfNetworkIDSubscriberConfigRuleNamesDefault(code int) *PutCwfNetwork
 	}
 }
 
-/*PutCwfNetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/*
+PutCwfNetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
 
 Unexpected Error
 */

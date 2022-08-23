@@ -47,7 +47,8 @@ func NewPostLTENetworkIDGatewaysCreated() *PostLTENetworkIDGatewaysCreated {
 	return &PostLTENetworkIDGatewaysCreated{}
 }
 
-/*PostLTENetworkIDGatewaysCreated handles this case with default header values.
+/*
+PostLTENetworkIDGatewaysCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDGatewaysDefault(code int) *PostLTENetworkIDGatewaysDefau
 	}
 }
 
-/*PostLTENetworkIDGatewaysDefault handles this case with default header values.
+/*
+PostLTENetworkIDGatewaysDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetLTENetworkIDSMSOK() *GetLTENetworkIDSMSOK {
 	return &GetLTENetworkIDSMSOK{}
 }
 
-/*GetLTENetworkIDSMSOK handles this case with default header values.
+/*
+GetLTENetworkIDSMSOK handles this case with default header values.
 
 List all SMS's in the system
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDSMSDefault(code int) *GetLTENetworkIDSMSDefault {
 	}
 }
 
-/*GetLTENetworkIDSMSDefault handles this case with default header values.
+/*
+GetLTENetworkIDSMSDefault handles this case with default header values.
 
 Unexpected Error
 */

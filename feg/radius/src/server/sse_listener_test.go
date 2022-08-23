@@ -95,10 +95,10 @@ func TestCoARequestResponse(t *testing.T) {
 			Code:       43,
 			Identifier: 123,
 			AVPs: map[string][]interface{}{
-				"Acct-Session-Id":    []interface{}{"session_id"},
-				"User-Name":          []interface{}{"username"},
-				"Calling-Station-Id": []interface{}{"00:11:22:33:44:55"},
-				"XWF-Authorize-Traffic-Classes": []interface{}{
+				"Acct-Session-Id":    {"session_id"},
+				"User-Name":          {"username"},
+				"Calling-Station-Id": {"00:11:22:33:44:55"},
+				"XWF-Authorize-Traffic-Classes": {
 					map[string]interface{}{
 						"XWF-Authorize-Class-Name": "xwf",
 						"XWF-Authorize-Bytes-Left": 0,

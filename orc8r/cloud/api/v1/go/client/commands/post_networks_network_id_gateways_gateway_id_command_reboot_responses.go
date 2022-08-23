@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK() *PostNetworksNet
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK{}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandRebootOK handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRebootDefault(code int) *Po
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandRebootDefault handles this case with default header values.
 
 Unexpected Error
 */

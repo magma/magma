@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDTiersTierIDParamsWithHTTPClient(client *http.Clie
 	}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDTiersTierIDParams contains all the parameters to send to the API endpoint
 for the delete networks network ID tiers tier ID operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDTiersTierIDParams struct {

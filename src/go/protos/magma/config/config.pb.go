@@ -366,9 +366,9 @@ func (x *ReplaceConfigResponse) GetConfig() *AgwD {
 }
 
 // Copied from lte/protos/mconfig/mconfigs.proto - will merge in the future once we determine path for mconfigs.
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // AgwD configs
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 type AgwD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

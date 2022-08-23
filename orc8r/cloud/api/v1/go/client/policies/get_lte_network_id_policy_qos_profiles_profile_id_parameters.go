@@ -56,7 +56,8 @@ func NewGetLTENetworkIDPolicyQosProfilesProfileIDParamsWithHTTPClient(client *ht
 	}
 }
 
-/*GetLTENetworkIDPolicyQosProfilesProfileIDParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDPolicyQosProfilesProfileIDParams contains all the parameters to send to the API endpoint
 for the get LTE network ID policy qos profiles profile ID operation typically these are written to a http.Request
 */
 type GetLTENetworkIDPolicyQosProfilesProfileIDParams struct {

@@ -47,7 +47,8 @@ func NewPutFegLTENetworkIDFederationOK() *PutFegLTENetworkIDFederationOK {
 	return &PutFegLTENetworkIDFederationOK{}
 }
 
-/*PutFegLTENetworkIDFederationOK handles this case with default header values.
+/*
+PutFegLTENetworkIDFederationOK handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutFegLTENetworkIDFederationDefault(code int) *PutFegLTENetworkIDFederat
 	}
 }
 
-/*PutFegLTENetworkIDFederationDefault handles this case with default header values.
+/*
+PutFegLTENetworkIDFederationDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -58,7 +58,8 @@ func NewPutChannelsChannelIDParamsWithHTTPClient(client *http.Client) *PutChanne
 	}
 }
 
-/*PutChannelsChannelIDParams contains all the parameters to send to the API endpoint
+/*
+PutChannelsChannelIDParams contains all the parameters to send to the API endpoint
 for the put channels channel ID operation typically these are written to a http.Request
 */
 type PutChannelsChannelIDParams struct {

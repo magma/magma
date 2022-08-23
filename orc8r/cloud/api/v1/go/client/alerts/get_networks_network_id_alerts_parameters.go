@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDAlertsParamsWithHTTPClient(client *http.Client) *Get
 	}
 }
 
-/*GetNetworksNetworkIDAlertsParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDAlertsParams contains all the parameters to send to the API endpoint
 for the get networks network ID alerts operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDAlertsParams struct {

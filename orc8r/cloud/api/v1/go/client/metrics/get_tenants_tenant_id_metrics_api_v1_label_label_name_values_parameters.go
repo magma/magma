@@ -57,7 +57,8 @@ func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParamsWithHTTPClient(c
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams contains all the parameters to send to the API endpoint
+/*
+GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams contains all the parameters to send to the API endpoint
 for the get tenants tenant ID metrics API v1 label label name values operation typically these are written to a http.Request
 */
 type GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesParams struct {

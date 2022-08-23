@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPoliciesRulesViewFullOK() *GetNetworksNetworkIDPolic
 	return &GetNetworksNetworkIDPoliciesRulesViewFullOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesRulesViewFullOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesRulesViewFullOK handles this case with default header values.
 
 Map of all policy rules for the network by rule ID
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDPoliciesRulesViewFullDefault(code int) *GetNetworksN
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesRulesViewFullDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesRulesViewFullDefault handles this case with default header values.
 
 Unexpected Error
 */

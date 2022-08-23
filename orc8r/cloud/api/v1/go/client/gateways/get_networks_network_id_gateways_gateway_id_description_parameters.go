@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDDescriptionParamsWithHTTPClient(cli
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams contains all the parameters to send to the API endpoint
 for the get networks network ID gateways gateway ID description operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDGatewaysGatewayIDDescriptionParams struct {

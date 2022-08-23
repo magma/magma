@@ -111,7 +111,8 @@ func init() {
 // either loaded from preexisting environment variables or specified through command line
 // flags.
 // Example usage:
-//   gy_client_cli --imsi=001010000000001 --sid="1234" --rating_groups="1,4,2" --commands="IUT"
+//
+//	gy_client_cli --imsi=001010000000001 --sid="1234" --rating_groups="1,4,2" --commands="IUT"
 func main() {
 	flag.Parse()
 

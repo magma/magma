@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDDNSParamsWithHTTPClient(client *http.Client) *GetNet
 	}
 }
 
-/*GetNetworksNetworkIDDNSParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDDNSParams contains all the parameters to send to the API endpoint
 for the get networks network ID DNS operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDDNSParams struct {

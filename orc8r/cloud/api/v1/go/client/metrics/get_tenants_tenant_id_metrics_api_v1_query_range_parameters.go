@@ -57,7 +57,8 @@ func NewGetTenantsTenantIDMetricsAPIV1QueryRangeParamsWithHTTPClient(client *htt
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1QueryRangeParams contains all the parameters to send to the API endpoint
+/*
+GetTenantsTenantIDMetricsAPIV1QueryRangeParams contains all the parameters to send to the API endpoint
 for the get tenants tenant ID metrics API v1 query range operation typically these are written to a http.Request
 */
 type GetTenantsTenantIDMetricsAPIV1QueryRangeParams struct {

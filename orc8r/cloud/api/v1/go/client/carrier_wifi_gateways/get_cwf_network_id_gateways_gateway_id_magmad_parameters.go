@@ -56,7 +56,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDMagmadParamsWithHTTPClient(client *http.
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDMagmadParams contains all the parameters to send to the API endpoint
+/*
+GetCwfNetworkIDGatewaysGatewayIDMagmadParams contains all the parameters to send to the API endpoint
 for the get cwf network ID gateways gateway ID magmad operation typically these are written to a http.Request
 */
 type GetCwfNetworkIDGatewaysGatewayIDMagmadParams struct {

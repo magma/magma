@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDTiersParamsWithHTTPClient(client *http.Client) *Pos
 	}
 }
 
-/*PostNetworksNetworkIDTiersParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDTiersParams contains all the parameters to send to the API endpoint
 for the post networks network ID tiers operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDTiersParams struct {

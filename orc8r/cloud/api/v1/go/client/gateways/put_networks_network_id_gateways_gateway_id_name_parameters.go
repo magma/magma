@@ -58,7 +58,8 @@ func NewPutNetworksNetworkIDGatewaysGatewayIDNameParamsWithHTTPClient(client *ht
 	}
 }
 
-/*PutNetworksNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
 for the put networks network ID gateways gateway ID name operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDGatewaysGatewayIDNameParams struct {

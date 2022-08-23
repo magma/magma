@@ -151,9 +151,9 @@ func getPCRFandOCSnamePerInstance(instanceId int) (pcrfName string, ocsName stri
 // - Attach UE, tranfer data, detach
 // - Check that the Monitored data by the PCRF instance is good
 // TODO:
-//  * Support for multiple UEs (depends on UEsim service)
-//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
-//    are deleted from OCS and PCRF)
+//   - Support for multiple UEs (depends on UEsim service)
+//   - Check OCS credit has been reported (right now sessiond sends CCR after accounts
+//     are deleted from OCS and PCRF)
 func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestMultiSessionProxyMonitorAndUsageReportEnforcement...")
 	tr := NewTestRunnerWithTwoPCRFandOCS(t)

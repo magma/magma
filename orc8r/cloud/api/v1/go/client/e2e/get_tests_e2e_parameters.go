@@ -56,7 +56,8 @@ func NewGetTestsE2eParamsWithHTTPClient(client *http.Client) *GetTestsE2eParams 
 	}
 }
 
-/*GetTestsE2eParams contains all the parameters to send to the API endpoint
+/*
+GetTestsE2eParams contains all the parameters to send to the API endpoint
 for the get tests e2e operation typically these are written to a http.Request
 */
 type GetTestsE2eParams struct {

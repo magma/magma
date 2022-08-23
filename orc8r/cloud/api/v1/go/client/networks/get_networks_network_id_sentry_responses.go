@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDSentryOK() *GetNetworksNetworkIDSentryOK {
 	return &GetNetworksNetworkIDSentryOK{}
 }
 
-/*GetNetworksNetworkIDSentryOK handles this case with default header values.
+/*
+GetNetworksNetworkIDSentryOK handles this case with default header values.
 
 Network-wide Sentry.io configuration
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDSentryDefault(code int) *GetNetworksNetworkIDSentryD
 	}
 }
 
-/*GetNetworksNetworkIDSentryDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDSentryDefault handles this case with default header values.
 
 Unexpected Error
 */

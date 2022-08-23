@@ -47,7 +47,8 @@ func NewPostLTENetworkIDPolicyQosProfilesCreated() *PostLTENetworkIDPolicyQosPro
 	return &PostLTENetworkIDPolicyQosProfilesCreated{}
 }
 
-/*PostLTENetworkIDPolicyQosProfilesCreated handles this case with default header values.
+/*
+PostLTENetworkIDPolicyQosProfilesCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDPolicyQosProfilesDefault(code int) *PostLTENetworkIDPoli
 	}
 }
 
-/*PostLTENetworkIDPolicyQosProfilesDefault handles this case with default header values.
+/*
+PostLTENetworkIDPolicyQosProfilesDefault handles this case with default header values.
 
 Unexpected Error
 */

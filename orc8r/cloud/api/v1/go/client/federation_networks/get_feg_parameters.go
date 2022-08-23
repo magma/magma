@@ -56,7 +56,8 @@ func NewGetFegParamsWithHTTPClient(client *http.Client) *GetFegParams {
 	}
 }
 
-/*GetFegParams contains all the parameters to send to the API endpoint
+/*
+GetFegParams contains all the parameters to send to the API endpoint
 for the get feg operation typically these are written to a http.Request
 */
 type GetFegParams struct {

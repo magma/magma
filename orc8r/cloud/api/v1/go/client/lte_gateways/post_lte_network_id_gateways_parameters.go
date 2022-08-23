@@ -58,7 +58,8 @@ func NewPostLTENetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *PostL
 	}
 }
 
-/*PostLTENetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDGatewaysParams contains all the parameters to send to the API endpoint
 for the post LTE network ID gateways operation typically these are written to a http.Request
 */
 type PostLTENetworkIDGatewaysParams struct {

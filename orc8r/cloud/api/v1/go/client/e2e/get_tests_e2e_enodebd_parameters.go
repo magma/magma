@@ -56,7 +56,8 @@ func NewGetTestsE2eEnodebdParamsWithHTTPClient(client *http.Client) *GetTestsE2e
 	}
 }
 
-/*GetTestsE2eEnodebdParams contains all the parameters to send to the API endpoint
+/*
+GetTestsE2eEnodebdParams contains all the parameters to send to the API endpoint
 for the get tests e2e enodebd operation typically these are written to a http.Request
 */
 type GetTestsE2eEnodebdParams struct {

@@ -56,7 +56,8 @@ func NewGetLTENetworkIDAPNSParamsWithHTTPClient(client *http.Client) *GetLTENetw
 	}
 }
 
-/*GetLTENetworkIDAPNSParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDAPNSParams contains all the parameters to send to the API endpoint
 for the get LTE network ID APNS operation typically these are written to a http.Request
 */
 type GetLTENetworkIDAPNSParams struct {

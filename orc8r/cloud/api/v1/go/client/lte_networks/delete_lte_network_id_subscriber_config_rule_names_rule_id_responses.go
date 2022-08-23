@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent() *DeleteLTEN
 	return &DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent{}
 }
 
-/*DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Dele
 	}
 }
 
-/*DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
 
 Unexpected Error
 */

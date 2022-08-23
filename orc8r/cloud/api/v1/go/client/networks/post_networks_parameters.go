@@ -58,7 +58,8 @@ func NewPostNetworksParamsWithHTTPClient(client *http.Client) *PostNetworksParam
 	}
 }
 
-/*PostNetworksParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksParams contains all the parameters to send to the API endpoint
 for the post networks operation typically these are written to a http.Request
 */
 type PostNetworksParams struct {

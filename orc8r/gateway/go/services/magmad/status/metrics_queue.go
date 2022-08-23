@@ -23,7 +23,8 @@ import (
 
 // MetricsQueue - definition of metrics queue "object"
 // MetricsQueue is not a traditional queue, it only implements:
-//   append, collect/reset & prepend with a limit functionality
+//
+//	append, collect/reset & prepend with a limit functionality
 type MetricsQueue struct {
 	sync.Mutex
 	items []*prometheus.MetricFamily

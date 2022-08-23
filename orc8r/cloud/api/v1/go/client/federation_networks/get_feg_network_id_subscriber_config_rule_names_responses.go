@@ -47,7 +47,8 @@ func NewGetFegNetworkIDSubscriberConfigRuleNamesOK() *GetFegNetworkIDSubscriberC
 	return &GetFegNetworkIDSubscriberConfigRuleNamesOK{}
 }
 
-/*GetFegNetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
+/*
+GetFegNetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
 
 Subscriber Config
 */
@@ -80,7 +81,8 @@ func NewGetFegNetworkIDSubscriberConfigRuleNamesDefault(code int) *GetFegNetwork
 	}
 }
 
-/*GetFegNetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/*
+GetFegNetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
 
 Unexpected Error
 */

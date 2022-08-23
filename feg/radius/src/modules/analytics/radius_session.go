@@ -80,35 +80,39 @@ type Session struct {
 }
 
 /*
- * CreateSessionOp holds the graphql create_cwfradius_session mutation.
- * Sample usage using GraphiQL tool:
+  - CreateSessionOp holds the graphql create_cwfradius_session mutation.
+  - Sample usage using GraphiQL tool:
+
 Query/Mutation:
 mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
-mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
-	create_cwfradius_session(data: $data) {
-		client_mutation_id
-    radius_session {
-      id
-    }
-  }
-}
+
+	mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
+		create_cwfradius_session(data: $data) {
+			client_mutation_id
+	    radius_session {
+	      id
+	    }
+	  }
+	}
+
 Query Variables:
-{
-  "data": {
-    "client_mutation_id": 7,
-    "acct_session_id": "6",
-    "calling_station_id": "5",
-    "called_station_id": "4",
-    "normalized_mac_address": "aa:bb:cc:dd:ee:ff",
-    "nas_identifier": "nas",
-    "nas_ip_address": "nas ip",
-    "upload_bytes": 100,
-    "download_bytes": 100,
-    "radius_server_id": 0,
-    "vendor_name": "CAMBIUM",
-    "framed_ip_address": "1.1.1.1"
-  }
-}
+
+	{
+	  "data": {
+	    "client_mutation_id": 7,
+	    "acct_session_id": "6",
+	    "calling_station_id": "5",
+	    "called_station_id": "4",
+	    "normalized_mac_address": "aa:bb:cc:dd:ee:ff",
+	    "nas_identifier": "nas",
+	    "nas_ip_address": "nas ip",
+	    "upload_bytes": 100,
+	    "download_bytes": 100,
+	    "radius_server_id": 0,
+	    "vendor_name": "CAMBIUM",
+	    "framed_ip_address": "1.1.1.1"
+	  }
+	}
 */
 type CreateSessionOp struct {
 	Session *RadiusSession

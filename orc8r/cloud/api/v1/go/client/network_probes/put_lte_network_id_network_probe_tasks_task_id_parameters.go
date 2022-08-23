@@ -58,7 +58,8 @@ func NewPutLTENetworkIDNetworkProbeTasksTaskIDParamsWithHTTPClient(client *http.
 	}
 }
 
-/*PutLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
+/*
+PutLTENetworkIDNetworkProbeTasksTaskIDParams contains all the parameters to send to the API endpoint
 for the put LTE network ID network probe tasks task ID operation typically these are written to a http.Request
 */
 type PutLTENetworkIDNetworkProbeTasksTaskIDParams struct {

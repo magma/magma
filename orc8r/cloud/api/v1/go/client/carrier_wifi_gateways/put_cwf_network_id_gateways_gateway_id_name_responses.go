@@ -47,7 +47,8 @@ func NewPutCwfNetworkIDGatewaysGatewayIDNameNoContent() *PutCwfNetworkIDGateways
 	return &PutCwfNetworkIDGatewaysGatewayIDNameNoContent{}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDNameNoContent handles this case with default header values.
+/*
+PutCwfNetworkIDGatewaysGatewayIDNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutCwfNetworkIDGatewaysGatewayIDNameDefault(code int) *PutCwfNetworkIDGa
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDNameDefault handles this case with default header values.
+/*
+PutCwfNetworkIDGatewaysGatewayIDNameDefault handles this case with default header values.
 
 Unexpected Error
 */

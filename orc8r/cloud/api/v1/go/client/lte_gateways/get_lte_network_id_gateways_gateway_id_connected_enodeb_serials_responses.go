@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK() *GetLTENetwor
 	return &GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsOK handles this case with default header values.
 
 The SNs of all enodeBs
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code int) 
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -57,7 +57,8 @@ func NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithHTTPClient(cli
 	}
 }
 
-/*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
 for the delete networks network ID rating groups rating group ID operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams struct {

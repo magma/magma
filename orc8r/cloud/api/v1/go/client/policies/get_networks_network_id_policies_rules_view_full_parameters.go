@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDPoliciesRulesViewFullParamsWithHTTPClient(client *ht
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesRulesViewFullParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDPoliciesRulesViewFullParams contains all the parameters to send to the API endpoint
 for the get networks network ID policies rules view full operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDPoliciesRulesViewFullParams struct {

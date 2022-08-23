@@ -59,7 +59,8 @@ func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParamsWithHTTPClient(client
 	}
 }
 
-/*PutNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDRatingGroupsRatingGroupIDParams contains all the parameters to send to the API endpoint
 for the put networks network ID rating groups rating group ID operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDRatingGroupsRatingGroupIDParams struct {

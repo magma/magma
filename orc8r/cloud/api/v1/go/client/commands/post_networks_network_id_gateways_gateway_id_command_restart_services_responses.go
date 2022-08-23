@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK() *PostNe
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK{}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesOK handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault(code
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandRestartServicesDefault handles this case with default header values.
 
 Unexpected Error
 */

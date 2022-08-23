@@ -58,7 +58,8 @@ func NewPutFegNetworkIDGatewaysGatewayIDParamsWithHTTPClient(client *http.Client
 	}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
+/*
+PutFegNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
 for the put feg network ID gateways gateway ID operation typically these are written to a http.Request
 */
 type PutFegNetworkIDGatewaysGatewayIDParams struct {

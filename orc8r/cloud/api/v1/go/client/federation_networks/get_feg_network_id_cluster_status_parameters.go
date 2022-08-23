@@ -56,7 +56,8 @@ func NewGetFegNetworkIDClusterStatusParamsWithHTTPClient(client *http.Client) *G
 	}
 }
 
-/*GetFegNetworkIDClusterStatusParams contains all the parameters to send to the API endpoint
+/*
+GetFegNetworkIDClusterStatusParams contains all the parameters to send to the API endpoint
 for the get feg network ID cluster status operation typically these are written to a http.Request
 */
 type GetFegNetworkIDClusterStatusParams struct {

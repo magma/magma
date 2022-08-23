@@ -47,7 +47,8 @@ func NewPostLTENetworkIDDNSRecordsDomainCreated() *PostLTENetworkIDDNSRecordsDom
 	return &PostLTENetworkIDDNSRecordsDomainCreated{}
 }
 
-/*PostLTENetworkIDDNSRecordsDomainCreated handles this case with default header values.
+/*
+PostLTENetworkIDDNSRecordsDomainCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDDNSRecordsDomainDefault(code int) *PostLTENetworkIDDNSRe
 	}
 }
 
-/*PostLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/*
+PostLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
 
 Unexpected Error
 */

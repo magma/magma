@@ -47,7 +47,8 @@ func NewPostLTENetworkIDAPNSCreated() *PostLTENetworkIDAPNSCreated {
 	return &PostLTENetworkIDAPNSCreated{}
 }
 
-/*PostLTENetworkIDAPNSCreated handles this case with default header values.
+/*
+PostLTENetworkIDAPNSCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDAPNSDefault(code int) *PostLTENetworkIDAPNSDefault {
 	}
 }
 
-/*PostLTENetworkIDAPNSDefault handles this case with default header values.
+/*
+PostLTENetworkIDAPNSDefault handles this case with default header values.
 
 Unexpected Error
 */

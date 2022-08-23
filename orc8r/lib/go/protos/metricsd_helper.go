@@ -20,7 +20,7 @@ import (
 	dto "github.com/prometheus/client_model/go"
 )
 
-//GetDecodedLabel converts a Metric to a list of LabelPair
+// GetDecodedLabel converts a Metric to a list of LabelPair
 func GetDecodedLabel(m *dto.Metric) []*dto.LabelPair {
 	var newLabels []*dto.LabelPair
 	for _, labelPair := range m.GetLabel() {

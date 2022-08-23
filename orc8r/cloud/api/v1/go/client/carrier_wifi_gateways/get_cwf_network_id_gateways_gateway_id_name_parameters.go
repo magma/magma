@@ -56,7 +56,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDNameParamsWithHTTPClient(client *http.Cl
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
+/*
+GetCwfNetworkIDGatewaysGatewayIDNameParams contains all the parameters to send to the API endpoint
 for the get cwf network ID gateways gateway ID name operation typically these are written to a http.Request
 */
 type GetCwfNetworkIDGatewaysGatewayIDNameParams struct {

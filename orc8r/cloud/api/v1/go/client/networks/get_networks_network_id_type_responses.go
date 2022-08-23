@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDTypeOK() *GetNetworksNetworkIDTypeOK {
 	return &GetNetworksNetworkIDTypeOK{}
 }
 
-/*GetNetworksNetworkIDTypeOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTypeOK handles this case with default header values.
 
 The type of the network
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDTypeDefault(code int) *GetNetworksNetworkIDTypeDefau
 	}
 }
 
-/*GetNetworksNetworkIDTypeDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTypeDefault handles this case with default header values.
 
 Unexpected Error
 */

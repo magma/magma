@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularNoContent() *GetLTENetworkIDGate
 	return &GetLTENetworkIDGatewaysGatewayIDCellularNoContent{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularNoContent handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularNoContent handles this case with default header values.
 
 Cellular configuration
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularDefault(code int) *GetLTENetwork
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetLTENetworkIDCellularEpcOK() *GetLTENetworkIDCellularEpcOK {
 	return &GetLTENetworkIDCellularEpcOK{}
 }
 
-/*GetLTENetworkIDCellularEpcOK handles this case with default header values.
+/*
+GetLTENetworkIDCellularEpcOK handles this case with default header values.
 
 EPC configuration of the network
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDCellularEpcDefault(code int) *GetLTENetworkIDCellularEpcD
 	}
 }
 
-/*GetLTENetworkIDCellularEpcDefault handles this case with default header values.
+/*
+GetLTENetworkIDCellularEpcDefault handles this case with default header values.
 
 Unexpected Error
 */

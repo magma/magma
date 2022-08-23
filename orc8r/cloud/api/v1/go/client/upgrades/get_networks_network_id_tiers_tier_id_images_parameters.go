@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDTiersTierIDImagesParamsWithHTTPClient(client *http.C
 	}
 }
 
-/*GetNetworksNetworkIDTiersTierIDImagesParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDTiersTierIDImagesParams contains all the parameters to send to the API endpoint
 for the get networks network ID tiers tier ID images operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDTiersTierIDImagesParams struct {

@@ -23,6 +23,7 @@ import (
 )
 
 // TestManual Manually test server
+//
 //nolint:deadcode
 func TestManual(_ *testing.T) {
 	// Act

@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDNoContent() *DeleteLTENetworkIDGatewa
 	return &DeleteLTENetworkIDGatewaysGatewayIDNoContent{}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDDefault(code int) *DeleteLTENetworkID
 	}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDGatewaysGatewayIDDefault handles this case with default header values.
 
 Unexpected Error
 */

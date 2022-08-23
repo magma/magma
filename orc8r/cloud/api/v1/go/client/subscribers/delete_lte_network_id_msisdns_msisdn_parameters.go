@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDMsisdnsMsisdnParamsWithHTTPClient(client *http.Client)
 	}
 }
 
-/*DeleteLTENetworkIDMsisdnsMsisdnParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDMsisdnsMsisdnParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID msisdns msisdn operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDMsisdnsMsisdnParams struct {

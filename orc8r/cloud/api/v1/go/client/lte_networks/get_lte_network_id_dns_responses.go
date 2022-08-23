@@ -47,7 +47,8 @@ func NewGetLTENetworkIDDNSOK() *GetLTENetworkIDDNSOK {
 	return &GetLTENetworkIDDNSOK{}
 }
 
-/*GetLTENetworkIDDNSOK handles this case with default header values.
+/*
+GetLTENetworkIDDNSOK handles this case with default header values.
 
 DNS configuration of the network
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDDNSDefault(code int) *GetLTENetworkIDDNSDefault {
 	}
 }
 
-/*GetLTENetworkIDDNSDefault handles this case with default header values.
+/*
+GetLTENetworkIDDNSDefault handles this case with default header values.
 
 Unexpected Error
 */

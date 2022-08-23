@@ -47,6 +47,7 @@ type ModuleCtx struct {
 }
 
 // Init module interface implementation
+//
 //nolint:deadcode
 func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var mCtx ModuleCtx
@@ -87,6 +88,7 @@ func getMethod(method Method) (methods.EapMethod, error) {
 }
 
 // Handle module interface implementation
+//
 //nolint:deadcode
 func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	mCtx := m.(ModuleCtx)

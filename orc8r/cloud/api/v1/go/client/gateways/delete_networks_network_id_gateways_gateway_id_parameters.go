@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDGatewaysGatewayIDParamsWithHTTPClient(client *htt
 	}
 }
 
-/*DeleteNetworksNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDGatewaysGatewayIDParams contains all the parameters to send to the API endpoint
 for the delete networks network ID gateways gateway ID operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDGatewaysGatewayIDParams struct {

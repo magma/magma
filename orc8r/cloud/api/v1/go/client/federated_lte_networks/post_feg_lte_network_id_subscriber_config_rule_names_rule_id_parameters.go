@@ -56,7 +56,8 @@ func NewPostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParamsWithHTTPClient(c
 	}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
+/*
+PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
 for the post feg LTE network ID subscriber config rule names rule ID operation typically these are written to a http.Request
 */
 type PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams struct {

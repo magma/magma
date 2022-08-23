@@ -47,7 +47,8 @@ func NewPostCiNodesCreated() *PostCiNodesCreated {
 	return &PostCiNodesCreated{}
 }
 
-/*PostCiNodesCreated handles this case with default header values.
+/*
+PostCiNodesCreated handles this case with default header values.
 
 Created
 */
@@ -70,7 +71,8 @@ func NewPostCiNodesDefault(code int) *PostCiNodesDefault {
 	}
 }
 
-/*PostCiNodesDefault handles this case with default header values.
+/*
+PostCiNodesDefault handles this case with default header values.
 
 Unexpected Error
 */

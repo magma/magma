@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDPrometheusQueryParamsWithHTTPClient(client *http.Cli
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusQueryParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDPrometheusQueryParams contains all the parameters to send to the API endpoint
 for the get networks network ID prometheus query operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDPrometheusQueryParams struct {

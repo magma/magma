@@ -59,7 +59,8 @@ func NewPutTestsE2eEnodebdTestPkParamsWithHTTPClient(client *http.Client) *PutTe
 	}
 }
 
-/*PutTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
+/*
+PutTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
 for the put tests e2e enodebd test pk operation typically these are written to a http.Request
 */
 type PutTestsE2eEnodebdTestPkParams struct {

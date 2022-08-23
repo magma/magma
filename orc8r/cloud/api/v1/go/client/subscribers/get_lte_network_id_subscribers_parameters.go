@@ -56,7 +56,8 @@ func NewGetLTENetworkIDSubscribersParamsWithHTTPClient(client *http.Client) *Get
 	}
 }
 
-/*GetLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
 for the get LTE network ID subscribers operation typically these are written to a http.Request
 */
 type GetLTENetworkIDSubscribersParams struct {

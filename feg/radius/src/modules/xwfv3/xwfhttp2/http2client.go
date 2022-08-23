@@ -28,14 +28,14 @@ import (
 // DefaultTimeout the default timeout of a request
 const DefaultTimeout = 5 * time.Second
 
-//Client struct encapsulates an http2 connection to www
+// Client struct encapsulates an http2 connection to www
 type Client struct {
 	http2client http.Client
 	accessToken string
 	Timeout     time.Duration
 }
 
-//isSuccessful
+// isSuccessful
 func isSuccessful(resp *http.Response) bool {
 	statusCode := resp.StatusCode
 
@@ -79,7 +79,7 @@ func (c *Client) addAccessToken(req *http.Request) {
 	req.URL.RawQuery = q.Encode()
 }
 
-//Get method will perform an http get request for the specified url and will return the response bytes
+// Get method will perform an http get request for the specified url and will return the response bytes
 func (c *Client) Get(url string) ([]byte, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -107,7 +107,7 @@ func (c *Client) Get(url string) ([]byte, error) {
 
 }
 
-//PostJSON method will perform an http post to the url specified with a json body
+// PostJSON method will perform an http post to the url specified with a json body
 func (c *Client) PostJSON(url string, bodyToSend map[string]string, headers map[string]string) ([]byte, error) {
 
 	// Turning the map into a json

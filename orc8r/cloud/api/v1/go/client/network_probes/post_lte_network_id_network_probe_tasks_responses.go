@@ -47,7 +47,8 @@ func NewPostLTENetworkIDNetworkProbeTasksCreated() *PostLTENetworkIDNetworkProbe
 	return &PostLTENetworkIDNetworkProbeTasksCreated{}
 }
 
-/*PostLTENetworkIDNetworkProbeTasksCreated handles this case with default header values.
+/*
+PostLTENetworkIDNetworkProbeTasksCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDNetworkProbeTasksDefault(code int) *PostLTENetworkIDNetw
 	}
 }
 
-/*PostLTENetworkIDNetworkProbeTasksDefault handles this case with default header values.
+/*
+PostLTENetworkIDNetworkProbeTasksDefault handles this case with default header values.
 
 Unexpected Error
 */

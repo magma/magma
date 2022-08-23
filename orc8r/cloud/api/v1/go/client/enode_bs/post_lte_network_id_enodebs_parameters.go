@@ -58,7 +58,8 @@ func NewPostLTENetworkIDEnodebsParamsWithHTTPClient(client *http.Client) *PostLT
 	}
 }
 
-/*PostLTENetworkIDEnodebsParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDEnodebsParams contains all the parameters to send to the API endpoint
 for the post LTE network ID enodebs operation typically these are written to a http.Request
 */
 type PostLTENetworkIDEnodebsParams struct {

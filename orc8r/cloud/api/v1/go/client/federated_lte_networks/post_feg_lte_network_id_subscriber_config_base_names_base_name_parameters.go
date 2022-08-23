@@ -56,7 +56,8 @@ func NewPostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParamsWithHTTPClient
 	}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the post feg LTE network ID subscriber config base names base name operation typically these are written to a http.Request
 */
 type PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams struct {

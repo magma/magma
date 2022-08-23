@@ -56,7 +56,8 @@ func NewDeleteFegNetworkIDGatewaysGatewayIDFederationParamsWithHTTPClient(client
 	}
 }
 
-/*DeleteFegNetworkIDGatewaysGatewayIDFederationParams contains all the parameters to send to the API endpoint
+/*
+DeleteFegNetworkIDGatewaysGatewayIDFederationParams contains all the parameters to send to the API endpoint
 for the delete feg network ID gateways gateway ID federation operation typically these are written to a http.Request
 */
 type DeleteFegNetworkIDGatewaysGatewayIDFederationParams struct {

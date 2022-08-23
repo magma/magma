@@ -47,7 +47,8 @@ func NewPutLTENetworkIDFeaturesNoContent() *PutLTENetworkIDFeaturesNoContent {
 	return &PutLTENetworkIDFeaturesNoContent{}
 }
 
-/*PutLTENetworkIDFeaturesNoContent handles this case with default header values.
+/*
+PutLTENetworkIDFeaturesNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDFeaturesDefault(code int) *PutLTENetworkIDFeaturesDefault
 	}
 }
 
-/*PutLTENetworkIDFeaturesDefault handles this case with default header values.
+/*
+PutLTENetworkIDFeaturesDefault handles this case with default header values.
 
 Unexpected Error
 */

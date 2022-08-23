@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDPoliciesRulesCreated() *PostNetworksNetworkIDPolici
 	return &PostNetworksNetworkIDPoliciesRulesCreated{}
 }
 
-/*PostNetworksNetworkIDPoliciesRulesCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDPoliciesRulesCreated handles this case with default header values.
 
 Rule id
 */
@@ -80,7 +81,8 @@ func NewPostNetworksNetworkIDPoliciesRulesDefault(code int) *PostNetworksNetwork
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesRulesDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDPoliciesRulesDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDDNSRecordsDomainNoContent() *DeleteLTENetworkIDDNSReco
 	return &DeleteLTENetworkIDDNSRecordsDomainNoContent{}
 }
 
-/*DeleteLTENetworkIDDNSRecordsDomainNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDDNSRecordsDomainNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDDNSRecordsDomainDefault(code int) *DeleteLTENetworkIDD
 	}
 }
 
-/*DeleteLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDDNSRecordsDomainDefault handles this case with default header values.
 
 Unexpected Error
 */

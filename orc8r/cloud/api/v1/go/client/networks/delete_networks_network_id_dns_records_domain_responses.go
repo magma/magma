@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDDNSRecordsDomainNoContent() *DeleteNetworksNetwor
 	return &DeleteNetworksNetworkIDDNSRecordsDomainNoContent{}
 }
 
-/*DeleteNetworksNetworkIDDNSRecordsDomainNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDDNSRecordsDomainNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDDNSRecordsDomainDefault(code int) *DeleteNetworks
 	}
 }
 
-/*DeleteNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
 
 Unexpected Error
 */

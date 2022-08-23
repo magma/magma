@@ -57,7 +57,8 @@ func NewGetTenantsTenantIDParamsWithHTTPClient(client *http.Client) *GetTenantsT
 	}
 }
 
-/*GetTenantsTenantIDParams contains all the parameters to send to the API endpoint
+/*
+GetTenantsTenantIDParams contains all the parameters to send to the API endpoint
 for the get tenants tenant ID operation typically these are written to a http.Request
 */
 type GetTenantsTenantIDParams struct {

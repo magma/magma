@@ -56,7 +56,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandRebootParamsWithHTTPClient(
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams contains all the parameters to send to the API endpoint
 for the post networks network ID gateways gateway ID command reboot operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDGatewaysGatewayIDCommandRebootParams struct {

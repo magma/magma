@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDTierOK() *GetLTENetworkIDGatewaysGateway
 	return &GetLTENetworkIDGatewaysGatewayIDTierOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDTierOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDTierOK handles this case with default header values.
 
 The ID of the upgrade tier
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDTierDefault(code int) *GetLTENetworkIDGa
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDTierDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDTierDefault handles this case with default header values.
 
 Unexpected Error
 */

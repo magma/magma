@@ -47,7 +47,8 @@ func NewGetTenantsTenantIDMetricsSeriesOK() *GetTenantsTenantIDMetricsSeriesOK {
 	return &GetTenantsTenantIDMetricsSeriesOK{}
 }
 
-/*GetTenantsTenantIDMetricsSeriesOK handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsSeriesOK handles this case with default header values.
 
 List of metric names
 */
@@ -80,7 +81,8 @@ func NewGetTenantsTenantIDMetricsSeriesDefault(code int) *GetTenantsTenantIDMetr
 	}
 }
 
-/*GetTenantsTenantIDMetricsSeriesDefault handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsSeriesDefault handles this case with default header values.
 
 Unexpected Error
 */

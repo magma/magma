@@ -58,7 +58,8 @@ func NewPostCwfNetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *PostC
 	}
 }
 
-/*PostCwfNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+/*
+PostCwfNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
 for the post cwf network ID gateways operation typically these are written to a http.Request
 */
 type PostCwfNetworkIDGatewaysParams struct {

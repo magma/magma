@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDFeaturesOK() *GetNetworksNetworkIDFeaturesOK {
 	return &GetNetworksNetworkIDFeaturesOK{}
 }
 
-/*GetNetworksNetworkIDFeaturesOK handles this case with default header values.
+/*
+GetNetworksNetworkIDFeaturesOK handles this case with default header values.
 
 Feature flags of the network
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDFeaturesDefault(code int) *GetNetworksNetworkIDFeatu
 	}
 }
 
-/*GetNetworksNetworkIDFeaturesDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDFeaturesDefault handles this case with default header values.
 
 Unexpected Error
 */

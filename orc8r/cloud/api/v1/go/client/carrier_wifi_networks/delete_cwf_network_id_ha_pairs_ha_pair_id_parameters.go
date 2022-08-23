@@ -56,7 +56,8 @@ func NewDeleteCwfNetworkIDHaPairsHaPairIDParamsWithHTTPClient(client *http.Clien
 	}
 }
 
-/*DeleteCwfNetworkIDHaPairsHaPairIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteCwfNetworkIDHaPairsHaPairIDParams contains all the parameters to send to the API endpoint
 for the delete cwf network ID ha pairs ha pair ID operation typically these are written to a http.Request
 */
 type DeleteCwfNetworkIDHaPairsHaPairIDParams struct {

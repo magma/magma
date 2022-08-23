@@ -47,7 +47,8 @@ func NewPostLTECreated() *PostLTECreated {
 	return &PostLTECreated{}
 }
 
-/*PostLTECreated handles this case with default header values.
+/*
+PostLTECreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTEDefault(code int) *PostLTEDefault {
 	}
 }
 
-/*PostLTEDefault handles this case with default header values.
+/*
+PostLTEDefault handles this case with default header values.
 
 Unexpected Error
 */

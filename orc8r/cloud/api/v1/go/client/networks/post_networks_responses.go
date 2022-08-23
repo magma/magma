@@ -47,7 +47,8 @@ func NewPostNetworksCreated() *PostNetworksCreated {
 	return &PostNetworksCreated{}
 }
 
-/*PostNetworksCreated handles this case with default header values.
+/*
+PostNetworksCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksDefault(code int) *PostNetworksDefault {
 	}
 }
 
-/*PostNetworksDefault handles this case with default header values.
+/*
+PostNetworksDefault handles this case with default header values.
 
 Unexpected Error
 */

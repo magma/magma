@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDVpnOK() *GetLTENetworkIDGatewaysGatewayI
 	return &GetLTENetworkIDGatewaysGatewayIDVpnOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDVpnOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDVpnOK handles this case with default header values.
 
 The current VPN gateway config
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDVpnDefault(code int) *GetLTENetworkIDGat
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDVpnDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDVpnDefault handles this case with default header values.
 
 Unexpected Error
 */

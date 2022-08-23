@@ -47,7 +47,8 @@ func NewGetLTENetworkIDGatewaysOK() *GetLTENetworkIDGatewaysOK {
 	return &GetLTENetworkIDGatewaysOK{}
 }
 
-/*GetLTENetworkIDGatewaysOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysOK handles this case with default header values.
 
 Map of all LTE gateways inside the network by gatewayID
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDGatewaysDefault(code int) *GetLTENetworkIDGatewaysDefault
 	}
 }
 
-/*GetLTENetworkIDGatewaysDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysDefault handles this case with default header values.
 
 Unexpected Error
 */

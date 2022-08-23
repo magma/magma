@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandPingParamsWithHTTPClient(cl
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams contains all the parameters to send to the API endpoint
 for the post networks network ID gateways gateway ID command ping operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDGatewaysGatewayIDCommandPingParams struct {

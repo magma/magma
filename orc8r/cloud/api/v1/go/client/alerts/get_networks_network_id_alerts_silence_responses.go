@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDAlertsSilenceOK() *GetNetworksNetworkIDAlertsSilence
 	return &GetNetworksNetworkIDAlertsSilenceOK{}
 }
 
-/*GetNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
+/*
+GetNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
 
 List of active alert silencers
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDAlertsSilenceDefault(code int) *GetNetworksNetworkID
 	}
 }
 
-/*GetNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
 
 Unexpected Error
 */

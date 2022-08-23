@@ -47,7 +47,8 @@ func NewDeleteCiNodesNodeIDNoContent() *DeleteCiNodesNodeIDNoContent {
 	return &DeleteCiNodesNodeIDNoContent{}
 }
 
-/*DeleteCiNodesNodeIDNoContent handles this case with default header values.
+/*
+DeleteCiNodesNodeIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteCiNodesNodeIDDefault(code int) *DeleteCiNodesNodeIDDefault {
 	}
 }
 
-/*DeleteCiNodesNodeIDDefault handles this case with default header values.
+/*
+DeleteCiNodesNodeIDDefault handles this case with default header values.
 
 Unexpected Error
 */

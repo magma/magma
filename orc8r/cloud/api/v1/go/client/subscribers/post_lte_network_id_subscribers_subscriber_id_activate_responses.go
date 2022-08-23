@@ -47,7 +47,8 @@ func NewPostLTENetworkIDSubscribersSubscriberIDActivateOK() *PostLTENetworkIDSub
 	return &PostLTENetworkIDSubscribersSubscriberIDActivateOK{}
 }
 
-/*PostLTENetworkIDSubscribersSubscriberIDActivateOK handles this case with default header values.
+/*
+PostLTENetworkIDSubscribersSubscriberIDActivateOK handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostLTENetworkIDSubscribersSubscriberIDActivateDefault(code int) *PostLT
 	}
 }
 
-/*PostLTENetworkIDSubscribersSubscriberIDActivateDefault handles this case with default header values.
+/*
+PostLTENetworkIDSubscribersSubscriberIDActivateDefault handles this case with default header values.
 
 Unexpected Error
 */

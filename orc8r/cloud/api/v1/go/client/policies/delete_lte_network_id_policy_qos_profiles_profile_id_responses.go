@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent() *DeleteLTENetwor
 	return &DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent{}
 }
 
-/*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDPolicyQosProfilesProfileIDDefault(code int) *DeleteLTE
 	}
 }
 
-/*DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
 
 Unexpected Error
 */

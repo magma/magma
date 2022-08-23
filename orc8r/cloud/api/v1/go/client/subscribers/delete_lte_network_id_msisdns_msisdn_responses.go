@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDMsisdnsMsisdnNoContent() *DeleteLTENetworkIDMsisdnsMsi
 	return &DeleteLTENetworkIDMsisdnsMsisdnNoContent{}
 }
 
-/*DeleteLTENetworkIDMsisdnsMsisdnNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDMsisdnsMsisdnNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDMsisdnsMsisdnDefault(code int) *DeleteLTENetworkIDMsis
 	}
 }
 
-/*DeleteLTENetworkIDMsisdnsMsisdnDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDMsisdnsMsisdnDefault handles this case with default header values.
 
 Unexpected Error
 */

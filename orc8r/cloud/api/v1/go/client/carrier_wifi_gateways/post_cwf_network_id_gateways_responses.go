@@ -47,7 +47,8 @@ func NewPostCwfNetworkIDGatewaysCreated() *PostCwfNetworkIDGatewaysCreated {
 	return &PostCwfNetworkIDGatewaysCreated{}
 }
 
-/*PostCwfNetworkIDGatewaysCreated handles this case with default header values.
+/*
+PostCwfNetworkIDGatewaysCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostCwfNetworkIDGatewaysDefault(code int) *PostCwfNetworkIDGatewaysDefau
 	}
 }
 
-/*PostCwfNetworkIDGatewaysDefault handles this case with default header values.
+/*
+PostCwfNetworkIDGatewaysDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPostCiNodesNodeIDReserveOK() *PostCiNodesNodeIDReserveOK {
 	return &PostCiNodesNodeIDReserveOK{}
 }
 
-/*PostCiNodesNodeIDReserveOK handles this case with default header values.
+/*
+PostCiNodesNodeIDReserveOK handles this case with default header values.
 
 Lease for the requested node
 */
@@ -82,7 +83,8 @@ func NewPostCiNodesNodeIDReserveDefault(code int) *PostCiNodesNodeIDReserveDefau
 	}
 }
 
-/*PostCiNodesNodeIDReserveDefault handles this case with default header values.
+/*
+PostCiNodesNodeIDReserveDefault handles this case with default header values.
 
 Unexpected Error
 */

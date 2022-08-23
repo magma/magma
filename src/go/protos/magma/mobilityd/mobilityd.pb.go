@@ -402,8 +402,10 @@ func (x *IPLookupRequest) GetVersion() IPLookupRequest_IPVersion {
 //
 // An IP block is a range of IP addresses specified by a network address and
 // a prefix-length of the netmask. For example,
-//    IPv4 IP block:      192.168.0.0/24
-//    IPv6 IP block:      2401:db00:1116:301b::/64
+//
+//	IPv4 IP block:      192.168.0.0/24
+//	IPv6 IP block:      2401:db00:1116:301b::/64
+//
 // --------------------------------------------------------------------------
 type IPBlock struct {
 	state         protoimpl.MessageState

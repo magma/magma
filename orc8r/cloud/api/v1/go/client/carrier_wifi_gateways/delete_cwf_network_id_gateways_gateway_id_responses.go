@@ -47,7 +47,8 @@ func NewDeleteCwfNetworkIDGatewaysGatewayIDNoContent() *DeleteCwfNetworkIDGatewa
 	return &DeleteCwfNetworkIDGatewaysGatewayIDNoContent{}
 }
 
-/*DeleteCwfNetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteCwfNetworkIDGatewaysGatewayIDDefault(code int) *DeleteCwfNetworkID
 	}
 }
 
-/*DeleteCwfNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDGatewaysGatewayIDDefault handles this case with default header values.
 
 Unexpected Error
 */

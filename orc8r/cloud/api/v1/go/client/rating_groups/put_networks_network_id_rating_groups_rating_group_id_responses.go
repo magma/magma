@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent() *PutNetworksNet
 	return &PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent{}
 }
 
-/*PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent handles this case with default header values.
+/*
+PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDDefault(code int) *PutNetwo
 	}
 }
 
-/*PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
 
 Unexpected Error
 */

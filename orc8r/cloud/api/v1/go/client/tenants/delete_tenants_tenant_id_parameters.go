@@ -57,7 +57,8 @@ func NewDeleteTenantsTenantIDParamsWithHTTPClient(client *http.Client) *DeleteTe
 	}
 }
 
-/*DeleteTenantsTenantIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteTenantsTenantIDParams contains all the parameters to send to the API endpoint
 for the delete tenants tenant ID operation typically these are written to a http.Request
 */
 type DeleteTenantsTenantIDParams struct {

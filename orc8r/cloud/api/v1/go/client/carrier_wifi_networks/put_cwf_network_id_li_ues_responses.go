@@ -47,7 +47,8 @@ func NewPutCwfNetworkIDLiUesNoContent() *PutCwfNetworkIDLiUesNoContent {
 	return &PutCwfNetworkIDLiUesNoContent{}
 }
 
-/*PutCwfNetworkIDLiUesNoContent handles this case with default header values.
+/*
+PutCwfNetworkIDLiUesNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutCwfNetworkIDLiUesDefault(code int) *PutCwfNetworkIDLiUesDefault {
 	}
 }
 
-/*PutCwfNetworkIDLiUesDefault handles this case with default header values.
+/*
+PutCwfNetworkIDLiUesDefault handles this case with default header values.
 
 Unexpected Error
 */

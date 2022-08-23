@@ -47,7 +47,8 @@ func NewDeleteCwfNetworkIDCarrierWifiNoContent() *DeleteCwfNetworkIDCarrierWifiN
 	return &DeleteCwfNetworkIDCarrierWifiNoContent{}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDCarrierWifiNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteCwfNetworkIDCarrierWifiDefault(code int) *DeleteCwfNetworkIDCarrie
 	}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDCarrierWifiDefault handles this case with default header values.
 
 Unexpected Error
 */

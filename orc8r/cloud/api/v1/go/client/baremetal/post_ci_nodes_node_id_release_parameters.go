@@ -56,7 +56,8 @@ func NewPostCiNodesNodeIDReleaseParamsWithHTTPClient(client *http.Client) *PostC
 	}
 }
 
-/*PostCiNodesNodeIDReleaseParams contains all the parameters to send to the API endpoint
+/*
+PostCiNodesNodeIDReleaseParams contains all the parameters to send to the API endpoint
 for the post ci nodes node ID release operation typically these are written to a http.Request
 */
 type PostCiNodesNodeIDReleaseParams struct {

@@ -47,7 +47,8 @@ func NewPostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated() *PostCwfNetwo
 	return &PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated{}
 }
 
-/*PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
+/*
+PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostCwfNetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *Post
 	}
 }
 
-/*PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+PostCwfNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

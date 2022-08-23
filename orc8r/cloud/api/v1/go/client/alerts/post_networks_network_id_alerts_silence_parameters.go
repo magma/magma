@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDAlertsSilenceParamsWithHTTPClient(client *http.Clie
 	}
 }
 
-/*PostNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDAlertsSilenceParams contains all the parameters to send to the API endpoint
 for the post networks network ID alerts silence operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDAlertsSilenceParams struct {

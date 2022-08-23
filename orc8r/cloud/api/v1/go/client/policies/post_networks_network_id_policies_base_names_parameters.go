@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDPoliciesBaseNamesParamsWithHTTPClient(client *http.
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesBaseNamesParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDPoliciesBaseNamesParams contains all the parameters to send to the API endpoint
 for the post networks network ID policies base names operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDPoliciesBaseNamesParams struct {

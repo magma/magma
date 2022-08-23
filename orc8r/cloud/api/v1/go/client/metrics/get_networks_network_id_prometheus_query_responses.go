@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPrometheusQueryOK() *GetNetworksNetworkIDPrometheusQ
 	return &GetNetworksNetworkIDPrometheusQueryOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusQueryOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusQueryOK handles this case with default header values.
 
 List of PromQL metrics results
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDPrometheusQueryDefault(code int) *GetNetworksNetwork
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusQueryDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusQueryDefault handles this case with default header values.
 
 Unexpected Error
 */

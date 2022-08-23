@@ -52,7 +52,8 @@ func NewGetEventsNetworkIDOK() *GetEventsNetworkIDOK {
 	return &GetEventsNetworkIDOK{}
 }
 
-/*GetEventsNetworkIDOK handles this case with default header values.
+/*
+GetEventsNetworkIDOK handles this case with default header values.
 
 Success
 */
@@ -87,7 +88,8 @@ func NewGetEventsNetworkIDDefault(code int) *GetEventsNetworkIDDefault {
 	}
 }
 
-/*GetEventsNetworkIDDefault handles this case with default header values.
+/*
+GetEventsNetworkIDDefault handles this case with default header values.
 
 Unexpected Error
 */
@@ -122,7 +124,8 @@ func (o *GetEventsNetworkIDDefault) readResponse(response runtime.ClientResponse
 	return nil
 }
 
-/*GetEventsNetworkIDOKBodyTuple0 GetEventsNetworkIDOKBodyTuple0 a representation of an anonymous Tuple type
+/*
+GetEventsNetworkIDOKBodyTuple0 GetEventsNetworkIDOKBodyTuple0 a representation of an anonymous Tuple type
 swagger:model GetEventsNetworkIDOKBodyTuple0
 */
 type GetEventsNetworkIDOKBodyTuple0 struct {

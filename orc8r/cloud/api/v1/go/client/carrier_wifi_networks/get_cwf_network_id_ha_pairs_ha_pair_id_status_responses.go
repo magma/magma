@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDHaPairsHaPairIDStatusOK() *GetCwfNetworkIDHaPairsHaPairID
 	return &GetCwfNetworkIDHaPairsHaPairIDStatusOK{}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDStatusOK handles this case with default header values.
+/*
+GetCwfNetworkIDHaPairsHaPairIDStatusOK handles this case with default header values.
 
 Status of a HA pair
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDHaPairsHaPairIDStatusDefault(code int) *GetCwfNetworkIDHa
 	}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDStatusDefault handles this case with default header values.
+/*
+GetCwfNetworkIDHaPairsHaPairIDStatusDefault handles this case with default header values.
 
 Unexpected Error
 */

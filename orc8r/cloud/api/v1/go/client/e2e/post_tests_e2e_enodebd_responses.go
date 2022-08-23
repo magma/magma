@@ -47,7 +47,8 @@ func NewPostTestsE2eEnodebdCreated() *PostTestsE2eEnodebdCreated {
 	return &PostTestsE2eEnodebdCreated{}
 }
 
-/*PostTestsE2eEnodebdCreated handles this case with default header values.
+/*
+PostTestsE2eEnodebdCreated handles this case with default header values.
 
 Created
 */
@@ -70,7 +71,8 @@ func NewPostTestsE2eEnodebdDefault(code int) *PostTestsE2eEnodebdDefault {
 	}
 }
 
-/*PostTestsE2eEnodebdDefault handles this case with default header values.
+/*
+PostTestsE2eEnodebdDefault handles this case with default header values.
 
 Unexpected Error
 */

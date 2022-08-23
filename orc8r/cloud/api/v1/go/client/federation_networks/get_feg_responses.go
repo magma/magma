@@ -47,7 +47,8 @@ func NewGetFegOK() *GetFegOK {
 	return &GetFegOK{}
 }
 
-/*GetFegOK handles this case with default header values.
+/*
+GetFegOK handles this case with default header values.
 
 List of federation network IDs
 */
@@ -80,7 +81,8 @@ func NewGetFegDefault(code int) *GetFegDefault {
 	}
 }
 
-/*GetFegDefault handles this case with default header values.
+/*
+GetFegDefault handles this case with default header values.
 
 Unexpected Error
 */

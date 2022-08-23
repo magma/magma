@@ -47,7 +47,8 @@ func NewPostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated() *PostFegLTEN
 	return &PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated{}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
+/*
+PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Pos
 	}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
 
 Unexpected Error
 */

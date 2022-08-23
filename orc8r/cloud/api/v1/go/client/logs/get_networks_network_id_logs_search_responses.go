@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDLogsSearchOK() *GetNetworksNetworkIDLogsSearchOK {
 	return &GetNetworksNetworkIDLogsSearchOK{}
 }
 
-/*GetNetworksNetworkIDLogsSearchOK handles this case with default header values.
+/*
+GetNetworksNetworkIDLogsSearchOK handles this case with default header values.
 
 Success
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDLogsSearchDefault(code int) *GetNetworksNetworkIDLog
 	}
 }
 
-/*GetNetworksNetworkIDLogsSearchDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDLogsSearchDefault handles this case with default header values.
 
 Unexpected Error
 */

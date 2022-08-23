@@ -58,7 +58,8 @@ func NewPutFegLTENetworkIDFederationParamsWithHTTPClient(client *http.Client) *P
 	}
 }
 
-/*PutFegLTENetworkIDFederationParams contains all the parameters to send to the API endpoint
+/*
+PutFegLTENetworkIDFederationParams contains all the parameters to send to the API endpoint
 for the put feg LTE network ID federation operation typically these are written to a http.Request
 */
 type PutFegLTENetworkIDFederationParams struct {

@@ -58,7 +58,8 @@ func NewPutLTENetworkIDDNSParamsWithHTTPClient(client *http.Client) *PutLTENetwo
 	}
 }
 
-/*PutLTENetworkIDDNSParams contains all the parameters to send to the API endpoint
+/*
+PutLTENetworkIDDNSParams contains all the parameters to send to the API endpoint
 for the put LTE network ID DNS operation typically these are written to a http.Request
 */
 type PutLTENetworkIDDNSParams struct {

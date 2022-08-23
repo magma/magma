@@ -56,7 +56,8 @@ func NewDeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithHTTPClient(cli
 	}
 }
 
-/*DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the delete networks network ID policies base names base name operation typically these are written to a http.Request
 */
 type DeleteNetworksNetworkIDPoliciesBaseNamesBaseNameParams struct {

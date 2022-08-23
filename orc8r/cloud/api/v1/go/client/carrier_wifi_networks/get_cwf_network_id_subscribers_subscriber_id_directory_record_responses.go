@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK() *GetCwfNetwork
 	return &GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK{}
 }
 
-/*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK handles this case with default header values.
+/*
+GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordOK handles this case with default header values.
 
 The directory record of a subscriber
 */
@@ -82,7 +83,8 @@ func NewGetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordDefault(code int) *
 	}
 }
 
-/*GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordDefault handles this case with default header values.
+/*
+GetCwfNetworkIDSubscribersSubscriberIDDirectoryRecordDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -58,7 +58,8 @@ func NewPutNetworksNetworkIDPoliciesBaseNamesBaseNameParamsWithHTTPClient(client
 	}
 }
 
-/*PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
+/*
+PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams contains all the parameters to send to the API endpoint
 for the put networks network ID policies base names base name operation typically these are written to a http.Request
 */
 type PutNetworksNetworkIDPoliciesBaseNamesBaseNameParams struct {

@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDEnodebsENODEBSerialNoContent() *DeleteLTENetworkIDEnod
 	return &DeleteLTENetworkIDEnodebsENODEBSerialNoContent{}
 }
 
-/*DeleteLTENetworkIDEnodebsENODEBSerialNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDEnodebsENODEBSerialNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDEnodebsENODEBSerialDefault(code int) *DeleteLTENetwork
 	}
 }
 
-/*DeleteLTENetworkIDEnodebsENODEBSerialDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDEnodebsENODEBSerialDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewGetLTENetworkIDCellularRanOK() *GetLTENetworkIDCellularRanOK {
 	return &GetLTENetworkIDCellularRanOK{}
 }
 
-/*GetLTENetworkIDCellularRanOK handles this case with default header values.
+/*
+GetLTENetworkIDCellularRanOK handles this case with default header values.
 
 RAN configuration of the network
 */
@@ -82,7 +83,8 @@ func NewGetLTENetworkIDCellularRanDefault(code int) *GetLTENetworkIDCellularRanD
 	}
 }
 
-/*GetLTENetworkIDCellularRanDefault handles this case with default header values.
+/*
+GetLTENetworkIDCellularRanDefault handles this case with default header values.
 
 Unexpected Error
 */

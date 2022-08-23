@@ -47,7 +47,8 @@ func NewGetCwfNetworkIDNameOK() *GetCwfNetworkIDNameOK {
 	return &GetCwfNetworkIDNameOK{}
 }
 
-/*GetCwfNetworkIDNameOK handles this case with default header values.
+/*
+GetCwfNetworkIDNameOK handles this case with default header values.
 
 Name of the network
 */
@@ -80,7 +81,8 @@ func NewGetCwfNetworkIDNameDefault(code int) *GetCwfNetworkIDNameDefault {
 	}
 }
 
-/*GetCwfNetworkIDNameDefault handles this case with default header values.
+/*
+GetCwfNetworkIDNameDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -56,7 +56,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParamsWithHTTPClient(cl
 	}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
 for the delete cwf network ID subscriber config rule names rule ID operation typically these are written to a http.Request
 */
 type DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDParams struct {

@@ -56,7 +56,8 @@ func NewPostLTENetworkIDSubscribersSubscriberIDDeactivateParamsWithHTTPClient(cl
 	}
 }
 
-/*PostLTENetworkIDSubscribersSubscriberIDDeactivateParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDSubscribersSubscriberIDDeactivateParams contains all the parameters to send to the API endpoint
 for the post LTE network ID subscribers subscriber ID deactivate operation typically these are written to a http.Request
 */
 type PostLTENetworkIDSubscribersSubscriberIDDeactivateParams struct {

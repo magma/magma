@@ -56,7 +56,8 @@ func NewPostCiNodesNodeIDReleaseLeaseIDParamsWithHTTPClient(client *http.Client)
 	}
 }
 
-/*PostCiNodesNodeIDReleaseLeaseIDParams contains all the parameters to send to the API endpoint
+/*
+PostCiNodesNodeIDReleaseLeaseIDParams contains all the parameters to send to the API endpoint
 for the post ci nodes node ID release lease ID operation typically these are written to a http.Request
 */
 type PostCiNodesNodeIDReleaseLeaseIDParams struct {

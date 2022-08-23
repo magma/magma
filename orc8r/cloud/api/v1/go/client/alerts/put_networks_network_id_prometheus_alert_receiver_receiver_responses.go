@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDPrometheusAlertReceiverReceiverOK() *PutNetworksNetw
 	return &PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK{}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK handles this case with default header values.
+/*
+PutNetworksNetworkIDPrometheusAlertReceiverReceiverOK handles this case with default header values.
 
 Updated
 */
@@ -70,7 +71,8 @@ func NewPutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault(code int) *Pu
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDPrometheusAlertReceiverReceiverDefault handles this case with default header values.
 
 Unexpected Error
 */

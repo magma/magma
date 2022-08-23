@@ -47,7 +47,8 @@ func NewGetFegNetworkIDOK() *GetFegNetworkIDOK {
 	return &GetFegNetworkIDOK{}
 }
 
-/*GetFegNetworkIDOK handles this case with default header values.
+/*
+GetFegNetworkIDOK handles this case with default header values.
 
 Full description of a federated LTE network
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDDefault(code int) *GetFegNetworkIDDefault {
 	}
 }
 
-/*GetFegNetworkIDDefault handles this case with default header values.
+/*
+GetFegNetworkIDDefault handles this case with default header values.
 
 Unexpected Error
 */

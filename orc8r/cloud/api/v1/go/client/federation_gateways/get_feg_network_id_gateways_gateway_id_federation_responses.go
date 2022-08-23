@@ -47,7 +47,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDFederationOK() *GetFegNetworkIDGatewaysG
 	return &GetFegNetworkIDGatewaysGatewayIDFederationOK{}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDFederationOK handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDFederationOK handles this case with default header values.
 
 Retrieved Gateway FeG Configs
 */
@@ -82,7 +83,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *GetFegNetwo
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -47,7 +47,8 @@ func NewPutFegLTENetworkIDSubscriberConfigNoContent() *PutFegLTENetworkIDSubscri
 	return &PutFegLTENetworkIDSubscriberConfigNoContent{}
 }
 
-/*PutFegLTENetworkIDSubscriberConfigNoContent handles this case with default header values.
+/*
+PutFegLTENetworkIDSubscriberConfigNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutFegLTENetworkIDSubscriberConfigDefault(code int) *PutFegLTENetworkIDS
 	}
 }
 
-/*PutFegLTENetworkIDSubscriberConfigDefault handles this case with default header values.
+/*
+PutFegLTENetworkIDSubscriberConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

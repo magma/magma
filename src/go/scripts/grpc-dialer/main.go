@@ -8,7 +8,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package main
 
 import (
@@ -20,7 +19,6 @@ import (
 	pipelinedpb "github.com/magma/magma/src/go/protos/magma/pipelined"
 	"google.golang.org/grpc"
 )
-
 
 // Script to dial Pipelined/GetStats gRPC and print out the results
 // useful for build/debug purposes
@@ -43,7 +41,7 @@ func main() {
 	defer conn.Close()
 	ctx := context.Background()
 	req := &pipelinedpb.GetStatsRequest{
-		Cookie: 0,
+		Cookie:     0,
 		CookieMask: 0,
 	}
 

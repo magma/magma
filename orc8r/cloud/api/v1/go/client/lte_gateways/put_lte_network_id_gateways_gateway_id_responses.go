@@ -47,7 +47,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDNoContent() *PutLTENetworkIDGatewaysGate
 	return &PutLTENetworkIDGatewaysGatewayIDNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDDefault(code int) *PutLTENetworkIDGatewa
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDDefault handles this case with default header values.
 
 Unexpected Error
 */

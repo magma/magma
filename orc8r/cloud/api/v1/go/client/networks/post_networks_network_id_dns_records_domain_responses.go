@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDDNSRecordsDomainCreated() *PostNetworksNetworkIDDNS
 	return &PostNetworksNetworkIDDNSRecordsDomainCreated{}
 }
 
-/*PostNetworksNetworkIDDNSRecordsDomainCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDDNSRecordsDomainCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDDNSRecordsDomainDefault(code int) *PostNetworksNetw
 	}
 }
 
-/*PostNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDDNSRecordsDomainDefault handles this case with default header values.
 
 Unexpected Error
 */

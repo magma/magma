@@ -58,7 +58,8 @@ func NewPostChannelsParamsWithHTTPClient(client *http.Client) *PostChannelsParam
 	}
 }
 
-/*PostChannelsParams contains all the parameters to send to the API endpoint
+/*
+PostChannelsParams contains all the parameters to send to the API endpoint
 for the post channels operation typically these are written to a http.Request
 */
 type PostChannelsParams struct {

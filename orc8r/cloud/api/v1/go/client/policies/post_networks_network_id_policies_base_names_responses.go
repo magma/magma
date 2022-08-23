@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDPoliciesBaseNamesCreated() *PostNetworksNetworkIDPo
 	return &PostNetworksNetworkIDPoliciesBaseNamesCreated{}
 }
 
-/*PostNetworksNetworkIDPoliciesBaseNamesCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDPoliciesBaseNamesCreated handles this case with default header values.
 
 Charging Rule Base Name
 */
@@ -80,7 +81,8 @@ func NewPostNetworksNetworkIDPoliciesBaseNamesDefault(code int) *PostNetworksNet
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesBaseNamesDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDPoliciesBaseNamesDefault handles this case with default header values.
 
 Unexpected Error
 */

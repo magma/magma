@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDTracingTraceIDDownloadParamsWithHTTPClient(client *h
 	}
 }
 
-/*GetNetworksNetworkIDTracingTraceIDDownloadParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDTracingTraceIDDownloadParams contains all the parameters to send to the API endpoint
 for the get networks network ID tracing trace ID download operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDTracingTraceIDDownloadParams struct {

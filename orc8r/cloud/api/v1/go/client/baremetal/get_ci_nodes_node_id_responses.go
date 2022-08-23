@@ -47,7 +47,8 @@ func NewGetCiNodesNodeIDOK() *GetCiNodesNodeIDOK {
 	return &GetCiNodesNodeIDOK{}
 }
 
-/*GetCiNodesNodeIDOK handles this case with default header values.
+/*
+GetCiNodesNodeIDOK handles this case with default header values.
 
 The requested node
 */
@@ -82,7 +83,8 @@ func NewGetCiNodesNodeIDDefault(code int) *GetCiNodesNodeIDDefault {
 	}
 }
 
-/*GetCiNodesNodeIDDefault handles this case with default header values.
+/*
+GetCiNodesNodeIDDefault handles this case with default header values.
 
 Unexpected Error
 */

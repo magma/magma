@@ -47,7 +47,8 @@ func NewPostFegCreated() *PostFegCreated {
 	return &PostFegCreated{}
 }
 
-/*PostFegCreated handles this case with default header values.
+/*
+PostFegCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostFegDefault(code int) *PostFegDefault {
 	}
 }
 
-/*PostFegDefault handles this case with default header values.
+/*
+PostFegDefault handles this case with default header values.
 
 Unexpected Error
 */

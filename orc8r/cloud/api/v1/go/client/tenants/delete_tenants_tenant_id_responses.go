@@ -47,7 +47,8 @@ func NewDeleteTenantsTenantIDNoContent() *DeleteTenantsTenantIDNoContent {
 	return &DeleteTenantsTenantIDNoContent{}
 }
 
-/*DeleteTenantsTenantIDNoContent handles this case with default header values.
+/*
+DeleteTenantsTenantIDNoContent handles this case with default header values.
 
 Ok
 */
@@ -70,7 +71,8 @@ func NewDeleteTenantsTenantIDDefault(code int) *DeleteTenantsTenantIDDefault {
 	}
 }
 
-/*DeleteTenantsTenantIDDefault handles this case with default header values.
+/*
+DeleteTenantsTenantIDDefault handles this case with default header values.
 
 Unexpected Error
 */

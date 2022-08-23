@@ -47,7 +47,8 @@ func NewGetLTENetworkIDSubscriberConfigRuleNamesOK() *GetLTENetworkIDSubscriberC
 	return &GetLTENetworkIDSubscriberConfigRuleNamesOK{}
 }
 
-/*GetLTENetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
+/*
+GetLTENetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
 
 Subscriber Config
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDSubscriberConfigRuleNamesDefault(code int) *GetLTENetwork
 	}
 }
 
-/*GetLTENetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/*
+GetLTENetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
 
 Unexpected Error
 */

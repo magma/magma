@@ -47,7 +47,8 @@ func NewGetTestsE2eEnodebdOK() *GetTestsE2eEnodebdOK {
 	return &GetTestsE2eEnodebdOK{}
 }
 
-/*GetTestsE2eEnodebdOK handles this case with default header values.
+/*
+GetTestsE2eEnodebdOK handles this case with default header values.
 
 List of enodebd test cases
 */
@@ -80,7 +81,8 @@ func NewGetTestsE2eEnodebdDefault(code int) *GetTestsE2eEnodebdDefault {
 	}
 }
 
-/*GetTestsE2eEnodebdDefault handles this case with default header values.
+/*
+GetTestsE2eEnodebdDefault handles this case with default header values.
 
 Unexpected Error
 */

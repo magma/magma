@@ -41,7 +41,8 @@ func NewGetNetworksNetworkIDPrometheusAlertReceiverRouteOK() *GetNetworksNetwork
 	return &GetNetworksNetworkIDPrometheusAlertReceiverRouteOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertReceiverRouteOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertReceiverRouteOK handles this case with default header values.
 
 Alerting tree
 */

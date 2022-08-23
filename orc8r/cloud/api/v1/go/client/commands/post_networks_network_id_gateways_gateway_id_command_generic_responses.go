@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK() *PostNetworksNe
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK{}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK handles this case with default header values.
 
 Success
 */
@@ -82,7 +83,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault(code int) *P
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault handles this case with default header values.
 
 Unexpected Error
 */

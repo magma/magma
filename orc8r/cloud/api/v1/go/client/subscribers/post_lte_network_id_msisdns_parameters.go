@@ -58,7 +58,8 @@ func NewPostLTENetworkIDMsisdnsParamsWithHTTPClient(client *http.Client) *PostLT
 	}
 }
 
-/*PostLTENetworkIDMsisdnsParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDMsisdnsParams contains all the parameters to send to the API endpoint
 for the post LTE network ID msisdns operation typically these are written to a http.Request
 */
 type PostLTENetworkIDMsisdnsParams struct {

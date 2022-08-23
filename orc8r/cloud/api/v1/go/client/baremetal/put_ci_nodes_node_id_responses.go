@@ -47,7 +47,8 @@ func NewPutCiNodesNodeIDNoContent() *PutCiNodesNodeIDNoContent {
 	return &PutCiNodesNodeIDNoContent{}
 }
 
-/*PutCiNodesNodeIDNoContent handles this case with default header values.
+/*
+PutCiNodesNodeIDNoContent handles this case with default header values.
 
 Updated
 */
@@ -70,7 +71,8 @@ func NewPutCiNodesNodeIDDefault(code int) *PutCiNodesNodeIDDefault {
 	}
 }
 
-/*PutCiNodesNodeIDDefault handles this case with default header values.
+/*
+PutCiNodesNodeIDDefault handles this case with default header values.
 
 Unexpected Error
 */

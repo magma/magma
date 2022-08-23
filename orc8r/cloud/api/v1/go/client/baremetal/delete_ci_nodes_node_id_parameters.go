@@ -56,7 +56,8 @@ func NewDeleteCiNodesNodeIDParamsWithHTTPClient(client *http.Client) *DeleteCiNo
 	}
 }
 
-/*DeleteCiNodesNodeIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteCiNodesNodeIDParams contains all the parameters to send to the API endpoint
 for the delete ci nodes node ID operation typically these are written to a http.Request
 */
 type DeleteCiNodesNodeIDParams struct {

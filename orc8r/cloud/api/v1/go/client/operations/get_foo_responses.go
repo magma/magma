@@ -39,7 +39,8 @@ func NewGetFooOK() *GetFooOK {
 	return &GetFooOK{}
 }
 
-/*GetFooOK handles this case with default header values.
+/*
+GetFooOK handles this case with default header values.
 
 Bar baz
 */

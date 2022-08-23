@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDDNSRecordsParamsWithHTTPClient(client *http.Client) 
 	}
 }
 
-/*GetNetworksNetworkIDDNSRecordsParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDDNSRecordsParams contains all the parameters to send to the API endpoint
 for the get networks network ID DNS records operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDDNSRecordsParams struct {

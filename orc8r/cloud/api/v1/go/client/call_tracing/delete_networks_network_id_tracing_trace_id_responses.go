@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDTracingTraceIDNoContent() *DeleteNetworksNetworkI
 	return &DeleteNetworksNetworkIDTracingTraceIDNoContent{}
 }
 
-/*DeleteNetworksNetworkIDTracingTraceIDNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDTracingTraceIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDTracingTraceIDDefault(code int) *DeleteNetworksNe
 	}
 }
 
-/*DeleteNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDTracingTraceIDDefault handles this case with default header values.
 
 Unexpected Error
 */

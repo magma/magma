@@ -56,7 +56,8 @@ func NewGetLTENetworkIDSMSParamsWithHTTPClient(client *http.Client) *GetLTENetwo
 	}
 }
 
-/*GetLTENetworkIDSMSParams contains all the parameters to send to the API endpoint
+/*
+GetLTENetworkIDSMSParams contains all the parameters to send to the API endpoint
 for the get LTE network ID SMS operation typically these are written to a http.Request
 */
 type GetLTENetworkIDSMSParams struct {

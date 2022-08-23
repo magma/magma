@@ -27,7 +27,7 @@ type s8Cli interface {
 	SendEcho(req *protos.EchoRequest) (*protos.EchoResponse, error)
 }
 
-//s8CliImpl will represent the client that is running on the vm (probably on a docker container. It will use
+// s8CliImpl will represent the client that is running on the vm (probably on a docker container. It will use
 // s8_proxy API send the messages
 type s8CliImpl struct{}
 

@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDPrometheusAlertReceiverRouteOK() *PostNetworksNetwo
 	return &PostNetworksNetworkIDPrometheusAlertReceiverRouteOK{}
 }
 
-/*PostNetworksNetworkIDPrometheusAlertReceiverRouteOK handles this case with default header values.
+/*
+PostNetworksNetworkIDPrometheusAlertReceiverRouteOK handles this case with default header values.
 
 OK
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDPrometheusAlertReceiverRouteDefault(code int) *Post
 	}
 }
 
-/*PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDPrometheusAlertReceiverRouteDefault handles this case with default header values.
 
 Unexpected Error
 */

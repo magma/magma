@@ -47,7 +47,8 @@ func NewPostNetworksNetworkIDGatewaysCreated() *PostNetworksNetworkIDGatewaysCre
 	return &PostNetworksNetworkIDGatewaysCreated{}
 }
 
-/*PostNetworksNetworkIDGatewaysCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostNetworksNetworkIDGatewaysDefault(code int) *PostNetworksNetworkIDGat
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysDefault handles this case with default header values.
 
 Unexpected Error
 */

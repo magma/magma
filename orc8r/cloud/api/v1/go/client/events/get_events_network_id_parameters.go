@@ -56,7 +56,8 @@ func NewGetEventsNetworkIDParamsWithHTTPClient(client *http.Client) *GetEventsNe
 	}
 }
 
-/*GetEventsNetworkIDParams contains all the parameters to send to the API endpoint
+/*
+GetEventsNetworkIDParams contains all the parameters to send to the API endpoint
 for the get events network ID operation typically these are written to a http.Request
 */
 type GetEventsNetworkIDParams struct {

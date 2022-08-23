@@ -47,7 +47,8 @@ func NewDeleteCwfNetworkIDHaPairsHaPairIDNoContent() *DeleteCwfNetworkIDHaPairsH
 	return &DeleteCwfNetworkIDHaPairsHaPairIDNoContent{}
 }
 
-/*DeleteCwfNetworkIDHaPairsHaPairIDNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDHaPairsHaPairIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteCwfNetworkIDHaPairsHaPairIDDefault(code int) *DeleteCwfNetworkIDHa
 	}
 }
 
-/*DeleteCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
 
 Unexpected Error
 */

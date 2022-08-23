@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPrometheusAlertConfigOK() *GetNetworksNetworkIDProme
 	return &GetNetworksNetworkIDPrometheusAlertConfigOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertConfigOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertConfigOK handles this case with default header values.
 
 List of alert configurations
 */
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDPrometheusAlertConfigDefault(code int) *GetNetworksN
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertConfigDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertConfigDefault handles this case with default header values.
 
 Unexpected Error
 */

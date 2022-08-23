@@ -47,7 +47,8 @@ func NewGetLTENetworkIDSubscribersOK() *GetLTENetworkIDSubscribersOK {
 	return &GetLTENetworkIDSubscribersOK{}
 }
 
-/*GetLTENetworkIDSubscribersOK handles this case with default header values.
+/*
+GetLTENetworkIDSubscribersOK handles this case with default header values.
 
 List of all the subscribers in the network
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDSubscribersDefault(code int) *GetLTENetworkIDSubscribersD
 	}
 }
 
-/*GetLTENetworkIDSubscribersDefault handles this case with default header values.
+/*
+GetLTENetworkIDSubscribersDefault handles this case with default header values.
 
 Unexpected Error
 */

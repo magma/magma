@@ -56,7 +56,8 @@ func NewDeleteFegLTENetworkIDParamsWithHTTPClient(client *http.Client) *DeleteFe
 	}
 }
 
-/*DeleteFegLTENetworkIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteFegLTENetworkIDParams contains all the parameters to send to the API endpoint
 for the delete feg LTE network ID operation typically these are written to a http.Request
 */
 type DeleteFegLTENetworkIDParams struct {

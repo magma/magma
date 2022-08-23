@@ -47,7 +47,8 @@ func NewDeleteLTENetworkIDAPNSAPNNameNoContent() *DeleteLTENetworkIDAPNSAPNNameN
 	return &DeleteLTENetworkIDAPNSAPNNameNoContent{}
 }
 
-/*DeleteLTENetworkIDAPNSAPNNameNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDAPNSAPNNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteLTENetworkIDAPNSAPNNameDefault(code int) *DeleteLTENetworkIDAPNSAP
 	}
 }
 
-/*DeleteLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDAPNSAPNNameDefault handles this case with default header values.
 
 Unexpected Error
 */

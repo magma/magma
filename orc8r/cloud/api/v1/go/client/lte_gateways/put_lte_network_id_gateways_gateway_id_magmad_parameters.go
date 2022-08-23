@@ -58,7 +58,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDMagmadParamsWithHTTPClient(client *http.
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDMagmadParams contains all the parameters to send to the API endpoint
+/*
+PutLTENetworkIDGatewaysGatewayIDMagmadParams contains all the parameters to send to the API endpoint
 for the put LTE network ID gateways gateway ID magmad operation typically these are written to a http.Request
 */
 type PutLTENetworkIDGatewaysGatewayIDMagmadParams struct {

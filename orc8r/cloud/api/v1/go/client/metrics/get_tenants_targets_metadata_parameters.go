@@ -56,7 +56,8 @@ func NewGetTenantsTargetsMetadataParamsWithHTTPClient(client *http.Client) *GetT
 	}
 }
 
-/*GetTenantsTargetsMetadataParams contains all the parameters to send to the API endpoint
+/*
+GetTenantsTargetsMetadataParams contains all the parameters to send to the API endpoint
 for the get tenants targets metadata operation typically these are written to a http.Request
 */
 type GetTenantsTargetsMetadataParams struct {

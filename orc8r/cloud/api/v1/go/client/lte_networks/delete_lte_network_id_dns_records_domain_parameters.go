@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.Clie
 	}
 }
 
-/*DeleteLTENetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID DNS records domain operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDDNSRecordsDomainParams struct {

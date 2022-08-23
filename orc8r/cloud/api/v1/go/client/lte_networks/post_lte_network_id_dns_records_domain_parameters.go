@@ -58,7 +58,8 @@ func NewPostLTENetworkIDDNSRecordsDomainParamsWithHTTPClient(client *http.Client
 	}
 }
 
-/*PostLTENetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
+/*
+PostLTENetworkIDDNSRecordsDomainParams contains all the parameters to send to the API endpoint
 for the post LTE network ID DNS records domain operation typically these are written to a http.Request
 */
 type PostLTENetworkIDDNSRecordsDomainParams struct {

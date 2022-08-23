@@ -47,7 +47,8 @@ func NewGetChannelsChannelIDOK() *GetChannelsChannelIDOK {
 	return &GetChannelsChannelIDOK{}
 }
 
-/*GetChannelsChannelIDOK handles this case with default header values.
+/*
+GetChannelsChannelIDOK handles this case with default header values.
 
 Success
 */
@@ -82,7 +83,8 @@ func NewGetChannelsChannelIDDefault(code int) *GetChannelsChannelIDDefault {
 	}
 }
 
-/*GetChannelsChannelIDDefault handles this case with default header values.
+/*
+GetChannelsChannelIDDefault handles this case with default header values.
 
 Unexpected Error
 */

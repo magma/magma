@@ -81,8 +81,9 @@ type OCSDiamServer struct {
 
 // NewOCSDiamServer initializes an OCS with an empty account map
 // Input: *sm.Settings containing the diameter related parameters
-//				*TestOCSConfig containing the server address, and standard OCS settings
-//					like how many bytes to allocate to users
+//
+//	*TestOCSConfig containing the server address, and standard OCS settings
+//		like how many bytes to allocate to users
 //
 // Output: a new OCSDiamServer
 func NewOCSDiamServer(
@@ -170,8 +171,9 @@ func (srv *OCSDiamServer) CreateAccount(
 // SetOCSSettings changes the standard OCS return values. All parameters are
 // optional, and this only sets the non-nil ones.
 // Input: *uint32 optional maximum bytes to return in a CCA
-//			  *uint32 optional maximum time to return in a CCA
-//			  *uint32 optional credit validity time to return in a CCA
+//
+//	*uint32 optional maximum time to return in a CCA
+//	*uint32 optional credit validity time to return in a CCA
 func (srv *OCSDiamServer) SetOCSSettings(
 	_ context.Context,
 	ocsConfig *protos.OCSConfig,
@@ -191,9 +193,11 @@ func (srv *OCSDiamServer) SetOCSSettings(
 
 // SetCredit sets or overrides the prepaid credit allocated for an account
 // Input: string IMSI for the account
-//			  uint32 charging key to add credit to
-//			  uint64 volume (in any units) to set this bucket to
-//		    UnitType dictating which unit the volume represents
+//
+//		  uint32 charging key to add credit to
+//		  uint64 volume (in any units) to set this bucket to
+//	    UnitType dictating which unit the volume represents
+//
 // Output: error if account could not be found
 func (srv *OCSDiamServer) SetCredit(
 	_ context.Context,
@@ -213,7 +217,8 @@ func (srv *OCSDiamServer) SetCredit(
 // GetCredits returns all the credits allocated for an account
 // Input: string IMSI for the account
 // Output: map[uint32]*CreditBucket a map of charging key to credit bucket
-//			   error if account could not be found
+//
+//	error if account could not be found
 func (srv *OCSDiamServer) GetCredits(
 	_ context.Context,
 	subscriberID *lteprotos.SubscriberID,

@@ -47,7 +47,8 @@ func NewGetFegNetworkIDGatewaysOK() *GetFegNetworkIDGatewaysOK {
 	return &GetFegNetworkIDGatewaysOK{}
 }
 
-/*GetFegNetworkIDGatewaysOK handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysOK handles this case with default header values.
 
 Map of all federated gateways inside the network by gatewayID
 */
@@ -80,7 +81,8 @@ func NewGetFegNetworkIDGatewaysDefault(code int) *GetFegNetworkIDGatewaysDefault
 	}
 }
 
-/*GetFegNetworkIDGatewaysDefault handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysDefault handles this case with default header values.
 
 Unexpected Error
 */

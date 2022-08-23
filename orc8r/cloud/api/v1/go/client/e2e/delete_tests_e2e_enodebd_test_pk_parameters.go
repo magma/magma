@@ -57,7 +57,8 @@ func NewDeleteTestsE2eEnodebdTestPkParamsWithHTTPClient(client *http.Client) *De
 	}
 }
 
-/*DeleteTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
+/*
+DeleteTestsE2eEnodebdTestPkParams contains all the parameters to send to the API endpoint
 for the delete tests e2e enodebd test pk operation typically these are written to a http.Request
 */
 type DeleteTestsE2eEnodebdTestPkParams struct {

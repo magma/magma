@@ -47,7 +47,8 @@ func NewDeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent() *DeleteNetw
 	return &DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent{}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDTiersTierIDImagesImageNameNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteNetworksNetworkIDTiersTierIDImagesImageNameDefault(code int) *Dele
 	}
 }
 
-/*DeleteNetworksNetworkIDTiersTierIDImagesImageNameDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDTiersTierIDImagesImageNameDefault handles this case with default header values.
 
 Unexpected Error
 */

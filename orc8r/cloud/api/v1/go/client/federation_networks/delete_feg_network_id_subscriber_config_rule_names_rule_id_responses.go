@@ -47,7 +47,8 @@ func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent() *DeleteFegN
 	return &DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent{}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
+/*
+DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewDeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Dele
 	}
 }
 
-/*DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+DeleteFegNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
 
 Unexpected Error
 */

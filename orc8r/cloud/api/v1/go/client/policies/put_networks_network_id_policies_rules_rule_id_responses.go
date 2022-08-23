@@ -47,7 +47,8 @@ func NewPutNetworksNetworkIDPoliciesRulesRuleIDNoContent() *PutNetworksNetworkID
 	return &PutNetworksNetworkIDPoliciesRulesRuleIDNoContent{}
 }
 
-/*PutNetworksNetworkIDPoliciesRulesRuleIDNoContent handles this case with default header values.
+/*
+PutNetworksNetworkIDPoliciesRulesRuleIDNoContent handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPutNetworksNetworkIDPoliciesRulesRuleIDDefault(code int) *PutNetworksNet
 	}
 }
 
-/*PutNetworksNetworkIDPoliciesRulesRuleIDDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDPoliciesRulesRuleIDDefault handles this case with default header values.
 
 Unexpected Error
 */

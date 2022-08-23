@@ -58,7 +58,8 @@ func NewPostTenantsParamsWithHTTPClient(client *http.Client) *PostTenantsParams 
 	}
 }
 
-/*PostTenantsParams contains all the parameters to send to the API endpoint
+/*
+PostTenantsParams contains all the parameters to send to the API endpoint
 for the post tenants operation typically these are written to a http.Request
 */
 type PostTenantsParams struct {

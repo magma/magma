@@ -58,7 +58,8 @@ func NewPutCiNodesNodeIDParamsWithHTTPClient(client *http.Client) *PutCiNodesNod
 	}
 }
 
-/*PutCiNodesNodeIDParams contains all the parameters to send to the API endpoint
+/*
+PutCiNodesNodeIDParams contains all the parameters to send to the API endpoint
 for the put ci nodes node ID operation typically these are written to a http.Request
 */
 type PutCiNodesNodeIDParams struct {

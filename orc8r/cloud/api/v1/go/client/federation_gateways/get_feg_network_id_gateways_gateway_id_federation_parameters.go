@@ -56,7 +56,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDFederationParamsWithHTTPClient(client *h
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDFederationParams contains all the parameters to send to the API endpoint
+/*
+GetFegNetworkIDGatewaysGatewayIDFederationParams contains all the parameters to send to the API endpoint
 for the get feg network ID gateways gateway ID federation operation typically these are written to a http.Request
 */
 type GetFegNetworkIDGatewaysGatewayIDFederationParams struct {

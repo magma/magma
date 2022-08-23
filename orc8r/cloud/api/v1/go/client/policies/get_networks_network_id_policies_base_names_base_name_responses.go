@@ -47,7 +47,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameOK() *GetNetworksNetworkIDP
 	return &GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK handles this case with default header values.
 
 Charging Rule Base Name on success
 */
@@ -82,7 +83,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault(code int) *GetNetwo
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

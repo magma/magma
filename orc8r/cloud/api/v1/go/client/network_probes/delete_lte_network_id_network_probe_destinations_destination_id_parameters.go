@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParamsWithHTTPCli
 	}
 }
 
-/*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID network probe destinations destination ID operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDParams struct {

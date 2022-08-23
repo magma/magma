@@ -76,7 +76,7 @@ func (r *packetResponseWriter) addMessageAuthenticator(encoded []byte) []byte {
 		encoded[:4],
 		r.requestAuthenticator[:],
 		encoded[20:],
-		[]byte{80, 18},
+		{80, 18},
 		zeroedOutMsgAuthenticator[:],
 	}
 	var radiusMsg []byte

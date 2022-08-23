@@ -47,7 +47,8 @@ func NewGetLTENetworkIDNameOK() *GetLTENetworkIDNameOK {
 	return &GetLTENetworkIDNameOK{}
 }
 
-/*GetLTENetworkIDNameOK handles this case with default header values.
+/*
+GetLTENetworkIDNameOK handles this case with default header values.
 
 Name of the network
 */
@@ -80,7 +81,8 @@ func NewGetLTENetworkIDNameDefault(code int) *GetLTENetworkIDNameDefault {
 	}
 }
 
-/*GetLTENetworkIDNameDefault handles this case with default header values.
+/*
+GetLTENetworkIDNameDefault handles this case with default header values.
 
 Unexpected Error
 */

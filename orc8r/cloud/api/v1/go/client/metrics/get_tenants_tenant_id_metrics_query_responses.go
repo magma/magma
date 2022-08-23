@@ -47,7 +47,8 @@ func NewGetTenantsTenantIDMetricsQueryOK() *GetTenantsTenantIDMetricsQueryOK {
 	return &GetTenantsTenantIDMetricsQueryOK{}
 }
 
-/*GetTenantsTenantIDMetricsQueryOK handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsQueryOK handles this case with default header values.
 
 List of PromQL metrics results
 */
@@ -82,7 +83,8 @@ func NewGetTenantsTenantIDMetricsQueryDefault(code int) *GetTenantsTenantIDMetri
 	}
 }
 
-/*GetTenantsTenantIDMetricsQueryDefault handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsQueryDefault handles this case with default header values.
 
 Unexpected Error
 */

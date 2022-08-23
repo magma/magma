@@ -56,7 +56,8 @@ func NewGetCiNodesNodeIDParamsWithHTTPClient(client *http.Client) *GetCiNodesNod
 	}
 }
 
-/*GetCiNodesNodeIDParams contains all the parameters to send to the API endpoint
+/*
+GetCiNodesNodeIDParams contains all the parameters to send to the API endpoint
 for the get ci nodes node ID operation typically these are written to a http.Request
 */
 type GetCiNodesNodeIDParams struct {

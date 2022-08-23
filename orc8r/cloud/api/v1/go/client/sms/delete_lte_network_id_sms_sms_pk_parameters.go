@@ -56,7 +56,8 @@ func NewDeleteLTENetworkIDSMSSMSPkParamsWithHTTPClient(client *http.Client) *Del
 	}
 }
 
-/*DeleteLTENetworkIDSMSSMSPkParams contains all the parameters to send to the API endpoint
+/*
+DeleteLTENetworkIDSMSSMSPkParams contains all the parameters to send to the API endpoint
 for the delete LTE network ID SMS SMS pk operation typically these are written to a http.Request
 */
 type DeleteLTENetworkIDSMSSMSPkParams struct {

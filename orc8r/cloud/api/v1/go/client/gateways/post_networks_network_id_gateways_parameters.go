@@ -58,7 +58,8 @@ func NewPostNetworksNetworkIDGatewaysParamsWithHTTPClient(client *http.Client) *
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
+/*
+PostNetworksNetworkIDGatewaysParams contains all the parameters to send to the API endpoint
 for the post networks network ID gateways operation typically these are written to a http.Request
 */
 type PostNetworksNetworkIDGatewaysParams struct {

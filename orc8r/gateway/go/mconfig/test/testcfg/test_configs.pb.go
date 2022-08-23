@@ -21,9 +21,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Service 1 configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type Service1Config struct {
 	Str1                 string   `protobuf:"bytes,1,opt,name=str1,proto3" json:"str1,omitempty"`
 	Str2                 string   `protobuf:"bytes,2,opt,name=str2,proto3" json:"str2,omitempty"`
@@ -95,9 +95,9 @@ func (m *Service1Config) GetStrArr() []string {
 	return nil
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // Service 1 configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type Service2Config struct {
 	Str21                string   `protobuf:"bytes,1,opt,name=str21,proto3" json:"str21,omitempty"`
 	Str22                string   `protobuf:"bytes,2,opt,name=str22,proto3" json:"str22,omitempty"`

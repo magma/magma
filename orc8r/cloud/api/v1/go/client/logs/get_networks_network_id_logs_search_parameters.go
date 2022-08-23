@@ -56,7 +56,8 @@ func NewGetNetworksNetworkIDLogsSearchParamsWithHTTPClient(client *http.Client) 
 	}
 }
 
-/*GetNetworksNetworkIDLogsSearchParams contains all the parameters to send to the API endpoint
+/*
+GetNetworksNetworkIDLogsSearchParams contains all the parameters to send to the API endpoint
 for the get networks network ID logs search operation typically these are written to a http.Request
 */
 type GetNetworksNetworkIDLogsSearchParams struct {

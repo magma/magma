@@ -58,7 +58,8 @@ func NewPostLTEParamsWithHTTPClient(client *http.Client) *PostLTEParams {
 	}
 }
 
-/*PostLTEParams contains all the parameters to send to the API endpoint
+/*
+PostLTEParams contains all the parameters to send to the API endpoint
 for the post LTE operation typically these are written to a http.Request
 */
 type PostLTEParams struct {

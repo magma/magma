@@ -50,7 +50,8 @@ func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK() *GetTenantsTenant
 	return &GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK{}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOK handles this case with default header values.
 
 List of label values
 */
@@ -85,7 +86,8 @@ func NewGetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault(code int) *Get
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault handles this case with default header values.
 
 Unexpected Error
 */
@@ -120,7 +122,8 @@ func (o *GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesDefault) readResponse
 	return nil
 }
 
-/*GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody get tenants tenant ID metrics API v1 label label name values o k body
+/*
+GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody get tenants tenant ID metrics API v1 label label name values o k body
 swagger:model GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody
 */
 type GetTenantsTenantIDMetricsAPIV1LabelLabelNameValuesOKBody struct {

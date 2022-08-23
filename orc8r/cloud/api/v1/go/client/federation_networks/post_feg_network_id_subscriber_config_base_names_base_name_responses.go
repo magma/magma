@@ -47,7 +47,8 @@ func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated() *PostFegNetwo
 	return &PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated{}
 }
 
-/*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
+/*
+PostFegNetworkIDSubscriberConfigBaseNamesBaseNameCreated handles this case with default header values.
 
 Success
 */
@@ -70,7 +71,8 @@ func NewPostFegNetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *Post
 	}
 }
 
-/*PostFegNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+PostFegNetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
 
 Unexpected Error
 */

@@ -56,7 +56,8 @@ func NewDeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParamsWithHTTPClient
 	}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
+/*
+DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams contains all the parameters to send to the API endpoint
 for the delete feg LTE network ID subscriber config rule names rule ID operation typically these are written to a http.Request
 */
 type DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams struct {
