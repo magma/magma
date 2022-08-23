@@ -31,10 +31,10 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    4. [Vagrant](https://vagrantup.com)
 
    ```bash
-   brew install go@1.18 pyenv
+   brew install go@1.19 pyenv
    # NOTE: this assumes you're using zsh.
    # See the above pyenv install instructions if using alternative shells.
-   echo 'export PATH="/usr/local/opt/go@1.18/bin:$PATH"' >> ~/.zshrc
+   echo 'export PATH="/usr/local/opt/go@1.19/bin:$PATH"' >> ~/.zshrc
    echo 'eval "$(pyenv init --path)"' >> ~/.zprofile
    echo 'eval "$(pyenv init -)"' >> ~/.zshrc
    exec $SHELL
@@ -66,13 +66,13 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    1. Download the tar file.
 
       ```bash
-      wget https://artifactory.magmacore.org/artifactory/generic/go1.18.3.linux-amd64.tar.gz
+      wget https://artifactory.magmacore.org/artifactory/generic/go1.19.linux-amd64.tar.gz
       ```
 
    2. Extract the archive you downloaded into `/usr/local`, creating a Go tree in `/usr/local/go`.
 
       ```bash
-      sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+      sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.19.linux-amd64.tar.gz
       ```
 
    3. Add `/usr/local/go/bin` to the PATH environment variable.
@@ -90,7 +90,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       You should expect something like this
 
       ```bash
-      go version go1.18.3 linux/amd64
+      go version go1.19 linux/amd64
       ```
 
 3. Install `pyenv`.

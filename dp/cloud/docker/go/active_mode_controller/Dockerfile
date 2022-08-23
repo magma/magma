@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG GOLANG_VERSION="1.18.3"
+ARG GOLANG_VERSION="1.19"
 FROM golang:${GOLANG_VERSION}-alpine3.16 AS build
 COPY dp/cloud/go/active_mode_controller /active_mode_controller
 WORKDIR /active_mode_controller/cmd
