@@ -135,8 +135,8 @@ func marshalToYAML(spec swagger.Spec) (string, error) {
 // makeAllYAMLReferencesLocal rewrites all cross-file references to local,
 // intra-file references.
 // E.g.
-//	- Before: `$ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'`
-//	- After:  `$ref: '#/responses/UnexpectedError'`
+//   - Before: `$ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'`
+//   - After:  `$ref: '#/responses/UnexpectedError'`
 func makeAllYAMLReferencesLocal(yamlContents []string) []string {
 	var rewritten []string
 	// Match on any yml reference to file_name_here.foo.bar#/baz

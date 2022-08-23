@@ -62,12 +62,13 @@ func RetrieveParticipants(ctx context.Context, session *protos.AcctSession) (pro
 }
 
 // FindServingFeGNetworkId
-// 1) fetches the request's Gateway Network configs,
-// 2) finds the serving Federation Gateway (FeG) Network,
-// 3) retrieves the FeG Network's configuration,
-// 4) if the FeG Network is a Neutral Host - FindServingFeGNetworkId finds the serving FeG network
-// 5) if not Neutral Host or user PLMN ID doesn't match any configured NH route - FindServingFeGNetworkId finds the
-//    serving FeG Network
+//  1. fetches the request's Gateway Network configs,
+//  2. finds the serving Federation Gateway (FeG) Network,
+//  3. retrieves the FeG Network's configuration,
+//  4. if the FeG Network is a Neutral Host - FindServingFeGNetworkId finds the serving FeG network
+//  5. if not Neutral Host or user PLMN ID doesn't match any configured NH route - FindServingFeGNetworkId finds the
+//     serving FeG Network
+//
 // Returns serving Federation Gateway Network ID or error
 func FindServingFeGNetworkId(ctx context.Context, agNwID, imsi string) (string, error) {
 	cfg, err := configurator.LoadNetworkConfig(ctx, agNwID, feg.FederatedNetworkType, serdes.Network)

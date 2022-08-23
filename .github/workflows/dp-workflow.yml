@@ -142,7 +142,7 @@ jobs:
       run:
         working-directory: dp/cloud/go/active_mode_controller
     env:
-      GO_VERSION: 1.18.3
+      GO_VERSION: 1.19
 
     steps:
       - name: Checkout code

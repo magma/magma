@@ -48,7 +48,7 @@ func GetQueryLogHandler(client *elastic.Client) func(c echo.Context) error {
 	}
 }
 
-//GetCountLogHandler returns the count query handler
+// GetCountLogHandler returns the count query handler
 func GetCountLogHandler(client *elastic.Client) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		return countLogs(c, client)

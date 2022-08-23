@@ -41,7 +41,7 @@ type wwwExporter struct {
 	categoryName    string
 }
 
-//NewWWWExporter exporter instance to export metrics
+// NewWWWExporter exporter instance to export metrics
 func NewWWWExporter(metricsPrefix, appID, appSecret, metricExportURL, categoryName string) Exporter {
 	return &wwwExporter{
 		metricsPrefix:   metricsPrefix,

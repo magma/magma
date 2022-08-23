@@ -47,7 +47,7 @@ type AuthenticateRequestHssLess struct {
 	Msisdn string `protobuf:"bytes,1,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
 	// APN
 	Apn string `protobuf:"bytes,2,opt,name=apn,proto3" json:"apn,omitempty"`
-	//RAT
+	// RAT
 	Rat uint32 `protobuf:"varint,3,opt,name=rat,proto3" json:"rat,omitempty"`
 }
 
@@ -1029,10 +1029,8 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type UESimClient interface {
 	// Adds a new UE to the store.
-	//
 	AddUE(ctx context.Context, in *UEConfig, opts ...grpc.CallOption) (*protos.Void, error)
 	// Triggers an authentication for the UE with the specified imsi.
-	//
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	Disconnect(ctx context.Context, in *DisconnectRequest, opts ...grpc.CallOption) (*DisconnectResponse, error)
 	// Triggers iperf traffic towards the CWAG
@@ -1086,10 +1084,8 @@ func (c *uESimClient) GenTraffic(ctx context.Context, in *GenTrafficRequest, opt
 // UESimServer is the server API for UESim service.
 type UESimServer interface {
 	// Adds a new UE to the store.
-	//
 	AddUE(context.Context, *UEConfig) (*protos.Void, error)
 	// Triggers an authentication for the UE with the specified imsi.
-	//
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	Disconnect(context.Context, *DisconnectRequest) (*DisconnectResponse, error)
 	// Triggers iperf traffic towards the CWAG

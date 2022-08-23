@@ -47,11 +47,13 @@ const (
 
 // GenerateLteAuthVectors generates at most `numVectors` lte auth vectors.
 // Inputs:
-//   numVectors: The maximum number of vectors to generate
-//   milenage: The cipher to use to generate the vector
-//   subscriber: The subscriber data for the subscriber we want to generate auth vectors for
-//   plmn: 24 bit network identifier
-//   authSqnInd: the IND of the current vector being generated
+//
+//	numVectors: The maximum number of vectors to generate
+//	milenage: The cipher to use to generate the vector
+//	subscriber: The subscriber data for the subscriber we want to generate auth vectors for
+//	plmn: 24 bit network identifier
+//	authSqnInd: the IND of the current vector being generated
+//
 // Returns: The E-UTRAN vectors and the next value to set the subscriber's LteAuthNextSeq to (or an error).
 func GenerateLteAuthVectors(
 	numVectors uint32,
@@ -82,10 +84,12 @@ func GenerateLteAuthVectors(
 
 // GenerateLteAuthVector returns the lte auth vector for the subscriber.
 // Inputs:
-//   milenage: The cipher to use to generate the vector
-//   subscriber: The subscriber data for the subscriber we want to generate auth vectors for
-//   plmn: 24 bit network identifier
-//   authSqnInd: the IND of the current vector being generated
+//
+//	milenage: The cipher to use to generate the vector
+//	subscriber: The subscriber data for the subscriber we want to generate auth vectors for
+//	plmn: 24 bit network identifier
+//	authSqnInd: the IND of the current vector being generated
+//
 // Returns: A E-UTRAN vector and the next value to set the subscriber's LteAuthNextSeq to (or an error).
 func GenerateLteAuthVector(
 	milenage *milenage.Cipher,
@@ -211,8 +215,10 @@ func GetOrGenerateOpc(lte *protos.LTESubscription, lteAuthOp []byte) ([]byte, er
 // 3GPP TS 33.102 Annex C.3.2. The length of IND is 5 bits.
 // SQN = SEQ || IND
 // Inputs:
-//    seq: the sequence number
-//    index: the index of the current vector being generated
+//
+//	seq: the sequence number
+//	index: the index of the current vector being generated
+//
 // Output: The 48 bit SQN
 func SeqToSqn(seq, index uint64) uint64 {
 	return (seq << indBits & seqMask) + (index & indMask)
@@ -222,7 +228,9 @@ func SeqToSqn(seq, index uint64) uint64 {
 // 3GPP TS 33.102 Annex C.3.2. The length of IND is 5 bits.
 // SQN = SEQ || IND
 // Inputs:
-//    seq: the 48 bit SQN
+//
+//	seq: the 48 bit SQN
+//
 // Outputs: SEQ and IND
 func SplitSqn(sqn uint64) (uint64, uint64) {
 	return sqn >> indBits, sqn & indMask

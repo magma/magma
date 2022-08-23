@@ -424,6 +424,7 @@ type Request struct {
 	// resource_id is the network/tenant to which the request is scoped, if applicable
 	//
 	// Types that are assignable to ResourceId:
+	//
 	//	*Request_NetworkId
 	//	*Request_TenantId
 	ResourceId isRequest_ResourceId `protobuf_oneof:"resource_id"`
@@ -523,6 +524,7 @@ type Policy struct {
 	// action is the action allowed for a given resource, either READ or WRITE.
 	Action Action `protobuf:"varint,2,opt,name=action,proto3,enum=magma.orc8r.certifier.Action" json:"action,omitempty"`
 	// Types that are assignable to Resource:
+	//
 	//	*Policy_Path
 	//	*Policy_Network
 	//	*Policy_Tenant
@@ -2750,15 +2752,12 @@ type CertifierClient interface {
 	GetCA(ctx context.Context, in *GetCARequest, opts ...grpc.CallOption) (*protos.CACert, error)
 	// Signs and adds a new certificate to the store.
 	// Returns signed certificate.
-	//
 	SignAddCertificate(ctx context.Context, in *protos.CSR, opts ...grpc.CallOption) (*protos.Certificate, error)
 	// Returns the CertificateInfo for a certificate.
 	// Throws NOT_FOUND if the certificate is missing.
-	//
 	GetIdentity(ctx context.Context, in *protos.Certificate_SN, opts ...grpc.CallOption) (*CertificateInfo, error)
 	// Revoke an existing certificate.
 	// If the certificate does not exist or is expired, this request is ignored.
-	//
 	RevokeCertificate(ctx context.Context, in *protos.Certificate_SN, opts ...grpc.CallOption) (*protos.Void, error)
 	// Add provided Certificate (AddCertRequest.cert_der) into Certifier table and
 	// associates its Serial Number with given Identity (AddCertRequest.id)
@@ -2981,15 +2980,12 @@ type CertifierServer interface {
 	GetCA(context.Context, *GetCARequest) (*protos.CACert, error)
 	// Signs and adds a new certificate to the store.
 	// Returns signed certificate.
-	//
 	SignAddCertificate(context.Context, *protos.CSR) (*protos.Certificate, error)
 	// Returns the CertificateInfo for a certificate.
 	// Throws NOT_FOUND if the certificate is missing.
-	//
 	GetIdentity(context.Context, *protos.Certificate_SN) (*CertificateInfo, error)
 	// Revoke an existing certificate.
 	// If the certificate does not exist or is expired, this request is ignored.
-	//
 	RevokeCertificate(context.Context, *protos.Certificate_SN) (*protos.Void, error)
 	// Add provided Certificate (AddCertRequest.cert_der) into Certifier table and
 	// associates its Serial Number with given Identity (AddCertRequest.id)

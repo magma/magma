@@ -120,8 +120,8 @@ func TestGRPCExporter(t *testing.T) {
 }
 
 // makeExporter creates the following
-//	- edge hub servicer (standalone service)
-//	- grpc metrics exporter servicer (standalone service)
+//   - edge hub servicer (standalone service)
+//   - grpc metrics exporter servicer (standalone service)
 //
 // The returned exporter forwards to the metrics exporter, which in turn
 // forwards to the edge hub.

@@ -208,22 +208,26 @@ type StartTraceRequest struct {
 	// Custom traces are performed using TShark, and capture filters specified
 	// are equivalent to running tshark with the -f option
 	// Example:
-	//    capture_filters = "tcp and port 80"
-	//    Runs `tshark -f 'tcp and port 80'`
+	//
+	//	capture_filters = "tcp and port 80"
+	//	Runs `tshark -f 'tcp and port 80'`
 	CaptureFilters string `protobuf:"bytes,6,opt,name=capture_filters,json=captureFilters,proto3" json:"capture_filters,omitempty"`
 	// SPECIFIED ONLY IF trace_type is CUSTOM
 	// TShark display filters to be used for call tracing
 	// Custom traces are performed using TShark, and display filters specified
 	// are equivalent to running tshark with the -Y option
 	// Example:
-	//    display_filters = "ip.addr == 10.0.0.1"
-	//    Runs `tshark -Y 'ip.addr == 10.0.0.1'`
+	//
+	//	display_filters = "ip.addr == 10.0.0.1"
+	//	Runs `tshark -Y 'ip.addr == 10.0.0.1'`
+	//
 	// NOTE:
-	//    While TShark is used to capture traffic during call tracing with
-	//    capture filters, when TShark is stopped, the resultant capture is
-	//    passed through the display filters and saved again, so the final
-	//    capture received has been processed by both the capture and display
-	//    filters.
+	//
+	//	While TShark is used to capture traffic during call tracing with
+	//	capture filters, when TShark is stopped, the resultant capture is
+	//	passed through the display filters and saved again, so the final
+	//	capture received has been processed by both the capture and display
+	//	filters.
 	DisplayFilters string `protobuf:"bytes,7,opt,name=display_filters,json=displayFilters,proto3" json:"display_filters,omitempty"`
 }
 
@@ -806,10 +810,8 @@ const _ = grpc.SupportPackageIsVersion6
 type CallTraceServiceClient interface {
 	// Start a call trace on the gateway with the specified options.
 	// Only a single call trace can be active on a gateway at a time.
-	//
 	StartCallTrace(ctx context.Context, in *StartTraceRequest, opts ...grpc.CallOption) (*StartTraceResponse, error)
 	// End the call trace that is currently active on the gateway.
-	//
 	EndCallTrace(ctx context.Context, in *EndTraceRequest, opts ...grpc.CallOption) (*EndTraceResponse, error)
 }
 
@@ -843,10 +845,8 @@ func (c *callTraceServiceClient) EndCallTrace(ctx context.Context, in *EndTraceR
 type CallTraceServiceServer interface {
 	// Start a call trace on the gateway with the specified options.
 	// Only a single call trace can be active on a gateway at a time.
-	//
 	StartCallTrace(context.Context, *StartTraceRequest) (*StartTraceResponse, error)
 	// End the call trace that is currently active on the gateway.
-	//
 	EndCallTrace(context.Context, *EndTraceRequest) (*EndTraceResponse, error)
 }
 
@@ -923,7 +923,6 @@ var _CallTraceService_serviceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CallTraceControllerClient interface {
 	// Report that a call trace has ended
-	//
 	ReportEndedCallTrace(ctx context.Context, in *ReportEndedTraceRequest, opts ...grpc.CallOption) (*ReportEndedTraceResponse, error)
 }
 
@@ -947,7 +946,6 @@ func (c *callTraceControllerClient) ReportEndedCallTrace(ctx context.Context, in
 // CallTraceControllerServer is the server API for CallTraceController service.
 type CallTraceControllerServer interface {
 	// Report that a call trace has ended
-	//
 	ReportEndedCallTrace(context.Context, *ReportEndedTraceRequest) (*ReportEndedTraceResponse, error)
 }
 

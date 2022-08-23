@@ -1667,13 +1667,13 @@ type M5GSUCIRegistrationRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	//Home network public key identifier
+	// Home network public key identifier
 	UePubkeyIdentifier uint32 `protobuf:"varint,1,opt,name=ue_pubkey_identifier,json=uePubkeyIdentifier,proto3" json:"ue_pubkey_identifier,omitempty"`
-	//UE public key
+	// UE public key
 	UePubkey []byte `protobuf:"bytes,2,opt,name=ue_pubkey,json=uePubkey,proto3" json:"ue_pubkey,omitempty"`
-	//UE ciphertext
+	// UE ciphertext
 	UeCiphertext []byte `protobuf:"bytes,3,opt,name=ue_ciphertext,json=ueCiphertext,proto3" json:"ue_ciphertext,omitempty"`
-	//Protection scheme output
+	// Protection scheme output
 	UeEncryptedMac []byte `protobuf:"bytes,4,opt,name=ue_encrypted_mac,json=ueEncryptedMac,proto3" json:"ue_encrypted_mac,omitempty"`
 }
 
@@ -1742,7 +1742,7 @@ type M5GSUCIRegistrationAnswer struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	//UE de concealed msin
+	// UE de concealed msin
 	UeMsinRecv []byte `protobuf:"bytes,1,opt,name=ue_msin_recv,json=ueMsinRecv,proto3" json:"ue_msin_recv,omitempty"`
 }
 
@@ -2509,22 +2509,17 @@ const _ = grpc.SupportPackageIsVersion6
 type SubscriberDBClient interface {
 	// Adds a new subscriber to the store.
 	// Throws ALREADY_EXISTS if the subscriber already exists.
-	//
 	AddSubscriber(ctx context.Context, in *SubscriberData, opts ...grpc.CallOption) (*protos.Void, error)
 	// Deletes an existing subscriber.
 	// If the subscriber is not already present, this request is ignored.
-	//
 	DeleteSubscriber(ctx context.Context, in *SubscriberID, opts ...grpc.CallOption) (*protos.Void, error)
 	// Updates an existing subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	UpdateSubscriber(ctx context.Context, in *SubscriberUpdate, opts ...grpc.CallOption) (*protos.Void, error)
 	// Returns the SubscriberData for a subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	GetSubscriberData(ctx context.Context, in *SubscriberID, opts ...grpc.CallOption) (*SubscriberData, error)
 	// List the subscribers in the store.
-	//
 	ListSubscribers(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*SubscriberIDSet, error)
 }
 
@@ -2585,22 +2580,17 @@ func (c *subscriberDBClient) ListSubscribers(ctx context.Context, in *protos.Voi
 type SubscriberDBServer interface {
 	// Adds a new subscriber to the store.
 	// Throws ALREADY_EXISTS if the subscriber already exists.
-	//
 	AddSubscriber(context.Context, *SubscriberData) (*protos.Void, error)
 	// Deletes an existing subscriber.
 	// If the subscriber is not already present, this request is ignored.
-	//
 	DeleteSubscriber(context.Context, *SubscriberID) (*protos.Void, error)
 	// Updates an existing subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	UpdateSubscriber(context.Context, *SubscriberUpdate) (*protos.Void, error)
 	// Returns the SubscriberData for a subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	GetSubscriberData(context.Context, *SubscriberID) (*SubscriberData, error)
 	// List the subscribers in the store.
-	//
 	ListSubscribers(context.Context, *protos.Void) (*SubscriberIDSet, error)
 }
 

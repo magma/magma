@@ -92,8 +92,8 @@ func (x *StateID) GetDeviceID() string {
 }
 
 // GetStatesRequest functions in two modes
-//  - ids is non-empty  -- normal Get
-//  - ids empty         -- Search with filters and load criteria
+//   - ids is non-empty  -- normal Get
+//   - ids empty         -- Search with filters and load criteria
 type GetStatesRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

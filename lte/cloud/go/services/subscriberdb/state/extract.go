@@ -34,12 +34,14 @@ var (
 
 // GetAssignedIPAddress extracts the IP address from a mobilityd state element.
 // We expect something along the lines of:
-// {
-//   "state": "ALLOCATED",
-//   "sid": {"id": "IMSI001010000000001.magma.ipv4"},
-//   "ipBlock": {"netAddress": "wKiAAA==", "prefixLen": 24},
-//   "ip": {"address": "wKiArg=="}
-//  }
+//
+//	{
+//	  "state": "ALLOCATED",
+//	  "sid": {"id": "IMSI001010000000001.magma.ipv4"},
+//	  "ipBlock": {"netAddress": "wKiAAA==", "prefixLen": 24},
+//	  "ip": {"address": "wKiArg=="}
+//	 }
+//
 // The IP addresses are base64 encoded versions of the packed bytes
 func GetAssignedIPAddress(mobilitydState state.ArbitraryJSON) (string, error) {
 	ipField, ipExists := mobilitydState["ip"]

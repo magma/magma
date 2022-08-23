@@ -14,9 +14,9 @@ limitations under the License.
 // Package types contains the state service's types.
 //
 // State is variously stored in three related objects:
-//	- protos.State		- state as it's reported from gateways
-//	- SerializedState	- wraps reported state with orc8r-defined metadata
-//	- State				- deserializes reported state contents to native object
+//   - protos.State		- state as it's reported from gateways
+//   - SerializedState	- wraps reported state with orc8r-defined metadata
+//   - State				- deserializes reported state contents to native object
 //
 // The state service eagerly converts protos.State to SerializedSTate as soon
 // as possible. From there, consumers of the client API provide their own serde

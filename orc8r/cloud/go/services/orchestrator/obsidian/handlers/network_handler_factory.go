@@ -73,12 +73,13 @@ func GetPartialNetworkHandlers(path string, model PartialNetworkModel, configKey
 // This function loads a network specified by the networkID and returns the
 // part of the network that corresponds to the given model.
 // Example:
-//      (m *NetworkName) GetFromNetwork(network configurator.Network) interface{} {
-// 			return string(network.Name)
-// 		}
-// 		getNameHandler := handlers.GetPartialReadNetworkHandler(URL, &models.NetworkName{})
 //
-//      would return a GET handler that can read the network name of a network with the specified ID.
+//	     (m *NetworkName) GetFromNetwork(network configurator.Network) interface{} {
+//				return string(network.Name)
+//			}
+//			getNameHandler := handlers.GetPartialReadNetworkHandler(URL, &models.NetworkName{})
+//
+//	     would return a GET handler that can read the network name of a network with the specified ID.
 func GetPartialReadNetworkHandler(path string, model PartialNetworkModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
@@ -107,15 +108,16 @@ func GetPartialReadNetworkHandler(path string, model PartialNetworkModel, serdes
 // The handler will fetch the payload into the configModel and perform validations according to the swagger spec.
 // updater will take the model and apply the change into an existing network.
 // Example:
-//      (m *NetworkName) ToUpdateCriteria(network configurator.Network) interface{} {
-// 			return configurator.NetworkUpdateCriteria{
-//				ID:   network.ID,
-// 				Name: *m,
-//			}
-//      }
-// 		putNameHandler := handlers.GetPartialUpdateNetworkHandler(URL, &models.NetworkName{})
 //
-//      would return a PUT handler that will intake a NetworkName model and update the corresponding network
+//	     (m *NetworkName) ToUpdateCriteria(network configurator.Network) interface{} {
+//				return configurator.NetworkUpdateCriteria{
+//					ID:   network.ID,
+//					Name: *m,
+//				}
+//	     }
+//			putNameHandler := handlers.GetPartialUpdateNetworkHandler(URL, &models.NetworkName{})
+//
+//	     would return a PUT handler that will intake a NetworkName model and update the corresponding network
 func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
@@ -154,9 +156,10 @@ func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModel, serd
 // GetPartialDeleteNetworkHandler returns a DELETE obsidian handler at the specified path.
 // The handler will delete a network config specified by the key.
 // Example:
-// 		deleteNetworkFeaturesHandler := handlers.GetPartialDeleteNetworkHandler(URL, "orc8r_features")
 //
-//      would return a DELETE handler that will remove the network features config from the corresponding network
+//			deleteNetworkFeaturesHandler := handlers.GetPartialDeleteNetworkHandler(URL, "orc8r_features")
+//
+//	     would return a DELETE handler that will remove the network features config from the corresponding network
 func GetPartialDeleteNetworkHandler(path string, key string, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
