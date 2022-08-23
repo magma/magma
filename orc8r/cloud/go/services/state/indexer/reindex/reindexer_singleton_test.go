@@ -33,7 +33,7 @@ import (
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 )
 
-func TestSingletonRun(t *testing.T) {
+func TestSingletonRunSuccess(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
@@ -48,10 +48,8 @@ func TestSingletonRun(t *testing.T) {
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
-		if reindexDoneNum < 6 {
-			ch <- nil
-		}
 		reindexDoneNum += 1
+		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
 
@@ -113,6 +111,39 @@ func TestSingletonRun(t *testing.T) {
 	idx5.AssertExpectations(t)
 	require.Equal(t, 3, reindexSuccessNum)
 	require.Equal(t, 3, reindexDoneNum)
+	cancel()
+}
+
+func TestSingletonRunFail(t *testing.T) {
+	// Make nullimpotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexSuccess()
+	reindex.TestHookReindexDone()
+
+	// Writes to channel after completing a job
+	reindexSuccessNum, reindexDoneNum := 0, 0
+	ch := make(chan interface{})
+
+	reindex.TestHookReindexSuccess = func() {
+		reindexSuccessNum += 1
+	}
+	defer func() { reindex.TestHookReindexSuccess = func() {} }()
+
+	reindex.TestHookReindexDone = func() {
+		if reindexDoneNum < 6 {
+			ch <- nil
+		}
+		reindexDoneNum += 1
+	}
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r := initSingletonReindexTest(t)
+	reportAdditionalState(t, nid3, hwid3, 3)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
 
 	// Indexer returns err => reindex jobs fail
 
@@ -147,7 +178,7 @@ func TestSingletonRun(t *testing.T) {
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
-	require.Equal(t, 3, reindexSuccessNum)
+	require.Equal(t, 0, reindexSuccessNum)
 	require.Equal(t, 0, reindexDoneNum%3)
 }
 
