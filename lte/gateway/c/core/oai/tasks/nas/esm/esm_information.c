@@ -36,7 +36,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 

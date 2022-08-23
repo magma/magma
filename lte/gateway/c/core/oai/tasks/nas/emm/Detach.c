@@ -39,8 +39,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
@@ -48,7 +48,13 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern status_code_e esm_sap_send(esm_sap_t* msg);
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

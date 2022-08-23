@@ -191,9 +191,9 @@ set(libnas_mme_esm_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm/sap)
 set(libnas_mme_esm_sap_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_recv.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_send.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_sap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_recv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_send.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_sap.cpp
     )
 
 add_library(TASK_NAS

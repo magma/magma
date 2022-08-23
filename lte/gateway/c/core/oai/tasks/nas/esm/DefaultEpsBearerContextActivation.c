@@ -43,6 +43,14 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e esm_proc_default_eps_bearer_context_failure(
+    emm_context_t* emm_context, pdn_cid_t* const pid);
+#ifdef __cplusplus
+}
+#endif
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/

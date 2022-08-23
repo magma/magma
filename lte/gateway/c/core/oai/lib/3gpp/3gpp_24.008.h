@@ -932,11 +932,19 @@ typedef struct TimeZoneAndTime_s {
   uint8_t timezone;
 } TimeZoneAndTime_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void copy_protocol_configuration_options(
     protocol_configuration_options_t* const pco_dst,
     const protocol_configuration_options_t* const pco_src);
+
 void clear_protocol_configuration_options(
     protocol_configuration_options_t* const pco);
+
+#ifdef __cplusplus
+}
+#endif
 void free_protocol_configuration_options(
     protocol_configuration_options_t** const protocol_configuration_options);
 

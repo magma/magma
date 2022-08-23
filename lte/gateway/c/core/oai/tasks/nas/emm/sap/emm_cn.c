@@ -71,9 +71,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
@@ -82,6 +82,14 @@
 
 extern int emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern status_code_e esm_sap_send(esm_sap_t* msg);
+#ifdef __cplusplus
+}
+#endif
 /*
    Internal data used for attach procedure
 */

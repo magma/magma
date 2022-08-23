@@ -509,9 +509,14 @@ ue_mm_context_t* mme_ue_context_exists_s11_teid(
  * @returns an UE context matching the mme_ue_s1ap_id or NULL if the context
  *doesn't exists
  **/
+#ifdef __cplusplus
+extern "C" {
+#endif
 ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id);
-
+#ifdef __cplusplus
+}
+#endif
 /** \brief Retrieve an UE context by selecting the provided enb_ue_s1ap_id
  * \param enb_ue_s1ap_id The UE id identifier used in S1AP MME
  * @returns an UE context matching the enb_ue_s1ap_id or NULL if the context
@@ -594,8 +599,6 @@ void mme_app_state_free_ue_context(void** ue_context_node);
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
 
-bearer_context_t* mme_app_get_bearer_context(ue_mm_context_t* const ue_context,
-                                             const ebi_t ebi);
 
 void mme_app_handle_enb_deregister_ind(
     const itti_s1ap_eNB_deregistered_ind_t* eNB_deregistered_ind);
@@ -604,9 +607,6 @@ ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 
 void mme_app_free_bearer_context(bearer_context_t** bc);
 
-void mme_app_send_delete_session_request(
-    struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
-    const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
     const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
@@ -617,8 +617,21 @@ void mme_app_ue_sgs_context_free_content(sgs_context_t* const sgs_context_p,
                                          imsi64_t imsi);
 bool is_mme_ue_context_network_access_mode_packet_only(
     ue_mm_context_t* ue_context_p);
+#ifdef __cplusplus
+extern "C" {
+#endif
+bearer_context_t* mme_app_get_bearer_context(ue_mm_context_t* const ue_context,
+                                             const ebi_t ebi);
+void mme_app_send_delete_session_request(
+    struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
+    const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel);
+
 int mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
+#ifdef __cplusplus
+}
+#endif
+
 void mme_app_recover_timers_for_all_ues(void);
 
 void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,

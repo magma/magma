@@ -68,8 +68,17 @@ void mme_app_handle_s1ap_ue_context_release_complete(
     const itti_s1ap_ue_context_release_complete_t*
         s1ap_ue_context_release_complete);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
+
+ue_mm_context_t* mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
+#ifdef __cplusplus
+}
+#endif
 
 int mme_app_handle_s6a_update_location_ans(
     mme_app_desc_t* mme_app_desc_p, const s6a_update_location_ans_t* ula_pP);
@@ -346,8 +355,6 @@ int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
 
 int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 
-ue_mm_context_t* mme_app_get_ue_context_for_timer(
-    mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
 
 void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,
