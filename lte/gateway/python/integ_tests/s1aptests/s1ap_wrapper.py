@@ -82,7 +82,10 @@ class TestWrapper(object):
         self._enBConfig(ip_version)
 
         federated_mode = (os.environ.get("FEDERATED_MODE") == "True")
-        print(f"\n *** Running the test in {'Non-' if not federated_mode else ''}Federated Mode")
+        print(
+            f"\n *** Running the test in {'Non-' if not federated_mode else ''}"
+            "Federated Mode\n",
+        )
 
         if self._test_oai_upstream:
             subscriber_client = SubscriberDbCassandra()
