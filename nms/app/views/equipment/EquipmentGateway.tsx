@@ -16,23 +16,23 @@ import type {WithAlert} from '../../components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import EmptyState from '../../components/EmptyState';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import GatewayContext from '../../context/GatewayContext';
 import GatewayTierContext from '../../context/GatewayTierContext';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemText from '@material-ui/core/ListItemText';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Paper from '@mui/material/Paper';
 import React, {useContext, useState} from 'react';
 import SubscriberContext from '../../context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
@@ -42,9 +42,9 @@ import {GatewayEditDialog} from './GatewayDetailConfigEdit';
 import {GatewayId} from '../../../shared/types/network';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {SelectEditComponent} from '../../components/ActionTable';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useInterval} from '../../hooks';
 import {useNavigate} from 'react-router-dom';
@@ -135,10 +135,10 @@ const EMPTY_STATE_OVERVIEW =
 const EMPTY_STATE_INSTRUCTIONS_STEP_2 =
   'The Access Gateway (AGW) is configured and managed via the orchestrator and is part of a specific organization.' +
   'This configuration is made through the NMS as part of adding a new gateway to the system. ';
-const VIEW_DOCUMENTATION_LINK =
-  'https://docs.magmacore.org/docs/next/lte/deploy_install';
-const LEARN_MORE_LINK =
-  'https://docs.magmacore.org/docs/next/lte/deploy_config_agw';
+const INSTALL_AGW_LINK = 'https://docs.magmacore.org/docs/lte/deploy_install';
+const CONFIGURE_AGW_LINK =
+  'https://docs.magmacore.org/docs/lte/deploy_config_agw#access-gateway-configuration';
+const LEARN_MORE_LINK = 'https://docs.magmacore.org/docs/lte/deploy_config_agw';
 
 export default function Gateway() {
   const classes = useStyles();
@@ -184,19 +184,17 @@ function InstallGatewayList() {
   return (
     <ul className={classes.bulletList}>
       <li>
-        Create bootable USB with OS (Ubuntu).
-        <Link href={VIEW_DOCUMENTATION_LINK} target="_blank">
+        Create bootable USB with OS (Ubuntu).{' '}
+        <Link href={INSTALL_AGW_LINK} target="_blank" underline="hover">
           View documentation
         </Link>
       </li>
       <li>Install Magma service</li>
       <li>
-        Download <Link href={''}>rootca.pem</Link> and{' '}
-        <Link href={''}>control_proxy.yml</Link> and install in
-        <code>/var/opt/magma/tmp/certs</code> and{' '}
-        <code>/var/opt/magma/configs</code> respectively. The rootCA.pem
-        validates server credentials and the control_proxy.yml file provides
-        orchestrator information to the gateway.
+        Install <code>rootca.pem</code> and <code>control_proxy.yml</code>.{' '}
+        <Link href={CONFIGURE_AGW_LINK} target="_blank" underline="hover">
+          View documentation
+        </Link>
       </li>
       <li>Restart Magma services</li>
       <li>
@@ -229,7 +227,8 @@ function AddGatewayInstructions(props: GatewayInstructionsProps) {
             <Link
               className={classes.emptyStateLink}
               href={LEARN_MORE_LINK}
-              target="_blank">
+              target="_blank"
+              underline="hover">
               Learn more about Access Gateway Configuration
             </Link>
           </Grid>
@@ -255,6 +254,7 @@ function GatewayEmptyStateList(props: GatewayInstructionsProps) {
           }}
           primary="Install and configure an Access Gateway"
           secondary={<InstallGatewayList />}
+          secondaryTypographyProps={{component: 'div'}}
         />
       </ListItem>
       <ListItem classes={{root: classes.listItem}} disableGutters>
@@ -269,6 +269,7 @@ function GatewayEmptyStateList(props: GatewayInstructionsProps) {
           }}
           primary="Add an Access Gateway"
           secondary={<AddGatewayInstructions setOpen={() => props.setOpen()} />}
+          secondaryTypographyProps={{component: 'div'}}
         />
       </ListItem>
     </List>
@@ -390,7 +391,8 @@ function UpgradeTable() {
             <Link
               variant="body2"
               component="button"
-              onClick={() => navigate(currRow.id)}>
+              onClick={() => navigate(currRow.id)}
+              underline="hover">
               {currRow.id}
             </Link>
           ),
@@ -434,7 +436,7 @@ function UpgradeTable() {
             });
             const dataUpdate = [...lteGatewayUpgradeRows];
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const index = (oldData as any).tableData.id as number;
+            const index = (oldData as any).tableData.index as number;
             dataUpdate[index] = newData;
             setLteGatewayUpgradeRows([...dataUpdate]);
           } catch (e) {
@@ -506,7 +508,8 @@ function GatewayStatusTable(props: WithAlert & {refresh: boolean}) {
               <Link
                 variant="body2"
                 component="button"
-                onClick={() => navigate(currRow.id)}>
+                onClick={() => navigate(currRow.id)}
+                underline="hover">
                 {currRow.id}
               </Link>
             ),

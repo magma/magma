@@ -16,7 +16,7 @@ import * as React from 'react';
 import {Link} from 'react-router-dom';
 
 import classNames from 'classnames';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   link: {

@@ -109,37 +109,25 @@ status_code_e amf_handle_service_request(
                 SERVICE_TYPE_HIGH_PRIORITY_ACCESS) ||
                (msg->service_type.service_type_value ==
                 SERVICE_TYPE_MOBILE_TERMINATED_SERVICES)) {
-      if (((msg->service_type.service_type_value == SERVICE_TYPE_DATA) ||
-           (msg->service_type.service_type_value ==
-            SERVICE_TYPE_MOBILE_TERMINATED_SERVICES)) &&
-          !(msg->uplink_data_status.uplinkDataStatus)) {
-        // prepare and send reject message.
-        OAILOG_INFO(
-            LOG_NAS_AMF,
-            "Sending service reject with cuase condtional IE missing\n");
-        amf_sap.primitive = AMFAS_ESTABLISH_REJ;
+      if (msg->service_type.service_type_value == SERVICE_TYPE_DATA) {
+        OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is Data \n");
+      } else if (msg->service_type.service_type_value ==
+                 SERVICE_TYPE_MOBILE_TERMINATED_SERVICES) {
+        OAILOG_DEBUG(LOG_NAS_AMF,
+                     "Service request type is Mobile Terminated Services \n");
+      } else {
+        OAILOG_DEBUG(LOG_NAS_AMF,
+                     "Service request type is High Priority Access \n");
+      }
+
+      if (ue_context->cm_state == M5GCM_CONNECTED) {
+        amf_sap.primitive = AMFAS_ESTABLISH_CNF;
         amf_sap.u.amf_as.u.establish.ue_id = ue_id;
         amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
-        if (msg->pdu_session_status.iei) {
-          amf_sap.u.amf_as.u.establish.pdu_session_status_ie =
-              AMF_AS_PDU_SESSION_STATUS;
-          amf_sap.u.amf_as.u.establish.pdu_session_status =
-              msg->pdu_session_status.pduSessionStatus;
-        }
-        amf_sap.u.amf_as.u.establish.amf_cause =
-            AMF_CAUSE_CONDITIONAL_IE_MISSING;
-        rc = amf_sap_send(&amf_sap);
-      } else {
-        OAILOG_DEBUG(LOG_NAS_AMF, "Service request type is %s \n",
-                     (msg->service_type.service_type_value == SERVICE_TYPE_DATA)
-                         ? "Data"
-                         : "Mobile Terminated Services");
 
-        if (ue_context->cm_state == M5GCM_CONNECTED) {
-          amf_sap.primitive = AMFAS_ESTABLISH_CNF;
-          amf_sap.u.amf_as.u.establish.ue_id = ue_id;
-          amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
-
+        if (!msg->uplink_data_status.uplinkDataStatus) {
+          rc = amf_sap_send(&amf_sap);
+        } else {
           for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
             std::shared_ptr<smf_context_t> smf_ctxt = it.second;
             if (smf_ctxt) {
@@ -157,6 +145,13 @@ status_code_e amf_handle_service_request(
               AMF_AS_PDU_SESSION_STATUS;
           amf_sap.u.amf_as.u.establish.pdu_session_status = pdu_session_status;
           amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+          rc = amf_sap_send(&amf_sap);
+        }
+      } else {
+        if (!msg->uplink_data_status.uplinkDataStatus) {
+          amf_sap.primitive = AMFAS_ESTABLISH_CNF;
+          amf_sap.u.amf_as.u.establish.ue_id = ue_id;
+          amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
           rc = amf_sap_send(&amf_sap);
         } else {
           bool is_pdu_session_id_exist = false;

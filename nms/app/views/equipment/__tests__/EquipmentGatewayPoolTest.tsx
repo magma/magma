@@ -14,14 +14,14 @@ import AddEditGatewayPoolButton from '../GatewayPoolEdit';
 import GatewayContext from '../../../context/GatewayContext';
 import GatewayPools from '../EquipmentGatewayPools';
 import MagmaAPI from '../../../api/MagmaAPI';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {GatewayPoolsContextProvider} from '../../../context/GatewayPoolsContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
+import {fireEvent, waitFor} from '@testing-library/react';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
+import {render} from '../../../util/TestingLibrary';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {LteGateway} from '../../../../generated';
 
@@ -151,15 +151,15 @@ describe('<GatewayPools />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
           <GatewayPoolsContextProvider networkId={networkId}>
             <Routes>
               <Route path="/nms/:networkId/pools/" element={<GatewayPools />} />
             </Routes>
           </GatewayPoolsContextProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
+        </ThemeProvider>
+      </StyledEngineProvider>
     </MemoryRouter>
   );
 
@@ -171,14 +171,9 @@ describe('<GatewayPools />', () => {
       )
       .mockImplementation();
 
-    const {
-      findAllByRole,
-      findByTestId,
-      findByText,
-      getByTestId,
-      getByText,
-      getAllByTitle,
-    } = render(<Wrapper />);
+    const {findAllByRole, findByText, getByText, openActionsTableMenu} = render(
+      <Wrapper />,
+    );
 
     const rowItems = await findAllByRole('row');
 
@@ -208,11 +203,7 @@ describe('<GatewayPools />', () => {
     expect(rowItems[3]).toHaveTextContent('-');
 
     // delete gateway pool3
-    const actionList = getAllByTitle('Actions');
-    expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(actionList[2]);
-
-    expect(await findByTestId('actions-menu')).toBeVisible();
+    await openActionsTableMenu(2);
     fireEvent.click(getByText('Remove'));
     expect(
       await findByText('Are you sure you want to delete pool3?'),
@@ -236,13 +227,10 @@ describe('<GatewayPools />', () => {
       queryByTestId,
       getByTestId,
       getByText,
-      findAllByTitle,
-      findByTestId,
+      openActionsTableMenu,
     } = render(<Wrapper />);
 
-    const actionList = await findAllByTitle('Actions');
-    fireEvent.click(actionList[2]);
-    await findByTestId('actions-menu');
+    await openActionsTableMenu(2);
     fireEvent.click(getByText('Edit'));
 
     // check if only first tab (config) is active
@@ -303,31 +291,33 @@ describe('<AddEditGatewayPoolButton />', () => {
   const AddWrapper = () => {
     return (
       <MemoryRouter initialEntries={['/nms/test/pools']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContext.Provider
-              value={{
-                state: lteGateways,
-                setState: async () => {},
-                updateGateway: async () => {},
-                refetch: () => {},
-              }}>
-              <GatewayPoolsContextProvider networkId={networkId}>
-                <Routes>
-                  <Route
-                    path="/nms/:networkId/pools"
-                    element={
-                      <AddEditGatewayPoolButton
-                        title="Add Gateway Pool"
-                        isLink={false}
-                      />
-                    }
-                  />
-                </Routes>
-              </GatewayPoolsContextProvider>
-            </GatewayContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <GatewayContext.Provider
+                value={{
+                  state: lteGateways,
+                  setState: async () => {},
+                  updateGateway: async () => {},
+                  refetch: () => {},
+                }}>
+                <GatewayPoolsContextProvider networkId={networkId}>
+                  <Routes>
+                    <Route
+                      path="/nms/:networkId/pools"
+                      element={
+                        <AddEditGatewayPoolButton
+                          title="Add Gateway Pool"
+                          isLink={false}
+                        />
+                      }
+                    />
+                  </Routes>
+                </GatewayPoolsContextProvider>
+              </GatewayContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

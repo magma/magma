@@ -12,21 +12,19 @@
  */
 import type {SectionsConfigs} from '../layout/Section';
 
-import AlarmIcon from '@material-ui/icons/Alarm';
+import AlarmIcon from '@mui/icons-material/Alarm';
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
-import CellWifiIcon from '@material-ui/icons/CellWifi';
-import DashboardIcon from '@material-ui/icons/Dashboard';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import FEGConfigure from './FEGConfigure';
 import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
 import FEGEquipmentDashboard from '../../views/equipment/FEGEquipmentDashboard';
-import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
 import FEGNetworkDashboard from '../../views/network/FEGNetworkDashboard';
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
+import NetworkCheckIcon from '@mui/icons-material/NetworkCheck';
 import React from 'react';
-import RouterIcon from '@material-ui/icons/Router';
-import SettingsCellIcon from '@material-ui/icons/SettingsCell';
-import ShowChartIcon from '@material-ui/icons/ShowChart';
+import RouterIcon from '@mui/icons-material/Router';
+import SettingsCellIcon from '@mui/icons-material/SettingsCell';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 
 export function getFEGSections(): SectionsConfigs {
   const sections = [
@@ -37,22 +35,16 @@ export function getFEGSections(): SectionsConfigs {
       component: FEGDashboard,
     },
     {
-      path: 'gateways',
-      label: 'Gateways',
-      icon: <CellWifiIcon />,
-      component: FEGGateways,
+      path: 'equipment',
+      label: 'Equipment',
+      icon: <RouterIcon />,
+      component: FEGEquipmentDashboard,
     },
     {
       path: 'network',
       label: 'Network',
       icon: <NetworkCheckIcon />,
       component: FEGNetworkDashboard,
-    },
-    {
-      path: 'equipment',
-      label: 'Equipment',
-      icon: <RouterIcon />,
-      component: FEGEquipmentDashboard,
     },
     {
       path: 'configure',

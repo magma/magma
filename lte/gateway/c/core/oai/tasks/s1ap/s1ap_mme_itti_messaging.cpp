@@ -72,8 +72,7 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
   imsi64_t imsi64 = INVALID_IMSI64;
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)ue_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
 
   OAILOG_INFO_UE(
       LOG_S1AP, imsi64,
@@ -116,8 +115,7 @@ status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl,
-                          (const hash_key_t)ue_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64,

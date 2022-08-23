@@ -12,17 +12,17 @@
  */
 
 import AppContext from '../context/AppContext';
-import Divider from '@material-ui/core/Divider';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
+import Divider from '@mui/material/Divider';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import NetworkContext from '../context/NetworkContext';
-import PersonIcon from '@material-ui/icons/Person';
+import PersonIcon from '@mui/icons-material/Person';
 import Popout from './Popout';
 import React, {useContext} from 'react';
 import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useNavigate, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
@@ -33,20 +33,18 @@ const useStyles = makeStyles(() => ({
     padding: '15px 28px',
     cursor: 'pointer',
     outline: 'none',
-    '&:hover $icon, &:hover $label, &$selected $icon, &$selected $label': {
+    '&:hover .MuiSvgIcon-root, &:hover span': {
       color: colors.primary.white,
     },
   },
   label: {
-    '&&': {
-      color: colors.primary.gullGray,
-      whiteSpace: 'nowrap',
-      paddingLeft: '16px',
-    },
+    color: colors.primary.gullGray,
+    whiteSpace: 'nowrap',
+    paddingLeft: '16px',
   },
   selected: {
     backgroundColor: colors.secondary.dodgerBlue,
-    '& $icon': {
+    '& .MuiSvgIcon-root, & span': {
       color: colors.primary.white,
     },
   },

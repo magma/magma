@@ -11,25 +11,25 @@
  * limitations under the License.
  */
 
-import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
-import HelpIcon from '@material-ui/icons/Help';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import ListItem from '@material-ui/core/ListItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import HelpIcon from '@mui/icons-material/Help';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import LinearProgress from '@mui/material/LinearProgress';
+import ListItem from '@mui/material/ListItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import Text from '../theme/design-system/Text';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
-import Visibility from '@material-ui/icons/Visibility';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
-import grey from '@material-ui/core/colors/grey';
-import {Theme} from '@material-ui/core/styles';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {grey} from '@mui/material/colors';
+import {makeStyles} from '@mui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -55,6 +55,13 @@ const useStyles = makeStyles<Theme>(theme => ({
     fontWeight: 400,
     marginLeft: '8px',
   },
+  label: {
+    fontSize: '14px',
+    fontFamily: 'Inter',
+    fontStyle: 'normal',
+    fontWeight: 500,
+    lineHeight: '20px',
+  },
   secondaryHeading: {
     flexBasis: '66.66%',
   },
@@ -65,7 +72,7 @@ const useStyles = makeStyles<Theme>(theme => ({
     width: '15px',
   },
   formDivider: {
-    margin: `${theme.spacing(3)}px 0 ${theme.spacing(2)}px`,
+    margin: `${theme.spacing(3)} 0 ${theme.spacing(2)}`,
     backgroundColor: colors.primary.gullGray,
     opacity: 0.4,
     height: '1px',
@@ -87,6 +94,7 @@ type Props = {
   isOptional?: boolean;
   // If true, the left and right padding is removed.
   disableGutters?: boolean;
+  className?: string;
 };
 
 export default function FormField(props: Props) {
@@ -115,9 +123,12 @@ export default function FormField(props: Props) {
 export function AltFormField(props: Props) {
   const classes = useStyles();
   return (
-    <ListItem dense={props.dense} disableGutters={props.disableGutters}>
+    <ListItem
+      dense={props.dense}
+      disableGutters={props.disableGutters}
+      className={props.className}>
       <Grid container>
-        <Grid item xs={12}>
+        <Grid item xs={12} className={classes.label}>
           {props.label}
           {props.isOptional && (
             <Typography
@@ -175,6 +186,7 @@ type PasswordProps = {
   placeholder?: string;
   value: string;
   required?: boolean;
+  fullWidth?: boolean;
   autoComplete?: string;
 };
 
@@ -197,7 +209,8 @@ export function PasswordInput(props: PasswordProps) {
             aria-label="toggle password visibility"
             onClick={() => setShowPassword(true)}
             onMouseDown={() => setShowPassword(false)}
-            edge="end">
+            edge="end"
+            size="large">
             {showPassword ? <Visibility /> : <VisibilityOff />}
           </IconButton>
         </InputAdornment>

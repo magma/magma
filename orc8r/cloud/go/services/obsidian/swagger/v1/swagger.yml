@@ -1127,7 +1127,7 @@ paths:
           description: Success
           schema:
             items:
-            - $ref: '#/definitions/event'
+              $ref: '#/definitions/event'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
@@ -1164,7 +1164,7 @@ paths:
           description: Success
           schema:
             items:
-            - $ref: '#/definitions/event'
+              $ref: '#/definitions/event'
             type: array
         default:
           $ref: '#/responses/UnexpectedError'
@@ -5247,11 +5247,11 @@ paths:
       - $ref: '#/parameters/network_id'
       responses:
         "200":
-          description: List all rating groups
+          description: Map of all rating groups by rating group ID
           schema:
-            items:
+            additionalProperties:
               $ref: '#/definitions/rating_group'
-            type: array
+            type: object
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List rating groups
@@ -5666,9 +5666,9 @@ paths:
         "200":
           description: Success
           schema:
-            items:
-            - $ref: '#/definitions/call_trace'
-            type: array
+            additionalProperties:
+              $ref: '#/definitions/call_trace'
+            type: object
         default:
           $ref: '#/responses/UnexpectedError'
       summary: List all call traces for a network
@@ -6592,18 +6592,12 @@ definitions:
       group_wait:
         type: string
       match:
-        properties:
-          label:
-            type: string
-          value:
-            type: string
+        additionalProperties:
+          type: string
         type: object
       match_re:
-        properties:
-          label:
-            type: string
-          value:
-            type: string
+        additionalProperties:
+          type: string
         type: object
       receiver:
         type: string
@@ -6943,15 +6937,16 @@ definitions:
         x-nullable: false
       frequency_preferences:
         $ref: '#/definitions/frequency_preferences'
-      grant:
-        $ref: '#/definitions/grant'
-        x-nullable: false
       grant_redundancy:
         description: tells Domain Proxy how many grants from SAS should be maintained.
           If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled,
           Domain Proxy will maintain only 1 grant
         type: boolean
         x-nullable: false
+      grants:
+        items:
+          $ref: '#/definitions/grant'
+        type: array
       id:
         description: database id of cbsd
         type: integer
@@ -8618,7 +8613,8 @@ definitions:
       state:
         enum:
         - granted
-        - guthorized
+        - authorized
+        - unsync
         type: string
         x-nullable: false
       transmit_expire_time:
@@ -9513,9 +9509,6 @@ definitions:
         $ref: '#/definitions/eap_aka'
       eap_sim:
         $ref: '#/definitions/eap_sim'
-      is_xwfm_variant:
-        example: false
-        type: boolean
       li_ues:
         $ref: '#/definitions/li_ues'
       network_services:

@@ -57,8 +57,6 @@ RUN apt-get update && apt-get install -y \
   libsystemd-dev \
   libprotobuf-dev
 
-
-RUN cd /usr/local/bin && ln -s /usr/bin/python3 python
 RUN gem install fpm
 
 COPY . $MAGMA_ROOT/
@@ -108,8 +106,7 @@ RUN apt-get update && apt-get install -y \
   iptables \
   iproute2
 
-RUN cd /usr/local/bin && ln -s /usr/bin/python3 pytho && \
-  python3 -m venv $VIRTUAL_ENV
+RUN python3 -m venv $VIRTUAL_ENV
 
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 

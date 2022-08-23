@@ -44,12 +44,10 @@ router.get(
   '/organization/async/:name',
   asyncHandler(async (req: Request<{name: string}>, res) => {
     const organization = await Organization.findOne({
-      where: {
-        name: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.params.name),
-        ),
-      },
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.params.name),
+      ),
     });
     res.status(200).send({organization});
   }),
@@ -164,12 +162,10 @@ router.post(
       res,
     ) => {
       let organization = await Organization.findOne({
-        where: {
-          name: Sequelize.where(
-            Sequelize.fn('lower', Sequelize.col('name')),
-            Sequelize.fn('lower', req.body.name),
-          ),
-        },
+        where: Sequelize.where(
+          Sequelize.fn('lower', Sequelize.col('name')),
+          Sequelize.fn('lower', req.body.name),
+        ),
       });
       if (organization) {
         return res.status(404).send({error: 'Organization already exists'});
@@ -192,12 +188,10 @@ router.put(
   '/organization/async/:name',
   asyncHandler(async (req: Request<never, any, {name: string}>, res) => {
     const organization = await Organization.findOne({
-      where: {
-        name: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.body.name),
-        ),
-      },
+      where: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.body.name),
+      ),
     });
     if (!organization) {
       return res.status(404).send({error: 'Organization does not exist'});
@@ -220,12 +214,10 @@ router.post(
   asyncHandler(
     async (req: Request<{name: string}, any, Partial<UserRawType>>, res) => {
       const organization = await Organization.findOne({
-        where: {
-          name: Sequelize.where(
-            Sequelize.fn('lower', Sequelize.col('name')),
-            Sequelize.fn('lower', req.params.name),
-          ),
-        },
+        where: Sequelize.where(
+          Sequelize.fn('lower', Sequelize.col('name')),
+          Sequelize.fn('lower', req.params.name),
+        ),
       });
       if (!organization) {
         return res.status(404).send({error: 'Organization does not exist'});
@@ -249,12 +241,10 @@ router.post(
         // uses SSO for login, give it a random password
         if (props.password === undefined) {
           const organization = await Organization.findOne({
-            where: {
-              name: Sequelize.where(
-                Sequelize.fn('lower', Sequelize.col('name')),
-                Sequelize.fn('lower', req.params.name),
-              ),
-            },
+            where: Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col('name')),
+              Sequelize.fn('lower', req.params.name),
+            ),
           });
           if (organization && organization.ssoEntrypoint) {
             props.password = crypto.randomBytes(16).toString('hex');

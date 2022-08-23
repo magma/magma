@@ -29,9 +29,9 @@ dp:
     name: configuration-controller  # Domain proxy component name.
 
     image:
-      repository: configuration-controller  # Docker image repository.
+      repository: docker.artifactory.magmacore.org/configuration-controller  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
-      tag: ""  # Overrides the image tag whose default is the chart appVersion.
+      tag: "1.7.0"
 
     replicaCount: 1  # How many replicas of particular component should be created.
 
@@ -156,8 +156,8 @@ dp:
     name: radio-controller  # Domain proxy component name.
 
     image:
-      repository: radio-controller  # Docker image repository.
-      tag: ""  # Overrides the image tag whose default is the chart appVersion.
+      repository: docker.artifactory.magmacore.org/radio-controller  # Docker image repository.
+      tag: "1.7.0"
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
 
     replicaCount: 1  # How many replicas of particular component should be created.
@@ -235,8 +235,8 @@ dp:
     name: active-mode-controller  # Domain proxy component name.
 
     image:
-      repository: active-mode-controller  # Docker image repository.
-      tag: ""  # Overrides the image tag whose default is the chart appVersion.
+      repository: docker.artifactory.magmacore.org/active-mode-controller  # Docker image repository.
+      tag: "1.7.0"
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
 
     replicaCount: 1  # How many replicas of particular component should be created.
@@ -325,9 +325,9 @@ dp:
     name: db-service  # Domain proxy component name.
 
     image:
-      repository: db-service  # Docker image repository.
+      repository: docker.artifactory.magmacore.org/db-service  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
-      tag: ""  # Overrides the image tag whose default is the chart appVersion.
+      tag: "1.7.0"
 
     imagePullSecrets: []  # Name of the secret that contains container image registry keys
 
@@ -343,9 +343,9 @@ dp:
     name: fluentd  # Domain proxy component name.
 
     image:
-      repository: fluentd  # Docker image repository.
+      repository: fluent/fluentd  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
-      tag: ""  # Overrides the image tag whose default is the chart appVersion.
+      tag: "v1.7-1"
 
     imagePullSecrets: []  # Name of the secret that contains container image registry keys
 

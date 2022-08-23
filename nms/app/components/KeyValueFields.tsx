@@ -11,13 +11,14 @@
  * limitations under the License.
  */
 
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import IconButton from '@material-ui/core/IconButton';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
-import TextField from '@material-ui/core/TextField';
-
-import {makeStyles} from '@material-ui/styles';
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
+import {AltFormField} from './FormField';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles({
   container: {
@@ -67,37 +68,45 @@ export default function KeyValueFields(props: Props) {
   };
 
   return (
-    <>
+    <AltFormField label={`${props.key_label} - ${props.value_label}`}>
       {props.keyValuePairs.map((pair, index) => (
         <div className={classes.container} key={index}>
-          <TextField
-            label={props.key_label}
-            margin="none"
-            value={pair[0]}
-            onChange={({target}) => onChange(index, 0, target.value)}
-            className={classes.inputKey}
-          />
-          <TextField
-            label={props.value_label}
-            margin="none"
-            value={pair[1]}
-            onChange={({target}) => onChange(index, 1, target.value)}
-            className={classes.inputValue}
-          />
-          {props.keyValuePairs.length !== 1 && (
-            <IconButton
-              onClick={() => removeField(index)}
-              className={classes.icon}>
-              <RemoveCircleOutline />
-            </IconButton>
-          )}
-          {index === props.keyValuePairs.length - 1 && (
-            <IconButton onClick={addField} className={classes.icon}>
-              <AddCircleOutline />
-            </IconButton>
-          )}
+          <Grid container spacing={2}>
+            <Grid item>
+              <OutlinedInput
+                placeholder={props.key_label}
+                value={pair[0]}
+                onChange={({target}) => onChange(index, 0, target.value)}
+              />
+            </Grid>
+            <Grid item>
+              <OutlinedInput
+                placeholder={props.value_label}
+                value={pair[1]}
+                onChange={({target}) => onChange(index, 1, target.value)}
+              />
+            </Grid>
+            <Grid item>
+              {props.keyValuePairs.length !== 1 && (
+                <IconButton
+                  onClick={() => removeField(index)}
+                  className={classes.icon}
+                  size="large">
+                  <RemoveCircleOutline />
+                </IconButton>
+              )}
+              {index === props.keyValuePairs.length - 1 && (
+                <IconButton
+                  onClick={addField}
+                  className={classes.icon}
+                  size="large">
+                  <AddCircleOutline />
+                </IconButton>
+              )}
+            </Grid>
+          </Grid>
         </div>
       ))}
-    </>
+    </AltFormField>
   );
 }

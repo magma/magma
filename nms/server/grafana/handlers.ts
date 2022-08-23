@@ -34,7 +34,6 @@ import {
 } from './dashboards/Dashboards';
 import {Organization} from '../../shared/sequelize_models';
 import {Request} from 'express';
-import {XWFMDBData} from './dashboards/XWFMDashboards';
 import {apiCredentials} from '../../config/config';
 import type {
   CreateDashboardResponse,
@@ -463,12 +462,10 @@ export async function syncDashboards(
   const completedTasks: Array<Task> = [];
   const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
   const org = await Organization.findOne({
-    where: {
-      name: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', req.user.organization || ''),
-      ),
-    },
+    where: Sequelize.where(
+      Sequelize.fn('lower', Sequelize.col('name')),
+      Sequelize.fn('lower', req.user.organization || ''),
+    ),
   });
   let networks: Array<string> = [];
   if (org) {
@@ -498,28 +495,22 @@ export async function syncDashboards(
     dashboardData(createDashboard(GatewayDBData(networks)).generate()),
     dashboardData(createDashboard(InternalDBData(networks)).generate()),
   ];
-  if (await hasNetworkOfXWFMType(networks)) {
-    posts.push(dashboardData(createDashboard(XWFMDBData(networks)).generate()));
-  } else {
-    posts.push(
-      dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
-    );
+  posts.push(
+    dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
+  );
 
-    // If an org contains CWF networks, add the CWF-specific dashboards
-    if (await hasNetworkOfType(CWF, networks)) {
-      posts.push(
-        dashboardData(createDashboard(CWFNetworkDBData(networks)).generate()),
-        dashboardData(
-          createDashboard(CWFAccessPointDBData(networks)).generate(),
-        ),
-        dashboardData(createDashboard(CWFSubscriberDBData).generate()),
-        dashboardData(createDashboard(CWFGatewayDBData(networks)).generate()),
-      );
-      // Analytics Dashboard
-      posts.push(
-        dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
-      );
-    }
+  // If an org contains CWF networks, add the CWF-specific dashboards
+  if (await hasNetworkOfType(CWF, networks)) {
+    posts.push(
+      dashboardData(createDashboard(CWFNetworkDBData(networks)).generate()),
+      dashboardData(createDashboard(CWFAccessPointDBData(networks)).generate()),
+      dashboardData(createDashboard(CWFSubscriberDBData).generate()),
+      dashboardData(createDashboard(CWFGatewayDBData(networks)).generate()),
+    );
+    // Analytics Dashboard
+    posts.push(
+      dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
+    );
   }
 
   for (const post of posts) {
@@ -646,24 +637,6 @@ async function hasNetworkOfType(
     } catch (error) {
       logger.error(
         `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${(error as Error).toString()}`,
-      );
-    }
-  }
-  return false;
-}
-
-async function hasNetworkOfXWFMType(networks: Array<string>): Promise<boolean> {
-  for (const networkId of networks) {
-    try {
-      const cwfNetwork = (
-        await OrchestartorAPI.carrierWifiNetworks.cwfNetworkIdGet({networkId})
-      ).data;
-      return cwfNetwork.carrier_wifi?.is_xwfm_variant ?? false;
-    } catch (error) {
-      // not a real error, we are attempting to get all networks as cwf networks
-      // few of them can result in errors. These can be ignored
-      logger.error(
-        `Error attempting to retrieve ${networkId} as CWF network. Error: ${(error as Error).toString()}`,
       );
     }
   }

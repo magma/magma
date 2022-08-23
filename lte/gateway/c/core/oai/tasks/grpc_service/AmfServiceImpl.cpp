@@ -180,22 +180,37 @@ Status AmfServiceImpl::SetSmfSessionContext(
     itti_msg.qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
         .non_dynamic_5QI_desc.fiveQI = qos_rule.qos().qos().qci();  // enum
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .priority_level =
-        qos_rule.qos().qos().arp().priority_level();  // uint32
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_cap = (pre_emption_capability)qos_rule.qos()
-                               .qos()
-                               .arp()
-                               .pre_capability();  // enum
-    itti_msg.qos_flow_list.item[i]
-        .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .pre_emption_vul = (pre_emption_vulnerability)qos_rule.qos()
-                               .qos()
-                               .arp()
-                               .pre_vulnerability();  // enum
+    if (qos_rule.qos().qos().arp().priority_level()) {
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .priority_level =
+          qos_rule.qos().qos().arp().priority_level();  // uint32
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_cap = (pre_emption_capability)qos_rule.qos()
+                                 .qos()
+                                 .arp()
+                                 .pre_capability();  // enum
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_vul = (pre_emption_vulnerability)qos_rule.qos()
+                                 .qos()
+                                 .arp()
+                                 .pre_vulnerability();  // enum
+    } else {
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .priority_level =
+          req_m5g.subscribed_qos().priority_level();  // uint32
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_cap = (pre_emption_capability)req_m5g.subscribed_qos()
+                                 .preemption_capability();  // enum
+      itti_msg.qos_flow_list.item[i]
+          .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
+          .pre_emption_vul = (pre_emption_vulnerability)req_m5g.subscribed_qos()
+                                 .preemption_vulnerability();  // enum
+    }
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_action =
         (qos_flow_action_t)qos_rule.policy_action();  // enum
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_version =
@@ -218,12 +233,21 @@ Status AmfServiceImpl::SetSmfSessionContext(
       itti_msg.qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
           qos_rule.qos().qos().max_req_bw_ul();
-      itti_msg.qos_flow_list.item[i]
-          .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
-          qos_rule.qos().qos().gbr_dl();
-      itti_msg.qos_flow_list.item[i]
-          .qos_flow_req_item.qos_flow_descriptor.gbr_ul =
-          qos_rule.qos().qos().gbr_ul();
+      if (qos_rule.qos().qos().gbr_dl()) {
+        itti_msg.qos_flow_list.item[i]
+            .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
+            qos_rule.qos().qos().gbr_dl();
+        itti_msg.qos_flow_list.item[i]
+            .qos_flow_req_item.qos_flow_descriptor.gbr_ul =
+            qos_rule.qos().qos().gbr_ul();
+      } else {
+        itti_msg.qos_flow_list.item[i]
+            .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
+            qos_rule.qos().qos().max_req_bw_dl();
+        itti_msg.qos_flow_list.item[i]
+            .qos_flow_req_item.qos_flow_descriptor.gbr_ul =
+            qos_rule.qos().qos().max_req_bw_ul();
+      }
     }
     for (const auto& flow : qos_rule.qos().flow_list()) {
       if (flow.action() == FlowDescription::DENY) {

@@ -40,9 +40,9 @@ paths:
         '200':
           description: Success
           schema:
-            type: array
-            items:
-              - $ref: '#/definitions/call_trace'
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/call_trace'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:

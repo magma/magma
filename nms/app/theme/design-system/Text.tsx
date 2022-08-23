@@ -13,7 +13,7 @@
 
 import * as React from 'react';
 import classNames from 'classnames';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {typography} from '../default';
 
 export const typographyStyles = makeStyles({

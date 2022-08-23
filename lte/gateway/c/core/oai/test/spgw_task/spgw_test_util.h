@@ -17,11 +17,12 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 }
+
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 namespace magma {
 namespace lte {

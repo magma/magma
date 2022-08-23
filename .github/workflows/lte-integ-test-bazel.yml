@@ -13,10 +13,14 @@ on:
     types:
       - completed
 
+env:
+  CACHE_KEY: magma-dev-vm
+  REMOTE_DOWNLOAD_OPTIMIZATION: false
+
 jobs:
   lte-integ-test-bazel:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-10.15
+    runs-on: macos-12
     env:
       SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
     steps:
@@ -27,7 +31,7 @@ jobs:
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
-          key: vagrant-box-magma-dev
+          key: vagrant-box-magma-dev-v1.2.20220801
       - name: Cache magma-test-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
@@ -37,11 +41,7 @@ jobs:
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
-          key: vagrant-box-magma-trfserver
-      - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
-        with:
-          default: 3.8.5
+          key: vagrant-box-magma-trfserver-v20220722
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
@@ -49,7 +49,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest vagrant-disksize
+          vagrant plugin install vagrant-vbguest
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
@@ -65,8 +65,9 @@ jobs:
       - name: Build all services with bazel
         run: |
           cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
           vagrant ssh -c 'sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
-          vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/...)"`;' magma
+          vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;' magma
           vagrant ssh -c 'sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
       - name: Run the integ test
         run: |
@@ -111,12 +112,10 @@ jobs:
           check_run_annotations: all tests
       - name: Notify failure to slack
         if: failure() && github.repository_owner == 'magma'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
-          SLACK_TITLE: "Bazel LTE integ tests"
-          SLACK_USERNAME: "Bazel LTE integ tests"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-          MSG_MINIMAL: actions url,commit
+          SLACK_USERNAME: "LTE integ tests bazel"
+          SLACK_AVATAR: ":boom:"
+        with:
+          args: "Bazel LTE integration test failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"

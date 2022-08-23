@@ -16,6 +16,7 @@ package storage_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/suite"
@@ -24,6 +25,7 @@ import (
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/dp/cloud/go/services/dp/storage/dbtest"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/merrors"
 )
@@ -36,12 +38,15 @@ const (
 	someNetwork           = "some_network"
 	otherNetwork          = "other_network_id"
 	someCbsdId            = 123
+	otherCbsdId           = 456
 	someFccId             = "some_fcc_id"
 	someUserId            = "some_user_id"
 	someSerialNumber      = "some_serial_number"
 	someOtherSerialNumber = "some_other_serial_number"
 	anotherSerialNumber   = "another_serial_number"
 	differentSerialNumber = "different_serial_number"
+	nowTimestamp          = 12345678
+	interval              = time.Hour
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -91,6 +96,7 @@ func (s *CbsdManagerTestSuite) SetupSuite() {
 }
 
 func (s *CbsdManagerTestSuite) TearDownTest() {
+	clock.UnfreezeClock(s.T())
 	err := s.resourceManager.DropResources(
 		&storage.DBCbsd{},
 		&storage.DBGrant{},
@@ -102,7 +108,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithDefaultValues() {
 	err := s.cbsdManager.CreateCbsd(someNetwork, b.GetMutableDBCbsd(
 		b.NewDBCbsdBuilder().Cbsd, registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
+	s.thenCbsdIs(b.NewDBCbsdBuilder().WithIndoorDeployment(false).Cbsd)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithCarrierAggregationFields() {
@@ -112,7 +118,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsdWithCarrierAggregationFields() {
 			WithGrantRedundancy(true).
 			WithMaxIbwMhx(140).Cbsd, registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
+	s.thenCbsdIs(b.NewDBCbsdBuilder().
 		WithIndoorDeployment(false).
 		WithCarrierAggregationEnabled(true).
 		WithGrantRedundancy(true).
@@ -127,45 +133,10 @@ func (s *CbsdManagerTestSuite) TestCreateSingleStepCbsd() {
 			WithIndoorDeployment(true).Cbsd,
 		registered))
 	s.Require().NoError(err)
-	s.verifyCbsdCreation(b.NewDBCbsdBuilder().
+	s.thenCbsdIs(b.NewDBCbsdBuilder().
 		WithSingleStepEnabled(true).
 		WithCbsdCategory("a").
 		WithIndoorDeployment(true).Cbsd)
-}
-
-func (s *CbsdManagerTestSuite) verifyCbsdCreation(expected *storage.DBCbsd) {
-	err := s.resourceManager.InTransaction(func() {
-		actual, err := db.NewQuery().
-			WithBuilder(s.resourceManager.GetBuilder()).
-			From(&storage.DBCbsd{}).
-			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				As("t1").
-				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
-				Select(db.NewIncludeMask("name"))).
-			Join(db.NewQuery().
-				From(&storage.DBCbsdState{}).
-				As("t2").
-				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
-				Select(db.NewIncludeMask("name"))).
-			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
-			Fetch()
-		s.Require().NoError(err)
-
-		cbsd := expected
-		cbsd.NetworkId = db.MakeString(someNetwork)
-		cbsd.GrantAttempts = db.MakeInt(0)
-		cbsd.IsDeleted = db.MakeBool(false)
-		cbsd.ShouldDeregister = db.MakeBool(false)
-		expected := []db.Model{
-			cbsd,
-			&storage.DBCbsdState{Name: db.MakeString(unregistered)},
-			&storage.DBCbsdState{Name: db.MakeString(registered)},
-		}
-		s.Assert().Equal(expected, actual)
-	})
-	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) TestCreateCbsdWithExistingSerialNumber() {
@@ -235,7 +206,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
 			Select(db.NewExcludeMask("id", "state_id",
-				"cbsd_id", "grant_attempts", "is_deleted")).
+				"cbsd_id", "is_deleted")).
 			Where(sq.Eq{"id": someCbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -246,76 +217,263 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 }
 
 func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
-	state := s.enumMaps[storage.CbsdStateTable][registered]
+	now := time.Unix(nowTimestamp, 0)
+	clock.SetAndFreezeClock(s.T(), now)
+	registeredStateId := s.enumMaps[storage.CbsdStateTable][registered]
+	authorizedStateId := s.enumMaps[storage.GrantStateTable][authorized]
+	idleStateId := s.enumMaps[storage.GrantStateTable]["idle"]
 	testCases := []struct {
-		name     string
-		input    *storage.DBCbsd
-		toUpdate *storage.DBCbsd
-		expected *storage.DBCbsd
+		name          string
+		inputCbsd     *storage.DBCbsd
+		inputGrants   []*storage.DBGrant
+		toUpdate      *storage.DBCbsd
+		expected      *storage.DetailedCbsd
+		expectedError string
 	}{{
-		name: "test enodebd update",
-		input: b.NewDBCbsdBuilder().
-			WithId(1).
+		name: "test enodebd update cbsd without a grant",
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(0).
 			WithNetworkId(someNetwork).
+			WithSingleStepEnabled(true).
 			WithSerialNumber(someSerialNumber).
-			WithDesiredStateId(state).
-			WithStateId(state).
+			WithDesiredStateId(registeredStateId).
+			WithStateId(registeredStateId).
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
 			WithSerialNumber(someSerialNumber).
 			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
-		expected: b.NewDBCbsdBuilder().
+		expected: b.NewDetailedDBCbsdBuilder().
+			WithCbsd(
+				b.NewDBCbsdBuilder().
+					WithNetworkId(someNetwork).
+					WithSingleStepEnabled(true).
+					WithSerialNumber(someSerialNumber).
+					WithDesiredStateId(registeredStateId).
+					WithLastSeen(nowTimestamp).
+					WithShouldDeregister(true).
+					WithCbsdCategory("a").
+					WithFullEnodebdAllowedInstallationParam().
+					Cbsd,
+				registered,
+				registered).
+			Details,
+	}, {
+		name: "test enodebd update cbsd with valid authorized grant",
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(3).
 			WithNetworkId(someNetwork).
-			WithSerialNumber(someSerialNumber).
-			WithDesiredStateId(state).
-			WithShouldDeregister(true).
-			WithCbsdCategory("a").
-			WithFullInstallationParam().
+			WithSingleStepEnabled(true).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 3)).
+			WithDesiredStateId(registeredStateId).
+			WithStateId(registeredStateId).
 			Cbsd,
+		inputGrants: []*storage.DBGrant{
+			b.NewDBGrantBuilder().
+				WithId(3).
+				WithCbsdId(3).
+				WithGrantId("some_grant_id").
+				WithFrequency(3600).
+				WithMaxEirp(35).
+				WithStateId(authorizedStateId).
+				WithGrantExpireTime(clock.Now().UTC().Add(time.Hour)).
+				WithTransmitExpireTime(clock.Now().UTC().Add(time.Hour)).
+				Grant,
+		},
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 3)).
+			WithCbsdCategory("a").
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
+			Cbsd,
+		expected: b.NewDetailedDBCbsdBuilder().
+			WithCbsd(
+				b.NewDBCbsdBuilder().
+					WithNetworkId(someNetwork).
+					WithSingleStepEnabled(true).
+					WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 3)).
+					WithShouldDeregister(true).
+					WithDesiredStateId(registeredStateId).
+					WithCbsdCategory("a").
+					WithFullEnodebdAllowedInstallationParam().
+					WithLastSeen(nowTimestamp).
+					Cbsd, registered, registered).
+			WithGrant(authorized, 3600, clock.Now().UTC().Add(time.Hour), clock.Now().UTC().Add(time.Hour)).Details,
+	}, {
+		name: "test enodebd update cbsd having grant with expire times in the past",
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(4).
+			WithNetworkId(someNetwork).
+			WithSingleStepEnabled(true).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 4)).
+			WithDesiredStateId(registeredStateId).
+			WithStateId(registeredStateId).
+			Cbsd,
+		inputGrants: []*storage.DBGrant{
+			b.NewDBGrantBuilder().
+				WithId(4).
+				WithCbsdId(4).
+				WithStateId(authorizedStateId).
+				WithGrantId("some_grant_id").
+				WithFrequency(3610e6).
+				WithMaxEirp(15).
+				WithGrantExpireTime(clock.Now().UTC().Add(-time.Hour)).
+				WithTransmitExpireTime(clock.Now().UTC().Add(-time.Hour)).
+				Grant,
+		},
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 4)).
+			WithCbsdCategory("a").
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
+			Cbsd,
+		expected: &storage.DetailedCbsd{
+			Cbsd: b.NewDBCbsdBuilder().
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 4)).
+				WithDesiredStateId(registeredStateId).
+				WithShouldDeregister(true).
+				WithCbsdCategory("a").
+				WithFullEnodebdAllowedInstallationParam().
+				WithLastSeen(nowTimestamp).
+				Cbsd,
+		},
+	}, {
+		name: "test enodebd update cbsd having grant with grant expire time in the future and transmit expire time in the past",
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(5).
+			WithNetworkId(someNetwork).
+			WithSingleStepEnabled(true).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 5)).
+			WithDesiredStateId(registeredStateId).
+			WithStateId(registeredStateId).
+			Cbsd,
+		inputGrants: []*storage.DBGrant{
+			b.NewDBGrantBuilder().
+				WithId(5).
+				WithCbsdId(5).
+				WithStateId(authorizedStateId).
+				WithGrantId("some_grant_id").
+				WithFrequency(3610e6).
+				WithMaxEirp(15).
+				WithGrantExpireTime(clock.Now().UTC().Add(time.Hour)).
+				WithTransmitExpireTime(clock.Now().UTC().Add(-time.Hour)).
+				Grant,
+		},
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 5)).
+			WithCbsdCategory("a").
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
+			Cbsd,
+		expected: b.NewDetailedDBCbsdBuilder().
+			WithCbsd(
+				b.NewDBCbsdBuilder().
+					WithNetworkId(someNetwork).
+					WithSingleStepEnabled(true).
+					WithDesiredStateId(registeredStateId).
+					WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 5)).
+					WithShouldDeregister(true).
+					WithCbsdCategory("a").
+					WithFullEnodebdAllowedInstallationParam().
+					WithLastSeen(nowTimestamp).
+					Cbsd, registered, registered).Details,
+	}, {
+		name: "test enodebd update cbsd having grant with transmit expire time in the future and grant expire time in the past",
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(6).
+			WithNetworkId(someNetwork).
+			WithSingleStepEnabled(true).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 6)).
+			WithDesiredStateId(registeredStateId).
+			WithStateId(registeredStateId).
+			Cbsd,
+		inputGrants: []*storage.DBGrant{
+			b.NewDBGrantBuilder().
+				WithId(6).
+				WithCbsdId(6).
+				WithStateId(authorizedStateId).
+				WithGrantId("some_grant_id").
+				WithFrequency(3610e6).
+				WithMaxEirp(15).
+				WithGrantExpireTime(clock.Now().UTC().Add(-time.Hour)).
+				WithTransmitExpireTime(clock.Now().UTC().Add(time.Hour)).
+				Grant,
+		},
+		toUpdate: b.NewDBCbsdBuilder().
+			Empty().
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 6)).
+			WithCbsdCategory("a").
+			WithFullEnodebdAllowedInstallationParam().
+			WithLastSeen(nowTimestamp).
+			Cbsd,
+		expected: b.NewDetailedDBCbsdBuilder().WithCbsd(
+			b.NewDBCbsdBuilder().
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 6)).
+				WithDesiredStateId(registeredStateId).
+				WithShouldDeregister(true).
+				WithCbsdCategory("a").
+				WithFullEnodebdAllowedInstallationParam().
+				WithLastSeen(nowTimestamp).
+				Cbsd, registered, registered).Details,
 	}, {
 		name: "test enodebd should not update if coordinates change is less than 10 m",
-		input: b.NewDBCbsdBuilder().
-			WithId(2).
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(7).
 			WithNetworkId(someNetwork).
-			WithSerialNumber(someOtherSerialNumber).
-			WithDesiredStateId(state).
+			WithSingleStepEnabled(true).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 7)).
+			WithDesiredStateId(registeredStateId).
 			WithIndoorDeployment(true).
 			WithLatitude(10).
 			WithLongitude(100).
-			WithStateId(state).
+			WithStateId(registeredStateId).
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
-			WithSerialNumber(someOtherSerialNumber).
 			WithCbsdCategory("a").
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 7)).
 			WithIndoorDeployment(true).
 			WithLatitude(10.00001).
 			WithLongitude(100.00001).
+			WithLastSeen(nowTimestamp).
 			Cbsd,
-		expected: b.NewDBCbsdBuilder().
-			WithNetworkId(someNetwork).
-			WithSerialNumber(someOtherSerialNumber).
-			WithDesiredStateId(state).
-			WithIndoorDeployment(true).
-			WithShouldDeregister(false).
-			WithLatitude(10).
-			WithLongitude(100).
-			Cbsd,
+		expected: b.NewDetailedDBCbsdBuilder().WithCbsd(
+			b.NewDBCbsdBuilder().
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 7)).
+				WithDesiredStateId(registeredStateId).
+				WithIndoorDeployment(true).
+				WithShouldDeregister(false).
+				WithLatitude(10).
+				WithLongitude(100).
+				WithLastSeen(nowTimestamp).
+				Cbsd,
+			registered,
+			registered).Details,
 	}, {
 		name: "test enodebd only updates allowed fields",
-		input: b.NewDBCbsdBuilder().
-			WithId(3).
+		inputCbsd: b.NewDBCbsdBuilder().
+			WithId(8).
 			WithNetworkId(someNetwork).
-			WithSerialNumber(anotherSerialNumber).
-			WithDesiredStateId(state).
-			WithStateId(state).
+			WithSingleStepEnabled(true).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 8)).
+			WithDesiredStateId(registeredStateId).
+			WithStateId(registeredStateId).
 			Cbsd,
 		toUpdate: b.NewDBCbsdBuilder().
 			Empty().
-			WithSerialNumber(anotherSerialNumber).
+			WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 8)).
 			WithFccId(someFccId).
 			WithUserId(someUserId).
 			WithDesiredStateId(s.enumMaps[storage.CbsdStateTable][registered]).
@@ -323,61 +481,151 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			WithSingleStepEnabled(false).
 			WithCbsdCategory("a").
 			WithFullInstallationParam().
+			WithLastSeen(nowTimestamp).
 			Cbsd,
-		expected: b.NewDBCbsdBuilder().
-			WithNetworkId(someNetwork).
-			WithSerialNumber(anotherSerialNumber).
-			WithDesiredStateId(state).
-			WithFullInstallationParam().
-			WithCbsdCategory("a").
-			WithShouldDeregister(true).
-			Cbsd,
-	}, {
-		name: "test enodebd nulls out unfilled installation params",
-		input: b.NewDBCbsdBuilder().
-			WithId(4).
-			WithNetworkId(someNetwork).
-			WithSerialNumber(differentSerialNumber).
-			WithFullInstallationParam().
-			WithDesiredStateId(state).
-			WithStateId(state).
-			Cbsd,
-		toUpdate: b.NewDBCbsdBuilder().
-			Empty().
-			WithNetworkId(someNetwork).
-			WithSerialNumber(differentSerialNumber).
-			WithCbsdCategory("a").
-			WithIncompleteInstallationParam().
-			Cbsd,
-		expected: b.NewDBCbsdBuilder().
-			WithNetworkId(someNetwork).
-			WithSerialNumber(differentSerialNumber).
-			WithCbsdCategory("a").
-			WithDesiredStateId(state).
-			WithShouldDeregister(true).
-			WithIncompleteInstallationParam().
-			Cbsd,
-	}}
+		expected: b.NewDetailedDBCbsdBuilder().
+			WithCbsd(b.NewDBCbsdBuilder().
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 8)).
+				WithDesiredStateId(registeredStateId).
+				WithFullEnodebdAllowedInstallationParam().
+				WithCbsdCategory("a").
+				WithLastSeen(nowTimestamp).
+				WithShouldDeregister(true).
+				Cbsd,
+				registered,
+				registered).
+			Details,
+	},
+		{
+			name: "test enodebd nulls out unfilled installation params",
+			inputCbsd: b.NewDBCbsdBuilder().
+				WithId(9).
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 9)).
+				WithFullEnodebdAllowedInstallationParam().
+				WithDesiredStateId(registeredStateId).
+				WithStateId(registeredStateId).
+				Cbsd,
+			toUpdate: b.NewDBCbsdBuilder().
+				Empty().
+				WithNetworkId(someNetwork).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 9)).
+				WithCbsdCategory("a").
+				WithIncompleteInstallationParam().
+				WithLastSeen(nowTimestamp).
+				Cbsd,
+			expected: b.NewDetailedDBCbsdBuilder().
+				WithCbsd(
+					b.NewDBCbsdBuilder().
+						WithNetworkId(someNetwork).
+						WithSingleStepEnabled(true).
+						WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 9)).
+						WithCbsdCategory("a").
+						WithDesiredStateId(registeredStateId).
+						WithLastSeen(nowTimestamp).
+						WithShouldDeregister(true).
+						WithIncompleteInstallationParam().
+						Cbsd, registered, registered).
+				Details,
+		},
+		{
+			name: "test enodebd update non-existent cbsd",
+			inputCbsd: b.NewDBCbsdBuilder().
+				WithId(10).
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 10)).
+				WithFullEnodebdAllowedInstallationParam().
+				WithDesiredStateId(registeredStateId).
+				WithStateId(registeredStateId).
+				Cbsd,
+			toUpdate: b.NewDBCbsdBuilder().
+				Empty().
+				WithNetworkId(someNetwork).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 101010101010)).
+				WithCbsdCategory("a").
+				WithFullEnodebdAllowedInstallationParam().
+				WithLastSeen(nowTimestamp).
+				Cbsd,
+			expectedError: "Not found",
+		},
+		{
+			name: "test enodebd update cbsd with idle grant",
+			inputCbsd: b.NewDBCbsdBuilder().
+				WithId(11).
+				WithNetworkId(someNetwork).
+				WithSingleStepEnabled(true).
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 11)).
+				WithDesiredStateId(registeredStateId).
+				WithStateId(registeredStateId).
+				Cbsd,
+			inputGrants: []*storage.DBGrant{b.NewDBGrantBuilder().
+				WithId(11).
+				WithCbsdId(11).
+				WithGrantId("some_grant_id").
+				WithFrequency(3610e6).
+				WithMaxEirp(15).
+				WithStateId(idleStateId).
+				WithGrantExpireTime(clock.Now().UTC().Add(time.Hour)).
+				WithTransmitExpireTime(clock.Now().UTC().Add(time.Hour)).
+				Grant,
+			},
+			toUpdate: b.NewDBCbsdBuilder().
+				Empty().
+				WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 11)).
+				WithCbsdCategory("a").
+				WithFullEnodebdAllowedInstallationParam().
+				WithLastSeen(nowTimestamp).
+				Cbsd,
+			expected: b.NewDetailedDBCbsdBuilder().
+				WithCbsd(b.NewDBCbsdBuilder().
+					WithNetworkId(someNetwork).
+					WithSingleStepEnabled(true).
+					WithSerialNumber(fmt.Sprintf(someSerialNumber+"%d", 11)).
+					WithDesiredStateId(registeredStateId).
+					WithShouldDeregister(true).
+					WithCbsdCategory("a").
+					WithFullEnodebdAllowedInstallationParam().
+					WithLastSeen(nowTimestamp).
+					Cbsd, registered, registered).
+				Details,
+		},
+	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.givenResourcesInserted(tc.input)
+			s.givenResourcesInserted(tc.inputCbsd)
+			if tc.inputGrants != nil {
+				for _, g := range tc.inputGrants {
+					s.givenResourcesInserted(g)
+				}
+			}
 
-			cbsd, err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
-			s.Require().NoError(err)
-			s.Assert().Equal(tc.input.CbsdSerialNumber, cbsd.CbsdSerialNumber)
-			s.Assert().Equal(tc.input.NetworkId, cbsd.NetworkId)
+			result, err := s.cbsdManager.EnodebdUpdateCbsd(tc.toUpdate)
+			if tc.expectedError != "" {
+				s.Assert().Errorf(err, tc.expectedError)
+				return
+			} else {
+				s.Require().NoError(err)
+			}
+
+			s.Assert().Equal(tc.inputCbsd.CbsdSerialNumber, result.Cbsd.CbsdSerialNumber)
+			s.Assert().Equal(tc.inputCbsd.NetworkId, result.Cbsd.NetworkId)
+			s.Assert().Equal(tc.expected.Grants, result.Grants)
 
 			err = s.resourceManager.InTransaction(func() {
 				actual, err := db.NewQuery().
 					WithBuilder(s.resourceManager.GetBuilder()).
 					From(&storage.DBCbsd{}).
 					Select(db.NewExcludeMask("id", "state_id",
-						"cbsd_id", "grant_attempts", "is_deleted")).
-					Where(sq.Eq{"cbsd_serial_number": tc.input.CbsdSerialNumber}).
+						"cbsd_id", "is_deleted")).
+					Where(sq.Eq{"cbsd_serial_number": tc.inputCbsd.CbsdSerialNumber}).
 					Fetch()
 				s.Require().NoError(err)
-				expected := []db.Model{tc.expected}
-				s.Assert().Equal(expected, actual)
+
+				s.Assert().Equal(tc.expected.Cbsd, actual[0].(*storage.DBCbsd))
 			})
 			s.Require().NoError(err)
 		})
@@ -472,50 +720,14 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
-	expected := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
-			WithIndoorDeployment(false).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithEmptyGrant().
-		WithEmptyGrantState().
-		WithCbsdState(registered).
-		WithDesiredState(registered).
-		Details
-
-	s.Assert().Equal(expected, actual)
-}
-
-func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
-	state := s.enumMaps[storage.CbsdStateTable][registered]
-	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
-
-	s.givenResourcesInserted(
-		b.NewDBCbsdBuilder().
-			WithNetworkId(someNetwork).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr).
-			WithStateId(state).
-			WithDesiredStateId(state).
-			Cbsd,
-		b.NewDBGrantBuilder().
-			WithStateId(grantState).
-			WithCbsdId(someCbsdId).
-			Grant,
-	)
-
-	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
-	s.Require().NoError(err)
-
-	expected := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
-			WithIndoorDeployment(false).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithCbsdState(registered).
-		WithDesiredState(registered).
-		WithEmptyGrant().
-		WithEmptyGrantState().
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(
+			b.NewDBCbsdBuilder().
+				WithNetworkId(someNetwork).
+				WithIndoorDeployment(false).
+				WithId(someCbsdId).
+				WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
 		Details
 
 	s.Assert().Equal(expected, actual)
@@ -533,23 +745,65 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 			WithDesiredStateId(state).
 			Cbsd,
 		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
 			WithStateId(grantState).
 			WithCbsdId(someCbsdId).
+			WithFrequency(3600).
 			Grant,
 	)
 
 	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
 	s.Require().NoError(err)
 
-	expected := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(b.NewDBCbsdBuilder().
 			WithIndoorDeployment(false).
+			WithNetworkId(someNetwork).
 			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithCbsdState(registered).
-		WithDesiredState(registered).
-		WithGrant().
-		WithGrantState(authorized).
+			WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
+		WithGrant(authorized, 3600, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+		Details
+	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestFetchCbsdWithMultipleGrants() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	grantState := s.enumMaps[storage.GrantStateTable][authorized]
+	s.givenResourcesInserted(
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			Cbsd,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			WithFrequency(3600).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			WithFrequency(3650).
+			Grant,
+	)
+
+	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
+	s.Require().NoError(err)
+
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
+			WithNetworkId(someNetwork).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).Cbsd,
+			registered, registered).
+		WithGrant(authorized, 3600, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+		WithGrant(authorized, 3650, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
 		Details
 	s.Assert().Equal(expected, actual)
 }
@@ -605,15 +859,14 @@ func (s *CbsdManagerTestSuite) TestListWithPagination() {
 	}
 
 	for i := range expected.Cbsds {
-		cbsdBuilder := b.NewDBCbsdBuilder().
+		cbsd := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1 + offset)).
 			WithIndoorDeployment(false).
-			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1+offset))
-		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
-			WithCbsdState(unregistered).
-			WithDesiredState(unregistered).
-			WithEmptyGrant().
-			WithEmptyGrantState().
+			WithNetworkId(someNetwork).
+			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1+offset)).
+			Cbsd
+		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder().
+			WithCbsd(cbsd, unregistered, unregistered).
 			Details
 	}
 	s.Assert().Equal(expected, actual)
@@ -645,23 +898,22 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 		Cbsds: make([]*storage.DetailedCbsd, 1),
 	}
 	for i := range expected.Cbsds {
-		cbsdBuilder := b.NewDBCbsdBuilder().
+		cbsd := b.NewDBCbsdBuilder().
 			WithId(int64(i + 1)).
 			WithIndoorDeployment(false).
-			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1))
-		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder(cbsdBuilder).
-			WithCbsdState(unregistered).
-			WithDesiredState(unregistered).
-			WithEmptyGrant().
-			WithEmptyGrantState().
+			WithNetworkId(someNetwork).
+			WithSerialNumber(fmt.Sprintf("some_serial_number%d", i+1)).
+			Cbsd
+		expected.Cbsds[i] = b.NewDetailedDBCbsdBuilder().
+			WithCbsd(cbsd, unregistered, unregistered).
 			Details
 	}
 	s.Assert().Equal(expected, actual)
 }
 
-func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
+func (s *CbsdManagerTestSuite) TestListWithMultipleGrants() {
 	state := s.enumMaps[storage.CbsdStateTable][registered]
-	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
+	grantState := s.enumMaps[storage.GrantStateTable][authorized]
 	s.givenResourcesInserted(
 		b.NewDBCbsdBuilder().
 			WithNetworkId(someNetwork).
@@ -670,32 +922,75 @@ func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
 			WithStateId(state).
 			WithDesiredStateId(state).
 			Cbsd,
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(otherCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			WithSerialNumber(anotherSerialNumber).
+			Cbsd,
 		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
 			WithId(1).
 			WithStateId(grantState).
 			WithCbsdId(someCbsdId).
+			WithFrequency(3530).
 			Grant,
 		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
 			WithId(2).
 			WithStateId(grantState).
+			WithCbsdId(otherCbsdId).
+			WithFrequency(3570).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithId(3).
+			WithStateId(grantState).
+			WithCbsdId(otherCbsdId).
+			WithFrequency(3610).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithId(4).
+			WithStateId(grantState).
 			WithCbsdId(someCbsdId).
+			WithFrequency(3650).
 			Grant,
 	)
 
 	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
 	s.Require().NoError(err)
 
-	builder := b.NewDetailedDBCbsdBuilder(
-		b.NewDBCbsdBuilder().
-			WithIndoorDeployment(false).
-			WithId(someCbsdId).
-			WithCbsdId(someCbsdIdStr)).
-		WithEmptyGrant().
-		WithEmptyGrantState().
-		WithCbsdState(registered).
-		WithDesiredState(registered)
-
-	expected := b.GetDetailedDBCbsdList(builder)
+	expected := &storage.DetailedCbsdList{
+		Cbsds: []*storage.DetailedCbsd{
+			b.NewDetailedDBCbsdBuilder().
+				WithCbsd(b.NewDBCbsdBuilder().
+					WithIndoorDeployment(false).
+					WithId(someCbsdId).
+					WithCbsdId(someCbsdIdStr).
+					WithNetworkId(someNetwork).
+					Cbsd,
+					registered, registered).
+				WithGrant(authorized, 3530, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+				WithGrant(authorized, 3650, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+				Details,
+			b.NewDetailedDBCbsdBuilder().
+				WithCbsd(b.NewDBCbsdBuilder().
+					WithIndoorDeployment(false).
+					WithId(otherCbsdId).
+					WithCbsdId(someCbsdIdStr).
+					WithNetworkId(someNetwork).
+					WithSerialNumber(anotherSerialNumber).
+					Cbsd,
+					registered, registered).
+				WithGrant(authorized, 3570, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+				WithGrant(authorized, 3610, time.Unix(123, 0).UTC(), time.Unix(456, 0).UTC()).
+				Details,
+		},
+		Count: 2,
+	}
 
 	s.Assert().Equal(expected, actual)
 }
@@ -743,6 +1038,41 @@ func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
 func (s *CbsdManagerTestSuite) TestDeregisterNonExistentCbsd() {
 	err := s.cbsdManager.DeregisterCbsd(someNetwork, 0)
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
+// TODO this modifies expected - needs fix!!!
+func (s *CbsdManagerTestSuite) thenCbsdIs(expected *storage.DBCbsd) {
+	err := s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&storage.DBCbsd{}).
+			Select(db.NewExcludeMask("id", "state_id", "desired_state_id")).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t1").
+				On(db.On(storage.CbsdTable, "state_id", "t1", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Join(db.NewQuery().
+				From(&storage.DBCbsdState{}).
+				As("t2").
+				On(db.On(storage.CbsdTable, "desired_state_id", "t2", "id")).
+				Select(db.NewIncludeMask("name"))).
+			Where(sq.Eq{"cbsd_serial_number": "some_serial_number"}).
+			Fetch()
+		s.Require().NoError(err)
+
+		cbsd := expected
+		cbsd.NetworkId = db.MakeString(someNetwork)
+		cbsd.IsDeleted = db.MakeBool(false)
+		cbsd.ShouldDeregister = db.MakeBool(false)
+		expected := []db.Model{
+			cbsd,
+			&storage.DBCbsdState{Name: db.MakeString(unregistered)},
+			&storage.DBCbsdState{Name: db.MakeString(registered)},
+		}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
 }
 
 func (s *CbsdManagerTestSuite) givenResourcesInserted(models ...db.Model) {

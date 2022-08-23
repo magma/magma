@@ -17,6 +17,12 @@
     - CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
+- name: Set hostname
+  become: yes
+  ansible.builtin.hostname:
+    name: magma-test
+  when: full_provision
+
 - name: Set up S1AP tester build directory
   file: path={{ s1ap_tester_root }}/bin state=directory recurse=yes
   when: full_provision

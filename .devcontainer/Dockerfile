@@ -3,6 +3,7 @@
 ################################################################
 FROM ghcr.io/magma/magma/bazel-base:latest as devcontainer
 
+ARG HOME=/home/vscode
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
 # [Option] Upgrade OS packages to their latest versions
@@ -36,7 +37,6 @@ ARG PYTHON_VERSION=3.8
 ENV MAGMA_ROOT=/workspaces/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/workspaces/magma/build/c
-
 
 RUN echo "Install general purpose packages" && \
     apt-get update && \
@@ -82,7 +82,7 @@ RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && rm ${GO_TARBALL}
-ENV PATH=$PATH:/usr/local/go/bin
+ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/go/bin
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -207,17 +207,12 @@ RUN ldconfig -v
 ##### Install Python requirements
 
 ### create virtualenv
-ARG PYTHON_VENV=/home/vscode/build/python
+ARG PYTHON_VENV=${HOME}/build/python
 ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
 # PYTHON_VENV must by in sync with "python.defaultInterpreterPath", "python.analysis.extraPaths" and magtivate path in "postCreateCommand" in .devcontainer/devcontainer.json
 
 RUN virtualenv --system-site-packages --python=/usr/bin/python${PYTHON_VERSION} ${PYTHON_VENV}
 RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
-
-# add patch that is missing in jfrog version of aioeventlet (it only comes with 1 of 2 patches)
-COPY lte/gateway/deploy/roles/magma/files/patches/aioeventlet_fd_exception.patch /tmp/
-RUN (patch -N -s -f /usr/local/lib/python${PYTHON_VERSION}/dist-packages/aioeventlet.py < /tmp/aioeventlet_fd_exception.patch) || ( true && echo "skipping aioeventlet patch since it was already applied") && \
-    rm -rf /tmp/*
 
 ### install eggs (lte, orc8r)
 COPY /lte/gateway/python/ ${MAGMA_ROOT}/lte/gateway/python/

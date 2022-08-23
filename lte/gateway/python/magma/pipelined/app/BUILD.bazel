@@ -111,11 +111,6 @@ py_library(
 )
 
 py_library(
-    name = "xwf_passthru",
-    srcs = ["xwf_passthru.py"],
-)
-
-py_library(
     name = "ng_services",
     srcs = ["ng_services.py"],
     deps = ["//lte/gateway/python/magma/pipelined/ng_manager:node_state_manager"],

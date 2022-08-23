@@ -10,7 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 */}}
+{{- if .Values.dp.enabled -}}
 {{- include "orc8rlib.deployment" (list . "domain-proxy.deployment") -}}
+{{- end -}}
 {{- define "domain-proxy.deployment" -}}
 metadata:
   name: orc8r-domain-proxy
@@ -29,6 +31,13 @@ spec:
         - name: config-volume
           configMap:
             name: orc8r-domain-proxy
+        {{- if .Values.secret.configs }}
+        {{- range $module, $secretName := .Values.secret.configs }}
+        - name: {{ $secretName }}-{{ $module }}
+          secret:
+            secretName: {{ $secretName }}
+        {{- end }}
+        {{- end }}
       containers:
       -
 {{ include "orc8rlib.container" (list . "domain-proxy.container")}}
@@ -58,4 +67,11 @@ volumeMounts:
   - name: config-volume
     mountPath: /etc/magma/configs/dp/dp.yml
     subPath: dp.yml
+  {{- if .Values.secret.configs }}
+  {{- range $module, $secretName := .Values.secret.configs }}
+  - name: {{ $secretName }}-{{ $module }}
+    mountPath: {{ print "/var/opt/magma/configs/" $module }}
+    readOnly: true
+  {{- end }}
+  {{- end }}
 {{- end -}}

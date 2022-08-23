@@ -119,29 +119,13 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         # Receive NW initiated detach request
         response = self._s1ap_wrapper.s1_util.get_response()
 
-        while response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND:
+        while response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value:
             print(
                 "Received Attach Accept retransmission from before restart",
                 "Ignoring...",
             )
             response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
-        )
-        nw_init_detach_req = response.cast(s1ap_types.ueNwInitdetachReq_t)
-        print(
-            "**************** Received NW initiated Detach Req with detach "
-            "type set to ",
-            nw_init_detach_req.Type,
-        )
-        self.assertEqual(
-            nw_init_detach_req.Type,
-            s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value,
-        )
-        # Receive NW initiated detach request
-        response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type,
             s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
@@ -168,6 +152,28 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
 
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
+
+        # Ignore retransmitted NW Initiated Detach Request messages.
+        # This test waits for a couple of seconds after the MME restart, but most
+        # of the time MME comes up early after the restart and retransmits multiple
+        # NW Initiated Detach Request messages on T3422 Timer expiry.
+        while (
+            response.msg_type
+            == s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value
+        ):
+            nw_init_detach_req = response.cast(s1ap_types.ueNwInitdetachReq_t)
+            print(
+                "**************** Received retransmitted NW Initiated Detach "
+                "Req with detach type set to",
+                nw_init_detach_req.Type,
+                "Ignoring...",
+            )
+            self.assertEqual(
+                nw_init_detach_req.Type,
+                s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value,
+            )
+            response = self._s1ap_wrapper.s1_util.get_response()
+
         self.assertEqual(
             response.msg_type,
             s1ap_types.tfwCmd.UE_CTX_REL_IND.value,

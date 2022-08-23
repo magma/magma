@@ -50,7 +50,6 @@ py_library(
 
 py_library(
     name = "subscriber",
-    testonly = True,
     srcs = ["subscriber.py"],
     deps = [
         "//lte/gateway/python/magma/subscriberdb:sid",

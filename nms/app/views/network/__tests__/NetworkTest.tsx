@@ -18,7 +18,6 @@ import FEGNetworkDashboard from '../FEGNetworkDashboard';
 import GatewayContext, {
   GatewayContextType,
 } from '../../../context/GatewayContext';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
 import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
@@ -30,7 +29,7 @@ import defaultTheme from '../../../theme/default';
 import {LteNetworkContextProvider} from '../../../context/LteNetworkContext';
 
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../../subscriber/SubscriberUtils';
 
@@ -323,34 +322,36 @@ describe('<NetworkDashboard />', () => {
 
     return (
       <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <NetworkContext.Provider
-              value={{
-                networkId: testNetwork.id,
-                networkType: LTE,
-              }}>
-              <LteNetworkContextProvider networkId={testNetwork.id}>
-                <PolicyContext.Provider value={policyCtx}>
-                  <ApnContext.Provider value={apnCtx}>
-                    <GatewayContext.Provider value={gatewayCtx}>
-                      <EnodebContext.Provider value={enodebCtx}>
-                        <SubscriberContext.Provider value={subscriberCtx}>
-                          <Routes>
-                            <Route
-                              path="/nms/:networkId/network/*"
-                              element={<NetworkDashboard />}
-                            />
-                          </Routes>
-                        </SubscriberContext.Provider>
-                      </EnodebContext.Provider>
-                    </GatewayContext.Provider>
-                  </ApnContext.Provider>
-                </PolicyContext.Provider>
-              </LteNetworkContextProvider>
-            </NetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <NetworkContext.Provider
+                value={{
+                  networkId: testNetwork.id,
+                  networkType: LTE,
+                }}>
+                <LteNetworkContextProvider networkId={testNetwork.id}>
+                  <PolicyContext.Provider value={policyCtx}>
+                    <ApnContext.Provider value={apnCtx}>
+                      <GatewayContext.Provider value={gatewayCtx}>
+                        <EnodebContext.Provider value={enodebCtx}>
+                          <SubscriberContext.Provider value={subscriberCtx}>
+                            <Routes>
+                              <Route
+                                path="/nms/:networkId/network/*"
+                                element={<NetworkDashboard />}
+                              />
+                            </Routes>
+                          </SubscriberContext.Provider>
+                        </EnodebContext.Provider>
+                      </GatewayContext.Provider>
+                    </ApnContext.Provider>
+                  </PolicyContext.Provider>
+                </LteNetworkContextProvider>
+              </NetworkContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };
@@ -750,18 +751,20 @@ describe('<FEGNetworkDashboard />', () => {
       <MemoryRouter
         initialEntries={['/nms/test_network/network']}
         initialIndex={0}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <FEGNetworkContext.Provider value={networkCtx}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId/network/*"
-                  element={<FEGNetworkDashboard />}
-                />
-              </Routes>
-            </FEGNetworkContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={defaultTheme}>
+            <ThemeProvider theme={defaultTheme}>
+              <FEGNetworkContext.Provider value={networkCtx}>
+                <Routes>
+                  <Route
+                    path="/nms/:networkId/network/*"
+                    element={<FEGNetworkDashboard />}
+                  />
+                </Routes>
+              </FEGNetworkContext.Provider>
+            </ThemeProvider>
+          </ThemeProvider>
+        </StyledEngineProvider>
       </MemoryRouter>
     );
   };

@@ -14,6 +14,8 @@ limitations under the License.
 package models
 
 import (
+	"time"
+
 	"github.com/go-openapi/strfmt"
 
 	"magma/dp/cloud/go/protos"
@@ -63,7 +65,7 @@ func CbsdFromBackend(details *protos.CbsdDetails) *Cbsd {
 		CbsdID:                    details.CbsdId,
 		DesiredState:              details.Data.DesiredState,
 		FccID:                     details.Data.FccId,
-		Grant:                     getGrant(details.Grant),
+		Grants:                    getGrants(details.Grants),
 		ID:                        details.Id,
 		IsActive:                  details.IsActive,
 		SerialNumber:              details.Data.SerialNumber,
@@ -82,18 +84,19 @@ func makeSliceNotNil(s []int64) []int64 {
 	return s
 }
 
-func getGrant(grant *protos.GrantDetails) *Grant {
-	if grant == nil {
-		return nil
+func getGrants(grants []*protos.GrantDetails) []*Grant {
+	res := make([]*Grant, len(grants))
+	for i, g := range grants {
+		res[i] = &Grant{
+			BandwidthMhz:       g.BandwidthMhz,
+			FrequencyMhz:       g.FrequencyMhz,
+			GrantExpireTime:    to_pointer.TimeToDateTime(g.GrantExpireTimestamp),
+			MaxEirp:            g.MaxEirp,
+			State:              g.State,
+			TransmitExpireTime: to_pointer.TimeToDateTime(g.TransmitExpireTimestamp),
+		}
 	}
-	return &Grant{
-		BandwidthMhz:       grant.BandwidthMhz,
-		FrequencyMhz:       grant.FrequencyMhz,
-		GrantExpireTime:    to_pointer.TimeToDateTime(grant.GrantExpireTimestamp),
-		MaxEirp:            grant.MaxEirp,
-		State:              grant.State,
-		TransmitExpireTime: to_pointer.TimeToDateTime(grant.TransmitExpireTimestamp),
-	}
+	return res
 }
 
 func getModelInstallationParam(params *protos.InstallationParam) InstallationParam {
@@ -108,13 +111,13 @@ func getModelInstallationParam(params *protos.InstallationParam) InstallationPar
 }
 
 type LogInterface struct {
-	Body         string          `json:"log_message"`
-	FccID        string          `json:"fcc_id"`
-	From         string          `json:"log_from"`
-	SerialNumber string          `json:"cbsd_serial_number"`
-	Time         strfmt.DateTime `json:"@timestamp"`
-	To           string          `json:"log_to"`
-	Type         string          `json:"log_name"`
+	Body         string `json:"log_message"`
+	FccID        string `json:"fcc_id"`
+	From         string `json:"log_from"`
+	SerialNumber string `json:"cbsd_serial_number"`
+	Time         int64  `json:"event_timestamp"`
+	To           string `json:"log_to"`
+	Type         string `json:"log_name"`
 }
 
 func LogInterfaceToLog(i *LogInterface) *Log {
@@ -123,7 +126,7 @@ func LogInterfaceToLog(i *LogInterface) *Log {
 		FccID:        i.FccID,
 		From:         i.From,
 		SerialNumber: i.SerialNumber,
-		Time:         i.Time,
+		Time:         strfmt.DateTime(time.Unix(i.Time, 0).UTC()),
 		To:           i.To,
 		Type:         i.Type,
 	}

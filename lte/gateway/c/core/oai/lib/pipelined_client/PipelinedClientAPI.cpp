@@ -22,7 +22,7 @@
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.hpp"
 

@@ -11,23 +11,23 @@
  * limitations under the License.
  */
 
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import Text from '../../theme/design-system/Text';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import {
   ACTION,
   DIRECTION,
@@ -40,7 +40,7 @@ import {
   FlowMatchDirectionEnum,
   FlowMatchIpProtoEnum,
 } from '../../../generated';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {policyStyles} from './PolicyStyles';
 import {useState} from 'react';
 import type {FlowDescription, PolicyRule} from '../../../generated';
@@ -92,7 +92,8 @@ function PolicyFlowFields2(props: FieldProps) {
             <Grid item>
               <IconButton
                 className={classes.removeIcon}
-                onClick={() => props.handleDelete(props.index)}>
+                onClick={() => props.handleDelete(props.index)}
+                size="large">
                 <DeleteOutline />
               </IconButton>
             </Grid>
@@ -371,7 +372,10 @@ export default function PolicyFlowsEdit(props: Props) {
         </ListItem>
       ))}
       Add New Flow
-      <IconButton data-testid="addFlowButton" onClick={handleAddFlow}>
+      <IconButton
+        data-testid="addFlowButton"
+        onClick={handleAddFlow}
+        size="large">
         <AddCircleOutline />
       </IconButton>
     </div>

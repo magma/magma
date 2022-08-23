@@ -13,24 +13,23 @@
 
 import * as React from 'react';
 import Alarms from '../Alarms';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '../../../../theme/default';
 
 import useMagmaAPI from '../../../../api/useMagmaAPI';
 import {MemoryRouter} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {render} from '@testing-library/react';
 
 jest.mock('../../../../api/useMagmaAPI');
 
 const Wrapper = (props: {route: string; children: React.ReactNode}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
         <SnackbarProvider>{props.children}</SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   </MemoryRouter>
 );
 

@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-sas-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-sas
+      type: tests
+  template:
+    metadata:
+      labels:
+        app: fake-sas
+        type: tests
+    spec:
+      containers:
+        - name: fake-sas
+          imagePullPolicy: IfNotPresent
+          image: fake_sas
+          command: ["sh", "-c", "--"]
+          args: ["while true; do sleep infinity; done"]
+          volumeMounts:
+            - name: certificates
+              mountPath: /opt/server/certs
+              readOnly: true
+            - name: sas-config
+              mountPath: /opt/server/sas.cfg
+              subPath: sas.cfg
+      volumes:
+        - name: certificates
+          secret:
+            secretName: certificates
+        - name: sas-config
+          configMap:
+            name: harness-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-sas-service
+spec:
+  type: NodePort
+  ports:
+    - name: https
+      port: 443
+      targetPort: 9000
+      nodePort: 30443
+  selector:
+    app: fake-sas

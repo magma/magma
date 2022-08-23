@@ -270,6 +270,14 @@ dnspython==1.16.0 \
     --hash=sha256:36c5e8e38d4369a08b6780b7f27d790a292b2b08eea01607865bf0936c558e01 \
     --hash=sha256:f69c21288a962f4da86e56c4905b49d11aba7938d3d740e80d9e366ee4f1632d
     # via eventlet
+docker==5.0.3 \
+    --hash=sha256:7a79bb439e3df59d0a72621775d600bc8bc8b422d285824cb37103eab91d1ce0 \
+    --hash=sha256:d916a26b62970e7c2f554110ed6af04c7ccff8e9f81ad17d0d40c75637e227fb
+    # via -r requirements.in
+envoy==0.0.3 \
+    --hash=sha256:22b02009cfda2cf2cdb94a75a15ac3fd910aea8685c53e8e03715c7e9d8e8bde \
+    --hash=sha256:789d274f8bc00401848678c0ee18199c1a57901749ed6b1a03a3ea53ec72ceef
+    # via -r requirements.in
 eventlet==0.30.2 \
     --hash=sha256:1811b122d9a45eb5bafba092d36911bca825f835cb648a862bbf984030acff9d \
     --hash=sha256:89cc6dbfef47c4629cefead5fde21c5f2b33464d57f7df5fc5148f8b4de3fbb5
@@ -277,6 +285,13 @@ eventlet==0.30.2 \
 fakeredis==1.7.1 \
     --hash=sha256:7c2c4ba1b42e0a75337c54b777bf0671056b4569650e3ff927e4b9b385afc8ec \
     --hash=sha256:be3668e50f6b57d5fc4abfd27f9f655bed07a2c5aecfc8b15d0aad59f997c1ba
+    # via -r requirements.in
+fire==0.4.0 \
+    --hash=sha256:c5e2b8763699d1142393a46d0e3e790c5eb2f0706082df8f647878842c216a62
+    # via -r requirements.in
+flaky==3.7.0 \
+    --hash=sha256:3ad100780721a1911f57a165809b7ea265a7863305acb66708220820caf8aa0d \
+    --hash=sha256:d6eda73cab5ae7364504b7c44670f70abed9e75f77dd116352f662817592ec9c
     # via -r requirements.in
 flask==2.0.3 \
     --hash=sha256:59da8a3170004800a2837844bfa84d49b022550616070f7cb1a659682b2e7c9f \
@@ -570,6 +585,9 @@ iniconfig==1.1.1 \
     --hash=sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3 \
     --hash=sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32
     # via pytest
+iperf3==0.1.11 \
+    --hash=sha256:d50eebbf2dcf445a173f98a82f9c433e0302d3dfb7987e1f21b86b35ef63ce26
+    # via -r requirements.in
 itsdangerous==2.1.0 \
     --hash=sha256:29285842166554469a56d427addc0843914172343784cb909695fdbe90a3e129 \
     --hash=sha256:d848fcb8bc7d507c4546b448574e8a44fc4ea2ba84ebf8d783290d53e81992f5
@@ -577,7 +595,9 @@ itsdangerous==2.1.0 \
 jinja2==3.0.3 \
     --hash=sha256:077ce6014f7b40d03b47d1f1ca4b0fc8328a692bd284016f806ed0eaca390ad8 \
     --hash=sha256:611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7
-    # via flask
+    # via
+    #   -r requirements.in
+    #   flask
 js-regex==1.0.1 \
     --hash=sha256:08e4181bba68878bb2b29ff275f734a34ac2a4fed706977365d1aa527273e5a7 \
     --hash=sha256:de27bbf11b135a9cc7b03fc35f586705e286d6cd4fbbe112eaa577ed1c82a69f
@@ -1087,6 +1107,9 @@ pyrsistent==0.18.1 \
     --hash=sha256:f87cc2863ef33c709e237d4b5f4502a62a00fab450c9e020892e8e2ede5847f5 \
     --hash=sha256:fd8da6d0124efa2f67d86fa70c851022f87c98e205f0594e1fae044e7119a5a6
     # via jsonschema
+pystemd==0.10.0 \
+    --hash=sha256:d74a814bfda01085db1a8ad90be3cb27daf23a51ab6b03e7e29ec811fa2ae859
+    # via -r requirements.in
 pytest==7.0.1 \
     --hash=sha256:9ce3ff477af913ecf6321fe337b93a2c0dcf2a0a1439c43f5452112c1e4280db \
     --hash=sha256:e30905a0c131d3d94b89624a1cc5afec3e0ba2fbdb151867d8e0ebd49850f171
@@ -1097,10 +1120,11 @@ pytest-cov==3.0.0 \
     --hash=sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6 \
     --hash=sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470
     # via -r requirements.in
-python-dateutil==2.8.2 \
-    --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
-    --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
+python-dateutil==2.8.1 \
+    --hash=sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c \
+    --hash=sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a
     # via
+    #   -r requirements.in
     #   bravado-core
     #   freezegun
 python-redis-lock==3.7.0 \
@@ -1173,6 +1197,7 @@ requests==2.27.1 \
     --hash=sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d
     # via
     #   -r requirements.in
+    #   docker
     #   oslo-config
 rfc3986==2.0.0 \
     --hash=sha256:50b1502b60e289cb37883f3dfd34532b8873c7de9f49bb546641ce9cbd256ebd \
@@ -1264,6 +1289,7 @@ six==1.16.0 \
     #   bravado-core
     #   eventlet
     #   fakeredis
+    #   fire
     #   grpcio
     #   jsonschema
     #   python-dateutil
@@ -1296,6 +1322,9 @@ swagger-spec-validator==2.7.4 \
 systemd==0.16.1 \
     --hash=sha256:f44a02434cb1e6ff686bc7d25a7a665cc7af665965e933df3e76fa02d351a75b
     # via -r requirements.in
+termcolor==1.1.0 \
+    --hash=sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b
+    # via fire
 tinyrpc==1.1.4 \
     --hash=sha256:c99f412e5d9849c2deb468ea37fee2faf12fbc95bdd3616ae5c276ea195ed6bd
     # via -r requirements.in
@@ -1322,6 +1351,10 @@ webob==1.8.7 \
     --hash=sha256:73aae30359291c14fa3b956f8b5ca31960e420c28c1bec002547fb04928cf89b \
     --hash=sha256:b64ef5141be559cfade448f044fa45c2260351edcb6a8ef6b7e00c7dcef0c323
     # via -r requirements.in
+websocket-client==1.3.3 \
+    --hash=sha256:5d55652dc1d0b3c734f044337d929aaf83f4f9138816ec680c1aefefb4dc4877 \
+    --hash=sha256:d58c5f284d6a9bf8379dab423259fe8f85b70d5fa5d2916d5791a84594b122b1
+    # via docker
 werkzeug==2.0.3 \
     --hash=sha256:1421ebfc7648a39a5c58c601b154165d05cf47a3cd0ccb70857cbdacf6c8f2b8 \
     --hash=sha256:b863f8ff057c522164b6067c9e28b041161b4be5ba4d0daceeaa50a163822d3c

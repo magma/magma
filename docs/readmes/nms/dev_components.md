@@ -33,7 +33,7 @@ Passes in a filter on the opposite end of the row. This should be used if needin
 
   function Filter() {
     return (
-      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+      <Grid container justifyContent="flex-end" alignItems="center" spacing={1}>
         <Grid item>
           <Text variant="body3" className={classes.dateTimeText}>
             Filter By Time

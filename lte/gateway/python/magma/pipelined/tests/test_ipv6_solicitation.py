@@ -106,6 +106,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
                 'clean_restart': True,
                 'virtual_mac': 'd6:34:bc:81:5d:40',
                 'enable_nat': True,
+                'classifier_controller_id': 5,
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,

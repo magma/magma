@@ -16,14 +16,14 @@ import type {
 } from '../../context/GatewayPoolsContext';
 import type {MutableCellularGatewayPool} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import ConfigEdit from './GatewayPoolConfigEdit';
-import Dialog from '@material-ui/core/Dialog';
+import Dialog from '@mui/material/Dialog';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import GatewayEdit from './GatewayPoolGatewaysEdit';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 
 import {
   DEFAULT_GW_POOL_CONFIG,
@@ -31,7 +31,7 @@ import {
   DEFAULT_GW_SECONDARY_CONFIG,
 } from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useState} from 'react';
 
 const CONFIG_TITLE = 'Config';
@@ -54,7 +54,6 @@ const useStyles = makeStyles({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
 });
 type DialogProps = {

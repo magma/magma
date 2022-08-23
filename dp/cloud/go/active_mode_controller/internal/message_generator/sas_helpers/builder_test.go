@@ -50,3 +50,9 @@ func TestBuild(t *testing.T) {
 	}
 	assert.Equal(t, expected, actual)
 }
+
+func TestSkipNil(t *testing.T) {
+	requests := []*sas.Request{nil, nil}
+	actual := sas_helpers.Build(requests)
+	assert.Empty(t, actual)
+}

@@ -12,15 +12,15 @@
  */
 
 import * as React from 'react';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import CloseIcon from '@material-ui/icons/Close';
-import ErrorIcon from '@material-ui/icons/Error';
-import InfoIcon from '@material-ui/icons/Info';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import ErrorIcon from '@mui/icons-material/Error';
+import InfoIcon from '@mui/icons-material/Info';
 import Text from '../theme/design-system/Text';
-import WarningIcon from '@material-ui/icons/Warning';
+import WarningIcon from '@mui/icons-material/Warning';
 import classNames from 'classnames';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useSnackbar} from 'notistack';
 import type {VariantType} from 'notistack';
 

@@ -18,7 +18,7 @@ import Text from '../theme/design-system/Text';
 import VersionContext from '../context/VersionContext';
 import classNames from 'classnames';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   root: {

@@ -91,7 +91,7 @@ module.exports = {
     'import/export': 2,
     'import/named': 2,
     'import/namespace': 2,
-    'import/no-unresolved': [2, {ignore: ['@material-ui/core/@@SvgIcon$']}],
+    'import/no-unresolved': 2,
 
     'lint/cs-intent-use-injected-props': 'off',
     'lint/duplicate-class-function': 'off',

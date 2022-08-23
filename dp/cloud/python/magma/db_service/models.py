@@ -61,12 +61,8 @@ class DBRequest(Base):
     """
     __tablename__ = "requests"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    type_id = Column(
-        Integer, ForeignKey(
-            "request_types.id", ondelete="CASCADE",
-        ),
-    )
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    type_id = Column(Integer, ForeignKey("request_types.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     created_date = Column(
         DateTime(timezone=True),
         nullable=False, server_default=now(),
@@ -85,9 +81,8 @@ class DBRequest(Base):
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        type_name = self.type.name
         return f"<{class_name}(id='{self.id}', " \
-            f"type='{type_name}', " \
+            f"type_id='{self.type_id}', " \
             f"cbsd_id='{self.cbsd_id}' " \
             f"created_date='{self.created_date}' " \
             f"updated_date='{self.updated_date}' " \
@@ -102,10 +97,7 @@ class DBGrantState(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
 
-    grants = relationship(
-        "DBGrant", back_populates="state", cascade="all, delete",
-        passive_deletes=True,
-    )
+    grants = relationship("DBGrant", back_populates="state")
 
     def __repr__(self):
         """
@@ -127,7 +119,7 @@ class DBGrant(Base):
             "grant_states.id", ondelete="CASCADE",
         ), nullable=False,
     )
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     grant_id = Column(String, nullable=False)
     grant_expire_time = Column(DateTime(timezone=True))
     transmit_expire_time = Column(DateTime(timezone=True))
@@ -146,14 +138,8 @@ class DBGrant(Base):
         server_default=now(), onupdate=now(),
     )
 
-    state = relationship(
-        "DBGrantState", back_populates="grants", cascade="all, delete",
-        passive_deletes=True,
-    )
-    cbsd = relationship(
-        "DBCbsd", back_populates="grants", cascade="all, delete",
-        passive_deletes=True,
-    )
+    state = relationship("DBGrantState", back_populates="grants")
+    cbsd = relationship("DBCbsd", back_populates="grants")
 
     def __repr__(self):
         """
@@ -216,7 +202,6 @@ class DBCbsd(Base):
     max_power = Column(Float)
     antenna_gain = Column(Float)
     number_of_ports = Column(Integer)
-    grant_attempts = Column(Integer, nullable=False, server_default='0')
     preferred_bandwidth_mhz = Column(
         Integer, nullable=False, server_default='0',
     )
@@ -253,35 +238,19 @@ class DBCbsd(Base):
         server_default=now(), onupdate=now(),
     )
 
-    state = relationship(
-        "DBCbsdState", cascade="all, delete",
-        foreign_keys=[state_id], passive_deletes=True,
-    )
-    desired_state = relationship(
-        "DBCbsdState", cascade="all, delete",
-        foreign_keys=[desired_state_id], passive_deletes=True,
-    )
-    requests = relationship(
-        "DBRequest", back_populates="cbsd", cascade="all, delete",
-        passive_deletes=True,
-    )
-    grants = relationship(
-        "DBGrant", back_populates="cbsd", cascade="all, delete",
-        passive_deletes=True,
-    )
-    channels = relationship(
-        "DBChannel", back_populates="cbsd", cascade="all, delete",
-        passive_deletes=True,
-    )
+    state = relationship("DBCbsdState", foreign_keys=[state_id])
+    desired_state = relationship("DBCbsdState", foreign_keys=[desired_state_id])
+    requests = relationship("DBRequest", back_populates="cbsd")
+    grants = relationship("DBGrant", back_populates="cbsd")
+    channels = relationship("DBChannel", back_populates="cbsd")
 
     def __repr__(self):
         """
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        state_name = self.state.name
         return f"<{class_name}(id='{self.id}', " \
-               f"state='{state_name}', " \
+               f"state_id='{self.state_id}', " \
                f"cbsd_id='{self.cbsd_id}', " \
                f"user_id='{self.user_id}', " \
                f"fcc_id='{self.fcc_id}', " \
@@ -296,7 +265,7 @@ class DBChannel(Base):
     """
     __tablename__ = "channels"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"))
+    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
     low_frequency = Column(BigInteger, nullable=False)
     high_frequency = Column(BigInteger, nullable=False)
     channel_type = Column(String, nullable=False)
@@ -311,10 +280,7 @@ class DBChannel(Base):
         server_default=now(), onupdate=now(),
     )
 
-    cbsd = relationship(
-        "DBCbsd", back_populates="channels", cascade="all, delete",
-        passive_deletes=True,
-    )
+    cbsd = relationship("DBCbsd", back_populates="channels")
 
     def __repr__(self):
         """

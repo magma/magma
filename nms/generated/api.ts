@@ -211,16 +211,16 @@ export interface AlertRoutingTree {
     'group_wait'?: string;
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match'?: AlertRoutingTreeMatch;
+    'match'?: { [key: string]: string; };
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match_re'?: AlertRoutingTreeMatch;
+    'match_re'?: { [key: string]: string; };
     /**
      * 
      * @type {string}
@@ -239,25 +239,6 @@ export interface AlertRoutingTree {
      * @memberof AlertRoutingTree
      */
     'routes'?: Array<AlertRoutingTree>;
-}
-/**
- * 
- * @export
- * @interface AlertRoutingTreeMatch
- */
-export interface AlertRoutingTreeMatch {
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'label'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'value'?: string;
 }
 /**
  * 
@@ -692,17 +673,17 @@ export interface Cbsd {
      */
     'frequency_preferences': FrequencyPreferences;
     /**
-     * 
-     * @type {Grant}
-     * @memberof Cbsd
-     */
-    'grant'?: Grant;
-    /**
      * tells Domain Proxy how many grants from SAS should be maintained. If enabled, Domain Proxy will try to maintain at least 2 grants, if disabled, Domain Proxy will maintain only 1 grant
      * @type {boolean}
      * @memberof Cbsd
      */
     'grant_redundancy': boolean;
+    /**
+     * 
+     * @type {Array<Grant>}
+     * @memberof Cbsd
+     */
+    'grants'?: Array<Grant>;
     /**
      * database id of cbsd
      * @type {number}
@@ -3127,7 +3108,8 @@ export interface Grant {
 
 export const GrantStateEnum = {
     Granted: 'granted',
-    Guthorized: 'guthorized'
+    Authorized: 'authorized',
+    Unsync: 'unsync'
 } as const;
 
 export type GrantStateEnum = typeof GrantStateEnum[keyof typeof GrantStateEnum];
@@ -4601,12 +4583,6 @@ export interface NetworkCarrierWifiConfigs {
      * @memberof NetworkCarrierWifiConfigs
      */
     'eap_sim'?: EapSim;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof NetworkCarrierWifiConfigs
-     */
-    'is_xwfm_variant'?: boolean;
     /**
      * 
      * @type {LiUes}
@@ -10060,7 +10036,7 @@ export const CallTracingApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: CallTrace; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdTracingGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -10142,7 +10118,7 @@ export const CallTracingApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<Array<string>> {
+        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: CallTrace; }> {
             return localVarFp.networksNetworkIdTracingGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -17484,7 +17460,7 @@ export const EventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Event>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.eventsNetworkIdGet(networkId, streams, events, tags, hwIds, from, size, start, end, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -17499,7 +17475,7 @@ export const EventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Event>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.eventsNetworkIdStreamNameGet(networkId, streamName, eventType, hardwareId, tag, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -17544,7 +17520,7 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: any): AxiosPromise<Array<string>> {
+        eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: any): AxiosPromise<Array<Event>> {
             return localVarFp.eventsNetworkIdGet(networkId, streams, events, tags, hwIds, from, size, start, end, options).then((request) => request(axios, basePath));
         },
         /**
@@ -17558,7 +17534,7 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: any): AxiosPromise<Array<string>> {
+        eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: any): AxiosPromise<Array<Event>> {
             return localVarFp.eventsNetworkIdStreamNameGet(networkId, streamName, eventType, hardwareId, tag, options).then((request) => request(axios, basePath));
         },
     };
@@ -39630,7 +39606,7 @@ export const RatingGroupsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<RatingGroup>>> {
+        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: RatingGroup; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdRatingGroupsGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -39700,7 +39676,7 @@ export const RatingGroupsApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<Array<RatingGroup>> {
+        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: RatingGroup; }> {
             return localVarFp.networksNetworkIdRatingGroupsGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**

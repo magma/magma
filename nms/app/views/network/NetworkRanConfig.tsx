@@ -13,19 +13,19 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {NetworkRanConfigs} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import DataGrid from '../../components/DataGrid';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import FddConfig from './NetworkRanFddConfig';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
-import ListItemText from '@material-ui/core/ListItemText';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import ListItemText from '@mui/material/ListItemText';
 import LteNetworkContext from '../../context/LteNetworkContext';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import TddConfig from './NetworkRanTddConfig';
 
 import {AltFormField, FormDivider} from '../../components/FormField';

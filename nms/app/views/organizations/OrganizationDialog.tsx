@@ -12,30 +12,29 @@
  */
 
 import AppContext from '../../context/AppContext';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import LoadingFillerBackdrop from '../../components/LoadingFillerBackdrop';
 import OrganizationInfoDialog from './OrganizationInfoDialog';
 import OrganizationUserDialog from './OrganizationUserDialog';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 
 import {Organization, OrganizationId} from './Organizations';
 import {OrganizationUser} from './types';
 import {UserRoles} from '../../../shared/roles';
 import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useAxios} from '../../hooks';
 import {useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   dialog: {
     backgroundColor: colors.primary.concrete,

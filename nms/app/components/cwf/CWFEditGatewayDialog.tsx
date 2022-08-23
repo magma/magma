@@ -13,30 +13,29 @@
 
 import type {CwfGateway, MagmadGatewayConfigs} from '../../../generated';
 
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CWFGatewayConfigFields from './CWFGatewayConfigFields';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import GatewayCommandFields from '../GatewayCommandFields';
 import MagmaDeviceFields from '../MagmaDeviceFields';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
+import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
 const useStyles = makeStyles({
-  appBar: {
-    backgroundColor: '#f5f5f5',
-    marginBottom: '20px',
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
   },
 });
 
@@ -135,17 +134,15 @@ export default function (props: Props) {
 
   return (
     <Dialog open={true} onClose={props.onCancel} maxWidth="md" scroll="body">
-      <AppBar position="static" className={classes.appBar}>
-        <Tabs
-          indicatorColor="primary"
-          textColor="primary"
-          value={tab}
-          onChange={(_, tab) => setTab(tab as number)}>
-          <Tab label="Carrier Wifi" />
-          <Tab label="Controller" />
-          <Tab label="Command" />
-        </Tabs>
-      </AppBar>
+      <Tabs
+        className={classes.tabBar}
+        indicatorColor="primary"
+        value={tab}
+        onChange={(_, tab) => setTab(tab as number)}>
+        <Tab label="Carrier Wifi" />
+        <Tab label="Controller" />
+        <Tab label="Command" />
+      </Tabs>
       <DialogContent>{content}</DialogContent>
       <DialogActions>
         <Button onClick={props.onCancel}>Cancel</Button>

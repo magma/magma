@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import Chip from '@material-ui/core/Chip';
-import Typography from '@material-ui/core/Typography';
+import Chip from '@mui/material/Chip';
+import Typography from '@mui/material/Typography';
 import classnames from 'classnames';
 import {SEVERITY} from './Severity';
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   // the circle

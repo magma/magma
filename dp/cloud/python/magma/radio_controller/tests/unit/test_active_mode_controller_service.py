@@ -77,7 +77,6 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         self.unregistered = cbsd_states[CbsdStates.UNREGISTERED.value]
         self.registered = cbsd_states[CbsdStates.REGISTERED.value]
 
-        self.idle = grant_states[GrantStates.IDLE.value]
         self.granted = grant_states[GrantStates.GRANTED.value]
         self.authorized = grant_states[GrantStates.AUTHORIZED.value]
 
@@ -228,7 +227,6 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
     def test_get_state_with_grants(self):
         cbsd = self._prepare_base_cbsd(). \
-            with_grant("idle_grant", self.idle, 1, 2). \
             with_grant("granted_grant", self.granted, 3). \
             with_grant("authorized_grant", self.authorized, 5, 6). \
             build()
@@ -300,21 +298,6 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
         am_cbsd = self._prepare_base_active_mode_cbsd(). \
             with_last_seen(1). \
-            build()
-        expected = State(cbsds=[am_cbsd])
-
-        actual = self.amc_service.GetState(GetStateRequest(), None)
-        self.assertEqual(expected, actual)
-
-    def test_get_state_with_grant_attempts(self):
-        cbsd = self._prepare_base_cbsd(). \
-            with_grant_attempts(1). \
-            build()
-        self.session.add(cbsd)
-        self.session.commit()
-
-        am_cbsd = self._prepare_base_active_mode_cbsd(). \
-            with_grant_attempts(1). \
             build()
         expected = State(cbsds=[am_cbsd])
 

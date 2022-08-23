@@ -13,22 +13,22 @@
 import type {SectionsConfigs} from '../layout/Section';
 
 import * as React from 'react';
-import AlarmIcon from '@material-ui/icons/Alarm';
+import AlarmIcon from '@mui/icons-material/Alarm';
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
-import DashboardIcon from '@material-ui/icons/Dashboard';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
-import LineStyleIcon from '@material-ui/icons/LineStyle';
+import LineStyleIcon from '@mui/icons-material/LineStyle';
 import LteDashboard from '../../views/dashboard/lte/LteDashboard';
 import LteMetrics from './LteMetrics';
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
+import NetworkCheckIcon from '@mui/icons-material/NetworkCheck';
 import NetworkDashboard from '../../views/network/NetworkDashboard';
-import PeopleIcon from '@material-ui/icons/People';
-import RouterIcon from '@material-ui/icons/Router';
-import ShowChartIcon from '@material-ui/icons/ShowChart';
+import PeopleIcon from '@mui/icons-material/People';
+import RouterIcon from '@mui/icons-material/Router';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
 import TracingDashboard from '../../views/tracing/TracingDashboard';
 import TrafficDashboard from '../../views/traffic/TrafficOverview';
-import WifiTetheringIcon from '@material-ui/icons/WifiTethering';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
 
 export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
   const sections: SectionsConfigs = [

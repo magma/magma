@@ -69,6 +69,7 @@ def go_repositories():
         importpath = "github.com/census-instrumentation/opencensus-proto",
         sum = "h1:glEXhBS5PSLLv4IXzLA5yPRVX4bilULVyxxbrfOtDAk=",
         version = "v0.2.1",
+        build_extra_args = ["-exclude=src"],
     )
     go_repository(
         name = "com_github_cespare_xxhash",
@@ -175,14 +176,14 @@ def go_repositories():
     go_repository(
         name = "com_github_envoyproxy_go_control_plane",
         importpath = "github.com/envoyproxy/go-control-plane",
-        sum = "h1:dulLQAYQFYtG5MTplgNGHWuV2D+OBD+Z8lmDBmbLg+s=",
-        version = "v0.9.9-0.20210512163311-63b5d3c536b0",
+        sum = "h1:fP+fF0up6oPY49OrjPrhIJ8yQfdIM85NXMLkMg1EXVs=",
+        version = "v0.9.10-0.20210907150352-cf90f659a021",
     )
     go_repository(
         name = "com_github_envoyproxy_protoc_gen_validate",
         importpath = "github.com/envoyproxy/protoc-gen-validate",
-        sum = "h1:EQciDnbrYxy13PgWoY8AqoxGiPrpgBZ1R8UNe3ddc+A=",
-        version = "v0.1.0",
+        sum = "h1:JiO+kJTpmYGjEodY7O1Zk8oZcNz1+f30UtwtXoFUPzE=",
+        version = "v0.6.2",
     )
     go_repository(
         name = "com_github_etcd_io_bbolt",
@@ -279,6 +280,36 @@ def go_repositories():
         importpath = "github.com/golang/glog",
         sum = "h1:VKtxabqXZkF25pY9ekfRL6a582T4P37/31XEstQ5p58=",
         version = "v0.0.0-20160126235308-23def4e6c14b",
+    )
+    go_repository(
+        name = "com_github_prometheus_client_golang",
+        importpath = "github.com/prometheus/client_golang",
+        sum = "h1:9iH4JKXLzFbOAdtqv/a+j8aewx2Y8lAjAydhbaScPF8=",
+        version = "v0.9.3",
+    )
+    go_repository(
+        name = "com_github_prometheus_procfs",
+        importpath = "github.com/prometheus/procfs",
+        sum = "h1:sofwID9zm4tzrgykg80hfFph1mryUeLRsUfoocVVmRY=",
+        version = "v0.0.0-20190507164030-5867b95ac084",
+    )
+    go_repository(
+        name = "com_github_beorn7_perks",
+        importpath = "github.com/beorn7/perks",
+        sum = "h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=",
+        version = "v1.0.0",
+    )
+    go_repository(
+        name = "com_github_prometheus_common",
+        importpath = "github.com/prometheus/common",
+        sum = "h1:7etb9YClo3a6HjLzfl6rIQaU+FDfi0VSX39io3aQ+DM=",
+        version = "v0.4.0",
+    )
+    go_repository(
+        name = "com_github_matttproud_golang_protobuf_extensions",
+        importpath = "github.com/matttproud/golang_protobuf_extensions",
+        sum = "h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=",
+        version = "v1.0.1",
     )
     go_repository(
         name = "com_github_golang_mock",

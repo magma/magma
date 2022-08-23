@@ -14,14 +14,15 @@
 import './util/axiosConfig';
 import './util/polyfill';
 
+import CssBaseline from '@mui/material/CssBaseline';
 import LoginForm from './views/login/LoginForm';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from './theme/default';
 import nullthrows from '../shared/util/nullthrows';
 import {AppContextProvider} from './context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 
 function LoginWrapper() {
   return (
@@ -38,9 +39,12 @@ function LoginWrapper() {
 ReactDOM.render(
   <AppContextProvider>
     <BrowserRouter>
-      <ThemeProvider theme={defaultTheme}>
-        <LoginWrapper />
-      </ThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <ThemeProvider theme={defaultTheme}>
+          <CssBaseline />
+          <LoginWrapper />
+        </ThemeProvider>
+      </StyledEngineProvider>
     </BrowserRouter>
   </AppContextProvider>,
   nullthrows(document.getElementById('root')),

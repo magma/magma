@@ -16,7 +16,7 @@ import Text from '../theme/design-system/Text';
 import classNames from 'classnames';
 import {Link, useLocation, useResolvedPath} from 'react-router-dom';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   icon: {

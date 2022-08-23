@@ -24,7 +24,7 @@ APPEND_PROFILES=,metrics
 endif
 
 ifdef DP_CERTIFICATION
-APPEND_PROFILES:=$(APPEND_PROFILES),crl
+APPEND_PROFILES:=$(APPEND_PROFILES),crl,harness
 endif
 
 .PHONY: local
@@ -37,13 +37,13 @@ integration_tests: orc8r_integration_tests
 orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests$(APPEND_PROFILES) --trigger=manual
+	skaffold dev --tail=false -p orc8r-deployment,integration-tests$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: dev_integration_tests
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
+	skaffold dev --tail=false -p orc8r-deployment,integration-tests,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r

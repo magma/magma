@@ -23,7 +23,7 @@
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 

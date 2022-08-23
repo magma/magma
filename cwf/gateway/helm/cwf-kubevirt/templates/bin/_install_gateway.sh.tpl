@@ -17,7 +17,6 @@ set -e
 
 CWAG="cwag"
 FEG="feg"
-XWF="xwf"
 INSTALL_DIR="/tmp/magmagw_install"
 cd /opt/magma/
 
@@ -30,15 +29,15 @@ echo "Setting working directory as: $DIR"
 cd "$DIR"
 
 if [ -z $1 ]; then
-  echo "Please supply a gateway type to install. Valid types are: ['$FEG', '$CWAG', '$XWF']"
+  echo "Please supply a gateway type to install. Valid types are: ['$FEG', '$CWAG']"
   exit
 fi
 
 GW_TYPE=$1
 echo "Setting gateway type as: '$GW_TYPE'"
 
-if [ "$GW_TYPE" != "$FEG" ] && [ "$GW_TYPE" != "$CWAG" ] && [ "$GW_TYPE" != "$XWF" ]; then
-  echo "Gateway type '$GW_TYPE' is not valid. Valid types are: ['$FEG', '$CWAG', '$XWF']"
+if [ "$GW_TYPE" != "$FEG" ] && [ "$GW_TYPE" != "$CWAG" ]; then
+  echo "Gateway type '$GW_TYPE' is not valid. Valid types are: ['$FEG', '$CWAG']"
   exit
 fi
 
@@ -76,7 +75,7 @@ if [ "$IMAGE_VERSION" != "latest" ]; then
     git -C $INSTALL_DIR/magma checkout "{{ .Values.cwf.repo.branch }}"
 fi
 
-if [ "$GW_TYPE" == "$CWAG" ] || [ "$GW_TYPE" == "$XWF" ]; then
+if [ "$GW_TYPE" == "$CWAG" ]; then
   MODULE_DIR="cwf"
 
   # Run CWAG ansible role to setup OVS
@@ -85,14 +84,6 @@ if [ "$GW_TYPE" == "$CWAG" ] || [ "$GW_TYPE" == "$XWF" ]; then
   apt-get update -y
   apt-get -y install ansible
   ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v -e ingress_port="${INGRESS_PORT:-eth1}" -e uplink_ports="${UPLINK_PORTS:-eth2 eth3}" -e li_port="${LI_PORT:-eth4}"
-fi
-
-if [ "$GW_TYPE" == "$XWF" ]; then
-  MODULE_DIR="xwf"
-  CONNECTION_MODE=${MODE:=tcp}
-  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg \
-    ansible-playbook -e "xwf_ctrl_ip=$XWF_CTRL connection_mode=$CONNECTION_MODE" \
-    "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/xwf.yml -i "localhost," -c local -v
 fi
 
 if [ "$GW_TYPE" == "$FEG" ]; then
@@ -136,11 +127,6 @@ mkdir -p /var/opt/magma/configs
 mkdir -p /var/opt/magma/certs
 mkdir -p /etc/magma
 mkdir -p /var/opt/magma/docker
-
-#If this XWF installation copy the cwf config files as well
-if [ "$GW_TYPE" == "$XWF" ]; then
-  cp -TR "$INSTALL_DIR"/magma/cwf/gateway/configs /etc/magma
-fi
 
 # Copy default configs directory
 cp -TR "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/configs /etc/magma

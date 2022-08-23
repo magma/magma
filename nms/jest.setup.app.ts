@@ -11,4 +11,11 @@
  * limitations under the License.
  */
 
-import 'jest-dom/extend-expect';
+import '@testing-library/jest-dom';
+
+import {configure} from '@testing-library/dom';
+
+configure({
+  // Improve performance of *ByRole queries https://github.com/testing-library/dom-testing-library/issues/552
+  defaultHidden: true,
+});

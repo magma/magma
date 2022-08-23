@@ -10,30 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AddIcon from '@material-ui/icons/Add';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import AddIcon from '@mui/icons-material/Add';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useContext, useEffect, useState} from 'react';
-import Select from '@material-ui/core/Select';
-import {makeStyles} from '@material-ui/styles';
+import Select from '@mui/material/Select';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 import CbsdContext from '../../context/CbsdContext';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage, isAxiosErrorResponse} from '../../util/ErrorUtils';
 import type {Cbsd, MutableCbsd} from '../../../generated';
@@ -117,6 +117,9 @@ type CbsdFormData = {
   frequenciesMhz: Array<number | string>;
   cbsdCategory: CbsdCategoryEnum;
   singleStepEnabled: boolean;
+  grantRedundancyEnabled: boolean;
+  carrierAggreGationEnabled: boolean;
+  maxIbw: number | string;
 };
 
 const convertToCbsdFormData = (cbsd?: Cbsd): CbsdFormData => {
@@ -134,6 +137,12 @@ const convertToCbsdFormData = (cbsd?: Cbsd): CbsdFormData => {
     frequenciesMhz: cbsd?.frequency_preferences?.frequencies_mhz || [0],
     cbsdCategory: cbsd?.cbsd_category === 'b' ? 1 : 0,
     singleStepEnabled: cbsd?.single_step_enabled || false,
+    grantRedundancyEnabled:
+      cbsd?.grant_redundancy === undefined
+        ? true
+        : Boolean(cbsd?.grant_redundancy),
+    carrierAggreGationEnabled: cbsd?.carrier_aggregation_enabled || false,
+    maxIbw: cbsd?.capabilities?.max_ibw_mhz || 150,
   };
 };
 
@@ -168,10 +177,10 @@ export function CbsdAddEditDialog(props: DialogProps) {
           min_power: parseInt(cbsdFormData.minPower as string),
           max_power: parseInt(cbsdFormData.maxPower as string),
           number_of_antennas: parseInt(cbsdFormData.numberOfAntennas as string),
-          max_ibw_mhz: 150,
+          max_ibw_mhz: parseInt(cbsdFormData.maxIbw as string),
         },
-        carrier_aggregation_enabled: false,
-        grant_redundancy: true,
+        carrier_aggregation_enabled: cbsdFormData.carrierAggreGationEnabled,
+        grant_redundancy: cbsdFormData.grantRedundancyEnabled,
         installation_param: {
           antenna_gain: parseInt(cbsdFormData.antennaGain as string),
         },
@@ -226,6 +235,38 @@ export function CbsdAddEditDialog(props: DialogProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCarrierAggregationChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const {checked} = event.target;
+    const shouldEnableGrantRedundancy = checked;
+    const grantRedundancyEnabled = shouldEnableGrantRedundancy
+      ? true
+      : cbsdFormData.grantRedundancyEnabled;
+
+    setCbsdFormData({
+      ...cbsdFormData,
+      carrierAggreGationEnabled: checked,
+      grantRedundancyEnabled,
+    });
+  };
+
+  const handleGrantRedundancyChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const {checked} = event.target;
+    const shouldDisableCarrierAggregation = !checked;
+    const carrierAggreGationEnabled = shouldDisableCarrierAggregation
+      ? false
+      : cbsdFormData.carrierAggreGationEnabled;
+
+    setCbsdFormData({
+      ...cbsdFormData,
+      grantRedundancyEnabled: checked,
+      carrierAggreGationEnabled,
+    });
   };
 
   return (
@@ -411,6 +452,57 @@ export function CbsdAddEditDialog(props: DialogProps) {
             />
           </AltFormField>
 
+          <AltFormField label={'Grant Redundancy Enabled'}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  inputProps={
+                    ({
+                      'data-testid': 'grant-redundancy-enabled-input',
+                    } as unknown) as React.InputHTMLAttributes<HTMLInputElement>
+                  }
+                  checked={cbsdFormData.grantRedundancyEnabled}
+                  onChange={handleGrantRedundancyChange}
+                  color="primary"
+                />
+              }
+              label={''}
+            />
+          </AltFormField>
+
+          <AltFormField label={'eNB Carrier Aggregation Enabled'}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  inputProps={
+                    ({
+                      'data-testid': 'carrier-aggregation-enabled-input',
+                    } as unknown) as React.InputHTMLAttributes<HTMLInputElement>
+                  }
+                  checked={cbsdFormData.carrierAggreGationEnabled}
+                  onChange={handleCarrierAggregationChange}
+                  color="primary"
+                />
+              }
+              label={''}
+            />
+          </AltFormField>
+
+          <AltFormField label={'Max Instantaneous BandWidth (IBW) MHz'}>
+            <OutlinedInput
+              fullWidth
+              inputProps={{
+                'data-testid': 'max-ibw-input',
+              }}
+              type="number"
+              disabled={isLoading}
+              value={cbsdFormData.maxIbw}
+              onChange={({target}) =>
+                setCbsdFormData({...cbsdFormData, maxIbw: target.value})
+              }
+            />
+          </AltFormField>
+
           <AltFormField label={'Frequency Preferences'}>
             <Grid
               container
@@ -459,14 +551,15 @@ export function CbsdAddEditDialog(props: DialogProps) {
                         ...cbsdFormData,
                         frequenciesMhz: [...cbsdFormData.frequenciesMhz, 0],
                       })
-                    }>
+                    }
+                    size="large">
                     <AddIcon />
                   </IconButton>
                 </Grid>
 
                 {cbsdFormData.frequenciesMhz.map((value, index) => {
                   return (
-                    <>
+                    <React.Fragment key={index}>
                       <Grid item xs={11}>
                         <OutlinedInput
                           fullWidth
@@ -505,12 +598,13 @@ export function CbsdAddEditDialog(props: DialogProps) {
                                 ...cbsdFormData,
                                 frequenciesMhz: newValue,
                               });
-                            }}>
+                            }}
+                            size="large">
                             <DeleteIcon />
                           </IconButton>
                         )}
                       </Grid>
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </Grid>

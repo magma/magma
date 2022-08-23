@@ -307,12 +307,11 @@ export function PolicyProvider(props: PolicyProviderProps) {
       setBaseNames(newBaseNames);
 
       setRatingGroups(
-        // TODO[TS-migration] What is the actual type here?
-        ((
+        (
           await MagmaAPI.ratingGroups.networksNetworkIdRatingGroupsGet({
             networkId,
           })
-        ).data as unknown) as Record<string, RatingGroup>,
+        ).data,
       );
       setQosProfiles(
         (

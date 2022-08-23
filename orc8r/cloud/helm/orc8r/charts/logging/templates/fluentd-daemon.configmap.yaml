@@ -1,3 +1,4 @@
+{{- if .Values.fluentd_daemon.create }}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -317,3 +318,4 @@ data:
     @include /fluentd/etc/kubernetes.conf
     @include /fluentd/etc/systemd.conf
     @include /fluentd/etc/output.conf
+{{- end -}}

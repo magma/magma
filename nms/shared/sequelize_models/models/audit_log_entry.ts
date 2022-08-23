@@ -30,7 +30,9 @@ export interface AuditLogEntryRawType {
   statusCode: string;
 }
 
-interface AuditLogEntryModel extends AuditLogEntryRawType, Model {
+interface AuditLogEntryModel
+  extends AuditLogEntryRawType,
+    Model<AuditLogEntryRawType, Partial<AuditLogEntryRawType>> {
   readonly id: number;
 }
 

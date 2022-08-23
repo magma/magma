@@ -25,7 +25,6 @@ jobs:
       rc: ${{ steps.filter.outputs.rc }}
       db: ${{ steps.filter.outputs.db }}
       helm: ${{ steps.filter.outputs.helm }}
-      integration_tests_no_orc8r: ${{ steps.filter.outputs.integration_tests_no_orc8r }}
       integration_tests_orc8r: ${{ steps.filter.outputs.integration_tests_orc8r }}
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -63,11 +62,6 @@ jobs:
             helm:
               - '.github/workflows/dp-workflow.yml'
               - 'dp/cloud/helm/**'
-            integration_tests_no_orc8r:
-              - '.github/workflows/dp-workflow.yml'
-              - '.github/workflows/composite/dp-integ-tests/**'
-              - 'dp/**'
-              - 'protos/**'
             integration_tests_orc8r:
               - '.github/workflows/dp-workflow.yml'
               - '.github/workflows/composite/dp-integ-tests/**'

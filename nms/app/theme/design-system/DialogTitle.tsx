@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import CloseIcon from '@material-ui/icons/Close';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
+import MaterialUiDialogTitle from '@mui/material/DialogTitle';
 import React from 'react';
 import Text from './Text';
 import {colors} from '../default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   closeButton: {
@@ -33,17 +33,18 @@ type Props = {
   classes?: Record<string, any>;
 };
 
-export default function CustomDialogTitle(props: Props) {
+export default function DialogTitle(props: Props) {
   const classes = useStyles(props);
   return (
-    <DialogTitle>
+    <MaterialUiDialogTitle>
       <Text variant="subtitle1">{props.label}</Text>
       <IconButton
         aria-label="close"
         className={classes.closeButton}
-        onClick={props.onClose}>
+        onClick={props.onClose}
+        size="large">
         <CloseIcon />
       </IconButton>
-    </DialogTitle>
+    </MaterialUiDialogTitle>
   );
 }

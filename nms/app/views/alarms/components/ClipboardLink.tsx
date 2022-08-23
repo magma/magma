@@ -12,7 +12,7 @@
  */
 
 import * as React from 'react';
-import Tooltip, {TooltipProps} from '@material-ui/core/Tooltip';
+import Tooltip, {TooltipProps} from '@mui/material/Tooltip';
 
 import copy from 'copy-to-clipboard';
 import {useState} from 'react';

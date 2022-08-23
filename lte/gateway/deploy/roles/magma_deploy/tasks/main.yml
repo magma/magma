@@ -14,6 +14,15 @@
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
+  when: use_master is not defined
+  tags:
+    - agwc
+    - base
+
+- name: Include vars of all_master.yaml
+  include_vars:
+    file: all_master.yaml
+  when: use_master is defined
   tags:
     - agwc
     - base

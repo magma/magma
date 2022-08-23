@@ -319,7 +319,7 @@ class TrafficTest(object):
     _iproute = pyroute2.IPRoute()
     _net_iface_ipv4 = "eth2"
     _net_iface_ipv6 = "eth3"
-    _port = 7000
+    _port = 5000
     _port_lock = threading.Lock()
 
     # Remote iperf3 superserver (IP, port) tuple. Port 62462 is chosen because

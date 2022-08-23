@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 import CbsdsTable from './CbsdsTable';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React from 'react';
-import {Theme} from '@material-ui/core/styles/createTheme';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -27,7 +27,7 @@ export default function Cbsds() {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <Grid container justify="space-between" spacing={3}>
+      <Grid container justifyContent="space-between" spacing={3}>
         <Grid item xs={12}>
           <CbsdsTable />
         </Grid>

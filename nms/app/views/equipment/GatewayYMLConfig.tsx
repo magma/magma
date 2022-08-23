@@ -10,16 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Button from '@material-ui/core/Button';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import ListItemText from '@material-ui/core/ListItemText';
+import Button from '@mui/material/Button';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
+import ListItemText from '@mui/material/ListItemText';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import Text from '../../theme/design-system/Text';
 import TextareaAutosize from 'react-textarea-autosize';
 import nullthrows from '../../../shared/util/nullthrows';
@@ -28,9 +28,9 @@ import withAlert from '../../components/Alert/withAlert';
 import {AltFormField} from '../../components/FormField';
 import {GenericCommandResponse} from '../../../generated';
 import {RUNNING_SERVICES} from '../../components/GatewayUtils';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -109,7 +109,6 @@ function GatewayConfigYml(props: Props) {
         enqueueSnackbar(`${selectedService} config fetched successfully`, {
           variant: 'success',
         });
-        // TODO[TS-migration] What is the real response here?
         // @ts-ignore
         setServiceConfig(response?.response?.['stdout'] ?? '');
       },
@@ -141,7 +140,7 @@ function GatewayConfigYml(props: Props) {
             variant={'outlined'}
             displayEmpty={true}
             value={selectedService}
-            onChange={({target}) => setSelectedService(target.value as string)}
+            onChange={({target}) => setSelectedService(target.value)}
             input={<OutlinedInput />}>
             {RUNNING_SERVICES.map(service => (
               <MenuItem key={service} value={service}>

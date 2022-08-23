@@ -14,9 +14,10 @@
 import puppeteer, {Browser} from 'puppeteer';
 import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
+jest.setTimeout(60000);
+
 let browser: Browser;
 beforeEach(async () => {
-  jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors', '--window-size=1920,1080'],
     headless: true,
@@ -55,7 +56,7 @@ describe('NMS', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'subscriber_dashboard.png',
     });
-  }, 60000);
+  });
 });
 
 // describe('NMS Subscriber Add', () => {
@@ -123,7 +124,7 @@ describe('NMS', () => {
 //     await page.screenshot({
 //       path: ARTIFACTS_DIR + 'subscriber_add.png',
 //     });
-//   }, 60000);
+//   });
 // });
 
 // describe('NMS Subscriber Edit', () => {
@@ -180,5 +181,5 @@ describe('NMS', () => {
 //     await page.screenshot({
 //       path: ARTIFACTS_DIR + 'subscriber_edit.png',
 //     });
-//   }, 60000);
+//   });
 // });
