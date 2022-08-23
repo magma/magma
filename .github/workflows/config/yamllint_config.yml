@@ -12,7 +12,7 @@ ignore: |
   **/templates/**/*.yaml
 
 rules:
-  braces: 
+  braces:
     max-spaces-inside: 1
     min-spaces-inside: 1
   brackets:
@@ -25,9 +25,8 @@ rules:
   comments-indentation:
     level: warning
   document-end: disable
-  document-start:
-    level: warning
-  empty-lines: 
+  document-start: disable
+  empty-lines:
     max: 3
   empty-values: disable
   hyphens: enable
