@@ -1,6 +1,6 @@
 module magma/orc8r/lib/go/protos
 
-go 1.18
+go 1.19
 
 require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b

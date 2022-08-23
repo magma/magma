@@ -1,6 +1,6 @@
 module magma/orc8r/cloud/test
 
-go 1.18
+go 1.19
 
 replace (
 	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48

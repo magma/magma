@@ -11,7 +11,7 @@
 
 module github.com/magma/magma/src/go
 
-go 1.18
+go 1.19
 
 require (
 	github.com/getsentry/sentry-go v0.11.0

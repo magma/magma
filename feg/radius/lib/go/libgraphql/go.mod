@@ -2,4 +2,4 @@ module libgraphql
 
 require github.com/google/uuid v1.1.1
 
-go 1.18
+go 1.19
