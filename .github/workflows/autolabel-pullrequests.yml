@@ -24,7 +24,6 @@ on:
       - 'secrets/**'
       - 'show-tech/**'
       - 'third_party/**'
-      - 'xwf/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -91,10 +90,6 @@ jobs:
               case /^orc8r\/.*/.test(f.filename):
                 console.log("file changed under ORC8R component : " + f['filename']);
                 newCompLbls.add("component: orc8r");
-                break;
-              case /^xwf\/.*/.test(f.filename):
-                console.log("file changed under XWF component : " + f['filename']);
-                newCompLbls.add("component: xwf");
                 break;
               case /^show-tech\/.*/.test(f.filename):
                 console.log("file changed under SHOW-TECH component : " + f['filename']);

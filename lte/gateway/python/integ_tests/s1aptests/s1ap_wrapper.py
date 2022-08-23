@@ -81,6 +81,9 @@ class TestWrapper(object):
         self._s1_util = S1ApUtil()
         self._enBConfig(ip_version)
 
+        federated_mode = (os.environ.get("FEDERATED_MODE") == "True")
+        print(f"\n *** Running the test in {'Non-' if not federated_mode else ''}Federated Mode")
+
         if self._test_oai_upstream:
             subscriber_client = SubscriberDbCassandra()
             self.wait_gateway_healthy = False

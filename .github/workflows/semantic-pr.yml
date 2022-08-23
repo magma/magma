@@ -123,7 +123,6 @@ jobs:
             swx_proxy
             td-agent-bit
             upf
-            xwf
           # Configure that a scope must always be provided.
           requireScope: false
           # For work-in-progress PRs you can typically use draft pull requests
