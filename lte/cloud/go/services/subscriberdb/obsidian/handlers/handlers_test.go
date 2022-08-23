@@ -822,6 +822,9 @@ func TestListSubscriberStates(t *testing.T) {
 	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
 	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.State)
 
+	// Give subscriber state reindexer time to run
+	time.Sleep(1 * time.Second)
+
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
