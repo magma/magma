@@ -373,8 +373,9 @@ static status_code_e pdn_connectivity_create(
 
       if (pco) {
         if (!pdn_context->pco) {
-          pdn_context->pco = (protocol_configuration_options_t*)calloc(
-              1, sizeof(protocol_configuration_options_t));
+          pdn_context->pco =
+              reinterpret_cast<protocol_configuration_options_t*>(
+                  calloc(1, sizeof(protocol_configuration_options_t)));
         } else {
           clear_protocol_configuration_options(pdn_context->pco);
         }
@@ -442,8 +443,9 @@ static status_code_e pdn_connectivity_create(
       pdn_context->esm_data.is_emergency = is_emergency;
       if (pco) {
         if (!pdn_context->pco) {
-          pdn_context->pco = (protocol_configuration_options_t*)calloc(
-              1, sizeof(protocol_configuration_options_t));
+          pdn_context->pco =
+              reinterpret_cast<protocol_configuration_options_t*>(
+                  calloc(1, sizeof(protocol_configuration_options_t)));
         } else {
           clear_protocol_configuration_options(pdn_context->pco);
         }
