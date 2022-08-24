@@ -373,8 +373,8 @@ static status_code_e pdn_connectivity_create(
 
       if (pco) {
         if (!pdn_context->pco) {
-          pdn_context->pco =
-              (protocol_configuration_options_t*) calloc(1, sizeof(protocol_configuration_options_t));
+          pdn_context->pco = (protocol_configuration_options_t*)calloc(
+              1, sizeof(protocol_configuration_options_t));
         } else {
           clear_protocol_configuration_options(pdn_context->pco);
         }
@@ -393,7 +393,7 @@ static status_code_e pdn_connectivity_create(
                    ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
-        pdn_context->paa.pdn_type = (pdn_type_value_t) pdn_type;
+        pdn_context->paa.pdn_type = (pdn_type_value_t)pdn_type;
         switch (pdn_type) {
           case IPv4:
             IPV4_STR_ADDR_TO_INADDR((const char*)pdn_addr->data,
@@ -442,8 +442,8 @@ static status_code_e pdn_connectivity_create(
       pdn_context->esm_data.is_emergency = is_emergency;
       if (pco) {
         if (!pdn_context->pco) {
-          pdn_context->pco =
-              (protocol_configuration_options_t*)calloc(1, sizeof(protocol_configuration_options_t));
+          pdn_context->pco = (protocol_configuration_options_t*)calloc(
+              1, sizeof(protocol_configuration_options_t));
         } else {
           clear_protocol_configuration_options(pdn_context->pco);
         }

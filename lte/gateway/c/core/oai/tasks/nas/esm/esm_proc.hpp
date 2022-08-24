@@ -129,7 +129,6 @@ status_code_e esm_proc_pdn_connectivity_reject(bool is_standalone,
 status_code_e esm_proc_pdn_connectivity_failure(emm_context_t* emm_context,
                                                 pdn_cid_t pid);
 
-
 /*
  * --------------------------------------------------------------------------
  *              PDN disconnect procedure

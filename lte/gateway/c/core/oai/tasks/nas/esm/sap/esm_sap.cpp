@@ -205,9 +205,9 @@ extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context accept
        */
-      esm_sap_rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT, msg->ue_id,
-                        msg->is_standalone, msg->ctx, msg->recv, msg->send,
-                        &msg->err);
+      esm_sap_rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT,
+                                msg->ue_id, msg->is_standalone, msg->ctx,
+                                msg->recv, msg->send, &msg->err);
       rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
@@ -215,9 +215,9 @@ extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context reject
        */
-      esm_sap_rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT, msg->ue_id,
-                        msg->is_standalone, msg->ctx, msg->recv, msg->send,
-                        &msg->err);
+      esm_sap_rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT,
+                                msg->ue_id, msg->is_standalone, msg->ctx,
+                                msg->recv, msg->send, &msg->err);
       rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
@@ -238,9 +238,10 @@ extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
         }
         /* Send PDN connectivity request */
 
-        esm_sap_rc = esm_sap_send_a(ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST,
-                            msg->is_standalone, msg->ctx, (proc_tid_t)0,
-                            bearer_activate->ebi, &msg->data, msg->send);
+        esm_sap_rc =
+            esm_sap_send_a(ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST,
+                           msg->is_standalone, msg->ctx, (proc_tid_t)0,
+                           bearer_activate->ebi, &msg->data, msg->send);
         rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       }
     } break;
@@ -263,10 +264,10 @@ extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
       if (msg->data.eps_bearer_context_deactivate.is_pcrf_initiated) {
         /*Currently we support single bearear deactivation*/
-        esm_sap_rc = esm_sap_send_a(DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST,
-                            msg->is_standalone, msg->ctx, (proc_tid_t)0,
-                            msg->data.eps_bearer_context_deactivate.ebi[0],
-                            &msg->data, msg->send);
+        esm_sap_rc = esm_sap_send_a(
+            DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST, msg->is_standalone, msg->ctx,
+            (proc_tid_t)0, msg->data.eps_bearer_context_deactivate.ebi[0],
+            &msg->data, msg->send);
         rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
 
         OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -291,8 +292,8 @@ extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
       break;
 
     case ESM_UNITDATA_IND:
-      esm_sap_rc = esm_sap_recv(-1, msg->ue_id, msg->is_standalone, msg->ctx, msg->recv,
-                        msg->send, &msg->err);
+      esm_sap_rc = esm_sap_recv(-1, msg->ue_id, msg->is_standalone, msg->ctx,
+                                msg->recv, msg->send, &msg->err);
       rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
@@ -655,7 +656,8 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
            * Setup the callback function used to send PDN connectivity
            * * * * reject message to UE
            */
-          esm_procedure = (esm_proc_procedure_t) esm_proc_pdn_connectivity_reject;
+          esm_procedure =
+              (esm_proc_procedure_t)esm_proc_pdn_connectivity_reject;
           /*
            * No ESM status message should be returned
            */
@@ -686,7 +688,7 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
            * Setup the callback function used to send PDN connectivity
            * * * * reject message onto the network
            */
-          esm_procedure = (esm_proc_procedure_t) esm_proc_pdn_disconnect_reject;
+          esm_procedure = (esm_proc_procedure_t)esm_proc_pdn_disconnect_reject;
           /*
            * No ESM status message should be returned
            */
@@ -761,7 +763,7 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
        * Setup the callback function used to send ESM status message
        * * * * onto the network
        */
-      esm_procedure = (esm_proc_procedure_t) esm_proc_status;
+      esm_procedure = (esm_proc_procedure_t)esm_proc_status;
       /*
        * Discard received ESM message
        */
@@ -877,7 +879,8 @@ static int esm_sap_send_a(int msg_type, bool is_standalone,
             &esm_msg.activate_dedicated_eps_bearer_context_request,
             msg->linked_ebi, &eps_qos, msg->tft, msg->pco);
 
-        esm_procedure = (esm_proc_procedure_t) esm_proc_dedicated_eps_bearer_context_request;
+        esm_procedure =
+            (esm_proc_procedure_t)esm_proc_dedicated_eps_bearer_context_request;
       }
     } break;
 
@@ -893,7 +896,8 @@ static int esm_sap_send_a(int msg_type, bool is_standalone,
           &esm_msg.deactivate_eps_bearer_context_request,
           ESM_CAUSE_REGULAR_DEACTIVATION);
 
-      esm_procedure = (esm_proc_procedure_t) esm_proc_eps_bearer_context_deactivate_request;
+      esm_procedure =
+          (esm_proc_procedure_t)esm_proc_eps_bearer_context_deactivate_request;
     } break;
 
     case PDN_CONNECTIVITY_REJECT:

@@ -59,7 +59,7 @@ extern "C" {
 #define ESM_INFORMATION_COUNTER_MAX 3
 
 static status_code_e esm_information(emm_context_t* emm_context_p, ebi_t ebi,
-                           esm_ebr_timer_data_t* const data);
+                                     esm_ebr_timer_data_t* const data);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -189,7 +189,8 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*> ("Deactivate EPS Bearer Ctx Request T3489 Timer"));
+      mme_ue_s1ap_id,
+      const_cast<char*>("Deactivate EPS Bearer Ctx Request T3489 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -270,9 +271,9 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
  **                                                                        **
  ***************************************************************************/
 static status_code_e esm_information(emm_context_t* emm_context_p, ebi_t ebi,
-                           esm_ebr_timer_data_t* const data) {
+                                     esm_ebr_timer_data_t* const data) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  emm_sap_t emm_sap =  {};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
@@ -297,7 +298,7 @@ static status_code_e esm_information(emm_context_t* emm_context_p, ebi_t ebi,
      * Start T3489 timer
      */
     nas_start_T3489(ue_id, &(emm_context_p->esm_ctx.T3489),
-                    (time_out_t) mme_app_handle_esm_information_t3489_expiry);
+                    (time_out_t)mme_app_handle_esm_information_t3489_expiry);
   }
   if (NAS_TIMER_INACTIVE_ID != emm_context_p->esm_ctx.T3489.id) {
     emm_context_p->esm_ctx.t3489_arg = (void*)data;

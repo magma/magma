@@ -67,8 +67,9 @@ extern "C" {
    retransmission counter */
 #define DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX 5
 
-static status_code_e dedicated_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
-                                         STOLEN_REF bstring* msg);
+static status_code_e dedicated_eps_bearer_activate(emm_context_t* emm_context,
+                                                   ebi_t ebi,
+                                                   STOLEN_REF bstring* msg);
 
 static status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(zloop_t* loop,
                                                                int timer_id,
@@ -292,9 +293,9 @@ status_code_e esm_proc_dedicated_eps_bearer_context_accept(
     if (bearer_ctx->enb_fteid_s1u.teid) {
       mme_app_handle_create_dedicated_bearer_rsp(ue_context_p, ebi);
     } else {
-      rc =
-          esm_ebr_start_timer(emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
-                              (time_out_t) erab_setup_rsp_tmr_exp_ded_bearer_handler);
+      rc = esm_ebr_start_timer(
+          emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
+          (time_out_t)erab_setup_rsp_tmr_exp_ded_bearer_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG(LOG_NAS_ESM,
                      "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
@@ -426,7 +427,7 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, const_cast<char*> ("EPS BEARER DEACTIVATE T3495 Timer"));
+      ue_id, const_cast<char*>("EPS BEARER DEACTIVATE T3495 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -525,8 +526,9 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
  **      Others:    T3485                                                  **
  **                                                                        **
  ***************************************************************************/
-static status_code_e dedicated_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
-                                         STOLEN_REF bstring* msg) {
+static status_code_e dedicated_eps_bearer_activate(emm_context_t* emm_context,
+                                                   ebi_t ebi,
+                                                   STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNerror;
@@ -573,9 +575,9 @@ static status_code_e dedicated_eps_bearer_activate(emm_context_t* emm_context, e
     /*
      * Start T3485 retransmission timer
      */
-    rc = esm_ebr_start_timer(emm_context, ebi, msg_dup,
-                             mme_config.nas_config.t3485_msec,
-                             (time_out_t) dedicated_eps_bearer_activate_t3485_handler);
+    rc = esm_ebr_start_timer(
+        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_msec,
+        (time_out_t)dedicated_eps_bearer_activate_t3485_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -652,10 +654,10 @@ status_code_e erab_setup_rsp_tmr_exp_ded_bearer_handler(zloop_t* loop,
     if (!bearer_context->enb_fteid_s1u.teid) {
       if (esm_ebr_timer_data->count < ERAB_SETUP_RSP_COUNTER_MAX) {
         // Restart the timer
-        rc = esm_ebr_start_timer(esm_ebr_timer_data->ctx,
-                                 esm_ebr_timer_data->ebi, NULL,
-                                 1000 * ERAB_SETUP_RSP_TMR,
-                                 (time_out_t) erab_setup_rsp_tmr_exp_ded_bearer_handler);
+        rc = esm_ebr_start_timer(
+            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
+            1000 * ERAB_SETUP_RSP_TMR,
+            (time_out_t)erab_setup_rsp_tmr_exp_ded_bearer_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
                          "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "

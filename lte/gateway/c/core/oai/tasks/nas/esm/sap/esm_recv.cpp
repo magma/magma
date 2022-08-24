@@ -368,8 +368,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     esm_data->bearer_qos.qci = apn_config->subscribed_qos.qci;
     rc = esm_proc_pdn_connectivity_request(
         emm_context, pti, pdn_cid, apn_config->context_identifier,
-        (esm_proc_pdn_request_t) emm_context->esm_ctx.esm_proc_data->request_type, esm_data->apn,
-        apn_config->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
+        (esm_proc_pdn_request_t)
+            emm_context->esm_ctx.esm_proc_data->request_type,
+        esm_data->apn, apn_config->pdn_type, esm_data->pdn_addr,
+        &esm_data->bearer_qos,
         (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id)
             ? &emm_context->esm_ctx.esm_proc_data->pco
             : NULL,
@@ -694,9 +696,10 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
     if (!bearer_context->enb_fteid_s1u.teid) {
       if (esm_ebr_timer_data->count < ERAB_SETUP_RSP_COUNTER_MAX) {
         // Restart the timer
-        rc = esm_ebr_start_timer(
-            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            1000 * ERAB_SETUP_RSP_TMR, (time_out_t) erab_setup_rsp_tmr_exp_handler);
+        rc = esm_ebr_start_timer(esm_ebr_timer_data->ctx,
+                                 esm_ebr_timer_data->ebi, NULL,
+                                 1000 * ERAB_SETUP_RSP_TMR,
+                                 (time_out_t)erab_setup_rsp_tmr_exp_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
                          "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
@@ -858,7 +861,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
       // Wait for ERAB SETUP RSP.Start a timer for 5 secs
       rc =
           esm_ebr_start_timer(emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
-                              (time_out_t) erab_setup_rsp_tmr_exp_handler);
+                              (time_out_t)erab_setup_rsp_tmr_exp_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG_UE(LOG_NAS_ESM, emm_context->_imsi64,
                         "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "

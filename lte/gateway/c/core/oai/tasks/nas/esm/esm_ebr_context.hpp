@@ -80,14 +80,16 @@ void free_esm_ebr_context(esm_ebr_context_t* ctx);
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop, int timer_id,
-                                              void* args);
+status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
+                                                        int timer_id,
+                                                        void* args);
 
-status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop, int timer_id,
-                                                void* args);
+status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
+                                                          int timer_id,
+                                                          void* args);
 
 status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
-                                        void* args);
+                                                  void* args);
 #ifdef __cplusplus
 }
 #endif

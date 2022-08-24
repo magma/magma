@@ -508,7 +508,7 @@ status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, const_cast<char*> ("EPS BEARER ACTIVATE T3485 Timer"));
+      ue_id, const_cast<char*>("EPS BEARER ACTIVATE T3485 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -637,9 +637,9 @@ static int default_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
     /*
      * Start T3485 retransmission timer
      */
-    rc = esm_ebr_start_timer(emm_context, ebi, *msg,
-                             mme_config.nas_config.t3485_msec,
-                             (time_out_t) default_eps_bearer_activate_t3485_handler);
+    rc = esm_ebr_start_timer(
+        emm_context, ebi, *msg, mme_config.nas_config.t3485_msec,
+        (time_out_t)default_eps_bearer_activate_t3485_handler);
     if (rc != RETURNerror) {
       OAILOG_DEBUG_UE(LOG_NAS_ESM, emm_context->_imsi64,
                       "ESM-PROC  - Started t3485 for ue_id=" MME_UE_S1AP_ID_FMT
@@ -704,9 +704,9 @@ static status_code_e default_eps_bearer_activate_in_bearer_setup_req(
     /*
      * Start T3485 retransmission timer
      */
-    rc = esm_ebr_start_timer(emm_context, ebi, msg_dup,
-                             mme_config.nas_config.t3485_msec,
-                             (time_out_t) default_eps_bearer_activate_t3485_handler);
+    rc = esm_ebr_start_timer(
+        emm_context, ebi, msg_dup, mme_config.nas_config.t3485_msec,
+        (time_out_t)default_eps_bearer_activate_t3485_handler);
   }
 
   bdestroy_wrapper(&msg_dup);

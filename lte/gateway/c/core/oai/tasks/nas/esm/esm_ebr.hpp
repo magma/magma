@@ -67,7 +67,6 @@ Description Defines functions used to handle state of EPS bearer contexts
 
 const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state);
 
-
 void esm_ebr_initialize(void);
 ebi_t esm_ebr_assign(emm_context_t* emm_context);
 status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi);
@@ -91,6 +90,5 @@ ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status);
 status_code_e esm_ebr_set_status(emm_context_t* emm_context, ebi_t ebi,
                                  esm_ebr_state status, bool ue_requested);
 esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi);
-
 
 #endif /* ESM_EBR_SEEN*/

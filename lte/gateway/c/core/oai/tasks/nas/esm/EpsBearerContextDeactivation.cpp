@@ -77,8 +77,8 @@ int pdn_connectivity_delete(emm_context_t* ctx, int pid);
    retransmission counter */
 #define EPS_BEARER_DEACTIVATE_COUNTER_MAX 5
 
-static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
-                                 STOLEN_REF bstring* msg);
+static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p,
+                                           ebi_t ebi, STOLEN_REF bstring* msg);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -561,8 +561,8 @@ status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
  **      Others:    T3495                                      **
  **                                                                        **
  ***************************************************************************/
-static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
-                                 STOLEN_REF bstring* msg) {
+static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p,
+                                           ebi_t ebi, STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNerror;
@@ -589,7 +589,7 @@ static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t e
      */
     rc = esm_ebr_start_timer(emm_context_p, ebi, msg_dup,
                              mme_config.nas_config.t3495_msec,
-                             (time_out_t) eps_bearer_deactivate_t3495_handler);
+                             (time_out_t)eps_bearer_deactivate_t3495_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
