@@ -22,7 +22,7 @@ from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from lte.protos.policydb_pb2 import FlowMatch
 
 
-class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
+class TestAttachStandaloneActDfltBerCtxtRejDedBearerActivation(
     unittest.TestCase,
 ):
     def setUp(self):

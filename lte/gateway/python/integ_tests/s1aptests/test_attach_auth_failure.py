@@ -17,14 +17,14 @@ import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 
 
-class TestAuthFailure(unittest.TestCase):
+class TestAttachAuthFailure(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_auth_failure_proc(self):
+    def test_attach_auth_failure(self):
         """ Testing of sending authentication failure procedure """
         num_ues = 1
 

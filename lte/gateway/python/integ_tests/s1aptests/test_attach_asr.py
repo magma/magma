@@ -31,7 +31,7 @@ class TestAttachASR(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_asr_tcp_data(self):
+    def test_attach_asr(self):
         """ attach + send ASR Req to session manager with a"""
         """ single UE """
         num_ues = 1
