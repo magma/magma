@@ -47,7 +47,7 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 typedef enum {
@@ -637,7 +637,7 @@ void mme_app_recover_timers_for_all_ues(void);
 void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,
                          struct ue_mm_context_s* ue_context_p);
 
-int eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid,
+status_code_e eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid,
                        int* bidx);
 
 status_code_e send_tau_accept_with_eps_bearer_ctx_status(

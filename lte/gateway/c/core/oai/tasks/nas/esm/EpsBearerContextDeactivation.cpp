@@ -18,10 +18,16 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -35,11 +41,11 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
@@ -47,7 +53,13 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+int pdn_connectivity_delete(emm_context_t* ctx, int pid);
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -65,7 +77,7 @@
    retransmission counter */
 #define EPS_BEARER_DEACTIVATE_COUNTER_MAX 5
 
-static int eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
+static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
                                  STOLEN_REF bstring* msg);
 
 /****************************************************************************/
@@ -549,11 +561,11 @@ status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
  **      Others:    T3495                                      **
  **                                                                        **
  ***************************************************************************/
-static int eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
+static status_code_e eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
                                  STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  emm_sap_t emm_sap = {0};
-  int rc;
+  emm_sap_t emm_sap = {};
+  status_code_e rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -577,7 +589,7 @@ static int eps_bearer_deactivate(emm_context_t* emm_context_p, ebi_t ebi,
      */
     rc = esm_ebr_start_timer(emm_context_p, ebi, msg_dup,
                              mme_config.nas_config.t3495_msec,
-                             eps_bearer_deactivate_t3495_handler);
+                             (time_out_t) eps_bearer_deactivate_t3495_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);

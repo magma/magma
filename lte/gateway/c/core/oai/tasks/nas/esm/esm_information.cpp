@@ -18,10 +18,16 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -32,8 +38,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
@@ -52,7 +58,7 @@
    retransmission counter */
 #define ESM_INFORMATION_COUNTER_MAX 3
 
-static int esm_information(emm_context_t* emm_context_p, ebi_t ebi,
+static status_code_e esm_information(emm_context_t* emm_context_p, ebi_t ebi,
                            esm_ebr_timer_data_t* const data);
 
 /****************************************************************************/
@@ -183,7 +189,7 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Deactivate EPS Bearer Ctx Request T3489 Timer");
+      mme_ue_s1ap_id, const_cast<char*> ("Deactivate EPS Bearer Ctx Request T3489 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -263,11 +269,11 @@ status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
  **      Others:    T3489                                                  **
  **                                                                        **
  ***************************************************************************/
-static int esm_information(emm_context_t* emm_context_p, ebi_t ebi,
+static status_code_e esm_information(emm_context_t* emm_context_p, ebi_t ebi,
                            esm_ebr_timer_data_t* const data) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  emm_sap_t emm_sap = {0};
-  int rc;
+  emm_sap_t emm_sap =  {};
+  status_code_e rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
@@ -291,7 +297,7 @@ static int esm_information(emm_context_t* emm_context_p, ebi_t ebi,
      * Start T3489 timer
      */
     nas_start_T3489(ue_id, &(emm_context_p->esm_ctx.T3489),
-                    mme_app_handle_esm_information_t3489_expiry);
+                    (time_out_t) mme_app_handle_esm_information_t3489_expiry);
   }
   if (NAS_TIMER_INACTIVE_ID != emm_context_p->esm_ctx.T3489.id) {
     emm_context_p->esm_ctx.t3489_arg = (void*)data;

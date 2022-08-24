@@ -53,7 +53,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"

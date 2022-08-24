@@ -169,12 +169,13 @@ status_code_e esm_proc_esm_information_response(
  *      Default EPS bearer context activation procedure
  * --------------------------------------------------------------------------
  */
-status_code_e esm_proc_default_eps_bearer_context_request(
-    bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
-    STOLEN_REF bstring* msg, const bool ue_triggered);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+status_code_e esm_proc_default_eps_bearer_context_request(
+    bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
+    STOLEN_REF bstring* msg, const bool ue_triggered);
 status_code_e esm_proc_default_eps_bearer_context(emm_context_t* emm_context,
                                                   const proc_tid_t pti,
                                                   pdn_cid_t pid, ebi_t* ebi,

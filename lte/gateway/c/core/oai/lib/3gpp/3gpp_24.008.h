@@ -942,11 +942,11 @@ void copy_protocol_configuration_options(
 void clear_protocol_configuration_options(
     protocol_configuration_options_t* const pco);
 
+void free_protocol_configuration_options(
+    protocol_configuration_options_t** const protocol_configuration_options);
 #ifdef __cplusplus
 }
 #endif
-void free_protocol_configuration_options(
-    protocol_configuration_options_t** const protocol_configuration_options);
 
 int decode_protocol_configuration_options(
     protocol_configuration_options_t* protocolconfigurationoptions,
@@ -1251,7 +1251,13 @@ int decode_traffic_flow_template_ie(
     const uint8_t* const buffer, const uint32_t len);
 void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
                                 const traffic_flow_template_t* const tft_src);
+#ifdef __cplusplus
+extern "C" {
+#endif
 void free_traffic_flow_template(traffic_flow_template_t** tft);
+#ifdef __cplusplus
+}
+#endif
 
 //******************************************************************************
 // 10.5.7 GPRS Common information elements

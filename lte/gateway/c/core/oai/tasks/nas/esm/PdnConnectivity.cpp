@@ -21,11 +21,17 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -38,9 +44,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 
@@ -60,16 +66,21 @@
 /*
    PDN connection handlers
 */
-static pdn_cid_t pdn_connectivity_create(
+static status_code_e pdn_connectivity_create(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
     protocol_configuration_options_t* const pco, const bool is_emergency,
     esm_cause_t* esm_cause);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 proc_tid_t pdn_connectivity_delete(emm_context_t* emm_context,
                                    pdn_cid_t pdn_cid);
-
+#ifdef __cplusplus
+}
+#endif
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -163,7 +174,7 @@ status_code_e esm_proc_pdn_connectivity_request(
                                apn, pdn_type, pdn_addr, pco, is_emergency,
                                esm_cause);
 
-  if (rc < 0) {
+  if (rc != RETURNok) {
     OAILOG_WARNING(LOG_NAS_ESM,
                    "ESM-PROC  - Failed to create PDN connection for "
                    "ue_id " MME_UE_S1AP_ID_FMT "\n",
@@ -218,7 +229,7 @@ status_code_e esm_proc_pdn_connectivity_reject(bool is_standalone,
                  ue_id);
 
   if (is_standalone) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
 
     /*
      * Notity EMM that ESM PDU has to be forwarded to lower layers
@@ -296,7 +307,7 @@ status_code_e esm_proc_pdn_connectivity_failure(emm_context_t* emm_context,
 */
 /****************************************************************************
  **                                                                        **
- ** Name:        _pdn_connectivity_create()                                **
+ ** Name:        pdn_connectivity_create()                                **
  **                                                                        **
  ** Description: Creates a new PDN connection entry for the specified UE   **
  **                                                                        **
@@ -311,12 +322,11 @@ status_code_e esm_proc_pdn_connectivity_failure(emm_context_t* emm_context,
  **                  Others:    _esm_data                                  **
  **                                                                        **
  ** Outputs:     None                                                      **
- **                  Return:    The identifier of the PDN connection if    **
- **                             successfully created; -1 otherwise.        **
- **                  Others:    _esm_data                                  **
+ **                  Return:    RETURNok, RETURNerror                      **
+ **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int pdn_connectivity_create(
+static status_code_e pdn_connectivity_create(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
@@ -364,7 +374,7 @@ static int pdn_connectivity_create(
       if (pco) {
         if (!pdn_context->pco) {
           pdn_context->pco =
-              calloc(1, sizeof(protocol_configuration_options_t));
+              (protocol_configuration_options_t*) calloc(1, sizeof(protocol_configuration_options_t));
         } else {
           clear_protocol_configuration_options(pdn_context->pco);
         }
@@ -383,7 +393,7 @@ static int pdn_connectivity_create(
                    ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
-        pdn_context->paa.pdn_type = pdn_type;
+        pdn_context->paa.pdn_type = (pdn_type_value_t) pdn_type;
         switch (pdn_type) {
           case IPv4:
             IPV4_STR_ADDR_TO_INADDR((const char*)pdn_addr->data,
@@ -433,7 +443,7 @@ static int pdn_connectivity_create(
       if (pco) {
         if (!pdn_context->pco) {
           pdn_context->pco =
-              calloc(1, sizeof(protocol_configuration_options_t));
+              (protocol_configuration_options_t*)calloc(1, sizeof(protocol_configuration_options_t));
         } else {
           clear_protocol_configuration_options(pdn_context->pco);
         }
@@ -446,7 +456,7 @@ static int pdn_connectivity_create(
       }
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
-        pdn_context->paa.pdn_type = pdn_type;
+        pdn_context->paa.pdn_type = (pdn_type_value_t)pdn_type;
         switch (pdn_type) {
           case IPv4:
             IPV4_STR_ADDR_TO_INADDR((const char*)pdn_addr->data,
