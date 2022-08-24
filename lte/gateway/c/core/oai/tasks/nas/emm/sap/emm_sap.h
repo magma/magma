@@ -167,6 +167,12 @@ typedef struct emm_sap_s {
 
 void emm_sap_initialize(void);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e emm_sap_send(emm_sap_t* msg);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FILE_EMM_SAP_SEEN*/

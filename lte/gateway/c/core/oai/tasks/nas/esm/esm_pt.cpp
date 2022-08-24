@@ -15,16 +15,20 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+
+/*
+   Minimal and maximal value of a procedure transaction identity:
+   The Procedure Transaction Identity (PTI) identifies bi-directional
+   messages flows
+*/
+#define ESM_PTI_MIN (PROCEDURE_TRANSACTION_IDENTITY_FIRST)
+#define ESM_PTI_MAX (PROCEDURE_TRANSACTION_IDENTITY_LAST)
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -34,60 +38,23 @@
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-/****************************************************************************/
-/********************  G L O B A L    V A R I A B L E S  ********************/
-/****************************************************************************/
-
-esm_data_t _esm_data;
-
 /****************************************************************************
  **                                                                        **
- ** Name:    esm_main_initialize()                                     **
+ ** Name:    esm_pt_is_reserved()                                      **
  **                                                                        **
- ** Description: Initializes ESM internal data                             **
+ ** Description: Check whether the given procedure transaction identity is **
+ **      a reserved value                                          **
  **                                                                        **
- ** Inputs:  None                                                      **
+ ** Inputs:  pti:       The identity of the procedure transaction  **
  **      Others:    None                                       **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    None                                       **
+ **      Return:    true, false                                **
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void esm_main_initialize(void) {
-  OAILOG_FUNC_IN(LOG_NAS_ESM);
-
-  /*
-   * Retreive MME supported configuration data
-   */
-  if (mme_api_get_esm_config(&_esm_data.conf) != RETURNok) {
-    OAILOG_ERROR(LOG_NAS_ESM,
-                 "ESM-MAIN  - Failed to get MME configuration data\n");
-  }
-  /*
-   * Initialize the EPS bearer context manager
-   */
-  esm_ebr_initialize();
-  OAILOG_FUNC_OUT(LOG_NAS_ESM);
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:        esm_main_cleanup()                                        **
- **                                                                        **
- ** Description: Performs the EPS Session Management clean up procedure    **
- **                                                                        **
- ** Inputs:      None                                                      **
- **                  Others:    None                                       **
- **                                                                        **
- ** Outputs:     None                                                      **
- **                  Return:    None                                       **
- **                  Others:    None                                       **
- **                                                                        **
- ***************************************************************************/
-void esm_main_cleanup(void) {
-  OAILOG_FUNC_IN(LOG_NAS_ESM);
-  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+int esm_pt_is_reserved(int pti) {
+  return ((pti != ESM_PT_UNASSIGNED) && (pti > ESM_PTI_MAX));
 }
 
 /****************************************************************************/

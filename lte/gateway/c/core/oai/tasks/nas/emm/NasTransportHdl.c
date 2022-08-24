@@ -50,7 +50,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 
 /****************************************************************************/

@@ -174,26 +174,26 @@ set(libnas_mme_emm_sap_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm)
 set(libnas_mme_esm_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DedicatedEpsBearerContextActivation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DefaultEpsBearerContextActivation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EpsBearerContextDeactivation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_data_context.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr_context.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ip.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_information.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_pt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EsmStatusHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnConnectivity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnDisconnect.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DedicatedEpsBearerContextActivation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DefaultEpsBearerContextActivation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EpsBearerContextDeactivation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_data_context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr_context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ip.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_information.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_pt.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EsmStatusHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnConnectivity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnDisconnect.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm/sap)
 set(libnas_mme_esm_sap_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_recv.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_send.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_sap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_recv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_send.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_sap.cpp
     )
 
 add_library(TASK_NAS

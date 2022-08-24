@@ -16,11 +16,11 @@
  */
 
 /*****************************************************************************
-Source      esm_sap.h
+Source      esm_main.hpp
 
 Version     0.1
 
-Date        2012/11/22
+Date        2012/12/04
 
 Product     NAS stack
 
@@ -28,16 +28,17 @@ Subsystem   EPS Session Management
 
 Author      Frederic Maurel
 
-Description Defines the ESM Service Access Points at which the EPS
-        Session Management sublayer provides procedures for the
-        EPS bearer context handling and resources allocation.
+Description Defines the EPS Session Management procedure call manager,
+        the main entry point for elementary ESM processing.
 
 *****************************************************************************/
-#ifndef __ESM_SAP_H__
-#define __ESM_SAP_H__
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
+#ifndef __ESM_MAIN_H__
+#define __ESM_MAIN_H__
+
+#include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -48,15 +49,16 @@ Description Defines the ESM Service Access Points at which the EPS
 /****************************************************************************/
 
 /****************************************************************************/
-/********************  G L O B A L    V A R I A B L E S  ********************/
-/****************************************************************************/
-
-/****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void esm_sap_initialize(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+void esm_main_initialize(void);
+void esm_main_cleanup(void);
+#ifdef __cplusplus
+}
+#endif
 
-status_code_e esm_sap_send(esm_sap_t* msg);
-
-#endif /* __ESM_SAP_H__*/
+#endif /* __ESM_MAIN_H__*/

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_ebr.h
+Source      esm_ebr.hpp
 
 Version     0.1
 
@@ -41,7 +41,7 @@ Description Defines functions used to handle state of EPS bearer contexts
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -67,23 +67,28 @@ Description Defines functions used to handle state of EPS bearer contexts
 
 const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state);
 
-bool esm_ebr_is_reserved(ebi_t ebi);
-
 void esm_ebr_initialize(void);
 ebi_t esm_ebr_assign(emm_context_t* emm_context);
 status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+bool esm_ebr_is_reserved(ebi_t ebi);
 status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
                                   CLONE_REF const_bstring msg, uint32_t msec,
                                   time_out_t cb);
-status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi);
 
+bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi);
+
+status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi);
+#ifdef __cplusplus
+}
+#endif
 ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status);
 
 status_code_e esm_ebr_set_status(emm_context_t* emm_context, ebi_t ebi,
                                  esm_ebr_state status, bool ue_requested);
 esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi);
-
-bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi);
 
 #endif /* ESM_EBR_SEEN*/

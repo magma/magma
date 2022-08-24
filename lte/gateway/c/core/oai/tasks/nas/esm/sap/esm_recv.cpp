@@ -18,10 +18,19 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.hpp"
+
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -34,19 +43,24 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-extern int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi);
+#ifdef __cplusplus
+extern "C" {
+#endif
+int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi);
+#ifdef __cplusplus
+}
+#endif
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -354,8 +368,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     esm_data->bearer_qos.qci = apn_config->subscribed_qos.qci;
     rc = esm_proc_pdn_connectivity_request(
         emm_context, pti, pdn_cid, apn_config->context_identifier,
-        emm_context->esm_ctx.esm_proc_data->request_type, esm_data->apn,
-        apn_config->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
+        (esm_proc_pdn_request_t)
+            emm_context->esm_ctx.esm_proc_data->request_type,
+        esm_data->apn, apn_config->pdn_type, esm_data->pdn_addr,
+        &esm_data->bearer_qos,
         (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id)
             ? &emm_context->esm_ctx.esm_proc_data->pco
             : NULL,
@@ -638,7 +654,7 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
+      ue_id, const_cast<char*>("EPS BEARER DEACTIVATE T3495 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -680,9 +696,10 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
     if (!bearer_context->enb_fteid_s1u.teid) {
       if (esm_ebr_timer_data->count < ERAB_SETUP_RSP_COUNTER_MAX) {
         // Restart the timer
-        rc = esm_ebr_start_timer(
-            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            1000 * ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_handler);
+        rc = esm_ebr_start_timer(esm_ebr_timer_data->ctx,
+                                 esm_ebr_timer_data->ebi, NULL,
+                                 1000 * ERAB_SETUP_RSP_TMR,
+                                 (time_out_t)erab_setup_rsp_tmr_exp_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
                          "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
@@ -844,7 +861,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
       // Wait for ERAB SETUP RSP.Start a timer for 5 secs
       rc =
           esm_ebr_start_timer(emm_context, ebi, NULL, 1000 * ERAB_SETUP_RSP_TMR,
-                              erab_setup_rsp_tmr_exp_handler);
+                              (time_out_t)erab_setup_rsp_tmr_exp_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG_UE(LOG_NAS_ESM, emm_context->_imsi64,
                         "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
