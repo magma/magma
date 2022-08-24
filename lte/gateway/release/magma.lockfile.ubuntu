@@ -956,7 +956,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-yaml",
-          "version": "6.0"
+          "version": "5.3.1"
         },
         "redis": {
           "root": false,
@@ -1225,7 +1225,7 @@
           "version": "2020.1"
         },
         "pyyaml": {
-          "version": "6.0"
+          "version": "5.3.1"
         },
         "redis": {
           "version": "3.5.0"
