@@ -60,6 +60,7 @@ jobs:
         if: always()
         id: deploy-sync-checkin
         run: |
+          false
           cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
           ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - name: Lint cloud Go code
