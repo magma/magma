@@ -32,8 +32,7 @@ class TestAttachASR(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_asr(self):
-        """ attach + send ASR Req to session manager with a"""
-        """ single UE """
+        """Attach + send ASR Req to session manager with a single UE"""
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
 

@@ -21,7 +21,7 @@ from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachSecondaryPdnDisconnectDedicatedBearer(unittest.TestCase):
-    """Test secondary pdn connection and disconnection"""
+    """Integration Test: TestAttachDetachSecondaryPdnDisconnectDedicatedBearer"""
 
     def setUp(self):
         """Initialize"""

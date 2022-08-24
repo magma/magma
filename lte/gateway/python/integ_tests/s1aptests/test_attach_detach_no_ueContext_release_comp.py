@@ -26,7 +26,7 @@ class TestAttachDetachNoUeContextReleaseComp(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_no_ueContext_release_Comp(self):
+    def test_attach_detach_no_uecontext_release_comp(self):
         """ Basic attach/detach test with a single UE - SCTP Abort"""
 
         self._s1ap_wrapper.configUEDevice(1)
