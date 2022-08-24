@@ -27,6 +27,7 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "chart.js": "^2.7.3",
+    "chartjs-adapter-date-fns": "^2.0.0",
     "classnames": "^2.2.5",
     "compression": "^1.7.1",
     "connect-session-sequelize": "^7.1.4",
