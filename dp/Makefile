@@ -116,7 +116,7 @@ endif
 _install_skaffold_ci:
 # Check whether skaffold is present on PATH
 ifeq (, $(shell which skaffold))
-	curl -Lo /tmp/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
+	curl -Lo /tmp/skaffold https://storage.googleapis.com/skaffold/releases/v1.39.2/skaffold-linux-amd64 && \
         sudo install /tmp/skaffold /usr/local/bin/
 endif
 
