@@ -30,6 +30,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
+using magma::lte::oai::EnbDescription;
+
 static bool trigger_agw_offload_for_ue(const hash_key_t keyP,
                                        void* const elementP, void* parameterP,
                                        void** resultP);
@@ -98,12 +100,12 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
 
   IMSI_STRING_TO_IMSI64(offload_request->imsi, &imsi64);
 
-  enb_description_t* enb_ref_p =
+  EnbDescription* enb_ref_p =
       s1ap_state_get_enb(s1ap_state, ue_context_p->sctp_assoc_id_key);
 
   // Return if this UE does not satisfy any of the filtering criteria
   if ((imsi64 != ue_context_p->emm_context._imsi64) &&
-      (offload_request->eNB_id != enb_ref_p->enb_id)) {
+      (offload_request->eNB_id != enb_ref_p->enb_id())) {
     return false;
   }
 
@@ -120,7 +122,7 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
         ue_context_p->mme_ue_s1ap_id;
     S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
         ue_context_p->enb_ue_s1ap_id;
-    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id = enb_ref_p->enb_id;
+    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id = enb_ref_p->enb_id();
     S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = S1AP_NAS_MME_OFFLOADING;
 
     OAILOG_INFO(
@@ -133,7 +135,7 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
         ue_context_p->emm_context._imsi64, offload_request->imsi,
         ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id,
         ue_context_p->e_utran_cgi.cell_identity.enb_id,
-        ue_context_p->e_utran_cgi.cell_identity.cell_id, enb_ref_p->enb_id);
+        ue_context_p->e_utran_cgi.cell_identity.cell_id, enb_ref_p->enb_id());
     OAILOG_INFO(LOG_UTIL, "UE Context Release procedure initiated for IMSI%s",
                 offload_request->imsi);
     IMSI_STRING_TO_IMSI64(offload_request->imsi,

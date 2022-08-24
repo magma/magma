@@ -35,7 +35,7 @@ namespace lte {
   "lte/gateway/c/core/oai/test/s1ap_task/data/"
 
 #define DEFAULT_S1AP_STATE_DATA_PATH \
-  "lte/gateway/c/core/oai/test/s1ap_task/data/s1ap_state_ATTACHED_encoded"
+  "lte/gateway/c/core/oai/test/s1ap_task/data/s1ap_state_ATTACHED"
 
 std::vector<std::string> load_file_into_vector_of_line_content(
     const std::string& data_folder_path, const std::string& file_name);

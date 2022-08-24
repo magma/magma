@@ -33,6 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
 using magma::lte::S1apStateManager;
+using magma::lte::oai::EnbDescription;
 using magma::lte::oai::UeDescription;
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
@@ -50,9 +51,9 @@ void s1ap_state_exit() { S1apStateManager::getInstance().free_state(); }
 
 void put_s1ap_state() { S1apStateManager::getInstance().write_state_to_db(); }
 
-enb_description_t* s1ap_state_get_enb(s1ap_state_t* state,
-                                      sctp_assoc_id_t assoc_id) {
-  enb_description_t* enb = nullptr;
+EnbDescription* s1ap_state_get_enb(s1ap_state_t* state,
+                                   sctp_assoc_id_t assoc_id) {
+  EnbDescription* enb = nullptr;
 
   state->enbs.get(assoc_id, &enb);
 
@@ -166,19 +167,21 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   // get each eNB in s1ap_state
   for (auto itr = s1ap_state_p->enbs.map->begin();
        itr != s1ap_state_p->enbs.map->end(); itr++) {
-    struct enb_description_s* enb_association_p = itr->second;
+    struct EnbDescription* enb_association_p = itr->second;
     if (!enb_association_p) {
       continue;
     }
 
-    if (enb_association_p->ue_id_coll.isEmpty()) {
+    magma::proto_map_uint32_uint64_t ue_id_coll;
+    ue_id_coll.map = enb_association_p->mutable_ue_id_map();
+    if (ue_id_coll.isEmpty()) {
       continue;
     }
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
     // ue_context, if not delete it
-    for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
-         ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
+    for (auto ue_itr = ue_id_coll.map->begin(); ue_itr != ue_id_coll.map->end();
+         ue_itr++) {
       // Check if a UE reference exists for this comp_s1ap_id
       s1ap_ue_state->get(ue_itr->second, &ue_ref_p);
       if (!ue_ref_p) {
@@ -192,15 +195,15 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     }
     // remove all the mme_ue_s1ap_ids
     for (uint32_t i = 0; i < mme_ue_id_no_imsi_list.size(); i++) {
-      enb_association_p->ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
+      ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
       s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_id_no_imsi_list[i]);
-      enb_association_p->nb_ue_associated--;
+      enb_association_p->set_nb_ue_associated(
+          (enb_association_p->nb_ue_associated() - 1));
 
       OAILOG_DEBUG(LOG_S1AP,
                    "Num UEs associated %u num elements in ue_id_coll %zu",
-                   enb_association_p->nb_ue_associated,
-                   enb_association_p->ue_id_coll.size());
+                   enb_association_p->nb_ue_associated(), ue_id_coll.size());
     }
   }
 }

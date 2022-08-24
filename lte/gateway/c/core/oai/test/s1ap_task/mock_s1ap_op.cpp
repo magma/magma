@@ -96,11 +96,7 @@ status_code_e mock_read_s1ap_state_db(
 
   std::ifstream input(file_name_state_sample.c_str(),
                       std::ios::in | std::ios::binary);
-  std::vector<char> data = std::vector<char>(
-      std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
-  std::string decoded_msg = decode_msg(data);
-  std::istringstream input_stream(decoded_msg);
-  if (!state_proto.ParseFromIstream(&input_stream)) {
+  if (!state_proto.ParseFromIstream(&input)) {
     std::cerr << "Failed to decode and parse the sample: "
               << file_name_state_sample << std::endl;
     return RETURNerror;

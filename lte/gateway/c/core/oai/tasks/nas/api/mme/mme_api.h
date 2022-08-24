@@ -222,6 +222,26 @@ void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
     pLMN1.mnc[2] = pLMN2.mnc_digit3;         \
   } while (0)
 
+#define COPY_PLMN_IN_CHAR_ARRAY_FMT(pLMN1, pLMN2) \
+  do {                                            \
+    pLMN1[0] = pLMN2.mcc_digit1 + ASCII_ZERO;     \
+    pLMN1[1] = pLMN2.mcc_digit2 + ASCII_ZERO;     \
+    pLMN1[2] = pLMN2.mcc_digit3 + ASCII_ZERO;     \
+    pLMN1[3] = pLMN2.mnc_digit1 + ASCII_ZERO;     \
+    pLMN1[4] = pLMN2.mnc_digit2 + ASCII_ZERO;     \
+    pLMN1[5] = pLMN2.mnc_digit3 + ASCII_ZERO;     \
+  } while (0)
+
+#define COPY_PLMN_FROM_CHAR_ARRAY_FMT(pLMN1, pLMN2) \
+  do {                                              \
+    pLMN1.mcc_digit1 = pLMN2[0] - ASCII_ZERO;       \
+    pLMN1.mcc_digit2 = pLMN2[1] - ASCII_ZERO;       \
+    pLMN1.mcc_digit3 = pLMN2[2] - ASCII_ZERO;       \
+    pLMN1.mnc_digit1 = pLMN2[3] - ASCII_ZERO;       \
+    pLMN1.mnc_digit2 = pLMN2[4] - ASCII_ZERO;       \
+    pLMN1.mnc_digit3 = pLMN2[5] - ASCII_ZERO;       \
+  } while (0)
+
 #define OAILOG_DEBUG_GUTI(gUTI_p)                                         \
   do {                                                                    \
     OAILOG_DEBUG(                                                         \

@@ -44,8 +44,6 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-#define ASCII_ZERO 0x30
-#define PLMN_BYTES 7
 #define BSTRING_TO_STRING(bstr, str_ptr)                \
   do {                                                  \
     *str_ptr = std::string(bdata(bstr), blength(bstr)); \
@@ -241,6 +239,7 @@ class StateConverter {
   static void proto_to_map_uint64_uint64(
       const google::protobuf::Map<uint64_t, uint64_t>& proto_map,
       map_uint64_uint64_t* map);
+
  private:
   static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
   static void chars_to_plmn(const char* plmn_array, plmn_t* state_plmn);

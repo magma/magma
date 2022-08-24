@@ -29,6 +29,7 @@ using grpc::ServerContext;
 using grpc::Status;
 using magma::EnbStateResult;
 using magma::S1apService;
+using magma::lte::oai::EnbDescription;
 
 namespace magma {
 using namespace lte;
@@ -51,10 +52,10 @@ Status S1apServiceImpl::GetENBState(ServerContext* context, const Void* request,
 
     for (auto itr = s1ap_state->enbs.map->begin();
          itr != s1ap_state->enbs.map->end(); itr++) {
-      enb_description_t* enb_ref = itr->second;
+      EnbDescription* enb_ref = itr->second;
       if (enb_ref) {
-        (*response->mutable_enb_state_map())[enb_ref->enb_id] =
-            enb_ref->nb_ue_associated;
+        (*response->mutable_enb_state_map())[enb_ref->enb_id()] =
+            enb_ref->nb_ue_associated();
       }
     }
   }

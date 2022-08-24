@@ -46,7 +46,7 @@ extern bool hss_associated;
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
  **/
-enb_description_t* s1ap_new_enb(void);
+magma::lte::oai::EnbDescription* s1ap_new_enb(void);
 
 /** \brief Allocate and add to the right eNB list a new UE descriptor
  * \param sctp_assoc_id association ID over SCTP
@@ -66,7 +66,8 @@ void s1ap_remove_ue(s1ap_state_t* state,
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
  **/
-void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
+void s1ap_remove_enb(s1ap_state_t* state,
+                     magma::lte::oai::EnbDescription* enb_ref);
 
 void free_enb_description(void** ptr);
 

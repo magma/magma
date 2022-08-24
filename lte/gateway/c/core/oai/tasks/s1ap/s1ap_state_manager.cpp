@@ -30,6 +30,7 @@ constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 constexpr char S1AP_STATE_UE_MAP[] = "s1ap_state_ue_map";
 }  // namespace
 
+using magma::lte::oai::EnbDescription;
 using magma::lte::oai::UeDescription;
 
 namespace magma {
@@ -70,9 +71,10 @@ s1ap_state_t* create_s1ap_state(void) {
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
   state_cache_p->enbs.map =
-      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
+      new google::protobuf::Map<unsigned int,
+                                magma::lte::oai::EnbDescription*>();
   state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
+  state_cache_p->enbs.bind_callback(free_enb_description);
 
   state_cache_p->mmeid2associd.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
@@ -101,7 +103,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   hashtable_rc_t ht_rc;
   hashtable_key_array_t* keys;
   sctp_assoc_id_t assoc_id;
-  enb_description_t* enb;
+  EnbDescription* enb;
 
   if (state_cache_p->enbs.isEmpty()) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
@@ -112,7 +114,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       if (!enb) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
-        enb->ue_id_coll.destroy_map();
+        enb->clear_ue_id_map();
       }
     }
   }
