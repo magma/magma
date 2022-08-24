@@ -7,6 +7,7 @@ on:
     branches:
       - master
       - 'v1.*'
+      - 'arm_ci_testing'
     types: [ opened, reopened, synchronize ]
 
 env:
@@ -48,7 +49,7 @@ jobs:
         run: |
           cd "${{ MAGMA_ROOT }}"/lte/gateway/deploy
           ansible-playbook --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.DOCKER_USERNAME }} magma_registry_password=${{ secrets.DOCKER_PASSWORD }} magma_hash=${GITHUB_SHA:0:8} magma_branch=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}" arm_build.yml
-          
+
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
