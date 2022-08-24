@@ -33,7 +33,7 @@ import (
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 )
 
-func TestSingletonRun(t *testing.T) {
+func TestSingletonRunSuccess(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
@@ -72,8 +72,8 @@ func TestSingletonRun(t *testing.T) {
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
-	require.Equal(t, reindexSuccessNum, 1)
-	require.Equal(t, reindexDoneNum, 1)
+	require.Equal(t, 1, reindexSuccessNum)
+	require.Equal(t, 1, reindexDoneNum)
 
 	// Bump existing indexer version
 	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
@@ -87,13 +87,16 @@ func TestSingletonRun(t *testing.T) {
 	recvNoCh(t, ch)
 
 	idx0a.AssertExpectations(t)
-	require.Equal(t, reindexSuccessNum, 2)
-	require.Equal(t, reindexDoneNum, 2)
+	require.Equal(t, 2, reindexSuccessNum)
+	require.Equal(t, 2, reindexDoneNum)
 
 	// Test that a network/hardware pair that has been added after Run
 	// will have its states reindexed as well
 
-	reportMoreState(t)
+	// reportAdditionalState reports enough directory records to cause 3 batches per network
+	// (with the +1 gateway status per network). It adds an extra network from 3 -> 4,
+	// so numBatches following this method will be 3 * 4 = 12
+	reportAdditionalState(t, nid3, hwid3, 3)
 
 	idx5 := getIndexerNoIndex(id5, zero, version5, true)
 	idx5.On("GetTypes").Return(allTypes).Once()
@@ -108,6 +111,39 @@ func TestSingletonRun(t *testing.T) {
 	idx5.AssertExpectations(t)
 	require.Equal(t, 3, reindexSuccessNum)
 	require.Equal(t, 3, reindexDoneNum)
+	cancel()
+}
+
+func TestSingletonRunFail(t *testing.T) {
+	// Make nullimpotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexSuccess()
+	reindex.TestHookReindexDone()
+
+	// Writes to channel after completing a job
+	reindexSuccessNum, reindexDoneNum := 0, 0
+	ch := make(chan interface{})
+
+	reindex.TestHookReindexSuccess = func() {
+		reindexSuccessNum += 1
+	}
+	defer func() { reindex.TestHookReindexSuccess = func() {} }()
+
+	reindex.TestHookReindexDone = func() {
+		if reindexDoneNum < 6 {
+			ch <- nil
+		}
+		reindexDoneNum += 1
+	}
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r := initSingletonReindexTest(t)
+	reportAdditionalState(t, nid3, hwid3, 3)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
 
 	// Indexer returns err => reindex jobs fail
 
@@ -142,8 +178,8 @@ func TestSingletonRun(t *testing.T) {
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
-	require.Equal(t, 3, reindexSuccessNum)
-	require.Equal(t, 6, reindexDoneNum)
+	require.Equal(t, 0, reindexSuccessNum)
+	require.Equal(t, 0, reindexDoneNum%3)
 }
 
 // initSingletonReindexTest reports enough directory records to cause 3 batches per network
@@ -155,68 +191,35 @@ func initSingletonReindexTest(t *testing.T) reindex.Reindexer {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 
-	configurator_test.RegisterNetwork(t, nid0, "Network 0 for reindex test")
-	configurator_test.RegisterNetwork(t, nid1, "Network 1 for reindex test")
-	configurator_test.RegisterNetwork(t, nid2, "Network 2 for reindex test")
-	configurator_test.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
-	configurator_test.RegisterGateway(t, nid1, hwid1, &models.GatewayDevice{HardwareID: hwid1})
-	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
-
 	reindexer := state_test_init.StartTestSingletonServiceInternal(t)
-	ctxByNetwork := map[string]context.Context{
-		nid0: state_test.GetContextWithCertificate(t, hwid0),
-		nid1: state_test.GetContextWithCertificate(t, hwid1),
-		nid2: state_test.GetContextWithCertificate(t, hwid2),
-	}
 
 	// Report enough directory records to cause 3 batches per network (with the +1 gateway status per network)
-	for _, nid := range []string{nid0, nid1, nid2} {
-		var records []*directoryd_types.DirectoryRecord
-		var deviceIDs []string
-		for i := 0; i < directoryRecordsPerNetwork; i++ {
-			hwid := fmt.Sprintf("hwid%d", i)
-			imsi := fmt.Sprintf("imsi%d", i)
-			records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwid}})
-			deviceIDs = append(deviceIDs, imsi)
-		}
-		reportDirectoryRecord(t, ctxByNetwork[nid], deviceIDs, records)
-	}
-
-	// Report one gateway status per network
-	gwStatus := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	for _, nid := range []string{nid0, nid1, nid2} {
-		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
-	}
-
+	reportAdditionalState(t, nid0, hwid0, 0)
+	reportAdditionalState(t, nid1, hwid1, 1)
+	reportAdditionalState(t, nid2, hwid2, 2)
 	return reindexer
 }
 
 // reportMoreState reports enough directory records to cause 3 batches per network
 // (with the +1 gateway status per network). It adds an extra network from 3 -> 4,
 // so numBatches following this method will be 3 * 4 = 12
-func reportMoreState(t *testing.T) {
-	configurator_test.RegisterNetwork(t, nid3, "Network 3 for reindex test")
-	configurator_test.RegisterGateway(t, nid3, hwid3, &models.GatewayDevice{HardwareID: hwid3})
+func reportAdditionalState(t *testing.T, nid string, hwid string, networkNumber int) {
+	configurator_test.RegisterNetwork(t, nid, fmt.Sprintf("Network %v for reindex test", networkNumber))
+	configurator_test.RegisterGateway(t, nid, hwid, &models.GatewayDevice{HardwareID: hwid})
 
-	ctxByNetwork := map[string]context.Context{
-		nid3: state_test.GetContextWithCertificate(t, hwid3),
-	}
+	ctx := state_test.GetContextWithCertificate(t, hwid)
 
-	for _, nid := range []string{nid3} {
-		var records []*directoryd_types.DirectoryRecord
-		var deviceIDs []string
-		for i := 0; i < directoryRecordsPerNetwork; i++ {
-			hwid := fmt.Sprintf("hwid%d", i)
-			imsi := fmt.Sprintf("imsi%d", i)
-			records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwid}})
-			deviceIDs = append(deviceIDs, imsi)
-		}
-		reportDirectoryRecord(t, ctxByNetwork[nid], deviceIDs, records)
+	var records []*directoryd_types.DirectoryRecord
+	var deviceIDs []string
+	for i := 0; i < directoryRecordsPerNetwork; i++ {
+		hwidStr := fmt.Sprintf("hwid%d", i)
+		imsiStr := fmt.Sprintf("imsiStr%d", i)
+		records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwidStr}})
+		deviceIDs = append(deviceIDs, imsiStr)
 	}
+	reportDirectoryRecord(t, ctx, deviceIDs, records)
 
 	// Report one gateway status per network
 	gwStatus := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	for _, nid := range []string{nid3} {
-		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
-	}
+	reportGatewayStatus(t, ctx, gwStatus)
 }

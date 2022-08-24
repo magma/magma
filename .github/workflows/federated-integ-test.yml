@@ -1,4 +1,13 @@
----
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 name: Federated integ test
 
@@ -194,7 +203,7 @@ jobs:
           [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
-          python ci-scripts/firebase_publish_report.py -id ${{ env.SHA }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} lte --url $URL
+          python ci-scripts/firebase_publish_report.py -id ${{ env.SHA }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} feg --url $URL
       - name: Notify failure to slack
         if: failure() && github.event.workflow_run.event == 'push'
         env:
