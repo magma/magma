@@ -18,7 +18,8 @@ jsonpickle
 netifaces
 scapy
 wsgiserver
-flask
+# flask>=2.1.0 causes version conflicts with "click" when we build the requirements.txt from scratch
+flask<2.1.0
 bravado_core
 #  jsonschema version 4 not compatible with magma swagger specs
 jsonschema==3.2.0
