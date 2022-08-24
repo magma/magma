@@ -599,14 +599,12 @@ void mme_app_state_free_ue_context(void** ue_context_node);
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
 
-
 void mme_app_handle_enb_deregister_ind(
     const itti_s1ap_eNB_deregistered_ind_t* eNB_deregistered_ind);
 
 ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 
 void mme_app_free_bearer_context(bearer_context_t** bc);
-
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
     const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
@@ -637,8 +635,8 @@ void mme_app_recover_timers_for_all_ues(void);
 void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,
                          struct ue_mm_context_s* ue_context_p);
 
-status_code_e eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid,
-                       int* bidx);
+status_code_e eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi,
+                                 pdn_cid_t* pid, int* bidx);
 
 status_code_e send_tau_accept_with_eps_bearer_ctx_status(
     ue_mm_context_t* ue_context);

@@ -43,7 +43,6 @@
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 
-
 struct apn_configuration_s* mme_app_get_apn_config(
     ue_mm_context_t* const ue_context,
     const context_identifier_t context_identifier);
