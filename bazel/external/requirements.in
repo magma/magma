@@ -24,7 +24,7 @@ bravado_core
 #  jsonschema version 4 not compatible with magma swagger specs
 jsonschema==3.2.0
 psutil
-systemd
+systemd-python
 cryptography
 #  h2>=3,<4 is requirement of aioh2 (loaded via bazel)
 h2>=3,<4
