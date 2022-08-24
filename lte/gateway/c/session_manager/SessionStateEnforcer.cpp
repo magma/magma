@@ -1175,6 +1175,8 @@ bool SessionStateEnforcer::m5g_modification_session(
   }
   session->process_get_mod_rule_installs(qospolicy, &pending_activation,
                                          &pending_deactivation);
+  
+  
   uint32_t cur_version = session->get_current_version();
   session->set_current_version(++cur_version, &session_uc);
   session->set_all_pdrs(PdrState::MODI);
