@@ -7,9 +7,7 @@ on:
     branches:
       - master
       - 'v1.*'
-      - 'arm_ci_testing'
-    types: [ opened, reopened, synchronize ]
-
+      - arm_ci_testing
 env:
   MAGMA_VERSION: "1.7.0"
 
@@ -35,7 +33,9 @@ jobs:
         run: |
           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add - <<< "${{ secrets.LF_AWS_KEYPAIR }}"
-          cat "${{ secrets.LF_AWS_KEYPAIR }}" > ~/.ssh/gha_keypair.pem
+          mkdir ~/.ssh
+          touch ~/.ssh/gha_keypair.pem
+          echo "${{ secrets.LF_AWS_KEYPAIR }}" > ~/.ssh/gha_keypair.pem
           sudo chmod 400 ~/.ssh/gha_keypair.pem
       - name: Install Dependencies
         run: |
@@ -47,8 +47,8 @@ jobs:
           echo "host_key_checking = False" >> ~/.ansible.cfg
       - name: Run the ansible script to build on graviton
         run: |
-          cd "${{ MAGMA_ROOT }}"/lte/gateway/deploy
-          ansible-playbook --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.DOCKER_USERNAME }} magma_registry_password=${{ secrets.DOCKER_PASSWORD }} magma_hash=${GITHUB_SHA:0:8} magma_branch=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}" arm_build.yml
+          cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
+          ansible-playbook -vvv --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.DOCKER_USERNAME }} magma_registry_password=${{ secrets.DOCKER_PASSWORD }} magma_hash=${GITHUB_SHA:0:8} magma_branch=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} mitogen_ssh_compression=False" arm_build.yml
 
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
