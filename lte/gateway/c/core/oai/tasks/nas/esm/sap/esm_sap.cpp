@@ -24,14 +24,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
 
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -44,7 +46,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msgDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"

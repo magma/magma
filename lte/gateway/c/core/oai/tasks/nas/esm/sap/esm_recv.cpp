@@ -28,6 +28,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.hpp"
+
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -45,7 +48,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
 

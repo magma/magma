@@ -29,6 +29,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
+
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
@@ -36,7 +39,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"

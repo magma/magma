@@ -42,7 +42,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern status_code_e esm_sap_send(esm_sap_t* msg);
+status_code_e esm_sap_send(esm_sap_t* msg);
 #ifdef __cplusplus
 }
 #endif
