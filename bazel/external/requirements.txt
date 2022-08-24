@@ -1110,9 +1110,9 @@ pyrsistent==0.18.1 \
 pystemd==0.10.0 \
     --hash=sha256:d74a814bfda01085db1a8ad90be3cb27daf23a51ab6b03e7e29ec811fa2ae859
     # via -r requirements.in
-pytest==7.0.1 \
-    --hash=sha256:9ce3ff477af913ecf6321fe337b93a2c0dcf2a0a1439c43f5452112c1e4280db \
-    --hash=sha256:e30905a0c131d3d94b89624a1cc5afec3e0ba2fbdb151867d8e0ebd49850f171
+pytest==7.1.2 \
+    --hash=sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c \
+    --hash=sha256:a06a0425453864a270bc45e71f783330a7428defb4230fb5e6a731fde06ecd45
     # via
     #   -r requirements.in
     #   pytest-cov

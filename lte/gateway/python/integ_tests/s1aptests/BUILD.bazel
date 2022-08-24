@@ -9,7 +9,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 load("//bazel:python_test.bzl", "pytest_test")
 load(
@@ -1199,10 +1198,7 @@ pytest_test(
     srcs = ["test_attach_detach_flaky_retry_success.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [
-        ":s1ap_wrapper",
-        requirement("flaky"),
-    ],
+    deps = [":s1ap_wrapper"],
 )
 
 pytest_test(
