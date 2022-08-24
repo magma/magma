@@ -14,7 +14,7 @@ MODE=$1
 RERUN=0    # Set to 1 to skip network configuration and run ansible playbook only
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
-MAGMA_VERSION="${MAGMA_VERSION:-master}"
+MAGMA_VERSION="${MAGMA_VERSION:-v1.8}"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 DEPLOY_PATH="/opt/magma/lte/gateway/deploy"
 
@@ -85,6 +85,11 @@ EOF
   git clone "${GIT_URL}" /opt/magma
   cd /opt/magma || exit
   git checkout "$MAGMA_VERSION"
+
+  # check if we are on ARM system
+  if [ "$(uname -m)" == "aarch64" ]; then
+    sed -i 's/OPTIONAL_ARCH_PREFIX=/OPTIONAL_ARCH_PREFIX=_arm/' /opt/magma/lte/gateway/docker/.env
+  fi
 
   # changing intefaces name
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub

@@ -83,16 +83,6 @@ sudo su
 cd /root
 ```
 
-Now you have to update the environment file for docker-compose
-
-```bash
-sed -i 's,DOCKER_REGISTRY=,DOCKER_REGISTRY=docker.artifactory.magmacore.org/,' /var/opt/magma/docker/.env
-sed -i 's/IMAGE_VERSION=latest/IMAGE_VERSION=1.8.0/' /var/opt/magma/docker/.env
-
-# Update this only for ARM node
-sed -i 's/COMPOSE_PROJECT_NAME=agw/COMPOSE_PROJECT_NAME=agw_arm64/' /var/opt/magma/docker/.env
-```
-
 Create `control_proxy.yml` file with your orc8r details:
 
 ```bash
