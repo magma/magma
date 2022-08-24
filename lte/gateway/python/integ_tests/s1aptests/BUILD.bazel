@@ -48,11 +48,15 @@ py_library(
 )
 
 py_library(
+    name = "gpp_types",
+    testonly = True,
+    srcs = ["gpp_types.py"],
+)
+
+py_library(
     name = "s1ap_wrapper",
     testonly = True,
-    srcs = [
-        "s1ap_wrapper.py",
-    ],
+    srcs = ["s1ap_wrapper.py"],
     deps = [
         ":s1ap_utils",
         "//lte/gateway/python/integ_tests/common:magmad_client",
@@ -141,7 +145,10 @@ pytest_test(
     srcs = ["test_attach_detach_after_ue_context_release.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -186,7 +193,10 @@ pytest_test(
     srcs = ["test_attach_ue_ctxt_release_cmp_delay.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -267,7 +277,10 @@ pytest_test(
     srcs = ["test_tau_periodic_inactive.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -276,7 +289,10 @@ pytest_test(
     srcs = ["test_tau_periodic_active.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -294,7 +310,10 @@ pytest_test(
     srcs = ["test_eps_bearer_context_status_def_bearer_deact.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -303,7 +322,10 @@ pytest_test(
     srcs = ["test_eps_bearer_context_status_ded_bearer_deact.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -312,7 +334,10 @@ pytest_test(
     srcs = ["test_attach_service.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -330,7 +355,10 @@ pytest_test(
     srcs = ["test_attach_service_ue_radio_capability.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -339,7 +367,10 @@ pytest_test(
     srcs = ["test_attach_service_multi_ue.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -432,7 +463,10 @@ pytest_test(
     srcs = ["test_attach_detach_emm_status.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -441,7 +475,10 @@ pytest_test(
     srcs = ["test_attach_detach_enb_rlf_initial_ue_msg.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -837,7 +874,10 @@ pytest_test(
     srcs = ["test_ics_timer_expiry_ue_registered.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -864,7 +904,10 @@ pytest_test(
     srcs = ["test_attach_service_with_multi_pdns_and_bearers_multi_ue.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -873,7 +916,10 @@ pytest_test(
     srcs = ["test_attach_service_with_multi_pdns_and_bearers_failure.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -882,7 +928,10 @@ pytest_test(
     srcs = ["test_dedicated_bearer_activation_idle_mode_multi_ue.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -936,7 +985,10 @@ pytest_test(
     srcs = ["test_ipv6_paging_with_dedicated_bearer.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -945,7 +997,10 @@ pytest_test(
     srcs = ["test_ipv4v6_paging_with_dedicated_bearer.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1017,7 +1072,10 @@ pytest_test(
     srcs = ["test_attach_service_with_multi_pdns_and_bearers_mt_data.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1107,7 +1165,10 @@ pytest_test(
     srcs = ["test_service_req_ul_udp_data_with_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1132,6 +1193,15 @@ pytest_test(
 )
 
 pytest_test(
+    name = "test_attach_detach_flaky_retry_success",
+    size = "small",
+    srcs = ["test_attach_detach_flaky_retry_success.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
     name = "test_attach_detach_multi_ue_looped",
     size = "small",
     srcs = ["test_attach_detach_multi_ue_looped.py"],
@@ -1146,7 +1216,10 @@ pytest_test(
     srcs = ["test_attach_detach_ps_service_not_available.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1272,7 +1345,10 @@ pytest_test(
     srcs = ["test_dedicated_bearer_activation_idle_mode.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1299,7 +1375,10 @@ pytest_test(
     srcs = ["test_attach_service_with_multi_pdns_and_bearers.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1326,7 +1405,10 @@ pytest_test(
     srcs = ["test_attach_service_with_multi_pdns_and_bearers_looped.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1335,7 +1417,10 @@ pytest_test(
     srcs = ["test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1407,7 +1492,10 @@ pytest_test(
     srcs = ["test_idle_mode_with_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1434,7 +1522,10 @@ pytest_test(
     srcs = ["test_paging_after_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1452,7 +1543,10 @@ pytest_test(
     srcs = ["test_tau_ta_updating.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1461,7 +1555,10 @@ pytest_test(
     srcs = ["test_tau_ta_updating_reject.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1470,7 +1567,10 @@ pytest_test(
     srcs = ["test_tau_mixed_partial_lists.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1479,7 +1579,10 @@ pytest_test(
     srcs = ["test_eps_bearer_context_status_multiple_ded_bearer_deact.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1488,7 +1591,10 @@ pytest_test(
     srcs = ["test_guti_attach_with_zero_mtmsi.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1497,7 +1603,10 @@ pytest_test(
     srcs = ["test_ics_timer_expiry_with_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1506,7 +1615,10 @@ pytest_test(
     srcs = ["test_attach_mobile_reachability_timer_expiry.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1515,7 +1627,10 @@ pytest_test(
     srcs = ["test_attach_implicit_detach_timer_expiry.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1524,7 +1639,10 @@ pytest_test(
     srcs = ["test_mobile_reachability_tmr_with_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1533,7 +1651,10 @@ pytest_test(
     srcs = ["test_implicit_detach_timer_with_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_EXTENDED_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1593,7 +1714,10 @@ pytest_test(
     srcs = ["test_paging_with_mme_restart.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1818,7 +1942,10 @@ pytest_test(
     srcs = ["test_attach_service_without_mac.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1827,7 +1954,10 @@ pytest_test(
     srcs = ["test_paging_request.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1836,7 +1966,10 @@ pytest_test(
     srcs = ["test_multi_enb_paging_request.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1881,7 +2014,10 @@ pytest_test(
     srcs = ["test_attach_inactive_tau_with_combined_tala_update_reattach.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(
@@ -1890,7 +2026,10 @@ pytest_test(
     srcs = ["test_attach_active_tau_with_combined_tala_update_reattach.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST,
-    deps = [":s1ap_wrapper"],
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
 )
 
 pytest_test(

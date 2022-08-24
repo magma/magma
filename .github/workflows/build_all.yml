@@ -894,7 +894,7 @@ jobs:
       - name: Publish to
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
-          WORKERS: "wl_lab_5g" # all workers for post-merge pipeline. Comma separated
+          WORKERS: "wl_lab_5g,feg_integ_test" # all workers for post-merge pipeline. Comma separated
           BUILD_ID: "${{ github.sha }}"
           BUILD_METADATA: '{"github:workflow": "${{ github.workflow }}", "github:run_id": "${{ github.run_id }}", "github:actor": "${{ github.actor }}", "github:repository": "${{ github.repository }}",
             "github:event_name": "${{ github.event_name }}", "github:sha": "${{ github.sha }}", "github:sha:url": "${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}",
