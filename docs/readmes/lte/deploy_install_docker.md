@@ -66,7 +66,6 @@ vim /var/opt/magma/certs/rootCA.pem
 Download AGW docker install script
 
 ```bash
-sudo su
 wget https://github.com/magma/magma/raw/v1.8/lte/gateway/deploy/agw_install_docker.sh
 bash agw_install_docker.sh
 ```
