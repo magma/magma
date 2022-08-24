@@ -1,0 +1,186 @@
+
+---
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Phase 1 - Create the arm graviton instance
+  hosts: localhost
+  gather_facts: False
+  vars:
+    arm_instance_type: t4g.medium
+    arm_security_group: sg-068f38e992f0ffb63
+    arm_ami_instance: ami-00a0488e9d5582804
+    arm_region: us-west-1
+    keypair: gha_keypair
+    arm_vpc: subnet-2674e740
+    aws_secret_key: "overwrite_me"
+    aws_access_key: "overwrite_me"
+    ansible_ssh_private_key_file: "~/.ssh/gha_keypair.pem"
+    ansible_ssh_user: "ubuntu"
+    commit_id: "master"
+    magma_hash: ""
+  tasks:
+    - name: Launch instance
+      amazon.aws.ec2_instance:
+        name: "arm-build-{{ commit_id }}-{{ magma_hash }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        key_name: "{{ keypair }}"
+        security_group: "{{ arm_security_group }}"
+        instance_type: "{{ arm_instance_type }}"
+        image_id: "{{ arm_ami_instance }}"
+        wait: true
+        region: "{{ arm_region }}"
+        vpc_subnet_id: "{{ arm_vpc }}"
+        volumes:
+          - device_name: /dev/sda1
+            ebs:
+              volume_size: 50
+              delete_on_termination: true
+        network:
+          assign_public_ip: yes
+        tags:
+          Environment: CI
+      register: ec2
+
+    - name: Sleep for 10 seconds if AWS didn't return the public ip
+      ansible.builtin.wait_for:
+        timeout: 10
+      delegate_to: localhost
+      when: ec2.instances[0].public_ip_address is undefined
+
+    - name: Fetch the public ip address
+      amazon.aws.ec2_instance:
+        name: "arm-build-{{ commit_id }}-{{ magma_hash }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        key_name: "{{ keypair }}"
+        security_group: "{{ arm_security_group }}"
+        instance_type: "{{ arm_instance_type }}"
+        image_id: "{{ arm_ami_instance }}"
+        wait: true
+        region: "{{ arm_region }}"
+        vpc_subnet_id: "{{ arm_vpc }}"
+        volumes:
+          - device_name: /dev/sda1
+            ebs:
+              volume_size: 50
+              delete_on_termination: true
+        network:
+          assign_public_ip: yes
+        tags:
+          Environment: CI
+      register: ec2
+      when: ec2.instances[0].public_ip_address is undefined
+
+    - name: Printing useful debug infos
+      ansible.builtin.debug:
+        msg: "{{ ec2 }}"
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.public_ip_address }}"
+        groupname: launched
+      loop: "{{ ec2.instances }}"
+
+    - name: Wait for SSH to come up
+      delegate_to: "{{ item.public_dns_name }}"
+      wait_for_connection:
+        delay: 10
+        timeout: 320
+      loop: "{{ ec2.instances }}"
+
+- name: Phase 2 - Configure and build on newly build instance
+  hosts: launched
+  vars:
+    ansible_ssh_private_key_file: "~/.ssh/gha_keypair.pem"
+    ansible_ssh_user: "ubuntu"
+    magma_dir: /tmp/magma/
+    magma_repo: https://github.com/magma/magma.git
+    magma_branch: master #default value
+    magma_registry_url: "docker.artifactory.magmacore.org"
+    magma_registry_username: "overwrite_me"
+    magma_registry_password: "overwrite_me"
+  tasks:
+    - name: Configure the instance
+      become: true
+      apt:
+        state: present
+        update_cache: true
+        pkg:
+          - docker.io
+          - git
+          - docker-compose
+          - apt-transport-https
+          - curl
+          - gnupg
+          - jq
+
+    - name: Ensure group "docker" exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: adding existing user '{{ user }}' to group docker
+      user:
+        name: '{{ ansible_ssh_user }}'
+        groups: docker
+        append: yes
+      become: true
+
+    - name: Installing latest docker-compose
+      become: true
+      ansible.builtin.shell: |
+        COMPOSE_VERSION=$(curl -s "https://api.github.com/repos/docker/compose/tags" | jq -r '.[0].name')
+        curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+
+    - name: Create magma directory
+      file:
+        path: "{{ magma_dir }}"
+        state: directory
+        mode: u+rwx
+        owner: "{{ ansible_ssh_user }}"
+      become: true
+
+    - name: Download github repo
+      git:
+        repo: "{{ magma_repo }}"
+        dest: "{{ magma_dir }}"
+        version: "{{ magma_branch }}"
+
+    - name: Reset ssh connection to allow user changes to affect 'current login user'
+      meta: reset_connection
+
+    - name: Run build
+      ansible.builtin.shell: |
+        cd "{{ magma_dir }}"/lte/gateway/docker
+        export IMAGE_VERSION="{{ magma_hash }}"
+        docker login -u {{ magma_registry_username }} -p {{ magma_registry_password }} {{ magma_registry_url }}
+        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64
+        docker-compose push
+
+- name: Phase 3 - Kill the arm instance
+  hosts: localhost
+  vars:
+    aws_secret_key: "overwrite_me"
+    aws_access_key: "overwrite_me"
+    arm_region: us-west-1
+  tasks:
+    - name: Terminate instances that were previously launched
+      amazon.aws.ec2_instance:
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        region: "{{ arm_region }}"
+        state: absent
+        instance_ids: "{{ item }}"
+      loop: "{{ ec2.instance_ids }}"
+      tags: debug
