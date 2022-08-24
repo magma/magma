@@ -1991,11 +1991,12 @@
       }
     },
     "links": {
-      "Home": "Home",
+      "Magma Website": "Magma Website",
       " | ": " | ",
       "Docs": "Docs",
       "Code": "Code",
-      "Community": "Community"
+      "Contributing": "Contributing",
+      "Wiki": "Wiki"
     },
     "categories": {
       "Getting Started": "Getting Started",
@@ -2008,8 +2009,9 @@
       "Debug": "Debug",
       "Contribute": "Contribute",
       "Technical Reference": "Technical Reference",
-      "Proposals": "Proposals",
+      "Design Documents": "Design Documents",
       "FAQ": "FAQ",
+      "Proposals": "Proposals",
       "Basics": "Basics",
       "Orchestrator": "Orchestrator",
       "NMS": "NMS",
