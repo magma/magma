@@ -35,6 +35,7 @@
     "core-js": "^3.2.1",
     "css-loader": "^1.0.1",
     "csurf": "^1.9.0",
+    "date-fns": "^2.29.2",
     "email-validator": "^2.0.4",
     "express": "^4.16.3",
     "express-http-proxy": "^1.5.1",
