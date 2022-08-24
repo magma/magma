@@ -12,14 +12,13 @@
  */
 
 import CircularProgress from '@mui/material/CircularProgress';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import moment from 'moment';
 import {Line} from 'react-chartjs-2';
-
-import MagmaAPI from '../../api/MagmaAPI';
 import {PositionType, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated';
+import {differenceInDays, differenceInHours, getUnixTime, sub} from 'date-fns';
 import {makeStyles} from '@mui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -56,7 +55,7 @@ type Props = {
   queries: Array<string>;
   legendLabels?: Array<string>;
   timeRange: TimeRange;
-  startEnd?: [moment.Moment, moment.Moment];
+  startEnd?: [Date, Date];
   networkId?: string;
   style?: ChartStyle;
   height?: number;
@@ -187,10 +186,10 @@ function Progress() {
 
 function getStartEnd(timeRange: TimeRange) {
   const {days, hours, step} = RANGE_VALUES[timeRange];
-  const end = moment();
-  const endUnix = end.unix() * 1000;
-  const start = end.clone().subtract({days, hours});
-  const startUnix = start.unix() * 1000;
+  const end = new Date();
+  const endUnix = getUnixTime(end) * 1000;
+  const start = sub(end, {days, hours});
+  const startUnix = getUnixTime(start) * 1000;
   return {
     start: start.toISOString(),
     startUnix: startUnix,
@@ -204,34 +203,33 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
-function getStepUnit(
-  startEnd: [moment.Moment, moment.Moment],
-): [string, TimeUnit] {
+function getStepUnit(startEnd: [Date, Date]): [string, TimeUnit] {
   const [start, end] = startEnd;
-  const d = moment.duration(end.diff(start));
-  const hrs = d.asHours();
-  const days = d.asDays();
-  let r: RangeValue;
-  if (hrs <= 24) {
-    if (hrs <= 3) {
-      r = RANGE_VALUES['3_hours'];
-    } else if (hrs <= 6) {
-      r = RANGE_VALUES['6_hours'];
-    } else if (hrs <= 12) {
-      r = RANGE_VALUES['12_hours'];
+  const durationInHours = differenceInHours(end, start);
+  const durationInDays = differenceInDays(end, start);
+
+  let range: RangeValue;
+  if (durationInHours <= 24) {
+    if (durationInHours <= 3) {
+      range = RANGE_VALUES['3_hours'];
+    } else if (durationInHours <= 6) {
+      range = RANGE_VALUES['6_hours'];
+    } else if (durationInHours <= 12) {
+      range = RANGE_VALUES['12_hours'];
     } else {
-      r = RANGE_VALUES['24_hours'];
+      range = RANGE_VALUES['24_hours'];
     }
   } else {
-    if (days <= 7) {
-      r = RANGE_VALUES['7_days'];
-    } else if (days <= 14) {
-      r = RANGE_VALUES['14_days'];
+    if (durationInDays <= 7) {
+      range = RANGE_VALUES['7_days'];
+    } else if (durationInDays <= 14) {
+      range = RANGE_VALUES['14_days'];
     } else {
-      r = RANGE_VALUES['30_days'];
+      range = RANGE_VALUES['30_days'];
     }
   }
-  return [r.step, r.unit];
+
+  return [range.step, range.unit];
 }
 
 function getColorForIndex(index: number, customChartColors?: Array<string>) {
@@ -249,9 +247,9 @@ function useDatasetsFetcher(props: Props) {
       const [step] = getStepUnit(props.startEnd);
       return {
         start: start.toISOString(),
-        startUnix: start.unix() * 1000,
+        startUnix: getUnixTime(start) * 1000,
         end: end.toISOString(),
-        endUnix: end.unix() * 1000,
+        endUnix: getUnixTime(end) * 1000,
         step,
       };
     } else {
@@ -380,7 +378,7 @@ export default function AsyncMetric(props: Props) {
               time: {
                 unit,
                 round: 'second',
-                tooltipFormat: ' YYYY/MM/DD h:mm:ss a',
+                tooltipFormat: ' yyyy/MM/dd h:mm:ss a',
               },
               scaleLabel: {
                 display: true,

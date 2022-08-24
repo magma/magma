@@ -19,12 +19,12 @@ import DataUsageIcon from '@mui/icons-material/DataUsage';
 import Grid from '@mui/material/Grid';
 import React from 'react';
 import Text from '../theme/design-system/Text';
-import moment from 'moment';
 
 import TextField from '@mui/material/TextField';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {colors} from '../theme/default';
 import {makeStyles} from '@mui/styles';
+import {subHours} from 'date-fns';
 import {useState} from 'react';
 
 export type DateTimeMetricChartProps = {
@@ -32,8 +32,8 @@ export type DateTimeMetricChartProps = {
   queries: Array<string>;
   legendLabels: Array<string>;
   unit?: string;
-  startDate?: moment.Moment;
-  endDate?: moment.Moment;
+  startDate?: Date;
+  endDate?: Date;
 };
 
 const useStyles = makeStyles({
@@ -46,8 +46,8 @@ const CHART_COLORS = [colors.secondary.dodgerBlue, colors.data.flamePea];
 
 export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const classes = useStyles();
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(subHours(new Date(), 3));
+  const [endDate, setEndDate] = useState(new Date());
 
   function Filter() {
     return (
@@ -63,7 +63,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date as moment.Moment)}
+            onChange={date => setStartDate(date!)}
           />
         </Grid>
         <Grid item>
@@ -76,7 +76,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
             renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date as moment.Moment)}
+            onChange={date => setEndDate(date!)}
           />
         </Grid>
       </Grid>
