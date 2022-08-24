@@ -93,11 +93,12 @@ a Juju controller on it.</p>
       <span class="hljs-attr">domain:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">domain</span> <span class="hljs-string">name&gt;</span>
   <span class="hljs-attr">tls-certificates-operator:</span>
     <span class="hljs-attr">options:</span>
-      <span class="hljs-attr">certificate:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">base64</span> <span class="hljs-string">encoded</span> <span class="hljs-string">certificate&gt;</span>
-      <span class="hljs-attr">private-key:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">base64</span> <span class="hljs-string">encoded</span> <span class="hljs-string">private</span> <span class="hljs-string">key&gt;</span>
-      <span class="hljs-attr">ca-certificate:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">base64</span> <span class="hljs-string">encoded</span> <span class="hljs-string">ca</span> <span class="hljs-string">certificate&gt;</span>
+      <span class="hljs-attr">generate-self-signed-certificates:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">ca-common-name:</span> <span class="hljs-string">rootca.&lt;your</span> <span class="hljs-string">domain</span> <span class="hljs-string">name&gt;</span>
 </code></pre>
-<p>Replace the values in angle brackets.</p>
+<blockquote>
+<p><strong>Warning</strong>: This configuration is unsecure because it uses self-signed certificates.</p>
+</blockquote>
 <p>Deploy Orchestrator:</p>
 <pre><code class="hljs css language-bash">juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
 </code></pre>
@@ -117,18 +118,18 @@ juju run-action orc8r-certifier/leader get-pfx-package-password --<span class="h
 <p>In your domain registrar, create A records for the following Kubernetes services:</p>
 <table>
 <thead>
-<tr><th>Hostname</th><th>Address</th></tr>
+<tr><th>Address</th><th>Hostname</th></tr>
 </thead>
 <tbody>
-<tr><td><code>bootstrapper-controller.&lt;your domain&gt;</code></td><td><code>&lt;orc8r-bootstrap-nginx External IP&gt;</code></td></tr>
-<tr><td><code>api.&lt;your domain&gt;</code></td><td><code>&lt;orc8r-nginx-proxy External IP&gt;</code></td></tr>
-<tr><td><code>controller.&lt;your domain&gt;</code></td><td><code>&lt;orc8r-clientcert-nginx External IP&gt;</code></td></tr>
-<tr><td><code>*.nms.&lt;your domain&gt;</code></td><td><code>&lt;nginx-proxy External IP&gt;</code></td></tr>
+<tr><td><code>&lt;orc8r-bootstrap-nginx External IP&gt;</code></td><td><code>bootstrapper-controller.&lt;your domain&gt;</code></td></tr>
+<tr><td><code>&lt;orc8r-nginx-proxy External IP&gt;</code></td><td><code>api.&lt;your domain&gt;</code></td></tr>
+<tr><td><code>&lt;orc8r-clientcert-nginx External IP&gt;</code></td><td><code>controller.&lt;your domain&gt;</code></td></tr>
+<tr><td><code>&lt;nginx-proxy External IP&gt;</code></td><td><code>*.nms.&lt;your domain&gt;</code></td></tr>
 </tbody>
 </table>
 <h2><a class="anchor" aria-hidden="true" id="verify-the-deployment"></a><a href="#verify-the-deployment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Verify the deployment</h2>
 <p>Get the master organization's username and password:</p>
-<pre><code class="hljs css language-bash">juju run-action nms-magmalte/0 get-master-admin-credentials --<span class="hljs-built_in">wait</span>
+<pre><code class="hljs css language-bash">juju run-action nms-magmalte/leader get-master-admin-credentials --<span class="hljs-built_in">wait</span>
 </code></pre>
 <p>Confirm successful deployment by visiting <code>https://master.nms.&lt;your domain&gt;</code> and logging in
 with the <code>admin-username</code> and <code>admin-password</code> outputted here.</p>
