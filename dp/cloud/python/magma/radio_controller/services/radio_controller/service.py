@@ -40,8 +40,15 @@ class RadioControllerService(RadioControllerServicer):
     Radio Controller gRPC Service class
     """
 
-    def __init__(self, session_manager: SessionManager):
+    def __init__(
+            self,
+            session_manager: SessionManager,
+            cbsd_states_map: Dict[str, int],
+            request_types_map: Dict[str, int],
+    ):
         self.session_manager = session_manager
+        self.cbsd_states_map = cbsd_states_map
+        self.request_types_map = request_types_map
 
     @INSERT_TO_DB_PROCESSING_TIME.time()
     def UploadRequests(self, request_payload: RequestPayload, context) -> RequestDbIds:
@@ -64,9 +71,7 @@ class RadioControllerService(RadioControllerServicer):
         request_db_ids = []
         request_type = next(iter(request_map))
         with self.session_manager.session_scope() as session:
-            req_type = session.query(DBRequestType).filter(
-                DBRequestType.name == request_type,
-            ).first()
+            req_type_id = self.request_types_map[request_type]
             for request_json in request_map[request_type]:
                 cbsd = self._get_or_create_cbsd(
                     session, request_type, request_json,
@@ -77,7 +82,7 @@ class RadioControllerService(RadioControllerServicer):
                     )
                     continue
                 db_request = DBRequest(
-                    type=req_type,
+                    type_id=req_type_id,
                     cbsd=cbsd,
                     payload=request_json,
                 )
@@ -100,16 +105,14 @@ class RadioControllerService(RadioControllerServicer):
 
     # TODO remove this (cbsds should not be created implicitly)
     def _create_cbsd(self, session: Session, request_payload: Dict, cbsd_id: Optional[str]):
-        cbsd_state = session.query(DBCbsdState).filter(
-            DBCbsdState.name == CbsdStates.UNREGISTERED.value,
-        ).scalar()
+        cbsd_state_id = self.cbsd_states_map[CbsdStates.UNREGISTERED.value]
         user_id = request_payload.get("userId", None)
         fcc_id = request_payload.get("fccId", None)
         cbsd_serial_number = request_payload.get("cbsdSerialNumber", None)
         cbsd = DBCbsd(
             cbsd_id=cbsd_id,
-            state=cbsd_state,
-            desired_state=cbsd_state,
+            state_id=cbsd_state_id,
+            desired_state_id=cbsd_state_id,
             user_id=user_id,
             fcc_id=fcc_id,
             cbsd_serial_number=cbsd_serial_number,

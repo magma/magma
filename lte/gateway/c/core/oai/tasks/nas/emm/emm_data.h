@@ -44,7 +44,7 @@ Description Defines internal private data handled by EPS Mobility
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"

@@ -49,12 +49,11 @@ applications:
       domain: <your domain name>
   tls-certificates-operator:
     options:
-      certificate: <your base64 encoded certificate>
-      private-key: <your base64 encoded private key>
-      ca-certificate: <your base64 encoded ca certificate>
+      generate-self-signed-certificates: true
+      ca-common-name: rootca.<your domain name>
 ```
 
-Replace the values in angle brackets.
+> **Warning**: This configuration is unsecure because it uses self-signed certificates.
 
 Deploy Orchestrator:
 
@@ -85,19 +84,19 @@ juju run-action orc8r-orchestrator/leader get-load-balancer-services --wait
 
 In your domain registrar, create A records for the following Kubernetes services:
 
-| Hostname                                | Address                                |
-|-----------------------------------------|----------------------------------------|
-| `bootstrapper-controller.<your domain>` | `<orc8r-bootstrap-nginx External IP>`  |
-| `api.<your domain>`                     | `<orc8r-nginx-proxy External IP>`      |
-| `controller.<your domain>`              | `<orc8r-clientcert-nginx External IP>` |
-| `*.nms.<your domain>`                   | `<nginx-proxy External IP>`            |
+| Address                                | Hostname                                |
+|----------------------------------------|-----------------------------------------|
+| `<orc8r-bootstrap-nginx External IP>`  | `bootstrapper-controller.<your domain>` |
+| `<orc8r-nginx-proxy External IP>`      | `api.<your domain>`                     |
+| `<orc8r-clientcert-nginx External IP>` | `controller.<your domain>`              |
+| `<nginx-proxy External IP>`            | `*.nms.<your domain>`                   |
 
 ## Verify the deployment
 
 Get the master organization's username and password:
 
 ```bash
-juju run-action nms-magmalte/0 get-master-admin-credentials --wait
+juju run-action nms-magmalte/leader get-master-admin-credentials --wait
 ```
 
 Confirm successful deployment by visiting `https://master.nms.<your domain>` and logging in

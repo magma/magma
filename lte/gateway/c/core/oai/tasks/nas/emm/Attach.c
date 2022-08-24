@@ -88,9 +88,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
@@ -105,7 +105,6 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

@@ -276,7 +276,6 @@
         "type": "subcategory",
         "label": "Maintain",
         "ids": [
-          "contributing/contribute_proposals",
           "contributing/contribute_codeowners",
           "contributing/contribute_tsc_norms"
         ]
@@ -355,7 +354,7 @@
         ]
       }
     ],
-    "Proposals": [
+    "Design Documents": [
       {
         "type": "subcategory",
         "label": "General",

@@ -41,6 +41,7 @@ PYTEST_DEPS = [
     requirement("pytest"),
     requirement("pytest-cov"),
     requirement("coverage-lcov"),
+    requirement("flaky"),
 ]
 
 def _stringify(paths):
