@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_ebr_context.h
+Source      esm_ebr_context.hpp
 
 Version     0.1
 
