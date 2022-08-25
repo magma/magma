@@ -21,7 +21,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestEpsBearerCxtStsMulDedBearerDeact(unittest.TestCase):
+class TestEpsBearerContextStatusMultipleDedBearerDeact(unittest.TestCase):
     """Test dedicated bearer deactivation with EPS bearer context status"""
 
     def setUp(self):

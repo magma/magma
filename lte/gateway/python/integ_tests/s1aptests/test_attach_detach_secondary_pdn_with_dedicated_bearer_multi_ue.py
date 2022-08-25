@@ -20,7 +20,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
+class TestAttachDetachSecondaryPdnWithDedicatedBearerMultiUe(unittest.TestCase):
     """Test secondary pdn creation with dedicated bearer for 4 UEs"""
 
     def setUp(self):
@@ -32,7 +32,7 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_with_dedicated_bearer_multi_ue(self):
+    def test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue(self):
         """Attach/detach + PDN Connectivity Requests + dedicated bearer for 4
         UEs
         """

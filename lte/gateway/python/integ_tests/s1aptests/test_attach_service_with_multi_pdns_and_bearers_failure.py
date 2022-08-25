@@ -22,7 +22,7 @@ from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from lte.protos.policydb_pb2 import FlowMatch
 
 
-class TestAttachServiceMultiPdnsBearersFailure(unittest.TestCase):
+class TestAttachServiceWithMultiPdnsAndBearersFailure(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._sessionManager_util = SessionManagerUtil()
@@ -30,7 +30,7 @@ class TestAttachServiceMultiPdnsBearersFailure(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_service_multi_pdns_bearers_failure(self):
+    def test_attach_service_with_multi_pdns_and_bearers_failure(self):
         """Test with a single UE attach + add secondary PDN
         + add 2 dedicated bearers + UE context release + service request
         + ICS Rsp with failed bearers + detach"""

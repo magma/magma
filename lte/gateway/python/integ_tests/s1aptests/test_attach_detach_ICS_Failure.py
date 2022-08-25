@@ -18,14 +18,14 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachICSFailure(unittest.TestCase):
+class TestAttachDetachICSFailure(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_ics_failure(self):
+    def test_attach_detach_ics_failure(self):
         """ Initial Context Setup Failure Test Case"""
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)

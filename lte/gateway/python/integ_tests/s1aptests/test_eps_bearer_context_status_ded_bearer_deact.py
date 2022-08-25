@@ -33,7 +33,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_eps_bearer_context_status_multi_ded_bearer_deact(self):
+    def test_eps_bearer_context_status_ded_bearer_deact(self):
         """Attach a single UE. Create 2 secondary PDNs and add 2
         dedicated bearers to each of the secondary PDNs.
         Send EPS bearer context status

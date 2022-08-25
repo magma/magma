@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachDetachEmmStatusMsg(unittest.TestCase):
+class TestAttachDetachEmmStatus(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -27,7 +27,7 @@ class TestAttachDetachEmmStatusMsg(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_emm_status_msg(self):
+    def test_attach_detach_emm_status(self):
         """ Attach, sending EMM Status message in response of
         EMM information """
         # Ground work.

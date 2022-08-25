@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
+class TestAttachDetachSecondaryPdnInvalidAPN(unittest.TestCase):
     """Test secondary pdn creation with invalid apn"""
 
     def setUp(self):
@@ -30,7 +30,7 @@ class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_req_invalid_apn(self):
+    def test_attach_detach_secondary_pdn_invalid_apn(self):
         """Attach a single UE and send standalone PDN Connectivity
         Request with invalid APN
         """
