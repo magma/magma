@@ -51,7 +51,7 @@ installation process to get an IP using DHCP.
 Become root user:
 
 ```bash
-sudo su - root
+sudo -i
 ```
 
 Copy your `rootCA.pem` file from orc8r to the following location:
@@ -77,7 +77,7 @@ Once you see the output `Reboot this machine to apply kernel settings`, reboot y
 After reboot again SSH and become root user:
 
 ```bash
-sudo su - root
+sudo -i
 ```
 
 Create `control_proxy.yml` file with your orc8r details:
