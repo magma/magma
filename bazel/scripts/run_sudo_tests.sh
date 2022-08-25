@@ -20,13 +20,22 @@ set -euo pipefail
 ###############################################################################
 
 help() {
-    echo "Executes all bazel tests that are tagged as sudo_test inside the"
+    echo -e "${BOLD}Executes all bazel tests that are tagged as sudo_test inside the"
     echo "specified directory (recursively), or one single test if a test name"
     echo "is provided."
-    echo "Usage:"
+    echo -e "Usage:${NO_FORMATTING}"
+    echo "   $(basename "$0") --help"
+    echo "      Display this help message."
     echo "   $(basename "$0")  # execute all tests in the magma repository" 
     echo "   $(basename "$0") path_to_tests_directory/"
     echo "   $(basename "$0") path_to_tests_directory:test_name"
+    echo "   --list"
+    echo "      List all sudo test targets."
+    echo "   --retry-on-failure"
+    echo "      Retry twice for every test in case of failure."
+    echo "   --retry-attempts N"
+    echo "      Retry N times for every test in case of failure."
+    echo "      Should be used together with --retry-on-failure."
     exit 1
 }
 
@@ -68,7 +77,7 @@ print_summary() {
     echo "SUMMARY: ${NUM_SUCCESS}/${TOTAL_TESTS} tests were successful."
     for TARGET in "${!TEST_RESULTS[@]}"
     do
-        echo "  ${TARGET}: ${TEST_RESULTS[${TARGET}]}"
+        echo -e "  ${TARGET}: ${TEST_RESULTS[${TARGET}]}"
     done
 }
 
@@ -76,12 +85,54 @@ print_summary() {
 # SCRIPT SECTION
 ###############################################################################
 
-TARGET_PATH="${1:-}"
-
+TARGET_PATH=""
 declare -a TEST_TARGETS
 declare -A TEST_RESULTS
+FLAKY_ARGS=()
 NUM_SUCCESS=0
 NUM_RUN=1
+RETRY_ON_FAILURE="false"
+RETRY_ATTEMPTS=2
+
+BOLD='\033[1m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NO_FORMATTING='\033[0m'
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --list)
+      bazel query "attr(tags, sudo_test, kind(py_test, //...))" 2>/dev/null
+      exit 0
+      ;;
+    --retry-on-failure)
+      RETRY_ON_FAILURE="true"
+      shift
+      ;;
+    --retry-attempts)
+      shift
+      RETRY_ATTEMPTS="$1"
+      shift
+      ;;
+    --help)
+      help
+      exit 0
+      ;;
+    --*|-*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      TARGET_PATH="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ "${RETRY_ON_FAILURE}" == "true" ]];
+then
+    FLAKY_ARGS=( --force-flaky --no-flaky-report "--max-runs=$((RETRY_ATTEMPTS + 1))" "--min-passes=1" )
+fi
 
 cd "${MAGMA_ROOT}"
 
@@ -96,9 +147,9 @@ do
     if run_test "${TARGET}";
     then
         NUM_SUCCESS=$((NUM_SUCCESS + 1))
-        TEST_RESULTS["${TARGET}"]="PASSED"
+        TEST_RESULTS["${TARGET}"]="${GREEN}PASSED${NO_FORMATTING}"
     else
-        TEST_RESULTS["${TARGET}"]="FAILED"
+        TEST_RESULTS["${TARGET}"]="${RED}FAILED${NO_FORMATTING}"
     fi
     NUM_RUN=$((NUM_RUN + 1))
 done
