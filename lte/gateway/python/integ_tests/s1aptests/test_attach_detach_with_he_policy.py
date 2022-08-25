@@ -25,7 +25,7 @@ from integ_tests.s1aptests.s1ap_utils import (
 from lte.protos.policydb_pb2 import FlowMatch, HeaderEnrichment
 
 
-class TestAttachDetachWithHEPolicy(unittest.TestCase):
+class TestAttachDetachWithHePolicy(unittest.TestCase):
     SPGW_TABLE = 0
     HE_TABLE = 4
     LOCAL_PORT = "LOCAL"
