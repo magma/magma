@@ -20,15 +20,17 @@ set -euo pipefail
 ###############################################################################
 
 help() {
-    echo -e "${BOLD}Executes all bazel tests that are tagged as sudo_test inside the"
-    echo "specified directory (recursively), or one single test if a test name"
-    echo "is provided."
+    echo -e "${BOLD}Run sudo tests with Bazel."
     echo -e "Usage:${NO_FORMATTING}"
     echo "   $(basename "$0") --help"
     echo "      Display this help message."
-    echo "   $(basename "$0")  # execute all tests in the magma repository" 
+    echo "   $(basename "$0")" 
+    echo "      Executes all bazel tests that are tagged as sudo_test." 
     echo "   $(basename "$0") path_to_tests_directory/"
+    echo "      Executes all bazel tests that are tagged as sudo_test" 
+    echo "      inside the specified directory (recursively)."
     echo "   $(basename "$0") path_to_tests_directory:test_name"
+    echo "      Executes the specified sudo test." 
     echo "   --list"
     echo "      List all sudo test targets."
     echo "   --retry-on-failure"
@@ -67,8 +69,17 @@ run_test() {
     (
         set -x
         bazel build "${TARGET}"
-        sudo "bazel-bin/${TARGET_PATH}/${SHORT_TARGET}"
+        sudo "bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}" \
+            --junit-xml="${SUDO_TEST_REPORT_FOLDER}/${SHORT_TARGET}_report.xml" \
+            -o "junit_suite_name=${SHORT_TARGET}" -o "junit_logging=no";
     )
+}
+
+create_xml_report() {
+    rm -f "${MERGED_REPORT_FOLDER}/"*.xml
+    mkdir -p "${MERGED_REPORT_FOLDER}"
+    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${SUDO_TEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/sudo_tests_report.xml" 
+    rm -f "${SUDO_TEST_REPORT_FOLDER}/"*.xml
 }
 
 print_summary() {
@@ -93,6 +104,8 @@ NUM_SUCCESS=0
 NUM_RUN=1
 RETRY_ON_FAILURE="false"
 RETRY_ATTEMPTS=2
+SUDO_TEST_REPORT_FOLDER="/var/tmp/test_results"
+MERGED_REPORT_FOLDER="${SUDO_TEST_REPORT_FOLDER}/sudo_merged_report"
 
 BOLD='\033[1m'
 RED='\033[0;31m'
@@ -153,6 +166,8 @@ do
     fi
     NUM_RUN=$((NUM_RUN + 1))
 done
+
+create_xml_report
 
 print_summary "${NUM_SUCCESS}" "${TOTAL_TESTS}"
 
