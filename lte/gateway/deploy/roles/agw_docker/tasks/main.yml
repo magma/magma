@@ -63,7 +63,7 @@
   template:
     src: env.j2
     dest: /var/opt/magma/docker/.env
-    mode: 0400
+    mode: 0644
 
 - name: copy the config files for magma
   shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
