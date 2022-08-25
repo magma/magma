@@ -12,7 +12,11 @@
  */
 
 import * as React from 'react';
-import AddEditReceiver from './AddEditReceiver';
+import AddEditReceiver, {
+  AddEditReceiverChannels,
+  AddEditReceiverInfos,
+  ReceiverDialog,
+} from './AddEditReceiver';
 import Button from '@mui/material/Button';
 import CardTitleRow from '../../../../../components/layout/CardTitleRow';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -46,6 +50,9 @@ const useStyles = makeStyles<Theme>(theme => ({
   emptyReceiverTitle: {
     color: colors.primary.comet,
     marginBottom: '8px',
+  },
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
   },
 }));
 
@@ -115,7 +122,6 @@ function ReceiverEmpty(props: {onAddReceiverClick: () => void}) {
 
 export default function Receivers() {
   const {apiUtil, alertManagerGlobalConfigEnabled} = useAlarmContext();
-  const [isAddEditReceiver, setIsAddEditReceiver] = React.useState(false);
   const [isEditGlobalSettings, setIsEditGlobalSettings] = React.useState(false);
   const [isNewReceiver, setIsNewReceiver] = React.useState(false);
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -127,6 +133,10 @@ export default function Receivers() {
   const [lastRefreshTime, setLastRefreshTime] = React.useState<string>(
     new Date().toLocaleString(),
   );
+  // const [receiver, setReceiver] = React.useState<AlertReceiver>(
+  //   {name: ''},
+  // );
+  const [open, setOpen] = React.useState(false);
   const networkId = useNetworkId();
   const classes = useStyles();
   const snackbars = useSnackbars();
@@ -138,10 +148,9 @@ export default function Receivers() {
   }, [menuAnchorEl, setIsMenuOpen, setSelectedRow]);
 
   const handleEdit = React.useCallback(() => {
-    setIsAddEditReceiver(true);
     setIsNewReceiver(false);
     setIsMenuOpen(false);
-  }, [setIsAddEditReceiver, setIsNewReceiver]);
+  }, [setIsNewReceiver]);
 
   const handleDelete = React.useCallback(() => {
     async function makeRequest() {
@@ -182,114 +191,118 @@ export default function Receivers() {
     lastRefreshTime,
   );
 
-  if (error) {
-    snackbars.error(`Unable to load receivers: ${getErrorMessage(error)}`);
-  }
-
   const openAddReceiver = () => {
     setIsNewReceiver(true);
-    setIsAddEditReceiver(true);
     setSelectedRow(null);
+    setOpen(true);
   };
 
   const receiversData = response || [];
 
-  if (isAddEditReceiver) {
-    return (
-      <AddEditReceiver
-        receiver={selectedRow || newReceiver()}
-        isNew={isNewReceiver}
-        onExit={() => {
-          setIsAddEditReceiver(false);
-          setLastRefreshTime(new Date().toLocaleString());
-        }}
-      />
-    );
-  }
+  // const onSave = () => console.log('save');
+
+  // if (isAddEditReceiver) {
+  // return (
+
+  // <AddEditReceiver
+  //   receiver={selectedRow || newReceiver()}
+  //   isNew={isNewReceiver}
+  //   onExit={() => {
+  //     setIsAddEditReceiver(false);
+  //     setLastRefreshTime(new Date().toLocaleString());
+  //   }}
+  // />
+  // );
+  // }
 
   if (isEditGlobalSettings) {
     return (
       <GlobalConfig
-        onExit={() => {
-          setIsEditGlobalSettings(false);
-          setLastRefreshTime(new Date().toLocaleString());
-        }}
+      // onExit={() => {
+      //   setIsEditGlobalSettings(false);
+      //   setLastRefreshTime(new Date().toLocaleString());
+      // }}
       />
     );
   }
 
   return (
-    <Grid className={classes.root} container spacing={2} direction="column">
-      <Grid item>
-        <CardTitleRow
-          label="Alert rules"
-          icon={GroupIcon}
-          filter={() => (
-            <ReceiverFilter
-              showGlobalConfig={alertManagerGlobalConfigEnabled ?? false}
-              setShowGlobalSettings={() => setIsEditGlobalSettings(true)}
-              onAddReceiverClick={() => openAddReceiver()}
-            />
-          )}
-        />
-        <SimpleTable
-          localization={{
-            body: {
-              emptyDataSourceMessage: (
-                <ReceiverEmpty onAddReceiverClick={() => openAddReceiver()} />
-              ),
-            },
-          }}
-          onRowClick={row => setSelectedRow(row)}
-          columnStruct={receiverColumns}
-          tableData={receiversData}
-          dataTestId="receiver"
-          menuItems={[
-            {
-              name: 'View',
-              handleFunc: () => handleViewDialogOpen(),
-            },
-            {
-              name: 'Edit',
-              handleFunc: () => handleEdit(),
-            },
-            {
-              name: 'Delete',
-              handleFunc: () => handleDelete(),
-            },
-          ]}
+    <>
+      <ReceiverDialog
+        isNew={isNewReceiver}
+        onClose={() => {
+          setOpen(false);
+          setLastRefreshTime(new Date().toLocaleString());
+        }}
+        open={open}
+        receiver={selectedRow || null}
+      />
+      <Grid className={classes.root} container spacing={2} direction="column">
+        <Grid item>
+          <CardTitleRow
+            label="Alert rules"
+            icon={GroupIcon}
+            filter={() => (
+              <ReceiverFilter
+                showGlobalConfig={alertManagerGlobalConfigEnabled ?? false}
+                setShowGlobalSettings={() => setIsEditGlobalSettings(true)}
+                onAddReceiverClick={() => openAddReceiver()}
+              />
+            )}
+          />
+          <SimpleTable
+            localization={{
+              body: {
+                emptyDataSourceMessage: (
+                  <ReceiverEmpty onAddReceiverClick={() => openAddReceiver()} />
+                ),
+              },
+            }}
+            onRowClick={row => setSelectedRow(row)}
+            columnStruct={receiverColumns}
+            tableData={receiversData}
+            dataTestId="receiver"
+            menuItems={[
+              {
+                name: 'View',
+                handleFunc: () => handleViewDialogOpen(),
+              },
+              {
+                name: 'Edit',
+                handleFunc: () => handleEdit(),
+              },
+              {
+                name: 'Delete',
+                handleFunc: () => handleDelete(),
+              },
+            ]}
+          />
+        </Grid>
+        {isLoading && receiversData.length === 0 && (
+          <div className={classes.loading}>
+            <CircularProgress />
+          </div>
+        )}
+        <Menu
+          anchorEl={menuAnchorEl.current}
+          keepMounted
+          open={isMenuOpen}
+          onClose={handleActionsMenuClose}>
+          <MenuItem onClick={handleViewDialogOpen}>View</MenuItem>
+          <MenuItem onClick={handleEdit}>Edit</MenuItem>
+          <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        </Menu>
+        <TableActionDialog
+          open={isDialogOpen}
+          onClose={handleViewDialogClose}
+          title={'View Receiver'}
+          row={selectedRow || {}}
+          showCopyButton={true}
+          showDeleteButton={false}
         />
       </Grid>
-      {isLoading && receiversData.length === 0 && (
-        <div className={classes.loading}>
-          <CircularProgress />
-        </div>
-      )}
-      <Menu
-        anchorEl={menuAnchorEl.current}
-        keepMounted
-        open={isMenuOpen}
-        onClose={handleActionsMenuClose}>
-        <MenuItem onClick={handleViewDialogOpen}>View</MenuItem>
-        <MenuItem onClick={handleEdit}>Edit</MenuItem>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu>
-      <TableActionDialog
-        open={isDialogOpen}
-        onClose={handleViewDialogClose}
-        title={'View Receiver'}
-        row={selectedRow || {}}
-        showCopyButton={true}
-        showDeleteButton={false}
-      />
-    </Grid>
+    </>
   );
-}
-
-function newReceiver(): AlertReceiver {
-  return {
-    name: '',
-  };
 }
 
 function getNotificationsSummary(receiver: AlertReceiver) {

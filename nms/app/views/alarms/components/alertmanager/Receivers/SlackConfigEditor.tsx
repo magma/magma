@@ -15,8 +15,23 @@ import * as React from 'react';
 import ConfigEditor from './ConfigEditor';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
+import {AltFormField} from '../../../../../components/FormField';
+import {Button, OutlinedInput} from '@mui/material';
+import {ExpandMore} from '@mui/icons-material';
+import {makeStyles} from '@mui/styles';
+
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverSlackConfig} from '../../AlarmAPIType';
+
+const useStyles = makeStyles(() => ({
+  expandMoreRotation: {
+    transform: 'rotate(-180deg)',
+    transition: '.3s',
+  },
+  expandLessRotation: {
+    transition: '.3s',
+  },
+}));
 
 export default function SlackConfigEditor({
   config,
@@ -59,5 +74,55 @@ export default function SlackConfigEditor({
         </>
       }
     />
+  );
+}
+
+export function SlackConfig(isNew: boolean) {
+  const classes = useStyles();
+  const [advancedSettings, setAdvancedSettings] = React.useState<boolean>(
+    false,
+  );
+
+  return (
+    <Grid container spacing={2}>
+      <AltFormField label={'Webhook URL'}>
+        <OutlinedInput
+          disabled={!isNew}
+          required
+          data-testid="slack-config-editor"
+          id="apiurl"
+          placeholder="Ex: https://hooks.slack.com/services/a/b"
+          value={'config.api_url'}
+          onChange={e => console.log('api_url:', e.target.value)}
+          fullWidth
+        />
+      </AltFormField>
+      <Button
+        endIcon={
+          <ExpandMore
+            className={
+              advancedSettings
+                ? classes.expandMoreRotation
+                : classes.expandLessRotation
+            }
+          />
+        }
+        variant="text"
+        onClick={() => setAdvancedSettings(settings => !settings)}>
+        Advanced Settings
+      </Button>
+      {advancedSettings && (
+        <AltFormField label={'Message Title'}>
+          <OutlinedInput
+            disabled={!isNew}
+            id="title"
+            placeholder="Ex: Urgent"
+            value={'config.title'}
+            onChange={e => console.log('title:', e.target.value)}
+            fullWidth
+          />
+        </AltFormField>
+      )}
+    </Grid>
   );
 }
