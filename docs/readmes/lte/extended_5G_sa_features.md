@@ -21,13 +21,10 @@ The QoS (Quality of service) is the mechanism that works on a network to control
 
 The QoS flow is the lowest level granularity within the 5G system and is where policy and charging are enforced.
 
-With the current infrastructure, AGW supports the QoS in this release for both PDU (Protocol Data Unit) session accept and PDU session modification command messages.
+With the current infrastructure, AGW supports the static QoS flow attached to the subscribers in this release.
 
-The QoS flow in PDU session accept message.
+The Static QoS flow descriptors attached to subscriber.
 ![QoS in PDU Session Accept message](assets/lte/QoS_in_pdu_session_accept.png?raw=true "QoS in PDU Session Accept message")
-
-The QoS flow in PDU session modification command message.
-![QoS in PDU Session Modification Command message](assets/lte/QoS_in_pdu_session_modification_command.png?raw=true "QoS in PDU Session Modification Command message")
 
 ## IPv6 & Dual IPv4v6 support
 
@@ -39,11 +36,12 @@ Getting IPv6 address allocated in PDU Session accept message.
 Getting IPv4v6 address allocated in PDU Session accept message.
 ![Allocation of IPv4v6 address](assets/lte/IPv4v6.png?raw=true "Allocation of IPv4v6 address")
 
+Router Advertisement in fast path.
+![Router Advertisement](assets/lte/Router_Advertisement.png?raw=true "Router Advertisement")
+
 ## Network initiated Session Modification
 
-AGW supports one default PDU session. Network Initiated PDU Session Modification is one of the way to create Dedicated QoS Flows. If a new application function requires to access a specific QoS policy but the current QoS policy doesn't support services, it might be necessary to dynamically add a new QoS policy to an existing PDU session. In this case, PCF (Policy Control Function) will send the session modification request to sessiond.
-
-Once the QoS policy is installed and it is no longer required then PCF will trigger the request to clear the existing QoS policy from sessiond using session modification.
+Network Initiated PDU (Protocol Data Unit) Session Modification provides mechanism to add and delete the QoS policies dynamically (Dedicated QoS Flows). It will allow applications to tune QoS on exisiting PDU Sessions based on the use case.
 
 Basic Network Initiated Session modification call flow for addition of new QoS policy.
 
@@ -70,50 +68,28 @@ sequenceDiagram
     SessionD-->>PipelineD: Set SMF Sessions
 ```
 
-Here, Rule 1 is the default QoS policy and Rule 2 is the QoS policy we are applying in Session Modification.
-
-Same sequence diagram is applicable for Deletion of QoS policy.
+Here, Rule 1 is the default QoS policy and Rule 2 is the QoS policy configured as part of Session Modification. Same sequence diagram is applicable for Deletion of QoS policy.
 
 ### Limitations
 
-1. Currently AGW is supporting serial operation only, which means addition of a QoS policy or deletion of a QoS policy in a Session modification request. A single request containing add and delete is currently not supported.
-2. Right now this feature is still to be integrated with PCF. The tests used the stub CLI in sessiond.
+1. Currently only CLI based Session modification configuration is supported.
+2. As part of the current release, feature is not tested end to end with PCF (Policy Control Function).
 
 ## SUCI Extensions
 
-5G standards mitigates the vulnerabilities caused due to IMSI catchers by introducing SUCI. SUCI is a privacy-preserving identifier containing the concealed SUPI.
+In compliance with 5G standards and to provide enhanced security, SUCI based registration has been introduced in the current release supporting both Profile-A and Profile-B configuration using ECIES-based protection scheme. With this feature end devices (UE/CPE) can encrypt the identifiers (IMSI) during the registration request using the pre-shared keys which will be then decrypted and processed by AMF.
 
 In this release AGW supports two different profiles of [SUCI Extensions](https://docs.magmacore.org/docs/next/lte/suci_extensions).
 
 ## Stateless feature
 
-The MME will store UE registrations/session management data in-memory. Any MME failure or restart will result in the loss of all data, including UE registration and Operator Account information, preventing UEs from accessing packet core services. As a result, UEs will need to reconnect and re-register.
-
-Stateless feature provides failure recovery mechanism by storing user data in a persistent storage.
-On occurrence of a failure, AGW will retrieve the UE data from the persistent storage. A partial service interruption may occur. However, once the AGW has been respawned, registered users can access the service without having a fresh registration.
-
-The MME will sync UE registration and session management data into persistent storage (Redis Database) for pre-defined trigger points. In case of any MME failure/restart, MME will fetch UE specific data from Redis Database.
+Stateless feature provides failure recovery mechanism by storing the context information (PDU Information, Registration information) in a persistent storage. On occurrence of a failure, AGW will retrieve the context information from the persistent storage with almost no or minimal impact to the existing users. This is based on the existing Magma philosophy.
 
 ![Stateless Feature](assets/lte/Stateless_feature.png?raw=true "Stateless Feature")
 
 ## GTP extension header support
 
-The Extension Header Length field specifies the length of the particular Extension header in 4 octet units. The Next Extension Header Type field specifies the type of any Extension Header that may follow a particular Extension Header. If no such Header follows, then the value of the next Extension Header Type should be 0.
-
-```text
-	 0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     | Ext-Hdr Length|                                               |
-     +-+-+-+-+-+-+-+-+                                               |
-     |                  Extension Header Content                     |
-     .                                                               .
-     .                                               +-+-+-+-+-+-+-+-+
-     |                                               |  Next-Ext-Hdr |
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
-
-In 5G SA FWA, each flow is forwarded based on the appropriate QoS rules. QoS rules are configured by SMF as QoS profiles to UP components and these components perform QoS controls to PDUs based on rules. In downlink, a pipelineD pushes QFI into an extension header, and transmits the PDU to RAN. In uplink, each UE obtains the QoS rule from SMF, and transmits PDUs with QFI containing the QoS rules to the RAN.
+As part of the current release, GTPU extension header processing functionality has been introduced in openvswtich to identify & map the data traffic and provide QoS feature support based on the configured policies. Each packet is classified and forwarded based on the QoS Rules which is configured by sessiond, based on the control plane information exchange with UE/CPE and GNB. GNB will then mark the packet with the appropriate QFI value in GTPUs extension header which will then be procsess by openvswitch module in fastpath.
 
 ## Additional AGW Configurations
 
@@ -151,21 +127,8 @@ The above command should give `AGW Mode: STATELESS`.
 
 ## Common Issues and Troubleshooting
 
-- Description: GTP tunnel could not be added to the OVS table.
+- Traffic related Issues in [common path](https://github.com/magma/magma/blob/master/docs/readmes/howtos/troubleshooting/datapath_connectivity.md).
 
-- Solution: This issue is due to the following parameters missing in `/etc/magma/pipelined.yml` file.
+- Ping traffic not working: with QFI support in GTP-U extension header this parameter needs to be present in all traffic cases otherwise the default rule is to drop the packet.
 
-```text
-  # Internal port for processing internal sampling packets
-  ovs_internal_sampling_port_number: 15578
-  # Table to forward packets from the internal sampling port
-  ovs_internal_sampling_fwd_tbl_number: 201
-  # Make as a True when gnb ip will support for uplink
-  ovs_multi_tunnel: False
-  # Paging timeout value for idle mode
-  paging_timeout: 30
-  # ID used for RYU controller identification
-  classifier_controller_id: 5
-  # UPF node ID
-  upf_node_identifier: 192.168.200.1
-```
+- IPv6 feature is supported only on Non-NAT mode.
