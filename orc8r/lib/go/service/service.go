@@ -88,22 +88,10 @@ type Service struct {
 	Config *config.Map
 }
 
-// NewGatewayServiceWithOptions calls newServiceWithOptions and specifies the
-// service type to be not protected.
-func NewGatewayServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	return newServiceWithOptions(moduleName, serviceName, false, serverOptions...)
-}
-
-// NewOrc8rServiceWithOptions calls newServiceWithOptions and specifies the
-// service type to be protected.
-func NewOrc8rServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	return newServiceWithOptions(moduleName, serviceName, true, serverOptions...)
-}
-
-// newServiceWithOptions returns a new GRPC orchestrator service implementing
+// NewServiceWithOptions returns a new GRPC orchestrator service implementing
 // service303 with the specified grpc server options.
 // It will not instantiate the service with the identity checking middleware.
-func newServiceWithOptions(moduleName string, serviceName string, protected303Server bool, serverOptions ...grpc.ServerOption) (*Service, error) {
+func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
@@ -131,10 +119,14 @@ func newServiceWithOptions(moduleName string, serviceName string, protected303Se
 		StartTimeSecs:       uint64(time.Now().Unix()),
 		Config:              configMap,
 	}
-	if protected303Server {
-		protos.RegisterService303Server(service.ProtectedGrpcServer, service)
-	} else {
+	// protectedPort is 0 if and only if no protected port has been configured
+	protectedPort, _ := registry.GetServicePort(serviceName, protos.ServiceType_PROTECTED)
+	if protectedPort == 0 {
+		glog.Infof("Registering Service303 as a public GRPC server.")
 		protos.RegisterService303Server(service.GrpcServer, service)
+	} else {
+		glog.Infof("Registering Service303 as a protected GRPC server.")
+		protos.RegisterService303Server(service.ProtectedGrpcServer, service)
 	}
 
 	// Store into global for future access

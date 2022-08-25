@@ -59,7 +59,7 @@ func main() {
 
 	pcrfServer := mock_pcrf.NewPCRFServer(gxCliConf, gxServConf)
 
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, serviceName)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, serviceName)
 	if err != nil {
 		log.Fatalf("Error creating mock %s service: %s", serviceName, err)
 	}

@@ -30,7 +30,7 @@ import (
 
 func main() {
 	flag.Parse()
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.MOCK_HSS)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.MOCK_HSS)
 	if err != nil {
 		log.Fatalf("Error creating hss service: %s", err)
 	}
