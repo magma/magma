@@ -14,7 +14,7 @@ MODE=$1
 RERUN=0    # Set to 1 to skip network configuration and run ansible playbook only
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"
-MAGMA_VERSION="${MAGMA_VERSION:-master}"
+MAGMA_VERSION="${MAGMA_VERSION:-v1.8}"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 DEPLOY_PATH="/opt/magma/lte/gateway/deploy"
 
@@ -116,6 +116,16 @@ if [ "$MODE" == "base" ]; then
 else
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
+fi
+
+# check if we are on ARM system
+if [ "$(uname -m)" == "aarch64" ]; then
+  sed -i 's/OPTIONAL_ARCH_POSTFIX=/OPTIONAL_ARCH_POSTFIX=_arm/' /var/opt/magma/docker/.env
+fi
+
+if [ "${MAGMA_VERSION}" == "v1.8" ]; then
+  sed -i 's,DOCKER_REGISTRY=,DOCKER_REGISTRY=docker.artifactory.magmacore.org/,' /var/opt/magma/docker/.env
+  sed -i 's/IMAGE_VERSION=latest/IMAGE_VERSION=1.8.0/' /var/opt/magma/docker/.env
 fi
 
 [[ $RERUN -eq 1 ]] || echo "Reboot this VM to apply kernel settings"
