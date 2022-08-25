@@ -74,16 +74,10 @@ bash agw_install_docker.sh
 
 Once you see the output `Reboot this machine to apply kernel settings`, reboot your AGW host.
 
-After reboot again SSH and become root user:
-
-```bash
-sudo -i
-```
-
 Create `control_proxy.yml` file with your orc8r details:
 
 ```bash
-cat << EOF > /var/opt/magma/configs/control_proxy.yml
+cat << EOF | sudo tee /var/opt/magma/configs/control_proxy.yml
 cloud_address: controller.orc8r.magmacore.link
 cloud_port: 443
 bootstrap_address: bootstrapper-controller.orc8r.magmacore.link
