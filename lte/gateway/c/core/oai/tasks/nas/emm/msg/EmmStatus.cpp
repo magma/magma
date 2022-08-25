@@ -17,9 +17,15 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmStatus.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmStatus.hpp"
 
 int decode_emm_status(emm_status_msg* emm_status, uint8_t* buffer,
                       uint32_t len) {

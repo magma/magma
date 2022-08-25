@@ -56,6 +56,9 @@ typedef struct security_mode_complete_msg_tag {
   mobile_identity_t imeisv;
 } security_mode_complete_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_security_mode_complete(
     security_mode_complete_msg* securitymodecomplete, uint8_t* buffer,
     uint32_t len);
@@ -63,5 +66,8 @@ int decode_security_mode_complete(
 int encode_security_mode_complete(
     security_mode_complete_msg* securitymodecomplete, uint8_t* buffer,
     uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ! defined(FILE_SECURITY_MODE_COMPLETE_SEEN) */

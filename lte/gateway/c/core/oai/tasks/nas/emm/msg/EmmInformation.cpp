@@ -17,11 +17,17 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // decode_time_zone, ...
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.hpp"
 
 int decode_emm_information(emm_information_msg* emm_information,
                            uint8_t* buffer, uint32_t len) {

@@ -17,10 +17,16 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.hpp"
 
 int decode_cs_service_notification(
     cs_service_notification_msg* cs_service_notification, uint8_t* buffer,

@@ -17,10 +17,16 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.hpp"
 
 int decode_authentication_failure(
     authentication_failure_msg* authentication_failure, uint8_t* buffer,

@@ -33,6 +33,9 @@ typedef struct EpsUpdateType_tag {
   uint8_t eps_update_type_value : 3;
 } EpsUpdateType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
                            uint8_t* buffer, uint32_t len);
 
@@ -43,5 +46,8 @@ int decode_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
 
 int decode_u8_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
                               uint8_t value, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* EPS UPDATE TYPE_SEEN */

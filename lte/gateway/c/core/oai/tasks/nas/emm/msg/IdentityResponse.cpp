@@ -17,9 +17,15 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityResponse.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityResponse.hpp"
 
 int decode_identity_response(identity_response_msg* identity_response,
                              uint8_t* buffer, uint32_t len) {

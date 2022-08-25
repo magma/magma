@@ -49,10 +49,15 @@ typedef struct uplink_nas_transport_msg_tag {
   NasMessageContainer nasmessagecontainer;
 } uplink_nas_transport_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_uplink_nas_transport(uplink_nas_transport_msg* uplinknastransport,
                                 uint8_t* buffer, uint32_t len);
 
 int encode_uplink_nas_transport(uplink_nas_transport_msg* uplinknastransport,
                                 uint8_t* buffer, uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* ! defined(FILE_UPLINK_NAS_TRANSPORT_SEEN) */

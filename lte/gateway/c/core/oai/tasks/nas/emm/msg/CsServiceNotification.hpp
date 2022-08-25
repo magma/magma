@@ -78,6 +78,9 @@ typedef struct cs_service_notification_msg_tag {
   LcsClientIdentity lcsclientidentity;
 } cs_service_notification_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_cs_service_notification(
     cs_service_notification_msg* csservicenotification, uint8_t* buffer,
     uint32_t len);
@@ -85,5 +88,8 @@ int decode_cs_service_notification(
 int encode_cs_service_notification(
     cs_service_notification_msg* csservicenotification, uint8_t* buffer,
     uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ! defined(FILE_CS_SERVICE_NOTIFICATION_SEEN) */

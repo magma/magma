@@ -53,10 +53,15 @@ typedef struct service_request_msg_tag {
   short_mac_t messageauthenticationcode;
 } service_request_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
                            uint32_t len);
 
 int encode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
                            uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* ! defined(FILE_SERVICE_REQUEST_SEEN) */

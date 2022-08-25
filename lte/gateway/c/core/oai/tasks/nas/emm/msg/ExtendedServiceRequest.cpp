@@ -17,9 +17,16 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.hpp"
 
 int decode_extended_service_request(
     extended_service_request_msg* extended_service_request, uint8_t* buffer,

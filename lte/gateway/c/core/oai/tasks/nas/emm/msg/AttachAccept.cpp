@@ -17,12 +17,18 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 
 int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
                          uint32_t len) {

@@ -175,6 +175,9 @@ typedef struct tracking_area_update_request_msg_tag {
   ue_additional_security_capability_t ueadditionalsecuritycapability;
 } tracking_area_update_request_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_tracking_area_update_request(
     tracking_area_update_request_msg* trackingareaupdaterequest,
     uint8_t* buffer, uint32_t len);
@@ -182,5 +185,7 @@ int decode_tracking_area_update_request(
 int encode_tracking_area_update_request(
     tracking_area_update_request_msg* trackingareaupdaterequest,
     uint8_t* buffer, uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* ! defined(FILE_TRACKING_AREA_UPDATE_REQUEST_SEEN) */

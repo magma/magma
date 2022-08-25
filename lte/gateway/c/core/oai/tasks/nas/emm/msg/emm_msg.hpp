@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source    emm_msg.h
+Source    emm_msg.hpp
 
 Version   0.1
 
@@ -37,7 +37,7 @@ Description Defines EPS Mobility Management messages and functions used
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.h"
@@ -72,35 +72,35 @@ Description Defines EPS Mobility Management messages and functions used
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeRadioCapabilityInformationUpdateNeeded.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachComplete.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachAccept.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationCommand.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationComplete.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityResponse.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/SecurityModeReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateComplete.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachComplete.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmInformation.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/EmmStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationCommand.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationComplete.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityResponse.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/SecurityModeReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateComplete.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -157,10 +157,15 @@ typedef union {
 /****************************************************************************/
 int emm_msg_decode_header(emm_msg_header_t* header, const uint8_t* buffer,
                           uint32_t len);
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len);
 
 int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 int emm_msg_encode_header(const emm_msg_header_t* header, uint8_t* buffer,
                           uint32_t len);

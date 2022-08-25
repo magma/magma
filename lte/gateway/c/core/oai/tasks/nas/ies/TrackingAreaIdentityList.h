@@ -52,6 +52,9 @@ typedef struct tai_list_s {
       partial_tai_list[TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI];
 } tai_list_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
                                        uint8_t iei, uint8_t* buffer,
                                        uint32_t len);
@@ -59,5 +62,8 @@ int encode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
 int decode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
                                        uint8_t iei, uint8_t* buffer,
                                        uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TRACKING AREA IDENTITY LIST_SEEN */

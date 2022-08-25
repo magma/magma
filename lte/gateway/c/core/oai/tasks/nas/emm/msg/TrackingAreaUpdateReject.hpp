@@ -47,6 +47,9 @@ typedef struct tracking_area_update_reject_msg_tag {
   emm_cause_t emmcause;
 } tracking_area_update_reject_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_tracking_area_update_reject(
     tracking_area_update_reject_msg* trackingareaupdatereject, uint8_t* buffer,
     uint32_t len);
@@ -54,5 +57,8 @@ int decode_tracking_area_update_reject(
 int encode_tracking_area_update_reject(
     tracking_area_update_reject_msg* trackingareaupdatereject, uint8_t* buffer,
     uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ! defined(FILE_TRACKING_AREA_UPDATE_REJECT_SEEN) */

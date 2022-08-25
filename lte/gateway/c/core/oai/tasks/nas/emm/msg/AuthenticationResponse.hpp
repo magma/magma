@@ -50,6 +50,9 @@ typedef struct authentication_response_msg_tag {
   authentication_response_parameter_t authenticationresponseparameter;
 } authentication_response_msg;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int decode_authentication_response(
     authentication_response_msg* authenticationresponse, uint8_t* buffer,
     uint32_t len);
@@ -57,5 +60,7 @@ int decode_authentication_response(
 int encode_authentication_response(
     authentication_response_msg* authenticationresponse, uint8_t* buffer,
     uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* ! defined(FILE_AUTHENTICATION_RESPONSE_SEEN) */
