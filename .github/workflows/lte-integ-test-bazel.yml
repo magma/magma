@@ -86,7 +86,13 @@ jobs:
           vagrant ssh -c 'sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
           vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;' magma
           vagrant ssh -c 'sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
+      - name: Run the sudo tests
+        id: sudo_tests
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
       - name: Run the integ test
+        if: ${{ success() || steps.sudo_tests.conclusion == 'failure' }}
         run: |
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
