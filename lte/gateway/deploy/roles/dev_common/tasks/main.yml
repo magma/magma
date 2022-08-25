@@ -159,8 +159,7 @@
 - name: Setup FPM so we can build packages
   tags: dev
   shell: gem install fpm
-  # TODO: Reset this to preburn after the next preburn
-  when: full_provision
+  when: preburn
 
 - name: Common install dependencies for building and shipping client release
   tags: dev
