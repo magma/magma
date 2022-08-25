@@ -182,6 +182,7 @@ pkg_deb(
     maintainer = "Copyright (c) 2022 The Magma Authors",
     package = MAGMA_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
+    postinst = ":magma-postinst-bazel",
     provides = [MAGMA_PKGNAME],
     replaces = [MAGMA_PKGNAME],
     version = VERSION,
