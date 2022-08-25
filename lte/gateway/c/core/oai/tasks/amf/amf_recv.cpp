@@ -641,12 +641,10 @@ status_code_e amf_handle_identity_response(
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNerror;
-  /*
-   * Message processing
-   */
-  /*
-   * Get the mobile identity
-   */
+
+  // Message processing
+  // Get the mobile identity
+
   imsi_t imsi = {0}, *p_imsi = NULL;
   imei_t* p_imei = NULL;
   imeisv_t* p_imeisv = NULL;
@@ -654,17 +652,17 @@ status_code_e amf_handle_identity_response(
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
   guti_m5_t* amf_ctx_guti = NULL;
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  /* This is SUCI message identity type is SUPI as IMSI type
-   * Extract the SUPI from SUCI directly as scheme is NULL */
+  // This is SUCI message identity type is SUPI as IMSI type
+  // Extract the SUPI from SUCI directly as scheme is NULL
   if (msg->mobile_identity.imsi.type_of_identity ==
       M5GSMobileIdentityMsg_SUCI_IMSI) {
     // Only considering protection scheme as NULL else return error.
     if (msg->mobile_identity.imsi.protect_schm_id ==
         MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
-      /*
-       * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
-       */
+      // Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
+
       p_imsi = &imsi;
       supi_imsi.plmn.mcc_digit1 = msg->mobile_identity.imsi.mcc_digit1;
       supi_imsi.plmn.mcc_digit2 = msg->mobile_identity.imsi.mcc_digit2;
@@ -686,48 +684,57 @@ status_code_e amf_handle_identity_response(
         imsi.u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
                           (supi_imsi.plmn.mnc_digit3 & 0xf);
       }
+      // SUPI as IMSI retrieved from SUCI.Generate GUTI based on incoming
+      // PLMN and amf_config file and fill the SUPI-GUTI MAP.
 
+      amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+      OAILOG_DEBUG(LOG_NAS_AMF, "5G-TMSI as 0x%08" PRIx32 "\n",
+                   amf_guti.m_tmsi);
+
+      // Need to store guti in amf_ctx as well for quick access
+      // which will be used to send in DL message during registration
+      // accept message
+
+      amf_ctx_guti = reinterpret_cast<guti_m5_t*>(&amf_guti);
+
+      imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
+
+      if (ue_context) {
+        ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+        amf_ue_context_on_new_guti(ue_context,
+                                   reinterpret_cast<guti_m5_t*>(&amf_guti));
+      }
+
+      // Execute the identification completion procedure
+
+      rc = amf_proc_identification_complete(ue_id, p_imsi, p_imei, p_imeisv,
+                                            reinterpret_cast<uint32_t*>(p_tmsi),
+                                            amf_ctx_guti);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     } else {
-      /* Mobile identity is SUPI type IMSI but Protection scheme is not NULL
-       * which is not valid message from UE. Return from here after
-       * printing error message
-       */
-      OAILOG_ERROR(LOG_AMF_APP,
-                   "Invalid protection scheme  received "
-                   " in identity response from UE \n");
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-    }
+      // Call subscriberdb to decode the SUPI or IMSI from SUCI as scheme
+      // output is encrypted
 
-    /* SUPI as IMSI retrieved from SUSI. Generate GUTI based on incoming
-     * PLMN and amf_config file and fill the SUPI-GUTI MAP
-     * Note: GUTI generation supposed to be done after verifying
-     * subscriber data with AUSF/UDM. But currently we are not supporting
-     * AUSF/UDM and directly generating GUTI.
-     * If authentication request rejected by UE, the MAP has to be cleared
-     */
-    amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
-    OAILOG_DEBUG(LOG_NAS_AMF, "5G-TMSI as 0x%08" PRIx32 "\n", amf_guti.m_tmsi);
-
-    /* Need to store guti in amf_ctx as well for quick access
-     * which will be used to send in DL message during registration
-     * accept message
-     * TODO Note:currently adapting the way
-     */
-    amf_ctx_guti = (guti_m5_t*)&amf_guti;
-
-    ue_m5gmm_context_s* ue_context =
-        amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-    if (ue_context) {
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
-      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
+      amf_copy_plmn_to_context(msg->mobile_identity.imsi, ue_context);
+
+      std::string empheral_public_key = reinterpret_cast<char*>(
+          msg->mobile_identity.imsi.empheral_public_key);
+      std::string ciphertext =
+          reinterpret_cast<char*>(msg->mobile_identity.imsi.ciphertext->data);
+      bdestroy(msg->mobile_identity.imsi.ciphertext);
+      std::string mac_tag =
+          reinterpret_cast<char*>(msg->mobile_identity.imsi.mac_tag);
+      rc = RETURNok;
+      get_decrypt_imsi_suci_extension(&ue_context->amf_context,
+                                      msg->mobile_identity.imsi.home_nw_id,
+                                      empheral_public_key, ciphertext, mac_tag);
     }
+  } else {
+    OAILOG_DEBUG(LOG_NAS_AMF, "Type of mobile identity not supported");
   }
-  /*
-   * Execute the identification completion procedure
-   */
-  rc = amf_proc_identification_complete(ue_id, p_imsi, p_imei, p_imeisv,
-                                        (uint32_t*)(p_tmsi), amf_ctx_guti);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /****************************************************************************
