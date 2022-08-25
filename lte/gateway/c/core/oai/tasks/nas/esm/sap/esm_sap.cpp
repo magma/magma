@@ -21,31 +21,47 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
+
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msgDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-extern int pdn_connectivity_delete(emm_context_t* ctx, int pid);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int pdn_connectivity_delete(emm_context_t* ctx, int pid);
+#ifdef __cplusplus
+}
+#endif
+
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -125,9 +141,10 @@ void esm_sap_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_sap_send(esm_sap_t* msg) {
+extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNerror;
+  int esm_sap_rc;
   pdn_cid_t pid = MAX_APN_PER_UE;
 
   /*
@@ -145,9 +162,10 @@ status_code_e esm_sap_send(esm_sap_t* msg) {
        * The MME received a PDN connectivity request message
        */
       increment_counter("ue_pdn_connection", 1, NO_LABELS);
-      rc =
+      esm_sap_rc =
           esm_sap_recv(PDN_CONNECTIVITY_REQUEST, msg->ue_id, msg->is_standalone,
                        msg->ctx, msg->recv, msg->send, &msg->err);
+      rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
     case ESM_PDN_CONNECTIVITY_REJ:
@@ -187,18 +205,20 @@ status_code_e esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context accept
        */
-      rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT, msg->ue_id,
-                        msg->is_standalone, msg->ctx, msg->recv, msg->send,
-                        &msg->err);
+      esm_sap_rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT,
+                                msg->ue_id, msg->is_standalone, msg->ctx,
+                                msg->recv, msg->send, &msg->err);
+      rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
     case ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REJ:
       /*
        * The MME received activate default ESP bearer context reject
        */
-      rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT, msg->ue_id,
-                        msg->is_standalone, msg->ctx, msg->recv, msg->send,
-                        &msg->err);
+      esm_sap_rc = esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT,
+                                msg->ue_id, msg->is_standalone, msg->ctx,
+                                msg->recv, msg->send, &msg->err);
+      rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
     case ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ: {
@@ -218,9 +238,11 @@ status_code_e esm_sap_send(esm_sap_t* msg) {
         }
         /* Send PDN connectivity request */
 
-        rc = esm_sap_send_a(ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST,
-                            msg->is_standalone, msg->ctx, (proc_tid_t)0,
-                            bearer_activate->ebi, &msg->data, msg->send);
+        esm_sap_rc =
+            esm_sap_send_a(ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST,
+                           msg->is_standalone, msg->ctx, (proc_tid_t)0,
+                           bearer_activate->ebi, &msg->data, msg->send);
+        rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       }
     } break;
 
@@ -242,10 +264,12 @@ status_code_e esm_sap_send(esm_sap_t* msg) {
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
       if (msg->data.eps_bearer_context_deactivate.is_pcrf_initiated) {
         /*Currently we support single bearear deactivation*/
-        rc = esm_sap_send_a(DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST,
-                            msg->is_standalone, msg->ctx, (proc_tid_t)0,
-                            msg->data.eps_bearer_context_deactivate.ebi[0],
-                            &msg->data, msg->send);
+        esm_sap_rc = esm_sap_send_a(
+            DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST, msg->is_standalone, msg->ctx,
+            (proc_tid_t)0, msg->data.eps_bearer_context_deactivate.ebi[0],
+            &msg->data, msg->send);
+        rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
+
         OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
       }
       int bid = BEARERS_PER_UE;
@@ -268,8 +292,9 @@ status_code_e esm_sap_send(esm_sap_t* msg) {
       break;
 
     case ESM_UNITDATA_IND:
-      rc = esm_sap_recv(-1, msg->ue_id, msg->is_standalone, msg->ctx, msg->recv,
-                        msg->send, &msg->err);
+      esm_sap_rc = esm_sap_recv(-1, msg->ue_id, msg->is_standalone, msg->ctx,
+                                msg->recv, msg->send, &msg->err);
+      rc = esm_sap_rc < 0 ? RETURNerror : RETURNok;
       break;
 
     default:
@@ -631,7 +656,8 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
            * Setup the callback function used to send PDN connectivity
            * * * * reject message to UE
            */
-          esm_procedure = esm_proc_pdn_connectivity_reject;
+          esm_procedure =
+              (esm_proc_procedure_t)esm_proc_pdn_connectivity_reject;
           /*
            * No ESM status message should be returned
            */
@@ -662,7 +688,7 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
            * Setup the callback function used to send PDN connectivity
            * * * * reject message onto the network
            */
-          esm_procedure = esm_proc_pdn_disconnect_reject;
+          esm_procedure = (esm_proc_procedure_t)esm_proc_pdn_disconnect_reject;
           /*
            * No ESM status message should be returned
            */
@@ -737,7 +763,7 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
        * Setup the callback function used to send ESM status message
        * * * * onto the network
        */
-      esm_procedure = esm_proc_status;
+      esm_procedure = (esm_proc_procedure_t)esm_proc_status;
       /*
        * Discard received ESM message
        */
@@ -853,7 +879,8 @@ static int esm_sap_send_a(int msg_type, bool is_standalone,
             &esm_msg.activate_dedicated_eps_bearer_context_request,
             msg->linked_ebi, &eps_qos, msg->tft, msg->pco);
 
-        esm_procedure = esm_proc_dedicated_eps_bearer_context_request;
+        esm_procedure =
+            (esm_proc_procedure_t)esm_proc_dedicated_eps_bearer_context_request;
       }
     } break;
 
@@ -869,7 +896,8 @@ static int esm_sap_send_a(int msg_type, bool is_standalone,
           &esm_msg.deactivate_eps_bearer_context_request,
           ESM_CAUSE_REGULAR_DEACTIVATION);
 
-      esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
+      esm_procedure =
+          (esm_proc_procedure_t)esm_proc_eps_bearer_context_deactivate_request;
     } break;
 
     case PDN_CONNECTIVITY_REJECT:

@@ -93,6 +93,9 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     const pdn_connectivity_request_msg* msg, ebi_t* new_ebi,
     bool is_standalone);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 esm_cause_t esm_recv_pdn_disconnect_request(
     emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
     const pdn_disconnect_request_msg* msg);
@@ -125,4 +128,7 @@ esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
     emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
     const deactivate_eps_bearer_context_accept_msg* msg);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* __ESM_RECV_H__*/

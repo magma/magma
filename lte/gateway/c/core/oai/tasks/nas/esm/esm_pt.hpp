@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_pt.h
+Source      esm_pt.hpp
 
 Version     0.1
 
@@ -53,7 +53,12 @@ Description Defines functions used to handle ESM procedure transactions.
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 int esm_pt_is_reserved(int pti);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ESM_PT_H__*/

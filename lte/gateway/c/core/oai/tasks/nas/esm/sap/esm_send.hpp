@@ -74,8 +74,6 @@ Description Defines functions executed at the ESM Service Access
  * Functions executed by the MME to send ESM message to the UE
  * --------------------------------------------------------------------------
  */
-status_code_e esm_send_esm_information_request(
-    pti_t pti, ebi_t ebi, esm_information_request_msg* msg);
 
 status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
                               int esm_cause);
@@ -84,6 +82,12 @@ status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
  * Transaction related messages
  * ----------------------------
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e esm_send_esm_information_request(
+    pti_t pti, ebi_t ebi, esm_information_request_msg* msg);
+
 status_code_e esm_send_pdn_connectivity_reject(pti_t pti,
                                                pdn_connectivity_reject_msg* msg,
                                                int esm_cause);
@@ -112,4 +116,7 @@ status_code_e esm_send_deactivate_eps_bearer_context_request(
     pti_t pti, ebi_t ebi, deactivate_eps_bearer_context_request_msg* msg,
     int esm_cause);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* __ESM_SEND_H__*/
