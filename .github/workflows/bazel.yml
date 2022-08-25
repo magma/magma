@@ -51,14 +51,19 @@ jobs:
             files_changed:
               - '.github/workflows/bazel.yml'
               - 'orc8r/gateway/**'
+              - 'orc8r/lib/go/**'
               - 'orc8r/protos/**'
+              - 'feg/cloud/go/**'
+              - 'feg/gateway/**'
               - 'lte/gateway/**'
+              - 'lte/cloud/go/**'
               - 'lte/protos/**'
               - 'src/go/**'
               - '**/BUILD'
               - '**/*.BUILD'
               - '**/*.bazel'
               - '**/*.bzl'
+              - '.bazelrc'
 
   bazel_build_and_test:
     needs: path_filter
