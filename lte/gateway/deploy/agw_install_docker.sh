@@ -86,11 +86,6 @@ EOF
   cd /opt/magma || exit
   git checkout "$MAGMA_VERSION"
 
-  # check if we are on ARM system
-  if [ "$(uname -m)" == "aarch64" ]; then
-    sed -i 's/OPTIONAL_ARCH_PREFIX=/OPTIONAL_ARCH_PREFIX=_arm/' /opt/magma/lte/gateway/docker/.env
-  fi
-
   # changing intefaces name
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
   sed -i 's/ens5/eth0/g; s/ens6/eth1/g' /etc/netplan/50-cloud-init.yaml
@@ -121,6 +116,16 @@ if [ "$MODE" == "base" ]; then
 else
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
+fi
+
+# check if we are on ARM system
+if [ "$(uname -m)" == "aarch64" ]; then
+  sed -i 's/OPTIONAL_ARCH_POSTFIX=/OPTIONAL_ARCH_POSTFIX=_arm/' /var/opt/magma/docker/.env
+fi
+
+if [ "${MAGMA_VERSION}" == "v1.8" ]; then
+  sed -i 's,DOCKER_REGISTRY=,DOCKER_REGISTRY=docker.artifactory.magmacore.org/,' /var/opt/magma/docker/.env
+  sed -i 's/IMAGE_VERSION=latest/IMAGE_VERSION=1.8.0/' /var/opt/magma/docker/.env
 fi
 
 [[ $RERUN -eq 1 ]] || echo "Reboot this VM to apply kernel settings"
