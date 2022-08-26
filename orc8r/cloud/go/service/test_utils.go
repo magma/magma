@@ -41,7 +41,7 @@ func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType str
 	if err != nil {
 		return nil, err
 	}
-	echoSrv, err := getEchoServerForOrchestratorService(serviceType)
+	echoSrv, err := getEchoServerForOrchestratorService(serviceType, false)
 	if err != nil {
 		return nil, err
 	}

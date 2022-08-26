@@ -42,7 +42,7 @@ const (
 func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName,
 		metricsd.ServiceName,
-		grpc.MaxRecvMsgSize(CloudMetricsCollectMaxMsgSize))
+		service.WithGrpcOptions(grpc.MaxRecvMsgSize(CloudMetricsCollectMaxMsgSize)))
 
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for metricsd: %s", err)
