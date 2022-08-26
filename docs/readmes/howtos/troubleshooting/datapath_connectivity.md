@@ -206,17 +206,21 @@ on UE or the server (on SGi side of the network) while debugging the issue.
    options: {key=flow, remote_ip=flow}
    error: "could not add network device gtp0 to ofproto (Address family not supported by protocol)"
 ```
+
    Then GTP tunnel type needs to change from `gtp` to `gtpu` in the
    `/etc/network/interfaces.d/gtp` file.
 18. OVS debug logging can be dynamically enabled by ```sudo ovs-appctl vlog/set dbg```.
     For a specific module,
+
 ```sudo ovs-appctl vlog/set netdev dbg
    sudo ovs-appctl vlog/set ofproto dbg
    sudo ovs-appctl vlog/set vswitchd dbg
    sudo ovs-appctl vlog/set dpif dbg
 ```
+
 19. To debug the traffic issues in fastpath, enable the OVS debug logging and check the logs using ```sudo dmesg```.
 20. Stop and start the `OVS Service` using the below commands:
+
 ```sudo /usr/share/openvswitch/scripts/ovs-ctl stop
    sudo /usr/share/openvswitch/scripts/ovs-ctl start
 ```

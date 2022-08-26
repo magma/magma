@@ -12,7 +12,7 @@ GTP-U tunnel endpoints and transmits traffic to a number of GTP-U tunnel endpoin
 
 The GTP-U header is a variable length header whose minimum length is 8 bytes. There are three flags that are used to signal the presence of additional optional fields: the PN flag, the S flag and the E flag. The PN flag is used to signal the presence of N-PDU Numbers. The S flag is used to signal the presence of the GTP Sequence Number field. The E flag is used to signal the presence of the Extension Header field.
 
-Extension Header flag (E): This flag indicates the presence of the Next Extension Header field. When it is set to '0', the Next Extension Header field is notpresent. When it is set to '1', the Next Extension Header field is present. For support kernel based GTP tunnel implementation, patched into OVS. 
+Extension Header flag (E): This flag indicates the presence of the Next Extension Header field. When it is set to '0', the Next Extension Header field is notpresent. When it is set to '1', the Next Extension Header field is present. For support kernel based GTP tunnel implementation, patched into OVS.
 
 ## GTP-U Extension Header
 
@@ -136,6 +136,7 @@ sequenceDiagram
 
 4. OVS debug logging can be dynamically enabled by ```sudo ovs-appctl vlog/set dbg```.
    For a specific module,
+
 ```sudo ovs-appctl vlog/set netdev dbg
    sudo ovs-appctl vlog/set ofproto dbg
    sudo ovs-appctl vlog/set vswitchd dbg
@@ -145,9 +146,10 @@ sequenceDiagram
 5. To debug the traffic issues in fastpath, enable the OVS debug logging and check the logs using ```sudo dmesg```.
 
 6. Stop and start the `OVS Service` using below commands:
+
 ```sudo /usr/share/openvswitch/scripts/ovs-ctl stop
    sudo /usr/share/openvswitch/scripts/ovs-ctl start
 ```
 
-For more details, please refer to these [detailed debugging instructions] 
+For more details, please refer to these [detailed debugging instructions]
 (../howtos/troubleshooting/datapath_connectivity.md).
