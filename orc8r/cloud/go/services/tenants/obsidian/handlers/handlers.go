@@ -84,7 +84,7 @@ func GetTenantsHandler(c echo.Context) error {
 		tenantsAndIDs = append(tenantsAndIDs, models.Tenant{
 			ID:       &tenant.Id,
 			Networks: tenant.Tenant.Networks,
-			Name:     tenant.Tenant.Name})
+			Name:     &tenant.Tenant.Name})
 	}
 	return c.JSON(http.StatusOK, tenantsAndIDs)
 }
@@ -100,7 +100,7 @@ func CreateTenantHandler(c echo.Context) error {
 	}
 
 	_, err = tenants.CreateTenant(c.Request().Context(), *tenantInfo.ID, &protos.Tenant{
-		Name:     tenantInfo.Name,
+		Name:     *tenantInfo.Name,
 		Networks: tenantInfo.Networks,
 	})
 	if err != nil {
@@ -120,7 +120,7 @@ func GetTenantHandler(c echo.Context) error {
 		return mapErr(err, fmt.Errorf("tenant %d does not exist", tenantID), err)
 	}
 
-	return c.JSON(http.StatusOK, models.Tenant{ID: &tenantID, Name: tenantInfo.Name, Networks: tenantInfo.Networks})
+	return c.JSON(http.StatusOK, models.Tenant{ID: &tenantID, Name: &tenantInfo.Name, Networks: tenantInfo.Networks})
 }
 
 func SetTenantHandler(c echo.Context) error {

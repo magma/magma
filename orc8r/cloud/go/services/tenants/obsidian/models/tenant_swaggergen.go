@@ -25,7 +25,8 @@ type Tenant struct {
 	ID *int64 `json:"id"`
 
 	// Name of tenant
-	Name string `json:"name,omitempty"`
+	// Required: true
+	Name *string `json:"name"`
 
 	// List of accessible networks
 	// Required: true
@@ -37,6 +38,10 @@ func (m *Tenant) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -57,6 +62,15 @@ func (m *Tenant) validateID(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinimumInt("id", "body", *m.ID, 0, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Tenant) validateName(formats strfmt.Registry) error {
+
+	if err := validate.Required("name", "body", m.Name); err != nil {
 		return err
 	}
 

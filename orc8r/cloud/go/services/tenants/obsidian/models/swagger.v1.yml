@@ -130,6 +130,7 @@ definitions:
   tenant:
     type: object
     required:
+      - name
       - networks
       - id
     properties:

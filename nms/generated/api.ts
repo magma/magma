@@ -7351,7 +7351,7 @@ export interface Tenant {
      * @type {string}
      * @memberof Tenant
      */
-    'name'?: string;
+    'name': string;
     /**
      * List of accessible networks
      * @type {Array<string>}
