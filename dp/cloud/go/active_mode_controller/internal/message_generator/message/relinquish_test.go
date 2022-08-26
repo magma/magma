@@ -27,30 +27,28 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
-const id = 123
-
-func TestDeleteMessageString(t *testing.T) {
-	m := message.NewDeleteMessage(id)
-	expected := fmt.Sprintf("delete: %d", id)
+func TestRelinquishMessageString(t *testing.T) {
+	m := message.NewRelinquishMessage(id)
+	expected := fmt.Sprintf("relinquish: %d", id)
 	assert.Equal(t, expected, m.String())
 }
 
-func TestDeleteMessageSend(t *testing.T) {
-	client := &stubDeleteClient{}
+func TestRelinquishMessageSend(t *testing.T) {
+	client := &stubRelinquishClient{}
 
-	m := message.NewDeleteMessage(id)
+	m := message.NewRelinquishMessage(id)
 	require.NoError(t, m.Send(context.Background(), client))
 
-	expected := &active_mode.DeleteCbsdRequest{Id: id}
+	expected := &active_mode.AcknowledgeCbsdRelinquishRequest{Id: id}
 	assert.Equal(t, expected, client.req)
 }
 
-type stubDeleteClient struct {
+type stubRelinquishClient struct {
 	active_mode.ActiveModeControllerClient
-	req *active_mode.DeleteCbsdRequest
+	req *active_mode.AcknowledgeCbsdRelinquishRequest
 }
 
-func (s *stubDeleteClient) DeleteCbsd(_ context.Context, in *active_mode.DeleteCbsdRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
+func (s *stubRelinquishClient) AcknowledgeCbsdRelinquish(_ context.Context, in *active_mode.AcknowledgeCbsdRelinquishRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
 	s.req = in
 	return &empty.Empty{}, nil
 }

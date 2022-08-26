@@ -29,9 +29,8 @@ type updateMessage struct {
 	delta int64
 }
 
-func (u *updateMessage) Send(ctx context.Context, provider ClientProvider) error {
+func (u *updateMessage) Send(ctx context.Context, client active_mode.ActiveModeControllerClient) error {
 	req := &active_mode.AcknowledgeCbsdUpdateRequest{Id: u.id}
-	client := provider.GetActiveModeClient()
 	_, err := client.AcknowledgeCbsdUpdate(ctx, req)
 	return err
 }

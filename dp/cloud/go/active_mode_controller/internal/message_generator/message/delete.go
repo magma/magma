@@ -28,9 +28,8 @@ type deleteMessage struct {
 	id int64
 }
 
-func (d *deleteMessage) Send(ctx context.Context, provider ClientProvider) error {
+func (d *deleteMessage) Send(ctx context.Context, client active_mode.ActiveModeControllerClient) error {
 	req := &active_mode.DeleteCbsdRequest{Id: d.id}
-	client := provider.GetActiveModeClient()
 	_, err := client.DeleteCbsd(ctx, req)
 	return err
 }

@@ -237,6 +237,21 @@ function CbsdsTable(props: WithAlert) {
             },
           },
           {
+            name: 'Relinquish',
+            handleFunc: () => {
+              void props
+                .confirm(
+                  `Are you sure you want to relinquish ${currentRow?.serialNumber}?`,
+                )
+                .then(confirmed => {
+                  if (!confirmed && isNumber(currentRow?.id)) {
+                    return;
+                  }
+                  void ctx.relinquish(currentRow.id);
+                });
+            },
+          },
+          {
             name: 'Edit',
             handleFunc: () => setIsEditDialogOpen(true),
           },

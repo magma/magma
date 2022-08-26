@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -30,7 +31,6 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/internal/app"
 	"magma/dp/cloud/go/active_mode_controller/internal/test_utils/builders"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
 
 const (
@@ -48,7 +48,6 @@ type AppTestSuite struct {
 	suite.Suite
 	clock                *stubClock
 	activeModeController *stubActiveModeControllerService
-	radioController      *stubRadioControllerService
 	appDone              chan error
 	cancel               context.CancelFunc
 	dialer               app.Dialer
@@ -59,11 +58,9 @@ type AppTestSuite struct {
 func (s *AppTestSuite) SetupTest() {
 	s.clock = &stubClock{ticker: make(chan time.Time, bufferSize)}
 	s.activeModeController = &stubActiveModeControllerService{
-		states: make(chan *active_mode.State, bufferSize),
-		err:    make(chan error, bufferSize),
-	}
-	s.radioController = &stubRadioControllerService{
-		requests: make(chan *requests.RequestPayload, bufferSize),
+		requests: make(chan *active_mode.RequestPayload, bufferSize),
+		states:   make(chan *active_mode.State, bufferSize),
+		err:      make(chan error, bufferSize),
 	}
 	s.givenGrpcServer()
 	s.givenAppRunning()
@@ -143,7 +140,6 @@ func (s *AppTestSuite) givenGrpcServer() {
 	listener := bufconn.Listen(bufferSize)
 	s.grpcServer = grpc.NewServer()
 	active_mode.RegisterActiveModeControllerServer(s.grpcServer, s.activeModeController)
-	requests.RegisterRadioControllerServer(s.grpcServer, s.radioController)
 	s.grpcServerDone = make(chan error)
 	go func() {
 		s.grpcServerDone <- s.grpcServer.Serve(listener)
@@ -195,11 +191,11 @@ func (s *AppTestSuite) thenGrpcServerWasShutdown() {
 	}
 }
 
-func (s *AppTestSuite) thenRequestsWereEventuallyReceived(expectedRequests []*requests.RequestPayload) {
+func (s *AppTestSuite) thenRequestsWereEventuallyReceived(expectedRequests []*active_mode.RequestPayload) {
 	timer := time.After(timeout)
 	for _, expected := range expectedRequests {
 		select {
-		case actual := <-s.radioController.requests:
+		case actual := <-s.activeModeController.requests:
 			s.JSONEq(expected.Payload, actual.Payload)
 		case <-timer:
 			s.Fail("Waiting for requests timed out")
@@ -209,7 +205,7 @@ func (s *AppTestSuite) thenRequestsWereEventuallyReceived(expectedRequests []*re
 
 func (s *AppTestSuite) thenNoOtherRequestWasReceived() {
 	select {
-	case actual := <-s.radioController.requests:
+	case actual := <-s.activeModeController.requests:
 		s.Failf("Expected no more requests, got: %s", actual.Payload)
 	default:
 	}
@@ -245,10 +241,10 @@ func buildStateWithAuthorizedGrants(name string, interval time.Duration, timesta
 	return &active_mode.State{Cbsds: []*active_mode.Cbsd{b.Build()}}
 }
 
-func getExpectedRequests(name string) []*requests.RequestPayload {
+func getExpectedRequests(name string) []*active_mode.RequestPayload {
 	const template = `{"registrationRequest":[%s]}`
 	request := fmt.Sprintf(template, getExpectedSingleRequest(name))
-	return []*requests.RequestPayload{{Payload: request}}
+	return []*active_mode.RequestPayload{{Payload: request}}
 }
 
 func getExpectedSingleRequest(name string) string {
@@ -256,7 +252,7 @@ func getExpectedSingleRequest(name string) string {
 	return fmt.Sprintf(template, name)
 }
 
-func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.RequestPayload {
+func getExpectedHeartbeatRequests(id string, grantIds ...string) []*active_mode.RequestPayload {
 	if len(grantIds) == 0 {
 		return nil
 	}
@@ -266,7 +262,7 @@ func getExpectedHeartbeatRequests(id string, grantIds ...string) []*requests.Req
 	}
 	const template = `{"heartbeatRequest":[%s]}`
 	payload := fmt.Sprintf(template, strings.Join(reqs, ","))
-	return []*requests.RequestPayload{{Payload: payload}}
+	return []*active_mode.RequestPayload{{Payload: payload}}
 }
 
 func getExpectedHeartbeatRequest(id string, grantId string) string {
@@ -294,21 +290,16 @@ func (s *stubClock) Tick(_ time.Duration) *time.Ticker {
 
 type stubActiveModeControllerService struct {
 	active_mode.UnimplementedActiveModeControllerServer
-	states chan *active_mode.State
-	err    chan error
+	requests chan *active_mode.RequestPayload
+	states   chan *active_mode.State
+	err      chan error
 }
 
 func (s *stubActiveModeControllerService) GetState(_ context.Context, _ *active_mode.GetStateRequest) (*active_mode.State, error) {
 	return <-s.states, <-s.err
 }
 
-type stubRadioControllerService struct {
-	requests.UnimplementedRadioControllerServer
-	requests chan *requests.RequestPayload
-	err      error
-}
-
-func (s *stubRadioControllerService) UploadRequests(_ context.Context, in *requests.RequestPayload) (*requests.RequestDbIds, error) {
+func (s *stubActiveModeControllerService) UploadRequests(_ context.Context, in *active_mode.RequestPayload) (*empty.Empty, error) {
 	s.requests <- in
-	return &requests.RequestDbIds{}, s.err
+	return &empty.Empty{}, nil
 }
