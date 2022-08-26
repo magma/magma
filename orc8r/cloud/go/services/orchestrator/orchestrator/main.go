@@ -46,7 +46,7 @@ func main() {
 	srv, err := service.NewOrchestratorService(
 		orc8r.ModuleName,
 		orchestrator.ServiceName,
-		grpc.MaxRecvMsgSize(DefaultMaxGRPCMsgRecvSize),
+		service.WithGrpcOptions(grpc.MaxRecvMsgSize(DefaultMaxGRPCMsgRecvSize)),
 	)
 	if err != nil {
 		glog.Fatalf("Error creating orchestrator service %s", err)
