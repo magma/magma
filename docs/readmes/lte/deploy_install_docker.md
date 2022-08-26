@@ -83,7 +83,7 @@ sudo -i
 Create `control_proxy.yml` file with your orc8r details:
 
 ```bash
-cat << EOF | tee /var/opt/magma/configs/control_proxy.yml
+cat << EOF | sudo tee /var/opt/magma/configs/control_proxy.yml
 cloud_address: controller.orc8r.magmacore.link
 cloud_port: 443
 bootstrap_address: bootstrapper-controller.orc8r.magmacore.link
@@ -99,7 +99,7 @@ Start your access gateway:
 
 ```bash
 cd /var/opt/magma/docker
-docker-compose up -d
+sudo docker-compose up -d
 ```
 
 Now get Hardware ID and Challenge key and add AGW in your orc8r:
@@ -111,5 +111,5 @@ docker exec magmad show_gateway_info.py
 Then restart your access gateway:
 
 ```bash
-docker-compose up -d --force-recreate
+sudo docker-compose up -d --force-recreate
 ```
