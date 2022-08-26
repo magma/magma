@@ -19,6 +19,7 @@ RUN echo "Install general purpose packages" && \
     apt-get install -y --no-install-recommends \
         apt-transport-https \
         apt-utils \
+        # dependencies of FreeDiameter
         bison \
         build-essential \
         ca-certificates \
@@ -28,30 +29,39 @@ RUN echo "Install general purpose packages" && \
         git \
         gnupg2 \
         g++ \
-        iproute2 `# dependency of mobilityd (tests)` \
-        iputils-ping `# dependency of python services (e.g. magmad)` \
+        # dependency of mobilityd (tests)
+        iproute2 \
+        # dependency of python services (e.g. magmad)
+        iputils-ping \
         flex \
         libconfig-dev \
-        libcurl4-openssl-dev `# dependency of @sentry_native//:sentry` \
+        # dependency of @sentry_native//:sentry
+        libcurl4-openssl-dev \
+        # dependencies of oai/mme
         libczmq-dev \
         libgcrypt-dev \
         libgmp3-dev \
         libidn11-dev \
         libsctp1 \
         libsqlite3-dev \
-        libsctp-dev `# dependency of sctpd` \
+        # dependency of sctpd
+        libsctp-dev \
         libssl-dev \
-        libsystemd-dev `# dependency of pip systemd` \
+        # dependency of pip systemd
+        libsystemd-dev \
         lld \
-        net-tools `# dependency of python services (e.g. magmad)` \
-        netbase `# dependency of python services (e.g. pipelined)` \
+        # dependency of python services (e.g. magmad)
+        net-tools \
+        # dependency of python services (e.g. pipelined)
+        netbase \
         python${PYTHON_VERSION} \
         python-is-python3 \
-        python3-distutils `# dependency of bazel pip_parse rule` \
         software-properties-common \
-        systemd `# dependency of python services (e.g. magmad)` \
+        # dependency of python services (e.g. magmad)
+        systemd \
         unzip \
-        uuid-dev `# dependency of liagent` \
+        # dependency of liagent
+        uuid-dev \
         vim \
         wget \
         zip
@@ -72,13 +82,38 @@ RUN apt-get install -y --no-install-recommends \
         libpcap-dev=1.9.1-3 \
         libmnl-dev=1.0.4-2
 
+## Install Fmt (Folly Dep)
+RUN git clone https://github.com/fmtlib/fmt.git && \
+    cd fmt && \
+    mkdir _build && \
+    cd _build && \
+    cmake -DBUILD_SHARED_LIBS=ON -DFMT_TEST=0 .. && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf fmt
+
+# Facebook Folly C++ lib
+# Note: "Because folly does not provide any ABI compatibility guarantees from
+#        commit to commit, we generally recommend building folly as a static library."
+# Here we checkout the hash for v2021.02.22.00 (arbitrary recent version)
+RUN git clone --depth 1 --branch v2021.02.15.00 https://github.com/facebook/folly && \
+    cd /folly && \
+    mkdir _build && \
+    cd _build && \
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf folly
+
 # setup magma artifactories and install magma dependencies
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add - && \
     add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' && \
+    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.7.0 main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \
-        libfolly-dev \
         liblfds710 \
         oai-asn1c \
         oai-gnutls \
