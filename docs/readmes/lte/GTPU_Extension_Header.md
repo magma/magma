@@ -12,7 +12,7 @@ GTP-U tunnel endpoints and transmits traffic to a number of GTP-U tunnel endpoin
 
 The GTP-U header is a variable length header whose minimum length is 8 bytes. There are three flags that are used to signal the presence of additional optional fields: the PN flag, the S flag and the E flag. The PN flag is used to signal the presence of N-PDU Numbers. The S flag is used to signal the presence of the GTP Sequence Number field. The E flag is used to signal the presence of the Extension Header field.
 
-Extension Header flag (E): This flag indicates the presence of the Next Extension Header field. When it is set to '0', the Next Extension Header field is not present. When it is set to '1', the Next Extension Header field is present.
+Extension Header flag (E): This flag indicates the presence of the Next Extension Header field. When it is set to '0', the Next Extension Header field is notpresent. When it is set to '1', the Next Extension Header field is present. For support kernel based GTP tunnel implementation, patched into OVS. 
 
 ## GTP-U Extension Header
 
@@ -30,7 +30,7 @@ Next Extension Header Type shall be 0.
      |                                               |  Next-Ext-Hdr |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-In 5G SA, each flow is forwarded based on the appropriate QoS rules. QoS rules are configured by SMF as QoS profiles to UP components and these components perform QoS controls to PDUs based on rules. In downlink, a pipelineD pushes QFI into an extension header, and transmits the PDU to RAN.  In uplink, each UE obtains the QoS rule from SMF, and transmits PDUs with QFI containing the QoS rules to the RAN.
+As 3GPP TS 38.415 for 5G SA, each flow is forwarded based on the appropriate QoS rules. QoS rules are configured by SMF as QoS profiles to UP components and these components perform QoS controls to PDUs based on rules. In downlink, a pipelineD pushes QFI into an extension header, and transmits the PDU to RAN. In uplink, each UE obtains the QoS rule from SMF, and transmits PDUs with QFI containing the QoS rules to the RAN.
 
 ### Transfer of PDU Session Information for Uplink Data Traffic
 
@@ -40,10 +40,11 @@ The UL PDU SESSION INFORMATION frame includes a QoS Flow Identifier (QFI) field 
 
 The below Information Elements present in the PDU Session Information frame:
 
-PDU Type: The PDU Type indicates the structure of the PDU session UP frame. The field takes the value of the PDU Type it identifies: "0" for PDU Type 0. Value range: {0= DL PDU SESSION INFORMATION, 1=UL PDU SESSION INFORMATION, 2-15=reserved for future PDU type extensions}.
-Spare: The spare field is set to "0" by the sender and should not be interpreted by the receiver.
-QoS Flow Identifier: When this IE is present, this parameter indicates the QoS Flow Identifier of the QoS flow to which the transferred packet belongs.
-Padding: The padding is included at the end of the frame.
+- PDU Type: The PDU Type indicates the structure of the PDU session UP frame. The field takes the value of the PDU Type it identifies: "0" for PDU Type 0.
+  Value range {0= DL PDU SESSION INFORMATION, 1=UL PDU SESSION INFORMATION, 2-15=reserved for future PDU type extensions}.
+- Spare: The spare field is set to "0" by the sender and should not be interpreted by the receiver.
+- QoS Flow Identifier: When this IE is present, this parameter indicates the QoS Flow Identifier of the QoS flow to which the transferred packet belongs.
+- Padding: The padding is included at the end of the frame.
 
 ### Transfer of PDU Session Information for Downlink Data Traffic
 
@@ -135,15 +136,18 @@ sequenceDiagram
 
 4. OVS debug logging can be dynamically enabled by ```sudo ovs-appctl vlog/set dbg```.
    For a specific module,
-   ```sudo ovs-appctl vlog/set netdev dbg```
-   ```sudo ovs-appctl vlog/set ofproto dbg```
-   ```sudo ovs-appctl vlog/set vswitchd dbg```
-   ```sudo ovs-appctl vlog/set dpif dbg```
+```sudo ovs-appctl vlog/set netdev dbg
+   sudo ovs-appctl vlog/set ofproto dbg
+   sudo ovs-appctl vlog/set vswitchd dbg
+   sudo ovs-appctl vlog/set dpif dbg
+```
 
 5. To debug the traffic issues in fastpath, enable the OVS debug logging and check the logs using ```sudo dmesg```.
 
 6. Stop and start the `OVS Service` using below commands:
-    ```sudo /usr/share/openvswitch/scripts/ovs-ctl stop```
-    ```sudo /usr/share/openvswitch/scripts/ovs-ctl start```
+```sudo /usr/share/openvswitch/scripts/ovs-ctl stop
+   sudo /usr/share/openvswitch/scripts/ovs-ctl start
+```
 
-For more details, please refer the ```docs/readmes/howtos/troubleshooting/datapath_connectivity.md```.
+For more details, please refer to these [detailed debugging instructions] 
+(../howtos/troubleshooting/datapath_connectivity.md).
