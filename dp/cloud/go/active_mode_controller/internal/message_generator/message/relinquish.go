@@ -14,11 +14,27 @@ limitations under the License.
 package message
 
 import (
+	"context"
+	"fmt"
+
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
 
-type ClientProvider interface {
-	GetRequestsClient() requests.RadioControllerClient
-	GetActiveModeClient() active_mode.ActiveModeControllerClient
+func NewRelinquishMessage(id int64) *relinquishMessage {
+	return &relinquishMessage{id: id}
+}
+
+type relinquishMessage struct {
+	id    int64
+	delta int64
+}
+
+func (u *relinquishMessage) Send(ctx context.Context, client active_mode.ActiveModeControllerClient) error {
+	req := &active_mode.AcknowledgeCbsdRelinquishRequest{Id: u.id}
+	_, err := client.AcknowledgeCbsdRelinquish(ctx, req)
+	return err
+}
+
+func (u *relinquishMessage) String() string {
+	return fmt.Sprintf("relinquish: %d", u.id)
 }

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.radio_controller.services.radio_controller.strategies.get_cbsd_filters import (
+from magma.radio_controller.services.active_mode_controller.strategies.get_cbsd_filters import (
     registration_get_cbsd_filters,
     simple_get_cbsd_filters,
 )

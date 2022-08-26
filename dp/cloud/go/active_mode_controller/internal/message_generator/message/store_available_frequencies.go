@@ -33,12 +33,11 @@ type storeAvailableFrequenciesMessage struct {
 	frequencies []uint32
 }
 
-func (s *storeAvailableFrequenciesMessage) Send(ctx context.Context, provider ClientProvider) error {
+func (s *storeAvailableFrequenciesMessage) Send(ctx context.Context, client active_mode.ActiveModeControllerClient) error {
 	req := &active_mode.StoreAvailableFrequenciesRequest{
 		Id:                   s.id,
 		AvailableFrequencies: s.frequencies,
 	}
-	client := provider.GetActiveModeClient()
 	_, err := client.StoreAvailableFrequencies(ctx, req)
 	return err
 }

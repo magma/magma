@@ -70,7 +70,7 @@ type stubCbsdServer struct {
 	expectedDeleteRequest     *protos.DeleteCbsdRequest
 	deleteResponse            *protos.DeleteCbsdResponse
 	expectedDeregisterRequest *protos.DeregisterCbsdRequest
-	deregisterResponse        *protos.DeregisterCbsdResponse
+	expectedRelinquishRequest *protos.RelinquishCbsdRequest
 	err                       error
 	t                         *testing.T
 }
@@ -486,7 +486,6 @@ func (s *HandlersTestSuite) TestUpdateCbsdWithDuplicateUniqueFieldsReturnsConfli
 
 func (s *HandlersTestSuite) TestDeregisterCbsd() {
 	e := echo.New()
-	s.cbsdServer.deregisterResponse = &protos.DeregisterCbsdResponse{}
 	s.cbsdServer.expectedDeregisterRequest = &protos.DeregisterCbsdRequest{
 		NetworkId: "n1",
 		Id:        0,
@@ -518,6 +517,47 @@ func (s *HandlersTestSuite) TestDeregisterNonexistentCbsd() {
 		Method:                 http.MethodPut,
 		URL:                    "/magma/v1/dp/n1/cbsds/0",
 		Handler:                deregisterCbsd,
+		ParamNames:             []string{"network_id", "cbsd_id"},
+		ParamValues:            []string{"n1", "0"},
+		ExpectedStatus:         http.StatusNotFound,
+		ExpectedErrorSubstring: errorMsg,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
+func (s *HandlersTestSuite) TestRelinquishCbsd() {
+	e := echo.New()
+	s.cbsdServer.expectedRelinquishRequest = &protos.RelinquishCbsdRequest{
+		NetworkId: "n1",
+		Id:        0,
+	}
+	obsidianHandlers := cbsd.GetHandlers()
+	relinquishCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.RelinquishCbsdPath, obsidian.POST).HandlerFunc
+	tc := tests.Test{
+		Method:         http.MethodPut,
+		URL:            "/magma/v1/n1/cbsds/0",
+		Handler:        relinquishCbsd,
+		ParamNames:     []string{"network_id", "cbsd_id"},
+		ParamValues:    []string{"n1", "0"},
+		ExpectedStatus: http.StatusNoContent,
+	}
+	tests.RunUnitTest(s.T(), e, tc)
+}
+
+func (s *HandlersTestSuite) TestRelinquishNonexistentCbsd() {
+	e := echo.New()
+	const errorMsg = "some msg"
+	s.cbsdServer.err = status.Error(codes.NotFound, errorMsg)
+	s.cbsdServer.expectedRelinquishRequest = &protos.RelinquishCbsdRequest{
+		NetworkId: "n1",
+		Id:        0,
+	}
+	obsidianHandlers := cbsd.GetHandlers()
+	relinquishCbsd := tests.GetHandlerByPathAndMethod(s.T(), obsidianHandlers, cbsd.RelinquishCbsdPath, obsidian.POST).HandlerFunc
+	tc := tests.Test{
+		Method:                 http.MethodPut,
+		URL:                    "/magma/v1/dp/n1/cbsds/0",
+		Handler:                relinquishCbsd,
 		ParamNames:             []string{"network_id", "cbsd_id"},
 		ParamValues:            []string{"n1", "0"},
 		ExpectedStatus:         http.StatusNotFound,
@@ -677,5 +717,11 @@ func (s *stubCbsdServer) ListCbsds(_ context.Context, request *protos.ListCbsdRe
 func (s *stubCbsdServer) DeregisterCbsd(_ context.Context, request *protos.DeregisterCbsdRequest) (*protos.DeregisterCbsdResponse, error) {
 	assert.Equal(s.t, s.expectedDeregisterRequest.NetworkId, request.NetworkId)
 	assert.Equal(s.t, s.expectedDeregisterRequest.Id, request.Id)
-	return s.deregisterResponse, s.err
+	return &protos.DeregisterCbsdResponse{}, s.err
+}
+
+func (s *stubCbsdServer) RelinquishCbsd(_ context.Context, request *protos.RelinquishCbsdRequest) (*protos.RelinquishCbsdResponse, error) {
+	assert.Equal(s.t, s.expectedRelinquishRequest.NetworkId, request.NetworkId)
+	assert.Equal(s.t, s.expectedRelinquishRequest.Id, request.Id)
+	return &protos.RelinquishCbsdResponse{}, s.err
 }
