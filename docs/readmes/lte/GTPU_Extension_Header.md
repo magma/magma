@@ -151,5 +151,4 @@ sequenceDiagram
    sudo /usr/share/openvswitch/scripts/ovs-ctl start
 ```
 
-For more details, please refer to these [detailed debugging instructions]
-(../howtos/troubleshooting/datapath_connectivity.md).
+For more details, please refer to these [detailed debugging instructions](https://github.com/magma/magma/blob/master/docs/readmes/howtos/troubleshooting/datapath_connectivity.md).
