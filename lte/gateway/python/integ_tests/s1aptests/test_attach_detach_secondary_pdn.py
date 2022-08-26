@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnConnReq(unittest.TestCase):
+class TestAttachDetachSecondaryPdn(unittest.TestCase):
     """Test secondary pdn creation"""
 
     def setUp(self):
@@ -30,7 +30,7 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_req(self):
+    def test_attach_detach_secondary_pdn(self):
         """Attach a single UE and send standalone PDN Connectivity
         Request
         """

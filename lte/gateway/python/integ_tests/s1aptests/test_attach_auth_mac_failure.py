@@ -17,14 +17,14 @@ import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 
 
-class TestAuthMacFailure(unittest.TestCase):
+class TestAttachAuthMacFailure(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_auth_failure_cause_mac_failure(self):
+    def test_attach_auth_mac_failure(self):
         """ Test authentication failure procedure with cause MAC failure"""
         num_ues = 1
 

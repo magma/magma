@@ -50,7 +50,7 @@ func main() {
 	sessions := store.NewMemorySessionTable()
 
 	// Create the EAP AKA Provider service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.AAA_SERVER)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.AAA_SERVER)
 	if err != nil {
 		glog.Fatalf("Error creating AAA service: %s", err)
 	}

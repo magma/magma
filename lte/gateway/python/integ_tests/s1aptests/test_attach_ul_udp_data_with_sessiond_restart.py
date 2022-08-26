@@ -29,7 +29,7 @@ class TestAttachUlUdpDataWithSessiondRestart(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_ul_udp_data(self):
+    def test_attach_ul_udp_data_with_sessiond_restart(self):
         """
         Attach, send UL UDP data, restart Sessiond and
         send UL UDP data again

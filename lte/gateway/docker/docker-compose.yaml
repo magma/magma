@@ -29,12 +29,12 @@ x-generic-service: &service
 # Generic python anchor to avoid repetition for agw python services
 x-agw-python-service: &pyservice
   <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_python:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}agw_gateway_python${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 # Generic anchor for lte c services
 x-lte-cservice: &ltecservice
   <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_c:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 services:
   magmad:

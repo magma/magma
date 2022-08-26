@@ -25,7 +25,7 @@ class TestAttachDlTcpData(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_ul_tcp_data(self):
+    def test_attach_dl_tcp_data(self):
         """ Attach and send DL TCP data """
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req

@@ -18,14 +18,14 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestDisconnectDefaultPdn(unittest.TestCase):
+class TestAttachDetachDisconnectDefaultPdn(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_disconnect_default_pdn(self):
+    def test_attach_detach_disconnect_default_pdn(self):
         """ Attach a single UE and send PDN disconnect request
         for the default bearer """
         num_ue = 1

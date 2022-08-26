@@ -226,7 +226,7 @@ func NewMagmadService() protos.MagmadServer {
 // StartMagmadServer runs instance of the magmad grpc service
 // StartMagmadServer only returns on error and has to be run in its own Go routine or main thread
 func StartMagmadServer() error {
-	srv, err := service.NewGatewayServiceWithOptions("", strings.ToUpper(definitions.MagmadServiceName))
+	srv, err := service.NewServiceWithOptions("", strings.ToUpper(definitions.MagmadServiceName))
 	if err != nil {
 		return fmt.Errorf("error creating '%s' service: %v", definitions.MagmadServiceName, err)
 	}

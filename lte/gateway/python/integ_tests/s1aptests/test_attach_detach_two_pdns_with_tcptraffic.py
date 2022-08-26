@@ -30,7 +30,7 @@ class TestAttachDetachTwoPDNsWithTcpTraffic(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_two_pdns_with_tcp_traffic(self):
+    def test_attach_detach_two_pdns_with_tcptraffic(self):
         """Attach a single UE, send standalone PDN Connectivity
         Request, generate TCP traffic for each PDN session
         """

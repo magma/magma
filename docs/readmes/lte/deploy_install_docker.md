@@ -48,11 +48,10 @@ installation process to get an IP using DHCP.
 
 #### Do pre-installation steps
 
-Become root user and switch directory:
+Become root user:
 
 ```bash
-sudo su
-cd /root
+sudo -i
 ```
 
 Copy your `rootCA.pem` file from orc8r to the following location:
@@ -67,7 +66,6 @@ vim /var/opt/magma/certs/rootCA.pem
 Download AGW docker install script
 
 ```bash
-sudo su
 wget https://github.com/magma/magma/raw/v1.8/lte/gateway/deploy/agw_install_docker.sh
 bash agw_install_docker.sh
 ```
@@ -76,27 +74,10 @@ bash agw_install_docker.sh
 
 Once you see the output `Reboot this machine to apply kernel settings`, reboot your AGW host.
 
-After reboot again SSH and become root user:
-
-```bash
-sudo su
-cd /root
-```
-
-Now you have to update the environment file for docker-compose
-
-```bash
-sed -i 's,DOCKER_REGISTRY=,DOCKER_REGISTRY=docker.artifactory.magmacore.org/,' /var/opt/magma/docker/.env
-sed -i 's/IMAGE_VERSION=latest/IMAGE_VERSION=1.8.0/' /var/opt/magma/docker/.env
-
-# Update this only for ARM node
-sed -i 's/COMPOSE_PROJECT_NAME=agw/COMPOSE_PROJECT_NAME=agw_arm64/' /var/opt/magma/docker/.env
-```
-
 Create `control_proxy.yml` file with your orc8r details:
 
 ```bash
-cat << EOF > /var/opt/magma/configs/control_proxy.yml
+cat << EOF | sudo tee /var/opt/magma/configs/control_proxy.yml
 cloud_address: controller.orc8r.magmacore.link
 cloud_port: 443
 bootstrap_address: bootstrapper-controller.orc8r.magmacore.link

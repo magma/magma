@@ -35,7 +35,7 @@ func init() {
 
 func main() {
 	// Create the EAP AKA Provider service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.EAP_AKA)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP_AKA)
 	if err != nil {
 		glog.Fatalf("Error creating EAP AKA service: %s", err)
 	}

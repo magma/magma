@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error reading N7 config: %s", err)
 	}
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.MOCK_PCF)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.MOCK_PCF)
 	if err != nil {
 		log.Fatalf("Error creating mock %s service: %s", registry.MOCK_PCF, err)
 	}
