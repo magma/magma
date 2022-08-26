@@ -210,7 +210,6 @@ on UE or the server (on SGi side of the network) while debugging the issue.
    Then GTP tunnel type needs to change from `gtp` to `gtpu` in the
    `/etc/network/interfaces.d/gtp` file.
 18. OVS debug logging can be dynamically enabled by ```sudo ovs-appctl vlog/set dbg```.
-    For a specific module,
 
 ```sudo ovs-appctl vlog/set netdev dbg
    sudo ovs-appctl vlog/set ofproto dbg
@@ -218,6 +217,7 @@ on UE or the server (on SGi side of the network) while debugging the issue.
    sudo ovs-appctl vlog/set dpif dbg
 ```
 
+   For a specific module.
 19. To debug the traffic issues in fastpath, enable the OVS debug logging and check the logs using ```sudo dmesg```.
 20. Stop and start the `OVS Service` using the below commands:
 

@@ -219,6 +219,9 @@
       "lte/extended_5G_sa_features": {
         "title": "Extended 5G SA Features"
       },
+      "lte/GTPU_Ext_Header": {
+        "title": "GTP Extensions"
+      },
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
       },
@@ -290,9 +293,6 @@
       },
       "lte/upgrade_debian_to_ubuntu": {
         "title": "Migrate AGWs to Ubuntu"
-      },
-      "lte/GTPU_Extension_Header": {
-        "title": "GTPU Extension"
       },
       "nms/admin": {
         "title": "Admin"
