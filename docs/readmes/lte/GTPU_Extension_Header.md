@@ -1,6 +1,6 @@
 ---
-id: GTPU_Ext_Header
-title: GTP Extensions
+id: GTPU_Extension_Header
+title: GTPU Extension
 hide_title: true
 ---
 # GTP Extensions

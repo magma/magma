@@ -219,8 +219,8 @@
       "lte/extended_5G_sa_features": {
         "title": "Extended 5G SA Features"
       },
-      "lte/GTPU_Ext_Header": {
-        "title": "GTP Extensions"
+      "lte/GTPU_Extension_Header": {
+        "title": "GTPU Extension"
       },
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
