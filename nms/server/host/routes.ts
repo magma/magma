@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import Sequelize from 'sequelize';
+import OrchestartorAPI from '../api/OrchestratorAPI';
 import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import featureConfigs, {FeatureConfig} from '../features';
@@ -23,33 +23,129 @@ import {
 } from '../../shared/sequelize_models';
 import {FeatureFlagModel} from '../../shared/sequelize_models/models/featureflag';
 import {Request, Router} from 'express';
+import {Tenant} from '../../generated';
 import {User} from '../../shared/sequelize_models';
 import {UserRawType} from '../../shared/sequelize_models/models/user';
 import {getPropsToUpdate} from '../auth/util';
 import type {FeatureID} from '../../shared/types/features';
 
+import axios from 'axios';
+import {
+  OrganizationModel,
+  OrganizationRawType,
+} from '../../shared/sequelize_models/models/organization';
+
 const logger = logging.getLogger(module);
 
 const router = Router();
 
+export const emptyOrg = {
+  customDomains: [],
+  csvCharset: '',
+  ssoSelectedType: 'none' as const,
+  ssoCert: '',
+  ssoEntrypoint: '',
+  ssoIssuer: '',
+  ssoOidcClientID: '',
+  ssoOidcClientSecret: '',
+  ssoOidcConfigurationURL: '',
+};
+
+function joinTenantAndOrganization(
+  organization: OrganizationRawType | undefined | null,
+  tenant: Tenant,
+): OrganizationRawType {
+  if (!organization) {
+    return {
+      ...emptyOrg,
+      id: tenant.id,
+      name: tenant.name,
+      networkIDs: tenant.networks,
+    };
+  } else {
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      networkIDs: tenant.networks,
+      customDomains: organization.customDomains,
+      csvCharset: organization.csvCharset,
+      ssoSelectedType: organization.ssoSelectedType,
+      ssoCert: organization.ssoCert,
+      ssoEntrypoint: organization.ssoEntrypoint,
+      ssoIssuer: organization.ssoIssuer,
+      ssoOidcClientID: organization.ssoOidcClientID,
+      ssoOidcClientSecret: organization.ssoOidcClientSecret,
+      ssoOidcConfigurationURL: organization.ssoOidcConfigurationURL,
+    };
+  }
+}
+
+function joinTenantsAndOrganizations(
+  orc8rTenants: Array<Tenant>,
+  nmsOrganizations: Record<number, OrganizationModel>,
+): Array<OrganizationRawType> {
+  return orc8rTenants.map(tenant => {
+    return joinTenantAndOrganization(nmsOrganizations[tenant.id], tenant);
+  });
+}
+
+async function getAllJoinedOrganizations(): Promise<
+  Array<OrganizationRawType>
+> {
+  const nmsOrganizations = await Organization.findAll();
+  const nmsOrganizationsMap: Record<number, OrganizationModel> = {};
+  nmsOrganizations.forEach((org: OrganizationModel) => {
+    nmsOrganizationsMap[org.id] = org;
+  });
+  const orc8rTenants = (await OrchestartorAPI.tenants.tenantsGet()).data;
+  return joinTenantsAndOrganizations(orc8rTenants, nmsOrganizationsMap);
+}
+
 router.get(
   '/organization/async',
   asyncHandler(async (req: Request, res) => {
-    const organizations = await Organization.findAll();
-    res.status(200).send({organizations});
+    try {
+      const organizations = await getAllJoinedOrganizations();
+      res.status(200).send({organizations});
+    } catch (error) {
+      res.status(500).send({error: (error as Error).toString()});
+    }
   }),
 );
+
+export async function getOrganizationByName(
+  name: string,
+): Promise<OrganizationRawType | null> {
+  const organizations = await getAllJoinedOrganizations();
+  for (const org of organizations) {
+    if (org.name === name) return org;
+  }
+  return null;
+}
 
 router.get(
   '/organization/async/:name',
   asyncHandler(async (req: Request<{name: string}>, res) => {
-    const organization = await Organization.findOne({
-      where: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', req.params.name),
-      ),
-    });
-    res.status(200).send({organization});
+    try {
+      const organization = await getOrganizationByName(req.params.name);
+      if (organization) {
+        res.status(200).send({organization});
+      } else {
+        res.status(404).send({
+          error: new Error(
+            `Organization with name ${req.params.name} not found`,
+          ).toString(),
+        });
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        res
+          .status(error?.response?.status ?? 500)
+          .send({error: (error as Error).toString()});
+      } else {
+        res.status(500).send({error: (error as Error).toString()});
+      }
+    }
   }),
 );
 
@@ -150,6 +246,38 @@ router.post(
   ),
 );
 
+export async function createJoinedOrganization(
+  name: string,
+  networkIDs: Array<string>,
+  customDomains: Array<string>,
+): Promise<OrganizationRawType> {
+  let createdOrganization = <OrganizationRawType>{};
+  await sequelize.transaction(async transaction => {
+    createdOrganization = await Organization.create(
+      {
+        name: name,
+        networkIDs: networkIDs,
+        customDomains: customDomains,
+        csvCharset: '',
+        ssoCert: '',
+        ssoEntrypoint: '',
+        ssoIssuer: '',
+      },
+      {transaction},
+    );
+
+    // not ideal: since the ID is generated in Organizations table (and not explicitly set) we have to used the ID chosen in NMS. If ID already in use in orc8r, we get an error.
+    const tenantToCreate: Tenant = {
+      id: createdOrganization.id,
+      name: name,
+      networks: networkIDs,
+    };
+
+    await OrchestartorAPI.tenants.tenantsPost({tenant: tenantToCreate});
+  });
+  return createdOrganization;
+}
+
 router.post(
   '/organization/async',
   asyncHandler(
@@ -161,43 +289,80 @@ router.post(
       >,
       res,
     ) => {
-      let organization = await Organization.findOne({
-        where: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.body.name),
-        ),
-      });
-      if (organization) {
-        return res.status(404).send({error: 'Organization already exists'});
+      const joinedOrganization = await getOrganizationByName(req.body.name);
+      if (joinedOrganization) {
+        return res.status(409).send({error: 'Organization already exists'});
       }
-      organization = await Organization.create({
-        name: req.body.name,
-        networkIDs: req.body.networkIDs,
-        customDomains: req.body.customDomains,
-        csvCharset: '',
-        ssoCert: '',
-        ssoEntrypoint: '',
-        ssoIssuer: '',
-      });
-      res.status(200).send({organization});
+      try {
+        const createdOrganization = await createJoinedOrganization(
+          req.body.name,
+          req.body.networkIDs,
+          req.body.customDomains,
+        );
+        res.status(200).send({organization: createdOrganization});
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          res
+            .status(error?.response?.status ?? 500)
+            .send({error: (error as Error).toString()});
+        } else {
+          res.status(500).send({error: (error as Error).toString()});
+        }
+      }
     },
   ),
 );
 
 router.put(
   '/organization/async/:name',
-  asyncHandler(async (req: Request<never, any, {name: string}>, res) => {
-    const organization = await Organization.findOne({
-      where: Sequelize.where(
-        Sequelize.fn('lower', Sequelize.col('name')),
-        Sequelize.fn('lower', req.body.name),
-      ),
-    });
-    if (!organization) {
+  asyncHandler(async (req: Request<never, any, OrganizationRawType>, res) => {
+    const joinedOrganization = await getOrganizationByName(req.body.name);
+    if (!joinedOrganization) {
       return res.status(404).send({error: 'Organization does not exist'});
     }
-    const updated = await organization.update(req.body);
-    res.status(200).send({organization: updated});
+    let nmsOrganization = await Organization.findByPk(joinedOrganization.id);
+    let updatedOrganization: OrganizationRawType | null = null;
+    try {
+      await sequelize.transaction(async transaction => {
+        if (!nmsOrganization) {
+          nmsOrganization = await Organization.create(
+            {
+              ...emptyOrg,
+              name: joinedOrganization.name,
+              networkIDs: joinedOrganization.networkIDs,
+            },
+            {transaction},
+          );
+        }
+        updatedOrganization = await nmsOrganization.update(req.body, {
+          transaction,
+        });
+        // the comparison is sensitive to order, not sure it really matters but if so
+        // we could also do: [...new Set([...req.body.networkIDs,...joinedOrganization.networkIDs,])]
+        if (
+          req.body?.networkIDs &&
+          req.body.networkIDs !== joinedOrganization.networkIDs
+        ) {
+          await OrchestartorAPI.tenants.tenantsTenantIdPut({
+            tenant: {
+              id: joinedOrganization.id,
+              name: req.body.name,
+              networks: req.body.networkIDs,
+            },
+            tenantId: joinedOrganization.id,
+          });
+        }
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return res
+          .status(error?.response?.status ?? 500)
+          .send({error: (error as Error).toString()});
+      } else {
+        return res.status(500).send({error: (error as Error).toString()});
+      }
+    }
+    res.status(200).send({organization: updatedOrganization});
   }),
 );
 
@@ -213,13 +378,8 @@ router.post(
   '/organization/async/:name/add_user',
   asyncHandler(
     async (req: Request<{name: string}, any, Partial<UserRawType>>, res) => {
-      const organization = await Organization.findOne({
-        where: Sequelize.where(
-          Sequelize.fn('lower', Sequelize.col('name')),
-          Sequelize.fn('lower', req.params.name),
-        ),
-      });
-      if (!organization) {
+      const joinedOrganization = await getOrganizationByName(req.params.name);
+      if (!joinedOrganization) {
         return res.status(404).send({error: 'Organization does not exist'});
       }
 
@@ -240,13 +400,17 @@ router.post(
         // this happens when the user is being added to an organization that
         // uses SSO for login, give it a random password
         if (props.password === undefined) {
-          const organization = await Organization.findOne({
-            where: Sequelize.where(
-              Sequelize.fn('lower', Sequelize.col('name')),
-              Sequelize.fn('lower', req.params.name),
-            ),
-          });
-          if (organization && organization.ssoEntrypoint) {
+          let nmsOrganization = await Organization.findByPk(
+            joinedOrganization.id,
+          );
+          if (!nmsOrganization) {
+            nmsOrganization = await Organization.create({
+              ...emptyOrg,
+              name: joinedOrganization.name,
+              networkIDs: joinedOrganization.networkIDs,
+            });
+          }
+          if (nmsOrganization && nmsOrganization.ssoEntrypoint) {
             props.password = crypto.randomBytes(16).toString('hex');
           }
         }
@@ -262,27 +426,59 @@ router.post(
 
 router.delete(
   '/organization/async/:id',
-  asyncHandler(async (req: Request<{id: string}>, res) => {
-    const organization = await Organization.findOne({
-      where: {id: req.params.id},
-    });
-
-    if (!organization) {
-      res.status(200).send({success: true});
-      return;
+  asyncHandler(async (req: Request<{id: number}>, res) => {
+    let orc8rTenant: Tenant | null = null;
+    try {
+      orc8rTenant = (
+        await OrchestartorAPI.tenants.tenantsTenantIdGet({
+          tenantId: req.params.id,
+        })
+      ).data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return res
+          .status(error?.response?.status ?? 500)
+          .send({error: (error as Error).toString()});
+      } else {
+        return res.status(500).send({error: (error as Error).toString()});
+      }
     }
+    if (orc8rTenant !== null) {
+      const nmsOrganization = await Organization.findByPk(req.params.id);
 
-    await sequelize.transaction(async transaction => {
-      await organization.destroy({transaction});
+      try {
+        await sequelize.transaction(async transaction => {
+          if (nmsOrganization !== null) {
+            await nmsOrganization.destroy({transaction});
 
-      await User.destroy({
-        where: {organization: organization.name},
-        individualHooks: true,
-        transaction,
+            await User.destroy({
+              where: {organization: nmsOrganization.name},
+              individualHooks: true,
+              transaction,
+            });
+          }
+
+          await OrchestartorAPI.tenants.tenantsTenantIdDelete({
+            tenantId: req.params.id,
+          });
+        });
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          return res
+            .status(error?.response?.status ?? 500)
+            .send({error: (error as Error).toString()});
+        } else {
+          return res.status(500).send({error: (error as Error).toString()});
+        }
+      }
+      res.status(200).send({success: true});
+    } else {
+      res.status(409).send({
+        error: new Error(
+          `Organization with id ${req.params.id} not found in orc8r tenants table`,
+        ).toString(),
       });
-    });
-
-    res.status(200).send({success: true});
+    }
   }),
 );
 

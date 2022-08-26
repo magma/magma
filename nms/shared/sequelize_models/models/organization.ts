@@ -100,6 +100,7 @@ export default (sequelize: sequelize.Sequelize): OrganizationModelStatic => {
   const options: sequelize.ModelOptions<OrganizationModel> = {
     getterMethods: {
       isHostOrg() {
+        // cannot cover this in the PoC, since IDs of tenants and organizations may not be in sync between orc8r and NMS
         return this.name === HOST_ORG;
       },
     },
@@ -120,3 +121,19 @@ export default (sequelize: sequelize.Sequelize): OrganizationModelStatic => {
 
   return Organization;
 };
+
+// this is a problematic function if the ids are not forced to be in sync (as it currently is) but we have to assume this, because it would be the identifier for organizations
+/*async function getNameFromOrganizationID(
+  id: number,
+): Promise<string | undefined> {
+  const tenantMap: Record<number, Tenant> = {};
+  const orc8rTenants = (await OrchestartorAPI.tenants.tenantsGet()).data;
+  orc8rTenants.forEach(tenant => {
+    tenantMap[tenant.id] = tenant;
+  });
+  if (tenantMap[id] === undefined) {
+    throw new Error(`Key Error: id ${id} does not exist`);
+  } else {
+    return tenantMap[id].name;
+  }
+}*/
