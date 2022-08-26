@@ -23,15 +23,18 @@
  */
 #pragma once
 
+#include <stdint.h>
+
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(
@@ -61,7 +64,3 @@ spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
 status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
-
-#ifdef __cplusplus
-}
-#endif

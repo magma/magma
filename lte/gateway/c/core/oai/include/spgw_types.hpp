@@ -30,10 +30,18 @@
 #ifndef FILE_SPGW_TYPES_SEEN
 #define FILE_SPGW_TYPES_SEEN
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
-#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
@@ -109,9 +117,5 @@ void handle_s5_create_session_response(
     spgw_state_t* state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp);
-
-status_code_e sgw_handle_sgi_endpoint_created(
-    spgw_state_t* state, itti_sgi_create_end_point_response_t* const resp_p,
-    imsi64_t imsi64);
 
 #endif /* FILE_SPGW_TYPES_SEEN */

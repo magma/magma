@@ -13,14 +13,18 @@ limitations under the License.
 
 #pragma once
 
+#include <pthread.h>
+
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <pthread.h>
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
+#ifdef __cplusplus
+}
+#endif
 
 // Initializes SGW state struct when task process starts.
 int sgw_state_init(bool persist_state, const sgw_config_t* config);
@@ -72,6 +76,3 @@ void sgw_free_s11_bearer_context_information(
  */
 void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
 
-#ifdef __cplusplus
-}
-#endif

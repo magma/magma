@@ -17,16 +17,16 @@
 
 #pragma once
 
+#include <pthread.h>
+
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <pthread.h>
-
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-
 #include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 
 // Initializes SGW state struct when task process starts.
@@ -87,11 +87,11 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
  */
 void pgw_free_pcc_rule(void** rule);
 
+#ifdef __cplusplus
+}
+#endif
 /**
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
 void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
-#ifdef __cplusplus
-}
-#endif

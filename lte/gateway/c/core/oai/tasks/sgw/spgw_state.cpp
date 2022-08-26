@@ -18,15 +18,19 @@
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 #include <cstdlib>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
 }
+#endif
 
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
 
