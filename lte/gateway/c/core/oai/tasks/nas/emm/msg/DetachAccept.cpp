@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachAccept.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachAccept.hpp"
 
 int decode_detach_accept(detach_accept_msg* detach_accept, uint8_t* buffer,
                          uint32_t len) {

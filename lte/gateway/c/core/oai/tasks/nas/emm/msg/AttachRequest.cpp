@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -28,8 +30,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // encode_tmsi_status
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
 
 int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,

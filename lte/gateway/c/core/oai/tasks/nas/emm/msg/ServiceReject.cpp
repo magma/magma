@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.hpp"
 
 int decode_service_reject(service_reject_msg* service_reject, uint8_t* buffer,
                           uint32_t len) {

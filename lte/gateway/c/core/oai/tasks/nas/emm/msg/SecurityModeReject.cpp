@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/SecurityModeReject.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/SecurityModeReject.hpp"
 
 int decode_security_mode_reject(security_mode_reject_msg* security_mode_reject,
                                 uint8_t* buffer, uint32_t len) {

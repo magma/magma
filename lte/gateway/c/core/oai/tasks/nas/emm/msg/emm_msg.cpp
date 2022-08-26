@@ -32,6 +32,8 @@
   Description Defines EPS Mobility Management messages
 
 *****************************************************************************/
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -44,8 +46,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.hpp"
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"

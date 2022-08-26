@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -26,7 +28,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.hpp"
 
 int decode_attach_reject(attach_reject_msg* attach_reject, uint8_t* buffer,
                          uint32_t len) {

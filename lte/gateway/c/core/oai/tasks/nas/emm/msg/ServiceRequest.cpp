@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -26,7 +28,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.hpp"
 
 int decode_service_request(service_request_msg* service_request,
                            uint8_t* buffer, uint32_t len) {

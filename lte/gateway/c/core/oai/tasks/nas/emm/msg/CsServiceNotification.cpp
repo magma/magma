@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -26,7 +28,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/CsServiceNotification.hpp"
 
 int decode_cs_service_notification(
     cs_service_notification_msg* cs_service_notification, uint8_t* buffer,

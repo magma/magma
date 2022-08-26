@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationComplete.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/GutiReallocationComplete.hpp"
 
 int decode_guti_reallocation_complete(
     guti_reallocation_complete_msg* guti_reallocation_complete, uint8_t* buffer,

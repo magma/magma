@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -26,7 +28,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.hpp"
 
 int decode_authentication_failure(
     authentication_failure_msg* authentication_failure, uint8_t* buffer,

@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -27,7 +29,6 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.hpp"
 
 int decode_security_mode_complete(
     security_mode_complete_msg* security_mode_complete, uint8_t* buffer,

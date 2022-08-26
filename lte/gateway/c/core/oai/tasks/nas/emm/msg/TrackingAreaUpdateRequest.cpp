@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -27,7 +29,6 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // encode_tmsi_status
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
 
 int decode_tracking_area_update_request(

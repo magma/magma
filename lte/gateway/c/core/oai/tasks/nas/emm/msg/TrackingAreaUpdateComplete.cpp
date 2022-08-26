@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateComplete.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateComplete.hpp"
 
 int decode_tracking_area_update_complete(
     tracking_area_update_complete_msg* tracking_area_update_complete,

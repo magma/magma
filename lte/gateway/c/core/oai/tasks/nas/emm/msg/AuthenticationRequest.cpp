@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -26,7 +28,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.hpp"
 
 int decode_authentication_request(
     authentication_request_msg* authentication_request, uint8_t* buffer,

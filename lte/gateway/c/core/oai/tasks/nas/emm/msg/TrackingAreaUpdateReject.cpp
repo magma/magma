@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.hpp"
 
 int decode_tracking_area_update_reject(
     tracking_area_update_reject_msg* tracking_area_update_reject,
