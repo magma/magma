@@ -74,12 +74,6 @@ bash agw_install_docker.sh
 
 Once you see the output `Reboot this machine to apply kernel settings`, reboot your AGW host.
 
-After reboot become root user again:
-
-```bash
-sudo -i
-```
-
 Create `control_proxy.yml` file with your orc8r details:
 
 ```bash
