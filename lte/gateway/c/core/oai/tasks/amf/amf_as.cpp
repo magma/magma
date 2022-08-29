@@ -498,6 +498,26 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
       .unit = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .timervalue = 6;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.iei = NETWORK_FEATURE;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.len = 2;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.MPSI = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IWK_N26 = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMF = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMC = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IMS_VoPS_N3GPP = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IMS_VoPS_3GPP = 1;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.MCSI = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMCN3 = 0;
 
   size += MOBILE_IDENTITY_MAX_LENGTH;
   size += 20;
@@ -1278,6 +1298,12 @@ status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     }
   }
 
+  if (req->PDU_Session_Resource_Setup_Transfer_List.no_of_items > 0) {
+    // Get the ambr values
+    amf_smf_context_ue_aggregate_max_bit_rate_get(
+        amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
+        &(req->ue_aggregate_max_bit_rate.ul));
+  }
   if (nas_msg) {
     req->nas_pdu = nas_msg;
   } else {
