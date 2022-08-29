@@ -64,8 +64,8 @@ class Footer extends React.Component {
           </div>
           <div>
             <h5>More</h5>
-            <a href="https://code.fb.com/open-source/magma/">Blog</a>
-            <a href="https://github.com/facebookincubator/magma">GitHub</a>
+            <a href="https://magmacore.org/blog/">Blog</a>
+            <a href="https://github.com/magma/magma">GitHub</a>
           </div>
         </section>
 
