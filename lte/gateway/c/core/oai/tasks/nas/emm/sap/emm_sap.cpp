@@ -17,11 +17,11 @@
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esm.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -85,28 +85,28 @@ status_code_e emm_sap_send(emm_sap_t* msg) {
     /*
      * Forward to the EMMREG-SAP
      */
-    msg->u.emm_reg.primitive = primitive;
+    msg->u.emm_reg.primitive = (emm_reg_primitive_t)primitive;
     rc = emm_reg_send(&msg->u.emm_reg);
   } else if ((primitive > (emm_primitive_t)EMMESM_PRIMITIVE_MIN) &&
              (primitive < (emm_primitive_t)EMMESM_PRIMITIVE_MAX)) {
     /*
      * Forward to the EMMESM-SAP
      */
-    msg->u.emm_esm.primitive = primitive;
+    msg->u.emm_esm.primitive = (emm_esm_primitive_t)primitive;
     rc = emm_esm_send(&msg->u.emm_esm);
   } else if ((primitive > (emm_primitive_t)EMMAS_PRIMITIVE_MIN) &&
              (primitive < (emm_primitive_t)EMMAS_PRIMITIVE_MAX)) {
     /*
      * Forward to the EMMAS-SAP
      */
-    msg->u.emm_as.primitive = primitive;
+    msg->u.emm_as.primitive = (emm_as_primitive_t)primitive;
     rc = emm_as_send(&msg->u.emm_as);
   } else if ((primitive > (emm_primitive_t)EMMCN_PRIMITIVE_MIN) &&
              (primitive < (emm_primitive_t)EMMCN_PRIMITIVE_MAX)) {
     /*
      * Forward to the EMMCN-SAP
      */
-    msg->u.emm_cn.primitive = primitive;
+    msg->u.emm_cn.primitive = (emm_cn_primitive_t)primitive;
     rc = emm_cn_send(&msg->u.emm_cn);
   } else {
     OAILOG_WARNING(LOG_NAS_EMM, "EMM-SAP -   Out of range primitive (%d)\n",

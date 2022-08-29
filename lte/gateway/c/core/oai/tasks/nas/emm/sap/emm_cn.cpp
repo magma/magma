@@ -17,7 +17,7 @@
 
 /*****************************************************************************
 
-  Source      emm_cn.c
+  Source      emm_cn.cpp
 
   Version     0.1
 
@@ -63,10 +63,10 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
@@ -80,7 +80,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
-extern int emm_proc_tracking_area_update_accept(
+extern status_code_e emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);
 
 #ifdef __cplusplus
@@ -101,12 +101,12 @@ typedef struct {
                                       * the Attach Accept message    */
 } attach_data_t;
 
-extern int emm_cn_wrapper_attach_accept(emm_context_t* emm_context);
+extern status_code_e emm_cn_wrapper_attach_accept(emm_context_t* emm_context);
 
-static int emm_cn_authentication_res(emm_cn_auth_res_t* const msg);
-static int emm_cn_authentication_fail(const emm_cn_auth_fail_t* msg);
-static int emm_cn_ula_success(emm_cn_ula_success_t* msg_pP);
-static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP);
+static status_code_e emm_cn_authentication_res(emm_cn_auth_res_t* const msg);
+static status_code_e emm_cn_authentication_fail(const emm_cn_auth_fail_t* msg);
+static status_code_e emm_cn_ula_success(emm_cn_ula_success_t* msg_pP);
+static status_code_e emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP);
 
 /*
    String representation of EMMCN-SAP primitives
@@ -129,10 +129,10 @@ static const char* emm_cn_primitive_str[] = {
 };
 
 //------------------------------------------------------------------------------
-static int emm_cn_authentication_res(emm_cn_auth_res_t* const msg) {
+static status_code_e emm_cn_authentication_res(emm_cn_auth_res_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   /*
    * We received security vector from HSS. Try to setup security with UE
@@ -164,10 +164,10 @@ static int emm_cn_authentication_res(emm_cn_auth_res_t* const msg) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_authentication_fail(const emm_cn_auth_fail_t* msg) {
+static status_code_e emm_cn_authentication_fail(const emm_cn_auth_fail_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = NULL;
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   /*
    * We received security vector from HSS. Try to setup security with UE
@@ -195,8 +195,8 @@ static int emm_cn_authentication_fail(const emm_cn_auth_fail_t* msg) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_smc_fail(const emm_cn_smc_fail_t* msg) {
-  int rc = RETURNerror;
+static status_code_e emm_cn_smc_fail(const emm_cn_smc_fail_t* msg) {
+  status_code_e rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_proc_attach_reject(msg->ue_id, msg->emm_cause);
@@ -238,9 +238,9 @@ void handle_apn_mismatch(ue_mm_context_t* const ue_context, int esm_cause) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_ula_success(emm_cn_ula_success_t* msg_pP) {
+static status_code_e emm_cn_ula_success(emm_cn_ula_success_t* msg_pP) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   struct emm_context_s* emm_ctx = NULL;
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   pdn_cid_t pdn_cid = 0;
@@ -338,7 +338,7 @@ static int emm_cn_ula_success(emm_cn_ula_success_t* msg_pP) {
     rc = esm_proc_pdn_connectivity_request(
         emm_ctx, emm_ctx->esm_ctx.esm_proc_data->pti,
         emm_ctx->esm_ctx.esm_proc_data->pdn_cid, apn_config->context_identifier,
-        emm_ctx->esm_ctx.esm_proc_data->request_type,
+        (esm_proc_pdn_request_t) emm_ctx->esm_ctx.esm_proc_data->request_type,
         emm_ctx->esm_ctx.esm_proc_data->apn, apn_config->pdn_type,
         emm_ctx->esm_ctx.esm_proc_data->pdn_addr,
         &emm_ctx->esm_ctx.esm_proc_data->bearer_qos,
@@ -392,8 +392,8 @@ static int emm_cn_ula_success(emm_cn_ula_success_t* msg_pP) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_implicit_detach_ue(const uint32_t ue_id) {
-  int rc = RETURNok;
+static status_code_e emm_cn_implicit_detach_ue(const uint32_t ue_id) {
+  status_code_e rc = RETURNok;
   struct emm_context_s* emm_ctx_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -401,7 +401,7 @@ static int emm_cn_implicit_detach_ue(const uint32_t ue_id) {
   OAILOG_DEBUG(LOG_NAS_EMM,
                "EMM-PROC Implicit Detach UE" MME_UE_S1AP_ID_FMT "\n", ue_id);
 
-  emm_detach_request_ies_t params = {0};
+  emm_detach_request_ies_t params = {};
   // params.decode_status
   // params.guti = NULL;
   // params.imei = NULL;
@@ -426,9 +426,9 @@ static int emm_cn_implicit_detach_ue(const uint32_t ue_id) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_nw_initiated_detach_ue(const uint32_t ue_id,
+static status_code_e emm_cn_nw_initiated_detach_ue(const uint32_t ue_id,
                                          uint8_t detach_type) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -488,9 +488,9 @@ static int emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
+static status_code_e emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   struct emm_context_s* emm_ctx = NULL;
   esm_proc_pdn_type_t esm_pdn_type = ESM_PDN_TYPE_IPV4;
   ESM_msg esm_msg = {.header = {0}};
@@ -654,7 +654,7 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
          * Notify EMM that common procedure has been initiated
          * LG: TODO check this, seems very suspicious
          */
-        emm_sap_t emm_sap = {0};
+        emm_sap_t emm_sap = {};
 
         emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
         emm_sap.u.emm_reg.ue_id = msg_pP->ue_id;
@@ -668,9 +668,9 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg) {
+static status_code_e emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   struct emm_context_s* emm_ctx_p = NULL;
   ESM_msg esm_msg = {.header = {0}};
   int esm_cause;
@@ -741,12 +741,12 @@ static int emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_activate_dedicated_bearer_req(
+static status_code_e emm_cn_activate_dedicated_bearer_req(
     emm_cn_activate_dedicated_bearer_req_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   // forward to ESM
-  esm_sap_t esm_sap = {0};
+  esm_sap_t esm_sap = {};
 
   ue_mm_context_t* ue_mm_context =
       mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
@@ -778,12 +778,12 @@ static int emm_cn_activate_dedicated_bearer_req(
 }
 
 //------------------------------------------------------------------------------
-static int emm_cn_deactivate_dedicated_bearer_req(
+static status_code_e emm_cn_deactivate_dedicated_bearer_req(
     emm_cn_deactivate_dedicated_bearer_req_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   // forward to ESM
-  esm_sap_t esm_sap = {0};
+  esm_sap_t esm_sap = {};
 
   ue_mm_context_t* ue_mm_context =
       mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
@@ -833,7 +833,7 @@ static int send_attach_accept(struct emm_context_s* emm_ctx_p) {
        * Implicit GUTI reallocation;
        * * * * Notify EMM that common procedure has been initiated
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
 
       emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
       emm_sap.u.emm_reg.ue_id = attach_proc->ue_id;
@@ -848,7 +848,7 @@ static int send_attach_accept(struct emm_context_s* emm_ctx_p) {
 //------------------------------------------------------------------------------
 status_code_e emm_send_cs_domain_attach_or_tau_accept(
     struct ue_mm_context_s* ue_context_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   emm_fsm_state_t fsm_state = EMM_DEREGISTERED;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -893,9 +893,9 @@ status_code_e emm_send_cs_domain_attach_or_tau_accept(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int emm_cn_cs_domain_loc_updt_fail(
+static status_code_e emm_cn_cs_domain_loc_updt_fail(
     emm_cn_cs_domain_location_updt_fail_t emm_cn_sgs_location_updt_fail) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -959,7 +959,7 @@ static int emm_cn_cs_domain_loc_updt_fail(
          * Implicit GUTI reallocation;
          * * * * Notify EMM that common procedure has been initiated
          */
-        emm_sap_t emm_sap = {0};
+        emm_sap_t emm_sap = {};
         emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
         emm_sap.u.emm_reg.ue_id = emm_cn_sgs_location_updt_fail.ue_id;
         emm_sap.u.emm_reg.ctx = emm_ctx_p;
@@ -987,9 +987,9 @@ static int emm_cn_cs_domain_loc_updt_fail(
 }
 
 // handle CS-Domain MM-Information Request from SGS task
-static int emm_cn_cs_domain_mm_information_req(
+static status_code_e emm_cn_cs_domain_mm_information_req(
     emm_cn_cs_domain_mm_information_req_t* mm_information_req_pP) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   imsi64_t imsi64 = INVALID_IMSI64;
   emm_context_t* ctxt = NULL;
   ue_mm_context_t* ue_context_p = NULL;
@@ -1047,9 +1047,9 @@ static int emm_cn_cs_domain_mm_information_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
+static status_code_e emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   proc_tid_t pti;
 #define ESM_SAP_BUFFER_SIZE 4096
   uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
@@ -1143,7 +1143,7 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
 
 //------------------------------------------------------------------------------
 status_code_e emm_cn_send(const emm_cn_t* msg) {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   emm_cn_primitive_t primitive = msg->primitive;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);

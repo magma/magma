@@ -38,7 +38,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 struct emm_context_s;
@@ -49,21 +49,21 @@ struct emm_context_s;
 struct nas_base_proc_s;
 struct nas_emm_proc_s;
 
-typedef int (*success_cb_t)(struct emm_context_s*);
-typedef int (*failure_cb_t)(struct emm_context_s*);
-typedef int (*proc_abort_t)(struct emm_context_s*, struct nas_base_proc_s*);
+typedef status_code_e (*success_cb_t)(struct emm_context_s*);
+typedef status_code_e (*failure_cb_t)(struct emm_context_s*);
+typedef status_code_e (*proc_abort_t)(struct emm_context_s*, struct nas_base_proc_s*);
 
 typedef int (*pdu_in_resp_t)(struct emm_context_s*,
                              void* arg);  // can be RESPONSE, COMPLETE, ACCEPT
-typedef int (*pdu_in_rej_t)(struct emm_context_s*, void* arg);  // REJECT.
-typedef int (*pdu_out_rej_t)(struct emm_context_s*,
+typedef status_code_e (*pdu_in_rej_t)(struct emm_context_s*, void* arg);  // REJECT.
+typedef status_code_e (*pdu_out_rej_t)(struct emm_context_s*,
                              struct nas_base_proc_s*);  // REJECT.
 
-typedef int (*sdu_out_delivered_t)(struct emm_context_s*,
+typedef status_code_e (*sdu_out_delivered_t)(struct emm_context_s*,
                                    struct nas_emm_proc_s*);
-typedef int (*sdu_out_not_delivered_t)(struct emm_context_s*,
+typedef status_code_e (*sdu_out_not_delivered_t)(struct emm_context_s*,
                                        struct nas_emm_proc_s*);
-typedef int (*sdu_out_not_delivered_ho_t)(struct emm_context_s*,
+typedef status_code_e (*sdu_out_not_delivered_ho_t)(struct emm_context_s*,
                                           struct nas_emm_proc_s*);
 
 typedef enum {

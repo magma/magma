@@ -47,8 +47,8 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -174,7 +174,7 @@ typedef struct emm_tau_request_ies_s {
  */
 status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
                                   emm_cause_t emm_cause);
-int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
+status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
 
 /*
  *---------------------------------------------------------------------------

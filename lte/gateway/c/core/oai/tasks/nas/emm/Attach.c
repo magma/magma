@@ -80,14 +80,14 @@
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
@@ -1597,9 +1597,9 @@ status_code_e emm_cn_wrapper_attach_accept(emm_context_t* emm_context) {
  **      Others:    T3450                                      **
  **                                                                        **
  ***************************************************************************/
-static int emm_send_attach_accept(emm_context_t* emm_context) {
+static status_code_e emm_send_attach_accept(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   // may be caused by timer not stopped when deleted context
   if (emm_context) {

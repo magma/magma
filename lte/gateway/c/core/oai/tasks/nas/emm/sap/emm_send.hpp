@@ -56,7 +56,7 @@ Description Defines functions executed at the EMMAS Service Access
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceReject.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateAccept.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

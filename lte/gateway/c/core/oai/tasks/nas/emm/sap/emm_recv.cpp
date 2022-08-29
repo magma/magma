@@ -36,9 +36,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
@@ -72,7 +72,7 @@ extern mme_congestion_params_t mme_congestion_params;
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-static int emm_initiate_default_bearer_re_establishment(emm_context_t* emm_ctx);
+static status_code_e emm_initiate_default_bearer_re_establishment(emm_context_t* emm_ctx);
 /*
    --------------------------------------------------------------------------
    Functions executed by both the UE and the MME upon receiving EMM messages
@@ -240,7 +240,7 @@ status_code_e emm_recv_attach_request(
   // Dynamic memory allocation, if attach procedure is to be created
   // it should be freed when attach proc is freed. Otherwise, it should
   // be cleaned up properly
-  emm_attach_request_ies_t* params = calloc(1, sizeof(*params));
+  emm_attach_request_ies_t* params = (emm_attach_request_ies_t*) calloc(1, sizeof(*params));
   /*
    * Message processing
    */
@@ -277,7 +277,7 @@ status_code_e emm_recv_attach_request(
     OAILOG_DEBUG(LOG_NAS_EMM,
                  "Type of identity is EPS_MOBILE_IDENTITY_GUTI  (%d)\n",
                  msg->oldgutiorimsi.guti.typeofidentity);
-    params->guti = calloc(1, sizeof(guti_t));
+    params->guti = (guti_s*) calloc(1, sizeof(guti_t));
     params->guti->gummei.plmn.mcc_digit1 = msg->oldgutiorimsi.guti.mcc_digit1;
     params->guti->gummei.plmn.mcc_digit2 = msg->oldgutiorimsi.guti.mcc_digit2;
     params->guti->gummei.plmn.mcc_digit3 = msg->oldgutiorimsi.guti.mcc_digit3;
@@ -295,7 +295,7 @@ status_code_e emm_recv_attach_request(
     OAILOG_DEBUG(LOG_NAS_EMM,
                  "Type of identity is EPS_MOBILE_IDENTITY_IMSI  (%d)\n",
                  msg->oldgutiorimsi.imsi.typeofidentity);
-    params->imsi = calloc(1, sizeof(imsi_t));
+    params->imsi = (imsi_s*) calloc(1, sizeof(imsi_t));
     params->imsi->u.num.digit1 = msg->oldgutiorimsi.imsi.identity_digit1;
     params->imsi->u.num.digit2 = msg->oldgutiorimsi.imsi.identity_digit2;
     params->imsi->u.num.digit3 = msg->oldgutiorimsi.imsi.identity_digit3;
@@ -340,7 +340,7 @@ status_code_e emm_recv_attach_request(
     OAILOG_DEBUG(LOG_NAS_EMM,
                  "Type of identity is EPS_MOBILE_IDENTITY_IMEI  (%d)\n",
                  msg->oldgutiorimsi.imei.typeofidentity);
-    params->imei = calloc(1, sizeof(imei_t));
+    params->imei = (imei_s*) calloc(1, sizeof(imei_t));
     params->imei->u.num.tac1 = msg->oldgutiorimsi.imei.identity_digit1;
     params->imei->u.num.tac2 = msg->oldgutiorimsi.imei.identity_digit2;
     params->imei->u.num.tac3 = msg->oldgutiorimsi.imei.identity_digit3;
@@ -367,13 +367,13 @@ status_code_e emm_recv_attach_request(
    */
 
   if (msg->presencemask & ATTACH_REQUEST_LAST_VISITED_REGISTERED_TAI_PRESENT) {
-    params->last_visited_registered_tai = calloc(1, sizeof(tai_t));
+    params->last_visited_registered_tai = (tai_s*) calloc(1, sizeof(tai_t));
 
     COPY_TAI((*(params->last_visited_registered_tai)),
              msg->lastvisitedregisteredtai);
   }
   if (msg->presencemask & ATTACH_REQUEST_DRX_PARAMETER_PRESENT) {
-    params->drx_parameter = calloc(1, sizeof(drx_parameter_t));
+    params->drx_parameter = (drx_parameter_s*)calloc(1, sizeof(drx_parameter_t));
     memcpy(params->drx_parameter, &msg->drxparameter, sizeof(drx_parameter_t));
   }
 
@@ -387,18 +387,18 @@ status_code_e emm_recv_attach_request(
                params->is_native_sc, params->ksi);
 
   if (originating_tai) {
-    params->originating_tai = calloc(1, sizeof(tai_t));
+    params->originating_tai = (tai_s*)calloc(1, sizeof(tai_t));
     memcpy(params->originating_tai, originating_tai, sizeof(tai_t));
   }
   if (originating_ecgi) {
-    params->originating_ecgi = calloc(1, sizeof(ecgi_t));
+    params->originating_ecgi = (ecgi_s*)calloc(1, sizeof(ecgi_t));
     memcpy(params->originating_ecgi, originating_ecgi, sizeof(ecgi_t));
   }
   memcpy(&params->ue_network_capability, &msg->uenetworkcapability,
          sizeof(ue_network_capability_t));
 
   if (msg->presencemask & ATTACH_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {
-    params->ms_network_capability = calloc(1, sizeof(ms_network_capability_t));
+    params->ms_network_capability = (ms_network_capability_t*)calloc(1, sizeof(ms_network_capability_t));
     memcpy(params->ms_network_capability, &msg->msnetworkcapability,
            sizeof(ms_network_capability_t));
   }
@@ -445,7 +445,7 @@ status_code_e emm_recv_attach_request(
     mob_stsn_clsMark2.a53 = msg->mobilestationclassmark2.a53;
     mob_stsn_clsMark2.a52 = msg->mobilestationclassmark2.a52;
 
-    params->mob_st_clsMark2 = calloc(1, sizeof(MobileStationClassmark2));
+    params->mob_st_clsMark2 = (MobileStationClassmark2*)calloc(1, sizeof(MobileStationClassmark2));
     memcpy(params->mob_st_clsMark2, &mob_stsn_clsMark2,
            sizeof(MobileStationClassmark2));
   }
@@ -453,7 +453,7 @@ status_code_e emm_recv_attach_request(
   if (msg->presencemask &
       ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT) {
     params->voicedomainpreferenceandueusagesetting =
-        calloc(1, sizeof(voice_domain_preference_and_ue_usage_setting_t));
+        (voice_domain_preference_and_ue_usage_setting_t*)calloc(1, sizeof(voice_domain_preference_and_ue_usage_setting_t));
     memcpy(params->voicedomainpreferenceandueusagesetting,
            &msg->voicedomainpreferenceandueusagesetting,
            sizeof(voice_domain_preference_and_ue_usage_setting_t));
@@ -462,7 +462,7 @@ status_code_e emm_recv_attach_request(
   if (msg->presencemask &
       ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) {
     params->ueadditionalsecuritycapability =
-        calloc(1, sizeof(ue_additional_security_capability_t));
+        (ue_additional_security_capability_t*)calloc(1, sizeof(ue_additional_security_capability_t));
     memcpy(params->ueadditionalsecuritycapability,
            &msg->ueadditionalsecuritycapability,
            sizeof(ue_additional_security_capability_t));
@@ -537,7 +537,7 @@ status_code_e emm_recv_detach_request(
   /*
    * Message processing
    */
-  emm_detach_request_ies_t params = {0};
+  emm_detach_request_ies_t params = {};
   /*
    * Get the detach type
    */
@@ -558,7 +558,7 @@ status_code_e emm_recv_detach_request(
      * All other values are interpreted as "combined EPS/IMSI detach"
      */
     REQUIREMENT_3GPP_24_301(R10_9_9_3_7_1__1);
-    params.type = DETACH_TYPE_EPS_IMSI;
+    params.type = (emm_proc_detach_type_t)DETACH_TYPE_EPS_IMSI;
   }
   params.switch_off = (msg->detachtype.switchoff != DETACH_TYPE_NORMAL_DETACH);
   params.is_native_sc =
@@ -569,7 +569,7 @@ status_code_e emm_recv_detach_request(
    */
   increment_counter("ue_detach", 1, 1, "cause", "ue_initiated");
   // Send the SGS Detach indication towards MME App
-  rc = emm_proc_sgs_detach_request(ue_id, params.type);
+  rc = emm_proc_sgs_detach_request(ue_id, (emm_proc_sgs_detach_type_t)params.type);
   if (rc != RETURNerror) {
     rc = emm_proc_detach_request(ue_id, &params);
     *emm_cause = RETURNok == rc ? EMM_CAUSE_SUCCESS : EMM_CAUSE_PROTOCOL_ERROR;
@@ -615,7 +615,7 @@ status_code_e emm_recv_tracking_area_update_request(
    * TAU Complete, TAU due to change in TAs, optional IEs
    */
 
-  emm_tau_request_ies_t* ies = calloc(1, sizeof(emm_tau_request_ies_t));
+  emm_tau_request_ies_t* ies = (emm_tau_request_ies_t*)calloc(1, sizeof(emm_tau_request_ies_t));
   ies->is_initial = is_initial;
   // Mandatory fields
   ies->eps_update_type = msg->epsupdatetype;
@@ -646,19 +646,19 @@ status_code_e emm_recv_tracking_area_update_request(
   // NOT TODO additional_guti, useless
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_UE_NETWORK_CAPABILITY_PRESENT) {
-    ies->ue_network_capability = calloc(1, sizeof(*ies->ue_network_capability));
+    ies->ue_network_capability = (ue_network_capability_s*)calloc(1, sizeof(*ies->ue_network_capability));
     memcpy(ies->ue_network_capability, &msg->uenetworkcapability,
            sizeof(*ies->ue_network_capability));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_LAST_VISITED_REGISTERED_TAI_PRESENT) {
     ies->last_visited_registered_tai =
-        calloc(1, sizeof(*ies->last_visited_registered_tai));
+        (tai_s*)calloc(1, sizeof(*ies->last_visited_registered_tai));
     memcpy(ies->last_visited_registered_tai, &msg->lastvisitedregisteredtai,
            sizeof(*ies->last_visited_registered_tai));
   }
   if (msg->presencemask & TRACKING_AREA_UPDATE_REQUEST_DRX_PARAMETER_PRESENT) {
-    ies->drx_parameter = calloc(1, sizeof(*ies->drx_parameter));
+    ies->drx_parameter = (drx_parameter_s*)calloc(1, sizeof(*ies->drx_parameter));
     memcpy(ies->drx_parameter, &msg->drxparameter, sizeof(*ies->drx_parameter));
   }
   if (msg->presencemask &
@@ -669,48 +669,48 @@ status_code_e emm_recv_tracking_area_update_request(
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_EPS_BEARER_CONTEXT_STATUS_PRESENT) {
     ies->eps_bearer_context_status =
-        calloc(1, sizeof(*ies->eps_bearer_context_status));
+        (eps_bearer_context_status_t*)calloc(1, sizeof(*ies->eps_bearer_context_status));
     memcpy(ies->eps_bearer_context_status, &msg->epsbearercontextstatus,
            sizeof(*ies->eps_bearer_context_status));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {
-    ies->ms_network_capability = calloc(1, sizeof(*ies->ms_network_capability));
+    ies->ms_network_capability = (ms_network_capability_t*)calloc(1, sizeof(*ies->ms_network_capability));
     memcpy(ies->ms_network_capability, &msg->msnetworkcapability,
            sizeof(*ies->ms_network_capability));
   }
   if (msg->presencemask & TRACKING_AREA_UPDATE_REQUEST_TMSI_STATUS_PRESENT) {
-    ies->tmsi_status = calloc(1, sizeof(*ies->tmsi_status));
+    ies->tmsi_status = (tmsi_status_t*)calloc(1, sizeof(*ies->tmsi_status));
     memcpy(ies->tmsi_status, &msg->tmsistatus, sizeof(*ies->tmsi_status));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_MOBILE_STATION_CLASSMARK_2_PRESENT) {
     ies->mobile_station_classmark2 =
-        calloc(1, sizeof(*ies->mobile_station_classmark2));
+        (mobile_station_classmark2_s*)calloc(1, sizeof(*ies->mobile_station_classmark2));
     memcpy(ies->mobile_station_classmark2, &msg->mobilestationclassmark2,
            sizeof(*ies->mobile_station_classmark2));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_MOBILE_STATION_CLASSMARK_3_PRESENT) {
     ies->mobile_station_classmark3 =
-        calloc(1, sizeof(*ies->mobile_station_classmark3));
+        (mobile_station_classmark3_s*)calloc(1, sizeof(*ies->mobile_station_classmark3));
     memcpy(ies->mobile_station_classmark3, &msg->mobilestationclassmark3,
            sizeof(*ies->mobile_station_classmark3));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_PRESENT) {
-    ies->supported_codecs = calloc(1, sizeof(*ies->supported_codecs));
+    ies->supported_codecs = (tagbstring**)calloc(1, sizeof(*ies->supported_codecs));
     memcpy(ies->supported_codecs, &msg->supportedcodecs,
            sizeof(*ies->supported_codecs));
   }
   if (msg->presencemask &
       TRACKING_AREA_UPDATE_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT) {
-    ies->additional_updatetype = calloc(1, sizeof(*ies->additional_updatetype));
+    ies->additional_updatetype = (additional_update_type_t*)calloc(1, sizeof(*ies->additional_updatetype));
     memcpy(ies->additional_updatetype, &msg->additionalupdatetype,
            sizeof(*ies->additional_updatetype));
   }
   if (msg->presencemask & TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_PRESENT) {
-    ies->old_guti_type = calloc(1, sizeof(*ies->old_guti_type));
+    ies->old_guti_type = (guti_type_t*)calloc(1, sizeof(*ies->old_guti_type));
     memcpy(ies->old_guti_type, &msg->oldgutitype, sizeof(*ies->old_guti_type));
   }
 
@@ -788,7 +788,7 @@ status_code_e emm_recv_service_request(
   }
   // If PCRF has initiated default bearer deact, send detach
   if (emm_ctx->nw_init_bearer_deactv) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
@@ -1247,7 +1247,7 @@ status_code_e emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
 }
 
 //-------------------------------------------------------------------------------------
-static int emm_initiate_default_bearer_re_establishment(
+static status_code_e emm_initiate_default_bearer_re_establishment(
     emm_context_t* emm_ctx) {
   /*
    * This function is used to trigger initial context setup request towards eNB
@@ -1257,8 +1257,8 @@ static int emm_initiate_default_bearer_re_establishment(
    */
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
-  int rc = RETURNerror;
+  emm_sap_t emm_sap = {};
+  status_code_e rc = RETURNerror;
   if (emm_ctx) {
     emm_sap.primitive = EMMAS_ESTABLISH_CNF;
     emm_sap.u.emm_as.u.establish.ue_id =

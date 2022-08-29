@@ -158,18 +158,18 @@ set(libnas_mme_emm_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm/sap)
 set(libnas_mme_emm_sap_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_as.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_cn.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmCommonProcedureInitiated.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregistered.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregisteredInitiated.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_esm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_fsm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_recv.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_reg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmRegistered.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_sap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_send.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_as.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_cn.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmCommonProcedureInitiated.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregistered.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregisteredInitiated.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_esm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_fsm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_recv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_reg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmRegistered.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_sap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_send.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm)

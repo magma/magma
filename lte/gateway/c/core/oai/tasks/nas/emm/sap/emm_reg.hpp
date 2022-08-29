@@ -38,7 +38,7 @@ Description Defines the EMMREG Service Access Point that provides
 #define FILE_EMM_REG_SEEN
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

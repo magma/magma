@@ -24,8 +24,8 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
@@ -93,10 +93,10 @@ status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
+status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   increment_counter("emm_status_sent", 1, NO_LABELS);
-  int rc;
+  status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {0};
   emm_security_context_t* sctx = NULL;
   struct emm_context_s* ctx = NULL;

@@ -50,7 +50,7 @@ Description NAS procedure call manager
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

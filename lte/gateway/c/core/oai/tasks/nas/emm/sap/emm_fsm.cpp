@@ -25,8 +25,8 @@
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -81,7 +81,7 @@ static const char* const emm_fsm_status_str[EMM_STATE_MAX] = {
 */
 
 /* Type of the EPS Mobility Management state machine handler */
-typedef int (*emm_fsm_handler_t)(emm_reg_t* const);
+typedef status_code_e (*emm_fsm_handler_t)(emm_reg_t* const);
 
 status_code_e EmmDeregistered(emm_reg_t* const);
 status_code_e EmmRegistered(emm_reg_t* const);
@@ -155,14 +155,14 @@ status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ue_id,
                   ue_id, emm_fsm_status_str[emm_context->_emm_fsm_state],
                   emm_fsm_status_str[state]);
       emm_context->_emm_fsm_state = state;
-      emm_fsm_state_t new_emm_state = UE_UNREGISTERED;
-      if (state == EMM_REGISTERED) {
-        new_emm_state = UE_REGISTERED;
-      } else if (state == EMM_DEREGISTERED) {
-        new_emm_state = UE_UNREGISTERED;
+      emm_fsm_state_t new_emm_state = (emm_fsm_state_t)UE_UNREGISTERED;
+      if (state == (emm_fsm_state_t)EMM_REGISTERED) {
+        new_emm_state = (emm_fsm_state_t)UE_REGISTERED;
+      } else if (state == (emm_fsm_state_t)EMM_DEREGISTERED) {
+        new_emm_state = (emm_fsm_state_t)UE_UNREGISTERED;
       }
       // Update mme_ue_context's emm_state and overall stats
-      mme_ue_context_update_ue_emm_state(ue_id, new_emm_state);
+      mme_ue_context_update_ue_emm_state(ue_id, (mm_state_t)new_emm_state);
     }
 
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
