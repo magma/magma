@@ -42,10 +42,10 @@ class Footer extends React.Component {
           </a>
           <div>
             <h5>Docs</h5>
-            <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">
+            <a href="https://github.com/magma/magma/blob/master/docs/pdfs/Magma_Product_Overview.pdf">
               Magma Product Overview
             </a>
-            <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">
+            <a href="https://github.com/magma/magma/blob/master/docs/pdfs/Magma_Specs_FFWA_V1.1.pdf">
               Magma Spec
             </a>
           </div>
