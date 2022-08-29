@@ -39,7 +39,6 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
-#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
@@ -106,7 +105,6 @@ typedef struct sgw_state_s {
 typedef struct spgw_state_s {
   STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
   hash_table_ts_t* deactivated_predefined_pcc_rules;
-  hash_table_ts_t* predefined_pcc_rules;
   gtpv1u_data_t gtpv1u_data;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
