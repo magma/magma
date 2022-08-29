@@ -110,16 +110,10 @@ typedef struct attach_accept_msg_tag {
   additional_update_result_t additionalupdateresult;
 } attach_accept_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
                          uint32_t len);
 
 int encode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
                          uint32_t len);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* ! defined(FILE_ATTACH_ACCEPT_SEEN) */
