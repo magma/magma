@@ -74,16 +74,10 @@ typedef struct emm_information_msg_tag {
   daylight_saving_time_t networkdaylightsavingtime;
 } emm_information_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
                            uint32_t len);
 
 int encode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
                            uint32_t len);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* ! defined(FILE_EMM_INFORMATION_SEEN) */

@@ -65,9 +65,6 @@ typedef struct extended_service_request_msg_tag {
   csfb_response_t csfbresponse;
 } extended_service_request_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_extended_service_request(
     extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
     uint32_t len);
@@ -75,7 +72,4 @@ int decode_extended_service_request(
 int encode_extended_service_request(
     extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
     uint32_t len);
-#ifdef __cplusplus
-}
-#endif
 #endif /* ! defined(FILE_EXTENDED_SERVICE_REQUEST_SEEN) */

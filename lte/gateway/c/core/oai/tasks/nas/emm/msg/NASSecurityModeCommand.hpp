@@ -83,15 +83,9 @@ typedef struct security_mode_command_msg_tag {
   nonce_t noncemme;
 } security_mode_command_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_security_mode_command(security_mode_command_msg* securitymodecommand,
                                  uint8_t* buffer, uint32_t len);
 
 int encode_security_mode_command(security_mode_command_msg* securitymodecommand,
                                  uint8_t* buffer, uint32_t len);
-#ifdef __cplusplus
-}
-#endif
 #endif /* ! defined(FILE_NAS_SECURITY_MODE_COMMAND_SEEN) */
