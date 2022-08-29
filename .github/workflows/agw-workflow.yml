@@ -28,7 +28,7 @@ concurrency:
 
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-4a878d8"
   CACHE_KEY: bazel-base-image
   REMOTE_DOWNLOAD_OPTIMIZATION: true
 
