@@ -814,6 +814,11 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
 
 
+class InitMode(Enum):
+    SYSTEMD = 1
+    DOCKER = 2
+
+
 class MagmadUtil(object):
     """Utility class to trigger system commands in Magma"""
 
@@ -823,6 +828,8 @@ class MagmadUtil(object):
     health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
     config_ipv6_iface_cmds = Enum("config_ipv6_iface_cmds", "DISABLE ENABLE")
+
+    _init_system = None
 
     def __init__(self, magmad_client):
         """
@@ -848,6 +855,9 @@ class MagmadUtil(object):
             "{user}@{host} {command}"
         )
 
+        if self._init_system is None:
+            self._init_system = self.detect_init_system()
+
     def exec_command(self, command):
         """Run a command remotely on magma_dev VM.
 
@@ -867,6 +877,30 @@ class MagmadUtil(object):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+    def detect_init_system(self) -> InitMode:
+        """Detect whether services are running with Docker or systemd."""
+
+        try:
+            docker_running = self.exec_command_output("docker ps --filter 'name=magmad' --format '{{.Names}}'").strip() == "magmad"
+        except subprocess.CalledProcessError:
+            docker_running = False
+            logging.info("Docker is not installed")
+
+        try:
+            systemd_running = self.exec_command_output("systemctl is-active magma@magmad").strip() == "active"
+        except subprocess.CalledProcessError:
+            systemd_running = False
+            logging.info("systemd is not installed")
+
+        if docker_running and systemd_running:
+            raise RuntimeError("Magmad is running with both Docker and systemd")
+        elif docker_running:
+            return InitMode.DOCKER
+        elif systemd_running:
+            return InitMode.SYSTEMD
+        else:
+            raise RuntimeError("Magmad is not running with either Docker or systemd")
 
     def exec_command_output(self, command):
         """Run a command remotely on magma_dev VM.
@@ -935,9 +969,12 @@ class MagmadUtil(object):
 
     def restart_all_services(self):
         """Restart all magma services on magma_dev VM"""
-        self.exec_command(
-            "sudo service magma@* stop ; sudo service magma@magmad start",
-        )
+        if self._init_system == InitMode.SYSTEMD:
+            self.exec_command(
+                "sudo service magma@* stop ; sudo service magma@magmad start",
+            )
+        elif self._init_system == InitMode.DOCKER:
+            self.exec_command("cd /home/vagrant/magma/lte/gateway/docker && docker-compose restart")
         print("Waiting for all services to restart. Sleeping for 60 seconds..")
         time_slept = 0
         while time_slept < 60:
@@ -1196,7 +1233,10 @@ class MagmadUtil(object):
         """
         Restart sctpd service explicitly because it is not managed by magmad
         """
-        self.exec_command("sudo service sctpd restart")
+        if self._init_system == InitMode.SYSTEMD:
+            self.exec_command("sudo service sctpd restart")
+        elif self._init_system == InitMode.DOCKER:
+            self.exec_command("docker restart sctpd")
         for j in range(30):
             print("Waiting for", 30 - j, "seconds for restart to complete")
             time.sleep(1)
