@@ -3,7 +3,6 @@
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
-ENABLE_ASAN ?= 0
 
 # FEATURES: What kind of flavours do you want your MME or AGW have in it
 # MME is MME as described in 3GPP specs, it has at least S1AP, S11, S6a
@@ -19,16 +18,6 @@ FEATURES ?= agw_of
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
 AVAILABLE_FEATURE_LIST = agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
-
-ifeq ($(BUILD_TYPE),Debug)
-	ifeq ($(ENABLE_ASAN),1)
-		BAZEL_FLAGS := $(BAZEL_FLAGS) --config=asan
-	endif
-else
-	## RelWithDebInfo enable LSAN and add debug information
-	BAZEL_FLAGS = --config=production
-endif
-$(info BAZEL_FLAGS $(BAZEL_FLAGS))
 
 # First, check that nothing outside of AVAILABLE_FEATURE_LIST is requested
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
@@ -140,22 +129,8 @@ build_python: stop ## Build Python environment
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-define copy_bazel_c_build ## Copy Bazel build output to C_BUILD/
-# 1 - source directory, 2 - binary name
-mkdir -p $(C_BUILD)/$(1)
-sudo cp -f $(MAGMA_ROOT)/bazel-bin/lte/gateway/c/$(1)/$(2) $(C_BUILD)/$(1)/$(2)
-endef
-
-
 benchmark_pb: ## Benchmark ProtoBuf, same build_oai but with -DMME_BENCHMARK=True
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_BENCHMARK_FLAGS))
-
-build_c:  ## Build C/C++ targets with Bazel
-	bazel build $(BAZEL_FLAGS) //lte/gateway/c/session_manager:sessiond //lte/gateway/c/sctpd/src:sctpd //lte/gateway/c/connection_tracker/src:connectiond //lte/gateway/c/li_agent/src:liagentd
-	$(call copy_bazel_c_build,session_manager,sessiond)
-	$(call copy_bazel_c_build,sctpd/src,sctpd)
-	$(call copy_bazel_c_build,connection_tracker/src,connectiond)
-	$(call copy_bazel_c_build,li_agent/src,liagentd)
 
 build_oai: ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS))
@@ -202,9 +177,6 @@ ifdef UT_PATH
 	$(eval ut_path?=$(shell realpath $(UT_PATH)))
 endif
 	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
-
-test_c: ## Run all Bazel-ified C/C++ tests
-	bazel test $(BAZEL_FLAGS) -- //orc8r/gateway/c/...:* //lte/gateway/c/...:* -//lte/gateway/c/core/...:*
 
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
