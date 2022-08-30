@@ -11,10 +11,15 @@
  * limitations under the License.
  */
 
-import Sequelize from 'sequelize';
-
-import {Organization} from '../shared/sequelize_models';
-import {OrganizationModel} from '../shared/sequelize_models/models/organization';
+import OrchestartorAPI from '../server/api/OrchestratorAPI';
+import axios from 'axios';
+import {Organization, sequelize} from '../shared/sequelize_models';
+import {OrganizationRawType} from '../shared/sequelize_models/models/organization';
+import {
+  createJoinedOrganization,
+  emptyOrg,
+  getOrganizationByName,
+} from '../server/host/routes';
 import {union} from 'lodash';
 
 type OrganizationObject = {
@@ -24,18 +29,52 @@ type OrganizationObject = {
 };
 
 async function updateOrganization(
-  organization: OrganizationModel,
+  joinedOrganization: OrganizationRawType,
   organizationObject: OrganizationObject,
 ) {
   console.log(
     `Updating organization ${organizationObject.name} to: ` +
       `networkIDs=[${organizationObject.networkIDs.join(' ')}]`,
   );
-  await organization.update({
-    networkIDs: union(
-      organization.networkIDs ?? [],
-      organizationObject.networkIDs,
-    ),
+  let nmsOrganization = await Organization.findByPk(joinedOrganization.id);
+  await sequelize.transaction(async transaction => {
+    if (!nmsOrganization) {
+      nmsOrganization = await Organization.create(
+        {
+          ...emptyOrg,
+          name: joinedOrganization.name,
+          networkIDs: joinedOrganization.networkIDs,
+        },
+        {transaction},
+      );
+    }
+    await nmsOrganization.update(
+      {
+        networkIDs: union(
+          joinedOrganization.networkIDs ?? [],
+          organizationObject.networkIDs,
+        ),
+      },
+      {
+        transaction,
+      },
+    );
+    const unionNetworkIDs = [
+      ...new Set([
+        ...(joinedOrganization.networkIDs ?? []),
+        ...organizationObject.networkIDs,
+      ]),
+    ];
+    if (organizationObject.networkIDs !== unionNetworkIDs) {
+      await OrchestartorAPI.tenants.tenantsTenantIdPut({
+        tenant: {
+          id: joinedOrganization.id,
+          name: joinedOrganization.name,
+          networks: unionNetworkIDs,
+        },
+        tenantId: joinedOrganization.id,
+      });
+    }
   });
 }
 
@@ -44,29 +83,23 @@ async function createOrganization(organizationObject: OrganizationObject) {
     `Creating a new organization: name=${organizationObject.name}, ` +
       `networkIDs=[${organizationObject.networkIDs.join(' ')}]`,
   );
-  await Organization.create({
-    name: organizationObject.name,
-    networkIDs: organizationObject.networkIDs,
-    csvCharset: '',
-    ssoCert: '',
-    ssoEntrypoint: '',
-    ssoIssuer: '',
-  });
+  await createJoinedOrganization(
+    organizationObject.name,
+    organizationObject.networkIDs,
+    [],
+  );
 }
 
 async function createOrUpdateOrganization(
   organizationObject: OrganizationObject,
 ) {
-  const organization = await Organization.findOne({
-    where: Sequelize.where(
-      Sequelize.fn('lower', Sequelize.col('name')),
-      Sequelize.fn('lower', organizationObject.name),
-    ),
-  });
-  if (!organization) {
+  const joinedOrganization = await getOrganizationByName(
+    organizationObject.name,
+  );
+  if (!joinedOrganization) {
     await Promise.all([createOrganization(organizationObject)]);
   } else {
-    await updateOrganization(organization, organizationObject);
+    await updateOrganization(joinedOrganization, organizationObject);
   }
 }
 
@@ -74,7 +107,7 @@ function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
     console.log(
-      'Usage: createOrganization.js <name> <networkID>,<networkID>, ...',
+      'Usage: createOrganization.ts <name> <networkID>,<networkID>, ...',
     );
     process.exit(1);
   }
@@ -91,7 +124,15 @@ function main() {
       process.exit();
     })
     .catch(err => {
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        console.log(
+          `Error: Status: ${
+            err?.response?.status ?? 500
+          }: ${(err as Error).toString()}`,
+        );
+      } else {
+        console.log(err);
+      }
       process.exit(1);
     });
 }
