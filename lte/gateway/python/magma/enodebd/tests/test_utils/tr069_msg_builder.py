@@ -1053,3 +1053,22 @@ class Tr069MessageBuilder:
     @classmethod
     def get_reboot_response(cls) -> models.RebootResponse:
         return models.RebootResponse()
+
+    @classmethod
+    def get_delete_object_response(cls, status: int = 0) -> models.DeleteObjectResponse:
+        msg = models.DeleteObjectResponse()
+        msg.Status = status
+        return msg
+
+    @classmethod
+    def get_add_object_response(cls, status: int = 0, instance_number: int = 1) -> models.AddObjectResponse:
+        msg = models.AddObjectResponse()
+        msg.Status = status
+        msg.InstanceNumber = instance_number
+        return msg
+
+    @classmethod
+    def get_set_parameter_values_response(cls, status: int = 0) -> models.SetParameterValuesResponse:
+        msg = models.SetParameterValuesResponse()
+        msg.Status = status
+        return msg

@@ -719,6 +719,95 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
 
         self.assertIsInstance(acs_state_machine.state, WaitInformState)
 
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    def test_full_cycle_transition(self, mock_enodebd_update_cbsd):
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
+        acs_state_machine = provision_clean_sm(
+            state='wait_inform',
+        )
+
+        req = Tr069MessageBuilder.get_inform()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with InformResponse',
+        )
+
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'Should respond with GetParameterValues',
+        )
+
+        msg = Tr069MessageBuilder.param_values_qrtb_response(
+            GET_TRANSIENT_PARAMS_RESPONSE_PARAMS,
+            models.GetParameterValuesResponse,
+        )
+        resp = acs_state_machine.handle_tr069_message(msg)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'Should respond with GetParameterValues',
+        )
+
+        msg = Tr069MessageBuilder.param_values_qrtb_response(
+            GET_PARAMS_RESPONSE_PARAMS,
+            models.GetParameterValuesResponse,
+        )
+        resp = acs_state_machine.handle_tr069_message(msg)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'Should respond with GetParameterValues',
+        )
+
+        req = Tr069MessageBuilder.get_object_param_values_response(
+            cell_reserved_for_operator_use='true', enable='some_value', is_primary='true', plmnid='9999',
+        )
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.DeleteObject),
+            'Should respond with DeleteObject',
+        )
+
+        req = Tr069MessageBuilder.get_delete_object_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.SetParameterValues),
+            'Should respond with SetParameterValues',
+        )
+
+        # TODO base AddObjectsState has implementation issue and does not work
+        # req = Tr069MessageBuilder.get_add_object_response()
+        # resp = acs_state_machine.handle_tr069_message(req)
+
+        req = Tr069MessageBuilder.get_set_parameter_values_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'Should respond with GetParameterValues',
+        )
+
+        req = Tr069MessageBuilder.param_values_qrtb_response(
+            GET_PARAMS_RESPONSE_PARAMS,
+            models.GetParameterValuesResponse,
+        )
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(
+            isinstance(resp, models.DummyInput),
+            'Should respond with DummyInput',
+        )
+        self.assertEqual(
+            acs_state_machine.get_state(),
+            "Notifying DP. Awaiting new Inform.",
+            "Should be in notify_dp state.",
+        )
+        # TODO move notify_dp elsewhere, end_session should be last state
+        # self.assertEqual(
+        #     acs_state_machine.get_state(),
+        #     "Completed provisioning eNB. Awaiting new Inform.",
+        #     "Should be in end_session state",
+        # )
+
 
 class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
     def test_frequency_related_params_removed_in_postprocessor(self):
