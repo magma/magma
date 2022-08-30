@@ -203,12 +203,6 @@ coverage_oai: test_oai
 	lcov -r /tmp/coverage_oai.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_oai.info
 	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
 
-# format and test c/session_manager
-precommit_sm: format_all test_session_manager
-
-# format and test c/oai
-precommit_oai: format_all test_oai
-
 ## Generate complete code structural information prior to any test execution
 base_coverage: build_oai
 	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info.raw
