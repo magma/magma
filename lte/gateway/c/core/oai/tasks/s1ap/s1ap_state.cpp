@@ -64,6 +64,10 @@ UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
   UeDescription* ue = nullptr;
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to find state_ue_map");
+    return ue;
+  }
   uint64_t comp_s1ap_id =
       S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
   state_ue_map->get(comp_s1ap_id, &ue);
@@ -75,6 +79,10 @@ UeDescription* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   UeDescription* ue = nullptr;
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to find state_ue_map");
+    return ue;
+  }
   state_ue_map->map_apply_callback_on_all_elements(
       s1ap_ue_compare_by_mme_ue_id_cb, reinterpret_cast<void*>(&mme_ue_s1ap_id),
       reinterpret_cast<void**>(&ue));
@@ -86,6 +94,10 @@ UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
   UeDescription* ue = nullptr;
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to find state_ue_map");
+    return ue;
+  }
   state_ue_map->map_apply_callback_on_all_elements(
       s1ap_ue_compare_by_imsi, reinterpret_cast<void*>(&imsi64),
       reinterpret_cast<void**>(&ue));
