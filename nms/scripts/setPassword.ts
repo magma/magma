@@ -11,12 +11,15 @@
  * limitations under the License.
  */
 
-import Sequelize from 'sequelize';
+import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import {AccessRoles} from '../shared/roles';
-import {Organization, User} from '../shared/sequelize_models';
-import {OrganizationModel} from '../shared/sequelize_models/models/organization';
+import {User} from '../shared/sequelize_models';
 import {UserModel} from '../shared/sequelize_models/models/user';
+import {
+  createJoinedOrganization,
+  getOrganizationByName,
+} from '../server/host/routes';
 
 const SALT_GEN_ROUNDS = 10;
 
@@ -47,7 +50,7 @@ async function createUser(userObject: UserObject) {
     password: passwordHash,
     role,
     networkIDs: [],
-    organization: org.name,
+    organization: org,
   });
 }
 
@@ -67,34 +70,25 @@ async function createOrUpdateUser(userObject: UserObject) {
 
 async function createOrFetchOrganization(
   organization: string,
-): Promise<OrganizationModel> {
-  let org = await Organization.findOne({
-    where: Sequelize.where(
-      Sequelize.fn('lower', Sequelize.col('name')),
-      Sequelize.fn('lower', organization),
-    ),
-  });
-  if (!org) {
-    console.log(`Creating a new Organization: name=${organization} `);
-    const [o] = await Promise.all([
-      Organization.create({
-        name: organization,
-        networkIDs: [],
-        csvCharset: '',
-        ssoCert: '',
-        ssoIssuer: '',
-        ssoEntrypoint: '',
-      }),
-    ]);
-    org = o;
+): Promise<string> {
+  const joinedOrganization = await getOrganizationByName(organization);
+  if (!joinedOrganization) {
+    console.log(`Creating a new Organization: name=${organization}`);
+    const createdOrganization = await createJoinedOrganization(
+      organization,
+      [],
+      [],
+    );
+    return createdOrganization.name;
+  } else {
+    return joinedOrganization.name;
   }
-  return org;
 }
 
 function main() {
   const args = process.argv.slice(2);
   if (args.length !== 3) {
-    console.log('Usage: setPassword.js <organization> <email> <password>');
+    console.log('Usage: setPassword.ts <organization> <email> <password>');
     process.exit(1);
   }
   const userObject = {
@@ -110,7 +104,15 @@ function main() {
       process.exit();
     })
     .catch(err => {
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        console.log(
+          `Error: Status: ${
+            err?.response?.status ?? 500
+          }: ${(err as Error).toString()}`,
+        );
+      } else {
+        console.error(err);
+      }
       process.exit(1);
     });
 }
