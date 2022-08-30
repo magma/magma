@@ -1,4 +1,4 @@
-.PHONY: all build clean log logs run status test
+.PHONY: all build clean run test
 
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
@@ -83,15 +83,6 @@ stop: ## Stop all services
 restart: stop start ## Restart all services
 
 run: build restart ## Build and run all services
-
-status: ## Status of all services
-	sudo service magma@* status
-
-log: ## Follow logs for magmad service
-	sudo journalctl -fu magma@magmad | egrep 'error|$$' -i --color
-
-logs: ## Follow logs for all services
-	sudo journalctl -fu magma@* | egrep 'error|$$' -i --color
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake
