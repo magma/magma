@@ -93,17 +93,6 @@ cd $(1) && awk '{if (/^CMAKE_EXPORT_COMPILE_COMMANDS/) gsub(/OFF/, "ON"); print}
 ninja -C $(1)
 endef
 
-# run_scanbuild BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
-define run_scanbuild
-$(eval REPORT_DIR = "$(1)/reports")
-mkdir -p $(1)
-mkdir -p $(REPORT_DIR)
-cd $(1) && scan-build cmake $(2) -DCMAKE_BUILD_TYPE=Debug $(3) -GNinja
-scan-build -o $(REPORT_DIR) ninja -C $(1)
-cp -r $(REPORT_DIR) $(MAGMA_ROOT)
-@echo "Reports in magma/reports/.../index.html"
-endef
-
 # run_ctest BUILD_DIRECTORY, TEST_BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, LIST OF TESTS
 define run_ctest
 $(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
@@ -149,9 +138,6 @@ build_envoy_controller: ## Build envoy controller
 # This works with build_dpi
 build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
-
-scan_oai: ## Scan OAI
-	$(call run_scanbuild, $(C_BUILD)/scan/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
 
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
