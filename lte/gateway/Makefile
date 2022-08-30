@@ -1,4 +1,4 @@
-.PHONY: all build clean help log logs run status test
+.PHONY: all build clean log logs run status test
 
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
@@ -92,10 +92,6 @@ log: ## Follow logs for magmad service
 
 logs: ## Follow logs for all services
 	sudo journalctl -fu magma@* | egrep 'error|$$' -i --color
-
-# Ref: https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
-help: ## Show documented commands
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake
