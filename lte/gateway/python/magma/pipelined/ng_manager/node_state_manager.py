@@ -146,7 +146,7 @@ class NodeStateManager:
                 retry_count += 1
 
                 if retry_count == self.ASSOC_MAX_RETRIES:
-                    logging.info(" Max Attempt to SMF connection failed. Reattempting..")
+                    logging.error(" Max Attempt to SMF connection failed. Reattempting..")
                     retry_count = 0
 
                 poll_interval = pow(EXP_BASE, retry_count)
