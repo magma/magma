@@ -721,10 +721,17 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     def test_full_cycle_transition(self, mock_enodebd_update_cbsd):
+        expected_dp_params = {
+            ParameterName.UL_BANDWIDTH: '100',
+            ParameterName.DL_BANDWIDTH: '100',
+            ParameterName.EARFCNUL: 55340,
+            ParameterName.EARFCNDL: 55340,
+            ParameterName.POWER_SPECTRAL_DENSITY: 34,
+        }
+
         mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
-        acs_state_machine = provision_clean_sm(
-            state='wait_inform',
-        )
+        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
+        acs_state_machine.transition('wait_inform')
 
         req = Tr069MessageBuilder.get_inform()
         resp = acs_state_machine.handle_tr069_message(req)
@@ -760,9 +767,15 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
             'Should respond with GetParameterValues',
         )
 
-        req = Tr069MessageBuilder.get_object_param_values_response(
-            cell_reserved_for_operator_use='true', enable='some_value', is_primary='true', plmnid='9999',
+        self.assertIsNone(acs_state_machine.desired_cfg, "Config should not be built yet")
+
+        params1 = Tr069MessageBuilder.get_object_param_value(
+            num='1', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00101',
         )
+        params2 = Tr069MessageBuilder.get_object_param_value(
+            num='2', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00102',
+        )
+        req = Tr069MessageBuilder.get_object_params_response_from_values([*params1, *params2])
         resp = acs_state_machine.handle_tr069_message(req)
         self.assertTrue(
             isinstance(resp, models.DeleteObject),
@@ -807,6 +820,12 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
         #     "Completed provisioning eNB. Awaiting new Inform.",
         #     "Should be in end_session state",
         # )
+
+        for param, value in expected_dp_params.items():
+            self.assertEqual(
+                value, acs_state_machine.desired_cfg.get_parameter(param),
+                "DP params should be set in config"
+            )
 
 
 class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
