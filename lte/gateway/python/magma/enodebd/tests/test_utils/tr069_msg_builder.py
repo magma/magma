@@ -1072,3 +1072,36 @@ class Tr069MessageBuilder:
         msg = models.SetParameterValuesResponse()
         msg.Status = status
         return msg
+
+    @classmethod
+    def get_object_param_value(
+            cls, num='1', is_primary='true', cell_reserved_for_operator_use='false', plmnid='00101', enable='true',
+    ) -> List[models.ParameterValueStruct]:
+        return [
+            cls.get_parameter_value_struct(
+                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.IsPrimary',
+                val_type='boolean',
+                data=is_primary,
+            ), cls.get_parameter_value_struct(
+                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.CellReservedForOperatorUse',
+                val_type='boolean',
+                data=cell_reserved_for_operator_use,
+            ), cls.get_parameter_value_struct(
+                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.PLMNID',
+                val_type='string',
+                data=plmnid,
+            ), cls.get_parameter_value_struct(
+                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.Enable',
+                val_type='boolean',
+                data=enable,
+            )
+        ]
+
+    @classmethod
+    def get_object_params_response_from_values(
+            cls, param_values_list: List[models.ParameterValueStruct],
+    ) -> models.GetParameterValuesResponse:
+        msg = models.GetParameterValuesResponse()
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = param_values_list
+        return msg
