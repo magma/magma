@@ -285,7 +285,7 @@ run_test() {
 create_xml_report() {
     rm -f "${MERGED_REPORT_FOLDER}/"*.xml
     mkdir -p "${MERGED_REPORT_FOLDER}"
-    python3 lte/gateway/python/scripts/runtime_report.py -i ".+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/report_all_tests.xml" 
+    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/integtests_report.xml" 
     rm -f "${INTEGTEST_REPORT_FOLDER}/"*.xml
 }
 
@@ -330,7 +330,7 @@ RERUN_PREVIOUSLY_FAILED="false"
 FAILED_LIST=()
 FAILED_LIST_FILE="/tmp/last_failed_integration_tests.txt"
 INTEGTEST_REPORT_FOLDER="/var/tmp/test_results"
-MERGED_REPORT_FOLDER="${INTEGTEST_REPORT_FOLDER}/merged"
+MERGED_REPORT_FOLDER="${INTEGTEST_REPORT_FOLDER}/integtest_merged_report"
 
 BOLD='\033[1m'
 RED='\033[0;31m'
