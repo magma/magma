@@ -75,7 +75,7 @@ setup(
         'markupsafe==1.1.1',
         'netifaces>=0.11.0',
         'pylint>=1.7.1,<=2.14.0',
-        'PyYAML==5.3.1',
+        'PyYAML==5.4',
         'pytz>=2022.1',
         'prometheus_client==0.3.1',
         'sentry_sdk>=1.5.0,<1.9',
