@@ -847,7 +847,9 @@ class WaitGetObjectParametersState(EnodebAcsState):
                 self.acs.data_model,
                 self.acs.config_postprocessor,
             )
+        return self._get_next_state()
 
+    def _get_next_state(self) -> AcsReadMsgResult:
         if len(
             get_all_objects_to_delete(
                 self.acs.desired_cfg,
@@ -983,6 +985,7 @@ class AddObjectsState(EnodebAcsState):
             )
         else:
             return AcsReadMsgResult(False, None)
+        # TODO self.added_param set by get_msg is not formattable, how is this supposed to work?
         instance_n = message.InstanceNumber
         self.acs.device_cfg.add_object(self.added_param % instance_n)
         obj_list_to_add = get_all_objects_to_add(
