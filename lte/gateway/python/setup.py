@@ -102,7 +102,7 @@ setup(
         # lxml required by spyne.
         'lxml==4.9.1',
         'ryu>=4.34',
-        'spyne>=2.14.0',
+        'spyne>=2.13,<2.14',
         'scapy==2.4.5',
         'flask==1.1.4',
         'sentry_sdk>=1.5.0,<1.9',
@@ -134,7 +134,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            'grpcio-tools>=1.47.0',
+            'grpcio-tools>=1.46.3',
             'coverage==6.4.2',
             'iperf3>=0.1.11',
             'parameterized==0.8.1',
