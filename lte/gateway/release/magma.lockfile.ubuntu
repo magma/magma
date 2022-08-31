@@ -1010,7 +1010,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-sentry-sdk",
-          "version": "1.9.0"
+          "version": "1.8.0"
         },
         "simplejson": {
           "root": false,
@@ -1038,9 +1038,9 @@
         },
         "spyne": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-spyne",
-          "version": "2.14.0"
+          "version": "2.13.16"
         },
         "strict-rfc3339": {
           "root": true,
@@ -1246,7 +1246,7 @@
           "version": "2.4.5"
         },
         "sentry-sdk": {
-          "version": "1.9.0"
+          "version": "1.8.0"
         },
         "setuptools": {
           "version": "63.3.0"
@@ -1258,7 +1258,7 @@
           "version": "0.0.3"
         },
         "spyne": {
-          "version": "2.14.0"
+          "version": "2.13.16"
         },
         "strict-rfc3339": {
           "version": "0.7"

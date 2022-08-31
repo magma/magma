@@ -102,10 +102,10 @@ setup(
         # lxml required by spyne.
         'lxml==4.9.1',
         'ryu>=4.34',
-        'spyne>=2.14.0',
+        'spyne>=2.13,<2.14',
         'scapy==2.4.5',
         'flask==1.1.4',
-        'sentry_sdk>=1.5.0,<1.9',
+        'sentry_sdk==1.8.0',
         'aiodns>=3.0.0',
         'pymemoize>=1.0.3',
         'wsgiserver>=1.3',
