@@ -722,53 +722,56 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
     def test_full_cycle_transition(self, mock_enodebd_update_cbsd):
         expected_dp_params = {
+            ParameterName.SAS_RADIO_ENABLE: True,
             ParameterName.UL_BANDWIDTH: '100',
             ParameterName.DL_BANDWIDTH: '100',
             ParameterName.EARFCNUL: 55340,
             ParameterName.EARFCNDL: 55340,
             ParameterName.POWER_SPECTRAL_DENSITY: 34,
+            ParameterName.BAND: 48,
         }
 
         mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
         acs_state_machine.transition('wait_inform')
 
+        # wait_inform: read, get
         req = Tr069MessageBuilder.get_inform()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(
-            isinstance(resp, models.InformResponse),
-            'Should respond with InformResponse',
+        self.assertIsInstance(
+            resp, models.InformResponse, 'Should respond with InformResponse',
         )
 
+        # wait_empty: read -> get_transient_params: get
         req = models.DummyInput()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(
-            isinstance(resp, models.GetParameterValues),
-            'Should respond with GetParameterValues',
+        self.assertIsInstance(
+            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
         )
 
+        self.assertIsNone(acs_state_machine.desired_cfg, "Config should not exist yet")
+
+        # wait_get_transient_params: read -> get_params: get
         msg = Tr069MessageBuilder.param_values_qrtb_response(
             GET_TRANSIENT_PARAMS_RESPONSE_PARAMS,
             models.GetParameterValuesResponse,
         )
         resp = acs_state_machine.handle_tr069_message(msg)
-        self.assertTrue(
-            isinstance(resp, models.GetParameterValues),
-            'Should respond with GetParameterValues',
+        self.assertIsInstance(
+            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
         )
 
+        # wait_get_params: read -> get_obj_params: get
         msg = Tr069MessageBuilder.param_values_qrtb_response(
             GET_PARAMS_RESPONSE_PARAMS,
             models.GetParameterValuesResponse,
         )
         resp = acs_state_machine.handle_tr069_message(msg)
-        self.assertTrue(
-            isinstance(resp, models.GetParameterValues),
-            'Should respond with GetParameterValues',
+        self.assertIsInstance(
+            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
         )
 
-        self.assertIsNone(acs_state_machine.desired_cfg, "Config should not be built yet")
-
+        # wait_get_obj_params: read -> delete_objs: get
         params1 = Tr069MessageBuilder.get_object_param_value(
             num='1', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00101',
         )
@@ -777,37 +780,40 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
         )
         req = Tr069MessageBuilder.get_object_params_response_from_values([*params1, *params2])
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(
-            isinstance(resp, models.DeleteObject),
-            'Should respond with DeleteObject',
+        self.assertIsInstance(
+            resp, models.DeleteObject, 'Should respond with DeleteObject',
         )
 
+        # delete_objs: read -> set_params: get
         req = Tr069MessageBuilder.get_delete_object_response()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(
-            isinstance(resp, models.SetParameterValues),
-            'Should respond with SetParameterValues',
-        )
-
-        # TODO base AddObjectsState has implementation issue and does not work
+        # TODO should go to `add_objs`, but base AddObjectsState has implementation issue and does not work
+        # self.assertTrue(
+        #     isinstance(resp, models.AddObject),
+        #     'Should respond with AddObject',
+        # )
+        #
         # req = Tr069MessageBuilder.get_add_object_response()
         # resp = acs_state_machine.handle_tr069_message(req)
-
-        req = Tr069MessageBuilder.get_set_parameter_values_response()
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(
-            isinstance(resp, models.GetParameterValues),
-            'Should respond with GetParameterValues',
+        self.assertIsInstance(
+            resp, models.SetParameterValues, 'Should respond with SetParameterValues',
         )
 
+        # wait_set_params: read -> check_get_params: get
+        req = Tr069MessageBuilder.get_set_parameter_values_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertIsInstance(
+            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+        )
+
+        # check_wait_get_params: read -> end_session: get
         req = Tr069MessageBuilder.param_values_qrtb_response(
             GET_PARAMS_RESPONSE_PARAMS,
             models.GetParameterValuesResponse,
         )
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(
-            isinstance(resp, models.DummyInput),
-            'Should respond with DummyInput',
+        self.assertIsInstance(
+            resp, models.DummyInput, 'Should respond with DummyInput',
         )
         self.assertEqual(
             acs_state_machine.get_state(),
@@ -826,6 +832,14 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
                 value, acs_state_machine.desired_cfg.get_parameter(param),
                 "DP params should be set in config"
             )
+
+        # TODO move notify_dp elsewhere, end_session should transition into inform
+        # notify_dp: read -> wait_inform: get
+        req = Tr069MessageBuilder.get_inform()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertIsInstance(
+            resp, models.InformResponse, 'Should respond with InformResponse',
+        )
 
 
 class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
