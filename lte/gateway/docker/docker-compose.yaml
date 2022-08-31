@@ -36,6 +36,11 @@ x-lte-cservice: &ltecservice
   <<: *service
   image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
+# Generic anchor for go services
+x-goservice: &goservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}agw_gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+
 services:
   magmad:
     <<: *pyservice
@@ -302,3 +307,12 @@ services:
       retries: 3
     command: /usr/local/bin/liagentd
     restart: "no"
+
+  envoy_controller:
+    <<: *goservice
+    container_name: envoy_controller
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50081"]
+      timeout: "4s"
+      retries: 3
+    command: /var/opt/magma/bin/envoy_controller
