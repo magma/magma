@@ -62,3 +62,12 @@ The EPC originates from OAI (OpenAirInterface Software Alliance) and is offered 
 ## Risks
 
 The Magma materials are provided in accordance with the licenses made available in the LICENSE file. Prior to using the materials, it is highly recommended that you test and verify that the materials meet your specific requirements, including, without limitation, any and all security and performance requirements.
+
+## Security
+
+Responsible disclosures from independent researchers are gratefully accepted. See the [Security Policy](/magma/magma/security/policy) for submission details and [Security Overview for Contributors](https://github.com/magma/magma/wiki/Security-Overview-for-Contributors) to learn about other ways of contributing.
+
+We wish to acknowledge valuable disclosures by the following security researchers:
+
+- Guarang Maheta
+- Phi Trần
