@@ -35,6 +35,12 @@ from magma.enodebd.dp_client import (
 )
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_all_objects_to_add,
+    get_all_objects_to_delete,
+    get_all_param_values_to_set,
+    process_inform_message,
+)
 from magma.enodebd.state_machines.acs_state_utils import process_inform_message
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
@@ -43,11 +49,33 @@ from magma.enodebd.state_machines.enb_acs_states import (
     EnodebAcsState,
     NotifyDPState,
     WaitInformMRebootState,
+    WaitGetObjectParametersState,
 )
 from magma.enodebd.state_machines.timer import StateMachineTimer
 from magma.enodebd.tr069 import models
 
 logger = EnodebdLogger
+
+
+class BaicellsQRTBWaitGetObjectParametersState(WaitGetObjectParametersState):
+    """ WaitGetObjectParametersState modified in a way that enforces it to always go next to "when_done" state."""
+
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+    ):
+        super().__init__(
+            acs=acs,
+            when_delete=when_done,
+            when_add=when_done,
+            when_set=when_done,
+            when_skip=when_done,
+        )
+        self.done_transition = when_done
+
+    def _get_next_state(self) -> AcsReadMsgResult:
+        return AcsReadMsgResult(True, self.done_transition)
 
 
 class BaicellsQRTBEndSessionState(EnodebAcsState):
@@ -64,7 +92,26 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
     ):
         super().__init__()
         self.acs = acs
-        self.done_transition = when_done
+        self.inform_transition = when_done
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Send an empty response if a device sends an empty HTTP message
+
+        If it's an inform, try to process it. It could be a queued
+        inform or a periodic one.
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
+        """
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(msg_handled=True, next_state=None)
+        elif isinstance(message, models.Inform):
+            return AcsReadMsgResult(msg_handled=True, next_state=self.inform_transition)
+        return AcsReadMsgResult(msg_handled=False, next_state=None)
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
@@ -77,7 +124,7 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
             AcsMsgAndTransition
         """
         request = models.DummyInput()
-        return AcsMsgAndTransition(msg=request, next_state=self.done_transition)
+        return AcsMsgAndTransition(msg=request, next_state=None)
 
     def state_description(self) -> str:
         """
@@ -86,7 +133,7 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
         Returns:
             str
         """
-        return 'Completed provisioning eNB. Notifying DP.'
+        return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
 class BaicellsQRTBQueuedEventsWaitState(EnodebAcsState):
@@ -191,10 +238,25 @@ class BaicellsQRTBWaitInformRebootState(WaitInformMRebootState):
     INFORM_EVENT_CODE = '1 BOOT'
 
 
-class BaicellsQRTBNotifyDPState(NotifyDPState):
+class BaicellsQRTBNotifyDPState(EnodebAcsState):
     """
         BaicellsQRTB NotifyDPState implementation
     """
+
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_delete: str,
+        when_add: str,
+        when_set: str,
+        when_skip: str,
+    ):
+        super().__init__()
+        self.acs = acs
+        self.rm_obj_transition = when_delete
+        self.add_obj_transition = when_add
+        self.set_params_transition = when_set
+        self.skip_transition = when_skip
 
     def enter(self):
         """
@@ -219,6 +281,43 @@ class BaicellsQRTBNotifyDPState(NotifyDPState):
             qrtb_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
         else:
             EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
+
+        self._transition_into_next_state()
+
+    def _transition_into_next_state(self) -> None:
+        if len(
+            get_all_objects_to_delete(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
+            self.acs.transition(self.rm_obj_transition)
+        elif len(
+            get_all_objects_to_add(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
+            self.acs.transition(self.add_obj_transition)
+        elif len(
+            get_all_param_values_to_set(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+                self.acs.data_model,
+            ),
+        ) > 0:
+            self.acs.transition(self.set_params_transition)
+        else:
+            self.acs.transition(self.skip_transition)
+
+    def state_description(self) -> str:
+        """
+        Describe the state
+
+        Returns:
+            str
+        """
+        return 'Notifying DP and immediately going into the next state.'
 
 
 def _qrtb_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:
