@@ -44,7 +44,7 @@ void put_spgw_state(void);
  */
 hash_table_ts_t* get_spgw_ue_state(void);
 
-hash_table_ts_t* get_spgw_teid_state(void);
+state_teid_map_t* get_spgw_teid_state(void);
 
 /**
  * Populates SPGW UE hashtable from db
@@ -67,10 +67,9 @@ void delete_spgw_ue_state(imsi64_t imsi64);
 
 /**
  * Callback function for s11_bearer_context_information hashtable freefunc
- * @param context_p spgw eps bearer context entry on hashtable
+ * @param context_p spgw eps bearer context entry on map
  */
-void spgw_free_s11_bearer_context_information(
-    s_plus_p_gw_eps_bearer_context_information_t** context_p);
+void spgw_free_s11_bearer_context_information(void**);
 /**
  * Frees pdn connection and its contained objects
  * @param pdn_connection_p

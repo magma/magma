@@ -17,7 +17,6 @@ limitations under the License.
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -26,6 +25,7 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
@@ -1475,7 +1475,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   if (pgw_ni_cbr_proc && (LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers))) {
     pgw_base_proc_t* base_proc1 = LIST_FIRST(sgw_context_p->pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    free_wrapper((void**)&sgw_context_p->pending_procedures);
+    free_cpp_wrapper((void**)&sgw_context_p->pending_procedures);
     free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }

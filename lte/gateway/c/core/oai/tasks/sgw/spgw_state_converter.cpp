@@ -17,9 +17,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 extern "C" {
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 }
 
@@ -214,8 +214,10 @@ void SpgwStateConverter::sgw_pdn_connection_to_proto(
 
 void SpgwStateConverter::proto_to_sgw_pdn_connection(
     const oai::SgwPdnConnection& proto, sgw_pdn_connection_t* state_pdn) {
-  state_pdn->apn_in_use =
-      strndup(proto.apn_in_use().c_str(), proto.apn_in_use().length());
+  if ((proto.apn_in_use().length())) {
+    state_pdn->apn_in_use =
+        strndup(proto.apn_in_use().c_str(), proto.apn_in_use().length());
+  }
   state_pdn->default_bearer = proto.default_bearer();
   state_pdn->ue_suspended_for_ps_handover =
       proto.ue_suspended_for_ps_handover();
@@ -920,8 +922,7 @@ void SpgwStateConverter::proto_to_sgw_pending_procedures(
     const oai::SgwEpsBearerContextInfo& proto,
     sgw_eps_bearer_context_information_t::pending_procedures_s** procedures_p) {
   *procedures_p =
-      (sgw_eps_bearer_context_information_t::pending_procedures_s*)calloc(
-          1, sizeof(*procedures_p));
+      new sgw_eps_bearer_context_information_t::pending_procedures_s();
   LIST_INIT(*procedures_p);
   for (auto& procedure_proto : proto.pending_procedures()) {
     if (procedure_proto.type() ==
@@ -981,11 +982,11 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
                                      spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   hash_table_ts_t* state_ue_ht = nullptr;
-  hash_table_ts_t* state_teid_ht = nullptr;
+  state_teid_map_t* state_teid_map = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
-    state_teid_ht = get_spgw_teid_state();
-    if (!state_teid_ht) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_ht \n");
+    state_teid_map = get_spgw_teid_state();
+    if (!state_teid_map) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
@@ -1016,8 +1017,7 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
   for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
     oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
-        (s_plus_p_gw_eps_bearer_context_information_t*)(calloc(
-            1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+        new s_plus_p_gw_eps_bearer_context_information_t();
     if (!spgw_context_p) {
       OAILOG_ERROR(LOG_SPGW_APP,
                    "Failed to allocate memory for SPGW context \n");
@@ -1025,10 +1025,16 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
     }
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
-    hashtable_ts_insert(
-        state_teid_ht,
-        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
-        (void*)spgw_context_p);
+    if ((state_teid_map->insert(
+             spgw_context_p->sgw_eps_bearer_context_information
+                 .s_gw_teid_S11_S4,
+             spgw_context_p) != magma::PROTO_MAP_OK)) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to insert spgw_context_p for teid " TEID_FMT " \n",
+          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
     spgw_update_teid_in_ue_context(
         spgw_context_p->sgw_eps_bearer_context_information.imsi64,
         spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);

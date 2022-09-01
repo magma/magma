@@ -31,11 +31,12 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -140,12 +141,11 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
-      NULL;
+      nullptr;
   new_bearer_context_information =
-      reinterpret_cast<s_plus_p_gw_eps_bearer_context_information_t*>(
-          calloc(1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+      new s_plus_p_gw_eps_bearer_context_information_t();
 
-  if (new_bearer_context_information == NULL) {
+  if (new_bearer_context_information == nullptr) {
     /*
      * Malloc failed, may be ENOMEM error
      */
@@ -157,35 +157,12 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
     return NULL;
   }
 
-  OAILOG_DEBUG(
-      LOG_SPGW_APP,
-      "sgw_cm_create_bearer_context_information_in_collection " TEID_FMT "\n",
-      teid);
-
-  bstring b = bfromcstr("pgw_eps_bearer_ctxt_info_apns");
-  new_bearer_context_information->pgw_eps_bearer_context_information.apns =
-      obj_hashtable_ts_create(32, NULL, NULL,
-                              (void (*)(void**))pgw_lite_cm_free_apn, b);
-  bdestroy_wrapper(&b);
-
-  if (new_bearer_context_information->pgw_eps_bearer_context_information.apns ==
-      NULL) {
-    OAILOG_ERROR(
-        LOG_SPGW_APP,
-        "Failed to create APN collection object entry for EPS bearer S11 "
-        "teid " TEID_FMT "\n",
-        teid);
-    spgw_free_s11_bearer_context_information(&new_bearer_context_information);
-    return NULL;
-  }
-
   /*
    * Trying to insert the new tunnel into the tree.
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
-  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
-  hashtable_ts_insert(state_teid_ht, (const hash_key_t)teid,
-                      new_bearer_context_information);
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  state_teid_map->insert(teid, new_bearer_context_information);
 
   OAILOG_DEBUG(LOG_SPGW_APP,
                "Added new s_plus_p_gw_eps_bearer_context_information_t in "
@@ -200,12 +177,13 @@ hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
                                                         imsi64_t imsi64) {
   hashtable_rc_t temp = HASH_TABLE_OK;
 
-  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
-  temp = hashtable_ts_free(state_teid_ht, teid);
-  if (temp != HASH_TABLE_OK) {
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (state_teid_map->remove(teid) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "Failed to free teid from state_teid_ht \n");
-    return temp;
+                    "Failed to free teid from state_teid_map \n");
+    // TODO(rsarwad): Shall change to proto_map_rc_t while porting hashlist,
+    // spgw_ue_state
+    return HASH_TABLE_KEY_NOT_EXISTS;
   }
   spgw_ue_context_t* ue_context_p = NULL;
   hash_table_ts_t* spgw_ue_state = get_spgw_ue_state();
@@ -319,10 +297,9 @@ sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_context_info = NULL;
-  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
 
-  hashtable_ts_get(state_teid_ht, (const hash_key_t)teid,
-                   (void**)&spgw_bearer_context_info);
+  state_teid_map->get(teid, &spgw_bearer_context_info);
   return spgw_bearer_context_info;
 }
 

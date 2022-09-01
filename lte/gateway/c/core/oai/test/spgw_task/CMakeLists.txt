@@ -44,8 +44,8 @@ target_link_libraries(SPGW_TASK_TEST_LIB
 
 set_target_properties(SPGW_TASK_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
-foreach (sgw_test spgw_service_impl spgw_state_converter 
-         spgw_procedures spgw_procedures_dedicated_bearer spgw_procedures_session
+foreach (sgw_test spgw_service_impl
+         spgw_procedures spgw_procedures_session
          pgw_pco spgw_procedures_with_injected_state)
   add_executable(${sgw_test}_test test_${sgw_test}.cpp)
   target_link_libraries(${sgw_test}_test SPGW_TASK_TEST_LIB TASK_GRPC_SERVICE)
