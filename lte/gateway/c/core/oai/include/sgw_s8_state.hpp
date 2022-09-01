@@ -15,8 +15,6 @@ limitations under the License.
 
 #include <pthread.h>
 
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +23,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 // Initializes SGW state struct when task process starts.
 int sgw_state_init(bool persist_state, const sgw_config_t* config);

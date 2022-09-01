@@ -22,8 +22,7 @@
  * \email:
  */
 
-#ifndef PGW_UE_IP_ADDRESS_ALLOC_SEEN
-#define PGW_UE_IP_ADDRESS_ALLOC_SEEN
+#pragma once
 
 #include <arpa/inet.h>
 #include <stdint.h>
@@ -42,5 +41,3 @@ int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
 #endif
 void release_ue_ipv6_address(const char* imsi, const char* apn,
                              struct in6_addr* addr);
-
-#endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */

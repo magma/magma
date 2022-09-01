@@ -22,8 +22,7 @@
  * \email: lionel.gauthier@eurecom.fr
  */
 
-#ifndef FILE_SGW_HANDLERS_SEEN
-#define FILE_SGW_HANDLERS_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
@@ -136,4 +135,3 @@ void generate_dl_flow(packet_filter_contents_t* packet_filter,
 void sgw_handle_delete_bearer_cmd(
     itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
     imsi64_t imsi64);
-#endif /* FILE_SGW_HANDLERS_SEEN */

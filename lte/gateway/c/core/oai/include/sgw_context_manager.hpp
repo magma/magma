@@ -25,8 +25,6 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,6 +33,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(

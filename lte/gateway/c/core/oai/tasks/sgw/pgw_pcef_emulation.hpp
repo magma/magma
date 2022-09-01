@@ -22,8 +22,7 @@
  * \email: lionel.gauthier@eurecom.fr
  */
 
-#ifndef FILE_PGW_PCEF_EMULATION_SEEN
-#define FILE_PGW_PCEF_EMULATION_SEEN
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -47,5 +46,3 @@ status_code_e pgw_pcef_get_sdf_parameters(spgw_state_t* state, sdf_id_t sdf_id,
                                           bearer_qos_t* bearer_qos,
                                           packet_filter_t* packet_filter,
                                           uint8_t* num_pf);
-
-#endif /* FILE_PGW_PCEF_EMULATION_SEEN */

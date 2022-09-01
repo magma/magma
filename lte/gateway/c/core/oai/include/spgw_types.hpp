@@ -27,8 +27,8 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-#ifndef FILE_SPGW_TYPES_SEEN
-#define FILE_SPGW_TYPES_SEEN
+
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,5 +115,3 @@ void handle_s5_create_session_response(
     spgw_state_t* state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp);
-
-#endif /* FILE_SPGW_TYPES_SEEN */

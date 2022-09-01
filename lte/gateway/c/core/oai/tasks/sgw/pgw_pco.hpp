@@ -21,8 +21,8 @@
  * \company Eurecom
  * \email: lionel.gauthier@eurecom.fr
  */
-#ifndef FILE_PGW_PCO_SEEN
-#define FILE_PGW_PCO_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
@@ -68,5 +68,3 @@ status_code_e pgw_process_pco_request(
     const protocol_configuration_options_t* const pco_req,
     protocol_configuration_options_t* pco_resp,
     protocol_configuration_options_ids_t* const pco_ids);
-
-#endif

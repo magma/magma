@@ -18,15 +18,10 @@
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 
 #include <cstring>
-
 #include <string>
 
 #include <grpcpp/impl/codegen/status.h>
 #include "lte/protos/session_manager.pb.h"
-
-#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +33,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
