@@ -756,7 +756,7 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     # def get_param_path(acs, param) -> str:
     #     return acs.data_model.PARAMETERS[param].path
     #
-    # @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    # @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     # def test_full_cycle_transition(self, mock_enodebd_update_cbsd):
     #     expected_dp_params = {
     #         ParameterName.SAS_RADIO_ENABLE: True,
@@ -963,7 +963,7 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
         self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_ENABLE), True)
         self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_PRIMARY), False)
 
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_device_and_desired_config_discrepancy_after_initial_configuration(self, mock_enodebd_update_cbsd):
         """
         Testing a situation where device_cfg and desired_cfg are already present on the state machine,
