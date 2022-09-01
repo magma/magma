@@ -29,6 +29,9 @@ typedef enum {
   SENTINEL_MAX = 0xFF
 } additional_update_type_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_additional_update_type(
     additional_update_type_t* additionalupdatetype, uint8_t iei,
     uint8_t* buffer, uint32_t len);
@@ -36,5 +39,8 @@ int encode_additional_update_type(
 int decode_additional_update_type(
     additional_update_type_t* additionalupdatetype, uint8_t iei,
     uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ADDITIONAL_UPDATE_TYPE_SEEN */
