@@ -79,13 +79,17 @@ jobs:
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab bazel_integ_test_pre_build
-      - name: Build all services with bazel
+      - name: Build all services and scripts with bazel
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
           vagrant ssh -c 'sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
           vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;' magma
           vagrant ssh -c 'sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
+      - name: Linking bazel-built script executables to '/usr/local/bin/'
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/link_scripts_for_bazel_integ_tests.sh;' magma
       - name: Run the sudo tests
         id: sudo_tests
         run: |
