@@ -1086,7 +1086,7 @@ def main(args):
             pip_packages = [req.key for req in repo_installable]
             subprocess.call(shlex.split('sudo pip3 uninstall -y '
                                         + ' '.join(pip_packages)))
-            subprocess.call(shlex.split('sudo apt install -y '
+            subprocess.call(shlex.split('sudo apt reinstall -y '
                                         + ' '.join(repo_pkgs)))
         except Exception:
             log.error('error trying to install repo packages')
