@@ -131,11 +131,8 @@ def package(
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
-        try:
+        with settings(warn_only=True):
             run('cp -f ~/magma-deps/*.deb ~/magma-packages')
-        except Exception:
-            # might be a problem if no deps found, but don't handle here
-            pass
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
