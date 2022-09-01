@@ -34,6 +34,7 @@ from magma.enodebd.devices.baicells_qrtb.params import (
     CarrierAggregationParameters,
 )
 from magma.enodebd.devices.baicells_qrtb.states import (
+    BaicellsQRTBEndSessionState,
     BaicellsQRTBNotifyDPState,
     BaicellsQRTBQueuedEventsWaitState,
     BaicellsQRTBWaitInformRebootState,
@@ -102,6 +103,7 @@ GET_PARAMS_RESPONSE_PARAMS = [
     Param('Device.DeviceInfo.X_COM_LTE_LGW_Switch', 'int', '0'),
     Param('Device.DeviceInfo.X_COM_REM_Status', 'int', '0'),
     Param('Device.DeviceInfo.SAS.enableMode', 'int', '1'),
+    Param('Device.DeviceInfo.PowerSpectralDensity', 'int', '10'),
     Param('Device.FAP.PerfMgmt.Config.1.Enable', 'boolean', 'true'),
     Param('Device.FAP.PerfMgmt.Config.1.PeriodicUploadInterval', 'int', '300'),
     Param('Device.FAP.PerfMgmt.Config.1.URL', 'string', 'http://192.168.60.142:8081/'),
@@ -129,7 +131,7 @@ GET_PARAMS_RESPONSE_PARAMS = [
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.X_COM_MmePool.Enable', 'boolean', 'false'),
     Param('Device.Services.FAPService.Ipsec.IPSEC_ENABLE', 'bool', 'false'),
 
-    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.CA.CaEnable', 'bool', 'false'),
+    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.CA.CaEnable', 'int', '0'),
     Param('FAPService.1.CellConfig.LTE.RAN.CA.PARAMS.NumOfCells', 'int', '1'),
     Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.Common.CellIdentity', 'int', '138777000'),
     Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.FreqBandIndicator', 'int', '48'),
@@ -405,13 +407,15 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         )
         acs_state_machine.handle_tr069_message(req)
 
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
+        req = Tr069MessageBuilder.get_object_params_response_from_values([])
+        acs_state_machine.handle_tr069_message(req)
+
         # Transition to final get params check state
         acs_state_machine.transition('check_wait_get_params')
         req = Tr069MessageBuilder.param_values_qrtb_response(
             [], models.GetParameterValuesResponse,
         )
-
-        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         resp = acs_state_machine.handle_tr069_message(req)
 
@@ -529,7 +533,10 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_provision(self, mock_enodebd_update_cbsd) -> None:
         self.maxDiff = None
-        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = CBSDStateResult(
+            radio_enabled=False,
+            channels=[],
+        )
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
         data_model = BaicellsQRTBTrDataModel()
@@ -608,7 +615,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         resp = acs_state_machine.handle_tr069_message(req)
 
         # All the radio responses were intentionally crafted so that they match enodebd desired config.
-        # Therefore the provisioning ends here. The radio goes directly into end_session -> notify_dp state
+        # Therefore the provisioning ends here. The radio goes directly into end_session -> wait_inform state
         self.assertTrue(
             isinstance(resp, models.DummyInput),
             f'State machine should send back an empty message, got {resp} instead.',
@@ -616,7 +623,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
 
         self.assertIsInstance(
             acs_state_machine.state,
-            BaicellsQRTBNotifyDPState,
+            BaicellsQRTBEndSessionState,
         )
 
     def verify_acs_asking_enb_for_params(self, should_ask_for, response):
@@ -635,7 +642,6 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_end_session_and_notify_dp_transition(self, mock_enodebd_update_cbsd):
         """Testing if SM steps in and out of BaicellsQRTBWaitNotifyDPState as per state map"""
-
         mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = provision_clean_sm(
@@ -652,11 +658,21 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
             models.GetParameterValuesResponse,
         )
         acs_state_machine.handle_tr069_message(msg)
+
+        # Notify DP should be called after exiting from this state.
+        acs_state_machine.transition('wait_get_obj_params')
+
+        mock_enodebd_update_cbsd.assert_not_called()
+        req = Tr069MessageBuilder.get_object_param_values_response(
+            cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00101',
+        )
+        acs_state_machine.handle_tr069_message(req)
+        mock_enodebd_update_cbsd.assert_called_once()
+
         # Transition to final get params check state
         acs_state_machine.transition('check_wait_get_params')
 
-        # SM should transition from check_wait_get_params to end_session -> notify_dp automatically
-        # upon receiving response from the radio
+        # SM should transition from check_wait_get_params to end_session
         msg = Tr069MessageBuilder.param_values_qrtb_response(
             [], models.GetParameterValuesResponse,
         )
@@ -664,7 +680,7 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
 
         self.assertIsInstance(
             acs_state_machine.state,
-            BaicellsQRTBNotifyDPState,
+            BaicellsQRTBEndSessionState,
         )
 
         msg = Tr069MessageBuilder.get_inform(event_codes=['1 BOOT'])
@@ -719,127 +735,189 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
 
         self.assertIsInstance(acs_state_machine.state, WaitInformState)
 
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
-    def test_full_cycle_transition(self, mock_enodebd_update_cbsd):
-        expected_dp_params = {
-            ParameterName.SAS_RADIO_ENABLE: True,
-            ParameterName.UL_BANDWIDTH: '100',
-            ParameterName.DL_BANDWIDTH: '100',
-            ParameterName.EARFCNUL: 55340,
-            ParameterName.EARFCNDL: 55340,
-            ParameterName.POWER_SPECTRAL_DENSITY: 34,
-            ParameterName.BAND: 48,
-        }
-
-        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
-        acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
-        acs_state_machine.transition('wait_inform')
-
-        # wait_inform: read, get
-        req = Tr069MessageBuilder.get_inform()
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.InformResponse, 'Should respond with InformResponse',
-        )
-
-        # wait_empty: read -> get_transient_params: get
-        req = models.DummyInput()
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
-        )
-
-        self.assertIsNone(acs_state_machine.desired_cfg, "Config should not exist yet")
-
-        # wait_get_transient_params: read -> get_params: get
-        msg = Tr069MessageBuilder.param_values_qrtb_response(
-            GET_TRANSIENT_PARAMS_RESPONSE_PARAMS,
-            models.GetParameterValuesResponse,
-        )
-        resp = acs_state_machine.handle_tr069_message(msg)
-        self.assertIsInstance(
-            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
-        )
-
-        # wait_get_params: read -> get_obj_params: get
-        msg = Tr069MessageBuilder.param_values_qrtb_response(
-            GET_PARAMS_RESPONSE_PARAMS,
-            models.GetParameterValuesResponse,
-        )
-        resp = acs_state_machine.handle_tr069_message(msg)
-        self.assertIsInstance(
-            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
-        )
-
-        # wait_get_obj_params: read -> delete_objs: get
-        params1 = Tr069MessageBuilder.get_object_param_value(
-            num='1', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00101',
-        )
-        params2 = Tr069MessageBuilder.get_object_param_value(
-            num='2', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00102',
-        )
-        req = Tr069MessageBuilder.get_object_params_response_from_values([*params1, *params2])
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.DeleteObject, 'Should respond with DeleteObject',
-        )
-
-        # delete_objs: read -> set_params: get
-        req = Tr069MessageBuilder.get_delete_object_response()
-        resp = acs_state_machine.handle_tr069_message(req)
-        # TODO should go to `add_objs`, but base AddObjectsState has implementation issue and does not work
-        # self.assertTrue(
-        #     isinstance(resp, models.AddObject),
-        #     'Should respond with AddObject',
-        # )
-        #
-        # req = Tr069MessageBuilder.get_add_object_response()
-        # resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.SetParameterValues, 'Should respond with SetParameterValues',
-        )
-
-        # wait_set_params: read -> check_get_params: get
-        req = Tr069MessageBuilder.get_set_parameter_values_response()
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.GetParameterValues, 'Should respond with GetParameterValues',
-        )
-
-        # check_wait_get_params: read -> end_session: get
-        req = Tr069MessageBuilder.param_values_qrtb_response(
-            GET_PARAMS_RESPONSE_PARAMS,
-            models.GetParameterValuesResponse,
-        )
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.DummyInput, 'Should respond with DummyInput',
-        )
-        self.assertEqual(
-            acs_state_machine.get_state(),
-            "Notifying DP. Awaiting new Inform.",
-            "Should be in notify_dp state.",
-        )
-        # TODO move notify_dp elsewhere, end_session should be last state
-        # self.assertEqual(
-        #     acs_state_machine.get_state(),
-        #     "Completed provisioning eNB. Awaiting new Inform.",
-        #     "Should be in end_session state",
-        # )
-
-        for param, value in expected_dp_params.items():
-            self.assertEqual(
-                value, acs_state_machine.desired_cfg.get_parameter(param),
-                "DP params should be set in config"
-            )
-
-        # TODO move notify_dp elsewhere, end_session should transition into inform
-        # notify_dp: read -> wait_inform: get
-        req = Tr069MessageBuilder.get_inform()
-        resp = acs_state_machine.handle_tr069_message(req)
-        self.assertIsInstance(
-            resp, models.InformResponse, 'Should respond with InformResponse',
-        )
+    # TODO remove?
+    # This test made it easier to dev, but does it really test anything new?
+    # # TODO refactor below code
+    # def replace_params(self, acs, params, to_update) -> list:
+    #     params = deepcopy(params)
+    #
+    #     for param_name, value in to_update.items():
+    #         param_path = self.get_param_path(acs, param_name)
+    #
+    #         for param in params:
+    #             if param.name != param_path:
+    #                 continue
+    #             index = params.index(param)
+    #             params[index] = Param(param_name, param.val_type, value)
+    #             break
+    #     return params
+    #
+    # @staticmethod
+    # def get_param_path(acs, param) -> str:
+    #     return acs.data_model.PARAMETERS[param].path
+    #
+    # @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    # def test_full_cycle_transition(self, mock_enodebd_update_cbsd):
+    #     expected_dp_params = {
+    #         ParameterName.SAS_RADIO_ENABLE: True,
+    #         ParameterName.POWER_SPECTRAL_DENSITY: 34,
+    #         ParameterName.EARFCNUL: 55340,
+    #         ParameterName.EARFCNDL: 55340,
+    #         ParameterName.BAND: 48,
+    #     }
+    #
+    #     mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
+    #     acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
+    #     acs_state_machine.transition('wait_inform')
+    #
+    #     # wait_inform: read, get
+    #     req = Tr069MessageBuilder.get_qrtb_inform(
+    #         params=DEFAULT_INFORM_PARAMS,
+    #         oui='48BF74',
+    #         enb_serial='1202000181186TB0006',
+    #         event_codes=['2 PERIODIC'],
+    #     )
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.InformResponse, 'Should respond with InformResponse',
+    #     )
+    #
+    #     # wait_empty: read -> get_transient_params: get
+    #     req = models.DummyInput()
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+    #     )
+    #
+    #     self.assertIsNone(acs_state_machine.desired_cfg, "Config should not exist yet")
+    #
+    #     # wait_get_transient_params: read -> get_params: get
+    #     msg = Tr069MessageBuilder.param_values_qrtb_response(
+    #         GET_TRANSIENT_PARAMS_RESPONSE_PARAMS,
+    #         models.GetParameterValuesResponse,
+    #     )
+    #     resp = acs_state_machine.handle_tr069_message(msg)
+    #     self.assertIsInstance(
+    #         resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+    #     )
+    #
+    #     # wait_get_params: read -> get_obj_params: get
+    #     msg = Tr069MessageBuilder.param_values_qrtb_response(
+    #         GET_PARAMS_RESPONSE_PARAMS,
+    #         models.GetParameterValuesResponse,
+    #     )
+    #     resp = acs_state_machine.handle_tr069_message(msg)
+    #     self.assertIsInstance(
+    #         resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+    #     )
+    #
+    #     # wait_get_obj_params: read -> delete_objs: get
+    #     params1 = Tr069MessageBuilder.get_object_param_value(
+    #         num='1', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00101',
+    #     )
+    #     params2 = Tr069MessageBuilder.get_object_param_value(
+    #         num='2', cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00102',
+    #     )
+    #     req = Tr069MessageBuilder.get_object_params_response_from_values([*params1, *params2])
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.DeleteObject, 'Should respond with DeleteObject',
+    #     )
+    #
+    #     # delete_objs: read -> set_params: get
+    #     req = Tr069MessageBuilder.get_delete_object_response()
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     # TODO should go to `add_objs`, but base AddObjectsState has implementation issue and does not work
+    #     # self.assertTrue(
+    #     #     isinstance(resp, models.AddObject),
+    #     #     'Should respond with AddObject',
+    #     # )
+    #     #
+    #     # req = Tr069MessageBuilder.get_add_object_response()
+    #     # resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.SetParameterValues, 'Should respond with SetParameterValues',
+    #     )
+    #
+    #     # Cannot compare values due to types differences.
+    #     set_params = [param.Name for param in resp.ParameterList.ParameterValueStruct]
+    #     for param in expected_dp_params:
+    #         param_path = self.get_param_path(acs_state_machine, param)
+    #         self.assertIn(param_path, set_params, f'Parameter {param} was not set')
+    #
+    #     # wait_set_params: read -> reboot: get (apply invasive params)
+    #     req = Tr069MessageBuilder.get_set_parameter_values_response()
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.Reboot, 'Should respond with Reboot',
+    #     )
+    #
+    #     # skip rebooting states, respond with set parameters, continue from wait_inform_post_reboot
+    #     acs_state_machine.transition('wait_inform_post_reboot')
+    #     new_inform = self.replace_params(
+    #         acs_state_machine, DEFAULT_INFORM_PARAMS, expected_dp_params
+    #     )
+    #     new_params = self.replace_params(
+    #         acs_state_machine, GET_PARAMS_RESPONSE_PARAMS, expected_dp_params
+    #     )
+    #
+    #     req = Tr069MessageBuilder.get_qrtb_inform(
+    #         params=new_inform,
+    #         oui='48BF74',
+    #         enb_serial='1202000181186TB0006',
+    #         event_codes=['2 PERIODIC'],
+    #     )
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.InformResponse, 'Should respond with InformResponse',
+    #     )
+    #
+    #     # wait_empty: read -> get_transient_params: get
+    #     req = models.DummyInput()
+    #     resp = acs_state_machine.handle_tr069_message(req)
+    #     self.assertIsInstance(
+    #         resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+    #     )
+    #
+    #     self.assertIsNotNone(acs_state_machine.desired_cfg, "Config should exist from previous cycle")
+    #     for param, value in expected_dp_params.items():
+    #         self.assertEqual(
+    #             value, acs_state_machine.desired_cfg.get_parameter(param),
+    #             "DP params should be set in desired config"
+    #         )
+    #
+    #     # wait_get_transient_params: read -> get_params: get
+    #     msg = Tr069MessageBuilder.param_values_qrtb_response(
+    #         GET_TRANSIENT_PARAMS_RESPONSE_PARAMS,
+    #         models.GetParameterValuesResponse,
+    #     )
+    #     resp = acs_state_machine.handle_tr069_message(msg)
+    #     self.assertIsInstance(
+    #         resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+    #     )
+    #
+    #     # wait_get_params: read -> get_obj_params: get
+    #     msg = Tr069MessageBuilder.param_values_qrtb_response(
+    #         new_params,
+    #         models.GetParameterValuesResponse,
+    #     )
+    #     resp = acs_state_machine.handle_tr069_message(msg)
+    #     self.assertIsInstance(
+    #         resp, models.GetParameterValues, 'Should respond with GetParameterValues',
+    #     )
+    #
+    #     # check_wait_get_params: read, which finishes setting device config
+    #     req = Tr069MessageBuilder.param_values_qrtb_response(
+    #         new_params,
+    #         models.GetParameterValuesResponse,
+    #     )
+    #     acs_state_machine.handle_tr069_message(req)
+    #     for param, value in expected_dp_params.items():
+    #         self.assertEqual(
+    #             acs_state_machine.desired_cfg.get_parameter(param),
+    #             acs_state_machine.device_cfg.get_parameter(param),
+    #             f"DP param {param} should be set in both desired config and device config to {value}"
+    #         )
 
 
 class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
@@ -885,17 +963,24 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
         self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_ENABLE), True)
         self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_PRIMARY), False)
 
-    def test_device_and_desired_config_discrepancy_after_initial_configuration(self):
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    def test_device_and_desired_config_discrepancy_after_initial_configuration(self, mock_enodebd_update_cbsd):
         """
         Testing a situation where device_cfg and desired_cfg are already present on the state machine,
         because the initial configuration of the radio has occurred, but then the configs have diverged
         (e.g. as a result of domain-proxy setting different values on the desired config)
         """
+        mock_enodebd_update_cbsd.return_value = CBSDStateResult(
+            radio_enabled=False,
+            channels=[],
+        )
+
         # Skipping previous states
         acs_state_machine = provision_clean_sm('wait_get_transient_params')
 
         # Need to set this param on the device_cfg first, otherwise we won't be able to generate the desired_cfg
         # using 'build_desired_config' function
+        acs_state_machine.device_cfg.set_parameter(ParameterName.SAS_RADIO_ENABLE, 'false')
         acs_state_machine.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'false')
 
         acs_state_machine.desired_cfg = build_desired_config(
