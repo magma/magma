@@ -1054,48 +1054,49 @@ class Tr069MessageBuilder:
     def get_reboot_response(cls) -> models.RebootResponse:
         return models.RebootResponse()
 
-    @classmethod
-    def get_delete_object_response(cls, status: int = 0) -> models.DeleteObjectResponse:
-        msg = models.DeleteObjectResponse()
-        msg.Status = status
-        return msg
-
-    @classmethod
-    def get_add_object_response(cls, status: int = 0, instance_number: int = 1) -> models.AddObjectResponse:
-        msg = models.AddObjectResponse()
-        msg.Status = status
-        msg.InstanceNumber = instance_number
-        return msg
-
-    @classmethod
-    def get_set_parameter_values_response(cls, status: int = 0) -> models.SetParameterValuesResponse:
-        msg = models.SetParameterValuesResponse()
-        msg.Status = status
-        return msg
-
-    @classmethod
-    def get_object_param_value(
-            cls, num='1', is_primary='true', cell_reserved_for_operator_use='false', plmnid='00101', enable='true',
-    ) -> List[models.ParameterValueStruct]:
-        return [
-            cls.get_parameter_value_struct(
-                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.IsPrimary',
-                val_type='boolean',
-                data=is_primary,
-            ), cls.get_parameter_value_struct(
-                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.CellReservedForOperatorUse',
-                val_type='boolean',
-                data=cell_reserved_for_operator_use,
-            ), cls.get_parameter_value_struct(
-                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.PLMNID',
-                val_type='string',
-                data=plmnid,
-            ), cls.get_parameter_value_struct(
-                name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.Enable',
-                val_type='boolean',
-                data=enable,
-            )
-        ]
+    # TODO remove?
+    # @classmethod
+    # def get_delete_object_response(cls, status: int = 0) -> models.DeleteObjectResponse:
+    #     msg = models.DeleteObjectResponse()
+    #     msg.Status = status
+    #     return msg
+    #
+    # @classmethod
+    # def get_add_object_response(cls, status: int = 0, instance_number: int = 1) -> models.AddObjectResponse:
+    #     msg = models.AddObjectResponse()
+    #     msg.Status = status
+    #     msg.InstanceNumber = instance_number
+    #     return msg
+    #
+    # @classmethod
+    # def get_set_parameter_values_response(cls, status: int = 0) -> models.SetParameterValuesResponse:
+    #     msg = models.SetParameterValuesResponse()
+    #     msg.Status = status
+    #     return msg
+    #
+    # @classmethod
+    # def get_object_param_value(
+    #         cls, num='1', is_primary='true', cell_reserved_for_operator_use='false', plmnid='00101', enable='true',
+    # ) -> List[models.ParameterValueStruct]:
+    #     return [
+    #         cls.get_parameter_value_struct(
+    #             name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.IsPrimary',
+    #             val_type='boolean',
+    #             data=is_primary,
+    #         ), cls.get_parameter_value_struct(
+    #             name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.CellReservedForOperatorUse',
+    #             val_type='boolean',
+    #             data=cell_reserved_for_operator_use,
+    #         ), cls.get_parameter_value_struct(
+    #             name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.PLMNID',
+    #             val_type='string',
+    #             data=plmnid,
+    #         ), cls.get_parameter_value_struct(
+    #             name=f'Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.{num}.Enable',
+    #             val_type='boolean',
+    #             data=enable,
+    #         )
+    #     ]
 
     @classmethod
     def get_object_params_response_from_values(
