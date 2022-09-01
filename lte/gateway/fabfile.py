@@ -131,11 +131,8 @@ def package(
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
-        try:
+        with settings(warn_only=True):
             run('cp -f ~/magma-deps/*.deb ~/magma-packages')
-        except Exception:
-            # might be a problem if no deps found, but don't handle here
-            pass
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
@@ -149,11 +146,7 @@ def package(
                 'cat {}'.format(mirrored_packages_file)
                 + ' | xargs -I% sudo aptitude download -q2 %',
             )
-            try:
-                run('cp *.deb ~/magma-packages')
-            except Exception:
-                # might be a problem if no deps found, but don't handle here
-                pass
+            run('cp *.deb ~/magma-packages')
             run('sudo rm -f *.deb')
 
         if all_deps:
