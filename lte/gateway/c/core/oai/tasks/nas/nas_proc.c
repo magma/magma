@@ -50,7 +50,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_main.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.hpp"

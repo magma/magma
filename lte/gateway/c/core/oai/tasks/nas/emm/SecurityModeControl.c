@@ -67,7 +67,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.h"

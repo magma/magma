@@ -76,10 +76,16 @@ typedef union eps_mobile_identity_s {
 #define EPS_MOBILE_IDENTITY_XML_STR "eps_mobile_identity"
 #define TYPE_OF_IDENTITY_ATTR_XML_STR "type_of_identity"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
                                uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
                                uint8_t iei, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* EPS_MOBILE_IDENTITY_SEEN */
