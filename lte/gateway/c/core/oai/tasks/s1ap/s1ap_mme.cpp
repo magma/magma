@@ -426,7 +426,7 @@ ue_description_t* s1ap_new_ue(s1ap_state_t* state,
   magma::proto_map_rc_t rc =
       s1ap_ue_state->insert(ue_ref->comp_s1ap_id, ue_ref);
 
-  if (magma::PROTO_MAP_OK != rc) {
+  if (rc != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
                  magma::map_rc_code2string(rc));
     free_cpp_wrapper(reinterpret_cast<void**>(&ue_ref));

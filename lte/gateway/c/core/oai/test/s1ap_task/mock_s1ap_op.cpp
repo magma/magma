@@ -79,7 +79,7 @@ status_code_e mock_read_s1ap_ue_state_db(
         state_ue_map->insert(ue_context_p->comp_s1ap_id,
                              reinterpret_cast<ue_description_t*>(ue_context_p));
 
-    if (magma::PROTO_MAP_OK != rc) {
+    if (rc != magma::PROTO_MAP_OK) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
       return RETURNerror;

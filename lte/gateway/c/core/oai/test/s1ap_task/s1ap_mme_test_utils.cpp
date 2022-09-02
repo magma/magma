@@ -438,7 +438,7 @@ bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
   uint64_t comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, enb_ue_id);
 
   magma::proto_map_rc_t rc = state_ue_map->get(comp_s1ap_id, &ue);
-  if (magma::PROTO_MAP_OK != rc) {
+  if (rc != magma::PROTO_MAP_OK) {
     return false;
   }
   return ue->s1_ue_state == expected_ue_state ? true : false;

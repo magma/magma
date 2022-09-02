@@ -173,7 +173,7 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 
     proto_map_rc_t rc =
         state_ue_map.insert(ue_context->comp_s1ap_id, ue_context);
-    if (PROTO_MAP_OK != rc) {
+    if (rc != PROTO_MAP_OK) {
       OAILOG_ERROR(
           log_task,
           "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
