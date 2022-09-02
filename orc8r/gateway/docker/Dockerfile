@@ -41,7 +41,7 @@ RUN apt-get update && \
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian focal-ci main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian focal-1.8.0 main"
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
