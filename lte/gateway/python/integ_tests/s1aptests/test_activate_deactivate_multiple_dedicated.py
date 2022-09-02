@@ -32,7 +32,7 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_activate_deactivate_multiplededicated(self):
+    def test_activate_deactivate_multiple_dedicated(self):
         """attach/detach + multiple dedicated bearer test with a single UE"""
         num_dedicated_bearers = 10
         bearer_ids = []

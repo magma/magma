@@ -20,7 +20,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
+class TestAttachDetachMaxBearersTwoPdns(unittest.TestCase):
     """Test maximum bearers with two pdns"""
 
     def setUp(self):

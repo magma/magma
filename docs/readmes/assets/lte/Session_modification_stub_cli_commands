@@ -1,0 +1,16 @@
+session_manager_cli.py policy_rar -h
+usage: session_manager_cli.py policy_rar [-h]
+                                         imsi session_id policy_id policy_action priority qci flow_rules qos
+
+positional arguments:
+-----------------------------------------------------
+  imsi           e.g., IMSI001010000088888
+  session_id     e.g., IMSI001010000088888-910385
+  policy_id      e.g., rule1
+  policy_action  e.g., ADD/DEL/MOD
+  priority       e.g., precedence value in the range [0-255]
+  qci            e.g., 9 for default, 1 for VoIP data, 5 for IMS signaling
+  flow_rules     List of 6-tuples: [direction,protocol,src_ip,src_port,dst_ip,dst_port] separated by ';',e.g.,
+                 UL,6,192.168.50.1,0,192.168.40.2,12345;DL,1,8.8.8.8,0,192.168.50.1,0
+  qos            QoS-tuple: [max_req_bw_ul,max_req_bw_dl,gbr_ul,gbr_dl,arp_prio,pre_cap,pre_vul] e.g.,
+                 10000000,10000000,0,0,15,1,0

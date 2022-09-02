@@ -127,6 +127,20 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
 
             self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
 
+    def test_grants_relinquished_when_user_requested_relinquish(self):
+        builder = CbsdAPIDataBuilder() \
+            .with_serial_number(self.serial_number)
+
+        update_request = builder.build_enodebd_update_request()
+        cbsd_id = self.given_cbsd_provisioned(builder, update_request)
+
+        with self.while_cbsd_is_active(update_request):
+            self.when_cbsd_is_relinquished(cbsd_id)
+
+            self.then_state_is_eventually(get_empty_state(), update_request)
+
+            self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
+
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
@@ -446,6 +460,10 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
         r = send_request_to_backend('post', f'cbsds/{cbsd_id}/deregister')
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
+    def when_cbsd_is_relinquished(self, cbsd_id: int):
+        r = send_request_to_backend('post', f'cbsds/{cbsd_id}/relinquish')
+        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
+
     @staticmethod
     def when_cbsd_is_inactive():
         inactivity = 3
@@ -492,7 +510,7 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
     @retry(stop_max_attempt_number=30, wait_fixed=1000)
     def then_logs_are(self, filters: Dict[str, Any], expected: List[str], network: Optional[str] = None):
         actual = self._get_log_types(filters, network)
-        self.assertListEqual(expected, actual)
+        self.assertCountEqual(expected, actual)
 
     @retry(stop_max_attempt_number=30, wait_fixed=1000)
     def then_logs_contain(self, filters: Dict[str, Any], expected: List[str], network: Optional[str] = None):

@@ -70,13 +70,17 @@ status_code_e mock_read_s1ap_ue_state_db(
     }
 
     UeDescription* ue_context_p = new UeDescription();
+    if (!ue_context_p) {
+      std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
+      return RETURNerror;
+    }
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
     proto_map_rc_t rc =
         state_ue_map->insert(ue_context_p->comp_s1ap_id(),
                              reinterpret_cast<UeDescription*>(ue_context_p));
 
-    if (magma::PROTO_MAP_OK != rc) {
+    if (rc != magma::PROTO_MAP_OK) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
       free_ue_description(reinterpret_cast<void**>(&ue_context_p));

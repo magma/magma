@@ -31,7 +31,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.SWX_PROXY)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.SWX_PROXY)
 	if err != nil {
 		glog.Fatalf("Error creating Swx Proxy service: %s", err)
 	}

@@ -21,12 +21,17 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/service/middleware/unary/test"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -191,4 +196,146 @@ func TestIdentityInjector(t *testing.T) {
 		t,
 		"rpc error: code = PermissionDenied desc = Unregistered Gateway Test-AGW-Hw-Id",
 		err.Error())
+}
+
+type testAddr string
+
+func (a testAddr) String() string {
+	return string(a)
+}
+
+func (a testAddr) Network() string {
+	return string(a)
+}
+
+type testCase struct {
+	ctx                context.Context
+	serverInfo         *grpc.UnaryServerInfo
+	expectedError      error
+	expectedContextNil bool
+	reachesAllowCheck  bool
+}
+
+func TestSetIdentityFromContext(t *testing.T) {
+	csn := test.StartMockGwAccessControl(t, []string{testAgHwID})
+
+	testCases := []testCase{
+		{
+			// Return an error when context metadata is missing.
+			// This means the call is not authenticated. Return an error.
+			ctx:                context.Background(),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      status.Error(codes.Unauthenticated, unary.ERROR_MSG_NO_METADATA),
+			expectedContextNil: true,
+			reachesAllowCheck:  false,
+		}, {
+			// Context metadata exists but empty. No CSN is given and the call
+			// cannot be authenticated. Return error since this
+			// is not a local client call.
+			ctx:                metadata.NewIncomingContext(context.Background(), nil),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      status.Error(codes.PermissionDenied, unary.ERROR_MSG_UNKNOWN_CLIENT),
+			expectedContextNil: true,
+			reachesAllowCheck:  true,
+		}, {
+			// Context metadata exists but empty. No CSN is given and the call
+			// cannot be authenticated. Return an error since this
+			// is not a local client call. `serverInfo` is nil, make no
+			// allowList check. Logs "Undefined" instead of
+			// `serverInfo.FullMethod`.
+			ctx:                metadata.NewIncomingContext(context.Background(), nil),
+			serverInfo:         nil,
+			expectedError:      status.Error(codes.PermissionDenied, unary.ERROR_MSG_UNKNOWN_CLIENT),
+			expectedContextNil: true,
+			reachesAllowCheck:  false,
+		}, {
+			// Context metadata exists but empty. No CSN is given and the call
+			// cannot be authenticated. Return an error since this is a
+			// local client call.
+			ctx:                metadata.NewIncomingContext(peer.NewContext(context.Background(), &peer.Peer{Addr: testAddr("127.168.0.1:4567"), AuthInfo: nil}), nil),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      nil,
+			expectedContextNil: true,
+			reachesAllowCheck:  true,
+		}, {
+			// If the context contains the CN key but not the right value,
+			// return an error.
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_CN_KEY, "val")),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      status.Error(codes.Unauthenticated, "Inconsistent Request Signature"),
+			expectedContextNil: true,
+			reachesAllowCheck:  true,
+		}, {
+			// If the context contains keys different from CN and SN, return
+			// an error
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs("key", "val")),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      status.Error(codes.PermissionDenied, unary.ERROR_MSG_UNKNOWN_CLIENT),
+			expectedContextNil: true,
+			reachesAllowCheck:  true,
+		}, {
+			// If the SN key is present with the right value, return no error.
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, registry.ORC8R_CLIENT_CERT_VALUE)),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      nil,
+			expectedContextNil: true,
+			reachesAllowCheck:  false,
+		}, {
+			// If multiple SN keys are present, return an error.
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, registry.ORC8R_CLIENT_CERT_VALUE, unary.CLIENT_CERT_SN_KEY, "other value")),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      status.Error(codes.Unauthenticated, "Multiple CSNs present"),
+			expectedContextNil: true,
+			reachesAllowCheck:  true,
+		}, {
+			// If CN key is present with the value, return no error.
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, csn[0])),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      nil,
+			expectedContextNil: false,
+			reachesAllowCheck:  false,
+		}, {
+			// If CN key is present with the wrong value, return an error.
+			ctx:                metadata.NewIncomingContext(context.Background(), metadata.Pairs(unary.CLIENT_CERT_SN_KEY, "wrong CSN")),
+			serverInfo:         &grpc.UnaryServerInfo{},
+			expectedError:      status.Error(codes.PermissionDenied, "Unknown Client Certificate"),
+			expectedContextNil: true,
+			reachesAllowCheck:  true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCaseSetIdentityFromContext(t, testCase)
+	}
+}
+
+func testCaseSetIdentityFromContext(t *testing.T, tc testCase) {
+	newCtx, newReq, resp, err := unary.SetIdentityFromContext(tc.ctx, nil, tc.serverInfo)
+
+	if tc.expectedContextNil {
+		assert.Nil(t, newCtx)
+	} else {
+		// Don't explicitly check what a non-nil context might look like.
+		// This depends on things such as system time.
+		assert.NotNil(t, newCtx)
+	}
+	assert.Nil(t, newReq) // newReq is always nil
+	assert.Nil(t, resp)   // resp is always nil
+	if tc.expectedError == nil {
+		assert.NoError(t, err)
+	} else {
+		assert.EqualError(t, err, tc.expectedError.Error())
+	}
+
+	if tc.reachesAllowCheck {
+		// Check that the behavior is correct if the FullMethod is on the
+		// Allow list.
+		serverInfo := grpc.UnaryServerInfo{FullMethod: "/magma.orc8r.Bootstrapper/GetChallenge"}
+		newCtx, newReq, resp, err = unary.SetIdentityFromContext(tc.ctx, nil, &serverInfo)
+		assert.Nil(t, newCtx)
+		assert.Nil(t, newReq)
+		assert.Nil(t, resp)
+		assert.NoError(t, err)
+	}
+
 }

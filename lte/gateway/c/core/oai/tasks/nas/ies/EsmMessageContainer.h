@@ -30,10 +30,16 @@ struct scenario_player_msg_s;
 
 typedef bstring EsmMessageContainer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_esm_message_container(EsmMessageContainer esmmessagecontainer,
                                  uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ESM_MESSAGE_CONTAINER_SEEN */

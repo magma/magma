@@ -3556,6 +3556,10 @@ static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
 
   // Ask for the release of each UE context associated to the eNB
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    OAILOG_FUNC_RETURN(LOG_S1AP, false);
+  }
   s1ap_ue_state->get(dataP, &ue_ref_p);
   if (ue_ref_p) {
     if (arg->current_ue_index == 0) {
@@ -3624,6 +3628,10 @@ bool construct_s1ap_mme_full_reset_req(uint32_t keyP, const uint64_t dataP,
   oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(dataP);
 
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    OAILOG_FUNC_RETURN(LOG_S1AP, false);
+  }
   s1ap_ue_state->get(dataP, &ue_ref);
   uint32_t i = arg->current_ue_index;
   if (ue_ref) {

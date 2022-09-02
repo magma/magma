@@ -65,6 +65,9 @@ typedef struct eps_network_feature_support_s {
 #define EPS_NETWORK_FEATURE_SUPPORT_B2_IWK_N26_SUPPORTED 0x40
 #define EPS_NETWORK_FEATURE_SUPPORT_B2_15_BEARERS_SUPPORTED 0x80
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_eps_network_feature_support(
     eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
     uint8_t* buffer, uint32_t len);
@@ -72,5 +75,7 @@ int encode_eps_network_feature_support(
 int decode_eps_network_feature_support(
     eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
     uint8_t* buffer, uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* EPS_NETWORK_FEATURE_SUPPORT_SEEN */

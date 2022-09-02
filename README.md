@@ -39,7 +39,11 @@ Magma has three major components
 
 ## Documentation
 
-Magma's usage docs, and developer docs, are available at [https://docs.magmacore.org/docs/basics/introduction.html](https://docs.magmacore.org).
+- [Magma Website](https://magmacore.org/): Project landing page
+- [Docs](https://docs.magmacore.org/): Deployment, configuration and usage information
+- [Code](https://github.com/magma): Source code
+- [Contributing](https://github.com/magma/magma/wiki/Contributor-Guide): Contributor Guide
+- [Wiki](https://wiki.magmacore.org/): Meeting notes and project team resources
 
 ## Join the Magma community
 
@@ -48,20 +52,6 @@ See the [Community](https://magmacore.org/join-the-open-source-community/) page 
 Start by joining the community on Slack: [magmacore workspace](https://slack.magmacore.org/).
 
 Direct specific questions to the [GitHub Discussions page](https://github.com/magma/magma/discussions). Your question might already have an answer!
-
-## Contributing
-
-Start with the project's contributing conventions
-
-- [Contributing conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions)
-  for conventions on contributing to the project
-
-If you're new to the project, also consider reading
-
-- [Developer onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding)
-  for onboarding to the project
-- [Development workflow](https://docs.magmacore.org/docs/next/contributing/contribute_workflow) for how to open a
-  pull request
 
 ## License
 
@@ -72,3 +62,12 @@ The EPC originates from OAI (OpenAirInterface Software Alliance) and is offered 
 ## Risks
 
 The Magma materials are provided in accordance with the licenses made available in the LICENSE file. Prior to using the materials, it is highly recommended that you test and verify that the materials meet your specific requirements, including, without limitation, any and all security and performance requirements.
+
+## Security
+
+Responsible disclosures from independent researchers are gratefully accepted. See the [Security Policy](/magma/magma/security/policy) for submission details and [Security Overview for Contributors](https://github.com/magma/magma/wiki/Security-Overview-for-Contributors) to learn about other ways of contributing.
+
+We wish to acknowledge valuable disclosures by the following security researchers:
+
+- Guarang Maheta
+- Phi Trần

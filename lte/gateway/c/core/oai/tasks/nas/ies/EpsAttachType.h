@@ -29,6 +29,9 @@
 
 typedef uint8_t eps_attach_type_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
                            uint8_t* buffer, uint32_t len);
 
@@ -39,5 +42,7 @@ int decode_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
 
 int decode_u8_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
                               uint8_t value, uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* EPS_ATTACH_TYPE_SEEN */

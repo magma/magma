@@ -77,6 +77,10 @@ class ActiveModeCbsdBuilder:
         self.db_data.should_deregister = True
         return self
 
+    def relinquished(self) -> ActiveModeCbsdBuilder:
+        self.db_data.should_relinquish = True
+        return self
+
     def with_id(self, db_id: int) -> ActiveModeCbsdBuilder:
         self.db_data.id = db_id
         return self

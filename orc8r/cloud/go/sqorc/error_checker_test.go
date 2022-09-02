@@ -80,10 +80,18 @@ func (s *ErrorCheckerTestSuite) TestErrorCheckerDefaultsToPostgres() {
 func (s *ErrorCheckerTestSuite) TestSQLiteGetError() {
 	testCases := []sqliteGetErrorTestCase{
 		{
-			name:    "test sqlite constraint error with SQLiteErrorChecker",
+			name:    "test unique constraint error with SQLiteErrorChecker",
 			checker: SQLiteErrorChecker{},
 			err: sqlite3.Error{
-				Code: sqlite3.ErrConstraint,
+				ExtendedCode: sqlite3.ErrConstraintUnique,
+			},
+			expectedError: merrors.ErrAlreadyExists,
+		},
+		{
+			name:    "test pk constraint error with SQLiteErrorChecker",
+			checker: SQLiteErrorChecker{},
+			err: sqlite3.Error{
+				ExtendedCode: sqlite3.ErrConstraintPrimaryKey,
 			},
 			expectedError: merrors.ErrAlreadyExists,
 		},

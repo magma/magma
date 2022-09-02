@@ -25,7 +25,6 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/config"
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
 
 type App struct {
@@ -82,10 +81,7 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 	defer conn.Close()
-	provider := &clientProvider{
-		amcClient: active_mode.NewActiveModeControllerClient(conn),
-		rcClient:  requests.NewRadioControllerClient(conn),
-	}
+	client := active_mode.NewActiveModeControllerClient(conn)
 	ticker := a.clock.Tick(a.cfg.PollingInterval)
 	defer ticker.Stop()
 	generator := newGenerator(a.cfg, a.rng)
@@ -94,14 +90,14 @@ func (a *App) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			state, err := a.getState(ctx, provider.amcClient)
+			state, err := a.getState(ctx, client)
 			if err != nil {
 				log.Printf("failed to get state: %s", err)
 				continue
 			}
 			messages := generator.GenerateMessages(state, a.clock.Now())
 			for _, msg := range messages {
-				if err := a.sendMessage(ctx, provider, msg); err != nil {
+				if err := a.sendMessage(ctx, client, msg); err != nil {
 					log.Printf("failed to send message '%s': %s", msg, err)
 				}
 			}
@@ -121,19 +117,6 @@ type messageGenerator interface {
 	GenerateMessages(*active_mode.State, time.Time) []message_generator.Message
 }
 
-type clientProvider struct {
-	amcClient active_mode.ActiveModeControllerClient
-	rcClient  requests.RadioControllerClient
-}
-
-func (c *clientProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
-	return c.amcClient
-}
-
-func (c *clientProvider) GetRequestsClient() requests.RadioControllerClient {
-	return c.rcClient
-}
-
 func (a *App) connect(ctx context.Context) (*grpc.ClientConn, error) {
 	opts := []grpc.DialOption{grpc.WithInsecure(), grpc.WithBlock()}
 	opts = append(opts, a.additionalGrpcOpts...)
@@ -150,9 +133,9 @@ func (a *App) getState(ctx context.Context, c active_mode.ActiveModeControllerCl
 	return c.GetState(reqCtx, &active_mode.GetStateRequest{})
 }
 
-func (a *App) sendMessage(ctx context.Context, provider *clientProvider, msg message_generator.Message) error {
+func (a *App) sendMessage(ctx context.Context, client active_mode.ActiveModeControllerClient, msg message_generator.Message) error {
 	log.Printf("sending message: %s", msg)
 	reqCtx, cancel := context.WithTimeout(ctx, a.cfg.RequestTimeout)
 	defer cancel()
-	return msg.Send(reqCtx, provider)
+	return msg.Send(reqCtx, client)
 }

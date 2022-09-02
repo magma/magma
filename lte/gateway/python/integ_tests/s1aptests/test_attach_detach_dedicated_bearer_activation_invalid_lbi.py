@@ -20,7 +20,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
+class TestAttachDetachDedicatedBearerActivationInvalidLbi(unittest.TestCase):
     """Invalid lbi in dedicated bearer test with a single UE"""
 
     def setUp(self):

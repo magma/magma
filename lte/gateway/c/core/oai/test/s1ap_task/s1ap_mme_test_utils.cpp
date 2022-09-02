@@ -434,13 +434,13 @@ bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
   UeDescription* ue = nullptr;
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
-    std::cerr << "Cannot get S1AP UE State" << std::endl;
+    std::cerr << "Failed to get s1ap_ue_state" << std::endl;
     return false;
   }
   uint64_t comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, enb_ue_id);
 
   magma::proto_map_rc_t rc = state_ue_map->get(comp_s1ap_id, &ue);
-  if (magma::PROTO_MAP_OK != rc) {
+  if (rc != magma::PROTO_MAP_OK) {
     return false;
   }
   return ue->s1ap_ue_state() == expected_ue_state ? true : false;

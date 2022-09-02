@@ -17,7 +17,7 @@ import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 
 
-class TestNasNonDeliveryIdentityReq(unittest.TestCase):
+class TestNasNonDeliveryForIdentityReq(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 

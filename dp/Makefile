@@ -37,13 +37,13 @@ integration_tests: orc8r_integration_tests
 orc8r_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-orc8r --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests$(APPEND_PROFILES) --trigger=manual
+	skaffold dev --tail=false -p orc8r-deployment,integration-tests$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: dev_integration_tests
 dev_integration_tests: init_orc8r _ci_init cleanup_test_db
 	kubectl delete jobs -l jobName=domain-proxy-db-setup --ignore-not-found=true
 	kubectl delete pods test-runner-dev --ignore-not-found=true
-	skaffold dev -p orc8r-deployment,integration-tests,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
+	skaffold dev --tail=false -p orc8r-deployment,integration-tests,integration-tests-dev$(APPEND_PROFILES) --trigger=manual
 
 .PHONY: orc8r
 orc8r: init_orc8r dev_orc8r
@@ -116,7 +116,7 @@ endif
 _install_skaffold_ci:
 # Check whether skaffold is present on PATH
 ifeq (, $(shell which skaffold))
-	curl -Lo /tmp/skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
+	curl -Lo /tmp/skaffold https://storage.googleapis.com/skaffold/releases/v1.39.2/skaffold-linux-amd64 && \
         sudo install /tmp/skaffold /usr/local/bin/
 endif
 

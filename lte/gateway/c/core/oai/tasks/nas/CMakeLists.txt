@@ -21,36 +21,36 @@ set(libnas_mme_api_OBJS
     )
 
 set(libnas_emm_msg_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationFailure.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/CsServiceNotification.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DownlinkNasTransport.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmInformation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/emm_msg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmStatus.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ExtendedServiceRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationCommand.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeCommand.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/UplinkNasTransport.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationFailure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/CsServiceNotification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DownlinkNasTransport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmInformation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/emm_msg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmStatus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ExtendedServiceRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/UplinkNasTransport.cpp
     )
 
 set(libnas_esm_msg_OBJS
@@ -174,26 +174,26 @@ set(libnas_mme_emm_sap_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm)
 set(libnas_mme_esm_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DedicatedEpsBearerContextActivation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DefaultEpsBearerContextActivation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EpsBearerContextDeactivation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_data_context.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr_context.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ip.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_information.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_pt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EsmStatusHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnConnectivity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnDisconnect.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DedicatedEpsBearerContextActivation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/DefaultEpsBearerContextActivation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EpsBearerContextDeactivation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_data_context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ebr_context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_ip.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_information.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/esm_pt.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/EsmStatusHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnConnectivity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/PdnDisconnect.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm/sap)
 set(libnas_mme_esm_sap_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_recv.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_send.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_sap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_recv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_send.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/esm/sap/esm_sap.cpp
     )
 
 add_library(TASK_NAS

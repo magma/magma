@@ -25,7 +25,7 @@ class TestX2HandOverPingPong(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_x2_handoverPingPong(self):
+    def test_x2_handover_ping_pong(self):
         """ Multi Enb Multi UE attach detach """
 
         """ Note: Before execution of this test case,

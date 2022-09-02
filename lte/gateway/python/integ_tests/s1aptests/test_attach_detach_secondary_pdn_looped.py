@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnConnLooped(unittest.TestCase):
+class TestAttachDetachSecondaryPdnLooped(unittest.TestCase):
     """Test secondary pdn connection and disconnection in loop"""
 
     def setUp(self):
@@ -30,7 +30,7 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_looped(self):
+    def test_attach_detach_secondary_pdn_looped(self):
         """Attach a single UE and send standalone PDN Connectivity
         Request + detach. Repeat 3 times
         """

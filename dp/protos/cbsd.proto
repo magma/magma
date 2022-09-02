@@ -26,6 +26,7 @@ service CbsdManagement {
   rpc FetchCbsd(FetchCbsdRequest) returns (FetchCbsdResponse) {}
   rpc ListCbsds(ListCbsdRequest) returns (ListCbsdResponse) {}
   rpc DeregisterCbsd(DeregisterCbsdRequest) returns (DeregisterCbsdResponse) {}
+  rpc RelinquishCbsd(RelinquishCbsdRequest) returns (RelinquishCbsdResponse) {}
 }
 
 message CBSDStateResult {
@@ -96,6 +97,13 @@ message DeregisterCbsdRequest {
 }
 
 message DeregisterCbsdResponse {}
+
+message RelinquishCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message RelinquishCbsdResponse {}
 
 message CbsdData {
   string user_id = 1;

@@ -69,7 +69,7 @@ func init() {
 func main() {
 	// Create the service
 	glog.Infof("Creating '%s' Service", registry.ENVOY_CONTROLLER)
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.ENVOY_CONTROLLER)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.ENVOY_CONTROLLER)
 	if err != nil {
 		glog.Fatalf("Error creating Envoy Controller service: %s", err)
 	}

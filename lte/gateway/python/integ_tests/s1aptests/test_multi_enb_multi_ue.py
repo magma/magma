@@ -17,7 +17,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
+class TestMultiEnbMultiUE(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -25,7 +25,7 @@ class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_multienb_multiue(self):
+    def test_multi_enb_multi_ue(self):
         """ Multi Enb Multi UE attach detach """
 
         """ Note: Before execution of this test case,

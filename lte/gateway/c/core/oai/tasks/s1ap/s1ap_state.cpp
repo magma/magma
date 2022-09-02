@@ -65,7 +65,7 @@ oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to find state_ue_map");
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return ue;
   }
   uint64_t comp_s1ap_id =
@@ -80,7 +80,7 @@ oai::UeDescription* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to find state_ue_map");
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return ue;
   }
   state_ue_map->map_apply_callback_on_all_elements(
@@ -95,7 +95,7 @@ oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to find state_ue_map");
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return ue;
   }
   state_ue_map->map_apply_callback_on_all_elements(
@@ -168,6 +168,11 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
 void remove_ues_without_imsi_from_ue_id_coll() {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+
+  if (!(s1ap_ue_state)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return;
+  }
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
   if (!s1ap_state_p || (s1ap_state_p->enbs.isEmpty())) {
     return;
