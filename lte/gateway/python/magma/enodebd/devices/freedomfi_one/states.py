@@ -224,17 +224,11 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
     def __init__(
             self,
             acs: EnodebAcsStateMachine,
-            when_delete: str,
-            when_add: str,
-            when_set: str,
-            when_skip: str,
+            when_done: str,
     ):
         super().__init__()
         self.acs = acs
-        self.rm_obj_transition = when_delete
-        self.add_obj_transition = when_add
-        self.set_params_transition = when_set
-        self.skip_transition = when_skip
+        self.done_transition = when_done
 
     def get_params_to_get(
             self,
@@ -355,41 +349,7 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                 self.acs.config_postprocessor,
             )
 
-        if len(  # noqa: WPS507
-                get_all_objects_to_delete(
-                    self.acs.desired_cfg,
-                    self.acs.device_cfg,
-                ),
-        ) > 0:
-            return AcsReadMsgResult(
-                msg_handled=True,
-                next_state=self.rm_obj_transition,
-            )
-        elif len(  # noqa: WPS507
-                get_all_objects_to_add(
-                    self.acs.desired_cfg,
-                    self.acs.device_cfg,
-                ),
-        ) > 0:
-            return AcsReadMsgResult(
-                msg_handled=True,
-                next_state=self.add_obj_transition,
-            )
-        elif len(  # noqa: WPS507
-                get_all_param_values_to_set(
-                    self.acs.desired_cfg,
-                    self.acs.device_cfg,
-                    self.acs.data_model,
-                ),
-        ) > 0:
-            return AcsReadMsgResult(
-                msg_handled=True,
-                next_state=self.set_params_transition,
-            )
-        return AcsReadMsgResult(
-            msg_handled=True,
-            next_state=self.skip_transition,
-        )
+        return AcsReadMsgResult(True, self.done_transition)
 
     def state_description(self) -> str:
         """
@@ -408,10 +368,44 @@ class FreedomFiOneEndSessionState(EndSessionState):
     End Session state, either a queued one or a periodic one
     """
 
-    def __init__(self, acs: EnodebAcsStateMachine, when_dp_mode: str):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__(acs)
         self.acs = acs
-        self.notify_dp = when_dp_mode
+        self.inform_transition = when_done
+
+    # def get_msg(self, message: Any) -> AcsMsgAndTransition:
+    #     """
+    #     Send back a message to enb
+    #
+    #     Args:
+    #         message (Any): TR069 message
+    #
+    #     Returns:
+    #         AcsMsgAndTransition
+    #     """
+    #     request = models.DummyInput()
+    #     if self.acs.desired_cfg and self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
+    #         return AcsMsgAndTransition(request, self.notify_dp)
+    #     return AcsMsgAndTransition(request, None)
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Send an empty response if a device sends an empty HTTP message
+
+        If it's an inform, try to process it. It could be a queued
+        inform or a periodic one.
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
+        """
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(msg_handled=True, next_state=None)
+        elif isinstance(message, models.Inform):
+            return AcsReadMsgResult(msg_handled=True, next_state=self.inform_transition)
+        return AcsReadMsgResult(msg_handled=False, next_state=None)
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
@@ -424,9 +418,7 @@ class FreedomFiOneEndSessionState(EndSessionState):
             AcsMsgAndTransition
         """
         request = models.DummyInput()
-        if self.acs.desired_cfg and self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
-            return AcsMsgAndTransition(request, self.notify_dp)
-        return AcsMsgAndTransition(request, None)
+        return AcsMsgAndTransition(msg=request, next_state=None)
 
     def state_description(self) -> str:
         """
@@ -435,10 +427,7 @@ class FreedomFiOneEndSessionState(EndSessionState):
         Returns:
             str
         """
-        description = 'Completed provisioning eNB. Awaiting new Inform'
-        if self.acs.desired_cfg and self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
-            description = 'Completed initial provisioning of the eNB. Awaiting update from DProxy'
-        return description
+        return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
 class FreedomFiOneNotifyDPState(NotifyDPState):
@@ -446,10 +435,15 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
         FreedomFiOne NotifyDPState implementation
     """
 
-    def enter(self):
+    def enter(self) -> None:
         """
         Enter the state
         """
+        if not self.acs.desired_cfg or not self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
+            # Skip dp state entirely if SAS_METHOD not set to True.
+            self._transition_into_next_state()
+            return
+
         serial_number = self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
         # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
         # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
@@ -471,6 +465,9 @@ class FreedomFiOneNotifyDPState(NotifyDPState):
             ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
         else:
             EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
+
+        self._transition_into_next_state()
+        return
 
 
 def _ff_one_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:

@@ -47,6 +47,7 @@ from magma.enodebd.devices.freedomfi_one.states import (
     FreedomFiOneEndSessionState,
     FreedomFiOneGetInitState,
     FreedomFiOneNotifyDPState,
+    FreedomFiOneGetObjectParametersState,
     ff_one_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.dp_client import build_enodebd_update_cbsd_request
@@ -166,6 +167,27 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
                 name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.EARFCNDL',
                 val_type='int',
                 data='56240',
+            ),
+        )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.EARFCNUL',
+                val_type='int',
+                data='56240',
+            ),
+        )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
+                val_type='int',
+                data='20',
+            ),
+        )
+        param_val_list.append(
+            Tr069MessageBuilder.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
+                val_type='int',
+                data='20',
             ),
         )
         param_val_list.append(
@@ -549,6 +571,18 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             'ParameterKey should be set for FreedomFiOne eNB',
         )
 
+        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+            serial_number=acs_state_machine.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
+            latitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LAT),
+            longitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LONG),
+            indoor_deployment=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
+            antenna_height='0',
+            antenna_height_type=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
+            cbsd_category=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
+        )
+
+        mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)
+
         msg = models.SetParameterValuesResponse()
         msg.Status = 1
         get_resp = acs_state_machine.handle_tr069_message(msg)
@@ -563,18 +597,6 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             isinstance(resp, models.DummyInput),
             'Provisioning completed with Dummy response',
         )
-
-        enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
-            serial_number=acs_state_machine.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
-            latitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LAT),
-            longitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LONG),
-            indoor_deployment=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
-            antenna_height='0',
-            antenna_height_type=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
-            cbsd_category=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
-        )
-
-        mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)
 
     @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
     def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
@@ -618,20 +640,16 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
 class FreedomFiOneStatesTests(EnodebHandlerTestCase):
     """Testing FreedomfiOne specific states"""
 
-    @parameterized.expand([
-        (True, FreedomFiOneNotifyDPState),
-        (False, FreedomFiOneEndSessionState),
-    ])
+    @parameterized.expand([(True, ), (False, )])
     @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
-    def test_transition_depending_on_sas_enabled_flag(
-            self, dp_mode, expected_state, mock_enodebd_update_cbsd,
+    def test_dp_call_depending_on_sas_enabled_flag(
+            self, dp_mode, mock_enodebd_update_cbsd,
     ):
-        """Testing if SM steps in and out of FreedomFiOneWaitNotifyDPState as per state map depending on whether
+        """Testing if FreedomFiOneWaitNotifyDPState calls DP depending on whether
         sas_enabled param is set to True or False in the service config
 
         Args:
             dp_mode: bool flag to enable or disable dp mode
-            expected_state (Any): State
         """
 
         mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
@@ -681,21 +699,32 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         acs_state_machine.device_cfg.set_parameter(
             ParameterName.GPS_STATUS, 'True',
         )
-        acs_state_machine.transition('check_wait_get_params')
 
+        # SM should transition from get_params to next state automatically
+        # upon receiving response from the radio
+        acs_state_machine.transition('get_params')
         msg = Tr069MessageBuilder.param_values_qrtb_response(
             [], models.GetParameterValuesResponse,
         )
-
-        # SM should transition from check_wait_get_params to end_session -> notify_dp automatically
-        # upon receiving response from the radio
         acs_state_machine.handle_tr069_message(msg)
 
-        self.assertIsInstance(acs_state_machine.state, expected_state)
+        self.assertNotIsInstance(acs_state_machine.state, FreedomFiOneNotifyDPState)
+        self.assertNotIsInstance(acs_state_machine.state, FreedomFiOneGetObjectParametersState)
+        if dp_mode:
+            mock_enodebd_update_cbsd.assert_called_once()
+        else:
+            mock_enodebd_update_cbsd.assert_not_called()
 
-        msg = Tr069MessageBuilder.get_inform(event_codes=['1 BOOT'])
+        # SM should transition from check_wait_get_params to end_session without entering notify_dp
+        acs_state_machine.transition('check_wait_get_params')
+        msg = Tr069MessageBuilder.param_values_qrtb_response(
+            [], models.GetParameterValuesResponse,
+        )
+        acs_state_machine.handle_tr069_message(msg)
+        self.assertIsInstance(acs_state_machine.state, FreedomFiOneEndSessionState)
 
         # SM should go into wait_inform state, respond with Inform response and transition to FreedomFiOneGetInitState
+        msg = Tr069MessageBuilder.get_inform(event_codes=['1 BOOT'])
         acs_state_machine.handle_tr069_message(msg)
 
         self.assertIsInstance(
