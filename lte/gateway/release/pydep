@@ -134,105 +134,6 @@ def gen_sys_package_name(py_pkgname: str) -> str:
     return "python3-{}".format(suffix).lower()  # deb likes lowercase
 
 
-@lru_cache(maxsize=128)
-def get_package(pkgname: str,
-                version: Optional[str] = None,
-                use_latest_if_needed: bool = False) -> str:
-    """
-    Downloads and verifies a package from PyPI into
-    /tmp/pyreq-{pkgname}/{version}. If the version number is not specified, we
-    assume the latest version.
-
-    Args:
-        pkgname: The name of the package
-        version: The requested version number
-        use_latest_if_needed: If the requested version isn't available, we use
-                              the latest from PyPI. (Default: False)
-
-    Returns path to the downloaded tar.gz
-    """
-
-    pkg_info_url = PYPI_API_BASE.format(pkgname)
-
-    resp = requests.get(pkg_info_url)
-    if resp.status_code != 200:
-        raise ValueError("couldn't get package info for {} ({})".format(
-            pkgname, resp.status_code))
-
-    r = resp.json()
-
-    # get latest package version if version not specified, or doesn't exist
-    if (not version
-            or (use_latest_if_needed and version not in r['releases'])
-            or not r['releases'][version]):
-        version = r['info']['version']
-
-    # get package info for specified version. there can, apparently, be more
-    # than one release package per version, so we use the one with the most
-    # recent release time to disambiguate.
-    release = {}  # type: Dict[str, str]
-    newest_time = None
-    for rel in r['releases'][version]:
-        if rel['packagetype'] != 'sdist':
-            continue
-        ul_time = datetime.strptime(rel['upload_time'], "%Y-%m-%dT%H:%M:%S")
-        if not newest_time or ul_time > newest_time:
-            newest_time = ul_time
-            release = rel
-
-    # download package
-    dl_path = "/tmp/pyreq-{}/{}".format(pkgname, version)
-    filename = _wget(release['url'], dl_path)
-    if _md5sum(filename) != release['md5_digest']:
-        raise ValueError("downloaded file doesn't match md5sum, aborting")
-
-    return filename
-
-
-def _unpack_tarfile(filepath: str, file_type: str) -> str:
-    """
-    Unpacks a tar.gz, and returns a path to the unpacked directory.
-    """
-    extract_path = os.path.dirname(filepath)
-    tarball = tarfile.open(filepath, "r:" + file_type)
-    top_level = tarball.getmembers()[0]
-    if not top_level.isdir():
-        raise ValueError("archive doesn't contain a top level directory")
-
-    tarball.extractall(extract_path)
-    tarball.close()
-    return "{}/{}".format(extract_path, top_level.name)
-
-
-def _unpack_zip(filepath: str) -> str:
-    """
-    Unpacks a zip, and returns a path to the unpacked directory.
-    """
-    extract_path = os.path.dirname(filepath)
-    zfile = zipfile.ZipFile(filepath)
-
-    # we take a guess that it's going to extract to a directory, yolo
-    top_level = os.path.dirname(zfile.infolist()[0].filename)
-
-    zfile.extractall(extract_path)
-    zfile.close()
-    return "{}/{}".format(extract_path, top_level)
-
-
-def _unpack(filepath: str) -> str:
-    """
-    Unpacks a tar.gz or zip, and returns a path to the unpacked directory.
-    """
-    if filepath.endswith(".zip"):
-        return _unpack_zip(filepath)
-    elif filepath.endswith(".tar.gz"):
-        return _unpack_tarfile(filepath, "gz")
-    elif filepath.endswith(".tar.bz2"):
-        return _unpack_tarfile(filepath, "bz2")
-    else:
-        raise ValueError("Unsupported package archive: {}".format(filepath))
-
-
 def _get_requires(pkg_dir: str) -> Optional[str]:
     """
     Given an unpacked python package, search for a requires.txt file in an
@@ -382,9 +283,6 @@ def _format_dep(syspkg: str, op: Optional[str], ver: Optional[str]) \
 
 class Lockfile(object):
     """
-    Add-only copy of a lockfile. To remove a root package or derived
-    dependency, manually remove it from the source lockfile.
-
     Args:
         data: The lockfile data formatted as json string.
     """
@@ -392,14 +290,10 @@ class Lockfile(object):
     def __init__(self, data: Optional[str] = None):
         self._releases = dict()
         lf = json.loads(data) if data else dict()
-        for release_name, release_deps in lf.items():
-            self._releases[release_name] = ReleaseDependencies(release_name, release_deps)
+        for release_name, release_dependencies in lf.items():
+            self._releases[release_name] = ReleaseDependencies(release_name, release_dependencies)
         if RELEASE not in self._releases:
             self._releases[RELEASE] = ReleaseDependencies(RELEASE, dict())
-
-    @staticmethod
-    def lower_keys(d: Dict[str, Any]):
-        return {k.lower(): v for k, v in d.items()}
 
     def __str__(self):
         return json.dumps(self.to_dict(), sort_keys=True, indent=2)
@@ -448,14 +342,6 @@ class Lockfile(object):
 
     @classmethod
     def from_dependencies(cls, dep_set):
-        """
-        Based on the root packages, produces a json description of
-        the actual packages we depend on.
-
-        The dependency set is a list of packages that we depend on, but it
-        could be possible to satisfy those deps from multiple sources. We
-        resolve that here based on what's available in the apt repos.
-        """
         release_dependencies = ReleaseDependencies(RELEASE, dep_set)
         return cls.from_release_dependencies(release_dependencies)
 
@@ -470,9 +356,6 @@ class ReleaseDependencies:
     def __init__(self, release, dependencies: dict):
         self.release = release
         self.dependencies = dependencies
-
-    def __str__(self):
-        return json.dumps(self.to_dict(), sort_keys=True, indent=2)
 
     def to_dict(self):
         return {key: dep.to_dict() for key, dep in self.dependencies.items()}
@@ -493,9 +376,6 @@ class Dependency:
         self.sysdep = sysdep
         self.version = version
 
-    def __str__(self):
-        return json.dumps(self.to_dict(), sort_keys=True, indent=2)
-
     def to_dict(self):
         return {"root": self.root, "source": self.source, "sysdep": self.sysdep, "version": self.version}
 
@@ -511,12 +391,6 @@ def lcd(path):
         yield
     finally:
         os.chdir(oldcwd)
-
-
-class PkgInfo(NamedTuple):
-    name: str
-    version: str
-    arch: str
 
 
 def py_to_deb(pkgname: str,
@@ -637,10 +511,7 @@ def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
         for existing in candidates:
             parts = os.path.basename(existing).split('_')
             if len(parts) > 2:
-                info = PkgInfo(name=parts[0],
-                               version=parts[1],
-                               arch=parts[-1][:-4])
-                existing_version = pkg_resources.parse_version(info.version)
+                existing_version = pkg_resources.parse_version(parts[1])
                 if existing_version >= parsed_version:
                     already_built = True
                     break
@@ -649,38 +520,6 @@ def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
         already_built = True
 
     return already_built
-
-
-@lru_cache(maxsize=128)
-def get_pkg_deps(pkgname: str,
-                 version: Optional[str] = None,
-                 use_latest_if_needed: bool = False,
-                 clean: bool = True) -> List[str]:
-    """
-    Get the direct dependencies for a package.
-
-    Args:
-        pkgname: The python package name.
-        version: The desired version (optional)
-        use_latest_if_needed: If the requested version isn't available, we use
-                              the latest from PyPI. (Default: False)
-        clean: Remove temporary build files. (Default: True)
-
-    Returns:
-        List of tuples containing (depname, version_str)
-    """
-
-    path = _unpack(get_package(pkgname, version, use_latest_if_needed))
-    requires_txt = _get_requires(path)
-    if requires_txt:
-        dependencies = _parse_requires_txt(requires_txt)
-    else:
-        dependencies = []
-
-    if clean:
-        shutil.rmtree("/tmp/pyreq-{}".format(pkgname), ignore_errors=True)
-
-    return dependencies
 
 
 @contextlib.contextmanager
@@ -791,6 +630,23 @@ def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
                       build_output=build_output)
 
 
+def install_from_repo(input_root_requirements):
+    pip_packages = [req.key for req in input_root_requirements if get_apt_versions(req.key)]
+    repo_pkgs = [gen_sys_package_name(p) for p in pip_packages]
+    # If apt packages are installed over existing pip packages
+    # then side effects can occur - see GH13075.
+    # Approach: remove existing pip packages before apt install
+    for p, r in zip(pip_packages, repo_pkgs):
+        try:
+            subprocess.call(shlex.split('sudo pip3 uninstall -y {}'.format(p)))
+            subprocess.call(shlex.split('sudo apt reinstall -y {}'.format(r)))
+        except Exception:
+            log.error('Error trying to install repo packages')
+            log.error('Attempting to restore the machine state...')
+            subprocess.call(shlex.split('sudo pip3 install -y {}'.format(p)))
+            raise
+
+
 def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
     """
     Puts all input dependencies into a single list, consolidates repeated dependencies, and sorts output.
@@ -880,26 +736,15 @@ def main(args):
     1. Exit if we are using a virtualenv.
     2. Expand and consolidate all dependencies given as input (either explicit or in setup.py files) into
        `input_root_requirements`.
-    3. Sort dependencies into apt-installable (`repo_installable`) and pip-installable (`root_requirements`).
-    4. Open a lockfile if "-l" or "--lockfile" argument is given and write lockfile dependencies into `deps`.
-    5. Write all lockfile pypi dependencies into `existing_versions`.
-    6. Infer the repo name of apt-installable packages, e.g. for the dependency "jinja2" we infer the name
-       "python3-jinja2".
-    7. If "--install-from-repo" is given, install apt-installable dependencies. Run a "pip3 uninstall" command before
+    3. Start a temporary virtual environment.
+        3.1 Generate a dict `pip_distributions` with all pip dependencies with `gen_pip_distributions`.
+        3.2 Generate a dict `required_distributions` with and fill with all indirect dependencies.
+    4. Write set of dependencies with exact versions into `dep_set`.
+    5. Check where we can get the dependencies in `dep_set` from. If not available on apt, fall back to pypi.
+    6. If "-l" or "--lockfile" is given, save the lockfile.
+    7. If "-b" or "--build" is given, install the python dependencies.
+    8. If "--install-from-repo" is given, install apt-installable dependencies. Run a "pip3 uninstall" command before
        to ensure the package was not pip-installed before.
-    8. Start a temporary virtual environment.
-        8.1 Generate a dict `pip_distributions` with all pip dependencies with `gen_pip_distributions`.
-        8.2 Create a dict `to_traverse` which has the same entries as `pip_distributions`, except for what is already in
-            `repo_installable`.
-        8.3 Traverse `to_traverse` and add upstream dependencies if they are already in `pip_distributions`.
-        8.4 Close temporary virtual environment.
-    9. Write set of dependencies with exact versions into `dep_set`.
-    10. Check where we can get the dependencies in `dep_set` from. If not available on apt, fall back to pypi.
-    11. Generate `root_versions` dict which contains all root requirement and versions which are installed via pip and
-        not apt. This is different from `root_requirements` because it contains the exact version, rather than a version
-        requirement.
-    12. If "-l" or "--lockfile" is given, save the lockfile.
-    13. If "-b" or "--build" is given, install the python dependencies.
     """
     # Building dependency packages with virtualenv enabled would cause packages
     # to be installed under
@@ -914,16 +759,12 @@ def main(args):
         log.info("'{}'".format("' '".join(sorted([str(r) for r in input_root_requirements]))))
         sys.exit(0)
 
-    if args.install_from_repo:
-        install_from_repo(input_root_requirements)
-
     with tmpvirtualenv() as venv:
         pip_distributions = gen_pip_distributions(input_root_requirements, venv)
         required_distributions = get_required_distributions(root_requirements=input_root_requirements,
                                                             pip_distributions=pip_distributions)
 
     root_requirement_names = [req.key for req in input_root_requirements]
-    log.info(root_requirement_names)
 
     dep_set = {k.key: Dependency(name=k.key, version=k.version, source='pypi', sysdep=gen_sys_package_name(k.key),
                                  root=k.key in root_requirement_names)
@@ -933,31 +774,12 @@ def main(args):
         if dep_set[k].version in get_apt_versions(k):
             dep_set[k].source = 'apt'
 
-    for k, dep in dep_set.items():
-        log.info(k)
-        log.info(dep)
-        log.info("")
-
-    Lockfile.from_dependencies(dep_set).save(args.lockfile)
+    if args.lockfile:
+        Lockfile.from_dependencies(dep_set).save(args.lockfile)
     if args.build:
         build_all(pip_distributions, dep_set, build_output=args.build_output)
-
-
-def install_from_repo(input_root_requirements):
-    pip_packages = [req.key for req in input_root_requirements if get_apt_versions(req.key)]
-    repo_pkgs = [gen_sys_package_name(p) for p in pip_packages]
-    # If apt packages are installed over existing pip packages
-    # then side effects can occur - see GH13075.
-    # Approach: remove existing pip packages before apt install
-    for p, r in zip(pip_packages, repo_pkgs):
-        try:
-            subprocess.call(shlex.split('sudo pip3 uninstall -y {}'.format(p)))
-            subprocess.call(shlex.split('sudo apt reinstall -y {}'.format(r)))
-        except Exception:
-            log.error('Error trying to install repo packages')
-            log.error('Attempting to restore the machine state...')
-            subprocess.call(shlex.split('sudo pip3 install -y {}'.format(p)))
-            raise
+    if args.install_from_repo:
+        install_from_repo(input_root_requirements)
 
 
 if __name__ == "__main__":
