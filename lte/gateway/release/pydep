@@ -40,7 +40,6 @@ import glob
 import hashlib
 import json
 import logging
-import lsb_release
 import os
 import pickle
 import re
@@ -48,13 +47,11 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tarfile
-import zipfile
-from datetime import datetime
-from functools import lru_cache, partial
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, cast
+from functools import partial
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import apt  # type: ignore
+import lsb_release
 import pkg_resources
 import requests
 
