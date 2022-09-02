@@ -26,7 +26,6 @@ import (
 	"magma/dp/cloud/go/active_mode_controller/internal/message_generator"
 	"magma/dp/cloud/go/active_mode_controller/internal/test_utils/builders"
 	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
 )
 
 func TestGenerateMessages(t *testing.T) {
@@ -35,8 +34,7 @@ func TestGenerateMessages(t *testing.T) {
 	data := []struct {
 		name             string
 		cbsd             *active_mode.Cbsd
-		expectedRequests []*requests.RequestPayload
-		expectedActions  []any
+		expectedMessages []any
 	}{{
 		name: "Should do nothing for unregistered non active cbsd",
 		cbsd: builders.NewCbsdBuilder().
@@ -54,22 +52,25 @@ func TestGenerateMessages(t *testing.T) {
 			Inactive().
 			WithDesiredState(active_mode.CbsdState_Unregistered).
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"deregistrationRequest": [
 		{
 			"cbsdId": "some_cbsd_id"
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should generate registration request for active non registered cbsd",
 		cbsd: builders.NewCbsdBuilder().
 			WithState(active_mode.CbsdState_Unregistered).
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"registrationRequest": [
 		{
 			"userId": "some_user_id",
@@ -78,12 +79,13 @@ func TestGenerateMessages(t *testing.T) {
 		}
 ]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should generate spectrum inquiry request when there are no available channels",
 		cbsd: builders.NewCbsdBuilder().
 			Build(),
-		expectedRequests: getSpectrumInquiryRequest(),
+		expectedMessages: []any{getSpectrumInquiryRequest()},
 	}, {
 		name: "Should set available frequencies when they are nil but there are channels",
 		cbsd: builders.NewCbsdBuilder().
@@ -92,7 +94,7 @@ func TestGenerateMessages(t *testing.T) {
 				HighFrequencyHz: 3610e6,
 			}).
 			Build(),
-		expectedActions: []any{
+		expectedMessages: []any{
 			&active_mode.StoreAvailableFrequenciesRequest{
 				Id: builders.DbId,
 				AvailableFrequencies: []uint32{
@@ -109,15 +111,16 @@ func TestGenerateMessages(t *testing.T) {
 			WithChannel(builders.SomeChannel).
 			WithAvailableFrequencies([]uint32{0, 0, 0, 0}).
 			Build(),
-		expectedRequests: getSpectrumInquiryRequest(),
+		expectedMessages: []any{getSpectrumInquiryRequest()},
 	}, {
 		name: "Should generate grant request when there are available frequencies and channels",
 		cbsd: builders.NewCbsdBuilder().
 			WithChannel(builders.SomeChannel).
 			WithAvailableFrequencies([]uint32{0, 1 << 15, 0, 0}).
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"grantRequest": [
 		{
 			"cbsdId": "some_cbsd_id",
@@ -131,7 +134,8 @@ func TestGenerateMessages(t *testing.T) {
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should request two grants in carrier aggregation mode",
 		cbsd: builders.NewCbsdBuilder().
@@ -139,8 +143,9 @@ func TestGenerateMessages(t *testing.T) {
 			WithAvailableFrequencies([]uint32{0, 0, 0, 1<<10 | 1<<20}).
 			WithCarrierAggregation().
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"grantRequest": [
 		{
 			"cbsdId": "some_cbsd_id",
@@ -164,7 +169,8 @@ func TestGenerateMessages(t *testing.T) {
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should send heartbeat message for grant in granted state",
 		cbsd: builders.NewCbsdBuilder().
@@ -177,8 +183,9 @@ func TestGenerateMessages(t *testing.T) {
 				HighFrequencyHz: 3610e6,
 			}).
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"heartbeatRequest": [
 		{
 			"cbsdId": "some_cbsd_id",
@@ -187,7 +194,8 @@ func TestGenerateMessages(t *testing.T) {
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should send relinquish message for unsync grant",
 		cbsd: builders.NewCbsdBuilder().
@@ -200,8 +208,9 @@ func TestGenerateMessages(t *testing.T) {
 				HighFrequencyHz: 3610e6,
 			}).
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"relinquishmentRequest": [
 		{
 			"cbsdId": "some_cbsd_id",
@@ -209,7 +218,8 @@ func TestGenerateMessages(t *testing.T) {
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should send relinquish message when inactive for too long",
 		cbsd: builders.NewCbsdBuilder().
@@ -221,8 +231,9 @@ func TestGenerateMessages(t *testing.T) {
 				HighFrequencyHz: 3610e6,
 			}).
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"relinquishmentRequest": [
 		{
 			"cbsdId": "some_cbsd_id",
@@ -230,28 +241,54 @@ func TestGenerateMessages(t *testing.T) {
 		}
 	]
 }`,
-		}},
+			},
+		},
+	}, {
+		name: "Should send relinquish message when requested",
+		cbsd: builders.NewCbsdBuilder().
+			ForRelinquish().
+			WithGrant(&active_mode.Grant{
+				Id:              builders.GrantId,
+				State:           active_mode.GrantState_Authorized,
+				LowFrequencyHz:  3590e6,
+				HighFrequencyHz: 3610e6,
+			}).
+			Build(),
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
+	"relinquishmentRequest": [
+		{
+			"cbsdId": "some_cbsd_id",
+			"grantId": "some_grant_id"
+		}
+	]
+}`,
+			},
+		},
 	}, {
 		name: "Should deregister deleted cbsd",
 		cbsd: builders.NewCbsdBuilder().
 			Deleted().
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"deregistrationRequest": [
 		{
 			"cbsdId": "some_cbsd_id"
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should delete unregistered cbsd marked as deleted",
 		cbsd: builders.NewCbsdBuilder().
 			WithState(active_mode.CbsdState_Unregistered).
 			Deleted().
 			Build(),
-		expectedActions: []any{
+		expectedMessages: []any{
 			&active_mode.DeleteCbsdRequest{Id: 123},
 		},
 	}, {
@@ -259,23 +296,33 @@ func TestGenerateMessages(t *testing.T) {
 		cbsd: builders.NewCbsdBuilder().
 			ForDeregistration().
 			Build(),
-		expectedRequests: []*requests.RequestPayload{{
-			Payload: `{
+		expectedMessages: []any{
+			&active_mode.RequestPayload{
+				Payload: `{
 	"deregistrationRequest": [
 		{
 			"cbsdId": "some_cbsd_id"
 		}
 	]
 }`,
-		}},
+			},
+		},
 	}, {
 		name: "Should acknowledge update of unregistered cbsd marked as updated",
 		cbsd: builders.NewCbsdBuilder().
 			WithState(active_mode.CbsdState_Unregistered).
 			ForDeregistration().
 			Build(),
-		expectedActions: []interface{}{
+		expectedMessages: []any{
 			&active_mode.AcknowledgeCbsdUpdateRequest{Id: 123},
+		},
+	}, {
+		name: "Should acknowledge relinquish when there are no grants",
+		cbsd: builders.NewCbsdBuilder().
+			ForRelinquish().
+			Build(),
+		expectedMessages: []any{
+			&active_mode.AcknowledgeCbsdRelinquishRequest{Id: 123},
 		},
 	}}
 	for _, tt := range data {
@@ -283,24 +330,30 @@ func TestGenerateMessages(t *testing.T) {
 			g := message_generator.NewMessageGenerator(0, timeout, &stubRNG{})
 			state := &active_mode.State{Cbsds: []*active_mode.Cbsd{tt.cbsd}}
 			msgs := g.GenerateMessages(state, now)
-			p := &stubProvider{}
+			client := &stubActiveModeControllerClient{}
 			for _, msg := range msgs {
-				_ = msg.Send(context.Background(), p)
+				_ = msg.Send(context.Background(), client)
 			}
-			require.Len(t, p.requests, len(tt.expectedRequests))
-			for i := range tt.expectedRequests {
-				assert.JSONEq(t, tt.expectedRequests[i].Payload, p.requests[i].Payload)
-			}
-			require.Len(t, p.actions, len(tt.expectedActions))
-			for i := range tt.expectedActions {
-				assert.Equal(t, tt.expectedActions[i], p.actions[i])
+			require.Len(t, client.messages, len(tt.expectedMessages))
+			for i := range tt.expectedMessages {
+				assertMessageEqual(t, tt.expectedMessages[i], client.messages[i])
 			}
 		})
 	}
 }
 
-func getSpectrumInquiryRequest() []*requests.RequestPayload {
-	return []*requests.RequestPayload{{
+func assertMessageEqual(t *testing.T, expected any, actual any) {
+	switch e := expected.(type) {
+	case *active_mode.RequestPayload:
+		a := actual.(*active_mode.RequestPayload)
+		assert.JSONEq(t, e.Payload, a.Payload)
+	default:
+		assert.Equal(t, expected, actual)
+	}
+}
+
+func getSpectrumInquiryRequest() *active_mode.RequestPayload {
+	return &active_mode.RequestPayload{
 		Payload: `{
 	"spectrumInquiryRequest": [
 		{
@@ -314,7 +367,7 @@ func getSpectrumInquiryRequest() []*requests.RequestPayload {
 		}
 	]
 }`,
-	}}
+	}
 }
 
 type stubRNG struct{}
@@ -323,21 +376,8 @@ func (s *stubRNG) Int() int {
 	return 0
 }
 
-type stubProvider struct {
-	requests []*requests.RequestPayload
-	actions  []interface{}
-}
-
-func (s *stubProvider) GetRequestsClient() requests.RadioControllerClient {
-	return &stubRadioControllerClient{requests: &s.requests}
-}
-
-func (s *stubProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
-	return &stubActiveModeControllerClient{actions: &s.actions}
-}
-
 type stubActiveModeControllerClient struct {
-	actions *[]interface{}
+	messages []any
 }
 
 func (s *stubActiveModeControllerClient) GetState(_ context.Context, _ *active_mode.GetStateRequest, _ ...grpc.CallOption) (*active_mode.State, error) {
@@ -345,24 +385,26 @@ func (s *stubActiveModeControllerClient) GetState(_ context.Context, _ *active_m
 }
 
 func (s *stubActiveModeControllerClient) DeleteCbsd(_ context.Context, in *active_mode.DeleteCbsdRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
-	*s.actions = append(*s.actions, in)
+	s.messages = append(s.messages, in)
 	return nil, nil
 }
 
 func (s *stubActiveModeControllerClient) AcknowledgeCbsdUpdate(_ context.Context, in *active_mode.AcknowledgeCbsdUpdateRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
-	*s.actions = append(*s.actions, in)
+	s.messages = append(s.messages, in)
 	return nil, nil
 }
+
+func (s *stubActiveModeControllerClient) AcknowledgeCbsdRelinquish(_ context.Context, in *active_mode.AcknowledgeCbsdRelinquishRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
+	s.messages = append(s.messages, in)
+	return nil, nil
+}
+
 func (s *stubActiveModeControllerClient) StoreAvailableFrequencies(_ context.Context, in *active_mode.StoreAvailableFrequenciesRequest, _ ...grpc.CallOption) (*empty.Empty, error) {
-	*s.actions = append(*s.actions, in)
+	s.messages = append(s.messages, in)
 	return nil, nil
 }
 
-type stubRadioControllerClient struct {
-	requests *[]*requests.RequestPayload
-}
-
-func (s *stubRadioControllerClient) UploadRequests(_ context.Context, in *requests.RequestPayload, _ ...grpc.CallOption) (*requests.RequestDbIds, error) {
-	*s.requests = append(*s.requests, in)
+func (s *stubActiveModeControllerClient) UploadRequests(_ context.Context, in *active_mode.RequestPayload, _ ...grpc.CallOption) (*empty.Empty, error) {
+	s.messages = append(s.messages, in)
 	return nil, nil
 }

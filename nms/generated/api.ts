@@ -15484,6 +15484,48 @@ export const CbsdsApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Force relinquish all grants in SAS of given CBSD
+         * @param {string} networkId Network ID
+         * @param {number} cbsdId CBSD ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dpNetworkIdCbsdsCbsdIdRelinquishPost: async (networkId: string, cbsdId: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'networkId' is not null or undefined
+            assertParamExists('dpNetworkIdCbsdsCbsdIdRelinquishPost', 'networkId', networkId)
+            // verify required parameter 'cbsdId' is not null or undefined
+            assertParamExists('dpNetworkIdCbsdsCbsdIdRelinquishPost', 'cbsdId', cbsdId)
+            const localVarPath = `/dp/{network_id}/cbsds/{cbsd_id}/relinquish`
+                .replace(`{${"network_id"}}`, encodeURIComponent(String(networkId)))
+                .replace(`{${"cbsd_id"}}`, encodeURIComponent(String(cbsdId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication tokenAuth required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary List all CBSDs in LTE network
          * @param {string} networkId Network ID
          * @param {number} [offset] Start index for pagination
@@ -15640,6 +15682,18 @@ export const CbsdsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Force relinquish all grants in SAS of given CBSD
+         * @param {string} networkId Network ID
+         * @param {number} cbsdId CBSD ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId: string, cbsdId: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId, cbsdId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @summary List all CBSDs in LTE network
          * @param {string} networkId Network ID
          * @param {number} [offset] Start index for pagination
@@ -15718,6 +15772,17 @@ export const CbsdsApiFactory = function (configuration?: Configuration, basePath
          */
         dpNetworkIdCbsdsCbsdIdPut(networkId: string, cbsdId: number, cbsd: MutableCbsd, options?: any): AxiosPromise<void> {
             return localVarFp.dpNetworkIdCbsdsCbsdIdPut(networkId, cbsdId, cbsd, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Force relinquish all grants in SAS of given CBSD
+         * @param {string} networkId Network ID
+         * @param {number} cbsdId CBSD ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId: string, cbsdId: number, options?: any): AxiosPromise<void> {
+            return localVarFp.dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId, cbsdId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -15838,6 +15903,27 @@ export interface CbsdsApiDpNetworkIdCbsdsCbsdIdPutRequest {
 }
 
 /**
+ * Request parameters for dpNetworkIdCbsdsCbsdIdRelinquishPost operation in CbsdsApi.
+ * @export
+ * @interface CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest
+ */
+export interface CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest {
+    /**
+     * Network ID
+     * @type {string}
+     * @memberof CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPost
+     */
+    readonly networkId: string
+
+    /**
+     * CBSD ID
+     * @type {number}
+     * @memberof CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPost
+     */
+    readonly cbsdId: number
+}
+
+/**
  * Request parameters for dpNetworkIdCbsdsGet operation in CbsdsApi.
  * @export
  * @interface CbsdsApiDpNetworkIdCbsdsGetRequest
@@ -15946,6 +16032,18 @@ export class CbsdsApi extends BaseAPI {
      */
     public dpNetworkIdCbsdsCbsdIdPut(requestParameters: CbsdsApiDpNetworkIdCbsdsCbsdIdPutRequest, options?: AxiosRequestConfig) {
         return CbsdsApiFp(this.configuration).dpNetworkIdCbsdsCbsdIdPut(requestParameters.networkId, requestParameters.cbsdId, requestParameters.cbsd, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Force relinquish all grants in SAS of given CBSD
+     * @param {CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CbsdsApi
+     */
+    public dpNetworkIdCbsdsCbsdIdRelinquishPost(requestParameters: CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest, options?: AxiosRequestConfig) {
+        return CbsdsApiFp(this.configuration).dpNetworkIdCbsdsCbsdIdRelinquishPost(requestParameters.networkId, requestParameters.cbsdId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

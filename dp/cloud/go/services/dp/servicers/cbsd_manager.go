@@ -101,33 +101,6 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	return state, nil
 }
 
-func (c *cbsdManager) sendLog(ctx context.Context, source interface{}, name string, from string, to string, details *storage.DetailedCbsd) {
-	msg, _ := json.Marshal(source)
-	log := &logs_pusher.DPLog{
-		EventTimestamp:   clock.Now().UTC().Unix(),
-		LogFrom:          from,
-		LogTo:            to,
-		LogName:          name,
-		LogMessage:       string(msg),
-		CbsdSerialNumber: details.Cbsd.CbsdSerialNumber.String,
-		NetworkId:        details.Cbsd.NetworkId.String,
-		FccId:            details.Cbsd.FccId.String,
-	}
-	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
-		glog.Warningf("Failed to log %s. Details: %s", name, err)
-	}
-}
-
-func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
-	cbsd := storage.DBCbsd{
-		CbsdSerialNumber: db.MakeString(request.SerialNumber),
-		CbsdCategory:     db.MakeString(request.CbsdCategory),
-	}
-	params := request.GetInstallationParam()
-	setInstallationParam(&cbsd, params)
-	return &cbsd
-}
-
 func (c *cbsdManager) DeleteCbsd(_ context.Context, request *protos.DeleteCbsdRequest) (*protos.DeleteCbsdResponse, error) {
 	err := c.store.DeleteCbsd(request.NetworkId, request.Id)
 	if err != nil {
@@ -168,6 +141,41 @@ func (c *cbsdManager) DeregisterCbsd(_ context.Context, request *protos.Deregist
 		return nil, makeErr(err, "deregister cbsd")
 	}
 	return &protos.DeregisterCbsdResponse{}, nil
+}
+
+func (c *cbsdManager) RelinquishCbsd(_ context.Context, request *protos.RelinquishCbsdRequest) (*protos.RelinquishCbsdResponse, error) {
+	err := c.store.RelinquishCbsd(request.NetworkId, request.Id)
+	if err != nil {
+		return nil, makeErr(err, "relinquish cbsd")
+	}
+	return &protos.RelinquishCbsdResponse{}, nil
+}
+
+func (c *cbsdManager) sendLog(ctx context.Context, source interface{}, name string, from string, to string, details *storage.DetailedCbsd) {
+	msg, _ := json.Marshal(source)
+	log := &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().UTC().Unix(),
+		LogFrom:          from,
+		LogTo:            to,
+		LogName:          name,
+		LogMessage:       string(msg),
+		CbsdSerialNumber: details.Cbsd.CbsdSerialNumber.String,
+		NetworkId:        details.Cbsd.NetworkId.String,
+		FccId:            details.Cbsd.FccId.String,
+	}
+	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
+		glog.Warningf("Failed to log %s. Details: %s", name, err)
+	}
+}
+
+func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
+	cbsd := storage.DBCbsd{
+		CbsdSerialNumber: db.MakeString(request.SerialNumber),
+		CbsdCategory:     db.MakeString(request.CbsdCategory),
+	}
+	params := request.GetInstallationParam()
+	setInstallationParam(&cbsd, params)
+	return &cbsd
 }
 
 func dbPagination(pagination *protos.Pagination) *storage.Pagination {

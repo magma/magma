@@ -835,10 +835,10 @@ TEST_F(AMFAppProcedureTest, TestPDUSessionSetupWithoutContext) {
       AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
                                             // indication to ngap
       NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
-      NGAP_NAS_DL_DATA_REQ,             // Security Command Mode Request to UE
-      NGAP_NAS_DL_DATA_REQ,             // Send Registration Accept
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,   // Initial Conext Setup Request to UE &
-                                        // Pdu session establishment accept
+      NGAP_NAS_DL_DATA_REQ,                 // Send Registration Accept
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
+                                       // Pdu session establishment accept
+      NGAP_PDUSESSION_RESOURCE_SETUP_REQ,
       NGAP_PDUSESSIONRESOURCE_REL_REQ,  // PDU Session Resource Release Command
       NGAP_NAS_DL_DATA_REQ,             // Deregistaration Accept
       NGAP_UE_CONTEXT_RELEASE_COMMAND   // UEContextReleaseCommand

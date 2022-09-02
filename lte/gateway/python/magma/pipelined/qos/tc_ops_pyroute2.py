@@ -16,7 +16,7 @@ import logging
 import pprint
 from typing import Union
 
-from pyroute2 import IPRoute, NetlinkError
+from pyroute2 import IPRoute, NetlinkError  # pylint: disable=no-name-in-module
 
 from .tc_ops import TcOpsBase
 

@@ -25,8 +25,14 @@
 
 typedef uint32_t nonce_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* NONCE_SEEN */

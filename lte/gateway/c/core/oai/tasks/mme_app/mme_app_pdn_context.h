@@ -39,9 +39,15 @@
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 pdn_context_t* mme_app_create_pdn_context(
     ue_mm_context_t* const ue_mm_context, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier);
+#ifdef __cplusplus
+}
+#endif
 void mme_app_free_pdn_context(pdn_context_t** const pdn_context,
                               imsi64_t imsi64);
 

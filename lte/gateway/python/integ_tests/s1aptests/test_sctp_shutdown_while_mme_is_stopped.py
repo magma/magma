@@ -18,14 +18,14 @@ import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 
 
-class TestSctpShutdowniWhileStatelessMmeIsStopped(unittest.TestCase):
+class TestSctpShutdownWhileMmeIsStopped(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_sctp_shutdown_while_stateless_mme_is_stopped(self):
+    def test_sctp_shutdown_while_mme_is_stopped(self):
         """
         testing SCTP Shutdown while MME is stopped but Sctpd is running, i.e.:
         1. Attach 1 UE

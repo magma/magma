@@ -31,7 +31,7 @@ type eapRouter struct {
 
 func main() {
 	// Create the EAP AKA Provider service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.EAP)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP)
 	if err != nil {
 		glog.Fatalf("Error creating EAP Router service: %s", err)
 	}

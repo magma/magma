@@ -31,22 +31,19 @@ import (
 )
 
 const (
-	registered            = "registered"
-	unregistered          = "unregistered"
-	someCbsdIdStr         = "some_cbsd_id"
-	authorized            = "authorized"
-	someNetwork           = "some_network"
-	otherNetwork          = "other_network_id"
-	someCbsdId            = 123
-	otherCbsdId           = 456
-	someFccId             = "some_fcc_id"
-	someUserId            = "some_user_id"
-	someSerialNumber      = "some_serial_number"
-	someOtherSerialNumber = "some_other_serial_number"
-	anotherSerialNumber   = "another_serial_number"
-	differentSerialNumber = "different_serial_number"
-	nowTimestamp          = 12345678
-	interval              = time.Hour
+	registered          = "registered"
+	unregistered        = "unregistered"
+	someCbsdIdStr       = "some_cbsd_id"
+	authorized          = "authorized"
+	someNetwork         = "some_network"
+	otherNetwork        = "other_network_id"
+	someCbsdId          = 123
+	otherCbsdId         = 456
+	someFccId           = "some_fcc_id"
+	someUserId          = "some_user_id"
+	someSerialNumber    = "some_serial_number"
+	anotherSerialNumber = "another_serial_number"
+	nowTimestamp        = 12345678
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -206,7 +203,7 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 			WithBuilder(s.resourceManager.GetBuilder()).
 			From(&storage.DBCbsd{}).
 			Select(db.NewExcludeMask("id", "state_id",
-				"cbsd_id", "is_deleted")).
+				"cbsd_id", "is_deleted", "should_relinquish")).
 			Where(sq.Eq{"id": someCbsdId}).
 			Fetch()
 		s.Require().NoError(err)
@@ -620,7 +617,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 					WithBuilder(s.resourceManager.GetBuilder()).
 					From(&storage.DBCbsd{}).
 					Select(db.NewExcludeMask("id", "state_id",
-						"cbsd_id", "is_deleted")).
+						"cbsd_id", "is_deleted", "should_relinquish")).
 					Where(sq.Eq{"cbsd_serial_number": tc.inputCbsd.CbsdSerialNumber}).
 					Fetch()
 				s.Require().NoError(err)
@@ -1040,6 +1037,38 @@ func (s *CbsdManagerTestSuite) TestDeregisterNonExistentCbsd() {
 	s.Assert().ErrorIs(err, merrors.ErrNotFound)
 }
 
+func (s *CbsdManagerTestSuite) TestRelinquishCbsd() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	s.givenResourcesInserted(b.NewDBCbsdBuilder().
+		WithId(someCbsdId).
+		WithNetworkId(someNetwork).
+		WithDesiredStateId(state).
+		WithStateId(state).
+		Cbsd)
+
+	err := s.cbsdManager.RelinquishCbsd(someNetwork, someCbsdId)
+	s.Require().NoError(err)
+
+	err = s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&storage.DBCbsd{}).
+			Select(db.NewIncludeMask("should_relinquish")).
+			Where(sq.Eq{"id": someCbsdId}).
+			Fetch()
+		s.Require().NoError(err)
+		cbsd := &storage.DBCbsd{ShouldRelinquish: db.MakeBool(true)}
+		expected := []db.Model{cbsd}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
+}
+
+func (s *CbsdManagerTestSuite) TestRelinquishNonExistentCbsd() {
+	err := s.cbsdManager.RelinquishCbsd(someNetwork, 0)
+	s.Assert().ErrorIs(err, merrors.ErrNotFound)
+}
+
 // TODO this modifies expected - needs fix!!!
 func (s *CbsdManagerTestSuite) thenCbsdIs(expected *storage.DBCbsd) {
 	err := s.resourceManager.InTransaction(func() {
@@ -1065,6 +1094,7 @@ func (s *CbsdManagerTestSuite) thenCbsdIs(expected *storage.DBCbsd) {
 		cbsd.NetworkId = db.MakeString(someNetwork)
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.ShouldDeregister = db.MakeBool(false)
+		cbsd.ShouldRelinquish = db.MakeBool(false)
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString(unregistered)},

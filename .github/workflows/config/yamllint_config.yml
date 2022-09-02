@@ -1,4 +1,14 @@
----
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # For configuration options see the official yamllint documentation at
 # https://yamllint.readthedocs.io/en/stable/configuration.html
 
@@ -12,7 +22,7 @@ ignore: |
   **/templates/**/*.yaml
 
 rules:
-  braces: 
+  braces:
     max-spaces-inside: 1
     min-spaces-inside: 1
   brackets:
@@ -25,9 +35,8 @@ rules:
   comments-indentation:
     level: warning
   document-end: disable
-  document-start:
-    level: warning
-  empty-lines: 
+  document-start: disable
+  empty-lines:
     max: 3
   empty-values: disable
   hyphens: enable

@@ -423,8 +423,15 @@ bool is_nas_specific_procedure_detach_running(
 bool is_nas_specific_procedure_tau_running(
     const struct emm_context_s* const ctxt);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 nas_emm_attach_proc_t* get_nas_specific_procedure_attach(
     const struct emm_context_s* const ctxt);
+#ifdef __cplusplus
+}
+#endif
+
 nas_emm_detach_proc_t* get_nas_specific_procedure_detach(
     const struct emm_context_s* const ctxt);
 nas_emm_tau_proc_t* get_nas_specific_procedure_tau(

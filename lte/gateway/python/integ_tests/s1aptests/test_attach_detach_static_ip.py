@@ -26,7 +26,7 @@ class TestAttachDetachStaticIP(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_static_ip1(self):
+    def test_attach_detach_static_ip(self):
         """ Basic attach/detach test with a single UE """
         num_ues = 3
         detach_type = [

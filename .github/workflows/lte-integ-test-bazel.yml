@@ -1,4 +1,13 @@
----
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 name: LTE integ test bazel
 
@@ -9,9 +18,12 @@ on:
       - build-all
     branches:
       - master
-      - 'v1.*'
     types:
       - completed
+
+env:
+  CACHE_KEY: magma-dev-vm
+  REMOTE_DOWNLOAD_OPTIMIZATION: false
 
 jobs:
   lte-integ-test-bazel:
@@ -38,6 +50,15 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v20220722
+      - name: Log in to vagrant cloud
+        run: |
+          if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
+          then
+            echo "Logging in to vagrant cloud to mitigate rate limiting."
+            vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
+          else
+            echo "Vagrant cloud token is not configured. Skipping login."
+          fi
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
@@ -58,13 +79,24 @@ jobs:
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab bazel_integ_test_pre_build
-      - name: Build all services with bazel
+      - name: Build all services and scripts with bazel
         run: |
           cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
           vagrant ssh -c 'sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
           vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;' magma
           vagrant ssh -c 'sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
+      - name: Linking bazel-built script executables to '/usr/local/bin/'
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/link_scripts_for_bazel_integ_tests.sh;' magma
+      - name: Run the sudo tests
+        id: sudo_tests
+        run: |
+          cd lte/gateway
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
       - name: Run the integ test
+        if: ${{ success() || steps.sudo_tests.conclusion == 'failure' }}
         run: |
           cd lte/gateway
           export MAGMA_DEV_CPUS=3

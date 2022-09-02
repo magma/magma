@@ -244,6 +244,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             expected_grants_states,
             [g.state.name for g in self.session.query(DBGrant).order_by(DBGrant.id).all()],
         )
+        self.assertEqual(self.session.query(DBCbsd).count(), 1)
 
     @parameterized.expand([
         (0, CbsdStates.REGISTERED),

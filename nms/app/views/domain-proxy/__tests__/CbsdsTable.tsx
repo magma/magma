@@ -98,6 +98,7 @@ const cbsdState = {
   create: jest.fn(),
   update: jest.fn(),
   deregister: jest.fn(),
+  relinquish: jest.fn(),
   remove: jest.fn(),
 } as CbsdContextType;
 

@@ -33,7 +33,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.N7_N40_PROXY)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.N7_N40_PROXY)
 	if err != nil {
 		glog.Fatalf("Error creating N7_N40 Proxy service: %s", err)
 	}

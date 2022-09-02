@@ -591,7 +591,7 @@ def py_to_deb(pkgname: str,
             return 0
         log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
-        cmd = "fpm -s python -t deb --no-python-dependencies "
+        cmd = "fpm -s python -t deb --no-python-dependencies --no-python-internal-pip "
         if not py2:
             cmd += "--python-package-name-prefix=python3 "
             cmd += "--python-bin=python3 "
@@ -1086,7 +1086,7 @@ def main(args):
             pip_packages = [req.key for req in repo_installable]
             subprocess.call(shlex.split('sudo pip3 uninstall -y '
                                         + ' '.join(pip_packages)))
-            subprocess.call(shlex.split('sudo apt install -y '
+            subprocess.call(shlex.split('sudo apt reinstall -y '
                                         + ' '.join(repo_pkgs)))
         except Exception:
             log.error('error trying to install repo packages')

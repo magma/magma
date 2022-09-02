@@ -29,7 +29,7 @@ class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_multiple_ip_blocks(self):
+    def test_attach_detach_multiple_ip_blocks_mobilityd_restart(self):
         """
         Attaching and detaching UE in mobilityd with multiple IP blocks across
         restart

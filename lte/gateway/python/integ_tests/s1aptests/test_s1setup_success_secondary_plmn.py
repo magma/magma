@@ -18,7 +18,7 @@ import s1ap_types
 from integ_tests.s1aptests.s1ap_utils import S1ApUtil
 
 
-class TestS1SetupSuccessSecondBPLMN(unittest.TestCase):
+class TestS1SetupSuccessSecondaryPLMN(unittest.TestCase):
     def setUp(self):
         self._s1_util = S1ApUtil()
 
@@ -27,7 +27,7 @@ class TestS1SetupSuccessSecondBPLMN(unittest.TestCase):
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
         self._s1_util.cleanup()
 
-    def test_s1setup_secondary_plmn(self):
+    def test_s1setup_success_secondary_plmn(self):
         """ S1 Setup with multiple bPLMN IDs, the second being valid. """
 
         print("************************* Enb tester configuration")

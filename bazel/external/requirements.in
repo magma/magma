@@ -8,7 +8,7 @@ six
 pyyaml
 urllib3
 certifi
-sentry-sdk
+sentry-sdk>=1.5.0,<1.9
 snowflake>=0.0.3
 #  prometheus_client==0.3.1 required (see e.g. magmad/tests/metrics_tests.py)
 prometheus_client==0.3.1
@@ -18,12 +18,13 @@ jsonpickle
 netifaces
 scapy
 wsgiserver
-flask
+# flask>=2.1.0 causes version conflicts with "click" when we build the requirements.txt from scratch
+flask<2.1.0
 bravado_core
 #  jsonschema version 4 not compatible with magma swagger specs
-jsonschema==3.1.0 
+jsonschema==3.2.0
 psutil
-systemd
+systemd-python
 cryptography
 #  h2>=3,<4 is requirement of aioh2 (loaded via bazel)
 h2>=3,<4
@@ -33,11 +34,11 @@ requests
 pycryptodome>=3.9.9
 spyne
 aiohttp
-lxml==4.7.1
+lxml==4.9.1
 eventlet==0.30.2
 aiodns>=1.1.1
 pymemoize>=1.0.2
-pyroute2==0.5.14
+pyroute2==0.6.13
 #  oslo-config, routes, tinyrpc, webob, ovs are requirements
 #  of ryu (loaded with bazel)
 oslo-config==8.8.0
@@ -60,9 +61,9 @@ deprecated
 wrapt
 
 # unit test requirements
-fakeredis==1.7.1
+fakeredis==1.8.1
 #  lupa is required by fakeredis
-lupa==1.10
+lupa==1.13
 parameterized==0.8.1
 freezegun
 pytest
@@ -71,3 +72,4 @@ coverage-lcov
 
 # s1ap test requirements
 iperf3
+flaky

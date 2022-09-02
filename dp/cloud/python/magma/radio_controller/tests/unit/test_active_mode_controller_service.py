@@ -16,6 +16,7 @@ from concurrent import futures
 
 import grpc
 from dp.protos.active_mode_pb2 import (
+    AcknowledgeCbsdRelinquishRequest,
     AcknowledgeCbsdUpdateRequest,
     Authorized,
     DeleteCbsdRequest,
@@ -23,6 +24,7 @@ from dp.protos.active_mode_pb2 import (
     Granted,
     GrantSettings,
     Registered,
+    RequestPayload,
     State,
     StoreAvailableFrequenciesRequest,
     Unregistered,
@@ -36,6 +38,7 @@ from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBGrantState,
+    DBRequest,
     DBRequestType,
 )
 from magma.db_service.session_manager import SessionManager
@@ -59,9 +62,6 @@ FREQUENCIES = [0b10101100, 0b00110, 0b0100000, 0b11010]
 class ActiveModeControllerTestCase(LocalDBTestCase):
     def setUp(self):
         super().setUp()
-        self.amc_service = ActiveModeControllerService(
-            SessionManager(self.engine),
-        )
         DBInitializer(SessionManager(self.engine)).initialize()
 
         grant_states = {
@@ -81,6 +81,11 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
         self.authorized = grant_states[GrantStates.AUTHORIZED.value]
 
         self.grant = request_types[RequestTypes.GRANT.value]
+
+        self.amc_service = ActiveModeControllerService(
+            SessionManager(self.engine),
+            request_types,
+        )
 
     def _prepare_base_cbsd(self) -> DBCbsdBuilder:
         return DBCbsdBuilder(). \
@@ -113,6 +118,70 @@ class ActiveModeControllerTestCase(LocalDBTestCase):
                 available_frequencies=FREQUENCIES,
             ),
             )  # noqa: E123
+
+
+class RadioControllerTestCase(ActiveModeControllerTestCase):
+    def test_store_registration_request(self):
+        cbsd = self._prepare_base_cbsd().build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        payload = '{"registrationRequest":[{"cbsdSerialNumber": "some_serial_number"}]}'
+        request = RequestPayload(payload=payload)
+        self.amc_service.UploadRequests(request, None)
+
+        actual_list = self.session.query(DBRequest.payload, DBRequest.cbsd_id, DBRequestType.name).join(DBRequestType).all()
+        expected = [
+            ({'cbsdSerialNumber': 'some_serial_number'}, SOME_ID, 'registrationRequest'),
+        ]
+        self.assertListEqual(expected, actual_list)
+
+    def test_store_registration_request_of_nonexistent_cbsd(self):
+        payload = '{"registrationRequest":[{"cbsdSerialNumber": "some_serial_number"}]}'
+        request = RequestPayload(payload=payload)
+        self.amc_service.UploadRequests(request, None)
+
+        actual_list = self.session.query(DBRequest.payload, DBRequest.cbsd_id, DBRequestType.name).join(DBRequestType).all()
+        expected = []
+        self.assertListEqual(expected, actual_list)
+
+    def test_store_request_with_cbsd_id(self):
+        cbsd = self._prepare_base_cbsd().build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        payload = '{"heartbeatRequest":[{"cbsdId": "some_cbsd_id"}]}'
+        request = RequestPayload(payload=payload)
+        self.amc_service.UploadRequests(request, None)
+
+        actual_list = self.session.query(DBRequest.payload, DBRequest.cbsd_id, DBRequestType.name).join(DBRequestType).all()
+        expected = [
+            ({'cbsdId': 'some_cbsd_id'}, SOME_ID, 'heartbeatRequest'),
+        ]
+        self.assertListEqual(expected, actual_list)
+
+    def test_store_requests_for_multiple_cbsds(self):
+        some_cbsd = self._prepare_base_cbsd(). \
+            with_id(SOME_ID). \
+            with_registration('some'). \
+            build()
+        other_cbsd = self._prepare_base_cbsd(). \
+            with_id(OTHER_ID). \
+            with_registration('other'). \
+            build()
+        self.session.add_all([some_cbsd, other_cbsd])
+        self.session.commit()
+
+        payload = '{"grantRequest":[{"cbsdId": "some_cbsd_id"}, {"cbsdId": "other_cbsd_id"}]}'
+        request = RequestPayload(payload=payload)
+        self.amc_service.UploadRequests(request, None)
+
+        actual_list = self.session.query(DBRequest.payload, DBRequest.cbsd_id, DBRequestType.name).join(DBRequestType).all()
+        expected = [
+            ({'cbsdId': 'some_cbsd_id'}, SOME_ID, 'grantRequest'),
+            ({'cbsdId': 'other_cbsd_id'}, OTHER_ID, 'grantRequest'),
+        ]
+        self.assertListEqual(expected, actual_list)
 
 
 class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
@@ -176,6 +245,19 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
 
         self.assertFalse(cbsd.should_deregister)
 
+    def test_acknowledge_cbsd_relinquish(self):
+        cbsd = self._prepare_base_cbsd(). \
+            relinquished(). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        self.stub.AcknowledgeCbsdRelinquish(
+            AcknowledgeCbsdRelinquishRequest(id=SOME_ID),
+        )
+
+        self.assertFalse(cbsd.should_relinquish)
+
     def test_store_available_frequencies(self):
         cbsd = self._prepare_base_cbsd().build()
         self.session.add(cbsd)
@@ -193,6 +275,13 @@ class ActiveModeControllerClientServerTestCase(ActiveModeControllerTestCase):
         with self.assertRaises(grpc.RpcError) as err:
             self.stub.AcknowledgeCbsdUpdate(
                 AcknowledgeCbsdUpdateRequest(id=SOME_ID),
+            )
+        self.assertEqual(grpc.StatusCode.NOT_FOUND, err.exception.code())
+
+    def test_acknowledge_non_existent_cbsd_relinquish(self):
+        with self.assertRaises(grpc.RpcError) as err:
+            self.stub.AcknowledgeCbsdRelinquish(
+                AcknowledgeCbsdRelinquishRequest(id=SOME_ID),
             )
         self.assertEqual(grpc.StatusCode.NOT_FOUND, err.exception.code())
 
@@ -289,6 +378,21 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
 
+    def test_get_state_for_cbsd_marked_for_relinquish(self):
+        cbsd = self._prepare_base_cbsd(). \
+            relinquished(). \
+            build()
+        self.session.add(cbsd)
+        self.session.commit()
+
+        am_cbsd = self._prepare_base_active_mode_cbsd(). \
+            relinquished(). \
+            build()
+        expected = State(cbsds=[am_cbsd])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
     def test_get_state_with_last_seen(self):
         cbsd = self._prepare_base_cbsd(). \
             with_last_seen(1). \
@@ -359,69 +463,48 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
         self.assertEqual(expected, actual)
 
     def test_should_send_data_if_cbsd_needs_deregistration(self):
-        cbsd = DBCbsdBuilder(). \
-            with_id(SOME_ID). \
-            with_state(self.registered). \
-            with_desired_state(self.registered). \
-            with_registration('some'). \
-            with_max_ibw(1000). \
-            with_carrier_aggregation(True). \
-            with_available_frequencies(FREQUENCIES). \
+        cbsd = self._prepare_minimal_cbsd(). \
             updated(). \
             build()
 
         self.session.add(cbsd)
         self.session.commit()
 
-        am_cbsd = ActiveModeCbsdBuilder(). \
-            with_id(SOME_ID). \
-            with_state(Registered). \
-            with_desired_state(Registered). \
-            with_registration('some'). \
+        am_cbsd = self._prepare_minimal_active_mode_cbsd(). \
             updated(). \
-            with_category('b'). \
-            with_grant_settings(
-            GrantSettings(
-                grant_redundancy_enabled=True,
-                carrier_aggregation_enabled=True,
-                max_ibw_mhz=1000,
-                available_frequencies=FREQUENCIES,
-            ),
-            ).build()  # noqa: E123
+            build()
+        expected = State(cbsds=[am_cbsd])
+
+        actual = self.amc_service.GetState(GetStateRequest(), None)
+        self.assertEqual(expected, actual)
+
+    def test_should_send_data_if_cbsd_needs_relinquish(self):
+        cbsd = self._prepare_minimal_cbsd(). \
+            relinquished(). \
+            build()
+
+        self.session.add(cbsd)
+        self.session.commit()
+
+        am_cbsd = self._prepare_minimal_active_mode_cbsd(). \
+            relinquished(). \
+            build()
         expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
 
     def test_should_send_data_if_cbsd_needs_deletion(self):
-        cbsd = DBCbsdBuilder(). \
-            with_id(SOME_ID). \
-            with_state(self.registered). \
-            with_desired_state(self.registered). \
-            with_registration('some'). \
-            with_max_ibw(1000). \
-            with_carrier_aggregation(True). \
-            with_available_frequencies(FREQUENCIES). \
+        cbsd = self._prepare_minimal_cbsd(). \
             deleted(). \
             build()
+
         self.session.add(cbsd)
         self.session.commit()
 
-        am_cbsd = ActiveModeCbsdBuilder(). \
-            with_id(SOME_ID). \
-            with_state(Registered). \
-            with_desired_state(Registered). \
-            with_registration('some'). \
+        am_cbsd = self._prepare_minimal_active_mode_cbsd(). \
             deleted(). \
-            with_category('b'). \
-            with_grant_settings(
-            GrantSettings(
-                grant_redundancy_enabled=True,
-                carrier_aggregation_enabled=True,
-                max_ibw_mhz=1000,
-                available_frequencies=FREQUENCIES,
-            ),
-            ).build()  # noqa: E123
+            build()
         expected = State(cbsds=[am_cbsd])
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
@@ -480,3 +563,24 @@ class ActiveModeControllerServerTestCase(ActiveModeControllerTestCase):
 
         actual = self.amc_service.GetState(GetStateRequest(), None)
         self.assertEqual(expected, actual)
+
+    def _prepare_minimal_cbsd(self) -> DBCbsdBuilder:
+        return DBCbsdBuilder(). \
+            with_id(SOME_ID). \
+            with_state(self.registered). \
+            with_desired_state(self.registered). \
+            with_registration('some')
+
+    @staticmethod
+    def _prepare_minimal_active_mode_cbsd() -> ActiveModeCbsdBuilder:
+        settings = GrantSettings(
+            grant_redundancy_enabled=True,
+            max_ibw_mhz=150,
+        )
+        return ActiveModeCbsdBuilder(). \
+            with_id(SOME_ID). \
+            with_state(Registered). \
+            with_desired_state(Registered). \
+            with_registration('some'). \
+            with_category('b'). \
+            with_grant_settings(settings)

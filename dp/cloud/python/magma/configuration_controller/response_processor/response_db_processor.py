@@ -22,7 +22,6 @@ from magma.db_service.models import DBGrantState, DBRequest
 from magma.db_service.session_manager import Session
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
 from magma.fluentd_client.dp_logs import make_dp_log
-from magma.mappings.types import GrantStates
 
 logger = logging.getLogger(__name__)
 
@@ -72,17 +71,8 @@ class ResponseDBProcessor(object):
             return
 
     def _populate_grant_states_map(self, session):
-        self.grant_states_map = {
-            GrantStates.GRANTED.value: session.query(DBGrantState).filter(
-                DBGrantState.name == GrantStates.GRANTED.value,
-            ).scalar(),
-            GrantStates.AUTHORIZED.value: session.query(DBGrantState).filter(
-                DBGrantState.name == GrantStates.AUTHORIZED.value,
-            ).scalar(),
-            GrantStates.UNSYNC.value: session.query(DBGrantState).filter(
-                DBGrantState.name == GrantStates.UNSYNC.value,
-            ).scalar(),
-        }
+        grant_states = session.query(DBGrantState).all()
+        self.grant_states_map = {gs.name: gs for gs in grant_states}
 
     def _process_responses(
             self,

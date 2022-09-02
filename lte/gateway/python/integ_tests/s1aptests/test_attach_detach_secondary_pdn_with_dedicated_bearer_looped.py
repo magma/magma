@@ -20,7 +20,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
+class TestAttachDetachSecondaryPdnWithDedicatedBearerLooped(unittest.TestCase):
     """Test secondary pdn with dedicated bearer creation in loop"""
 
     def setUp(self):
@@ -32,7 +32,7 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_ded_bearer_looped(self):
+    def test_attach_detach_secondary_pdn_with_dedicated_bearer_looped(self):
         """Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer
         repeat 3 times

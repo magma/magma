@@ -124,6 +124,11 @@ parser_lte = subparsers.add_parser('lte')
 parser_lte.add_argument("--url", default="none", help="Report URL", nargs='?')
 parser_lte.set_defaults(func=lte_integ_test)
 
+# Create the parser for the "feg" command
+parser_feg = subparsers.add_parser('feg')
+parser_feg.add_argument("--url", default="none", help="Report URL", nargs='?')
+parser_feg.set_defaults(func=feg_integ_test)
+
 # Create the parser for the "cwf" command
 parser_cwf = subparsers.add_parser('cwf')
 parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')

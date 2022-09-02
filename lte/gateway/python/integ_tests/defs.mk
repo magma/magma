@@ -131,6 +131,7 @@ s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 s1aptests/test_enable_ipv6_iface.py \
+s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
 s1aptests/test_disable_ipv6_iface.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
@@ -274,7 +275,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 #s1aptests/test_ipv6_non_nat_dp_dl_tcp.py
 #s1aptests/test_ipv6_non_nat_dp_ul_udp.py
 #s1aptests/test_ipv6_non_nat_dp_dl_udp.py
-#s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
 #---------------
 
 # TODO: Add ipv6 tests to integ test suite
@@ -285,8 +285,31 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py
 
 # Add the s1aptester integration tests with federation gateway
-FEDERATED_TESTS = federated_tests/s1aptests/test_attach_detach.py \
-federated_tests/s1aptests/test_attach_detach_multi_ue.py
+FEDERATED_TESTS = s1aptests/test_attach_detach.py \
+s1aptests/test_attach_detach_multi_ue.py \
+s1aptests/test_attach_auth_failure.py \
+s1aptests/test_no_auth_response.py \
+s1aptests/test_nas_non_delivery_for_auth.py \
+s1aptests/test_sctp_abort_after_auth_req.py \
+s1aptests/test_sctp_shutdown_after_auth_req.py \
+s1aptests/test_no_auth_resp_with_mme_restart_reattach.py \
+s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
+s1aptests/test_attach_auth_mac_failure.py \
+s1aptests/test_no_auth_response_with_mme_restart.py \
+s1aptests/test_no_security_mode_complete.py \
+s1aptests/test_no_attach_complete.py \
+s1aptests/test_attach_detach_security_algo_eea0_eia0.py \
+s1aptests/test_attach_detach_security_algo_eea1_eia1.py \
+s1aptests/test_attach_detach_security_algo_eea2_eia2.py \
+s1aptests/test_attach_security_mode_reject.py \
+s1aptests/test_attach_missing_imsi.py \
+s1aptests/test_duplicate_attach.py \
+s1aptests/test_attach_emergency.py \
+s1aptests/test_attach_detach_after_ue_context_release.py \
+s1aptests/test_attach_esm_information_wrong_apn.py \
+s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
+s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py
+
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

@@ -4,9 +4,9 @@ title: Magma Proposals
 hide_title: true
 ---
 
-# Magma Proposals
+# Magma Proposals (Design Document)
 
-> **NOTE**: you actually want [How to Open a Proposal](../contributing/contribute_proposals.md) for the current process. This document describes the process as it was originally proposed.
+> **NOTE**: If you are looking for the current process on how to propose a new feature or idea, please check out the [How to Open a Proposal](https://github.com/magma/magma/wiki/Adding-and-Tracking-Proposals) section in the Contributor Guide.
 
 As an open source project, it is important that all contributors are able to
 observe substantitive Proposals, comment on them, and be able to discover

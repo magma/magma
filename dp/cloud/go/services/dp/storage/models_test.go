@@ -87,6 +87,7 @@ func TestFields(t *testing.T) {
 				db.IntType{X: &dbCbsd.NumberOfPorts},
 				db.BoolType{X: &dbCbsd.IsDeleted},
 				db.BoolType{X: &dbCbsd.ShouldDeregister},
+				db.BoolType{X: &dbCbsd.ShouldRelinquish},
 				db.BoolType{X: &dbCbsd.SingleStepEnabled},
 				db.StringType{X: &dbCbsd.CbsdCategory},
 				db.FloatType{X: &dbCbsd.LatitudeDeg},
@@ -300,6 +301,12 @@ func TestGetMetadata(t *testing.T) {
 					},
 					{
 						Name:         "should_deregister",
+						SqlType:      sqorc.ColumnTypeBool,
+						HasDefault:   true,
+						DefaultValue: false,
+					},
+					{
+						Name:         "should_relinquish",
 						SqlType:      sqorc.ColumnTypeBool,
 						HasDefault:   true,
 						DefaultValue: false,

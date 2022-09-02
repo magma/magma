@@ -43,7 +43,7 @@ func main() {
 	srv, err := service.NewOrchestratorService(
 		orc8r.ModuleName,
 		dispatcher.ServiceName,
-		grpc.KeepaliveParams(keepaliveParams),
+		service.WithGrpcOptions(grpc.KeepaliveParams(keepaliveParams)),
 	)
 	if err != nil {
 		glog.Fatalf("Error creating service: %+v", err)
