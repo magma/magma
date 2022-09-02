@@ -1040,7 +1040,7 @@
           "root": true,
           "source": "apt",
           "sysdep": "python3-spyne",
-          "version": "2.13.16"
+          "version": "2.13.15"
         },
         "strict-rfc3339": {
           "root": true,
@@ -1258,7 +1258,7 @@
           "version": "0.0.3"
         },
         "spyne": {
-          "version": "2.13.16"
+          "version": "2.13.15"
         },
         "strict-rfc3339": {
           "version": "0.7"
