@@ -36,7 +36,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #ifdef __cplusplus
 }
@@ -404,27 +403,33 @@ ue_description_t* s1ap_new_ue(s1ap_state_t* state,
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
-  ue_ref =
-      reinterpret_cast<ue_description_t*>(calloc(1, sizeof(ue_description_t)));
+  ue_ref = new ue_description_t();
   /*
    * Something bad happened during malloc...
    * * * * May be we are running out of memory.
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
-  DevAssert(ue_ref != NULL);
+  if (ue_ref == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for ue context");
+    return NULL;
+  }
   ue_ref->sctp_assoc_id = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
   ue_ref->comp_s1ap_id =
       S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
 
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_rc_t hashrc = hashtable_ts_insert(
-      state_ue_ht, (const hash_key_t)ue_ref->comp_s1ap_id, (void*)ue_ref);
+  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return NULL;
+  }
+  magma::proto_map_rc_t rc =
+      s1ap_ue_state->insert(ue_ref->comp_s1ap_id, ue_ref);
 
-  if (HASH_TABLE_OK != hashrc) {
+  if (rc != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
-                 hashtable_rc_code2string(hashrc));
-    free_wrapper((void**)&ue_ref);
+                 magma::map_rc_code2string(rc));
+    free_cpp_wrapper(reinterpret_cast<void**>(&ue_ref));
     return NULL;
   }
   // Increment number of UE
@@ -458,8 +463,12 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
     ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
   }
 
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_ts_free(state_ue_ht, ue_ref->comp_s1ap_id);
+  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  if (!s1ap_ue_state) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return;
+  }
+  s1ap_ue_state->remove(ue_ref->comp_s1ap_id);
   state->mmeid2associd.remove(mme_ue_s1ap_id);
   enb_ref->ue_id_coll.remove(mme_ue_s1ap_id);
 

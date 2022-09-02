@@ -62,10 +62,14 @@ ue_description_t* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
                                           enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   ue_description_t* ue = nullptr;
 
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
+  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return ue;
+  }
   uint64_t comp_s1ap_id =
       S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
-  hashtable_ts_get(state_ue_ht, (const hash_key_t)comp_s1ap_id, (void**)&ue);
+  state_ue_map->get(comp_s1ap_id, &ue);
 
   return ue;
 }
@@ -73,10 +77,14 @@ ue_description_t* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
 ue_description_t* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   ue_description_t* ue = nullptr;
 
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_ts_apply_callback_on_elements((hash_table_ts_t* const)state_ue_ht,
-                                          s1ap_ue_compare_by_mme_ue_id_cb,
-                                          &mme_ue_s1ap_id, (void**)&ue);
+  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return ue;
+  }
+  state_ue_map->map_apply_callback_on_all_elements(
+      s1ap_ue_compare_by_mme_ue_id_cb, reinterpret_cast<void*>(&mme_ue_s1ap_id),
+      reinterpret_cast<void**>(&ue));
 
   return ue;
 }
@@ -84,10 +92,14 @@ ue_description_t* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
 ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
   ue_description_t* ue = nullptr;
 
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_ts_apply_callback_on_elements((hash_table_ts_t* const)state_ue_ht,
-                                          s1ap_ue_compare_by_imsi, &imsi64,
-                                          (void**)&ue);
+  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return ue;
+  }
+  state_ue_map->map_apply_callback_on_all_elements(
+      s1ap_ue_compare_by_imsi, reinterpret_cast<void*>(&imsi64),
+      reinterpret_cast<void**>(&ue));
 
   return ue;
 }
@@ -100,10 +112,9 @@ s1ap_imsi_map_t* get_s1ap_imsi_map() {
   return S1apStateManager::getInstance().get_s1ap_imsi_map();
 }
 
-bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused))
-                                     const hash_key_t keyP,
-                                     void* const elementP, void* parameterP,
-                                     void** resultP) {
+bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
+                                     struct ue_description_s* elementP,
+                                     void* parameterP, void** resultP) {
   mme_ue_s1ap_id_t* mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t*)parameterP;
   ue_description_t* ue_ref = (ue_description_t*)elementP;
   if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id) {
@@ -116,9 +127,9 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused))
   return false;
 }
 
-bool s1ap_ue_compare_by_imsi(__attribute__((unused)) const hash_key_t keyP,
-                             void* const elementP, void* parameterP,
-                             void** resultP) {
+bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
+                             struct ue_description_s* elementP,
+                             void* parameterP, void** resultP) {
   imsi64_t imsi64 = INVALID_IMSI64;
   imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
   ue_description_t* ue_ref = (ue_description_t*)elementP;
@@ -134,8 +145,8 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) const hash_key_t keyP,
   return false;
 }
 
-hash_table_ts_t* get_s1ap_ue_state(void) {
-  return S1apStateManager::getInstance().get_ue_state_ht();
+map_uint64_ue_description_t* get_s1ap_ue_state(void) {
+  return S1apStateManager::getInstance().get_s1ap_ue_state();
 }
 
 void put_s1ap_ue_state(imsi64_t imsi64) {
@@ -155,7 +166,12 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
 
 void remove_ues_without_imsi_from_ue_id_coll() {
   s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
-  hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
+  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+
+  if (!(s1ap_ue_state)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
+    return;
+  }
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
   if (!s1ap_state_p || (s1ap_state_p->enbs.isEmpty())) {
     return;
@@ -180,8 +196,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
          ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
       // Check if a UE reference exists for this comp_s1ap_id
-      hashtable_ts_get(s1ap_ue_state, (const hash_key_t)ue_itr->second,
-                       reinterpret_cast<void**>(&ue_ref_p));
+      s1ap_ue_state->get(ue_itr->second, &ue_ref_p);
       if (!ue_ref_p) {
         mme_ue_id_no_imsi_list.push_back(ue_itr->first);
         OAILOG_DEBUG(LOG_S1AP,

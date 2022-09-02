@@ -99,6 +99,7 @@ class S1apStateManager
    * Returns a pointer to s1ap_imsi_map
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
+  map_uint64_ue_description_t* get_s1ap_ue_state();
 
  private:
   S1apStateManager();
@@ -116,6 +117,7 @@ class S1apStateManager
   uint32_t max_enbs_;
   std::size_t s1ap_imsi_map_hash_;
   s1ap_imsi_map_t* s1ap_imsi_map_;
+  map_uint64_ue_description_t state_ue_map;
 };
 }  // namespace lte
 }  // namespace magma
