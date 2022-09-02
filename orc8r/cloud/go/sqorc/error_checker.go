@@ -44,8 +44,8 @@ func GetErrorChecker() ErrorChecker {
 
 func (c SQLiteErrorChecker) GetError(err error) error {
 	if e, ok := err.(sqlite3.Error); ok {
-		switch e.Code {
-		case sqlite3.ErrConstraint:
+		switch e.ExtendedCode {
+		case sqlite3.ErrConstraintUnique, sqlite3.ErrConstraintPrimaryKey:
 			return merrors.ErrAlreadyExists
 		}
 	}

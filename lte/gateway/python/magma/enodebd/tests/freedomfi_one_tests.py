@@ -17,11 +17,7 @@ from typing import Any, Dict
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from dp.protos.cbsd_pb2 import (
-    CBSDStateResult,
-    EnodebdUpdateCbsdRequest,
-    LteChannel,
-)
+from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -34,17 +30,23 @@ from magma.enodebd.device_config.configuration_util import (
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.devices.freedomfi_one import (
-    SAS_KEY,
-    CarrierAggregationParameters,
-    FreedomFiOneConfigurationInitializer,
-    FreedomFiOneEndSessionState,
-    FreedomFiOneGetInitState,
-    FreedomFiOneMiscParameters,
-    FreedomFiOneNotifyDPState,
+from magma.enodebd.devices.freedomfi_one.data_model import (
     FreedomFiOneTrDataModel,
+)
+from magma.enodebd.devices.freedomfi_one.impl import (
+    SAS_KEY,
+    FreedomFiOneConfigurationInitializer,
+)
+from magma.enodebd.devices.freedomfi_one.params import (
+    CarrierAggregationParameters,
+    FreedomFiOneMiscParameters,
     SASParameters,
     StatusParameters,
+)
+from magma.enodebd.devices.freedomfi_one.states import (
+    FreedomFiOneEndSessionState,
+    FreedomFiOneGetInitState,
+    FreedomFiOneNotifyDPState,
     ff_one_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.dp_client import build_enodebd_update_cbsd_request
@@ -476,7 +478,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         return msg
 
-    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
+    @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
     def test_provision(self, mock_enodebd_update_cbsd) -> None:
         """
         Test the basic provisioning workflow
@@ -574,7 +576,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
 
         mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)
 
-    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
+    @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
     def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
         """
         Test enodebd does not call Domain Proxy API for parameter update when
@@ -620,7 +622,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         (True, FreedomFiOneNotifyDPState),
         (False, FreedomFiOneEndSessionState),
     ])
-    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
+    @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
     def test_transition_depending_on_sas_enabled_flag(
             self, dp_mode, expected_state, mock_enodebd_update_cbsd,
     ):

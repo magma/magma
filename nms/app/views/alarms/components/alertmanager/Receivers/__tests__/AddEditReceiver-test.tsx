@@ -53,24 +53,34 @@ test('clicking the add button adds a new config entry', () => {
 });
 
 test('editing a config entry then submitting submits the form state', () => {
-  const {getByLabelText, getByTestId} = render(
+  const {getByTestId} = render(
     <AlarmsWrapper>
       <AddEditReceiver {...commonProps} receiver={{name: ''}} />
     </AlarmsWrapper>,
   );
   act(() => {
-    fireEvent.change(getByLabelText(/Name/i), {
-      target: {value: 'test receiver'},
-    });
-  });
-  act(() => {
     fireEvent.click(getByTestId('add-SlackChannel'));
   });
-  act(() => {
-    fireEvent.change(getByLabelText(/Webhook url/i), {
-      target: {value: 'https://slack.com/hook'},
+  const receiverName = getByTestId('receiverName').firstChild;
+  const webhookUrl = getByTestId('slack-config-editor').firstChild;
+  if (
+    receiverName instanceof HTMLInputElement &&
+    webhookUrl instanceof HTMLInputElement
+  ) {
+    act(() => {
+      fireEvent.change(receiverName, {
+        target: {value: 'test receiver'},
+      });
     });
-  });
+    act(() => {
+      fireEvent.change(webhookUrl, {
+        target: {value: 'https://slack.com/hook'},
+      });
+    });
+  } else {
+    throw 'invalid type';
+  }
+
   act(() => {
     fireEvent.click(getByTestId('editor-submit-button'));
   });

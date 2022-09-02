@@ -33,6 +33,7 @@ export type CbsdContextType = {
   create: (newCbsd: MutableCbsd) => Promise<void>;
   update: (id: number, cbsd: MutableCbsd) => Promise<void>;
   deregister: (id: number) => Promise<void>;
+  relinquish: (id: number) => Promise<void>;
   remove: (id: number) => Promise<void>;
 };
 
@@ -134,6 +135,16 @@ export async function deregister(params: {networkId: string; id: number}) {
   if (networkId == null) return;
 
   await MagmaAPI.cbsds.dpNetworkIdCbsdsCbsdIdDeregisterPost({
+    networkId,
+    cbsdId: id,
+  });
+}
+
+export async function relinquish(params: {networkId: string; id: number}) {
+  const {networkId, id} = params;
+  if (networkId == null) return;
+
+  await MagmaAPI.cbsds.dpNetworkIdCbsdsCbsdIdRelinquishPost({
     networkId,
     cbsdId: id,
   });
@@ -253,6 +264,20 @@ export function CbsdContextProvider({
           })
             .catch(() => {
               enqueueSnackbar?.('failed to deregister CBSD', {
+                variant: 'error',
+              });
+            })
+            .then(() => {
+              void refetch();
+            });
+        },
+        relinquish: (id: number) => {
+          return relinquish({
+            networkId,
+            id,
+          })
+            .catch(() => {
+              enqueueSnackbar?.('failed to relinquish CBSD', {
                 variant: 'error',
               });
             })

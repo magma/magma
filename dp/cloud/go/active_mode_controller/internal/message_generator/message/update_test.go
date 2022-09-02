@@ -35,22 +35,12 @@ func TestUpdateMessageString(t *testing.T) {
 
 func TestUpdateMessageSend(t *testing.T) {
 	client := &stubUpdateClient{}
-	provider := &stubUpdateClientProvider{client: client}
 
 	m := message.NewUpdateMessage(id)
-	require.NoError(t, m.Send(context.Background(), provider))
+	require.NoError(t, m.Send(context.Background(), client))
 
 	expected := &active_mode.AcknowledgeCbsdUpdateRequest{Id: id}
 	assert.Equal(t, expected, client.req)
-}
-
-type stubUpdateClientProvider struct {
-	message.ClientProvider
-	client *stubUpdateClient
-}
-
-func (s *stubUpdateClientProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
-	return s.client
 }
 
 type stubUpdateClient struct {

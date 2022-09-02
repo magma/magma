@@ -21,13 +21,9 @@ on:
   push:
     branches:
       - master
-    paths:
-      - .github/workflows/bazel.yml
-  schedule:
-    # Run four times a day to build bazel cache
-    - cron: '0 0,6,12,18 * * *'
+
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-4a878d8"
   CACHE_KEY: bazel-base-image
   REMOTE_DOWNLOAD_OPTIMIZATION: true
 
