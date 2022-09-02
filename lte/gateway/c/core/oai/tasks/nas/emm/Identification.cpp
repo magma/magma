@@ -32,9 +32,9 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
@@ -72,7 +72,7 @@ static int identification_non_delivered_ho(struct emm_context_s* emm_context,
 static int identification_abort(struct emm_context_s* emm_context,
                                 struct nas_base_proc_s* base_proc);
 
-static int identification_request(nas_emm_ident_proc_t* const proc);
+static status_code_e identification_request(nas_emm_ident_proc_t* const proc);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -151,16 +151,16 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
       ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
           emm_fsm_get_state(emm_context);
       ident_proc->emm_com_proc.emm_proc.not_delivered =
-          identification_ll_failure;
+          (sdu_out_not_delivered_t) identification_ll_failure;
       ident_proc->emm_com_proc.emm_proc.not_delivered_ho =
-          identification_non_delivered_ho;
+          (sdu_out_not_delivered_ho_t) identification_non_delivered_ho;
       ident_proc->emm_com_proc.emm_proc.base_proc.success_notif = success;
       ident_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
-      ident_proc->emm_com_proc.emm_proc.base_proc.abort = identification_abort;
+      ident_proc->emm_com_proc.emm_proc.base_proc.abort = (proc_abort_t) identification_abort;
       ident_proc->emm_com_proc.emm_proc.base_proc.fail_in =
           NULL;  // only response
       ident_proc->emm_com_proc.emm_proc.base_proc.time_out =
-          mme_app_handle_identification_t3470_expiry;
+          (time_out_t) mme_app_handle_identification_t3470_expiry;
     }
 
     rc = identification_request(ident_proc);
@@ -169,7 +169,7 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
       /*
        * Notify EMM that common procedure has been initiated
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
 
       emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
       emm_sap.u.emm_reg.ue_id = ue_id;
@@ -210,7 +210,7 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
                                                uint32_t* const tmsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_context_t* emm_ctx = NULL;
   bool notify = true;
 
@@ -339,7 +339,7 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
       // Helper ident proc ptr to avoid double free from unknown GUTI attach
       // processing.
       nas_emm_ident_proc_t* ident_proc_p =
-          calloc(1, sizeof(nas_emm_ident_proc_t));
+          (nas_emm_ident_proc_t*)calloc(1, sizeof(nas_emm_ident_proc_t));
       memcpy(ident_proc_p, ident_proc, sizeof(nas_emm_ident_proc_t));
 
       /*
@@ -403,7 +403,7 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Identification T3470 Timer");
+      mme_ue_s1ap_id, const_cast<char*> ("Identification T3470 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -448,7 +448,7 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
        */
       mme_ue_s1ap_id_t ue_id = ident_proc->ue_id;
       REQUIREMENT_3GPP_24_301(R10_5_4_4_6_b__2);
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
       emm_sap.u.emm_reg.ue_id = ident_proc->ue_id;
       emm_sap.u.emm_reg.ctx = emm_ctx;
@@ -489,13 +489,13 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
  *      Others:    None
  *
  * Outputs:     None
- *      Return:    None
+ *      Return:    RETURNok, RETURNerror
  *      Others:    T3470
  */
-static int identification_request(nas_emm_ident_proc_t* const proc) {
+static status_code_e identification_request(nas_emm_ident_proc_t* const proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
-  int rc = RETURNok;
+  emm_sap_t emm_sap = {};
+  status_code_e rc = RETURNok;
   struct emm_context_s* emm_ctx = NULL;
 
   ue_mm_context_t* ue_mm_context =
@@ -544,7 +544,7 @@ static int identification_ll_failure(struct emm_context_s* emm_ctx,
   if ((emm_ctx) && (emm_proc)) {
     nas_emm_ident_proc_t* ident_proc = (nas_emm_ident_proc_t*)emm_proc;
     REQUIREMENT_3GPP_24_301(R10_5_4_4_6_a);
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
 
     emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
     emm_sap.u.emm_reg.ue_id = ident_proc->ue_id;
@@ -586,7 +586,7 @@ static int identification_non_delivered_ho(struct emm_context_s* emm_ctx,
       /*
        * Abort identification and attach procedure
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
       emm_sap.u.emm_reg.ue_id = ident_proc->ue_id;
       emm_sap.u.emm_reg.ctx = emm_ctx;

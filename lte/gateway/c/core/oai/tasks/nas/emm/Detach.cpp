@@ -32,8 +32,8 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
@@ -114,7 +114,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
     }
 
     struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-        mme_ue_s1ap_id, "Detach Procedure T3422 Timer");
+        mme_ue_s1ap_id, const_cast<char*> ("Detach Procedure T3422 Timer"));
     if (ue_context_p == NULL) {
       OAILOG_ERROR(
           LOG_MME_APP,
@@ -154,7 +154,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
        * switched-off to avoid sending of detach accept message
        */
       emm_detach_request_params.switch_off = 1;
-      emm_detach_request_params.type = 0;
+      emm_detach_request_params.type =  EMM_DETACH_TYPE_EPS; //0
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
     }
     if (data) {
@@ -169,7 +169,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
 status_code_e release_esm_pdn_context(emm_context_t* emm_context,
                                       mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  esm_sap_t esm_sap = {0};
+  esm_sap_t esm_sap = {};
   esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
   esm_sap.ue_id = ue_id;
   esm_sap.ctx = emm_context;
@@ -353,7 +353,7 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
     /*
      * Normal detach without UE switch-off
      */
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
 
     /*
@@ -392,7 +392,7 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
     }
   }
   if (rc != RETURNerror) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
 
     /*
      * Notify EMM FSM that the UE has been implicitly detached
@@ -450,7 +450,7 @@ status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
 
   // if detach type = IMSI_DETACH, we are not clearing the UE context
   if (emm_ctx->is_imsi_only_detach == false) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     /*
      * Notify EMM FSM that the UE has been detached
      */
@@ -501,7 +501,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
   /*
    * Send Detach Request to UE
    */
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
 
   /*
@@ -532,14 +532,14 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
        */
       nas_stop_T3422(emm_ctx->_imsi64, &(emm_ctx->T3422));
       nas_start_T3422(ue_id, &(emm_ctx->T3422),
-                      mme_app_handle_detach_t3422_expiry);
+                      (time_out_t) mme_app_handle_detach_t3422_expiry);
     } else {
       /*
        * Start T3422 timer
        */
       if (emm_ctx->t3422_arg) {
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
-                        mme_app_handle_detach_t3422_expiry);
+                        (time_out_t) mme_app_handle_detach_t3422_expiry);
       } else {
         nw_detach_data_t* data =
             (nw_detach_data_t*)calloc(1, sizeof(nw_detach_data_t));
@@ -556,7 +556,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
         data->detach_type = detach_type;
         emm_ctx->t3422_arg = (void*)data;
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
-                        mme_app_handle_detach_t3422_expiry);
+                        (time_out_t) mme_app_handle_detach_t3422_expiry);
       }
     }
   }

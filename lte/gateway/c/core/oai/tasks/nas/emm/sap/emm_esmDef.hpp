@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      emm_esmDef.h
+Source      emm_esmDef.hpp
 
 Version     0.1
 
@@ -38,7 +38,7 @@ Description Defines the EMMESM Service Access Point that provides
 #define FILE_EMM_ESMDEF_SEEN
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

@@ -17,7 +17,7 @@
 
 /*****************************************************************************
 
-  Source      Attach.c
+  Source      Attach.cpp
 
   Version     0.1
 
@@ -79,10 +79,10 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
@@ -94,7 +94,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
@@ -122,7 +122,7 @@ static const char* emm_attach_type_str[] = {"EPS", "IMSI", "EMERGENCY",
 /*
    Functions that may initiate EMM common procedures
 */
-static int emm_start_attach_proc_authentication(
+static status_code_e emm_start_attach_proc_authentication(
     emm_context_t* emm_context, nas_emm_attach_proc_t* attach_proc);
 static int emm_start_attach_proc_security(emm_context_t* emm_context,
                                           nas_emm_attach_proc_t* attach_proc);
@@ -144,8 +144,8 @@ static int emm_attach_identification_after_smc_success_cb(
 static int emm_attach_release(emm_context_t* emm_context);
 static int emm_attach_abort(struct emm_context_s* emm_context,
                             struct nas_base_proc_s* base_proc);
-static int emm_attach_run_procedure(emm_context_t* emm_context);
-static int emm_send_attach_accept(emm_context_t* emm_context);
+static status_code_e emm_attach_run_procedure(emm_context_t* emm_context);
+static status_code_e emm_send_attach_accept(emm_context_t* emm_context);
 
 static bool emm_attach_ies_have_changed(mme_ue_s1ap_id_t ue_id,
                                         emm_attach_request_ies_t* const ies1,
@@ -356,7 +356,7 @@ status_code_e emm_proc_attach_request(
                               "not_handled");
           } else {
             REQUIREMENT_3GPP_24_301(R10_5_4_4_6_d);
-            emm_sap_t emm_sap = {0};
+            emm_sap_t emm_sap = {};
             emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
             emm_sap.u.emm_reg.ue_id = ue_id;
             emm_sap.u.emm_reg.ctx = &imsi_ue_mm_ctx->emm_context;
@@ -612,7 +612,7 @@ status_code_e emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id,
       // TODO could be in callback of attach procedure triggered by
       // EMMREG_ATTACH_REJ
       rc = _emm_attach_reject(emm_ctx, (struct nas_base_proc_s*)attach_proc);
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id = ue_id;
       emm_sap.u.emm_reg.ctx = emm_ctx;
@@ -662,8 +662,8 @@ status_code_e emm_proc_attach_complete(
   ue_mm_context_t* ue_mm_context = NULL;
   nas_emm_attach_proc_t* attach_proc = NULL;
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-  esm_sap_t esm_sap = {0};
+  emm_sap_t emm_sap = {};
+  esm_sap_t esm_sap = {};
   emm_context_t* emm_ctx = NULL;
 
   /*
@@ -832,24 +832,24 @@ status_code_e emm_proc_attach_complete(
  */
 
 void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc) {
-  ((nas_base_proc_t*)attach_proc)->abort = emm_attach_abort;
+  ((nas_base_proc_t*)attach_proc)->abort = (proc_abort_t) emm_attach_abort;
   ((nas_base_proc_t*)attach_proc)->fail_in = NULL;
   ((nas_base_proc_t*)attach_proc)->time_out =
-      mme_app_handle_emm_attach_t3450_expiry;
+      (time_out_t) mme_app_handle_emm_attach_t3450_expiry;
   ((nas_base_proc_t*)attach_proc)->fail_out = _emm_attach_reject;
 }
 
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
-  auth_proc->emm_com_proc.emm_proc.base_proc.success_notif =
+  auth_proc->emm_com_proc.emm_proc.base_proc.success_notif = (success_cb_t)
       emm_attach_success_authentication_cb;
-  auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif =
+  auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif = (failure_cb_t)
       emm_attach_failure_authentication_cb;
 }
 
 void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
-  smc_proc->emm_com_proc.emm_proc.base_proc.success_notif =
+  smc_proc->emm_com_proc.emm_proc.base_proc.success_notif = (success_cb_t)
       emm_attach_success_security_cb;
-  smc_proc->emm_com_proc.emm_proc.base_proc.failure_notif =
+  smc_proc->emm_com_proc.emm_proc.base_proc.failure_notif = (failure_cb_t)
       emm_attach_failure_security_cb;
 }
 
@@ -866,10 +866,10 @@ static void emm_proc_create_procedure_attach_request(
   if ((attach_proc)) {
     attach_proc->ies = ies;
     attach_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
-    ((nas_base_proc_t*)attach_proc)->abort = emm_attach_abort;
+    ((nas_base_proc_t*)attach_proc)->abort = (proc_abort_t) emm_attach_abort;
     ((nas_base_proc_t*)attach_proc)->fail_in = NULL;  // No parent procedure
     ((nas_base_proc_t*)attach_proc)->time_out =
-        mme_app_handle_emm_attach_t3450_expiry;
+        (time_out_t) mme_app_handle_emm_attach_t3450_expiry;
     ((nas_base_proc_t*)attach_proc)->fail_out = _emm_attach_reject;
   }
 }
@@ -897,7 +897,7 @@ static void emm_proc_create_procedure_attach_request(
  *      Others:    None
  *
  * Outputs:     None
- *      Return:    None
+ *      Return:    RETURNok, RETURNerror
  *      Others:    None
  *
  */
@@ -913,7 +913,7 @@ status_code_e mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Attach Procedure T3450 Timer");
+      mme_ue_s1ap_id, const_cast<char*> ("Attach Procedure T3450 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -947,7 +947,7 @@ status_code_e mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop,
       /*
        * Abort the attach procedure
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMREG_ATTACH_ABORT;
       emm_sap.u.emm_reg.ue_id = attach_proc->ue_id;
       emm_sap.u.emm_reg.ctx = emm_context;
@@ -1007,14 +1007,14 @@ status_code_e _emm_attach_reject(emm_context_t* emm_context,
   status_code_e rc = RETURNerror;
 
   attach_reject_event(emm_context->_imsi64);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   struct nas_emm_attach_proc_s* attach_proc =
       (struct nas_emm_attach_proc_s*)nas_base_proc;
 
   OAILOG_WARNING(LOG_NAS_EMM,
                  "EMM-PROC  - EMM attach procedure not accepted "
                  "by the network (ue_id=" MME_UE_S1AP_ID_FMT ", cause=%s)\n",
-                 attach_proc->ue_id, emm_cause_str[attach_proc->emm_cause]);
+                 attach_proc->ue_id, emm_cause_str(attach_proc->emm_cause));
   /*
    * Notify EMM-AS SAP that Attach Reject message has to be sent
    * onto the network
@@ -1081,7 +1081,7 @@ static int emm_attach_abort(struct emm_context_s* emm_context,
         attach_proc->ue_id);
 
     // Trigger clean up
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
     emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = attach_proc->ue_id;
     rc = emm_sap_send(&emm_sap);
@@ -1098,9 +1098,9 @@ static int emm_attach_abort(struct emm_context_s* emm_context,
  */
 
 //------------------------------------------------------------------------------
-static int emm_attach_run_procedure(emm_context_t* emm_context) {
+static status_code_e emm_attach_run_procedure(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
 
@@ -1146,14 +1146,14 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
         // force identification, even if not necessary
         rc = emm_proc_identification(emm_context, (nas_emm_proc_t*)attach_proc,
                                      IDENTITY_TYPE_2_IMSI,
-                                     emm_attach_success_identification_cb,
-                                     emm_attach_failure_identification_cb);
+                                     (success_cb_t)emm_attach_success_identification_cb,
+                                     (failure_cb_t) emm_attach_failure_identification_cb);
       }
     } else if (attach_proc->ies->guti) {
       rc = emm_proc_identification(emm_context, (nas_emm_proc_t*)attach_proc,
                                    IDENTITY_TYPE_2_IMSI,
-                                   emm_attach_success_identification_cb,
-                                   emm_attach_failure_identification_cb);
+                                   (success_cb_t) emm_attach_success_identification_cb,
+                                   (failure_cb_t) emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
       // Emergency attach is not supported
       OAILOG_ERROR(LOG_NAS_EMM, "Emergency attach is not supported");
@@ -1207,15 +1207,15 @@ static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
 }
 
 //------------------------------------------------------------------------------
-static int emm_start_attach_proc_authentication(
+static status_code_e emm_start_attach_proc_authentication(
     emm_context_t* emm_context, nas_emm_attach_proc_t* attach_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
 
   if ((emm_context) && (attach_proc)) {
     rc = emm_proc_authentication(emm_context, &attach_proc->emm_spec_proc,
-                                 emm_attach_success_authentication_cb,
-                                 emm_attach_failure_authentication_cb);
+                                 (success_cb_t) emm_attach_success_authentication_cb,
+                                 (failure_cb_t) emm_attach_failure_authentication_cb);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1265,7 +1265,7 @@ static int emm_attach_failure_authentication_cb(emm_context_t* emm_context) {
     emm_context->emm_cause = EMM_CAUSE_NETWORK_FAILURE;
     attach_proc->emm_cause = emm_context->emm_cause;
 
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     emm_sap.primitive = EMMREG_ATTACH_REJ;
     emm_sap.u.emm_reg.ue_id = attach_proc->ue_id;
     emm_sap.u.emm_reg.ctx = emm_context;
@@ -1295,7 +1295,7 @@ static int emm_start_attach_proc_security(emm_context_t* emm_context,
     emm_ctx_clear_security(emm_context);
     rc = emm_proc_security_mode_control(
         emm_context, &attach_proc->emm_spec_proc, attach_proc->ksi,
-        emm_attach_success_security_cb, emm_attach_failure_security_cb);
+        (success_cb_t) emm_attach_success_security_cb, (failure_cb_t) emm_attach_failure_security_cb);
     if (rc != RETURNok) {
       /*
        * Failed to initiate the security mode control procedure
@@ -1309,7 +1309,7 @@ static int emm_start_attach_proc_security(emm_context_t* emm_context,
       /*
        * Do not accept the UE to attach to the network
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id = ue_id;
       emm_sap.u.emm_reg.ctx = emm_context;
@@ -1351,8 +1351,8 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
                     "Trigger identity procedure\n");
     rc = emm_proc_identification(emm_context, (nas_emm_proc_t*)attach_proc,
                                  IDENTITY_TYPE_2_IMEISV,
-                                 emm_attach_identification_after_smc_success_cb,
-                                 emm_attach_failure_identification_cb);
+                                 (success_cb_t) emm_attach_identification_after_smc_success_cb,
+                                 (failure_cb_t) emm_attach_failure_identification_cb);
 
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
@@ -1442,7 +1442,7 @@ static int emm_attach(emm_context_t* emm_context) {
 
   if (attach_proc) {
     if (attach_proc->ies->esm_msg) {
-      esm_sap_t esm_sap = {0};
+      esm_sap_t esm_sap = {};
       esm_sap.primitive = ESM_UNITDATA_IND;
       esm_sap.is_standalone = false;
       esm_sap.ue_id = ue_id;
@@ -1467,7 +1467,7 @@ static int emm_attach(emm_context_t* emm_context) {
             LOG_NAS_EMM,
             "Sending Attach Reject to UE for ue_id = " MME_UE_S1AP_ID_FMT
             ", emm_cause = (%s)\n",
-            ue_id, emm_cause_str[attach_proc->emm_cause]);
+            ue_id, emm_cause_str(attach_proc->emm_cause));
         rc = _emm_attach_reject(emm_context,
                                 &attach_proc->emm_spec_proc.emm_proc.base_proc);
       } else {
@@ -1502,7 +1502,7 @@ static int emm_attach(emm_context_t* emm_context) {
     OAILOG_ERROR(LOG_NAS_EMM,
                  "Sending Attach Reject to UE ue_id = " MME_UE_S1AP_ID_FMT
                  ", emm_cause = (%s)\n",
-                 ue_id, emm_cause_str[attach_proc->emm_cause]);
+                 ue_id, emm_cause_str(attach_proc->emm_cause));
     rc = _emm_attach_reject(emm_context,
                             &attach_proc->emm_spec_proc.emm_proc.base_proc);
     increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
@@ -1603,7 +1603,7 @@ static status_code_e emm_send_attach_accept(emm_context_t* emm_context) {
 
   // may be caused by timer not stopped when deleted context
   if (emm_context) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     nas_emm_attach_proc_t* attach_proc =
         get_nas_specific_procedure_attach(emm_context);
     ue_mm_context_t* ue_mm_context_p =
@@ -1644,10 +1644,7 @@ static status_code_e emm_send_attach_accept(emm_context_t* emm_context) {
       if (!IS_EMM_CTXT_PRESENT_GUTI(emm_context)) {
         // Sure it is an unknown GUTI in this MME
         guti_t old_guti = emm_context->_old_guti;
-        guti_t guti = {.gummei.plmn = {0},
-                       .gummei.mme_gid = 0,
-                       .gummei.mme_code = 0,
-                       .m_tmsi = INVALID_M_TMSI};
+        guti_t guti = {};
         clear_guti(&guti);
 
         rc = mme_api_new_guti(&emm_context->_imsi, &old_guti, &guti,
@@ -1836,7 +1833,7 @@ static void encode_csfb_parameters_attach_accept_retx(emm_context_t* emm_ctx,
  ***************************************************************************/
 static int emm_attach_accept_retx(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   int rc = RETURNerror;
 
   if (!emm_context) {
@@ -2530,44 +2527,79 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
-const char* emm_cause_str[] = {
-    [EMM_CAUSE_IMSI_UNKNOWN_IN_HSS] = "EMM_CAUSE_IMSI_UNKNOWN_IN_HSS",
-    [EMM_CAUSE_ILLEGAL_UE] = "EMM_CAUSE_ILLEGAL_UE",
-    [EMM_CAUSE_IMEI_NOT_ACCEPTED] = "EMM_CAUSE_IMEI_NOT_ACCEPTED",
-    [EMM_CAUSE_ILLEGAL_ME] = "EMM_CAUSE_ILLEGAL_ME",
-    [EMM_CAUSE_EPS_NOT_ALLOWED] = "EMM_CAUSE_EPS_NOT_ALLOWED",
-    [EMM_CAUSE_BOTH_NOT_ALLOWED] = "EMM_CAUSE_BOTH_NOT_ALLOWED",
-    [EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW] =
-        "EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW",
-    [EMM_CAUSE_IMPLICITLY_DETACHED] = "EMM_CAUSE_IMPLICITLY_DETACHED",
-    [EMM_CAUSE_PLMN_NOT_ALLOWED] = "EMM_CAUSE_PLMN_NOT_ALLOWED",
-    [EMM_CAUSE_TA_NOT_ALLOWED] = "EMM_CAUSE_TA_NOT_ALLOWED",
-    [EMM_CAUSE_ROAMING_NOT_ALLOWED] = "EMM_CAUSE_ROAMING_NOT_ALLOWED",
-    [EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN] = "EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN",
-    [EMM_CAUSE_NO_SUITABLE_CELLS] = "EMM_CAUSE_NO_SUITABLE_CELLS",
-    [EMM_CAUSE_MSC_NOT_REACHABLE] = "EMM_CAUSE_MSC_NOT_REACHABLE",
-    [EMM_CAUSE_NETWORK_FAILURE] = "EMM_CAUSE_NETWORK_FAILURE",
-    [EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE] = "EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE",
-    [EMM_CAUSE_ESM_FAILURE] = "EMM_CAUSE_ESM_FAILURE",
-    [EMM_CAUSE_MAC_FAILURE] = "EMM_CAUSE_MAC_FAILURE",
-    [EMM_CAUSE_SYNCH_FAILURE] = "EMM_CAUSE_SYNCH_FAILURE",
-    [EMM_CAUSE_CONGESTION] = "EMM_CAUSE_CONGESTION",
-    [EMM_CAUSE_UE_SECURITY_MISMATCH] = "EMM_CAUSE_UE_SECURITY_MISMATCH",
-    [EMM_CAUSE_SECURITY_MODE_REJECTED] = "EMM_CAUSE_SECURITY_MODE_REJECTED",
-    [EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE] =
-        "EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE",
-    [EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN] = "EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN",
-    [EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE] = "EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE",
-    [EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE] = "EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE",
-    [EMM_CAUSE_SEMANTICALLY_INCORRECT] = "EMM_CAUSE_SEMANTICALLY_INCORRECT",
-    [EMM_CAUSE_INVALID_MANDATORY_INFO] = "EMM_CAUSE_INVALID_MANDATORY_INFO",
-    [EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED] =
-        "EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED",
-    [EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE] =
-        "EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE",
-    [EMM_CAUSE_IE_NOT_IMPLEMENTED] = "EMM_CAUSE_IE_NOT_IMPLEMENTED",
-    [EMM_CAUSE_CONDITIONAL_IE_ERROR] = "EMM_CAUSE_CONDITIONAL_IE_ERROR",
-    [EMM_CAUSE_MESSAGE_NOT_COMPATIBLE] = "EMM_CAUSE_MESSAGE_NOT_COMPATIBLE",
-    [AMF_CAUSE_PROTOCOL_ERROR] = "AMF_CAUSE_PROTOCOL_ERROR",
-    [EMM_CAUSE_SUCCESS] = "EMM_CAUSE_SUCCESS",
-};
+const char* emm_cause_str(uint32_t emm_cause) {
+  switch(emm_cause) {
+    case EMM_CAUSE_IMSI_UNKNOWN_IN_HSS:
+      return "EMM_CAUSE_IMSI_UNKNOWN_IN_HSS";
+    case EMM_CAUSE_ILLEGAL_UE:
+      return "EMM_CAUSE_ILLEGAL_UE";
+    case EMM_CAUSE_IMEI_NOT_ACCEPTED:
+      return "EMM_CAUSE_IMEI_NOT_ACCEPTED";
+    case EMM_CAUSE_ILLEGAL_ME:
+      return "EMM_CAUSE_ILLEGAL_ME";
+    case EMM_CAUSE_EPS_NOT_ALLOWED:
+      return "EMM_CAUSE_EPS_NOT_ALLOWED";
+    case EMM_CAUSE_BOTH_NOT_ALLOWED:
+      return "EMM_CAUSE_BOTH_NOT_ALLOWED";
+    case EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW:
+      return "EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW";
+    case EMM_CAUSE_IMPLICITLY_DETACHED:
+      return "EMM_CAUSE_IMPLICITLY_DETACHED";
+    case EMM_CAUSE_PLMN_NOT_ALLOWED:
+      return "EMM_CAUSE_PLMN_NOT_ALLOWED";
+    case EMM_CAUSE_TA_NOT_ALLOWED:
+      return "EMM_CAUSE_TA_NOT_ALLOWED";
+    case EMM_CAUSE_ROAMING_NOT_ALLOWED:
+      return "EMM_CAUSE_ROAMING_NOT_ALLOWED";
+    case EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN:
+      return "EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN";
+    case EMM_CAUSE_NO_SUITABLE_CELLS:
+      return "EMM_CAUSE_NO_SUITABLE_CELLS";
+    case EMM_CAUSE_MSC_NOT_REACHABLE:
+      return "EMM_CAUSE_MSC_NOT_REACHABLE";
+    case EMM_CAUSE_NETWORK_FAILURE:
+      return "EMM_CAUSE_NETWORK_FAILURE";
+    case EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE:
+      return "EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE";
+    case EMM_CAUSE_ESM_FAILURE:
+      return "EMM_CAUSE_ESM_FAILURE";
+    case EMM_CAUSE_MAC_FAILURE:
+      return "EMM_CAUSE_MAC_FAILURE";
+    case EMM_CAUSE_SYNCH_FAILURE:
+      return "EMM_CAUSE_SYNCH_FAILURE";
+    case EMM_CAUSE_CONGESTION:
+      return "EMM_CAUSE_CONGESTION";
+    case EMM_CAUSE_UE_SECURITY_MISMATCH:
+      return "EMM_CAUSE_UE_SECURITY_MISMATCH";
+    case EMM_CAUSE_SECURITY_MODE_REJECTED:
+      return "EMM_CAUSE_SECURITY_MODE_REJECTED";
+    case EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE:
+      return  "EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE";
+    case EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN:
+      return "EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN";
+    case EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE:
+      return "EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE";
+    case EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE:
+      return "EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE";
+    case EMM_CAUSE_SEMANTICALLY_INCORRECT:
+      return "EMM_CAUSE_SEMANTICALLY_INCORRECT";
+    case EMM_CAUSE_INVALID_MANDATORY_INFO:
+      return "EMM_CAUSE_INVALID_MANDATORY_INFO";
+    case EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED:
+      return  "EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED";
+    case EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE:
+      return  "EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE";
+    case EMM_CAUSE_IE_NOT_IMPLEMENTED:
+      return "EMM_CAUSE_IE_NOT_IMPLEMENTED";
+    case EMM_CAUSE_CONDITIONAL_IE_ERROR:
+      return "EMM_CAUSE_CONDITIONAL_IE_ERROR";
+    case EMM_CAUSE_MESSAGE_NOT_COMPATIBLE:
+      return "EMM_CAUSE_MESSAGE_NOT_COMPATIBLE";
+    case AMF_CAUSE_PROTOCOL_ERROR:
+      return "AMF_CAUSE_PROTOCOL_ERROR";
+    case EMM_CAUSE_SUCCESS:
+      return "EMM_CAUSE_SUCCESS";
+    default:
+      return "UNKNOWN_CAUSE";
+  }
+}

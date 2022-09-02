@@ -17,7 +17,7 @@
 
 /*****************************************************************************
 
-  Source      EmmCommonProcedureInitiated.c
+  Source      EmmCommonProcedureInitiated.cpp
 
   Version     0.1
 
@@ -42,7 +42,7 @@
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      EmmCommon.h
+Source      EmmCommon.hpp
 
 Version     0.1
 
@@ -48,8 +48,8 @@ Description Defines callback functions executed within EMM common procedures
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+//#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -68,15 +68,15 @@ Description Defines callback functions executed within EMM common procedures
  * - The EMM common procedure failed or is rejected
  * - Lower layer failure occured before the EMM common procedure completion
  */
-typedef int (*emm_common_success_callback_t)(void*);
-typedef int (*emm_common_reject_callback_t)(void*);
-typedef int (*emm_common_failure_callback_t)(void*);
-typedef int (*emm_common_ll_failure_callback_t)(void*);
-typedef int (*emm_common_non_delivered_callback_t)(void*);
+typedef status_code_e (*emm_common_success_callback_t)(void*);
+typedef status_code_e (*emm_common_reject_callback_t)(void*);
+typedef status_code_e (*emm_common_failure_callback_t)(void*);
+typedef status_code_e (*emm_common_ll_failure_callback_t)(void*);
+typedef status_code_e (*emm_common_non_delivered_callback_t)(void*);
 /* EMM common procedure to be executed when the ongoing EMM procedure is
  * aborted.
  */
-typedef int (*emm_common_abort_callback_t)(void*);
+typedef status_code_e (*emm_common_abort_callback_t)(void*);
 
 /* Ongoing EMM procedure callback functions */
 typedef struct emm_common_data_s {

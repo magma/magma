@@ -27,8 +27,8 @@
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
@@ -77,7 +77,7 @@ status_code_e esm_sap_send(esm_sap_t* msg);
  ***************************************************************************/
 status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_SUCCESS;
@@ -124,7 +124,7 @@ status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
 status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ue_id,
                                  STOLEN_REF bstring* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_FAILURE;
@@ -170,7 +170,7 @@ status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ue_id,
 status_code_e lowerlayer_non_delivery_indication(mme_ue_s1ap_id_t ue_id,
                                                  STOLEN_REF bstring* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_NON_DELIVERY;
@@ -235,7 +235,7 @@ status_code_e lowerlayer_establish(void) {
  ***************************************************************************/
 status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_RELEASE;
@@ -268,7 +268,7 @@ status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause) {
  **                                                                        **
  ***************************************************************************/
 status_code_e lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data) {
-  esm_sap_t esm_sap = {0};
+  esm_sap_t esm_sap = {};
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -302,7 +302,7 @@ status_code_e lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data) {
 status_code_e lowerlayer_data_req(mme_ue_s1ap_id_t ue_id, bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_security_context_t* sctx = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
@@ -332,7 +332,7 @@ status_code_e lowerlayer_activate_bearer_req(
     bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_security_context_t* sctx = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
@@ -364,7 +364,7 @@ status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
                                                const ebi_t ebi, bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_security_context_t* sctx = NULL;
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
@@ -435,9 +435,9 @@ void emm_as_set_security_data(emm_as_security_data_t* data, const void* args,
         is_new, context->eksi, context->ul_count.seq_num,
         *(uint32_t*)(&context->ul_count));
     OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_EMM,
-                      "knas_int:", context->knas_int, AUTH_KNAS_INT_SIZE);
+                      "knas_int:", (const char*)context->knas_int, AUTH_KNAS_INT_SIZE);
     OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_EMM,
-                      "knas_enc:", context->knas_enc, AUTH_KNAS_ENC_SIZE);
+                      "knas_enc:", (const char*)context->knas_enc, AUTH_KNAS_ENC_SIZE);
     data->is_new = is_new;
     data->ksi = context->eksi;
     data->sqn = context->dl_count

@@ -140,20 +140,20 @@ set(libnas_mme_api_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm)
 set(libnas_mme_emm_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Attach.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Authentication.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Detach.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmInformation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_data_ctx.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmStatusHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Identification.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/LowerLayer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/SecurityModeControl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/ServiceRequestHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/TrackingAreaUpdate.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmCommon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/NasTransportHdl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Attach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Authentication.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Detach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmInformation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_data_ctx.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmStatusHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Identification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/LowerLayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/SecurityModeControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/ServiceRequestHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/TrackingAreaUpdate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmCommon.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/NasTransportHdl.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm/sap)

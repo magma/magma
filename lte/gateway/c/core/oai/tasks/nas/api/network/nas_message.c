@@ -28,7 +28,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/KsiAndSequenceNumber.h"

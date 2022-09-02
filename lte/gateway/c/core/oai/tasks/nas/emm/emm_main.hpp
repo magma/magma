@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      emm_main.h
+Source      emm_main.hpp
 
 Version     0.1
 
@@ -38,7 +38,7 @@ Description Defines the EPS Mobility Management procedure call manager,
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

@@ -33,8 +33,8 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
@@ -98,7 +98,7 @@ int emm_send_status(const emm_as_status_t* msg, emm_status_msg* emm_msg) {
 
   OAILOG_WARNING(LOG_NAS_EMM,
                  "EMMAS-SAP - Send EMM Status message (cause=%s)\n",
-                 emm_cause_str[msg->emm_cause]);
+                 emm_cause_str(msg->emm_cause));
   /*
    * Mandatory - Message type
    */
@@ -764,7 +764,7 @@ int emm_send_attach_reject(const emm_as_establish_t* msg,
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Send Attach Reject message (cause=%s)\n",
-              emm_cause_str[msg->emm_cause]);
+              emm_cause_str(msg->emm_cause));
   /*
    * Mandatory - Message type
    */
@@ -818,7 +818,7 @@ int emm_send_tracking_area_update_accept(
   OAILOG_INFO(
       LOG_NAS_EMM,
       "EMMAS-SAP - Send Tracking Area Update Accept message (cause=%s)\n",
-      emm_cause_str[msg->emm_cause]);
+      emm_cause_str(msg->emm_cause));
   /*
    * Mandatory - Message type
    */
@@ -1225,7 +1225,7 @@ int emm_send_tracking_area_update_reject(
   OAILOG_INFO(
       LOG_NAS_EMM,
       "EMMAS-SAP - Send Tracking Area Update Reject message (cause=%s)\n",
-      emm_cause_str[msg->emm_cause]);
+      emm_cause_str(msg->emm_cause));
   /*
    * Mandatory - Message type
    */
@@ -1263,7 +1263,7 @@ int emm_send_service_reject(const uint8_t emm_cause,
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMMAS-SAP - Send Service Reject message (cause=%s)\n",
-              emm_cause_str[emm_cause]);
+              emm_cause_str(emm_cause));
   /*
    * Mandatory - Message type
    */

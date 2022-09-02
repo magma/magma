@@ -18,12 +18,13 @@
 #pragma once
 
 extern "C" {
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 }
+
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 
 #include <sstream>
 #include "lte/protos/oai/nas_state.pb.h"

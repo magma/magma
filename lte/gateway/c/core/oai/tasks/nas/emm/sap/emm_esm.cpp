@@ -17,7 +17,7 @@
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esm.hpp"
 
 /****************************************************************************/

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      emm_proc.h
+Source      emm_proc.hpp
 
 Version     0.1
 
@@ -40,7 +40,7 @@ Description Defines the EPS Mobility Management procedures executed at
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"  //nas_message_decode_status_t
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"

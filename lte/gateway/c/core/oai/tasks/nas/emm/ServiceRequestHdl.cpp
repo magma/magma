@@ -32,8 +32,8 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ExtendedServiceRequest.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
@@ -50,7 +50,7 @@
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
-static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause);
+static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause);
 
 static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /*
@@ -81,14 +81,14 @@ status_code_e emm_proc_service_reject(const mme_ue_s1ap_id_t ue_id,
      @param [in]args UE EMM context data
      @returns status of operation
 */
-static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
+static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
 
 {
-  int rc = RETURNerror;
+  status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   /*
    * Notify EMM-AS SAP that Service Reject message has to be sent
@@ -210,7 +210,7 @@ status_code_e emm_recv_initial_ext_service_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
   emm_context_t* emm_ctx = NULL;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   /*
    * Get the UE context
@@ -323,7 +323,7 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
 status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
                                                 const uint8_t emm_cause) {
   status_code_e rc = RETURNok;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 

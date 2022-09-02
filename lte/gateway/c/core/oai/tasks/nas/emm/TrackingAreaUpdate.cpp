@@ -38,9 +38,9 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
@@ -73,9 +73,9 @@
  * Other aspects of TAU are TODOs for future.
  */
 
-static int emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
+static status_code_e emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
                                            const int emm_cause);
-static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc);
+static status_code_e emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc);
 static int emm_tracking_area_update_abort(struct emm_context_s* emm_context,
                                           struct nas_base_proc_s* base_proc);
 
@@ -227,14 +227,14 @@ static status_code_e handle_and_fill_eps_bearer_cntxt_status(
        */
       pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
       if (pid >= MAX_APN_PER_UE) {
-        OAILOG_ERROR_UE(ue_mm_context->emm_context._imsi64, LOG_NAS_EMM,
+        OAILOG_ERROR_UE(LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
                         "No PDN connection found for pid=%d, EBI=%d \n", pid,
                         ebi);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
       pdn_context_t* pdn_context = ue_mm_context->pdn_contexts[pid];
       if (!pdn_context) {
-        OAILOG_ERROR_UE(ue_mm_context->emm_context._imsi64, LOG_NAS_EMM,
+        OAILOG_ERROR_UE(LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
                         "PDN context is NULL for pid=%d, EBI=%d \n", pid, ebi);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
@@ -596,7 +596,7 @@ status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, "Authentication T3450 Timer");
+      mme_ue_s1ap_id, const_cast<char*> ("Authentication T3450 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -642,7 +642,7 @@ status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id,
       /*
        * Abort the security mode control procedure
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMREG_ATTACH_ABORT;
       emm_sap.u.emm_reg.ue_id = tau_proc->ue_id;
       emm_sap.u.emm_reg.ctx = emm_context;
@@ -674,16 +674,16 @@ static int _emm_tracking_area_update_security (emm_context_t * emm_context)
     \brief Performs the tracking area update procedure not accepted by the
    network.
      @param [in]args UE EMM context data
-     @returns status of operation
+     @returns RETURNok, RETURNerror
 */
 //------------------------------------------------------------------------------
-static int emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
+static status_code_e emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
                                            const int emm_cause)
 
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNok;
-  emm_sap_t emm_sap = {0};
+  status_code_e rc = RETURNok;
+  emm_sap_t emm_sap = {};
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_context = NULL;
 
@@ -768,10 +768,10 @@ static int build_csfb_parameters_combined_tau(emm_context_t* emm_ctx,
      @returns status of operation (RETURNok, RETURNerror)
 */
 //------------------------------------------------------------------------------
-static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
+static status_code_e emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  status_code_e rc = RETURNerror;
+  emm_sap_t emm_sap = {};
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_context = NULL;
   uint8_t eps_update_result = 0;
@@ -1020,7 +1020,7 @@ static int emm_tracking_area_update_abort(struct emm_context_s* emm_context,
       /*
        * Notify EMM that EPS attach procedure failed
        */
-      emm_sap_t emm_sap = {0};
+      emm_sap_t emm_sap = {};
 
       emm_sap.primitive = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id = ue_id;
@@ -1157,11 +1157,11 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
   if ((tau_proc)) {
     tau_proc->ies = ies;
     tau_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
-    tau_proc->emm_spec_proc.emm_proc.base_proc.abort =
+    tau_proc->emm_spec_proc.emm_proc.base_proc.abort = (proc_abort_t)
         emm_tracking_area_update_abort;
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_in =
         NULL;  // No parent procedure
-    tau_proc->emm_spec_proc.emm_proc.base_proc.time_out =
+    tau_proc->emm_spec_proc.emm_proc.base_proc.time_out = (time_out_t)
         mme_app_handle_tau_t3450_expiry;
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out = NULL;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);

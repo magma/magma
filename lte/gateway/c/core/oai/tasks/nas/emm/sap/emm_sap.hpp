@@ -17,7 +17,7 @@
 
 /*****************************************************************************
 
-Source      emm_sap.h
+Source      emm_sap.hpp
 
 Version     0.1
 
@@ -39,7 +39,7 @@ Description Defines the EMM Service Access Points at which the EPS
 #define FILE_EMM_SAP_SEEN
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.hpp"
