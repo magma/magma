@@ -32,6 +32,8 @@ services:
       API_CERT_FILENAME: /run/secrets/api_cert
       API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
       PUPPETEER_SKIP_DOWNLOAD: "true"
+      # LG patch
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
     secrets:
       - api_cert
       - api_key
@@ -69,6 +71,8 @@ services:
       MYSQL_DIALECT: postgres
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_DOWNLOAD: "true"
+      # LG patch
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       VERSION_TAG: DEV
     healthcheck:
       test: curl -If localhost:8081/healthz

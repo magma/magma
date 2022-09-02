@@ -9,6 +9,8 @@ COPY package.json yarn.lock babel.config.js ./
 
 # Install node dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD "true"
+# LG patch
+# RUN apt-get install chromium-browser
 RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
 
 # Build our static files

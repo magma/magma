@@ -1,5 +1,14 @@
 FROM node:16.14-alpine as builder
 
+
+# LG hacks
+RUN apk add make
+RUN apk add chromium
+RUN apk add sqlite
+RUN apk add python3
+RUN apk add gcc
+RUN apk add musl-dev
+
 WORKDIR /usr/src/
 
 # Copy project dependencies
