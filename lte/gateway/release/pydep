@@ -130,9 +130,8 @@ def gen_sys_package_name(py_pkgname: str) -> str:
         py_pkgname: PyPI package name
     Return: String representing the system package name.
     """
-    prefix = "python3"
     suffix = PYPI_TO_DEB.get(py_pkgname.lower(), py_pkgname)
-    return "{}-{}".format(prefix, suffix).lower()  # deb likes lowercase
+    return "python3-{}".format(suffix).lower()  # deb likes lowercase
 
 
 @lru_cache(maxsize=128)
@@ -273,10 +272,7 @@ def get_setup_deps(setup_file: str) -> List[str]:
     subprocess.call(cmd.split())
 
     r = _get_requires(tmp_egg_path)
-    if r:
-        dependencies = _parse_requires_txt(r)
-    else:
-        dependencies = []
+    dependencies = _parse_requires_txt(r) if r else []
 
     # cleanup
     if os.path.isdir(tmp_egg_path):
@@ -314,23 +310,6 @@ def _parse_requires_txt(requires_path: str) -> List[str]:
             dependencies.append(d.project_name)
 
     return dependencies
-
-
-@lru_cache(maxsize=128)
-def get_latest_apt_pkg_version(pkgname: str) -> Optional[str]:
-    """
-    Check what's available in our apt repo and use that if available.
-    """
-    cache = apt.Cache()
-    sys_pkgname = gen_sys_package_name(pkgname)
-
-    try:
-        package = cache[sys_pkgname]
-    except KeyError:
-        # package isn't available
-        return None
-
-    return package.candidate.version
 
 
 def get_apt_versions(pkgname: str) -> List[Any]:
@@ -540,15 +519,6 @@ class PkgInfo(NamedTuple):
     arch: str
 
 
-def _cleanup(pkgname: str) -> None:
-    """
-    Deletes a directory associated with a package, namely /tmp/pyreq-{pkgname}
-    """
-    path = "/tmp/pyreq-{}".format(pkgname)
-    if os.path.isdir(path):
-        shutil.rmtree(path)
-
-
 def py_to_deb(pkgname: str,
               pip_distributions: Dict[str, pkg_resources.Distribution] = None,
               build_output: Optional[str] = None,
@@ -708,7 +678,7 @@ def get_pkg_deps(pkgname: str,
         dependencies = []
 
     if clean:
-        _cleanup(pkgname)
+        shutil.rmtree("/tmp/pyreq-{}".format(pkgname), ignore_errors=True)
 
     return dependencies
 
@@ -807,10 +777,6 @@ def gen_pip_distributions(
     return pip_distributions
 
 
-def gen_dep_sources(dep_set: Dict[str, Optional[str]]) -> Dict[str, str]:
-    return {k: "pypi" for k in dep_set}  # type: Dict[str, str]
-
-
 def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
               dep_set: Dict[str, Dependency],
               build_output: Optional[str] = None) -> None:
@@ -876,23 +842,6 @@ def _consolidate_dependencies(dependencies: List[pkg_resources.Requirement]) -> 
             consolidated[dep.key] = dep
     dependencies = list(consolidated.values())
     return dependencies
-
-
-def split_input_root_requirements(
-        input_root_requirements: List[pkg_resources.Requirement])\
-        -> Tuple[List[pkg_resources.Requirement], List[pkg_resources.Requirement]]:
-    """
-    Args:
-        input_root_requirements: List of dependencies. Can be paths to setup.py files or explicit dependencies.
-
-    Returns:
-        List of pkg_resources.Requirement objects.
-    """
-    root_requirements = []  # type: List[pkg_resources.Requirement]
-    repo_installable = []  # type: List[pkg_resources.Requirement]
-    for req in input_root_requirements:
-        root_requirements.append(req)
-    return repo_installable, root_requirements
 
 
 def get_required_distributions(root_requirements: List[pkg_resources.Requirement],
@@ -962,23 +911,11 @@ def main(args):
 
     input_root_requirements = expand_deps(args.deps)
     if args.dump_root_deps:
-        print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
+        log.info("'{}'".format("' '".join(sorted([str(r) for r in input_root_requirements]))))
         sys.exit(0)
 
-    # repo_pkgs = [gen_sys_package_name(p.key) for p in input_root_requirements]
-    # if args.install_from_repo:
-    #     try:
-    #         # If apt packages are installed over existing pip packages
-    #         # then side effects can occur - see GH13075.
-    #         # Approach: remove existing pip packages before apt install
-    #         pip_packages = [req.key for req in input_root_requirements]
-    #         subprocess.call(shlex.split('sudo pip3 uninstall -y '
-    #                                     + ' '.join(pip_packages)))
-    #         subprocess.call(shlex.split('sudo apt reinstall -y '
-    #                                     + ' '.join(repo_pkgs)))
-    #     except Exception:
-    #         log.error('error trying to install repo packages')
-    #         raise
+    if args.install_from_repo:
+        install_from_repo(input_root_requirements)
 
     with tmpvirtualenv() as venv:
         pip_distributions = gen_pip_distributions(input_root_requirements, venv)
@@ -993,8 +930,7 @@ def main(args):
                for k in required_distributions.values() if k.key not in PIP_BLACKLIST}
 
     for k in dep_set:
-        apt_versions = get_apt_versions(k)
-        if dep_set[k].version in apt_versions:
+        if dep_set[k].version in get_apt_versions(k):
             dep_set[k].source = 'apt'
 
     for k, dep in dep_set.items():
@@ -1005,6 +941,23 @@ def main(args):
     Lockfile.from_dependencies(dep_set).save(args.lockfile)
     if args.build:
         build_all(pip_distributions, dep_set, build_output=args.build_output)
+
+
+def install_from_repo(input_root_requirements):
+    pip_packages = [req.key for req in input_root_requirements if get_apt_versions(req.key)]
+    repo_pkgs = [gen_sys_package_name(p) for p in pip_packages]
+    # If apt packages are installed over existing pip packages
+    # then side effects can occur - see GH13075.
+    # Approach: remove existing pip packages before apt install
+    for p, r in zip(pip_packages, repo_pkgs):
+        try:
+            subprocess.call(shlex.split('sudo pip3 uninstall -y {}'.format(p)))
+            subprocess.call(shlex.split('sudo apt reinstall -y {}'.format(r)))
+        except Exception:
+            log.error('Error trying to install repo packages')
+            log.error('Attempting to restore the machine state...')
+            subprocess.call(shlex.split('sudo pip3 install -y {}'.format(p)))
+            raise
 
 
 if __name__ == "__main__":
