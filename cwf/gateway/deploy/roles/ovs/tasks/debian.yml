@@ -44,7 +44,7 @@
        - libopenvswitch
        - openvswitch-common
        - openvswitch-switch
-       - python-openvswitch
+       - python3-openvswitch
        - openvswitch-datapath-dkms
 
 - name: Ensure OVS switch will not auto-upgrade
