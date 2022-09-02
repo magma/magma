@@ -428,6 +428,21 @@ extern "C" {
 #endif
 nas_emm_attach_proc_t* get_nas_specific_procedure_attach(
     const struct emm_context_s* const ctxt);
+nas_emm_proc_t* nas_emm_find_procedure_by_msg_digest(
+    struct emm_context_s* const emm_context, const char* const digest,
+    const size_t digest_bytes, const size_t msg_size);
+
+status_code_e nas_unlink_procedures(nas_base_proc_t* const parent_proc,
+                                    nas_base_proc_t* const child_proc);
+
+void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context);
+void nas_delete_common_procedure(struct emm_context_s* const emm_context,
+                                 nas_emm_common_proc_t** proc);
+void nas_delete_attach_procedure(struct emm_context_s* const emm_context);
+void nas_delete_tau_procedure(struct emm_context_s* emm_context);
+void nas_delete_detach_procedure(struct emm_context_s* emm_context);
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -441,16 +456,6 @@ bool is_nas_attach_accept_sent(const nas_emm_attach_proc_t* const attach_proc);
 bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc);
 bool is_nas_attach_complete_received(
     const nas_emm_attach_proc_t* const attach_proc);
-
-status_code_e nas_unlink_procedures(nas_base_proc_t* const parent_proc,
-                                    nas_base_proc_t* const child_proc);
-
-void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context);
-void nas_delete_common_procedure(struct emm_context_s* const emm_context,
-                                 nas_emm_common_proc_t** proc);
-void nas_delete_attach_procedure(struct emm_context_s* const emm_context);
-void nas_delete_tau_procedure(struct emm_context_s* emm_context);
-void nas_delete_detach_procedure(struct emm_context_s* emm_context);
 
 void nas_delete_cn_procedure(struct emm_context_s* emm_context,
                              nas_cn_proc_t* cn_proc);
@@ -476,8 +481,5 @@ void nas_digest_msg(const unsigned char* const msg, const size_t msg_len,
 void nas_emm_procedure_register_emm_message(mme_ue_s1ap_id_t ue_id,
                                             const uint64_t puid,
                                             bstring nas_msg);
-nas_emm_proc_t* nas_emm_find_procedure_by_msg_digest(
-    struct emm_context_s* const emm_context, const char* const digest,
-    const size_t digest_bytes, const size_t msg_size);
 
 #endif

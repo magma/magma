@@ -20,17 +20,23 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.h"

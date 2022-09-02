@@ -48,11 +48,18 @@
 #include <assert.h>
 #include <pthread.h>
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
@@ -66,6 +73,8 @@ emm_common_data_head_t emm_common_data_head = {PTHREAD_MUTEX_INITIALIZER,
 
 static inline int emm_common_data_compare_ueid(struct emm_common_data_s* p1,
                                                struct emm_common_data_s* p2);
+
+RB_HEAD(emm_common_data_map, emm_common_data_s) emm_common_data_root;
 
 RB_PROTOTYPE(emm_common_data_map, emm_common_data_s, entries,
              emm_common_data_compare_ueid);
