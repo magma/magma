@@ -130,25 +130,18 @@ def _wget(url: str, dest: Optional[str] = None) -> str:
     return local_path
 
 
-def gen_sys_package_name(py_pkgname: str, use_py2: bool = False) -> str:
+def gen_sys_package_name(py_pkgname: str) -> str:
     """
     Generate the system package name for a Python package. In general, this
-    will be `python3-pkgname` for py3 and `python-pkgname` for py2, but some
+    will be `python3-pkgname`, but some
     packages break convention. We use the PyPI package name as our canonical
     name source, and PYPI_TO_DEB to handle edge cases.
 
     Args:
         py_pkgname: PyPI package name
-        use_py2: Generate a py2 package name (python-pkgname). Default: False
-                 (i.e., use python3-pkgname).
-
     Return: String representing the system package name.
     """
-    if use_py2:
-        prefix = "python"
-    else:
-        prefix = "python3"
-
+    prefix = "python3"
     suffix = PYPI_TO_DEB.get(py_pkgname.lower(), py_pkgname)
     return "{}-{}".format(prefix, suffix).lower()  # deb likes lowercase
 
@@ -335,12 +328,12 @@ def _parse_requires_txt(requires_path: str) -> List[str]:
 
 
 @lru_cache(maxsize=128)
-def get_latest_apt_pkg_version(pkgname: str, py2: bool = False) -> Optional[str]:
+def get_latest_apt_pkg_version(pkgname: str) -> Optional[str]:
     """
     Check what's available in our apt repo and use that if available.
     """
     cache = apt.Cache()
-    sys_pkgname = gen_sys_package_name(pkgname, py2)
+    sys_pkgname = gen_sys_package_name(pkgname)
 
     try:
         package = cache[sys_pkgname]
@@ -532,8 +525,7 @@ def py_to_deb(pkgname: str,
               pip_distributions: Dict[str, pkg_resources.Distribution] = None,
               build_output: Optional[str] = None,
               version: Optional[str] = None,
-              more_args: Optional[str] = None,
-              py2: bool = False) -> int:
+              more_args: Optional[str] = None) -> int:
     """
     Generates a Debian package from a Python package downloaded from PyPI
     (using fpm).
@@ -554,7 +546,6 @@ def py_to_deb(pkgname: str,
         build_output: Output directory for the package. Default is the current directory
         version: (optional) The desired version (Default: most recent).
         more_args: (optional) Add raw arguments to the fpm call.
-        py2: Whether to use python 2 package names
 
     Return:
         Exit code of fpm call (0 is success)
@@ -578,7 +569,7 @@ def py_to_deb(pkgname: str,
         # valid package but found in system packages -- source is apt
         return 0
 
-    syspkg_name = gen_sys_package_name(pkgname, py2)
+    syspkg_name = gen_sys_package_name(pkgname)
 
     if not build_output:
         build_output = os.getcwd()
@@ -592,9 +583,8 @@ def py_to_deb(pkgname: str,
         log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
         cmd = "fpm -s python -t deb --no-python-dependencies --no-python-internal-pip "
-        if not py2:
-            cmd += "--python-package-name-prefix=python3 "
-            cmd += "--python-bin=python3 "
+        cmd += "--python-package-name-prefix=python3 "
+        cmd += "--python-bin=python3 "
         cmd += "-n {}".format(syspkg_name)
 
         # check if the package has an epoch
@@ -604,7 +594,7 @@ def py_to_deb(pkgname: str,
         deps = []
         for req in reqs:
             pkg = req.key
-            dep_syspkg = gen_sys_package_name(pkg, py2)
+            dep_syspkg = gen_sys_package_name(pkg)
             if req.specs:
                 for spec in req.specs:
                     op, ver = spec
@@ -815,8 +805,7 @@ def gen_pip_distributions(
 
 
 def gen_dep_sources(dep_set: Dict[str, Optional[str]],
-                    pypi_only: bool = True,
-                    py2: bool = False) -> Dict[str, str]:
+                    pypi_only: bool = True) -> Dict[str, str]:
     """
     Given a populated `dep_set`, figure out where we can get
     the dependencies from. This function returns a dictionary that contains the
@@ -832,7 +821,6 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
     Args:
         dep_set: The dict of dependencies and versions.
         pypi_only: If given, always write "pypi" as source for every dependency.
-        py2: Whether to use python2 package names for apt.
     """
     if pypi_only:
         return {k: "pypi" for k in dep_set}
@@ -840,7 +828,7 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
     dep_source = {}  # type: Dict[str, str]
     for pkg, ver in dep_set.items():
         # check if apt can satisfy the version
-        apt_ver = get_latest_apt_pkg_version(pkg, py2)
+        apt_ver = get_latest_apt_pkg_version(pkg)
         if apt_ver:
             # if the requirement is an apt version, pkg_resources may not
             # be able to parse it. so first, we check if it's identical
@@ -970,12 +958,11 @@ def _consolidate_dependencies(dependencies: List[pkg_resources.Requirement]) -> 
 
 
 def split_input_root_requirements(
-        input_root_requirements: List[pkg_resources.Requirement],
-        use_py2: bool) -> Tuple[List[pkg_resources.Requirement], List[pkg_resources.Requirement]]:
+        input_root_requirements: List[pkg_resources.Requirement])\
+        -> Tuple[List[pkg_resources.Requirement], List[pkg_resources.Requirement]]:
     """
     Args:
         input_root_requirements: List of dependencies. Can be paths to setup.py files or explicit dependencies.
-        use_py2: Whether we are using Python 2.x
 
     Returns:
         List of pkg_resources.Requirement objects.
@@ -983,7 +970,7 @@ def split_input_root_requirements(
     root_requirements = []  # type: List[pkg_resources.Requirement]
     repo_installable = []  # type: List[pkg_resources.Requirement]
     for req in input_root_requirements:
-        repo_version = get_latest_apt_pkg_version(req.key, use_py2)
+        repo_version = get_latest_apt_pkg_version(req.key)
         if repo_version and repo_version in req:
             repo_installable.append(req)
         else:
@@ -1075,9 +1062,9 @@ def main(args):
         print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
         sys.exit(0)
 
-    repo_installable, root_requirements = split_input_root_requirements(input_root_requirements, args.use_py2)
+    repo_installable, root_requirements = split_input_root_requirements(input_root_requirements)
 
-    repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
+    repo_pkgs = [gen_sys_package_name(p.key) for p in repo_installable]
     if args.install_from_repo:
         try:
             # If apt packages are installed over existing pip packages
@@ -1115,7 +1102,7 @@ def main(args):
     dep_set = {p.key: p.version for p in required_distributions.values()
                if p.key not in PIP_BLACKLIST}
 
-    dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
+    dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi)
 
     root_versions = {k: {'version': pip_distributions[k].version}
                      for k in [rr.key for rr in root_requirements]}
@@ -1141,9 +1128,6 @@ if __name__ == "__main__":
     dep_p.add_argument('-d', '--dump-root-deps',
                        action='store_true',
                        help="Show root dependencies and exit.")
-    dep_p.add_argument('-o', '--old-python', dest='use_py2',
-                       action='store_true',
-                       help="Target Python 2")
     dep_p.add_argument('-p', '--preserve', dest='preserve',
                        action='store_true', help="Preserve temporary files")
     dep_p.add_argument('-b', '--build', dest='build',
