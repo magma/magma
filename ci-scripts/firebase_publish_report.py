@@ -65,9 +65,32 @@ def lte_integ_test(args):
     # failing test cases, because of which CI report always shows lte integ
     # test as success. Here we read the CI status from file for more accurate
     # lte integ test execution status
-    with open('test_status.txt', 'r') as file:
-        verdict = file.read().rstrip()
+    if os.path.exists("test_status.txt"):
+        with open('test_status.txt', 'r') as file:
+            status_file_content = file.read().rstrip()
+            expected_verdict_list = ["pass", "fail"]
+            if status_file_content in expected_verdict_list:
+                verdict = status_file_content
     publish_report('lte_integ_test', args.build_id, verdict, report)
+
+
+def feg_integ_test(args):
+    """Prepare and publish FEG Integ Test report"""
+    report = url_to_html_redirect(args.run_id, args.url)
+    # Possible args.verdict values are success, failure, or canceled
+    verdict = 'inconclusive'
+
+    # As per the recent change, CI process runs all integ tests ignoring the
+    # failing test cases, because of which CI report always shows feg integ
+    # test as success. Here we read the CI status from file for more accurate
+    # feg integ test execution status
+    if os.path.exists("test_status.txt"):
+        with open('test_status.txt', 'r') as file:
+            status_file_content = file.read().rstrip()
+            expected_verdict_list = ["pass", "fail"]
+            if status_file_content in expected_verdict_list:
+                verdict = status_file_content
+    publish_report('feg_integ_test', args.build_id, verdict, report)
 
 
 def cwf_integ_test(args):
@@ -100,6 +123,11 @@ subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 parser_lte = subparsers.add_parser('lte')
 parser_lte.add_argument("--url", default="none", help="Report URL", nargs='?')
 parser_lte.set_defaults(func=lte_integ_test)
+
+# Create the parser for the "feg" command
+parser_feg = subparsers.add_parser('feg')
+parser_feg.add_argument("--url", default="none", help="Report URL", nargs='?')
+parser_feg.set_defaults(func=feg_integ_test)
 
 # Create the parser for the "cwf" command
 parser_cwf = subparsers.add_parser('cwf')

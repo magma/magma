@@ -13,11 +13,11 @@
 
 import type {Tier} from '../../../generated';
 
-import MenuItem from '@material-ui/core/MenuItem';
+import MenuItem from '@mui/material/MenuItem';
 import React from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   select: {
@@ -56,7 +56,7 @@ export default function UpgradeStatusTierID(props: Props) {
     <Select
       value={tierID}
       onChange={({target}) => {
-        void props.onChange(props.gatewayID, target.value as string);
+        void props.onChange(props.gatewayID, target.value);
       }}
       className={classes.select}>
       <MenuItem key={0} value="" disabled>

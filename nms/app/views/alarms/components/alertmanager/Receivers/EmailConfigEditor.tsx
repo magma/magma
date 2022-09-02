@@ -12,95 +12,104 @@
  */
 
 import * as React from 'react';
-import Checkbox from '@material-ui/core/Checkbox';
+import Checkbox from '@mui/material/Checkbox';
 import ConfigEditor from './ConfigEditor';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Text from '../../../../../theme/design-system/Text';
+import {AltFormField} from '../../../../../components/FormField';
+import {ListItem, OutlinedInput} from '@mui/material';
+import {makeStyles} from '@mui/styles';
+
 import type {EditorProps} from './ConfigEditor';
 import type {ReceiverEmailConfig} from '../../AlarmAPIType';
+
+const useStyles = makeStyles(() => ({
+  input: {
+    padding: '0 16px',
+  },
+}));
 
 export default function EmailConfigEditor({
   config,
   onUpdate,
   ...props
 }: EditorProps<ReceiverEmailConfig>) {
+  const classes = useStyles();
+
   return (
     <ConfigEditor
       {...props}
       RequiredFields={
         <>
-          <Grid item>
-            <TextField
-              required
-              label="Send To"
-              placeholder="Ex: ops@example.com"
+          <AltFormField className={classes.input} dense label="Send To">
+            <OutlinedInput
+              fullWidth={true}
               value={config.to}
               onChange={e => onUpdate({to: e.target.value})}
-              fullWidth
+              placeholder="Ex: ops@example.com"
             />
-          </Grid>
-          <Grid item>
-            <TextField
-              required
-              label="From"
-              placeholder="Ex: notifications@example.com"
+          </AltFormField>
+          <AltFormField className={classes.input} dense label="From">
+            <OutlinedInput
+              fullWidth={true}
               value={config.from}
               onChange={e => onUpdate({from: e.target.value})}
-              fullWidth
+              placeholder="Ex: notifications@example.com"
             />
-          </Grid>
-          <Grid item>
-            <TextField
-              required
-              label="Host"
-              placeholder="Ex: smtp.example.com"
+          </AltFormField>
+          <AltFormField className={classes.input} label="Host">
+            <OutlinedInput
+              fullWidth={true}
               value={config.smarthost}
               onChange={e => onUpdate({smarthost: e.target.value})}
-              fullWidth
+              placeholder="Ex: smtp.example.com"
             />
-          </Grid>
-          <Grid item>
-            <TextField
-              label="Auth Username"
+          </AltFormField>
+          <AltFormField
+            className={classes.input}
+            label="Auth Username"
+            subLabel="SMTP Auth using CRAM-MD5, LOGIN and PLAIN">
+            <OutlinedInput
+              fullWidth={true}
               value={config.auth_username}
               onChange={e => onUpdate({auth_username: e.target.value})}
-              fullWidth
-              helperText="SMTP Auth using CRAM-MD5, LOGIN and PLAIN"
             />
-          </Grid>
-          <Grid item>
-            <TextField
-              label="Auth Password"
+          </AltFormField>
+          <AltFormField
+            className={classes.input}
+            label="Auth Password"
+            subLabel="SMTP Auth using LOGIN and PLAIN">
+            <OutlinedInput
+              fullWidth={true}
               value={config.auth_password}
               onChange={e => onUpdate({auth_password: e.target.value})}
-              fullWidth
-              helperText="SMTP Auth using LOGIN and PLAIN"
             />
-          </Grid>
+          </AltFormField>
         </>
       }
       OptionalFields={
         <>
-          <Grid item>
-            <TextField
-              label="Auth Secret"
+          <AltFormField
+            className={classes.input}
+            label="Auth Secret"
+            subLabel="SMTP Auth using CRAM-MD5">
+            <OutlinedInput
+              fullWidth={true}
               value={config.auth_secret}
               onChange={e => onUpdate({auth_secret: e.target.value})}
-              fullWidth
-              helperText="SMTP Auth using CRAM-MD5"
             />
-          </Grid>
-          <Grid item>
-            <TextField
-              label="Auth Identity"
+          </AltFormField>
+          <AltFormField
+            className={classes.input}
+            label="Auth Identity"
+            subLabel="SMTP Auth using PLAIN">
+            <OutlinedInput
+              fullWidth={true}
               value={config.auth_identity}
               onChange={e => onUpdate({auth_identity: e.target.value})}
-              fullWidth
-              helperText="SMTP Auth using PLAIN"
             />
-          </Grid>
-          <Grid item>
+          </AltFormField>
+          <ListItem>
             <FormControlLabel
               control={
                 <Checkbox
@@ -111,9 +120,13 @@ export default function EmailConfigEditor({
                   indeterminate={config.require_tls == null}
                 />
               }
-              label="Require TLS"
+              label={
+                <Text weight="medium" variant="subtitle2">
+                  Require TLS
+                </Text>
+              }
             />
-          </Grid>
+          </ListItem>
         </>
       }
       data-testid="email-config-editor"

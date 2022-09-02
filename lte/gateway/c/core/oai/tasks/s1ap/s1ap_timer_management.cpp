@@ -26,6 +26,9 @@ extern "C" {
 // --Other includes
 // -------------------------------------------------------------
 
+namespace magma {
+namespace lte {
+
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
@@ -50,9 +53,6 @@ bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
   *ue_id = arg.ue_id;
   return result;
 }
-
-namespace magma {
-namespace lte {
 
 //------------------------------------------------------------------------------
 int S1apUeContext::StartTimer(size_t msec, timer_repeat_t repeat,

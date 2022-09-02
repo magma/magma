@@ -20,7 +20,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
 GIT_VERSION=2018.02.26.00
-ITERATION=6
+ITERATION=7
 PKGNAME=libfolly-dev
 VERSION="${GIT_VERSION}-${ITERATION}"
 
@@ -86,7 +86,7 @@ fi
 mkdir ${WORK_DIR}
 
 # post-install script
-echo sudo /sbin/ldconfig > "${WORK_DIR}"/after_install.sh
+echo /sbin/ldconfig > "${WORK_DIR}"/after_install.sh
 
 cd ${WORK_DIR}
 DESTDIR=${WORK_DIR}/install

@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import Button from '@material-ui/core/Button';
-import Menu, {MenuProps} from '@material-ui/core/Menu';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import Button from '@mui/material/Button';
+import Menu, {MenuProps} from '@mui/material/Menu';
 import React from 'react';
+import withStyles from '@mui/styles/withStyles';
 import {colors, shadows} from '../theme/default';
-import {withStyles} from '@material-ui/core/styles';
 
 const StyledMenu = withStyles({
   paper: {
@@ -25,7 +25,6 @@ const StyledMenu = withStyles({
 })((props: MenuProps) => (
   <Menu
     elevation={0}
-    getContentAnchorEl={null}
     anchorOrigin={{
       vertical: 'bottom',
       horizontal: 'center',

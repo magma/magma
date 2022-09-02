@@ -23,9 +23,9 @@
                                 {
                                     "name": "akatataipx",
                                     "config": {
-                                        "IpxEndpoint": "https://carrieridpoc.mvoipctsi.com:36443/ss7gatewaysvcs",
-                                        "Username": "MapFBtclUser",
-                                        "Password": "X70:-1g$M-Q2^0"
+                                        "IpxEndpoint": "",
+                                        "Username": "",
+                                        "Password": ""
                                     }
                                 }
                             ]

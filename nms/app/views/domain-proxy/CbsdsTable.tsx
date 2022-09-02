@@ -12,7 +12,7 @@
  */
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
 import LoadingFiller from '../../components/LoadingFiller';
-import RadioIcon from '@material-ui/icons/Radio';
+import RadioIcon from '@mui/icons-material/Radio';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import withAlert from '../../components/Alert/withAlert';
 import {isNumber} from 'lodash';
@@ -233,6 +233,21 @@ function CbsdsTable(props: WithAlert) {
                     return;
                   }
                   void ctx.deregister(currentRow.id);
+                });
+            },
+          },
+          {
+            name: 'Relinquish',
+            handleFunc: () => {
+              void props
+                .confirm(
+                  `Are you sure you want to relinquish ${currentRow?.serialNumber}?`,
+                )
+                .then(confirmed => {
+                  if (!confirmed && isNumber(currentRow?.id)) {
+                    return;
+                  }
+                  void ctx.relinquish(currentRow.id);
                 });
             },
           },

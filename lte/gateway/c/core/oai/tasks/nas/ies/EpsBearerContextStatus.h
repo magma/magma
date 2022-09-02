@@ -25,6 +25,9 @@
 
 typedef uint16_t eps_bearer_context_status_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_eps_bearer_context_status(
     eps_bearer_context_status_t* epsbearercontextstatus, uint8_t iei,
     uint8_t* buffer, uint32_t len);
@@ -32,5 +35,7 @@ int encode_eps_bearer_context_status(
 int decode_eps_bearer_context_status(
     eps_bearer_context_status_t* epsbearercontextstatus, uint8_t iei,
     uint8_t* buffer, uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* EPS_BEARER_CONTEXT_STATUS_SEEN */

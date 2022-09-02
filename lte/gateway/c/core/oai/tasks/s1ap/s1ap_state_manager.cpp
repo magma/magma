@@ -86,9 +86,17 @@ s1ap_state_t* create_s1ap_state(void) {
 
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state();
+  if (!state_cache_p) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to create s1ap state");
+    return;
+  }
 
   state_ue_map.map =
       new google::protobuf::Map<uint64_t, magma::lte::oai::UeDescription*>();
+  if (!(state_ue_map.map)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
+    return;
+  }
   state_ue_map.set_name(S1AP_STATE_UE_MAP);
   state_ue_map.bind_callback(free_ue_description);
 
@@ -156,6 +164,10 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
     auto* ue_context = new UeDescription();
+    if (!ue_context) {
+      OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
+      return RETURNerror;
+    }
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
@@ -164,7 +176,7 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 
     proto_map_rc_t rc =
         state_ue_map.insert(ue_context->comp_s1ap_id(), ue_context);
-    if (PROTO_MAP_OK != rc) {
+    if (rc != PROTO_MAP_OK) {
       OAILOG_ERROR(
           log_task,
           "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
@@ -232,5 +244,6 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
 map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
+
 }  // namespace lte
 }  // namespace magma

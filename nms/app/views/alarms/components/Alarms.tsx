@@ -11,19 +11,19 @@
  * limitations under the License.
  */
 
-import AccountTreeIcon from '@material-ui/icons/AccountTree';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
 import AlertmanagerRoutes from './alertmanager/Routes';
 import FiringAlerts from './alertmanager/FiringAlerts';
-import Grid from '@material-ui/core/Grid';
-import GroupIcon from '@material-ui/icons/Group';
-import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
+import Grid from '@mui/material/Grid';
+import GroupIcon from '@mui/icons-material/Group';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import React from 'react';
 import Receivers from './alertmanager/Receivers/Receivers';
 import Suppressions from './alertmanager/Suppressions';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
 import {
   Link,
@@ -35,9 +35,10 @@ import {
   useParams,
   useResolvedPath,
 } from 'react-router-dom';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
+import {colors} from '../../../theme/default';
 import type {ApiUtil} from './AlarmsApi';
 import type {Labels} from './AlarmAPIType';
 import type {PromFiringAlert} from '../../../../generated';
@@ -47,8 +48,13 @@ const useTabStyles = makeStyles<Theme>(theme => ({
   root: {
     minWidth: 'auto',
     minHeight: theme.spacing(4),
-  },
-  wrapper: {
+    color: colors.primary.comet,
+    '&.Mui-selected': {
+      color: colors.secondary.dodgerBlue,
+    },
+    '&.Mui-disabled': {
+      color: colors.primary.comet,
+    },
     flexDirection: 'row',
     textTransform: 'capitalize',
     '& svg, .material-icons': {
@@ -139,6 +145,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
       <Grid container spacing={2} justifyContent="space-between">
         <Grid item xs={12}>
           <Tabs
+            className={tabStyles.tabBar}
             value={currentTabMatch?.params?.tabName || DEFAULT_TAB_NAME}
             indicatorColor="primary"
             textColor="primary">

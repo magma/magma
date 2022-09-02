@@ -72,10 +72,10 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List all rating groups
+          description: Map of all rating groups by rating group ID
           schema:
-            type: array
-            items:
+            type: object
+            additionalProperties:
               $ref: '#/definitions/rating_group'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'

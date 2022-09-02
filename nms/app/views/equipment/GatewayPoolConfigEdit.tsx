@@ -13,18 +13,18 @@
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
 import type {MutableCellularGatewayPool} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import FormLabel from '@material-ui/core/FormLabel';
+import Button from '@mui/material/Button';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormLabel from '@mui/material/FormLabel';
 import GatewayPoolsContext from '../../context/GatewayPoolsContext';
-import List from '@material-ui/core/List';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import List from '@mui/material/List';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import {AltFormField} from '../../components/FormField';
 import {DEFAULT_GW_POOL_CONFIG} from '../../components/GatewayUtils';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 

@@ -18,7 +18,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachDetachNoUeContextReleseComp(unittest.TestCase):
+class TestAttachDetachNoUeContextReleaseComp(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -26,7 +26,7 @@ class TestAttachDetachNoUeContextReleseComp(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_no_ueContRelComp(self):
+    def test_attach_detach_no_uecontext_release_comp(self):
         """ Basic attach/detach test with a single UE - SCTP Abort"""
 
         self._s1ap_wrapper.configUEDevice(1)

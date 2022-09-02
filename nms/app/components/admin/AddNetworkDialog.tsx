@@ -11,20 +11,17 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import React, {useContext} from 'react';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import React, {useContext, useState} from 'react';
+import Select from '@mui/material/Select';
 import axios from 'axios';
 
 import AppContext from '../../context/AppContext';
@@ -35,21 +32,10 @@ import {
   FEG,
   FEG_LTE,
   NetworkId,
-  XWFM,
 } from '../../../shared/types/network';
+import {AltFormField} from '../FormField';
+import {OutlinedInput} from '@mui/material';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
-import {triggerAlertSync} from '../../util/SyncAlerts';
-import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
-import {useState} from 'react';
-
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-}));
 
 type Props = {
   onClose: () => void;
@@ -68,8 +54,6 @@ type CreateResponse =
     };
 
 export default function NetworkDialog(props: Props) {
-  const classes = useStyles();
-  const enqueueSnackbar = useEnqueueSnackbar();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [networkID, setNetworkId] = useState('');
@@ -96,9 +80,6 @@ export default function NetworkDialog(props: Props) {
         if (response.data.success) {
           props.onSave(nullthrows(networkID));
           appContext.addNetworkId(networkID);
-          if (payload.data.networkType === XWFM) {
-            void triggerAlertSync(networkID, enqueueSnackbar);
-          }
         } else {
           setError(response.data.message);
         }
@@ -111,57 +92,62 @@ export default function NetworkDialog(props: Props) {
       <DialogTitle>Add Network</DialogTitle>
       <DialogContent>
         {error && <FormLabel error>{error}</FormLabel>}
-        <TextField
-          name="networkId"
-          label="Network ID"
-          className={classes.input}
-          value={networkID}
-          onChange={({target}) => setNetworkId(target.value)}
-        />
-        <TextField
-          name="name"
-          label="Name"
-          className={classes.input}
-          value={name}
-          onChange={({target}) => setName(target.value)}
-        />
-        <TextField
-          name="description"
-          label="Description"
-          className={classes.input}
-          value={description}
-          onChange={({target}) => setDescription(target.value)}
-        />
-        <FormControl className={classes.input}>
-          <InputLabel htmlFor="types">Network Type</InputLabel>
-          <Select
-            value={networkType}
-            onChange={({target}) => setNetworkType(target.value as string)}
-            input={<Input id="types" />}>
-            {AllNetworkTypes.map(type => (
-              <MenuItem key={type} value={type}>
-                <ListItemText primary={type} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        {(networkType === CWF || networkType === FEG_LTE) && (
-          <TextField
-            name="fegNetworkID"
-            label="Federation Network ID"
-            className={classes.input}
-            value={fegNetworkID}
-            onChange={({target}) => setFegNetworkID(target.value)}
+        <AltFormField label="Network ID">
+          <OutlinedInput
+            fullWidth={true}
+            name="networkId"
+            value={networkID}
+            onChange={({target}) => setNetworkId(target.value)}
           />
+        </AltFormField>
+        <AltFormField label="Name">
+          <OutlinedInput
+            fullWidth={true}
+            name="name"
+            value={name}
+            onChange={({target}) => setName(target.value)}
+          />
+        </AltFormField>
+        <AltFormField label="Description">
+          <OutlinedInput
+            fullWidth={true}
+            name="description"
+            value={description}
+            onChange={({target}) => setDescription(target.value)}
+          />
+        </AltFormField>
+        <AltFormField label="Network Type">
+          <FormControl fullWidth>
+            <Select
+              value={networkType}
+              onChange={({target}) => setNetworkType(target.value)}
+              input={<OutlinedInput id="types" />}>
+              {AllNetworkTypes.map(type => (
+                <MenuItem key={type} value={type}>
+                  <ListItemText primary={type} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </AltFormField>
+        {(networkType === CWF || networkType === FEG_LTE) && (
+          <AltFormField label="Federation Network ID">
+            <OutlinedInput
+              fullWidth={true}
+              name="fegNetworkID"
+              value={fegNetworkID}
+              onChange={({target}) => setFegNetworkID(target.value)}
+            />
+          </AltFormField>
         )}
         {networkType === FEG && (
-          <TextField
-            placeholder="network1,network2"
-            label="Served Network IDs"
-            className={classes.input}
-            value={servedNetworkIDs}
-            onChange={({target}) => setServedNetworkIDs(target.value)}
-          />
+          <AltFormField label="Served Network IDs">
+            <OutlinedInput
+              placeholder="network1,network2"
+              value={servedNetworkIDs}
+              onChange={({target}) => setServedNetworkIDs(target.value)}
+            />
+          </AltFormField>
         )}
       </DialogContent>
       <DialogActions>

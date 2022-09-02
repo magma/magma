@@ -50,7 +50,7 @@ func NewMessageGenerator(
 
 type Message interface {
 	fmt.Stringer
-	Send(context.Context, message.ClientProvider) error
+	Send(context.Context, active_mode.ActiveModeControllerClient) error
 }
 
 func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.Time) []Message {
@@ -69,6 +69,7 @@ func (m *messageGenerator) GenerateMessages(state *active_mode.State, now time.T
 	return msgs
 }
 
+// TODO make this more readable
 func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, now time.Time) *perCbsdMessageGenerator {
 	generator := &perCbsdMessageGenerator{
 		sas:    &noRequestGenerator{},
@@ -87,6 +88,12 @@ func (m *messageGenerator) getPerCbsdMessageGenerator(cbsd *active_mode.Cbsd, no
 		cbsd.DbData.ShouldDeregister ||
 		cbsd.DesiredState == active_mode.CbsdState_Unregistered {
 		generator.sas = &sas.DeregistrationRequestGenerator{}
+	} else if cbsd.DbData.ShouldRelinquish {
+		if len(cbsd.Grants) == 0 {
+			generator.action = &relinquishMessageGenerator{}
+		} else {
+			generator.sas = &sas.RelinquishmentRequestGenerator{}
+		}
 	} else if !isActive {
 		generator.sas = &sas.RelinquishmentRequestGenerator{}
 	} else if len(cbsd.Channels) == 0 {
@@ -173,6 +180,12 @@ type updateMessageGenerator struct{}
 
 func (*updateMessageGenerator) generateActions(data *active_mode.Cbsd) []Message {
 	return []Message{message.NewUpdateMessage(data.DbData.Id)}
+}
+
+type relinquishMessageGenerator struct{}
+
+func (*relinquishMessageGenerator) generateActions(data *active_mode.Cbsd) []Message {
+	return []Message{message.NewRelinquishMessage(data.DbData.Id)}
 }
 
 type availableFrequenciesMessageGenerator struct{}

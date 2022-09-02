@@ -9,7 +9,8 @@ const (
 	distanceThresholdM = 10
 )
 
-func ShouldENodeBDUpdate(prev *DBCbsd, next *DBCbsd) bool {
+func ShouldEnodebdUpdateInstallationParams(prev *DBCbsd, next *DBCbsd) bool {
+	// TODO this should probably moved out from storage
 	return canUpdate(prev) &&
 		(paramsChanges(next, prev) || coordinatesChanged(next, prev))
 }

@@ -41,14 +41,6 @@ To run all existing unit tests, run
 
 ## Run integration tests
 
-### Prerequisite
-
-You need to install a vagrant plugin:
-
-```bash
-vagrant plugin install vagrant-disksize
-```
-
 ### Test setup
 
 CWF integration tests use 3 separate VMs listed below.

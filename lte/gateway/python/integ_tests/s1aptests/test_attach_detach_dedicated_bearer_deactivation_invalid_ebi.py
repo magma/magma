@@ -20,7 +20,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
+class TestAttachDetachDedicatedBearerDeactivationInvalidEbi(unittest.TestCase):
     """Dedicated bearer deactivation with invalid EBI
     test with a single UE
     """

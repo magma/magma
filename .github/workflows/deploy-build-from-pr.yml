@@ -1,4 +1,13 @@
----
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 name: Deploy PR build
 on:
@@ -142,18 +151,6 @@ jobs:
           docker image load --input gateway_pipelined.tar
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${ISSUE_NUMBER}" --tag-latest true --project cwf
           rm cwag_go.tar gateway_go.tar gateway_python.tar gateway_sessiond.tar gateway_pipelined.tar
-      - name: Tag and push xwfm docker images
-        if: always() && steps.extract_images.outcome=='success'
-        env:
-          DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
-          ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
-        run: |
-          docker image load --input goradius.tar
-          docker image load --input xwfm-integ-tests.tar
-          ./ci-scripts/tag-push-docker.sh --images 'goradius|xwfm-integ-tests' --tag "${ISSUE_NUMBER}" --tag-latest true
-          rm goradius.tar xwfm-integ-tests.tar
       - name: Tag and push feg docker images
         if: always() && steps.extract_images.outcome=='success'
         env:

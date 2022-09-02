@@ -28,7 +28,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 typedef enum {
   // should introduce Gx IP CAN procedures, etc, here

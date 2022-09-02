@@ -972,9 +972,6 @@ definitions:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
       li_ues:
         $ref: '#/definitions/li_ues'
-      is_xwfm_variant:
-        type: boolean
-        example: false
 
   allowed_gre_peer:
     type: object

@@ -14,29 +14,27 @@ import type {PromFiringAlert} from '../../generated';
 
 import ActionTable from './ActionTable';
 import CardTitleRow from './layout/CardTitleRow';
-import Chip from '@material-ui/core/Chip';
-import ErrorIcon from '@material-ui/icons/Error';
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import Grid from '@material-ui/core/Grid';
-import InfoIcon from '@material-ui/icons/Info';
-import Link from '@material-ui/core/Link';
+import Chip from '@mui/material/Chip';
+import ErrorIcon from '@mui/icons-material/Error';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import Grid from '@mui/material/Grid';
+import InfoIcon from '@mui/icons-material/Info';
+import Link from '@mui/material/Link';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
-import Paper from '@material-ui/core/Paper';
-import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Paper from '@mui/material/Paper';
+import React, {useEffect, useState} from 'react';
 import Text from '../theme/design-system/Text';
-import WarningIcon from '@material-ui/icons/Warning';
+import WarningIcon from '@mui/icons-material/Warning';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
-import {Alarm} from '@material-ui/icons';
+import {Alarm} from '@mui/icons-material';
+import {MagmaTab, MagmaTabs} from '../theme/design-system/SecondaryTabs';
 import {REFRESH_INTERVAL} from '../context/AppContext';
-import {Theme, withStyles} from '@material-ui/core/styles';
-import {colors, typography} from '../theme/default';
+import {Theme} from '@mui/material/styles';
+import {colors} from '../theme/default';
 import {intersection} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
-import {useEffect, useState} from 'react';
+import {makeStyles} from '@mui/styles';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -82,24 +80,6 @@ const useStyles = makeStyles<Theme>(theme => ({
     margin: '5px',
   },
 }));
-
-const MagmaTabs = withStyles({
-  indicator: {
-    backgroundColor: colors.secondary.dodgerBlue,
-  },
-})(Tabs);
-
-const MagmaTab = withStyles({
-  root: {
-    fontFamily: typography.body1.fontFamily,
-    fontWeight: typography.body1.fontWeight,
-    fontSize: typography.body1.fontSize,
-    lineHeight: typography.body1.lineHeight,
-    letterSpacing: typography.body1.letterSpacing,
-    color: colors.primary.brightGray,
-    textTransform: 'none',
-  },
-})(Tab);
 
 type Severity = 'Critical' | 'Major' | 'Minor' | 'Other';
 
@@ -238,7 +218,8 @@ function TabPanel(props: TabPanelProps) {
                       `alerts/alerts`,
                     ),
                   );
-                }}>
+                }}
+                underline="hover">
                 {' '}
                 alert settings
               </Link>

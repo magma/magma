@@ -16,20 +16,20 @@ import './util/polyfill';
 
 import ApplicationMain from './components/ApplicationMain';
 import Main from './components/Main';
-import MomentUtils from '@date-io/moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import nullthrows from '../shared/util/nullthrows';
+import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
 import {BrowserRouter} from 'react-router-dom';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
+import {LocalizationProvider} from '@mui/x-date-pickers';
 
 ReactDOM.render(
   <BrowserRouter>
-    <MuiPickersUtilsProvider utils={MomentUtils}>
+    <LocalizationProvider dateAdapter={AdapterMoment}>
       <ApplicationMain>
         <Main />
       </ApplicationMain>
-    </MuiPickersUtilsProvider>
+    </LocalizationProvider>
   </BrowserRouter>,
   nullthrows(document.getElementById('root')),
 );

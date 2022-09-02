@@ -66,7 +66,7 @@ describe('NMS Apn Add', () => {
       // check if the description is right
       await page.waitForXPath(`//span[text()='APNs']`);
 
-      const buttonSelector = await page.$x(`//span[text()='Create New APN']`);
+      const buttonSelector = await page.$x(`//button[text()='Create New APN']`);
       await buttonSelector[0].click();
 
       await page.waitForXPath(`//span[text()='Add New APN']`);
@@ -80,7 +80,7 @@ describe('NMS Apn Add', () => {
 
       // ksubraveti : TODO need to figure out why we need to add this delay
       await page.waitForTimeout(500);
-      const saveButtonSelector = await page.$x(`//span[text()='Save']`);
+      const saveButtonSelector = await page.$x(`//button[text()='Save']`);
       await saveButtonSelector[0].click();
       await page.waitForXPath(`//span[text()='APN saved successfully']`);
     } catch (err) {
@@ -118,7 +118,7 @@ describe('NMS APN Edit', () => {
 
       // ksubraveti : TODO need to figure out why we need to add this delay
       await page.waitForTimeout(500);
-      const saveButtonSelector = await page.$x(`//span[text()='Save']`);
+      const saveButtonSelector = await page.$x(`//button[text()='Save']`);
       await saveButtonSelector[0].click();
 
       await page.waitForXPath(`//span[text()='APN saved successfully']`);

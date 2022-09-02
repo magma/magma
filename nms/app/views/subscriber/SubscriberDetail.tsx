@@ -13,17 +13,17 @@
 
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import DashboardIcon from '@material-ui/icons/Dashboard';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import DataGrid from '../../components/DataGrid';
 import EventsTable from '../../views/events/EventsTable';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
-import Grid from '@material-ui/core/Grid';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import Grid from '@mui/material/Grid';
 import LoadingFiller from '../../components/LoadingFiller';
 import MagmaAPI from '../../api/MagmaAPI';
-import MyLocationIcon from '@material-ui/icons/MyLocation';
-import PersonIcon from '@material-ui/icons/Person';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import PersonIcon from '@mui/icons-material/Person';
 import React from 'react';
-import SettingsIcon from '@material-ui/icons/Settings';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SubscriberChart from './SubscriberChart';
 import SubscriberContext from '../../context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
@@ -34,9 +34,9 @@ import useMagmaAPI from '../../api/useMagmaAPI';
 import {Navigate, Route, Routes, useParams} from 'react-router-dom';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useCallback, useContext, useState} from 'react';
 import {useInterval} from '../../hooks';
 import type {DataRows} from '../../components/DataGrid';
@@ -54,7 +54,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
+    padding: `0 ${theme.spacing(5)}`,
   },
   tabs: {
     color: colors.primary.white,

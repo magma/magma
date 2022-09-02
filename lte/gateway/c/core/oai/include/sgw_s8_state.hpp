@@ -19,7 +19,7 @@ extern "C" {
 
 #include <pthread.h>
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.h"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 // Initializes SGW state struct when task process starts.

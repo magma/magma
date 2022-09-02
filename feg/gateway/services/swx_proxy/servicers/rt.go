@@ -86,7 +86,7 @@ func (r *fegRelayClient) RelayRTR(rtr *RTR) (protos.ErrorCode, error) {
 }
 
 func (r *fegRelayClient) RelayASR(*diameter.ASR) (protos.ErrorCode, error) {
-	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("relay for ASR is not implemented")
+	return protos.ErrorCode_COMMAND_UNSUPPORTED, fmt.Errorf("relay for ASR is not implemented")
 }
 
 func handleRTR(s *swxProxy) diam.HandlerFunc {

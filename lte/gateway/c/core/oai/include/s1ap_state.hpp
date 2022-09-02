@@ -21,16 +21,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/oai/include/mme_config.h"
+#ifdef __cplusplus
+}
+#endif
+
+namespace magma {
+namespace lte {
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
 
 void s1ap_state_exit(void);
 
-#ifdef __cplusplus
-}
-#endif
 s1ap_state_t* get_s1ap_state(bool read_from_db);
 
 void put_s1ap_state(void);
@@ -85,3 +87,6 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
                              magma::lte::oai::UeDescription* elementP,
                              void* parameterP, void** resultP);
+
+}  // namespace lte
+}  // namespace magma

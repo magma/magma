@@ -20,14 +20,14 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
+class TestAttachStandaloneActDfltBerCtxtRej(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_standalone_ActvDfltBearCtxtRej(self):
+    def test_attach_standalone_act_dflt_ber_ctxt_rej(self):
         """ Test case for sending Activate Default
         EPS Bearer Reject for secondary PDN """
 

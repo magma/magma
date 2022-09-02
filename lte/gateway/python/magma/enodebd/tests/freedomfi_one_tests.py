@@ -17,8 +17,7 @@ from typing import Any, Dict
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from dp.protos.cbsd_pb2 import UpdateCbsdResponse
-from dp.protos.enodebd_dp_pb2 import CBSDRequest, CBSDStateResult, LteChannel
+from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -31,17 +30,23 @@ from magma.enodebd.device_config.configuration_util import (
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.devices.freedomfi_one import (
-    SAS_KEY,
-    CarrierAggregationParameters,
-    FreedomFiOneConfigurationInitializer,
-    FreedomFiOneEndSessionState,
-    FreedomFiOneGetInitState,
-    FreedomFiOneMiscParameters,
-    FreedomFiOneNotifyDPState,
+from magma.enodebd.devices.freedomfi_one.data_model import (
     FreedomFiOneTrDataModel,
+)
+from magma.enodebd.devices.freedomfi_one.impl import (
+    SAS_KEY,
+    FreedomFiOneConfigurationInitializer,
+)
+from magma.enodebd.devices.freedomfi_one.params import (
+    CarrierAggregationParameters,
+    FreedomFiOneMiscParameters,
     SASParameters,
     StatusParameters,
+)
+from magma.enodebd.devices.freedomfi_one.states import (
+    FreedomFiOneEndSessionState,
+    FreedomFiOneGetInitState,
+    FreedomFiOneNotifyDPState,
     ff_one_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.dp_client import build_enodebd_update_cbsd_request
@@ -80,7 +85,6 @@ MOCK_CBSD_STATE = CBSDStateResult(
     channels=[MOCK_CHANNEL],
     carrier_aggregation_enabled=False,
 )
-MOCK_ENODEBD_CBSD_UPDATE = UpdateCbsdResponse()
 
 TEST_SAS_URL = 'test_sas_url'
 TEST_SAS_CERT_SUBJECT = 'test_sas_cert_subject'
@@ -474,9 +478,8 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         )
         return msg
 
-    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
-    @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
-    def test_provision(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+    @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
+    def test_provision(self, mock_enodebd_update_cbsd) -> None:
         """
         Test the basic provisioning workflow
         1 - enodeb sends Inform, enodebd sends InformResponse
@@ -486,13 +489,11 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
         5 - enodebd, sets fields including SAS fields.
 
         Args:
-            mock_get_state (Any): mocking get_cbsd_state method
             mock_enodebd_update_cbsd (Any): mocking enodebd_update_cbsd method
         """
         self.maxDiff = None
         test_serial_number = "2006CW5000023"
-        mock_get_state.return_value = MOCK_CBSD_STATE
-        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         logging.root.level = logging.DEBUG
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
@@ -563,10 +564,6 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             'Provisioning completed with Dummy response',
         )
 
-        mock_get_state.assert_called_with(
-            CBSDRequest(serial_number=test_serial_number),
-        )
-
         enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
             serial_number=acs_state_machine.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER),
             latitude_deg=acs_state_machine.device_cfg.get_parameter(ParameterName.GPS_LAT),
@@ -574,23 +571,20 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             indoor_deployment=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
             antenna_height='0',
             antenna_height_type=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
-            antenna_gain=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_ANTENNA_GAIN),
             cbsd_category=acs_state_machine.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
         )
 
         mock_enodebd_update_cbsd.assert_called_with(enodebd_update_cbsd_request)
 
-    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
-    @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
-    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_get_state, mock_enodebd_update_cbsd) -> None:
+    @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
         """
         Test enodebd does not call Domain Proxy API for parameter update when
         not all parameters are yet available from the eNB
         """
         self.maxDiff = None
         test_serial_number = "2006CW5000023"
-        mock_get_state.return_value = MOCK_CBSD_STATE
-        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
             EnodebDeviceName.FREEDOMFI_ONE,
@@ -628,10 +622,9 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         (True, FreedomFiOneNotifyDPState),
         (False, FreedomFiOneEndSessionState),
     ])
-    @patch('magma.enodebd.devices.freedomfi_one.enodebd_update_cbsd')
-    @patch('magma.enodebd.devices.freedomfi_one.get_cbsd_state')
+    @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
     def test_transition_depending_on_sas_enabled_flag(
-            self, dp_mode, expected_state, mock_get_state, mock_enodebd_update_cbsd,
+            self, dp_mode, expected_state, mock_enodebd_update_cbsd,
     ):
         """Testing if SM steps in and out of FreedomFiOneWaitNotifyDPState as per state map depending on whether
         sas_enabled param is set to True or False in the service config
@@ -639,11 +632,9 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
         Args:
             dp_mode: bool flag to enable or disable dp mode
             expected_state (Any): State
-            mock_get_state (Any): mocking get_cbsd_state method
         """
 
-        mock_get_state.return_value = MOCK_CBSD_STATE
-        mock_enodebd_update_cbsd.return_value = MOCK_ENODEBD_CBSD_UPDATE
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(
             EnodebDeviceName.FREEDOMFI_ONE,

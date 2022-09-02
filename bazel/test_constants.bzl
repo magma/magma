@@ -38,4 +38,7 @@ TAG_PRECOMMIT_TEST = ["precommit_test"] + TAG_MANUAL
 TAG_EXTENDED_TEST = ["extended_test"] + TAG_MANUAL
 TAG_EXTENDED_TEST_SETUP = ["extended_setup"] + TAG_MANUAL
 TAG_EXTENDED_TEST_TEARDOWN = ["extended_teardown"] + TAG_MANUAL
+TAG_NON_SANITY_TEST = ["nonsanity_test"] + TAG_MANUAL
+TAG_NON_SANITY_TEST_SETUP = ["nonsanity_setup"] + TAG_MANUAL
+TAG_NON_SANITY_TEST_TEARDOWN = ["nonsanity_teardown"] + TAG_MANUAL
 TAG_TRAFFIC_SERVER_TEST = ["traffic_server_test"]

@@ -12,11 +12,11 @@
  */
 
 import * as React from 'react';
-import AssignmentIcon from '@material-ui/icons/Assignment';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import AuditLog from './AuditLog';
 import Networks from './Networks';
-import PeopleIcon from '@material-ui/icons/People';
-import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
+import PeopleIcon from '@mui/icons-material/People';
+import SignalCellularAlt from '@mui/icons-material/SignalCellularAlt';
 import TopBar from '../TopBar';
 import UsersSettings from '../UsersSettings';
 import {Navigate, Route, Routes} from 'react-router-dom';

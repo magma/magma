@@ -11,19 +11,19 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import LoadingFillerBackdrop from '../LoadingFillerBackdrop';
 import React from 'react';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 
 import MagmaAPI from '../../api/MagmaAPI';
 import nullthrows from '../../../shared/util/nullthrows';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -120,6 +120,7 @@ export default function (props: Props) {
       <DialogTitle>{editingBaseName ? 'Edit' : 'Add'} Base Name</DialogTitle>
       <DialogContent>
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Base Name"
@@ -131,6 +132,7 @@ export default function (props: Props) {
           }
         />
         <TextField
+          variant="standard"
           required
           className={classes.input}
           label="Rule Names (CSV)"

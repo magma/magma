@@ -33,6 +33,10 @@ module.exports = {
       },
       resetMocks: true,
       restoreMocks: true,
+      moduleNameMapper: {
+        // https://github.com/uuidjs/uuid/issues/451
+        uuid: require.resolve('uuid'),
+      },
     },
     {
       displayName: 'app',
@@ -44,6 +48,10 @@ module.exports = {
       setupFilesAfterEnv: ['./jest.setup.app.ts'],
       resetMocks: true,
       restoreMocks: true,
+      moduleNameMapper: {
+        // https://github.com/uuidjs/uuid/issues/451
+        uuid: require.resolve('uuid'),
+      },
     },
   ],
   testEnvironment: 'jsdom',

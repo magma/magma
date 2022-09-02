@@ -131,11 +131,8 @@ def package(
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
-        try:
+        with settings(warn_only=True):
             run('cp -f ~/magma-deps/*.deb ~/magma-packages')
-        except Exception:
-            # might be a problem if no deps found, but don't handle here
-            pass
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
@@ -387,7 +384,6 @@ def bazel_integ_test_post_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
-    execute(_run_sudo_python_unit_tests)
     execute(_restart_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
@@ -568,6 +564,7 @@ def get_test_logs(
     local('mkdir /tmp/build_logs/trfserver')
     dev_files = [
         '/var/log/mme.log',
+        '/var/log/MME.magma*log*',
         '/var/log/syslog',
         '/var/log/envoy.log',
         '/var/log/openvswitch/ovs*.log',
@@ -875,7 +872,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
         ' source ~/build/python/bin/activate;'
         ' export GATEWAY_IP=%s;'
-        ' make -i %s enable-flaky-retry=true %s\''
+        ' make %s enable-flaky-retry=true %s\''
         % (key, host, port, gateway_ip, test_mode, tests),
     )
 

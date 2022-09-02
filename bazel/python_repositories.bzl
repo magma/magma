@@ -37,15 +37,10 @@ def python_repositories(name = ""):
     )
     new_git_repository(
         name = "aioeventlet_repo",
-        remote = "https://github.com/openstack-archive/deb-python-aioeventlet.git",
+        remote = "https://github.com/magma/deb-python-aioeventlet.git",
         build_file = "//bazel/external:aioeventlet.BUILD",
-        commit = "0afed1425fd36139d1a7281475a28fde3349047e",  # Corresponds to: tag = "0.5.1"
-        shallow_since = "1456158219 +0100",
-        patches = [
-            "//lte/gateway/deploy/roles/magma/files/patches:aioeventlet_fd_exception.patch",
-            "//lte/gateway/deploy/roles/magma/files/patches:aioeventlet.py38.patch",
-        ],
-        patch_args = ["-p1"],
+        commit = "86130360db113430370ed6c64d42aee3b47cd619",
+        shallow_since = "1656345625 +0200",
     )
 
     # TODO: This is not a nice solution, because it is not really hermetic.

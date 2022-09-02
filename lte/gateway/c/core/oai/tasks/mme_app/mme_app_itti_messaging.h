@@ -46,10 +46,16 @@ void mme_app_itti_ue_context_release(struct ue_mm_context_s* ue_context_p,
 int mme_app_notify_s1ap_ue_context_released(const mme_ue_s1ap_id_t ue_idP);
 status_code_e mme_app_send_s11_release_access_bearers_req(
     struct ue_mm_context_s* const ue_mm_context, imsi64_t imsi_64);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e mme_app_send_s11_create_session_req(
     mme_app_desc_t* mme_app_desc_p, struct ue_mm_context_s* const ue_mm_context,
     const pdn_cid_t pdn_cid);
-
+#ifdef __cplusplus
+}
+#endif
 static inline void mme_app_itti_ue_context_mod_for_csfb(
     struct ue_mm_context_s* ue_context_p) {
   MessageDef* message_p;

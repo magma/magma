@@ -28,7 +28,10 @@ py_library(
 py_library(
     name = "rpc_utils",
     srcs = ["rpc_utils.py"],
-    deps = [":service_registry"],
+    deps = [
+        ":service_registry",
+        requirement("grpcio"),
+    ],
 )
 
 py_library(
@@ -43,7 +46,10 @@ py_library(
 py_library(
     name = "cert_utils",
     srcs = ["cert_utils.py"],
-    deps = [requirement("cryptography")],
+    deps = [
+        ":serialization_utils",
+        requirement("cryptography"),
+    ],
 )
 
 py_library(
@@ -95,7 +101,7 @@ py_library(
     name = "streamer",
     srcs = ["streamer.py"],
     deps = [
-        "//orc8r/gateway/python/magma/common:rpc_utils",
+        ":rpc_utils",
         "//orc8r/protos:streamer_python_grpc",
     ],
 )
@@ -120,7 +126,7 @@ py_library(
     name = "sdwatchdog",
     srcs = ["sdwatchdog.py"],
     deps = [
-        requirement("systemd"),
+        requirement("systemd-python"),
         ":job",
     ],
 )

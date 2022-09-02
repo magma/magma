@@ -15,19 +15,19 @@ import AccountSettings from '../AccountSettings';
 import AppContent from '../layout/AppContent';
 import AppSideBar from '../AppSideBar';
 import ApplicationMain from '../../components/ApplicationMain';
-import AssignmentIcon from '@material-ui/icons/Assignment';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import CloudMetrics from '../../views/metrics/CloudMetrics';
 import Features from '../../views/features/Features';
-import FlagIcon from '@material-ui/icons/Flag';
+import FlagIcon from '@mui/icons-material/Flag';
 import OrganizationEdit from '../../views/organizations/OrganizationEdit';
 import Organizations from '../../views/organizations/Organizations';
-import PeopleIcon from '@material-ui/icons/People';
+import PeopleIcon from '@mui/icons-material/People';
 import React from 'react';
-import ShowChartIcon from '@material-ui/icons/ShowChart';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import UsersSettings from '../UsersSettings';
 import {AppContextProvider} from '../../context/AppContext';
 import {Navigate, Outlet, Route, Routes} from 'react-router-dom';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   root: {

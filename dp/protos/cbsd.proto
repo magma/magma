@@ -21,11 +21,26 @@ option go_package = "magma/dp/cloud/go/protos";
 service CbsdManagement {
   rpc CreateCbsd (CreateCbsdRequest) returns (CreateCbsdResponse) {}
   rpc UserUpdateCbsd (UpdateCbsdRequest) returns (UpdateCbsdResponse) {}
-  rpc EnodebdUpdateCbsd (EnodebdUpdateCbsdRequest) returns (UpdateCbsdResponse) {}
+  rpc EnodebdUpdateCbsd (EnodebdUpdateCbsdRequest) returns (CBSDStateResult) {}
   rpc DeleteCbsd (DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
   rpc FetchCbsd(FetchCbsdRequest) returns (FetchCbsdResponse) {}
   rpc ListCbsds(ListCbsdRequest) returns (ListCbsdResponse) {}
   rpc DeregisterCbsd(DeregisterCbsdRequest) returns (DeregisterCbsdResponse) {}
+  rpc RelinquishCbsd(RelinquishCbsdRequest) returns (RelinquishCbsdResponse) {}
+}
+
+message CBSDStateResult {
+  repeated LteChannel channels = 1;
+  bool radio_enabled = 2;
+  bool carrier_aggregation_enabled = 3;
+  // TODO for backwards compatibility only. Remove once enodebd part is updated
+  LteChannel channel = 4;
+}
+
+message LteChannel {
+  int64 low_frequency_hz = 1;
+  int64 high_frequency_hz = 2;
+  float max_eirp_dbm_mhz = 3;
 }
 
 message CreateCbsdRequest {
@@ -82,6 +97,13 @@ message DeregisterCbsdRequest {
 }
 
 message DeregisterCbsdResponse {}
+
+message RelinquishCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message RelinquishCbsdResponse {}
 
 message CbsdData {
   string user_id = 1;

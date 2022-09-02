@@ -36,8 +36,6 @@ extern task_zmq_ctx_t task_zmq_ctx_mme;
 namespace magma {
 namespace lte {
 
-using oai::EnbDescription;
-using oai::UeDescription;
 extern task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
@@ -431,7 +429,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
 }
 
 TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
-  UeDescription ue_ref_p;
+  oai::UeDescription ue_ref_p;
   ue_ref_p.set_enb_ue_s1ap_id(1);
   ue_ref_p.set_mme_ue_s1ap_id(1);
   ue_ref_p.set_sctp_assoc_id(assoc_id);
@@ -1242,7 +1240,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
   // Send S1AP_HANDOVER_COMMAND mimicing MME_APP
   ASSERT_EQ(send_s1ap_mme_handover_command(assoc_id, 7, 1, 2, 10, 2), RETURNok);
 
-  UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
+  oai::UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
   ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
@@ -1572,7 +1570,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
   ASSERT_EQ(send_s1ap_mme_handover_command(assoc_id, 7, 1, 2, 10, 11),
             RETURNok);
 
-  UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
+  oai::UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
   ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 

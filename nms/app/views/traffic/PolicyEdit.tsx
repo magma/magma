@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
 import LteNetworkContext from '../../context/LteNetworkContext';
 import PolicyAppEdit from './PolicyApp';
 import PolicyContext from '../../context/PolicyContext';
@@ -27,13 +27,13 @@ import PolicyInfoEdit from './PolicyInfo';
 import PolicyRedirectEdit from './PolicyRedirect';
 import PolicyTrackingEdit from './PolicyTracking';
 import React, {SetStateAction} from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import {AltFormField} from '../../components/FormField';
 import {PolicyRule} from '../../../generated';
 import {colors} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
@@ -52,7 +52,6 @@ const DEFAULT_POLICY_RULE: PolicyRule = {
 const useStyles = makeStyles(() => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    color: colors.primary.white,
   },
   input: {
     display: 'inline-flex',

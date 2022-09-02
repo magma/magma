@@ -67,9 +67,9 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 

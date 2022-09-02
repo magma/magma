@@ -74,7 +74,6 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 from magma.pipelined.app.vlan_learn import VlanLearnController
-from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.ebpf.ebpf_manager import get_ebpf_manager
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
@@ -275,7 +274,7 @@ class _TableManager:
             ),
         )
         # Include table 0 when it is managed by the EPC, for completeness.
-        if not any(table in ['ue_mac', 'xwf_passthru', 'classifier'] for table in self._tables_by_app):
+        if not any(table in ['ue_mac', 'classifier'] for table in self._tables_by_app):
             resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
@@ -308,7 +307,6 @@ class ServiceManager:
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
-    XWF_PASSTHRU_NAME = 'xwf_passthru'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
     CLASSIFIER_NAME = 'classifier'
     HE_CONTROLLER_NAME = 'proxy'
@@ -460,14 +458,6 @@ class ServiceManager:
                 order_priority=900,
             ),
         ],
-        XWF_PASSTHRU_NAME: [
-            App(
-                name=XWFPassthruController.APP_NAME,
-                module=XWFPassthruController.__module__,
-                type=XWFPassthruController.APP_TYPE,
-                order_priority=0,
-            ),
-        ],
         UPLINK_BRIDGE_NAME: [
             App(
                 name=UplinkBridgeController.APP_NAME,
@@ -553,7 +543,7 @@ class ServiceManager:
             if app.name in self.STATIC_APP_WITH_NO_TABLE:
                 continue
             # UE MAC service must be registered with Table 0
-            if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME, self.XWF_PASSTHRU_NAME]:
+            if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME]:
                 self._table_manager.register_apps_for_table0_service([app])
                 continue
             if self._5G_flag_enable:

@@ -10,21 +10,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SvgIcon from '@material-ui/core/SvgIcon';
+import SvgIcon from '@mui/material/SvgIcon';
 
-import AppBar from '@material-ui/core/AppBar';
-import Grid from '@material-ui/core/Grid';
+import AppBar from '@mui/material/AppBar';
+import Grid from '@mui/material/Grid';
 import NestedRouteLink from './NestedRouteLink';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Text from '../theme/design-system/Text';
 
 import NetworkSelector from './NetworkSelector';
 import {GetCurrentTabPos} from './TabUtils';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useResolvedPath} from 'react-router-dom';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -35,10 +35,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
+    padding: `0 ${theme.spacing(5)}`,
   },
   tab: {
     fontSize: '18px',
@@ -112,9 +109,7 @@ export default function TopBar(props: Props) {
               <Tabs
                 value={currentTab}
                 indicatorColor="primary"
-                TabIndicatorProps={{style: {height: '5px'}}}
-                textColor="inherit"
-                className={classes.tabs}>
+                TabIndicatorProps={{style: {height: '5px'}}}>
                 {props.tabs.map(tab => (
                   <Tab
                     key={tab.key ?? tab.label}

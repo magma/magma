@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, Callable, Dict, List, Optional
 
@@ -28,7 +27,7 @@ TrParam = namedtuple('TrParam', ['path', 'is_invasive', 'type', 'is_optional'])
 InvalidTrParamPath = "INVALID_TR_PATH"
 
 
-class DataModel(ABC):
+class DataModel(object):
     """
     Class to represent relevant data model parameters.
 
@@ -39,6 +38,12 @@ class DataModel(ABC):
 
     This class is effectively read-only.
     """
+
+    PARAMETERS: Dict[ParameterName, TrParam]
+    LOAD_PARAMETERS: List[ParameterName]
+    TRANSFORMS_FOR_MAGMA: Dict[ParameterName, Callable[[Any], Any]]
+    TRANSFORMS_FOR_ENB: Dict[ParameterName, Callable[[Any], Any]]
+    NUM_PLMNS_IN_CONFIG: int
 
     def __init__(self):
         self._presence_by_param = {}
@@ -186,19 +191,19 @@ class DataModel(ABC):
         return None
 
     @classmethod
-    @abstractmethod
     def get_parameter(cls, param_name: ParameterName) -> Optional[TrParam]:
         """
+        Retrieve parameter by its name
+
         Args:
             param_name: String of the parameter name
 
         Returns:
             TrParam or None if it doesn't exist
         """
-        pass
+        return cls.PARAMETERS.get(param_name)
 
     @classmethod
-    @abstractmethod
     def _get_magma_transforms(
         cls,
     ) -> Dict[ParameterName, Callable[[Any], Any]]:
@@ -212,10 +217,9 @@ class DataModel(ABC):
             function taking the device-specific value of the parameter and
             returning the value in format understood by Magma.
         """
-        pass
+        return cls.TRANSFORMS_FOR_MAGMA
 
     @classmethod
-    @abstractmethod
     def _get_enb_transforms(
         cls,
     ) -> Dict[ParameterName, Callable[[Any], Any]]:
@@ -229,44 +233,69 @@ class DataModel(ABC):
             function taking the nominal value of the parameter and returning
             the device-understood value.
         """
-        pass
+        return cls.TRANSFORMS_FOR_ENB
 
     @classmethod
-    @abstractmethod
     def get_load_parameters(cls) -> List[ParameterName]:
         """
+        Retrieve all load parameters
+
         Returns:
             List of all parameters to query when reading eNodeB state
         """
-        pass
+        return cls.LOAD_PARAMETERS
 
     @classmethod
-    @abstractmethod
     def get_num_plmns(cls) -> int:
         """
+        Retrieve the number of all PLMN parameters
+
         Returns:
             The number of PLMNs in the configuration.
         """
-        pass
+        return cls.NUM_PLMNS_IN_CONFIG
 
     @classmethod
-    @abstractmethod
     def get_parameter_names(cls) -> List[ParameterName]:
         """
+        Retrieve all parameter names
+
         Returns:
             A list of all parameter names that are neither numbered objects,
             or belonging to numbered objects
         """
-        pass
+        excluded_params = [
+            str(ParameterName.DEVICE),
+            str(ParameterName.FAP_SERVICE),
+        ]
+        names = list(
+            filter(
+                lambda x: (not str(x).startswith('PLMN'))
+                and (str(x) not in excluded_params),
+                cls.PARAMETERS.keys(),
+            ),
+        )
+        return names
 
     @classmethod
-    @abstractmethod
     def get_numbered_param_names(
         cls,
     ) -> Dict[ParameterName, List[ParameterName]]:
         """
+        Retrieve parameter names of all objects
+
         Returns:
             A key for all parameters that are numbered objects, and the value
             is the list of parameters that belong to that numbered object
         """
-        pass
+        names = {}
+        for i in range(1, cls.NUM_PLMNS_IN_CONFIG + 1):
+            params = [
+                ParameterName.PLMN_N_CELL_RESERVED % i,
+                ParameterName.PLMN_N_ENABLE % i,
+                ParameterName.PLMN_N_PRIMARY % i,
+                ParameterName.PLMN_N_PLMNID % i,
+            ]
+            names[ParameterName.PLMN_N % i] = params
+
+        return names

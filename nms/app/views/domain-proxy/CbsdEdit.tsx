@@ -10,30 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AddIcon from '@material-ui/icons/Add';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import AddIcon from '@mui/icons-material/Add';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useContext, useEffect, useState} from 'react';
-import Select from '@material-ui/core/Select';
-import {makeStyles} from '@material-ui/styles';
+import Select from '@mui/material/Select';
+import {makeStyles} from '@mui/styles';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 
 import CbsdContext from '../../context/CbsdContext';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
-import {Theme} from '@material-ui/core/styles';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage, isAxiosErrorResponse} from '../../util/ErrorUtils';
 import type {Cbsd, MutableCbsd} from '../../../generated';
@@ -551,7 +551,8 @@ export function CbsdAddEditDialog(props: DialogProps) {
                         ...cbsdFormData,
                         frequenciesMhz: [...cbsdFormData.frequenciesMhz, 0],
                       })
-                    }>
+                    }
+                    size="large">
                     <AddIcon />
                   </IconButton>
                 </Grid>
@@ -597,7 +598,8 @@ export function CbsdAddEditDialog(props: DialogProps) {
                                 ...cbsdFormData,
                                 frequenciesMhz: newValue,
                               });
-                            }}>
+                            }}
+                            size="large">
                             <DeleteIcon />
                           </IconButton>
                         )}

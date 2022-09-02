@@ -11,23 +11,23 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import List from '@material-ui/core/List';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
+import List from '@mui/material/List';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import TraceContext from '../../context/TraceContext';
 import TypedSelect from '../../components/TypedSelect';
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useState} from 'react';

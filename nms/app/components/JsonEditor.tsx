@@ -10,16 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import CardTitleRow from './layout/CardTitleRow';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
 import React from 'react';
 import ReactJson, {InteractionProps, ReactJsonViewProps} from 'react-json-view';
-import SettingsIcon from '@material-ui/icons/Settings';
-import {Theme} from '@material-ui/core/styles';
+import SettingsIcon from '@mui/icons-material/Settings';
+import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles<Theme>(theme => ({

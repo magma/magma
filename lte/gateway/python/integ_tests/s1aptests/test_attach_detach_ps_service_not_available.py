@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestUeContextReleaseWithCausePsServiceNotAvailable(unittest.TestCase):
+class TestAttachDetachPsServiceNotAvailable(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -27,7 +27,7 @@ class TestUeContextReleaseWithCausePsServiceNotAvailable(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_ue_context_release_with_cause_ps_service_not_available(self):
+    def test_attach_detach_ps_service_not_available(self):
         """ UE Context Release with cause PS Service Not Available"""
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)

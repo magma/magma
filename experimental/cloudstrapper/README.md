@@ -38,9 +38,9 @@
      - Github username and PAT (Personal Access Token)
      - Dockerhub username and password
 
-## 1. Run aws-essentials to setup all AWS related base components as a stack
+## 1. Run aws-prerequisites to setup all AWS related base components as a stack
 
-  The aws-essentials playbook will:
+  The aws-prerequisites playbook will:
   - Create boot and host keys if required using the keyCreate tag. Default is to not create keys.
   - Create security group on the default VPC
   - Create default bucket for shared storage.

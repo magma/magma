@@ -211,16 +211,16 @@ export interface AlertRoutingTree {
     'group_wait'?: string;
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match'?: AlertRoutingTreeMatch;
+    'match'?: { [key: string]: string; };
     /**
      * 
-     * @type {AlertRoutingTreeMatch}
+     * @type {{ [key: string]: string; }}
      * @memberof AlertRoutingTree
      */
-    'match_re'?: AlertRoutingTreeMatch;
+    'match_re'?: { [key: string]: string; };
     /**
      * 
      * @type {string}
@@ -239,25 +239,6 @@ export interface AlertRoutingTree {
      * @memberof AlertRoutingTree
      */
     'routes'?: Array<AlertRoutingTree>;
-}
-/**
- * 
- * @export
- * @interface AlertRoutingTreeMatch
- */
-export interface AlertRoutingTreeMatch {
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'label'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AlertRoutingTreeMatch
-     */
-    'value'?: string;
 }
 /**
  * 
@@ -4602,12 +4583,6 @@ export interface NetworkCarrierWifiConfigs {
      * @memberof NetworkCarrierWifiConfigs
      */
     'eap_sim'?: EapSim;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof NetworkCarrierWifiConfigs
-     */
-    'is_xwfm_variant'?: boolean;
     /**
      * 
      * @type {LiUes}
@@ -10061,7 +10036,7 @@ export const CallTracingApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async networksNetworkIdTracingGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: CallTrace; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdTracingGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -10143,7 +10118,7 @@ export const CallTracingApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<Array<string>> {
+        networksNetworkIdTracingGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: CallTrace; }> {
             return localVarFp.networksNetworkIdTracingGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -15509,6 +15484,48 @@ export const CbsdsApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Force relinquish all grants in SAS of given CBSD
+         * @param {string} networkId Network ID
+         * @param {number} cbsdId CBSD ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dpNetworkIdCbsdsCbsdIdRelinquishPost: async (networkId: string, cbsdId: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'networkId' is not null or undefined
+            assertParamExists('dpNetworkIdCbsdsCbsdIdRelinquishPost', 'networkId', networkId)
+            // verify required parameter 'cbsdId' is not null or undefined
+            assertParamExists('dpNetworkIdCbsdsCbsdIdRelinquishPost', 'cbsdId', cbsdId)
+            const localVarPath = `/dp/{network_id}/cbsds/{cbsd_id}/relinquish`
+                .replace(`{${"network_id"}}`, encodeURIComponent(String(networkId)))
+                .replace(`{${"cbsd_id"}}`, encodeURIComponent(String(cbsdId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication tokenAuth required
+            // http basic authentication required
+            setBasicAuthToObject(localVarRequestOptions, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary List all CBSDs in LTE network
          * @param {string} networkId Network ID
          * @param {number} [offset] Start index for pagination
@@ -15665,6 +15682,18 @@ export const CbsdsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Force relinquish all grants in SAS of given CBSD
+         * @param {string} networkId Network ID
+         * @param {number} cbsdId CBSD ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId: string, cbsdId: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId, cbsdId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @summary List all CBSDs in LTE network
          * @param {string} networkId Network ID
          * @param {number} [offset] Start index for pagination
@@ -15743,6 +15772,17 @@ export const CbsdsApiFactory = function (configuration?: Configuration, basePath
          */
         dpNetworkIdCbsdsCbsdIdPut(networkId: string, cbsdId: number, cbsd: MutableCbsd, options?: any): AxiosPromise<void> {
             return localVarFp.dpNetworkIdCbsdsCbsdIdPut(networkId, cbsdId, cbsd, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Force relinquish all grants in SAS of given CBSD
+         * @param {string} networkId Network ID
+         * @param {number} cbsdId CBSD ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId: string, cbsdId: number, options?: any): AxiosPromise<void> {
+            return localVarFp.dpNetworkIdCbsdsCbsdIdRelinquishPost(networkId, cbsdId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -15863,6 +15903,27 @@ export interface CbsdsApiDpNetworkIdCbsdsCbsdIdPutRequest {
 }
 
 /**
+ * Request parameters for dpNetworkIdCbsdsCbsdIdRelinquishPost operation in CbsdsApi.
+ * @export
+ * @interface CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest
+ */
+export interface CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest {
+    /**
+     * Network ID
+     * @type {string}
+     * @memberof CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPost
+     */
+    readonly networkId: string
+
+    /**
+     * CBSD ID
+     * @type {number}
+     * @memberof CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPost
+     */
+    readonly cbsdId: number
+}
+
+/**
  * Request parameters for dpNetworkIdCbsdsGet operation in CbsdsApi.
  * @export
  * @interface CbsdsApiDpNetworkIdCbsdsGetRequest
@@ -15971,6 +16032,18 @@ export class CbsdsApi extends BaseAPI {
      */
     public dpNetworkIdCbsdsCbsdIdPut(requestParameters: CbsdsApiDpNetworkIdCbsdsCbsdIdPutRequest, options?: AxiosRequestConfig) {
         return CbsdsApiFp(this.configuration).dpNetworkIdCbsdsCbsdIdPut(requestParameters.networkId, requestParameters.cbsdId, requestParameters.cbsd, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Force relinquish all grants in SAS of given CBSD
+     * @param {CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CbsdsApi
+     */
+    public dpNetworkIdCbsdsCbsdIdRelinquishPost(requestParameters: CbsdsApiDpNetworkIdCbsdsCbsdIdRelinquishPostRequest, options?: AxiosRequestConfig) {
+        return CbsdsApiFp(this.configuration).dpNetworkIdCbsdsCbsdIdRelinquishPost(requestParameters.networkId, requestParameters.cbsdId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -17485,7 +17558,7 @@ export const EventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Event>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.eventsNetworkIdGet(networkId, streams, events, tags, hwIds, from, size, start, end, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -17500,7 +17573,7 @@ export const EventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Event>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.eventsNetworkIdStreamNameGet(networkId, streamName, eventType, hardwareId, tag, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -17545,7 +17618,7 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: any): AxiosPromise<Array<string>> {
+        eventsNetworkIdGet(networkId: string, streams?: string, events?: string, tags?: string, hwIds?: string, from?: string, size?: string, start?: string, end?: string, options?: any): AxiosPromise<Array<Event>> {
             return localVarFp.eventsNetworkIdGet(networkId, streams, events, tags, hwIds, from, size, start, end, options).then((request) => request(axios, basePath));
         },
         /**
@@ -17559,7 +17632,7 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: any): AxiosPromise<Array<string>> {
+        eventsNetworkIdStreamNameGet(networkId: string, streamName: string, eventType?: string, hardwareId?: string, tag?: string, options?: any): AxiosPromise<Array<Event>> {
             return localVarFp.eventsNetworkIdStreamNameGet(networkId, streamName, eventType, hardwareId, tag, options).then((request) => request(axios, basePath));
         },
     };
@@ -39631,7 +39704,7 @@ export const RatingGroupsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<RatingGroup>>> {
+        async networksNetworkIdRatingGroupsGet(networkId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: RatingGroup; }>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.networksNetworkIdRatingGroupsGet(networkId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -39701,7 +39774,7 @@ export const RatingGroupsApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<Array<RatingGroup>> {
+        networksNetworkIdRatingGroupsGet(networkId: string, options?: any): AxiosPromise<{ [key: string]: RatingGroup; }> {
             return localVarFp.networksNetworkIdRatingGroupsGet(networkId, options).then((request) => request(axios, basePath));
         },
         /**

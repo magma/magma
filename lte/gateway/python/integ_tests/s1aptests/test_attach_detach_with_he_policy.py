@@ -25,7 +25,7 @@ from integ_tests.s1aptests.s1ap_utils import (
 from lte.protos.policydb_pb2 import FlowMatch, HeaderEnrichment
 
 
-class TestAttachDetachWithHE(unittest.TestCase):
+class TestAttachDetachWithHePolicy(unittest.TestCase):
     SPGW_TABLE = 0
     HE_TABLE = 4
     LOCAL_PORT = "LOCAL"
@@ -38,7 +38,7 @@ class TestAttachDetachWithHE(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_with_he(self):
+    def test_attach_detach_with_he_policy(self):
         """ Attach/detach + send ReAuth Req to session manager with a
         single UE along with Header enrichment.
         This test validates that same data test wotks with HE policy

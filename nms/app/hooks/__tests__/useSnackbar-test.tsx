@@ -17,7 +17,7 @@ import React from 'react';
 import {renderHook} from '@testing-library/react-hooks';
 import {useSnackbar} from '../index';
 
-jest.mock('@material-ui/core/Slide', () => () => <div />);
+jest.mock('@mui/material/Slide', () => () => <div />);
 jest.mock('notistack');
 
 it('renders without crashing', () => {

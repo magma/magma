@@ -119,7 +119,15 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 		StartTimeSecs:       uint64(time.Now().Unix()),
 		Config:              configMap,
 	}
-	protos.RegisterService303Server(service.GrpcServer, service)
+	// protectedPort is 0 if and only if no protected port has been configured
+	protectedPort, _ := registry.GetServicePort(serviceName, protos.ServiceType_PROTECTED)
+	if protectedPort == 0 {
+		glog.Infof("Registering Service303 as a public GRPC server.")
+		protos.RegisterService303Server(service.GrpcServer, service)
+	} else {
+		glog.Infof("Registering Service303 as a protected GRPC server.")
+		protos.RegisterService303Server(service.ProtectedGrpcServer, service)
+	}
 
 	// Store into global for future access
 	currentlyRunningServicesMu.Lock()

@@ -14,8 +14,6 @@
 import MagmaAPI from '../api/MagmaAPI';
 import nullthrows from '../../shared/util/nullthrows';
 import useMagmaAPI from '../api/useMagmaAPI';
-import {AlertRoutingTree} from '../views/alarms/components/AlarmAPIType';
-import {AxiosResponse} from 'axios';
 
 import type {ApiUtil} from '../views/alarms/components/AlarmsApi';
 
@@ -29,10 +27,9 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   },
   // Alerts
   viewFiringAlerts: async ({networkId}) => {
-    const alerts = await MagmaAPI.alerts.networksNetworkIdAlertsGet({
+    return await MagmaAPI.alerts.networksNetworkIdAlertsGet({
       networkId: nullthrows(networkId),
     });
-    return alerts;
   },
   viewMatchingAlerts: () => {
     console.warn('not implemented');
@@ -113,13 +110,11 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   },
   // Routes
   getRouteTree: async ({networkId}) => {
-    return (await MagmaAPI.alerts.networksNetworkIdPrometheusAlertReceiverRouteGet(
+    return await MagmaAPI.alerts.networksNetworkIdPrometheusAlertReceiverRouteGet(
       {
         networkId: nullthrows(networkId),
       },
-      // TODO[TS-migration] it looks like the type for match in the swagger spec might be wrong
-      //  see https://github.com/facebookincubator/prometheus-configmanager/blob/main/alertmanager/config/route.go
-    )) as AxiosResponse<AlertRoutingTree>;
+    );
   },
   editRouteTree: async ({networkId, route}) => {
     return await MagmaAPI.alerts.networksNetworkIdPrometheusAlertReceiverRoutePost(
@@ -131,10 +126,9 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   },
   // Metric Series
   getMetricSeries: async ({networkId}) => {
-    const series = await MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet({
+    return await MagmaAPI.metrics.networksNetworkIdPrometheusSeriesGet({
       networkId: nullthrows(networkId),
     });
-    return series;
   },
   getMetricNames: async ({networkId}) => {
     const series = (

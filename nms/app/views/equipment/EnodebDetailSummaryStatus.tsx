@@ -15,7 +15,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../context/EnodebContext';
 import React from 'react';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import nullthrows from '../../../shared/util/nullthrows';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';

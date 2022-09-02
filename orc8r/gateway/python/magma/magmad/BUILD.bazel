@@ -43,31 +43,27 @@ py_library(
         "config_manager.py",
         "events.py",
         "gateway_status.py",
-        "metrics.py",
         "metrics_collector.py",
         "proxy_client.py",
         "rpc_servicer.py",
         "service_health_watchdog.py",
         "service_manager.py",
-        "service_poller.py",
         "state_reporter.py",
         "sync_rpc_client.py",
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":metrics",
+        ":service_poller",
         "//orc8r/gateway/python/magma/common:cert_utils",
         "//orc8r/gateway/python/magma/common:cert_validity",
         "//orc8r/gateway/python/magma/common:misc_utils",
-        "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common:sdwatchdog",
-        "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/common:stateless_agw",
         "//orc8r/gateway/python/magma/common:streamer",
-        "//orc8r/gateway/python/magma/common/health:service_state_wrapper",
         "//orc8r/gateway/python/magma/magmad/check/kernel_check:kernel_versions",
         "//orc8r/gateway/python/magma/magmad/check/machine_check:cpu_info",
-        "//orc8r/gateway/python/magma/magmad/check/network_check:ping",
         "//orc8r/gateway/python/magma/magmad/check/network_check:routing_table",
         "//orc8r/protos:bootstrapper_python_grpc",
         "//orc8r/protos:magmad_python_grpc",
@@ -77,7 +73,27 @@ py_library(
         "//orc8r/protos:sync_rpc_service_python_grpc",
         "//orc8r/swagger:magmad_events_v1",
         "@aioh2_repo//:aioh2",
-        requirement("psutil"),
         requirement("requests"),
+    ],
+)
+
+py_library(
+    name = "metrics",
+    srcs = ["metrics.py"],
+    visibility = ["//visibility:public"],  # TODO restrict?
+    deps = [
+        "//orc8r/gateway/python/magma/common/health:service_state_wrapper",
+        "//orc8r/gateway/python/magma/magmad/check/network_check:ping",
+        requirement("psutil"),
+    ],
+)
+
+py_library(
+    name = "service_poller",
+    srcs = ["service_poller.py"],
+    visibility = ["//visibility:public"],  # TODO restrict?
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
     ],
 )

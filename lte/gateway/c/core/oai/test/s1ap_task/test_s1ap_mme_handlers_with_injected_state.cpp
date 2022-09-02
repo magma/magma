@@ -33,8 +33,6 @@ extern bool hss_associated;
 namespace magma {
 namespace lte {
 
-using oai::EnbDescription;
-using oai::UeDescription;
 task_zmq_ctx_t task_zmq_ctx_main_s1ap_with_injected_states;
 
 // mocking the message handler for the ITTI
@@ -124,7 +122,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 };
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
-  UeDescription ue_ref_p;
+  oai::UeDescription ue_ref_p;
   ue_ref_p.Clear();
   ue_ref_p.set_enb_ue_s1ap_id(1);
   ue_ref_p.set_mme_ue_s1ap_id(99);

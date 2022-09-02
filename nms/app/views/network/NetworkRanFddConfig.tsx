@@ -12,8 +12,8 @@
  */
 import type {NetworkRanConfigs} from '../../../generated';
 
-import Grid from '@material-ui/core/Grid';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Grid from '@mui/material/Grid';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 
 import {AltFormField} from '../../components/FormField';

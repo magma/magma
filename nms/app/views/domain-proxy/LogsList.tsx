@@ -10,19 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Button from '@material-ui/core/Button';
-import FormControl from '@material-ui/core/FormControl';
-import Grid from '@material-ui/core/Grid';
-import ListIcon from '@material-ui/icons/ListAlt';
-import MenuItem from '@material-ui/core/MenuItem';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import Grid from '@mui/material/Grid';
+import ListIcon from '@mui/icons-material/ListAlt';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React, {useCallback, useRef, useState} from 'react';
-import Select from '@material-ui/core/Select';
+import Select from '@mui/material/Select';
 import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
-import {KeyboardDateTimePicker} from '@material-ui/pickers';
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {isFinite} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
 
 import ActionTable, {TableRef} from '../../components/ActionTable';
@@ -32,8 +32,9 @@ import AutorefreshCheckbox, {
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import MagmaAPI from '../../api/MagmaAPI';
 import Text from '../../theme/design-system/Text';
+import TextField from '@mui/material/TextField';
 import {REFRESH_INTERVAL} from '../../context/AppContext';
-import {Theme} from '@material-ui/core/styles/createTheme';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../theme/default';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -306,18 +307,23 @@ function LogsList() {
                 </Text>
               </Grid>
               <Grid item>
-                <KeyboardDateTimePicker
-                  inputProps={{
-                    'data-testid': 'start-date-input',
-                  }}
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
+                <DateTimePicker
+                  renderInput={props => (
+                    <TextField
+                      {...props}
+                      inputProps={{
+                        'data-testid': 'start-date-input',
+                        ...props.inputProps,
+                      }}
+                    />
+                  )}
                   maxDate={endDate}
                   disableFuture
                   value={startDate}
-                  onChange={newValue => setStartDate(newValue as moment.Moment)}
-                  format="yyyy/MM/DD HH:mm"
+                  onChange={newValue => {
+                    setStartDate(newValue as moment.Moment);
+                  }}
+                  inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>
             </Grid>
@@ -406,17 +412,20 @@ function LogsList() {
                 </Text>
               </Grid>
               <Grid item>
-                <KeyboardDateTimePicker
-                  inputProps={{
-                    'data-testid': 'end-date-input',
-                  }}
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
+                <DateTimePicker
+                  renderInput={props => (
+                    <TextField
+                      {...props}
+                      inputProps={{
+                        'data-testid': 'end-date-input',
+                        ...props.inputProps,
+                      }}
+                    />
+                  )}
                   disableFuture
                   value={endDate}
                   onChange={newValue => setEndDate(newValue as moment.Moment)}
-                  format="yyyy/MM/DD HH:mm"
+                  inputFormat="yyyy/MM/DD HH:mm"
                 />
               </Grid>
             </Grid>

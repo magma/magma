@@ -56,7 +56,7 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
 #endif
 #include "lte/gateway/c/core/oai/include/udp_primitives_server.h"
 #include "lte/gateway/c/core/oai/include/s11_mme.h"

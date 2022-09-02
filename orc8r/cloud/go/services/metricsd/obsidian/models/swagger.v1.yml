@@ -1149,18 +1149,12 @@ definitions:
           type: string
       match:
         type: object
-        properties:
-          label:
-            type: string
-          value:
-            type: string
+        additionalProperties:
+          type: string
       match_re:
         type: object
-        properties:
-          label:
-            type: string
-          value:
-            type: string
+        additionalProperties:
+          type: string
       continue:
         type: boolean
       routes:

@@ -198,6 +198,9 @@
       "lte/deploy_config_enodebd": {
         "title": "Configure eNodeB"
       },
+      "lte/deploy_install_docker": {
+        "title": "Install Docker AGW"
+      },
       "lte/deploy_install": {
         "title": "Install AGW"
       },
@@ -212,6 +215,9 @@
       },
       "lte/eventd": {
         "title": "Event Reporting"
+      },
+      "lte/extended_5G_sa_features": {
+        "title": "Extended 5G SA Features"
       },
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
@@ -1988,11 +1994,12 @@
       }
     },
     "links": {
-      "Home": "Home",
+      "Magma Website": "Magma Website",
       " | ": " | ",
       "Docs": "Docs",
       "Code": "Code",
-      "Community": "Community"
+      "Contributing": "Contributing",
+      "Wiki": "Wiki"
     },
     "categories": {
       "Getting Started": "Getting Started",
@@ -2005,8 +2012,9 @@
       "Debug": "Debug",
       "Contribute": "Contribute",
       "Technical Reference": "Technical Reference",
-      "Proposals": "Proposals",
+      "Design Documents": "Design Documents",
       "FAQ": "FAQ",
+      "Proposals": "Proposals",
       "Basics": "Basics",
       "Orchestrator": "Orchestrator",
       "NMS": "NMS",

@@ -23,9 +23,12 @@
 */
 
 #pragma once
+
+#include "lte/protos/oai/s1ap_state.pb.h"
+
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
-#include "lte/protos/oai/s1ap_state.pb.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,6 +45,9 @@ extern "C" {
 }
 #endif
 extern bool hss_associated;
+
+namespace magma {
+namespace lte {
 
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
@@ -72,3 +78,6 @@ void s1ap_remove_enb(s1ap_state_t* state,
 void free_enb_description(void** ptr);
 
 void free_ue_description(void** ptr);
+
+}  // namespace lte
+}  // namespace magma

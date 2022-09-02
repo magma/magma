@@ -11,19 +11,19 @@
  * limitations under the License.
  */
 
-import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import DeleteIcon from '@material-ui/icons/Delete';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
+import AddCircleOutline from '@mui/icons-material/AddCircleOutline';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Paper from '@mui/material/Paper';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {policyStyles} from './PolicyStyles';
 import {useEffect, useState} from 'react';
 import type {PolicyRule} from '../../../generated';
@@ -75,7 +75,7 @@ export default function PolicyHeaderEnrichmentEdit(props: Props) {
               setNewUrl(target.value);
             }}
           />
-          <IconButton data-testid="addUrlButton" onClick={addUrl}>
+          <IconButton data-testid="addUrlButton" onClick={addUrl} size="large">
             <AddCircleOutline />
           </IconButton>
         </Grid>
@@ -90,7 +90,8 @@ export default function PolicyHeaderEnrichmentEdit(props: Props) {
                       edge="end"
                       aria-label="delete"
                       data-testid="deleteUrlButton"
-                      onClick={() => deleteUrl(url)}>
+                      onClick={() => deleteUrl(url)}
+                      size="large">
                       <DeleteIcon />
                     </IconButton>
                   </ListItemSecondaryAction>

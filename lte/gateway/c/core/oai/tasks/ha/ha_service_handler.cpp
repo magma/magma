@@ -100,8 +100,8 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
 
   IMSI_STRING_TO_IMSI64(offload_request->imsi, &imsi64);
 
-  EnbDescription* enb_ref_p =
-      s1ap_state_get_enb(s1ap_state, ue_context_p->sctp_assoc_id_key);
+  EnbDescription* enb_ref_p = magma::lte::s1ap_state_get_enb(
+      s1ap_state, ue_context_p->sctp_assoc_id_key);
 
   // Return if this UE does not satisfy any of the filtering criteria
   if ((imsi64 != ue_context_p->emm_context._imsi64) &&

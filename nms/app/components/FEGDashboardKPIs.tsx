@@ -12,10 +12,10 @@
  */
 
 import CardTitleRow from './layout/CardTitleRow';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import React from 'react';
 import ServicingAccessGatewayKPIs from './FEGServicingAccessGatewayKPIs';
-import {GpsFixed} from '@material-ui/icons';
+import {GpsFixed} from '@mui/icons-material';
 
 /**
  * Returns the KPI's in the federation network dashboard.

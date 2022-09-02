@@ -13,15 +13,15 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {FegLteNetwork, LteNetwork} from '../../../generated';
 
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import DataGrid from '../../components/DataGrid';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import FormLabel from '@material-ui/core/FormLabel';
-import List from '@material-ui/core/List';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
 import LteNetworkContext from '../../context/LteNetworkContext';
 import NetworkContext from '../../context/NetworkContext';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import React from 'react';
 import axios from 'axios';
 

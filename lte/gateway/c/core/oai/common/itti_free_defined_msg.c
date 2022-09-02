@@ -223,7 +223,7 @@ void itti_free_msg_content(MessageDef* const message_p) {
           &message_p->ittiMsg.s1ap_handover_request_ack.tgt_src_container);
       break;
     case S1AP_HANDOVER_NOTIFY: {
-      e_rab_admitted_list_t e_rab_admitted_list = {0};
+      e_rab_admitted_list_t e_rab_admitted_list = {};
       e_rab_admitted_list =
           message_p->ittiMsg.s1ap_handover_notify.e_rab_admitted_list;
       for (int idx = 0; idx < e_rab_admitted_list.no_of_items; idx++) {

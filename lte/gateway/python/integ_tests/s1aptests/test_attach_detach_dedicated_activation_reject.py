@@ -20,7 +20,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachDedicatedReject(unittest.TestCase):
+class TestAttachDetachDedicatedActivationReject(unittest.TestCase):
     """Dedicated bearer activation reject test with a
     single UE
     """

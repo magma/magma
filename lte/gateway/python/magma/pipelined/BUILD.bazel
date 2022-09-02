@@ -111,7 +111,6 @@ py_library(
         "//lte/gateway/python/magma/pipelined/app:tunnel_learn",
         "//lte/gateway/python/magma/pipelined/app:uplink_bridge",
         "//lte/gateway/python/magma/pipelined/app:vlan_learn",
-        "//lte/gateway/python/magma/pipelined/app:xwf_passthru",
         "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
         "//lte/gateway/python/magma/pipelined/qos:common",
         "//lte/protos:mobilityd_python_grpc",
@@ -246,4 +245,9 @@ py_library(
 py_library(
     name = "gw_mac_address",
     srcs = ["gw_mac_address.py"],
+)
+
+py_library(
+    name = "pg_set_session_msg",
+    srcs = ["pg_set_session_msg.py"],
 )

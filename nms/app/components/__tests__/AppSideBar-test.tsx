@@ -12,9 +12,9 @@
  */
 
 import AppSideBar from '../AppSideBar';
-import DashboardIcon from '@material-ui/icons/Dashboard';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import React from 'react';
-import RouterIcon from '@material-ui/icons/Router';
+import RouterIcon from '@mui/icons-material/Router';
 import {MemoryRouter} from 'react-router-dom';
 import {fireEvent, render} from '@testing-library/react';
 import type {MemoryRouterProps} from 'react-router-dom';

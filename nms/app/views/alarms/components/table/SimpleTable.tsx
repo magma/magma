@@ -12,29 +12,29 @@
  */
 
 import * as React from 'react';
-import AddBox from '@material-ui/icons/AddBox';
-import ArrowDownward from '@material-ui/icons/ArrowDownward';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import Chip from '@material-ui/core/Chip';
-import Clear from '@material-ui/icons/Clear';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import Edit from '@material-ui/icons/Edit';
-import FilterList from '@material-ui/icons/FilterList';
-import FirstPage from '@material-ui/icons/FirstPage';
-import LastPage from '@material-ui/icons/LastPage';
+import AddBox from '@mui/icons-material/AddBox';
+import ArrowDownward from '@mui/icons-material/ArrowDownward';
+import Check from '@mui/icons-material/Check';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+import Chip from '@mui/material/Chip';
+import Clear from '@mui/icons-material/Clear';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import Edit from '@mui/icons-material/Edit';
+import FilterList from '@mui/icons-material/FilterList';
+import FirstPage from '@mui/icons-material/FirstPage';
+import LastPage from '@mui/icons-material/LastPage';
 import MaterialTable, {MaterialTableProps} from '@material-table/core';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import Remove from '@material-ui/icons/Remove';
-import SaveAlt from '@material-ui/icons/SaveAlt';
-import Search from '@material-ui/icons/Search';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import Remove from '@mui/icons-material/Remove';
+import SaveAlt from '@mui/icons-material/SaveAlt';
+import Search from '@mui/icons-material/Search';
 import {colors} from '../../../../theme/default';
 import {forwardRef} from 'react';
-import {makeStyles} from '@material-ui/styles';
+import {makeStyles} from '@mui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles({
@@ -64,6 +64,7 @@ export type SimpleTableProps<T extends object> = {
   actions?: MaterialTableProps<T>['actions'];
   tableData: MaterialTableProps<T>['data'];
   dataTestId?: string;
+  localization?: MaterialTableProps<T>['localization'];
 };
 
 const renderLabelValue = (labelValue: LabelVal) => {
@@ -208,7 +209,7 @@ export default function SimpleTable<T extends object>(
     setAnchorEl(null);
   };
 
-  if (props.menuItems && anchorEl) {
+  if (props.menuItems) {
     // Actions menu
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(
@@ -266,6 +267,7 @@ export default function SimpleTable<T extends object>(
           toolbar: false,
         }}
         localization={{
+          ...(props.localization || {}),
           // hide 'Actions' in table header
           header: {actions: ''},
         }}

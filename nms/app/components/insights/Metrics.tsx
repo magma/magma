@@ -14,21 +14,21 @@
 import type {TimeRange} from './AsyncMetric';
 
 import * as React from 'react';
-import AppBar from '@material-ui/core/AppBar';
+import AppBar from '@mui/material/AppBar';
 import AsyncMetric from './AsyncMetric';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import FormControl from '@material-ui/core/FormControl';
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
-import InputLabel from '@material-ui/core/InputLabel';
+import Autocomplete from '@mui/material/Autocomplete';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import FormControl from '@mui/material/FormControl';
+import ImageList from '@mui/material/ImageList';
+import ImageListItem from '@mui/material/ImageListItem';
+import InputLabel from '@mui/material/InputLabel';
 import Text from '../../theme/design-system/Text';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import TimeRangeSelector from './TimeRangeSelector';
 
-import {Theme} from '@material-ui/core/styles';
-import {makeStyles} from '@material-ui/styles';
+import {Theme} from '@mui/material/styles';
+import {makeStyles} from '@mui/styles';
 import {useParams} from 'react-router-dom';
 import {useState} from 'react';
 
@@ -140,7 +140,7 @@ export default function (props: {
             options={props.selectors}
             onChange={props.onSelectorChange}
             disableClearable
-            renderOption={option =>
+            renderOption={(_, option) =>
               props.renderOptionOverride
                 ? props.renderOptionOverride(option)
                 : option
@@ -162,9 +162,9 @@ export default function (props: {
           onChange={setTimeRange}
         />
       </AppBar>
-      <GridList cols={2} cellHeight={300}>
+      <ImageList cols={2} rowHeight={300}>
         {props.configs.map((config, i) => (
-          <GridListTile key={i} cols={1}>
+          <ImageListItem key={i} cols={1}>
             <Card>
               <CardContent>
                 <Text variant="h6">{config.label}</Text>
@@ -182,9 +182,9 @@ export default function (props: {
                 </div>
               </CardContent>
             </Card>
-          </GridListTile>
+          </ImageListItem>
         ))}
-      </GridList>
+      </ImageList>
     </>
   );
 }
