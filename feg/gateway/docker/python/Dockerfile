@@ -68,7 +68,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https curl
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
+    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.8.0 main"
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
     apt-add-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
