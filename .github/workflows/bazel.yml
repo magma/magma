@@ -1,4 +1,14 @@
----
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: "Bazel Build & Test"
 on:
   # yamllint disable-line rule:truthy
@@ -11,13 +21,9 @@ on:
   push:
     branches:
       - master
-    paths:
-      - .github/workflows/bazel.yml
-  schedule:
-    # Run four times a day to build bazel cache
-    - cron: '0 0,6,12,18 * * *'
+
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-4a878d8"
   CACHE_KEY: bazel-base-image
   REMOTE_DOWNLOAD_OPTIMIZATION: true
 
@@ -41,14 +47,19 @@ jobs:
             files_changed:
               - '.github/workflows/bazel.yml'
               - 'orc8r/gateway/**'
+              - 'orc8r/lib/go/**'
               - 'orc8r/protos/**'
+              - 'feg/cloud/go/**'
+              - 'feg/gateway/**'
               - 'lte/gateway/**'
+              - 'lte/cloud/go/**'
               - 'lte/protos/**'
               - 'src/go/**'
               - '**/BUILD'
               - '**/*.BUILD'
               - '**/*.bazel'
               - '**/*.bzl'
+              - '.bazelrc'
 
   bazel_build_and_test:
     needs: path_filter

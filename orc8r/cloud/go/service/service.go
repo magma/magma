@@ -26,6 +26,7 @@ import (
 
 	"github.com/golang/glog"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
 
@@ -60,13 +61,40 @@ type OrchestratorService struct {
 	EchoServer *echo.Echo
 }
 
+type serviceConfig struct {
+	httpMetricsEnabled bool
+	grpcOptions        []grpc.ServerOption
+}
+
+// Option is function type that can be used to configure OrchestratorService
+type Option func(*serviceConfig)
+
+// WithGrpcOptions adds grpc server options
+func WithGrpcOptions(options ...grpc.ServerOption) Option {
+	return func(c *serviceConfig) {
+		c.grpcOptions = options
+	}
+}
+
+// WithMetricsEnabled enables http prometheus metrics
+func WithMetricsEnabled() Option {
+	return func(c *serviceConfig) {
+		c.httpMetricsEnabled = true
+	}
+}
+
 // NewOrchestratorService returns a new gRPC orchestrator service
 // implementing service303. If configured, it will also initialize an HTTP echo
 // server as a part of the service. This service will implement a middleware
 // interceptor to perform identity check. If your service does not or can not
 // perform identity checks, (e.g., federation), use NewGatewayServiceWithOptions.
-func NewOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
+func NewOrchestratorService(moduleName string, serviceName string, options ...Option) (*OrchestratorService, error) {
 	flag.Parse()
+
+	cfg := &serviceConfig{}
+	for _, o := range options {
+		o(cfg)
+	}
 
 	err := registry.PopulateServices()
 	if err != nil {
@@ -82,20 +110,20 @@ func NewOrchestratorService(moduleName string, serviceName string, serverOptions
 	opts := grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxGRPCMsgSize))
 	registry.SetDialOpts(opts)
 	// Set max gRPC message size to receive when acting as the server
-	serverOptions = append(serverOptions, grpc.MaxRecvMsgSize(maxGRPCMsgSize))
+	cfg.grpcOptions = append(cfg.grpcOptions, grpc.MaxRecvMsgSize(maxGRPCMsgSize))
 
 	// TODO(hcgatewood): somehow, the "+Inf" histogram bucket for grpc_server_handling_seconds_bucket
 	// isn't propagating through to Prometheus. This breaks e.g. the histogram_quantile function.
 	// Ref: https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_quantile
 	grpc_prometheus.EnableHandlingTimeHistogram()
-	serverOptions = append(serverOptions, unary.GetInterceptorOpt())
+	cfg.grpcOptions = append(cfg.grpcOptions, unary.GetInterceptorOpt())
 
-	platformService, err := platform_service.NewOrc8rServiceWithOptions(moduleName, serviceName, serverOptions...)
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceName, cfg.grpcOptions...)
 	if err != nil {
 		return nil, err
 	}
 
-	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
+	echoSrv, err := getEchoServerForOrchestratorService(serviceName, cfg.httpMetricsEnabled)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +188,7 @@ func (s *OrchestratorService) RunTest(lis net.Listener, plis net.Listener) {
 	}
 }
 
-func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error) {
+func getEchoServerForOrchestratorService(serviceName string, enableMetrics bool) (*echo.Echo, error) {
 	if !runEchoServer {
 		return nil, nil
 	}
@@ -173,6 +201,10 @@ func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error)
 	e.Server.Addr = portStr
 	e.HideBanner = true
 	e.Use(Logger)
+	if enableMetrics {
+		p := prometheus.NewPrometheus(serviceName, nil)
+		e.Use(p.HandlerFunc)
+	}
 	return e, nil
 }
 

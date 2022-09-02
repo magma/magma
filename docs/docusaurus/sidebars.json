@@ -276,7 +276,6 @@
         "type": "subcategory",
         "label": "Maintain",
         "ids": [
-          "contributing/contribute_proposals",
           "contributing/contribute_codeowners",
           "contributing/contribute_tsc_norms"
         ]
@@ -309,6 +308,7 @@
           "lte/access_service_restrictions",
           "lte/dev_teid_allocation",
           "lte/integrated_5G_sa",
+          "lte/extended_5G_sa_features",
           "lte/suci_extensions"
         ]
       },
@@ -355,7 +355,7 @@
         ]
       }
     ],
-    "Proposals": [
+    "Design Documents": [
       {
         "type": "subcategory",
         "label": "General",

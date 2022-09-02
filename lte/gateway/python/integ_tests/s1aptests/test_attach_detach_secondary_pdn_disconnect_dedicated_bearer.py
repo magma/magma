@@ -20,8 +20,8 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
-    """Test secondary pdn connection and disconnection"""
+class TestAttachDetachSecondaryPdnDisconnectDedicatedBearer(unittest.TestCase):
+    """Integration Test: TestAttachDetachSecondaryPdnDisconnectDedicatedBearer"""
 
     def setUp(self):
         """Initialize"""
@@ -32,7 +32,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_disconn_ded_bearer(self):
+    def test_attach_detach_secondary_pdn_disconnect_dedicated_bearer(self):
         """Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer + disconnect
         dedicated bearer

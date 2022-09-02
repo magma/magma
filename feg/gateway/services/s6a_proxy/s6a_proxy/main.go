@@ -32,7 +32,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.S6A_PROXY)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.S6A_PROXY)
 	if err != nil {
 		log.Fatalf("Error creating S6a Proxy service: %s", err)
 	}

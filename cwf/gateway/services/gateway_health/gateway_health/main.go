@@ -45,7 +45,7 @@ const (
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.GatewayHealth)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.GatewayHealth)
 	if err != nil {
 		glog.Fatalf("Error creating %s service: %s", registry.GatewayHealth, err)
 	}

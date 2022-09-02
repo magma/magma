@@ -36,10 +36,9 @@ func TestStoreAvailableFrequenciesMessageString(t *testing.T) {
 
 func TestStoreAvailableFrequenciesMessageSend(t *testing.T) {
 	client := &stubStoreClient{}
-	provider := &stubStoreClientProvider{client: client}
 
 	m := message.NewStoreAvailableFrequenciesMessage(id, freqs)
-	require.NoError(t, m.Send(context.Background(), provider))
+	require.NoError(t, m.Send(context.Background(), client))
 
 	expected := &active_mode.StoreAvailableFrequenciesRequest{
 		Id:                   id,
@@ -49,15 +48,6 @@ func TestStoreAvailableFrequenciesMessageSend(t *testing.T) {
 }
 
 var freqs = []uint32{0b1110, 0b1100, 0b1100, 0b1000}
-
-type stubStoreClientProvider struct {
-	message.ClientProvider
-	client *stubStoreClient
-}
-
-func (s *stubStoreClientProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
-	return s.client
-}
 
 type stubStoreClient struct {
 	active_mode.ActiveModeControllerClient

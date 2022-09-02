@@ -27,10 +27,16 @@
 
 typedef bstring LcsClientIdentity;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_lcs_client_identity(LcsClientIdentity lcsclientidentity, uint8_t iei,
                                uint8_t* buffer, uint32_t len);
 
 int decode_lcs_client_identity(LcsClientIdentity* lcsclientidentity,
                                uint8_t iei, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LCS_CLIENT_IDENTITY_SEEN */

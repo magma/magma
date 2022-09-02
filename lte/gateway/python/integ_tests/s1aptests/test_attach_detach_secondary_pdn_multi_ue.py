@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
+class TestAttachDetachSecondaryPdnMultiUe(unittest.TestCase):
     """Test secondary pdn connection with multiple UEs"""
 
     def setUp(self):
@@ -30,7 +30,7 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_req_multi_ue(self):
+    def test_attach_detach_secondary_pdn_multi_ue(self):
         """attach/detach + PDN Connectivity Requests with 4 UEs"""
         num_ues = 4
         ue_ids = []

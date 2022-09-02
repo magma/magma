@@ -17,14 +17,14 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestMultiEnbWithDifferentTac(unittest.TestCase):
+class TestMultiEnbMultiUeDiffTac(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_multienb_different_tac(self):
+    def test_multi_enb_multi_ue_diff_tac(self):
         """ Multi Enb attach with different TAC values """
 
         """ Note: Before execution of this test case,

@@ -17,7 +17,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestMultiEnbWithDifferentEnbType(unittest.TestCase):
+class TestMultiEnbMultiUeDiffEnbType(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -25,7 +25,7 @@ class TestMultiEnbWithDifferentEnbType(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_multienb_different_enb_type(self):
+    def test_multi_enb_multi_ue_diff_enbtype(self):
         """ Multi Enb with different ENB Type """
 
         """ Note: Before execution of this test case,

@@ -147,7 +147,14 @@ void mme_api_duplicate_enb_ue_s1ap_id_detected(
     const enb_s1ap_id_key_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bool is_remove_old);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config);
+status_code_e mme_api_unsubscribe(bstring apn);
+#ifdef __cplusplus
+}
+#endif
 
 status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
                                   const imsi64_t imsi64);
@@ -164,7 +171,6 @@ status_code_e mme_api_subscribe(bstring* apn,
                                 mme_api_ip_version_t mme_pdn_index,
                                 bstring* pdn_addr, int is_emergency,
                                 mme_api_qos_t* qos);
-status_code_e mme_api_unsubscribe(bstring apn);
 
 void mme_ue_context_update_ue_emm_state(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                         mm_state_t new_emm_state);
