@@ -45,6 +45,7 @@ jobs:
         run: |
           echo "[defaults]" >> ~/.ansible.cfg
           echo "host_key_checking = False" >> ~/.ansible.cfg
+          echo "ssh_args = -o ServerAliveInterval=60"
       - name: Run the ansible script to build on graviton
         run: |
           cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
