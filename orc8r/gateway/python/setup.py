@@ -74,7 +74,9 @@ setup(
         'Jinja2==2.11.3',
         'markupsafe==1.1.1',
         'netifaces>=0.11.0',
-        'pylint>=1.7.1,<=2.14.0',
+        'pylint>=1.7.1,<=2.10.0',  # Newer versions are not compatible with platformdirs
+        'typing-extensions>=3.10,<4',  # fpm cannot build newer versions
+        'platformdirs<2.1.0',  # fpm cannot build newer versions
         'PyYAML==5.3.1',
         'pytz>=2022.1',
         'prometheus_client==0.3.1',
