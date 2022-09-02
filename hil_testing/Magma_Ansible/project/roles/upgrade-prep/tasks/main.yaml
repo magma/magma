@@ -27,7 +27,7 @@
 - name: Add specified repository into sources list for Debian Magma AGW
   tags: prep
   ansible.builtin.apt_repository:
-    repo: deb https://artifactory.magmacore.org/artifactory/debian stretch-{{ UpgradeTag }} main
+    repo: deb https://artifactory.magmacore.org/artifactory/debian-test stretch-{{ UpgradeTag }} main
     state: present
     filename: packages_magma_etagecom_io
   when: ansible_distribution == 'Debian'
@@ -35,7 +35,7 @@
 - name: Add specified repository into sources list for Ubuntu Magma AGW
   tags: prep
   ansible.builtin.apt_repository:
-    repo: deb https://artifactory.magmacore.org/artifactory/debian focal-{{ UpgradeTag }} main
+    repo: deb https://artifactory.magmacore.org/artifactory/debian-test focal-{{ UpgradeTag }} main
     state: present
     filename: packages_magma_etagecom_io
   when: ansible_distribution == 'Ubuntu'
