@@ -340,7 +340,6 @@
 - name: Install gmock and gtest for C++ testing
   become: yes
   ignore_errors: yes
-  shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
   args:
     chdir: /usr/src/{{ item }}
   with_items:

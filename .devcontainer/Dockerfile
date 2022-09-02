@@ -55,7 +55,6 @@ RUN echo "Install general purpose packages" && \
         libclang-11-dev \
         lldb \
         llvm-11-dev \
-        make \
         ninja-build \
         openjdk-8-jdk \
         perl \

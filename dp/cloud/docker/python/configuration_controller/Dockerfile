@@ -21,7 +21,7 @@ COPY ./feg/protos $MAGMA_ROOT/feg/protos/
 COPY ./cwf/protos $MAGMA_ROOT/cwf/protos/
 COPY ./dp $MAGMA_ROOT/dp/
 WORKDIR /magma/dp
-RUN mkdir -p $PYTHON_BUILD && make protos
+RUN mkdir -p
 
 ARG ENV=standard
 FROM python:3.9.2-slim-buster as standard-version

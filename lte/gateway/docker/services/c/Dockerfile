@@ -148,7 +148,6 @@ RUN bazel build  \
   //lte/gateway/c/session_manager:sessiond \
   --define=folly_so=1
 
-RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 
 # Prepare config file
 COPY lte/gateway/configs ${MAGMA_ROOT}/lte/gateway/configs

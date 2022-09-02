@@ -17,8 +17,7 @@ COPY ./ $MAGMA_ROOT
 # Build MME executables
 RUN cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
+
     cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
     ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
     ldd $C_BUILD/sctpd/src/sctpd

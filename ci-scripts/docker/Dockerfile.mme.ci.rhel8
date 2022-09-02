@@ -18,8 +18,6 @@ COPY ./ $MAGMA_ROOT
 RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
     cd $MAGMA_ROOT/lte/gateway && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
     cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
     ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
     ldd $C_BUILD/sctpd/src/sctpd

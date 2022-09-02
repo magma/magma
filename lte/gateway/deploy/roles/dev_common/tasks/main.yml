@@ -192,9 +192,6 @@
   apt:
     state: present
     pkg:
-      - clang
-      - cmake
-      - make
       - python3-aioeventlet
   retries: 5
 

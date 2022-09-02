@@ -110,18 +110,18 @@ pipeline {
                   sh 'vagrant status'
                   sh 'sudo chown -R jenkins:libvirt "${WORKSPACE}/.cache"'
 
-                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && make"'
+                  sh 'vagrant ssh magma -c "cd magma/lte/gateway 
                   try {
-                    sh 'vagrant ssh magma -c "cd magma/lte/gateway && make test"'
+                    sh 'vagrant ssh magma -c "cd magma/lte/gateway 
                   } catch (Exception e) {
                     test_results=1
                   }
                   try {
-                    sh 'vagrant ssh magma -c "cd magma/lte/gateway/python && make coverage"'
+                    sh 'vagrant ssh magma -c "cd magma/lte/gateway/python '
                   } catch (Exception e) {
                     test_results=1
                   } 
-                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && make run"'
+                  sh 'vagrant ssh magma -c "cd magma/lte/gateway "'
                   sh 'vagrant ssh magma -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"'
                 }
               }
@@ -154,8 +154,8 @@ pipeline {
               dir('lte/gateway') {
                 timeout(time: 10, unit: 'MINUTES') {
                   sh 'vagrant up --provider libvirt magma_test'
-                  sh 'vagrant ssh magma_test -c "cd magma/lte/gateway/python && make"'
-                  sh 'vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests && make"'
+                  sh 'vagrant ssh magma_test -c "cd magma/lte/gateway/python &&
+                  sh 'vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_test
                   sh 'vagrant ssh magma_test -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"'
                   sh 'vagrant ssh magma_test -c "cat /etc/hosts"'
                   sh 'vagrant ssh magma_test -c "echo \'127.0.1.1       magma-test.magma.com    magma-test\' | sudo tee --append /etc/hosts"'
@@ -187,7 +187,7 @@ pipeline {
                 }
                 
                 try {
-                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"'
+                  sh 'vagrant ssh magma -c "cd magma/lte/gateway && 
                 } catch (Exception e) {
                   test_results=1
                 }

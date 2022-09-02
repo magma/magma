@@ -1,5 +1,3 @@
-default: $(PYTHON_BUILD)/setupinteg_env
-
 include $(MAGMA_ROOT)/orc8r/gateway/python/python.mk
 include defs.mk
 

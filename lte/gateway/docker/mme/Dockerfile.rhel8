@@ -55,11 +55,9 @@ RUN yum install -y \
     wget \
     autoconf \
     automake \
-    make \
     bzip2 \
     libtool \
     curl \
-    make \
     unzip \
     git \
     git-clang-format \
