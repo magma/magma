@@ -15,7 +15,7 @@
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
 
-ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
+ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder

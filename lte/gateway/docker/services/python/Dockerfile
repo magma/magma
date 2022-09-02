@@ -18,7 +18,7 @@ ARG CPU_ARCH=x86_64
 ARG DEB_PORT=amd64
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
-ARG EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
+ARG EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian
 
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG CPU_ARCH
@@ -113,7 +113,7 @@ RUN cd /usr/local/bin && ln -s /usr/bin/python3 pytho && \
 
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 
-RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://artifactory.magmacore.org/artifactory/debian focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
