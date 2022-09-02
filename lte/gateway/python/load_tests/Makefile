@@ -10,6 +10,7 @@ define execute_test
 	sleep 1
 endef
 
+#Unclear if relevant for bazel
 .PHONY: load_test
 load_test:
 	. $(PYTHON_BUILD)/bin/activate
