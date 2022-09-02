@@ -27,6 +27,7 @@ constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
 constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
+constexpr char S1AP_STATE_UE_MAP[] = "s1ap_state_ue_map";
 }  // namespace
 
 using magma::lte::oai::UeDescription;
@@ -83,10 +84,18 @@ s1ap_state_t* create_s1ap_state(void) {
 
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state();
+  if (!state_cache_p) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to create s1ap state");
+    return;
+  }
 
-  bstring ht_name = bfromcstr(S1AP_ENB_COLL);
-  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
-  bdestroy(ht_name);
+  state_ue_map.map = new google::protobuf::Map<uint64_t, ue_description_s*>();
+  if (!(state_ue_map.map)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
+    return;
+  }
+  state_ue_map.set_name(S1AP_STATE_UE_MAP);
+  state_ue_map.bind_callback(free_cpp_wrapper);
 
   create_s1ap_imsi_map();
 }
@@ -135,9 +144,8 @@ void S1apStateManager::free_state() {
   free_s1ap_state(state_cache_p);
   state_cache_p = nullptr;
 
-  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
+  if (state_ue_map.destroy_map() != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying state_ue_map");
   }
   clear_s1ap_imsi_map();
 }
@@ -152,23 +160,27 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    auto* ue_context = (ue_description_t*)calloc(1, sizeof(ue_description_t));
+    auto* ue_context = new ue_description_t();
+    if (!ue_context) {
+      OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
+      return RETURNerror;
+    }
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
     S1apStateConverter::proto_to_ue(ue_proto, ue_context);
 
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        state_ue_ht, ue_context->comp_s1ap_id, (void*)ue_context);
-    if (HASH_TABLE_OK != h_rc) {
+    proto_map_rc_t rc =
+        state_ue_map.insert(ue_context->comp_s1ap_id, ue_context);
+    if (rc != PROTO_MAP_OK) {
       OAILOG_ERROR(
           log_task,
           "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
           ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
           ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
           ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
-          ue_context->mme_ue_s1ap_id, hashtable_rc_code2string(h_rc));
+          ue_context->mme_ue_s1ap_id, magma::map_rc_code2string(rc));
     } else {
       OAILOG_DEBUG(log_task,
                    "Inserted UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
@@ -224,6 +236,10 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
     redis_client->write_proto_str(S1AP_IMSI_MAP_TABLE_NAME, proto_msg, 0);
     this->s1ap_imsi_map_hash_ = new_hash;
   }
+}
+
+map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
+  return &state_ue_map;
 }
 
 }  // namespace lte
