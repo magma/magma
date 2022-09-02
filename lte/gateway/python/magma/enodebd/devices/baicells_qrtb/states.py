@@ -238,25 +238,10 @@ class BaicellsQRTBWaitInformRebootState(WaitInformMRebootState):
     INFORM_EVENT_CODE = '1 BOOT'
 
 
-class BaicellsQRTBNotifyDPState(EnodebAcsState):
+class BaicellsQRTBNotifyDPState(NotifyDPState):
     """
         BaicellsQRTB NotifyDPState implementation
     """
-
-    def __init__(
-        self,
-        acs: EnodebAcsStateMachine,
-        when_delete: str,
-        when_add: str,
-        when_set: str,
-        when_skip: str,
-    ):
-        super().__init__()
-        self.acs = acs
-        self.rm_obj_transition = when_delete
-        self.add_obj_transition = when_add
-        self.set_params_transition = when_set
-        self.skip_transition = when_skip
 
     def enter(self):
         """
@@ -283,41 +268,6 @@ class BaicellsQRTBNotifyDPState(EnodebAcsState):
             EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
 
         self._transition_into_next_state()
-
-    def _transition_into_next_state(self) -> None:
-        if len(
-            get_all_objects_to_delete(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
-        ) > 0:
-            self.acs.transition(self.rm_obj_transition)
-        elif len(
-            get_all_objects_to_add(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-            ),
-        ) > 0:
-            self.acs.transition(self.add_obj_transition)
-        elif len(
-            get_all_param_values_to_set(
-                self.acs.desired_cfg,
-                self.acs.device_cfg,
-                self.acs.data_model,
-            ),
-        ) > 0:
-            self.acs.transition(self.set_params_transition)
-        else:
-            self.acs.transition(self.skip_transition)
-
-    def state_description(self) -> str:
-        """
-        Describe the state
-
-        Returns:
-            str
-        """
-        return 'Notifying DP and immediately going into the next state.'
 
 
 def _qrtb_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:

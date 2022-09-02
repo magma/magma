@@ -1471,7 +1471,7 @@ class ErrorState(EnodebAcsState):
                'an Inform to be received from the eNB'
 
 
-class NotifyDPState(EnodebAcsState, ABC):
+class NotifyDPState(EnodebAcsState):
     """ Notify DP ...
 
     For Baicells QRTB we can expect an inform message on
@@ -1479,52 +1479,51 @@ class NotifyDPState(EnodebAcsState, ABC):
      """
 
     def __init__(
-            self,
-            acs: EnodebAcsStateMachine,
-            when_inform: str,
+        self,
+        acs: EnodebAcsStateMachine,
+        when_delete: str,
+        when_add: str,
+        when_set: str,
+        when_skip: str,
     ):
         super().__init__()
         self.acs = acs
-        self.inform_transition = when_inform
+        self.rm_obj_transition = when_delete
+        self.add_obj_transition = when_add
+        self.set_params_transition = when_set
+        self.skip_transition = when_skip
 
-    @abstractmethod
-    def enter(self):
+    def enter(self) -> None:
         """
         Perform additional actions on state enter
         """
-        pass
+        self._transition_into_next_state()
 
-    def read_msg(self, message: Any) -> AcsReadMsgResult:
-        """
-        Send an empty response if a device sends an empty HTTP message
-
-        If its an inform, try to process it. It could be a queued
-        inform or a periodic one.
-
-        Args:
-            message (Any): TR069 message
-
-        Returns:
-            AcsReadMsgResult
-        """
-        if isinstance(message, models.DummyInput):
-            return AcsReadMsgResult(msg_handled=True, next_state=None)
-        elif isinstance(message, models.Inform):
-            return AcsReadMsgResult(msg_handled=True, next_state=self.inform_transition)
-        return AcsReadMsgResult(msg_handled=False, next_state=None)
-
-    def get_msg(self, message: Any) -> AcsMsgAndTransition:
-        """
-        Send back a message to enb
-
-        Args:
-            message (Any): TR069 message
-
-        Returns:
-            AcsMsgAndTransition
-        """
-        request = models.DummyInput()
-        return AcsMsgAndTransition(msg=request, next_state=None)
+    def _transition_into_next_state(self) -> None:
+        if len(
+            get_all_objects_to_delete(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
+            self.acs.transition(self.rm_obj_transition)
+        elif len(
+            get_all_objects_to_add(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
+            self.acs.transition(self.add_obj_transition)
+        elif len(
+            get_all_param_values_to_set(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+                self.acs.data_model,
+            ),
+        ) > 0:
+            self.acs.transition(self.set_params_transition)
+        else:
+            self.acs.transition(self.skip_transition)
 
     def state_description(self) -> str:
         """
@@ -1533,4 +1532,4 @@ class NotifyDPState(EnodebAcsState, ABC):
         Returns:
             str
         """
-        return 'Notifying DP. Awaiting new Inform.'
+        return 'Notifying DP and immediately going into the next state.'
