@@ -333,6 +333,21 @@ def get_latest_apt_pkg_version(pkgname: str) -> Optional[str]:
     return package.candidate.version
 
 
+def get_apt_versions(pkgname: str) -> List[Any]:
+    """
+    Get a list of all versions available in our apt repo.
+    """
+    cache = apt.Cache()
+    sys_pkgname = gen_sys_package_name(pkgname)
+
+    try:
+        package = cache[sys_pkgname]
+    except KeyError:
+        # package isn't available
+        return []
+    return package.versions
+
+
 def gen_fpm_dep_string_from_lockfile(path: str) -> str:
     """
     Given the contents of a lockfile (as a string), return a string that can be
@@ -346,7 +361,7 @@ def gen_fpm_dep_string_from_lockfile(path: str) -> str:
     """
     lf = Lockfile.from_path(path)
     deps = []
-    for dep in lf.dependencies().values():
+    for dep in lf.dependencies.values():
         if dep['root']:
             syspkg = dep['sysdep']
             if syspkg in DEB_EPOCH:
@@ -400,6 +415,8 @@ class Lockfile(object):
         lf = json.loads(data) if data else dict()
         for release_name, release_deps in lf.items():
             self._releases[release_name] = ReleaseDependencies(release_name, release_deps)
+        if RELEASE not in self._releases:
+            self._releases[RELEASE] = ReleaseDependencies(RELEASE, dict())
 
     @staticmethod
     def lower_keys(d: Dict[str, Any]):
@@ -409,7 +426,7 @@ class Lockfile(object):
         return json.dumps(self.to_dict(), sort_keys=True, indent=2)
 
     def to_dict(self):
-        return {k: str(v) for k, v in self._releases.items()}
+        return {k: v.to_dict() for k, v in self._releases.items()}
 
     def root_packages(self):
         return self._releases[RELEASE].root_packages()
@@ -431,7 +448,7 @@ class Lockfile(object):
             lf.releases[release_name] = release_deps
 
         with open(path, 'w') as f:
-            f.write(str(lf.__str__()))
+            f.write(self.__str__())
             if lf.__str__()[-1] != "\n":
                 f.write("\n")
 
@@ -451,7 +468,7 @@ class Lockfile(object):
             return lf
 
     @classmethod
-    def from_dependencies(cls, root_package_names, dep_set, dep_source):
+    def from_dependencies(cls, dep_set):
         """
         Based on the root packages, produces a json description of
         the actual packages we depend on.
@@ -460,25 +477,26 @@ class Lockfile(object):
         could be possible to satisfy those deps from multiple sources. We
         resolve that here based on what's available in the apt repos.
         """
-        lf = cls()
-        for k in sorted(dep_set.keys()):
-            item = Dependency(k, root=k in root_package_names, source=dep_source[k],
-                              version=dep_set[k], sysdep=gen_sys_package_name(k))
-            lf.add_dependency(k, item)
-        return lf
+        release_dependencies = ReleaseDependencies(RELEASE, dep_set)
+        return cls.from_release_dependencies(release_dependencies)
+
+    @classmethod
+    def from_release_dependencies(cls, release_dependencies):
+        res = cls()
+        res._releases[RELEASE] = release_dependencies
+        return res
 
 
 class ReleaseDependencies:
-    def __init__(self, release, dependencies):
+    def __init__(self, release, dependencies: dict):
         self.release = release
         self.dependencies = dependencies
 
     def __str__(self):
-        output = {d.name: d.to_dict() for d in self.dependencies}
-        return json.dumps(output, sort_keys=True, indent=2)
+        return json.dumps(self.to_dict(), sort_keys=True, indent=2)
 
     def to_dict(self):
-        return {"release": self.release, "dependencies": self.dependencies}
+        return {key: dep.to_dict() for key, dep in self.dependencies.items()}
 
     def add_dependency(self, name, dependency):
         self.dependencies[name.lower()] = dependency
@@ -755,7 +773,6 @@ def tmpvirtualenv():
 
 def gen_pip_distributions(
         root_requirements: List[pkg_resources.Requirement],
-        existing_versions: Optional[Dict[str, str]] = None,
         venv: Optional[callable] = None) -> Dict[str, pkg_resources.Distribution]:
     """
     Recursively get the dependency tree for a given package.
@@ -765,30 +782,7 @@ def gen_pip_distributions(
     """
     if not venv:
         raise ValueError('must supply valid virtualenv command (see tmpvirtualenv)')
-    if not existing_versions:
-        existing_versions = {}
-    selected_versions = copy.copy(existing_versions)
-    new_requirements = []  # type: List[pkg_resources.Requirement]
-
-    for req in root_requirements:
-        log.info(req)
-        pkg = req.key
-        version = selected_versions.get(pkg)
-        if version and version not in req:
-            # new version requirement not satisfied by existing version
-            # obeying specific instructions -- existing_versions may be
-            # inconsistent and need editing before this process succeeds
-            del selected_versions[pkg]
-            new_requirements.append(req)
-        elif not version:
-            new_requirements.append(req)
-        # else: existing version is fine, do nothing
-
-    args = ([shlex.quote(str(r)) for r in sorted(new_requirements,
-                                                 key=lambda r: str(r))]
-            + [shlex.quote('{}=={}'.format(str(key), ver))
-               for key, ver in sorted(selected_versions.items(),
-                                      key=lambda item: item[0])])
+    args = ([shlex.quote(str(r)) for r in sorted(root_requirements, key=lambda r: str(r))])
     log.debug(args)
 
     # clean up from any previous runs
@@ -813,60 +807,19 @@ def gen_pip_distributions(
     return pip_distributions
 
 
-def gen_dep_sources(dep_set: Dict[str, Optional[str]],
-                    pypi_only: bool = True) -> Dict[str, str]:
-    """
-    Given a populated `dep_set`, figure out where we can get
-    the dependencies from. This function returns a dictionary that contains the
-    dependency name and the source, e.g. {"urllib": "pypi"}.
-
-    1. Check if `pypi_only` is set to True. Set "pypi" for all dependencies then.
-    2. For each package in `dep_set`, try to get the latest apt version.
-    3. If the latest apt version is the same as the one specified in `dep_set`,
-       then just use the latest.
-    4. Else check if apt can satisfy with a newer version.
-    5. If apt can not satisfy, fall back to pypi.
-
-    Args:
-        dep_set: The dict of dependencies and versions.
-        pypi_only: If given, always write "pypi" as source for every dependency.
-    """
-    if pypi_only:
-        return {k: "pypi" for k in dep_set}
-
-    dep_source = {}  # type: Dict[str, str]
-    for pkg, ver in dep_set.items():
-        # check if apt can satisfy the version
-        apt_ver = get_latest_apt_pkg_version(pkg)
-        if apt_ver:
-            # if the requirement is an apt version, pkg_resources may not
-            # be able to parse it. so first, we check if it's identical
-            # (which must be the case if we decided on a apt package).
-            if ver == apt_ver:
-                dep_source[pkg] = "apt"
-                continue
-
-            # else, the req is a pypi one, but check if apt can satisfy
-            req = pkg_resources.Requirement.parse("{}>={}".format(pkg, ver))
-            if apt_ver in req:
-                # we can satisfy the req w/ the apt ver. use it.
-                dep_source[pkg] = "apt"
-                continue
-
-        # if it can't, we fall back to pypi.
-        dep_source[pkg] = "pypi"
-    return dep_source
+def gen_dep_sources(dep_set: Dict[str, Optional[str]]) -> Dict[str, str]:
+    return {k: "pypi" for k in dep_set}  # type: Dict[str, str]
 
 
 def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
-              dep_source: Dict[str, str],
+              dep_set: Dict[str, Dependency],
               build_output: Optional[str] = None) -> None:
     """
     Build all pip distributions into debian packages.
     """
     for p in pip_distributions:
         # contents of PIP_BLACKLIST were excluded from dep_source
-        if p not in PIP_BLACKLIST and dep_source.get(p) == "pypi":
+        if p not in PIP_BLACKLIST and dep_set.get(p).source == "pypi":
             py_to_deb(p, pip_distributions,
                       version=pip_distributions[p].version,
                       build_output=build_output)
@@ -938,11 +891,7 @@ def split_input_root_requirements(
     root_requirements = []  # type: List[pkg_resources.Requirement]
     repo_installable = []  # type: List[pkg_resources.Requirement]
     for req in input_root_requirements:
-        repo_version = get_latest_apt_pkg_version(req.key)
-        if repo_version and repo_version in req:
-            repo_installable.append(req)
-        else:
-            root_requirements.append(req)
+        root_requirements.append(req)
     return repo_installable, root_requirements
 
 
@@ -1016,57 +965,50 @@ def main(args):
         print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
         sys.exit(0)
 
-    repo_installable, root_requirements = split_input_root_requirements(input_root_requirements)
-
-    repo_pkgs = [gen_sys_package_name(p.key) for p in repo_installable]
-    if args.install_from_repo:
-        try:
-            # If apt packages are installed over existing pip packages
-            # then side effects can occur - see GH13075.
-            # Approach: remove existing pip packages before apt install
-            pip_packages = [req.key for req in repo_installable]
-            subprocess.call(shlex.split('sudo pip3 uninstall -y '
-                                        + ' '.join(pip_packages)))
-            subprocess.call(shlex.split('sudo apt reinstall -y '
-                                        + ' '.join(repo_pkgs)))
-        except Exception:
-            log.error('error trying to install repo packages')
-            raise
-
-    lf = Lockfile.from_path(args.lockfile)
-    deps = lf.dependencies()
-    existing_versions = {}  # type: Dict[str, str]
-    for key in deps:
-        if deps[key]['source'] == 'pypi':
-            try:
-                ver = cast(str, deps[key]['version'])
-                existing_versions[key] = ver
-            except KeyError as e:
-                log.error('{} missing key: {}'.format(key, e))
-
-    log.debug(deps)
+    # repo_pkgs = [gen_sys_package_name(p.key) for p in input_root_requirements]
+    # if args.install_from_repo:
+    #     try:
+    #         # If apt packages are installed over existing pip packages
+    #         # then side effects can occur - see GH13075.
+    #         # Approach: remove existing pip packages before apt install
+    #         pip_packages = [req.key for req in input_root_requirements]
+    #         subprocess.call(shlex.split('sudo pip3 uninstall -y '
+    #                                     + ' '.join(pip_packages)))
+    #         subprocess.call(shlex.split('sudo apt reinstall -y '
+    #                                     + ' '.join(repo_pkgs)))
+    #     except Exception:
+    #         log.error('error trying to install repo packages')
+    #         raise
 
     with tmpvirtualenv() as venv:
-        pip_distributions = gen_pip_distributions(root_requirements,
-                                                  existing_versions=existing_versions,
-                                                  venv=venv)
-        required_distributions = get_required_distributions(root_requirements=root_requirements,
+        pip_distributions = gen_pip_distributions(input_root_requirements, venv)
+        required_distributions = get_required_distributions(root_requirements=input_root_requirements,
                                                             pip_distributions=pip_distributions)
 
-    dep_set = {p.key: p.version for p in required_distributions.values()
-               if p.key not in PIP_BLACKLIST}
+    root_requirement_names = [req.key for req in input_root_requirements]
+    log.info(root_requirement_names)
 
-    dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi)
+    dep_set = {k.key: Dependency(name=k.key, version=k.version, source='pypi', sysdep=gen_sys_package_name(k.key),
+                                 root=k.key in root_requirement_names)
+               for k in required_distributions.values() if k.key not in PIP_BLACKLIST}
 
-    root_package_names = {rr.key for rr in root_requirements}
-    Lockfile.from_dependencies(root_package_names, dep_set, dep_source).save(args.lockfile)
+    for k in dep_set:
+        apt_versions = get_apt_versions(k)
+        if dep_set[k].version in apt_versions:
+            dep_set[k].source = 'apt'
 
+    for k, dep in dep_set.items():
+        log.info(k)
+        log.info(dep)
+        log.info("")
+
+    Lockfile.from_dependencies(dep_set).save(args.lockfile)
     if args.build:
-        build_all(pip_distributions, dep_source, build_output=args.build_output)
+        build_all(pip_distributions, dep_set, build_output=args.build_output)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
+    logging.basicConfig(stream=sys.stderr, level=logging.WARNING,  # noqa
                         format='{asctime} [{levelname:5}] {name}:{funcName}:{lineno} {msg}',
                         style='{}'[0])
     parser = argparse.ArgumentParser("pydep")
