@@ -40,6 +40,7 @@ import glob
 import hashlib
 import json
 import logging
+import lsb_release
 import os
 import pickle
 import re
@@ -81,19 +82,7 @@ DEB_EPOCH = {
     'python3-oslo.config': 1,
 }
 
-
-def os_release():
-    # copied from third_party/build/build.py
-    # FIXME: should be a magma python library for this kind of thing
-    release_info = {}
-    with open('/etc/os-release', 'r') as f:
-        for line in f:
-            try:
-                k, v = line.rstrip().split('=')
-                release_info[k] = v.strip('"')
-            except Exception:
-                pass
-    return release_info
+RELEASE = lsb_release.get_os_release()['CODENAME']
 
 
 def _md5sum(filename: str) -> str:
@@ -344,7 +333,7 @@ def get_latest_apt_pkg_version(pkgname: str) -> Optional[str]:
     return package.candidate.version
 
 
-def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
+def gen_fpm_dep_string_from_lockfile(path: str) -> str:
     """
     Given the contents of a lockfile (as a string), return a string that can be
     passed to fpm to list dependencies (e.g., '-d python3-foo>=1.0 -d
@@ -353,11 +342,11 @@ def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
     We always do >= deps to make upgrades easier.
 
     Args:
-        lockfile_str: Path to the lockfile
+        path: Lockfile
     """
-    lockfile = Lockfile(data=lockfile_str)
+    lf = Lockfile.from_path(path)
     deps = []
-    for dep in lockfile.dependencies().values():
+    for dep in lf.dependencies().values():
         if dep['root']:
             syspkg = dep['sysdep']
             if syspkg in DEB_EPOCH:
@@ -404,93 +393,114 @@ class Lockfile(object):
 
     Args:
         data: The lockfile data formatted as json string.
-        reference_lockfile: The reference lockfile as lockfile object.
-            If no data and reference lockfile are given try to use a
-            default lockfile.
     """
-    _default_release = 'stretch'
 
-    def __init__(self, data: Optional[str] = None, reference_lockfile: Optional[Lockfile] = None):
-        release_info = os_release()
-        if 'VERSION_CODENAME' not in release_info:
-            log.warning('missing expected key VERSION_CODENAME in /etc/os-release')
-            log.warning('dependencies may not be generated correctly')
-        self._release = release_info.get('VERSION_CODENAME', self._default_release)
-        default_reference_lockfile = "./release/magma.lockfile.{}".format(self._release)
+    def __init__(self, data: Optional[str] = None):
+        self._releases = dict()
+        lf = json.loads(data) if data else dict()
+        for release_name, release_deps in lf.items():
+            self._releases[release_name] = ReleaseDependencies(release_name, release_deps)
 
-        if data is None and reference_lockfile is None:
-            try:
-                with open(default_reference_lockfile, "r") as rf:
-                    log.info("Reading default reference lockfile.".format(default_reference_lockfile))
-                    reference_lockfile = Lockfile(data=rf.read())
-            except FileNotFoundError as e:
-                log.error(e)
-                log.info("Default lockfile {} not found. Using empty reference lockfile instead."
-                         .format(default_reference_lockfile))
-
-        def lower_keys(d: Dict[str, Any]):
-            return {k.lower(): v for k, v in d.items()}
-
-        if data:
-            lockfile = json.loads(data)
-            self._root_packages = lower_keys(lockfile['root_packages'])
-            self._dependencies = lower_keys(lockfile['dependencies'])
-            self._override = lower_keys(lockfile.get('override', {}))
-        elif reference_lockfile:
-            self._root_packages = copy.copy(reference_lockfile._root_packages)
-            self._dependencies = copy.copy(reference_lockfile._dependencies)
-            self._override = copy.copy(reference_lockfile._override)
-        else:
-            self._root_packages = {}
-            self._dependencies = {}
-            self._override = {}
-
-        if self._release != self._default_release and self._release not in self._override:
-            self._override[self._release] = {'root_packages': {}, 'dependencies': {}}
+    @staticmethod
+    def lower_keys(d: Dict[str, Any]):
+        return {k.lower(): v for k, v in d.items()}
 
     def __str__(self):
-        output = {}
-        output['root_packages'] = self._root_packages
-        output['dependencies'] = self._dependencies
-        output['override'] = self._override
-        return json.dumps(output, sort_keys=True, indent=2)
+        return json.dumps(self.to_dict(), sort_keys=True, indent=2)
+
+    def to_dict(self):
+        return {k: str(v) for k, v in self._releases.items()}
 
     def root_packages(self):
-        output = copy.copy(self._root_packages)
-        if self._release != self._default_release:
-            output.update(copy.copy(self._override[self._release]['root_packages']))
-        return output
+        return self._releases[RELEASE].root_packages()
 
+    @property
     def dependencies(self):
-        output = copy.copy(self._dependencies)
-        if self._release != self._default_release:
-            output.update(copy.copy(self._override[self._release]['dependencies']))
-        return output
+        return copy.copy(self._releases[RELEASE].dependencies)
 
-    def add_root_package(self, pkgname, pkginfo):
-        pkgname = pkgname.lower()
-        if self._release == self._default_release:
-            self._root_packages[pkgname] = pkginfo
-        else:
-            default_info = self._root_packages.get(pkgname)
-            if default_info and default_info == pkginfo:
-                # incoming pkginfo is the same as default_info -- no need to override
-                pass
-            else:
-                self._override[self._release]['root_packages'][pkgname] = pkginfo
-        return
+    def add_dependency(self, name, dependency):
+        self._releases[RELEASE].add_dependency(name, dependency)
 
-    def add_dependency(self, pkgname, depinfo):
-        pkgname = pkgname.lower()
-        if self._release == self._default_release:
-            self._dependencies[pkgname] = depinfo
-        else:
-            default_info = self._dependencies.get(pkgname)
-            if default_info and default_info == depinfo:
-                # incoming pkginfo is the same as default_info -- no need to override
-                pass
-            else:
-                self._override[self._release]['dependencies'][pkgname] = depinfo
+    @property
+    def releases(self):
+        return self._releases
+
+    def save(self, path):
+        lf = Lockfile.from_path(path)
+        for release_name, release_deps in self.releases.items():
+            lf.releases[release_name] = release_deps
+
+        with open(path, 'w') as f:
+            f.write(str(lf.__str__()))
+            if lf.__str__()[-1] != "\n":
+                f.write("\n")
+
+    @classmethod
+    def from_path(cls, path):
+        """
+        Safely tries to read in lockfile from a given path.
+        """
+        lf = cls()
+        try:
+            with open(path, 'r') as r:
+                lf = cls(data=r.read())
+        except FileNotFoundError:
+            log.error("Lockfile not found: {}".format(args.lockfile))
+            log.info("Use empty lockfile instead.")
+        finally:
+            return lf
+
+    @classmethod
+    def from_dependencies(cls, root_package_names, dep_set, dep_source):
+        """
+        Based on the root packages, produces a json description of
+        the actual packages we depend on.
+
+        The dependency set is a list of packages that we depend on, but it
+        could be possible to satisfy those deps from multiple sources. We
+        resolve that here based on what's available in the apt repos.
+        """
+        lf = cls()
+        for k in sorted(dep_set.keys()):
+            item = Dependency(k, root=k in root_package_names, source=dep_source[k],
+                              version=dep_set[k], sysdep=gen_sys_package_name(k))
+            lf.add_dependency(k, item)
+        return lf
+
+
+class ReleaseDependencies:
+    def __init__(self, release, dependencies):
+        self.release = release
+        self.dependencies = dependencies
+
+    def __str__(self):
+        output = {d.name: d.to_dict() for d in self.dependencies}
+        return json.dumps(output, sort_keys=True, indent=2)
+
+    def to_dict(self):
+        return {"release": self.release, "dependencies": self.dependencies}
+
+    def add_dependency(self, name, dependency):
+        self.dependencies[name.lower()] = dependency
+
+    def root_packages(self):
+        return {dep: info['version'] for dep, info in self.dependencies if dep['root']}
+
+
+class Dependency:
+
+    def __init__(self, name, root=False, source=None, sysdep=None, version=None):
+        self.name = name
+        self.root = root
+        self.source = source
+        self.sysdep = sysdep
+        self.version = version
+
+    def __str__(self):
+        return json.dumps(self.to_dict(), sort_keys=True, indent=2)
+
+    def to_dict(self):
+        return {"root": self.root, "source": self.source, "sysdep": self.sysdep, "version": self.version}
 
 
 @contextlib.contextmanager
@@ -782,9 +792,8 @@ def gen_pip_distributions(
     log.debug(args)
 
     # clean up from any previous runs
-    release_info = os_release()
     extra_args = []
-    if release_info.get('VERSION_CODENAME', '') == 'stretch':
+    if RELEASE == 'stretch':
         extra_args.append('--use-feature=2020-resolver')
 
     # install all packages to populate pkg_resources.working_set
@@ -849,37 +858,6 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
     return dep_source
 
 
-def lockfile(root_packages: Dict[str, Dict[str, str]],
-             dep_set: Dict[str, Optional[str]],
-             dep_source: Dict[str, str],
-             py2: bool = False,
-             reference_lockfile: Optional[Lockfile] = None) -> str:
-    """
-    Based on the root packages, produces a json description of
-    the actual packages we depend on.
-
-    The dependency set is a list of packages that we depend on, but it
-    could be possible to satisfy those deps from multiple sources. We
-    resolve that here based on what's available in the apt repos.
-    """
-    lf = Lockfile(reference_lockfile=reference_lockfile)
-
-    root_package_names = set(root_packages.keys())
-    for pkgname, pkginfo in root_packages.items():
-        lf.add_root_package(pkgname, pkginfo)
-
-    for k in sorted(dep_set.keys()):
-        item = {
-            "version": dep_set[k],
-            "source": dep_source[k],
-            "root": (k in root_package_names),
-            "sysdep": gen_sys_package_name(k, py2)
-        }
-        lf.add_dependency(k, item)
-
-    return str(lf)
-
-
 def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
               dep_source: Dict[str, str],
               build_output: Optional[str] = None) -> None:
@@ -892,16 +870,6 @@ def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
             py_to_deb(p, pip_distributions,
                       version=pip_distributions[p].version,
                       build_output=build_output)
-
-
-def save_lockfile(lockfilename: str, lockfilecontent: str) -> None:
-    """
-    Save a lockfile string into a file.
-    """
-    with open(lockfilename, "w") as f:
-        f.write(lockfilecontent)
-        if lockfilecontent[-1] != "\n":
-            f.write("\n")
 
 
 def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
@@ -976,20 +944,6 @@ def split_input_root_requirements(
         else:
             root_requirements.append(req)
     return repo_installable, root_requirements
-
-
-def get_lockfile(lockfile_path: str) -> Lockfile:
-    """
-    Safely tries to read in lockfile from a given path.
-    """
-    try:
-        with open(lockfile_path, 'r') as r:
-            lf = Lockfile(data=r.read())
-    except FileNotFoundError:
-        log.error("Lockfile not found: {}".format(args.lockfile))
-        log.info("Use default reference lockfile instead.")
-        lf = Lockfile()
-    return lf
 
 
 def get_required_distributions(root_requirements: List[pkg_resources.Requirement],
@@ -1079,7 +1033,7 @@ def main(args):
             log.error('error trying to install repo packages')
             raise
 
-    lf = get_lockfile(lockfile_path=args.lockfile)
+    lf = Lockfile.from_path(args.lockfile)
     deps = lf.dependencies()
     existing_versions = {}  # type: Dict[str, str]
     for key in deps:
@@ -1104,13 +1058,8 @@ def main(args):
 
     dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi)
 
-    root_versions = {k: {'version': pip_distributions[k].version}
-                     for k in [rr.key for rr in root_requirements]}
-    log.debug(root_versions)
-
-    save_lockfile(args.lockfile, lockfile(root_versions, dep_set,
-                                          dep_source, py2=args.use_py2,
-                                          reference_lockfile=lf))
+    root_package_names = {rr.key for rr in root_requirements}
+    Lockfile.from_dependencies(root_package_names, dep_set, dep_source).save(args.lockfile)
 
     if args.build:
         build_all(pip_distributions, dep_source, build_output=args.build_output)
@@ -1154,9 +1103,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if "lockfile_path" in args and args.lockfile_path:
         # generate the string and return
-        with open(args.lockfile_path, "r") as f:
-            print(gen_fpm_dep_string_from_lockfile(f.read()))
-            exit(0)
+        print(gen_fpm_dep_string_from_lockfile(args.lockfile_path))
+        exit(0)
 
     log.setLevel(getattr(logging, args.log_level.upper()))
     sys.exit(main(args))
