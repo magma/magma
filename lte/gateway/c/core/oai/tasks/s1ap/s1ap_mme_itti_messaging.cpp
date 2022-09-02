@@ -371,7 +371,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
 
 status_code_e s1ap_mme_itti_s1ap_handover_notify(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const magma::lte::oai::S1apHandoverState handover_state,
+    const oai::S1apHandoverState handover_state,
     const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,
     const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
     imsi64_t imsi64) {
@@ -393,7 +393,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
   e_rab_admitted_list->no_of_items =
       handover_state.e_rab_admitted_list().no_of_items();
   for (int idx = 0; idx < e_rab_admitted_list->no_of_items; idx++) {
-    const magma::lte ::oai ::ERabAdmittedItem& proto_e_rab_item =
+    const oai::ERabAdmittedItem& proto_e_rab_item =
         handover_state.e_rab_admitted_list().item(idx);
     e_rab_admitted_list->item[idx].e_rab_id = proto_e_rab_item.e_rab_id();
     e_rab_admitted_list->item[idx].transport_layer_address =

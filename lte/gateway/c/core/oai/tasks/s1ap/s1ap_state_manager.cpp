@@ -30,8 +30,6 @@ constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 constexpr char S1AP_STATE_UE_MAP[] = "s1ap_state_ue_map";
 }  // namespace
 
-using magma::lte::oai::UeDescription;
-
 namespace magma {
 namespace lte {
 
@@ -89,8 +87,7 @@ void S1apStateManager::create_state() {
     return;
   }
 
-  state_ue_map.map =
-      new google::protobuf::Map<uint64_t, magma::lte::oai::UeDescription*>();
+  state_ue_map.map = new google::protobuf::Map<uint64_t, oai::UeDescription*>();
   if (!(state_ue_map.map)) {
     OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
     return;
@@ -160,8 +157,8 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
-    UeDescription ue_proto = UeDescription();
-    auto* ue_context = new UeDescription();
+    oai::UeDescription ue_proto = oai::UeDescription();
+    auto* ue_context = new oai::UeDescription();
     if (!ue_context) {
       OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
       return RETURNerror;

@@ -17,23 +17,20 @@
  */
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 
-using magma::lte::oai::EnbDescription;
-using magma::lte::oai::S1apState;
-using magma::lte::oai::UeDescription;
-
 namespace magma {
 namespace lte {
 
 S1apStateConverter::~S1apStateConverter() = default;
 S1apStateConverter::S1apStateConverter() = default;
 
-void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
+void S1apStateConverter::state_to_proto(s1ap_state_t* state,
+                                        oai::S1apState* proto) {
   proto->Clear();
 
   // copy over enbs
   state_map_to_proto<map_uint32_enb_description_t, enb_description_t,
-                     EnbDescription>(state->enbs, proto->mutable_enbs(),
-                                     enb_to_proto, LOG_S1AP);
+                     oai::EnbDescription>(state->enbs, proto->mutable_enbs(),
+                                          enb_to_proto, LOG_S1AP);
 
   // copy over mmeid2associd
   mme_ue_s1ap_id_t mmeid;
@@ -56,9 +53,9 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   proto->set_num_enbs(state->num_enbs);
 }
 
-void S1apStateConverter::proto_to_state(const S1apState& proto,
+void S1apStateConverter::proto_to_state(const oai::S1apState& proto,
                                         s1ap_state_t* state) {
-  proto_to_state_map<map_uint32_enb_description_t, EnbDescription,
+  proto_to_state_map<map_uint32_enb_description_t, oai::EnbDescription,
                      enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
                                         LOG_S1AP);
 
