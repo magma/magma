@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_S1AP_MME_HANDLERS_SEEN
-#define FILE_S1AP_MME_HANDLERS_SEEN
+#pragma once
+
 #include <stdbool.h>
 
 #include "S1ap_Cause.h"
@@ -26,6 +26,9 @@
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
+
+namespace magma {
+namespace lte {
 
 #define MAX_NUM_PARTIAL_S1_CONN_RESET 256
 
@@ -225,4 +228,6 @@ status_code_e s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id_t enb_ue_s1ap_id,
 status_code_e s1ap_send_mme_ue_context_release(
     s1ap_state_t* state, magma::lte::oai::UeDescription* ue_ref_p,
     enum s1cause s1_release_cause, S1ap_Cause_t ie_cause, imsi64_t imsi64);
-#endif /* FILE_S1AP_MME_HANDLERS_SEEN */
+
+}  // namespace lte
+}  // namespace magma

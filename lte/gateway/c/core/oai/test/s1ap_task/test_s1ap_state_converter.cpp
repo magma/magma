@@ -28,7 +28,6 @@ using ::testing::Test;
 
 namespace magma {
 namespace lte {
-using oai::UeDescription;
 
 class S1APStateConverterTest : public ::testing::Test {
   void SetUp() {
@@ -128,9 +127,9 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
 }
 
 TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
-  UeDescription* ue = new UeDescription();
+  oai::UeDescription* ue = new oai::UeDescription();
   EXPECT_TRUE(ue != nullptr);
-  UeDescription* final_ue = new UeDescription();
+  oai::UeDescription* final_ue = new oai::UeDescription();
   EXPECT_TRUE(final_ue != nullptr);
 
   // filling with test values

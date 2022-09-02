@@ -83,11 +83,13 @@ extern "C" {
 
 #define EXT_UE_AMBR_UL 10000000000
 #define EXT_UE_AMBR_DL 10000000000
+
+namespace magma {
+namespace lte {
+
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
-
-using magma::lte::oai::UeDescription;
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
                                                  const sctp_assoc_id_t assoc_id,
@@ -96,7 +98,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
   S1ap_InitialUEMessage_t* container = NULL;
   S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi = NULL, *ie_csg_id = NULL,
                               *ie_gummei = NULL, *ie_cause = NULL;
-  UeDescription* ue_ref = nullptr;
+  oai::UeDescription* ue_ref = nullptr;
   enb_description_t* eNB_ref = NULL;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
 
@@ -136,7 +138,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
       enb_ue_s1ap_id, eNB_ref->sctp_assoc_id);
   ue_ref = s1ap_state_get_ue_enbid(eNB_ref->sctp_assoc_id, enb_ue_s1ap_id);
 
-  if (ue_ref == NULL) {
+  if (ue_ref == nullptr) {
     tai_t tai = {0};
     gummei_t gummei = {0};
     s_tmsi_t s_tmsi = {.mme_code = 0, .m_tmsi = INVALID_M_TMSI};
@@ -149,7 +151,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
      * * * * Update eNB UE list.
      * * * * Forward message to NAS.
      */
-    if ((ue_ref = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == NULL) {
+    if ((ue_ref = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == nullptr) {
       // If we failed to allocate a new UE return -1
       OAILOG_ERROR(LOG_S1AP,
                    "Initial UE Message- Failed to allocate S1AP UE Context, "
@@ -281,7 +283,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UplinkNASTransport_t* container = NULL;
   S1ap_UplinkNASTransport_IEs_t *ie, *ie_nas_pdu = NULL;
-  UeDescription* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   enb_description_t* enb_ref = NULL;
   tai_t tai = {0};
   ecgi_t ecgi = {.plmn = {0}, .cell_identity = {0}};
@@ -395,7 +397,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
                                                S1ap_S1AP_PDU_t* pdu) {
   S1ap_NASNonDeliveryIndication_t* container;
   S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu = NULL;
-  UeDescription* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   imsi64_t imsi64 = INVALID_IMSI64;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
@@ -445,7 +447,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
                 " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
                 mme_ue_s1ap_id, enb_ue_s1ap_id);
 
-  if ((ue_ref = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+  if ((ue_ref = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == nullptr) {
     OAILOG_DEBUG(LOG_S1AP,
                  "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
                  "\n",
@@ -476,7 +478,7 @@ status_code_e s1ap_generate_downlink_nas_transport(
     s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
     const imsi64_t imsi64, bool* is_state_same) {
-  UeDescription* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   uint32_t sctp_assoc_id = 0;
@@ -605,7 +607,7 @@ status_code_e s1ap_generate_downlink_nas_transport(
 status_code_e s1ap_generate_s1ap_e_rab_setup_req(
     s1ap_state_t* state, itti_s1ap_e_rab_setup_req_t* const e_rab_setup_req) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  UeDescription* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   uint32_t sctp_assoc_id = 0;
@@ -847,7 +849,7 @@ void s1ap_handle_conn_est_cnf(
   uint8_t* buffer_p = NULL;
   uint8_t err = 0;
   uint32_t length = 0;
-  UeDescription* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   S1ap_InitialContextSetupRequest_t* out;
   S1ap_InitialContextSetupRequestIEs_t* ie = NULL;
   S1ap_UEAggregate_MaximumBitrates_ExtIEs_t* ie_ambrext = NULL;
@@ -1189,7 +1191,7 @@ void s1ap_handle_mme_ue_id_notification(
 
   enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   if (enb_ref) {
-    UeDescription* ue_ref =
+    oai::UeDescription* ue_ref =
         s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
     if (ue_ref) {
       if (enb_ref->s1_state == S1AP_RESETING) {
@@ -1233,7 +1235,7 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
     s1ap_state_t* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  UeDescription* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   uint32_t id = 0;
@@ -1369,3 +1371,6 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
+
+}  // namespace lte
+}  // namespace magma

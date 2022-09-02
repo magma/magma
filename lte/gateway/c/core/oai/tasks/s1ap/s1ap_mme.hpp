@@ -46,6 +46,9 @@ extern "C" {
 #endif
 extern bool hss_associated;
 
+namespace magma {
+namespace lte {
+
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
  **/
@@ -74,3 +77,6 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref);
 void free_enb_description(void** ptr);
 
 void free_ue_description(void** ptr);
+
+}  // namespace lte
+}  // namespace magma

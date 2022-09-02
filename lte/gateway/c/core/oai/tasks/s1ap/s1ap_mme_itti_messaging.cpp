@@ -40,6 +40,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
+namespace magma {
+namespace lte {
+
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
                                               const sctp_assoc_id_t assoc_id,
@@ -403,3 +406,6 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
+
+}  // namespace lte
+}  // namespace magma

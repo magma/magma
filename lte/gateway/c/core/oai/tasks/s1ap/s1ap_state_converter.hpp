@@ -18,15 +18,12 @@
 
 #pragma once
 
+#include <cstdint>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <cstdint>
-
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-
 #ifdef __cplusplus
 }
 #endif

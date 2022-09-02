@@ -57,12 +57,15 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
+bool hss_associated = false;
+namespace magma {
+namespace lte {
+
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
 static size_t epc_stats_timer_sec = 60;
 
-bool hss_associated = false;
 static int indent = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
 
@@ -70,7 +73,7 @@ bool s1ap_congestion_control_enabled = true;
 long s1ap_last_msg_latency = 0;
 long s1ap_zmq_th = LONG_MAX;
 
-using magma::lte::oai::UeDescription;
+static void s1ap_mme_exit(void);
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void) {
   // Create and alloc new message
@@ -357,7 +360,7 @@ extern "C" status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
 }
 
 //------------------------------------------------------------------------------
-void s1ap_mme_exit(void) {
+static void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
   stop_timer(&s1ap_task_zmq_ctx, epc_stats_timer_id);
 
@@ -396,15 +399,15 @@ enb_description_t* s1ap_new_enb(void) {
 }
 
 //------------------------------------------------------------------------------
-UeDescription* s1ap_new_ue(s1ap_state_t* state,
-                           const sctp_assoc_id_t sctp_assoc_id,
-                           enb_ue_s1ap_id_t enb_ue_s1ap_id) {
+oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
+                                const sctp_assoc_id_t sctp_assoc_id,
+                                enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   enb_description_t* enb_ref = NULL;
-  UeDescription* ue_ref = nullptr;
+  oai::UeDescription* ue_ref = nullptr;
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
-  ue_ref = new UeDescription();
+  ue_ref = new oai::UeDescription();
   /*
    * Something bad happened during memory allocation...
    * * * * May be we are running out of memory.
@@ -413,7 +416,7 @@ UeDescription* s1ap_new_ue(s1ap_state_t* state,
   if (ue_ref == nullptr) {
     OAILOG_ERROR(LOG_S1AP,
                  "Failed to allocate memory for protobuf object UeDescription");
-    return NULL;
+    return nullptr;
   }
   ue_ref->set_sctp_assoc_id(sctp_assoc_id);
   ue_ref->set_enb_ue_s1ap_id(enb_ue_s1ap_id);
@@ -423,7 +426,7 @@ UeDescription* s1ap_new_ue(s1ap_state_t* state,
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
   if (s1ap_ue_state == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
-    return NULL;
+    return nullptr;
   }
   magma::proto_map_rc_t rc =
       s1ap_ue_state->insert(ue_ref->comp_s1ap_id(), ue_ref);
@@ -432,7 +435,7 @@ UeDescription* s1ap_new_ue(s1ap_state_t* state,
     OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
                  magma::map_rc_code2string(rc));
     free_cpp_wrapper(reinterpret_cast<void**>(&ue_ref));
-    return NULL;
+    return nullptr;
   }
   // Increment number of UE
   enb_ref->nb_ue_associated++;
@@ -442,11 +445,11 @@ UeDescription* s1ap_new_ue(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_ue(s1ap_state_t* state, UeDescription* ue_ref) {
+void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
   enb_description_t* enb_ref = NULL;
 
   // NULL reference...
-  if (ue_ref == NULL) return;
+  if (ue_ref == nullptr) return;
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id();
   enb_ref = s1ap_state_get_enb(state, ue_ref->sctp_assoc_id());
@@ -524,3 +527,6 @@ static void start_stats_timer(void) {
       start_timer(&s1ap_task_zmq_ctx, 1000 * epc_stats_timer_sec,
                   TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
 }
+
+}  // namespace lte
+}  // namespace magma
