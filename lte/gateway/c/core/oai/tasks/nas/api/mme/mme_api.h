@@ -172,15 +172,20 @@ status_code_e mme_api_subscribe(bstring* apn,
                                 bstring* pdn_addr, int is_emergency,
                                 mme_api_qos_t* qos);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void mme_ue_context_update_ue_emm_state(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                         mm_state_t new_emm_state);
 
+bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
+#ifdef __cplusplus
+}
+#endif
 bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                                bool vlr_reliable);
-
-bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                        bool neaf);
