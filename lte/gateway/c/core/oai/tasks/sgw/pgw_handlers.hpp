@@ -22,8 +22,8 @@
  * \email: lionel.gauthier@eurecom.fr
  */
 
-#ifndef FILE_PGW_HANDLERS_SEEN
-#define FILE_PGW_HANDLERS_SEEN
+#pragma once
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
@@ -65,5 +65,3 @@ status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* FILE_PGW_HANDLERS_SEEN */

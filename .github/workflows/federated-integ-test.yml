@@ -95,11 +95,11 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest vagrant-scp
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-scp
       - name: Vagrant Host prerequisites for federated integ test
         run: |
           cd ${{ env.AGW_ROOT }} && fab open_orc8r_port_in_vagrant
-          cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/ && touch snowflake
+          cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
           cd ${{ env.MAGMA_ROOT }}/.cache/feg/ && touch snowflake
       - name: Open up network interfaces for VM
         run: |
@@ -122,6 +122,15 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v20220722
+      - name: Log in to vagrant cloud
+        run: |
+          if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
+          then
+            echo "Logging in to vagrant cloud to mitigate rate limiting."
+            vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
+          else
+            echo "Vagrant cloud token is not configured. Skipping login."
+          fi
       - name: Build test vms
         run: |
           cd ${{ env.AGW_ROOT }} && fab build_test_vms

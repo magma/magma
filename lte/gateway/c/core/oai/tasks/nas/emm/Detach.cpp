@@ -40,7 +40,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"

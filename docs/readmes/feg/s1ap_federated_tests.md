@@ -118,9 +118,9 @@ You can then [run the tests manually](#run-tests-manually).
 
 If you want to build the environment manually, you can carry out the following steps.
 
-*Note that commands for the AGW have to be run inside the Vagrant VM. For this reason,
+*Note that commands for the AGW and FeG have to be run inside the Vagrant VM. For this reason,
 all such commands include the `vagrant ssh magma` command first. To leave
-Vagrant, just type `exit`. FeG and Orc8r will need to be run on the
+Vagrant, just type `exit`. Orc8r will need to be run on the
 host itself (no Vagrant involved).*
 
 - AGW:
@@ -148,7 +148,7 @@ vagrant ssh magma
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests/federated_tests/docker
 docker-compose build
-docker-compose up -d
+./run.py
 ```
 
 - Orc8r:

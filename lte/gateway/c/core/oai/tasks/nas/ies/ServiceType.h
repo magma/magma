@@ -28,13 +28,19 @@ typedef uint8_t service_type_t;
 int encode_service_type(service_type_t* servicetype, uint8_t iei,
                         uint8_t* buffer, uint32_t len);
 
-uint8_t encode_u8_service_type(service_type_t* servicetype);
-
 int decode_service_type(service_type_t* servicetype, uint8_t iei,
                         uint8_t* buffer, uint32_t len);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+uint8_t encode_u8_service_type(service_type_t* servicetype);
+
 int decode_u8_service_type(service_type_t* servicetype, uint8_t iei,
                            uint8_t value, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 /*
   Service type value:reference 24301-af0:Table 9.9.3.27.1

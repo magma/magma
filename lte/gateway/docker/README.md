@@ -40,7 +40,7 @@ containerized AGW by running the following steps inside the VM:
 ```
 cd $MAGMA_ROOT/lte/gateway && make run  # You can skip this if you have built the AGW with make before
 for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done
-sudo systemctl stop 'magma@*'  # We don't want the systemd-based AGW to run when we start the containerized AGW
+sudo systemctl stop 'magma@*' 'sctpd' # We don't want the systemd-based AGW to run when we start the containerized AGW
 cd $MAGMA_ROOT/lte/gateway/docker
 docker-compose build
 docker-compose up
@@ -51,3 +51,18 @@ on a VM. However we are not there yet as the containerized AGW currently depends
 on a patched Open vSwitch installation on the host machine. The magma VM happens
 to have the right packages installed, and thus can currently be used as a quick
 and dirty way to run the containers locally.
+
+### Running the S1AP integration tests against the containerized AGW
+
+At present, of the S1AP integration tests, it has been verified that `test_attach_detach` can be run versus the containerized AGW.
+To run this test, development mode needs to be enabled when starting the containers, which can be done by using an override
+file `docker-compose.dev.yaml`:
+
+```
+cd $MAGMA_ROOT/lte/gateway/docker
+docker-compose down # If containers are already running
+docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up
+```
+
+The test VM can then be set up and the test executed by following
+[these instructions](https://docs.magmacore.org/docs/next/lte/s1ap_tests#test-vm-setup).

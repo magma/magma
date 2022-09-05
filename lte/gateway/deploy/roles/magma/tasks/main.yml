@@ -525,3 +525,30 @@
     pkg:
       - libsqlite3-dev
   when: full_provision
+
+- name: Extend sda2
+  community.general.parted:
+    device: /dev/sda
+    number: 2
+    part_end: "100%"
+    resize: true
+    state: present
+  when: full_provision
+
+- name: Extend sda5
+  community.general.parted:
+    device: /dev/sda
+    number: 5
+    part_end: "100%"
+    resize: true
+    state: present
+  when: full_provision
+
+- name: Extend lvm volumes
+  become: yes
+  block:
+    - shell: pvresize /dev/sda5
+    - shell: lvextend -l +100%FREE /dev/mapper/vgmagma--dev-root
+      ignore_errors: yes
+    - shell: resize2fs /dev/mapper/vgmagma--dev-root
+  when: full_provision

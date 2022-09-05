@@ -27,10 +27,16 @@
 
 typedef bstring NasMessageContainer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_nas_message_container(NasMessageContainer nasmessagecontainer,
                                  uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_nas_message_container(NasMessageContainer* nasmessagecontainer,
                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* NAS MESSAGE CONTAINER_SEEN */

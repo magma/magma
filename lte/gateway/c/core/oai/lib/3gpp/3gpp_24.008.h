@@ -72,12 +72,18 @@ typedef enum common_ie_e {
 
 typedef uint8_t ciphering_key_sequence_number_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_ciphering_key_sequence_number_ie(
     ciphering_key_sequence_number_t* cipheringkeysequencenumber,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_ciphering_key_sequence_number_ie(
     ciphering_key_sequence_number_t* cipheringkeysequencenumber,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.1.3 Location Area Identification
@@ -111,13 +117,18 @@ typedef struct location_area_identification_s {
 
 typedef location_area_identification_t lai_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_location_area_identification_ie(
     location_area_identification_t* locationareaidentification,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_location_area_identification_ie(
     location_area_identification_t* locationareaidentification,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.1.4 Mobile Identity
 //------------------------------------------------------------------------------
@@ -247,12 +258,18 @@ typedef union mobile_identity_s {
   no_mobile_identity_t no_id;
 } mobile_identity_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_mobile_identity_ie(mobile_identity_t* mobileidentity,
                               const bool iei_present, uint8_t* buffer,
                               const uint32_t len);
 int decode_mobile_identity_ie(mobile_identity_t* mobileidentity,
                               const bool iei_present, uint8_t* buffer,
                               const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 int decode_imsi_mobile_identity(imsi_mobile_identity_t* imsi, uint8_t* buffer,
                                 const uint32_t len);
@@ -306,12 +323,18 @@ typedef struct mobile_station_classmark2_s {
   uint8_t a52 : 1;
 } mobile_station_classmark2_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_mobile_station_classmark_2_ie(
     mobile_station_classmark2_t* mobilestationclassmark2,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_mobile_station_classmark_2_ie(
     mobile_station_classmark2_t* mobilestationclassmark2,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.1.7 Mobile Station Classmark 3
@@ -324,12 +347,18 @@ typedef struct mobile_station_classmark3_s {
   uint8_t byte[32];  // TODO
 } mobile_station_classmark3_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_mobile_station_classmark_3_ie(
     mobile_station_classmark3_t* mobilestationclassmark3,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_mobile_station_classmark_3_ie(
     mobile_station_classmark3_t* mobilestationclassmark3,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.1.13 PLMN list
@@ -344,10 +373,16 @@ typedef struct plmn_list_s {
   uint8_t num_plmn;
 } plmn_list_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_plmn_list_ie(plmn_list_t* plmnlist, const bool iei_present,
                         uint8_t* buffer, const uint32_t len);
 int decode_plmn_list_ie(plmn_list_t* plmnlist, const bool iei_present,
                         uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.1.15 MS network feature support
@@ -361,12 +396,18 @@ typedef struct ms_network_feature_support_s {
   uint8_t extended_periodic_timers : 1;
 } ms_network_feature_support_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_ms_network_feature_support_ie(
     ms_network_feature_support_t* msnetworkfeaturesupport,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_ms_network_feature_support_ie(
     ms_network_feature_support_t* msnetworkfeaturesupport,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.5.31 Network Resource Identifier Container
 //------------------------------------------------------------------------------
@@ -378,12 +419,18 @@ typedef struct network_resource_identifier_container_s {
   uint8_t byte[32];  // TODO
 } network_resource_identifier_container_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_network_resource_identifier_container_ie(
     network_resource_identifier_container_t* networkresourceidentifiercontainer,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_network_resource_identifier_container_ie(
     network_resource_identifier_container_t* networkresourceidentifiercontainer,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //******************************************************************************
 // 10.5.3 Mobility management information elements.
@@ -411,12 +458,18 @@ typedef enum mobility_managenent_ie_e {
 
 typedef bstring authentication_parameter_rand_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_authentication_parameter_rand_ie(
     authentication_parameter_rand_t authenticationparameterrand,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_parameter_rand_ie(
     authentication_parameter_rand_t* authenticationparameterrand,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.3.1.1 Authentication Parameter AUTN (UMTS and EPS authentication
@@ -428,12 +481,18 @@ int decode_authentication_parameter_rand_ie(
 
 typedef bstring authentication_parameter_autn_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_authentication_parameter_autn_ie(
     authentication_parameter_autn_t authenticationparameterautn,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_parameter_autn_ie(
     authentication_parameter_autn_t* authenticationparameterautn,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.3.2 Authentication Response parameter
@@ -444,12 +503,18 @@ int decode_authentication_parameter_autn_ie(
 
 typedef bstring authentication_response_parameter_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_authentication_response_parameter_ie(
     authentication_response_parameter_t authenticationresponseparameter,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_response_parameter_ie(
     authentication_response_parameter_t* authenticationresponseparameter,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.3.2.2 Authentication Failure parameter (UMTS and EPS authentication
@@ -461,13 +526,18 @@ int decode_authentication_response_parameter_ie(
 
 typedef bstring authentication_failure_parameter_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_authentication_failure_parameter_ie(
     authentication_failure_parameter_t authenticationfailureparameter,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_failure_parameter_ie(
     authentication_failure_parameter_t* authenticationfailureparameter,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.3.5a Network Name
 //------------------------------------------------------------------------------
@@ -483,10 +553,16 @@ typedef struct network_name_s {
   bstring textstring;
 } network_name_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_network_name_ie(network_name_t* networkname, const uint8_t iei,
                            uint8_t* buffer, const uint32_t len);
 int decode_network_name_ie(network_name_t* networkname, const uint8_t iei,
                            uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.3.8 Time Zone
@@ -497,11 +573,16 @@ int decode_network_name_ie(network_name_t* networkname, const uint8_t iei,
 
 typedef uint8_t time_zone_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_time_zone(time_zone_t* timezone, const bool iei_present,
                      uint8_t* buffer, const uint32_t len);
 int decode_time_zone(time_zone_t* timezone, const bool iei_present,
                      uint8_t* buffer, const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.3.9 Time Zone and Time
 //------------------------------------------------------------------------------
@@ -519,12 +600,18 @@ typedef struct time_zone_and_time_s {
   time_zone_t timezone;
 } time_zone_and_time_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
                               const bool iei_present, uint8_t* buffer,
                               const uint32_t len);
 int decode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
                               const bool iei_present, uint8_t* buffer,
                               const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.3.12 Daylight Saving Time
@@ -535,12 +622,18 @@ int decode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
 
 typedef uint8_t daylight_saving_time_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_daylight_saving_time_ie(daylight_saving_time_t* daylightsavingtime,
                                    const bool iei_present, uint8_t* buffer,
                                    const uint32_t len);
 int decode_daylight_saving_time_ie(daylight_saving_time_t* daylightsavingtime,
                                    const bool iei_present, uint8_t* buffer,
                                    const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.3.13 Emergency Number List
@@ -558,12 +651,18 @@ typedef struct emergency_number_list_s {
   struct emergency_number_list_s* next;
 } emergency_number_list_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_emergency_number_list_ie(
     emergency_number_list_t* emergencynumberlist, const bool iei_present,
     uint8_t* buffer, const uint32_t len);
 int decode_emergency_number_list_ie(
     emergency_number_list_t* emergencynumberlist, const bool iei_present,
     uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //******************************************************************************
 // 10.5.4 Call control information elements
@@ -581,12 +680,18 @@ typedef enum call_control_ie_e {
 
 typedef bstring supported_codec_list_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_supported_codec_list_ie(supported_codec_list_t* supportedcodeclist,
                                    const bool iei_present, uint8_t* buffer,
                                    const uint32_t len);
 int decode_supported_codec_list_ie(supported_codec_list_t* supportedcodeclist,
                                    const bool iei_present, uint8_t* buffer,
                                    const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //******************************************************************************
 // 10.5.5 GPRS mobility management information elements
@@ -610,11 +715,16 @@ typedef enum gprs_mobility_managenent_ie_e {
 
 typedef uint8_t tmsi_status_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
                        uint8_t* buffer, const uint32_t len);
 int decode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
                        uint8_t* buffer, const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.5.6 DRX parameter
 //------------------------------------------------------------------------------
@@ -629,13 +739,18 @@ typedef struct drx_parameter_s {
   uint8_t nondrxtimer : 3;
 } drx_parameter_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_drx_parameter_ie(drx_parameter_t* drxparameter,
                             const bool iei_present, uint8_t* buffer,
                             const uint32_t len);
 int decode_drx_parameter_ie(drx_parameter_t* drxparameter,
                             const bool iei_present, uint8_t* buffer,
                             const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.5.8 P-TMSI signature
 //------------------------------------------------------------------------------
@@ -645,13 +760,18 @@ int decode_drx_parameter_ie(drx_parameter_t* drxparameter,
 
 typedef uint32_t p_tmsi_signature_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_p_tmsi_signature_ie(p_tmsi_signature_t ptmsisignature,
                                const bool iei_present, uint8_t* buffer,
                                const uint32_t len);
 int decode_p_tmsi_signature_ie(p_tmsi_signature_t* ptmsisignature,
                                const bool iei_present, uint8_t* buffer,
                                const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.5.9 Identity type 2
 //------------------------------------------------------------------------------
@@ -666,13 +786,18 @@ int decode_p_tmsi_signature_ie(p_tmsi_signature_t* ptmsisignature,
 
 typedef uint8_t identity_type2_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_identity_type_2_ie(identity_type2_t* identitytype2,
                               bool is_ie_present, uint8_t* buffer,
                               const uint32_t len);
 int decode_identity_type_2_ie(identity_type2_t* identitytype2,
                               bool is_ie_present, uint8_t* buffer,
                               const uint32_t len);
-
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 // 10.5.5.10 IMEISV request
 //------------------------------------------------------------------------------
@@ -685,12 +810,18 @@ typedef uint8_t imeisv_request_t;
 #define IMEISV_NOT_REQUESTED 0b000
 #define IMEISV_REQUESTED 0b001
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
                              bool is_ie_present, uint8_t* buffer,
                              const uint32_t len);
 int decode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
                              bool is_ie_present, uint8_t* buffer,
                              const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.5.12 MS network capability
@@ -764,12 +895,18 @@ typedef struct ms_network_capability_s {
   uint8_t en_dc : 1;
 } ms_network_capability_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_ms_network_capability_ie(
     ms_network_capability_t* msnetworkcapability, const bool iei_present,
     uint8_t* buffer, const uint32_t len) __attribute__((unused));
 int decode_ms_network_capability_ie(
     ms_network_capability_t* msnetworkcapability, const bool iei_present,
     uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 // 10.5.5.15 Routing area identification
@@ -808,6 +945,9 @@ typedef struct voice_domain_preference_and_ue_usage_setting_s {
   uint8_t voice_domain_for_eutran : 2;
 } voice_domain_preference_and_ue_usage_setting_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_voice_domain_preference_and_ue_usage_setting(
     voice_domain_preference_and_ue_usage_setting_t*
         voicedomainpreferenceandueusagesetting,
@@ -816,6 +956,9 @@ int decode_voice_domain_preference_and_ue_usage_setting(
     voice_domain_preference_and_ue_usage_setting_t*
         voicedomainpreferenceandueusagesetting,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 //******************************************************************************
 // 10.5.6 Session management information elements
@@ -1286,10 +1429,16 @@ typedef struct gprs_timer_s {
   uint8_t timervalue : 5;
 } gprs_timer_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_gprs_timer_ie(gprs_timer_t* gprstimer, uint8_t iei, uint8_t* buffer,
                          const uint32_t len);
 int decode_gprs_timer_ie(gprs_timer_t* gprstimer, uint8_t iei, uint8_t* buffer,
                          const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 long gprs_timer_value(gprs_timer_t* gprstimer);
 
 #endif /* FILE_3GPP_24_008_SEEN */

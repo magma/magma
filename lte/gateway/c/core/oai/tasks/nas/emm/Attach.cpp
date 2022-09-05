@@ -89,7 +89,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"

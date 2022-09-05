@@ -26,6 +26,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 }
 
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"

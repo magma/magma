@@ -28,10 +28,16 @@ typedef struct KsiAndSequenceNumber_tag {
   uint8_t sequencenumber : 5;
 } KsiAndSequenceNumber;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
                                    uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
                                    uint8_t iei, uint8_t* buffer, uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* KSI AND SEQUENCE NUMBER_H_ */
