@@ -79,9 +79,6 @@ void SpgwStateManager::create_state() {
   state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
       MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
-  state_cache_p->predefined_pcc_rules = hashtable_ts_create(
-      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
-
   state_cache_p->gtpv1u_teid = 0;
 
   bdestroy_wrapper(&b);
@@ -108,9 +105,6 @@ void SpgwStateManager::free_state() {
     hashtable_ts_destroy(state_cache_p->deactivated_predefined_pcc_rules);
   }
 
-  if (state_cache_p->predefined_pcc_rules) {
-    hashtable_ts_destroy(state_cache_p->predefined_pcc_rules);
-  }
   free_wrapper((void**)&state_cache_p);
 }
 
