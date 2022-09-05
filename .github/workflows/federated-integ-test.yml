@@ -99,7 +99,7 @@ jobs:
       - name: Vagrant Host prerequisites for federated integ test
         run: |
           cd ${{ env.AGW_ROOT }} && fab open_orc8r_port_in_vagrant
-          cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/ && touch snowflake
+          cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
           cd ${{ env.MAGMA_ROOT }}/.cache/feg/ && touch snowflake
       - name: Open up network interfaces for VM
         run: |
