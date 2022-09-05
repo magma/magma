@@ -621,6 +621,9 @@ def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
     """
     for p in pip_distributions:
         # contents of PIP_BLACKLIST were excluded from dep_source
+        if dep_set.get(p) is None:
+            log.info('skipping missing package: {}'.format(p))
+            continue
         if p not in PIP_BLACKLIST and dep_set.get(p).source == "pypi":
             py_to_deb(p, pip_distributions,
                       version=pip_distributions[p].version,
