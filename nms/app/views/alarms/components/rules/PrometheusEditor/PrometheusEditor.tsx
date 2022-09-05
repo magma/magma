@@ -275,6 +275,7 @@ function SeverityEditor(props: {
             variant="standard"
             required
             value={props.severity}
+            // @ts-ignore Somehow the whole types are messed up here, as select elements have different types than other elements.
             onChange={props.onChange(value => ({severity: value}))}
             input={<OutlinedInput />}>
             {props.options.map(opt => (
@@ -345,6 +346,7 @@ function TimeUnitEditor(props: {
             variant="standard"
             fullWidth
             value={props.timeUnit}
+            // @ts-ignore Somehow the whole types are messed up here, as select elements have different types than other elements.
             onChange={props.onChange(val => ({timeUnit: val}))}
             input={<OutlinedInput />}>
             {props.timeUnits.map(option => (
