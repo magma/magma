@@ -14,8 +14,8 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#ifndef FILE_PGW_PROCEDURES_SEEN
-#define FILE_PGW_PROCEDURES_SEEN
+
+#pragma once
 
 /*! \file pgw_procedures.hpp
   \brief  Just a workaround waiting for PCEF implementation
@@ -70,5 +70,3 @@ pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* const ctx_p);
 void pgw_delete_procedure_create_bearer(
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
-
-#endif

@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 //------------------------------------------------------------------------------

@@ -23,6 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 }
 
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+
 using magma::lte::oai::CreateSessionMessage;
 using magma::lte::oai::GTPV1uData;
 using magma::lte::oai::PacketFilter;

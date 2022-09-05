@@ -29,6 +29,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 // Status codes from gRPC
 #define RPC_STATUS_OK 0
@@ -169,9 +174,5 @@ int pgw_handle_allocate_ipv4v6_address(const char* subscriber_id,
                                        const char* apn, const char* pdn_type,
                                        teid_t context_teid,
                                        ebi_t eps_bearer_id);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // RPC_CLIENT_H
