@@ -134,7 +134,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            'grpcio-tools>=1.46.3',
+            'grpcio-tools==1.46.3',
             'coverage==6.4.2',
             'iperf3>=0.1.11',
             'parameterized==0.8.1',
