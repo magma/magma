@@ -28,13 +28,7 @@
 
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 void delete_pending_procedures(
@@ -54,7 +48,7 @@ void delete_pending_procedures(
       base_proc1 = base_proc2;
     }
     LIST_INIT(ctx_p->pending_procedures);
-    free_wrapper((void**)&ctx_p->pending_procedures);
+    free_cpp_wrapper((void**)&ctx_p->pending_procedures);
   }
 }
 //------------------------------------------------------------------------------
@@ -69,8 +63,10 @@ pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
 
   if (!ctx_p->pending_procedures) {
     ctx_p->pending_procedures =
-        (sgw_eps_bearer_context_information_s::pending_procedures_s*)calloc(
-            1, sizeof(ctx_p->pending_procedures));
+        new sgw_eps_bearer_context_information_s::pending_procedures_s();
+    if (!(ctx_p->pending_procedures)) {
+      return nullptr;
+    }
     LIST_INIT(ctx_p->pending_procedures);
   }
   LIST_INSERT_HEAD((ctx_p->pending_procedures), base_proc, entries);

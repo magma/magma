@@ -52,6 +52,7 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -213,12 +214,9 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64, gtpv2c_cause_value_t* failed_cause) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint32_t i = 0;
   status_code_e rc = RETURNok;
-  hash_table_ts_t* hashtblP = NULL;
-  uint32_t num_elements = 0;
+  state_teid_map_t* state_teid_map = nullptr;
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = NULL;
-  hash_node_t* node = NULL;
   bool is_imsi_found = false;
   bool is_lbi_found = false;
 
@@ -227,8 +225,8 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
       "Received Create Bearer Req from PCRF with lbi:%d IMSI\n" IMSI_64_FMT,
       bearer_req_p->lbi, imsi64);
 
-  hashtblP = get_spgw_teid_state();
-  if (!hashtblP) {
+  state_teid_map = get_spgw_teid_state();
+  if (state_teid_map == nullptr) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                     "No s11_bearer_context_information hash table found \n");
     *failed_cause = REQUEST_REJECTED;
@@ -239,17 +237,10 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
    * SPGW shall identify whether valid PDN session exists for the UE
    * using IMSI and LBI, for which Dedicated Bearer Activation is requested.
    */
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
-         (!is_lbi_found)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-    }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    while (node) {
-      num_elements++;
-      hashtable_ts_get(hashtblP, (const hash_key_t)node->key,
-                       (void**)&spgw_ctxt_p);
+  for (auto itr = state_teid_map->map->begin();
+       itr != state_teid_map->map->end(); itr++) {
+    if (!is_lbi_found) {
+      state_teid_map->get(itr->first, &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
         if (!strncmp((const char*)spgw_ctxt_p
                          ->sgw_eps_bearer_context_information.imsi.digit,
@@ -263,9 +254,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
           }
         }
       }
-      node = node->next;
     }
-    i++;
   }
 
   if ((!is_imsi_found) || (!is_lbi_found)) {
@@ -335,7 +324,7 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   status_code_e rc = RETURNok;
-  hash_table_ts_t* hashtblP = NULL;
+  state_teid_map_t* state_teid_map = nullptr;
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = NULL;
   hash_node_t* node = NULL;
@@ -352,10 +341,11 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
       "Received nw_initiated_deactv_bearer_req from SPGW service \n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
-  hashtblP = get_spgw_teid_state();
-  if (hashtblP == NULL) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "No s11_bearer_context_information hash table is found\n");
+  state_teid_map = get_spgw_teid_state();
+  if (state_teid_map == nullptr) {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "No s11_bearer_context_information is found in state_teid_map\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
@@ -364,18 +354,10 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
    * will be multiple entries for different sessions with the same IMSI. Hence
    * even though IMSI is found search the entire list for the LBI
    */
-  uint32_t i = 0;
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
-         (!is_lbi_found)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-    }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    while (node) {
-      num_elements++;
-      hashtable_ts_get(hashtblP, (const hash_key_t)node->key,
-                       (void**)&spgw_ctxt_p);
+  for (auto itr = state_teid_map->map->begin();
+       itr != state_teid_map->map->end(); itr++) {
+    if (!is_lbi_found) {
+      state_teid_map->get(itr->first, &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
         if (!strcmp((const char*)spgw_ctxt_p->sgw_eps_bearer_context_information
                         .imsi.digit,
@@ -402,20 +384,18 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
                 no_of_bearers_rej++;
               }
             }
-            break;  // while (node)
+            break;
           }
         }
       }
-      node = node->next;
     }
-    i++;
   }
 
   /* Send reject to NW if we did not find ebi/lbi/imsi.
-   * Also in case of multiple bearers, if some EBIs are valid and some are not,
-   * send reject to those for which we did not find EBI.
-   * Proceed with deactivation by sending s5_nw_init_deactv_bearer_request to
-   * SGW for valid EBIs
+   * Also in case of multiple bearers, if some EBIs are valid and some are
+   * not, send reject to those for which we did not find EBI. Proceed with
+   * deactivation by sending s5_nw_init_deactv_bearer_request to SGW for valid
+   * EBIs
    */
   if ((!is_ebi_found) || (!is_lbi_found) || (!is_imsi_found) ||
       (no_of_bearers_rej > 0)) {
