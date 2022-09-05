@@ -84,7 +84,7 @@ To develop on a <strong>Linux OS</strong>, the package manager (brew for macOS) 
 pyenv install 3.8.10
 pyenv global 3.8.10
 pip3 install ansible fabric3 jsonpickle requests PyYAML
-vagrant plugin install vagrant-vbguest vagrant-disksize
+vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
 </code></pre>
 <p><strong>Note</strong>: In the case where installation of <code>fabric3</code> through pip was unsuccessful,
 try switching to other package installers. Try running <code>brew install fabric</code>.</p>
@@ -154,7 +154,7 @@ pyenv global 3.8.10
 </code></pre></li>
 </ol></li>
 <li><p>Install <code>vagrant</code> necessary plugin.</p>
-<pre><code class="hljs css language-bash">vagrant plugin install vagrant-vbguest
+<pre><code class="hljs css language-bash">vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
 </code></pre>
 <p>Make sure <code>virtualbox</code> is the default provider for <code>vagrant</code> by adding the following line to your <code>.bashrc</code> (or equivalent) and restart your shell: <code>export VAGRANT_DEFAULT_PROVIDER=&quot;virtualbox&quot;</code>.</p></li>
 </ol>
