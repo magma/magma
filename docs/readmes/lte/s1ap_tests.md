@@ -19,22 +19,43 @@ interfere with the test scenario.
 
 Our VM-only tests use 3 Vagrant-managed VMs hosted on the local device (laptop):
 
-- *magma*, i.e. magma-dev or gateway
+- *magma* (a.k.a. magma-dev) or *magma_deb*, both of which act as a gateway, with the difference
+being the way magma is installed on them (see [below](#gateway-vm-setup) for more details)
 - *magma_test*, i.e. s1ap_tester
 - *magma_trfserver*, i.e. an Iperf server to generate uplink/downlink traffic
 
 ## Gateway-only tests
 
 These tests use all 3 VMs listed above. The *magma_test* VM abstracts away the
-UE and eNodeB, the *magma_trfserver* emulates the Internet, while the *magma* VM
+UE and eNodeB, the *magma_trfserver* emulates the Internet, while the *magma*/*magma_deb* VM
 acts as the gateway between *magma_test* and *magma_trfserver*.
 
 ### Gateway VM setup
+
+There are two options for setting up the gateway VM, with the difference being the magma installation
+method: it can either be installed via `make` or from debian packages, the latter being the
+method by which magma is usually deployed. For everyday development, the `make` installation is
+recommended, while the debian installation is useful for testing packages before release.
+
+> **Warning**: These two VMs use the same network configuration, so one must only run one of them
+at a time.
+
+#### Make installation
 
 Spin up and provision the gateway VM, then make and start its services:
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma && vagrant ssh magma`
 1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway && make run`
+
+#### Debian installation
+
+Spin up the *magma_deb* VM. The services start automatically:
+
+1. From `magma/lte/gateway` on the host machine: `vagrant up magma_deb && vagrant ssh magma_deb`
+1. To check the services are running, run `systemctl list-units --type=service magma@*`
+
+> **Warning**: During provisioning, the latest magma gateway debian build from the magma artifactory
+is installed. That is, the deployed gateway might not match your local repository state.
 
 ### Test VM setup
 
@@ -65,7 +86,7 @@ setup. Look at the section below on running traffic tests.
 
 ### Running uplink/downlink traffic tests
 
-1. On the *magma* VM, run, `disable-tcp-checksumming`
+1. On the *magma* or *magma_deb* VM, run, `disable-tcp-checksumming`
 
 1. On the *magma_test* VM, `disable-tcp-checksumming`
 
