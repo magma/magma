@@ -60,21 +60,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -357,7 +342,7 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
   state_teid_map = get_spgw_teid_state();
-  if (state_teid_map == NULL) {
+  if (state_teid_map == nullptr) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "No s11_bearer_context_information is found in state_teid_map\n");

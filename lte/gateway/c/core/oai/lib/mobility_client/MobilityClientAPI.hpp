@@ -20,8 +20,6 @@
 
 #include "stdint.h"
 
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

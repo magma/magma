@@ -18,7 +18,6 @@
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 
 #include <cstring>
-
 #include <string>
 
 #include <grpcpp/impl/codegen/status.h>

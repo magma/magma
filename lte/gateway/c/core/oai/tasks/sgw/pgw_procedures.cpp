@@ -64,6 +64,9 @@ pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
   if (!ctx_p->pending_procedures) {
     ctx_p->pending_procedures =
         new sgw_eps_bearer_context_information_s::pending_procedures_s();
+    if (!(ctx_p->pending_procedures)) {
+      return nullptr;
+    }
     LIST_INIT(ctx_p->pending_procedures);
   }
   LIST_INSERT_HEAD((ctx_p->pending_procedures), base_proc, entries);

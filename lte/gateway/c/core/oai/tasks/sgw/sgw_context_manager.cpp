@@ -162,6 +162,10 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
   state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return nullptr;
+  }
   state_teid_map->insert(teid, new_bearer_context_information);
 
   OAILOG_DEBUG(LOG_SPGW_APP,
@@ -178,6 +182,10 @@ hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
   hashtable_rc_t temp = HASH_TABLE_OK;
 
   state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return HASH_TABLE_KEY_NOT_EXISTS;
+  }
   if (state_teid_map->remove(teid) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                     "Failed to free teid from state_teid_map \n");
@@ -296,8 +304,13 @@ sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
 
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid) {
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_context_info = NULL;
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_context_info =
+      nullptr;
   state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return spgw_bearer_context_info;
+  }
 
   state_teid_map->get(teid, &spgw_bearer_context_info);
   return spgw_bearer_context_info;
