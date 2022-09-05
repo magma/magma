@@ -95,7 +95,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest vagrant-scp
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-scp
       - name: Vagrant Host prerequisites for federated integ test
         run: |
           cd ${{ env.AGW_ROOT }} && fab open_orc8r_port_in_vagrant
