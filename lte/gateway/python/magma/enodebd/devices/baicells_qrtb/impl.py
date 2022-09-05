@@ -27,7 +27,6 @@ from magma.enodebd.devices.baicells_qrtb.params import (
 )
 from magma.enodebd.devices.baicells_qrtb.states import (
     BaicellsQRTBEndSessionState,
-    BaicellsQRTBNotifyDPState,
     BaicellsQRTBQueuedEventsWaitState,
     BaicellsQRTBWaitInformRebootState,
     BaicellsQRTBWaitGetObjectParametersState,
@@ -121,8 +120,7 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
             'get_params': GetParametersState(self, when_done='wait_get_params', request_all_params=True),
             'wait_get_params': WaitGetParametersState(self, when_done='get_obj_params'),
             'get_obj_params': GetObjectParametersState(self, when_done='wait_get_obj_params', request_all_params=True),
-            'wait_get_obj_params': BaicellsQRTBWaitGetObjectParametersState(self, when_done='notify_dp'),
-            'notify_dp': BaicellsQRTBNotifyDPState(
+            'wait_get_obj_params': BaicellsQRTBWaitGetObjectParametersState(
                 self, when_delete='delete_objs', when_add='add_objs',
                 when_set='set_params', when_skip='end_session',
             ),

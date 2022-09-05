@@ -46,7 +46,6 @@ from magma.enodebd.devices.freedomfi_one.params import (
 from magma.enodebd.devices.freedomfi_one.states import (
     FreedomFiOneEndSessionState,
     FreedomFiOneGetInitState,
-    FreedomFiOneNotifyDPState,
     FreedomFiOneGetObjectParametersState,
     ff_one_update_desired_config_from_cbsd_state,
 )
@@ -598,8 +597,9 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             'Provisioning completed with Dummy response',
         )
 
+    @parameterized.expand([(True,), (False,)])
     @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
-    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, gps_status, mock_enodebd_update_cbsd) -> None:
         """
         Test enodebd does not call Domain Proxy API for parameter update when
         not all parameters are yet available from the eNB
@@ -631,10 +631,24 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             'Should respond with an InformResponse',
         )
 
-        # No GPS locked means LAT and LONG are not available yet
-        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, False)
-        acs_state_machine.transition('notify_dp')
-        mock_enodebd_update_cbsd.assert_not_called()
+        # GPS params available only if GPS is synced
+        if gps_status:
+            _add_to_acs_parameters_required_by_dp(acs_state_machine)
+
+        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, gps_status)
+        state = FreedomFiOneGetObjectParametersState(
+            acs=acs_state_machine,
+            when_set='set',
+            when_skip='skip',
+            when_add='add',
+            when_delete='delete'
+        )
+        state._notify_dp()
+
+        if gps_status:
+            mock_enodebd_update_cbsd.assert_called_once()
+        else:
+            mock_enodebd_update_cbsd.assert_not_called()
 
 
 class FreedomFiOneStatesTests(EnodebHandlerTestCase):
@@ -667,38 +681,7 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             acs_state_machine.data_model,
             acs_state_machine.config_postprocessor,
         )
-
-        # Need to fill these values in the device_cfg if we're going to transition to notify_dp state
-        acs_state_machine.device_cfg.set_parameter(
-            SASParameters.SAS_USER_ID, 'test_user',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            SASParameters.SAS_FCC_ID, 'test_fcc',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            ParameterName.SERIAL_NUMBER, 'test_sn',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            ParameterName.GPS_LAT, '10',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            ParameterName.GPS_LONG, '-10',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            SASParameters.SAS_CATEGORY, 'A',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            SASParameters.SAS_HEIGHT_TYPE, 'AMSL',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            SASParameters.SAS_LOCATION, 'indoor',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            SASParameters.SAS_ANTENNA_GAIN, '5',
-        )
-        acs_state_machine.device_cfg.set_parameter(
-            ParameterName.GPS_STATUS, 'True',
-        )
+        _add_to_acs_parameters_required_by_dp(acs_state_machine)
 
         # SM should transition from get_params to next state automatically
         # upon receiving response from the radio
@@ -707,9 +690,6 @@ class FreedomFiOneStatesTests(EnodebHandlerTestCase):
             [], models.GetParameterValuesResponse,
         )
         acs_state_machine.handle_tr069_message(msg)
-
-        self.assertNotIsInstance(acs_state_machine.state, FreedomFiOneNotifyDPState)
-        self.assertNotIsInstance(acs_state_machine.state, FreedomFiOneGetObjectParametersState)
         if dp_mode:
             mock_enodebd_update_cbsd.assert_called_once()
         else:
@@ -1718,3 +1698,36 @@ def _get_service_config(dp_mode: bool = True, prim_src: str = "GNSS"):
             "models": {},
         },
     }
+
+
+def _add_to_acs_parameters_required_by_dp(acs) -> None:
+    acs.device_cfg.set_parameter(
+        SASParameters.SAS_USER_ID, 'test_user',
+    )
+    acs.device_cfg.set_parameter(
+        SASParameters.SAS_FCC_ID, 'test_fcc',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.SERIAL_NUMBER, 'test_sn',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_LAT, '10',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_LONG, '-10',
+    )
+    acs.device_cfg.set_parameter(
+        SASParameters.SAS_CATEGORY, 'A',
+    )
+    acs.device_cfg.set_parameter(
+        SASParameters.SAS_HEIGHT_TYPE, 'AMSL',
+    )
+    acs.device_cfg.set_parameter(
+        SASParameters.SAS_LOCATION, 'indoor',
+    )
+    acs.device_cfg.set_parameter(
+        SASParameters.SAS_ANTENNA_GAIN, '5',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_STATUS, 'True',
+    )

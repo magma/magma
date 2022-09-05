@@ -35,7 +35,7 @@ from magma.enodebd.devices.baicells_qrtb.params import (
 )
 from magma.enodebd.devices.baicells_qrtb.states import (
     BaicellsQRTBEndSessionState,
-    BaicellsQRTBNotifyDPState,
+    BaicellsQRTBWaitGetObjectParametersState,
     BaicellsQRTBQueuedEventsWaitState,
     BaicellsQRTBWaitInformRebootState,
     qrtb_update_desired_config_from_cbsd_state,
@@ -342,8 +342,9 @@ class SasToRfConfigTests(TestCase):
 
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
+    @parameterized.expand([('1',), ('0',)])
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
-    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, gps_status, mock_enodebd_update_cbsd) -> None:
         test_serial_number = '120200024019APP0105'
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
@@ -356,10 +357,26 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             enb_serial=test_serial_number,
             event_codes=['2 PERIODIC'],
         )
-        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, '0')
         acs_state_machine.handle_tr069_message(req)
-        acs_state_machine.transition('notify_dp')
-        mock_enodebd_update_cbsd.assert_not_called()
+
+        # GPS params available only if GPS is synced
+        if gps_status == '1':
+            _add_to_acs_parameters_required_by_dp(acs_state_machine)
+
+        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, gps_status)
+        state = BaicellsQRTBWaitGetObjectParametersState(
+            acs=acs_state_machine,
+            when_set='set',
+            when_skip='skip',
+            when_add='add',
+            when_delete='delete'
+        )
+        state._notify_dp()
+
+        if gps_status == '1':
+            mock_enodebd_update_cbsd.assert_called_once()
+        else:
+            mock_enodebd_update_cbsd.assert_not_called()
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_notify_dp(self, mock_enodebd_update_cbsd) -> None:
@@ -1485,3 +1502,24 @@ def _get_service_config():
             "models": {},
         },
     }
+
+
+def _add_to_acs_parameters_required_by_dp(acs) -> None:
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_LAT, '10',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_LONG, '-10',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.INDOOR_DEPLOYMENT, 'True',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.ANTENNA_HEIGHT, '5',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.ANTENNA_HEIGHT_TYPE, 'AMSL',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.CBSD_CATEGORY, 'a',
+    )

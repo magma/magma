@@ -32,7 +32,6 @@ from magma.enodebd.devices.freedomfi_one.states import (
     FreedomFiOneEndSessionState,
     FreedomFiOneGetInitState,
     FreedomFiOneGetObjectParametersState,
-    FreedomFiOneNotifyDPState,
     FreedomFiOneSendGetTransientParametersState,
 )
 from magma.enodebd.logger import EnodebdLogger
@@ -125,8 +124,14 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
                 when_done='get_params',
             ),
 
-            'get_params': FreedomFiOneGetObjectParametersState(self, when_done='notify_dp'),
-            'notify_dp': FreedomFiOneNotifyDPState(self, when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
+            'get_params': FreedomFiOneGetObjectParametersState(
+                self,
+                when_delete='delete_objs',
+                when_add='add_objs',
+                when_set='set_params',
+                when_skip='end_session',
+            ),
+
             'delete_objs': DeleteObjectsState(
                 self, when_add='add_objs',
                 when_skip='set_params',
