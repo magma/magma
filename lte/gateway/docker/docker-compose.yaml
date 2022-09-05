@@ -32,12 +32,12 @@ x-agw-python-service: &pyservice
   image: ${DOCKER_REGISTRY}agw_gateway_python${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 # Generic anchor for lte c services
-x-lte-cservice: &ltecservice
+x-agw-c-service: &cservice
   <<: *service
   image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 # Generic anchor for go services
-x-goservice: &goservice
+x-agw-go-service: &goservice
   <<: *service
   image: ${DOCKER_REGISTRY}agw_gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
@@ -179,7 +179,7 @@ services:
     command: /usr/bin/env python3 -m magma.ctraced.main
 
   sctpd:
-    <<: *ltecservice
+    <<: *cservice
     container_name: sctpd
     ulimits:
       core: -1
@@ -190,7 +190,7 @@ services:
     command: /usr/local/bin/sctpd
 
   oai_mme:
-    <<: *ltecservice
+    <<: *cservice
     container_name: oai_mme
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50073"]
@@ -237,7 +237,7 @@ services:
         /usr/bin/env python3 -m magma.pipelined.main"
 
   sessiond:
-    <<: *ltecservice
+    <<: *cservice
     container_name: sessiond
     ulimits:
       core: -1
@@ -288,7 +288,7 @@ services:
     command: /usr/bin/env python3 -m magma.eventd.main
 
   connectiond:
-    <<: *ltecservice
+    <<: *cservice
     container_name: connectiond
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50082"]
@@ -299,7 +299,7 @@ services:
     command: /usr/local/bin/connectiond
 
   liagentd:
-    <<: *ltecservice
+    <<: *cservice
     container_name: liagentd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50065"]
