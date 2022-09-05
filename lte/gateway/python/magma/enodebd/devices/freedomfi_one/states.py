@@ -218,6 +218,9 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
     Englewood will report a parameter value as None if it does not exist
     in the data model, rather than replying with a Fault message like most
     eNB devices.
+
+    Sync up with DP before transitioning in the next state, so DP params
+    will be included into the config and del/add/set messages.
     """
 
     def __init__(
@@ -438,10 +441,10 @@ class FreedomFiOneEndSessionState(EndSessionState):
     End Session state, either a queued one or a periodic one
     """
 
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(self, acs: EnodebAcsStateMachine, when_inform: str):
         super().__init__(acs)
         self.acs = acs
-        self.inform_transition = when_done
+        self.inform_transition = when_inform
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """

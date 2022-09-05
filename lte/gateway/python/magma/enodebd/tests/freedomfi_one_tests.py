@@ -641,7 +641,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
             when_set='set',
             when_skip='skip',
             when_add='add',
-            when_delete='delete'
+            when_delete='delete',
         )
         state._notify_dp()
 
@@ -654,7 +654,7 @@ class FreedomFiOneTests(EnodebHandlerTestCase):
 class FreedomFiOneStatesTests(EnodebHandlerTestCase):
     """Testing FreedomfiOne specific states"""
 
-    @parameterized.expand([(True, ), (False, )])
+    @parameterized.expand([(True,), (False,)])
     @patch('magma.enodebd.devices.freedomfi_one.states.enodebd_update_cbsd')
     def test_dp_call_depending_on_sas_enabled_flag(
             self, dp_mode, mock_enodebd_update_cbsd,
