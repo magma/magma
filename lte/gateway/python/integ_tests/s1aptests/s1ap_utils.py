@@ -1281,6 +1281,42 @@ class MagmadUtil(object):
         """
         Print the per-IMSI state in Redis data store on AGW
         """
+        keys_to_be_cleaned, mme_ueip_imsi_map_entries, \
+            num_htbl_entries, s1ap_imsi_map_entries = self.get_redis_state()
+        print(
+            "Keys left in Redis (list should be empty)[\n",
+            "\n".join(keys_to_be_cleaned),
+            "\n]",
+        )
+        print(
+            "Entries in s1ap_imsi_map (should be zero):",
+            s1ap_imsi_map_entries,
+        )
+        print(
+            "Entries left in hashtables (should be zero):",
+            num_htbl_entries,
+        )
+        print(
+            "Entries in mme_ueip_imsi_map (should be zero):",
+            mme_ueip_imsi_map_entries,
+        )
+
+    def is_redis_empty(self):
+        """
+        Check that the per-IMSI state in Redis data store on AGW is empty
+        """
+        keys_to_be_cleaned, mme_ueip_imsi_map_entries, \
+            num_htbl_entries, s1ap_imsi_map_entries = self.get_redis_state()
+        return \
+            len(keys_to_be_cleaned) == 0 and \
+            mme_ueip_imsi_map_entries == 0 and \
+            num_htbl_entries == 0 and \
+            s1ap_imsi_map_entries == 0
+
+    def get_redis_state(self):
+        """
+        Get the per-IMSI state in Redis data store on AGW
+        """
         magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
         imsi_state_cmd = "state_cli.py keys IMSI*"
         redis_imsi_keys = self.exec_command_output(
@@ -1290,7 +1326,7 @@ class MagmadUtil(object):
         for key in redis_imsi_keys.split("\n"):
             # Ignore directoryd per-IMSI keys in this analysis as they will
             # persist after each test
-            if "directory" not in key:
+            if "directory" not in key and key != "":
                 keys_to_be_cleaned.append(key)
 
         mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
@@ -1319,20 +1355,7 @@ class MagmadUtil(object):
         for state in mme_ueip_imsi_map_state.split("\n"):
             if "key" in state:
                 mme_ueip_imsi_map_entries += 1
-        print(
-            "Keys left in Redis (list should be empty)[\n",
-            "\n".join(keys_to_be_cleaned),
-            "\n]",
-        )
-        print(
-            "Entries in s1ap_imsi_map (should be zero):",
-            s1ap_imsi_map_entries,
-        )
-        print("Entries left in hashtables (should be zero):", num_htbl_entries)
-        print(
-            "Entries in mme_ueip_imsi_map (should be zero):",
-            mme_ueip_imsi_map_entries,
-        )
+        return keys_to_be_cleaned, mme_ueip_imsi_map_entries, num_htbl_entries, s1ap_imsi_map_entries
 
     def enable_nat(self, ip_version=4):
         """Enable Nat"""
