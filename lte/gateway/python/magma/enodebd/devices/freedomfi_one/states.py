@@ -52,7 +52,6 @@ from magma.enodebd.state_machines.enb_acs_states import (
     AcsReadMsgResult,
     EndSessionState,
     EnodebAcsState,
-    NotifyDPState,
 )
 from magma.enodebd.tr069 import models
 
@@ -224,11 +223,17 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
     def __init__(
             self,
             acs: EnodebAcsStateMachine,
-            when_done: str,
+            when_delete: str,
+            when_add: str,
+            when_set: str,
+            when_skip: str,
     ):
         super().__init__()
         self.acs = acs
-        self.done_transition = when_done
+        self.rm_obj_transition = when_delete
+        self.add_obj_transition = when_add
+        self.set_params_transition = when_set
+        self.skip_transition = when_skip
 
     def get_params_to_get(
             self,
@@ -349,7 +354,72 @@ class FreedomFiOneGetObjectParametersState(EnodebAcsState):
                 self.acs.config_postprocessor,
             )
 
-        return AcsReadMsgResult(True, self.done_transition)
+        self._notify_dp()
+        return self._get_next_state()
+
+    def _notify_dp(self) -> None:
+        if not self.acs.desired_cfg or not self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
+            # Skip dp state entirely if SAS_METHOD is not set to True.
+            return
+
+        serial_number = self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+        # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
+        # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
+        #                 Hardcode it.
+        # NOTE: In case GPS scan is not completed, eNB reports LAT and LONG values as 0.
+        #       Only update CBSD in Domain Proxy when all params are available.
+        gps_status = self.acs.device_cfg.get_parameter(ParameterName.GPS_STATUS)
+        if gps_status:
+            enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+                serial_number=serial_number,
+                latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
+                longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
+                indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
+                antenna_height=str(ANTENNA_HEIGHT),
+                antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
+                cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
+            )
+            state = enodebd_update_cbsd(enodebd_update_cbsd_request)
+            ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
+        else:
+            EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
+
+    def _get_next_state(self) -> AcsReadMsgResult:
+        if len(  # noqa: WPS507
+                get_all_objects_to_delete(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
+        ) > 0:
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.rm_obj_transition,
+            )
+        elif len(  # noqa: WPS507
+                get_all_objects_to_add(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                ),
+        ) > 0:
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.add_obj_transition,
+            )
+        elif len(  # noqa: WPS507
+                get_all_param_values_to_set(
+                    self.acs.desired_cfg,
+                    self.acs.device_cfg,
+                    self.acs.data_model,
+                ),
+        ) > 0:
+            return AcsReadMsgResult(
+                msg_handled=True,
+                next_state=self.set_params_transition,
+            )
+        return AcsReadMsgResult(
+            msg_handled=True,
+            next_state=self.skip_transition,
+        )
 
     def state_description(self) -> str:
         """
@@ -372,21 +442,6 @@ class FreedomFiOneEndSessionState(EndSessionState):
         super().__init__(acs)
         self.acs = acs
         self.inform_transition = when_done
-
-    # def get_msg(self, message: Any) -> AcsMsgAndTransition:
-    #     """
-    #     Send back a message to enb
-    #
-    #     Args:
-    #         message (Any): TR069 message
-    #
-    #     Returns:
-    #         AcsMsgAndTransition
-    #     """
-    #     request = models.DummyInput()
-    #     if self.acs.desired_cfg and self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
-    #         return AcsMsgAndTransition(request, self.notify_dp)
-    #     return AcsMsgAndTransition(request, None)
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
@@ -428,46 +483,6 @@ class FreedomFiOneEndSessionState(EndSessionState):
             str
         """
         return 'Completed provisioning eNB. Awaiting new Inform.'
-
-
-class FreedomFiOneNotifyDPState(NotifyDPState):
-    """
-        FreedomFiOne NotifyDPState implementation
-    """
-
-    def enter(self) -> None:
-        """
-        Enter the state
-        """
-        if not self.acs.desired_cfg or not self.acs.desired_cfg.get_parameter(SASParameters.SAS_METHOD):
-            # Skip dp state entirely if SAS_METHOD not set to True.
-            self._transition_into_next_state()
-            return
-
-        serial_number = self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
-        # NOTE: Some params are not available in eNB Data Model, but still required by Domain Proxy
-        # antenna_height: need to provide any value, SAS should not care about the value for CBSD cat A indoor.
-        #                 Hardcode it.
-        # NOTE: In case GPS scan is not completed, eNB reports LAT and LONG values as 0.
-        #       Only update CBSD in Domain Proxy when all params are available.
-        gps_status = self.acs.device_cfg.get_parameter(ParameterName.GPS_STATUS)
-        if gps_status:
-            enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
-                serial_number=serial_number,
-                latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
-                longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
-                indoor_deployment=self.acs.device_cfg.get_parameter(SASParameters.SAS_LOCATION),
-                antenna_height=str(ANTENNA_HEIGHT),
-                antenna_height_type=self.acs.device_cfg.get_parameter(SASParameters.SAS_HEIGHT_TYPE),
-                cbsd_category=self.acs.device_cfg.get_parameter(SASParameters.SAS_CATEGORY),
-            )
-            state = enodebd_update_cbsd(enodebd_update_cbsd_request)
-            ff_one_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
-        else:
-            EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
-
-        self._transition_into_next_state()
-        return
 
 
 def _ff_one_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:
