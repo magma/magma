@@ -156,7 +156,7 @@ class FreedomFiOneHandler(BasicEnodebAcsStateMachine):
                 self,
                 when_done='end_session',
             ),
-            'end_session': FreedomFiOneEndSessionState(self, when_done='wait_inform'),
+            'end_session': FreedomFiOneEndSessionState(self, when_inform='wait_inform'),
 
             # These states are only entered through manual user intervention
             'reboot': EnbSendRebootState(self, when_done='wait_reboot'),

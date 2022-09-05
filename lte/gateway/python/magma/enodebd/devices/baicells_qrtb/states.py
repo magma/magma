@@ -35,20 +35,14 @@ from magma.enodebd.dp_client import (
 )
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger
-from magma.enodebd.state_machines.acs_state_utils import (
-    get_all_objects_to_add,
-    get_all_objects_to_delete,
-    get_all_param_values_to_set,
-    process_inform_message,
-)
 from magma.enodebd.state_machines.acs_state_utils import process_inform_message
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import (
     AcsMsgAndTransition,
     AcsReadMsgResult,
     EnodebAcsState,
-    WaitInformMRebootState,
     WaitGetObjectParametersState,
+    WaitInformMRebootState,
 )
 from magma.enodebd.state_machines.timer import StateMachineTimer
 from magma.enodebd.tr069 import models
@@ -57,7 +51,9 @@ logger = EnodebdLogger
 
 
 class BaicellsQRTBWaitGetObjectParametersState(WaitGetObjectParametersState):
-    """ WaitGetObjectParametersState modified in a way that enforces it to always go next to "when_done" state."""
+    """ WaitGetObjectParametersState modified in a way that allows to sync up
+    with DP before transitioning in the next state, so DP params will be
+    included into the config and del/add/set messages."""
 
     def _get_next_state(self) -> AcsReadMsgResult:
         self._notify_dp()   # Call DP hook before going into the next state.
@@ -95,11 +91,11 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
     def __init__(
             self,
             acs: EnodebAcsStateMachine,
-            when_done: str,
+            when_inform: str,
     ):
         super().__init__()
         self.acs = acs
-        self.inform_transition = when_done
+        self.inform_transition = when_inform
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
