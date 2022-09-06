@@ -227,14 +227,7 @@ type DBCbsd struct {
 	LongitudeDeg              sql.NullFloat64
 	HeightM                   sql.NullFloat64
 	HeightType                sql.NullString
-	HorizontalAccuracyM       sql.NullFloat64
-	AntennaAzimuthDeg         sql.NullInt64
-	AntennaDowntiltDeg        sql.NullInt64
-	AntennaBeamwidthDeg       sql.NullInt64
-	AntennaModel              sql.NullString
-	EirpCapabilityDbmMhz      sql.NullInt64
 	IndoorDeployment          sql.NullBool
-	CpiDigitalSignature       sql.NullString
 	CarrierAggregationEnabled sql.NullBool
 	GrantRedundancy           sql.NullBool
 	MaxIbwMhx                 sql.NullInt64
@@ -266,14 +259,7 @@ func (c *DBCbsd) Fields() []db.BaseType {
 		db.FloatType{X: &c.LongitudeDeg},
 		db.FloatType{X: &c.HeightM},
 		db.StringType{X: &c.HeightType},
-		db.FloatType{X: &c.HorizontalAccuracyM},
-		db.IntType{X: &c.AntennaAzimuthDeg},
-		db.IntType{X: &c.AntennaDowntiltDeg},
-		db.IntType{X: &c.AntennaBeamwidthDeg},
-		db.StringType{X: &c.AntennaModel},
-		db.IntType{X: &c.EirpCapabilityDbmMhz},
 		db.BoolType{X: &c.IndoorDeployment},
-		db.StringType{X: &c.CpiDigitalSignature},
 		db.BoolType{X: &c.CarrierAggregationEnabled},
 		db.BoolType{X: &c.GrantRedundancy},
 		db.IntType{X: &c.MaxIbwMhx},
@@ -407,45 +393,10 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 				Nullable: true,
 			},
 			{
-				Name:     "horizontal_accuracy_m",
-				SqlType:  sqorc.ColumnTypeReal,
-				Nullable: true,
-			},
-			{
-				Name:     "antenna_azimuth_deg",
-				SqlType:  sqorc.ColumnTypeInt,
-				Nullable: true,
-			},
-			{
-				Name:     "antenna_downtilt_deg",
-				SqlType:  sqorc.ColumnTypeInt,
-				Nullable: true,
-			},
-			{
-				Name:     "antenna_beamwidth_deg",
-				SqlType:  sqorc.ColumnTypeInt,
-				Nullable: true,
-			},
-			{
-				Name:     "antenna_model",
-				SqlType:  sqorc.ColumnTypeText,
-				Nullable: true,
-			},
-			{
-				Name:     "eirp_capability_dbm_mhz",
-				SqlType:  sqorc.ColumnTypeInt,
-				Nullable: true,
-			},
-			{
 				Name:         "indoor_deployment",
 				SqlType:      sqorc.ColumnTypeBool,
 				HasDefault:   true,
 				DefaultValue: false,
-			},
-			{
-				Name:     "cpi_digital_signature",
-				SqlType:  sqorc.ColumnTypeText,
-				Nullable: true,
 			},
 			{
 				Name:         "carrier_aggregation_enabled",
