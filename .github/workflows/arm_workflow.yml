@@ -19,59 +19,60 @@ jobs:
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Run apt
-        run: sudo apt-get update && sudo apt -y upgrade
-      - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
-        with:
-          default: 3.8.10
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
-        with:
-          python-version: '3.8.10'
-      - name: Setup SSH Keys and known_hosts
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.LF_AWS_KEYPAIR }}"
-          mkdir ~/.ssh
-          touch ~/.ssh/gha_keypair.pem
-          echo "${{ secrets.LF_AWS_KEYPAIR }}" > ~/.ssh/gha_keypair.pem
-          sudo chmod 400 ~/.ssh/gha_keypair.pem
-      - name: Install Dependencies
-        run: |
-          pip install ansible awscli boto3
-          sudo apt-get update
-      - name: Ansible config setup
-        run: |
-          echo "[defaults]" >> ~/.ansible.cfg
-          echo "host_key_checking = False" >> ~/.ansible.cfg
-          echo "ssh_args = -o ServerAliveInterval=60"
-      - name: Run the ansible script to build on graviton
-        run: |
-          cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
-          ansible-playbook -vvv --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.DOCKER_USERNAME }} magma_registry_password=${{ secrets.DOCKER_PASSWORD }} magma_hash=${GITHUB_SHA:0:8} magma_branch=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} mitogen_ssh_compression=False" arm_build.yml
-
-      - name: Notify failure to Slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        # yamllint enable
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action arm build failed"
-          SLACK_USERNAME: "Build workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "Arm images have been published"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+        run: cat /etc/ssh/sshd_config
+        # run: sudo apt-get update && sudo apt -y upgrade
+      # - name: setup pyenv
+      #   uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
+      #   with:
+      #     default: 3.8.10
+      # - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      #   with:
+      #     python-version: '3.8.10'
+      # - name: Setup SSH Keys and known_hosts
+      #   env:
+      #     SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      #   run: |
+      #     ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+      #     ssh-add - <<< "${{ secrets.LF_AWS_KEYPAIR }}"
+      #     mkdir ~/.ssh
+      #     touch ~/.ssh/gha_keypair.pem
+      #     echo "${{ secrets.LF_AWS_KEYPAIR }}" > ~/.ssh/gha_keypair.pem
+      #     sudo chmod 400 ~/.ssh/gha_keypair.pem
+      # - name: Install Dependencies
+      #   run: |
+      #     pip install ansible awscli boto3
+      #     sudo apt-get update
+      # - name: Ansible config setup
+      #   run: |
+      #     echo "[defaults]" >> ~/.ansible.cfg
+      #     echo "host_key_checking = False" >> ~/.ansible.cfg
+      #     echo "ssh_args = -o ServerAliveInterval=60"
+      # - name: Run the ansible script to build on graviton
+      #   run: |
+      #     cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
+      #     ansible-playbook -vvv --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.DOCKER_USERNAME }} magma_registry_password=${{ secrets.DOCKER_PASSWORD }} magma_hash=${GITHUB_SHA:0:8} magma_branch=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}} mitogen_ssh_compression=False" arm_build.yml
+      #
+      # - name: Notify failure to Slack
+      #   if: failure() && github.event_name == 'push'
+      #   uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+      #   # yamllint enable
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      #     SLACK_TITLE: "Github action arm build failed"
+      #     SLACK_USERNAME: "Build workflow"
+      #     SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+      #     SLACK_ICON_EMOJI: ":boom:"
+      #     SLACK_COLOR: "#FF0000"
+      #     SLACK_FOOTER: ' '
+      # - name: Notify success to Slack
+      #   if: success() && github.event_name == 'push'
+      #   uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+      #   env:
+      #     SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+      #     SLACK_TITLE: "Arm images have been published"
+      #     SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+      #     SLACK_USERNAME: "Build workflow"
+      #     SLACK_ICON_EMOJI: ":heavy_check_mark:"
+      #     SLACK_COLOR: "#00FF00"
+      #     SLACK_FOOTER: ' '
