@@ -26,9 +26,6 @@
 
 #include "lte/protos/oai/s1ap_state.pb.h"
 
-#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
-#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,6 +41,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
+
 extern bool hss_associated;
 
 namespace magma {
@@ -59,7 +60,7 @@ magma::lte::oai::EnbDescription* s1ap_new_enb(void);
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-magma::lte::oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
+oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
                                             sctp_assoc_id_t sctp_assoc_id,
                                             enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
@@ -67,7 +68,7 @@ magma::lte::oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
  * \param ue_ref UE structure reference to remove
  **/
 void s1ap_remove_ue(s1ap_state_t* state,
-                    magma::lte::oai::UeDescription* ue_ref);
+                    oai::UeDescription* ue_ref);
 
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove

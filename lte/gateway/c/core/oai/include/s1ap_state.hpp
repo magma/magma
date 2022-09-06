@@ -40,13 +40,13 @@ void put_s1ap_state(void);
 magma::lte::oai::EnbDescription* s1ap_state_get_enb(s1ap_state_t* state,
                                                     sctp_assoc_id_t assoc_id);
 
-magma::lte::oai::UeDescription* s1ap_state_get_ue_enbid(
+oai::UeDescription* s1ap_state_get_ue_enbid(
     sctp_assoc_id_t sctp_assoc_id, enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
-magma::lte::oai::UeDescription* s1ap_state_get_ue_mmeid(
+oai::UeDescription* s1ap_state_get_ue_mmeid(
     mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
-magma::lte::oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64);
+oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64);
 
 /**
  * Return unique composite id for S1AP UE context
@@ -73,20 +73,22 @@ int read_s1ap_ue_state_db(void);
 
 void remove_ues_without_imsi_from_ue_id_coll(void);
 
-void clean_stale_enb_state(
-    s1ap_state_t* state, magma::lte::oai::EnbDescription* new_enb_association);
-
 void put_s1ap_ue_state(imsi64_t imsi64);
 
 void delete_s1ap_ue_state(imsi64_t imsi64);
 
 bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
-                                     magma::lte::oai::UeDescription* elementP,
+                                     oai::UeDescription* elementP,
                                      void* parameterP, void** resultP);
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
-                             magma::lte::oai::UeDescription* elementP,
+                             oai::UeDescription* elementP,
                              void* parameterP, void** resultP);
+
+void remove_ues_without_imsi_from_ue_id_coll(void);
+
+void clean_stale_enb_state(
+    s1ap_state_t* state, oai::EnbDescription* new_enb_association);
 
 }  // namespace lte
 }  // namespace magma

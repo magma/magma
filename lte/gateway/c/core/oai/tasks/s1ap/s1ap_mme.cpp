@@ -464,7 +464,7 @@ void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
                ue_ref->enb_ue_s1ap_id(), ue_ref->mme_ue_s1ap_id(),
                enb_ref->enb_id);
 
-  ue_ref->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_INVALID_STATE);
+  ue_ref->set_s1ap_ue_state(oai::S1AP_UE_INVALID_STATE);
   if (ue_ref->s1ap_ue_context_rel_timer().id() != S1AP_TIMER_INACTIVE_ID) {
     s1ap_stop_timer(ue_ref->s1ap_ue_context_rel_timer().id());
     ue_ref->mutable_s1ap_ue_context_rel_timer()->set_id(S1AP_TIMER_INACTIVE_ID);

@@ -162,7 +162,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
 
     OAILOG_DEBUG(LOG_S1AP, "Creating new UE Ref on S1ap");
 
-    ue_ref->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_WAITING_CSR);
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_WAITING_CSR);
 
     ue_ref->set_enb_ue_s1ap_id(enb_ue_s1ap_id);
     // Will be allocated by NAS
@@ -349,7 +349,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
     }
   }
 
-  if (ue_ref->s1ap_ue_state() != magma::lte::oai::S1AP_UE_CONNECTED) {
+  if (ue_ref->s1ap_ue_state() != oai::S1AP_UE_CONNECTED) {
     OAILOG_WARNING(LOG_S1AP,
                    "Received S1AP UPLINK_NAS_TRANSPORT while UE in state != "
                    "S1AP_UE_CONNECTED\n");
@@ -458,7 +458,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
   imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
-  if (ue_ref->s1ap_ue_state() != magma::lte::oai::S1AP_UE_CONNECTED) {
+  if (ue_ref->s1ap_ue_state() != oai::S1AP_UE_CONNECTED) {
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
         "Received S1AP NAS_NON_DELIVERY_INDICATION while UE in state != "
@@ -539,14 +539,14 @@ status_code_e s1ap_generate_downlink_nas_transport(
 
     out = &pdu.choice.initiatingMessage.value.choice.DownlinkNASTransport;
 
-    if (ue_ref->s1ap_ue_state() == magma::lte::oai::S1AP_UE_WAITING_CRR) {
+    if (ue_ref->s1ap_ue_state() == oai::S1AP_UE_WAITING_CRR) {
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
           "Already triggered UE Context Release Command and UE is"
           "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     } else {
-      ue_ref->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_CONNECTED);
+      ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);
     }
     /*
      * Setting UE informations with the ones found in ue_ref
@@ -654,7 +654,7 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
     pdu.choice.initiatingMessage.value.present =
         S1ap_InitiatingMessage__value_PR_E_RABSetupRequest;
     out = &pdu.choice.initiatingMessage.value.choice.E_RABSetupRequest;
-    ue_ref->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_CONNECTED);
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);
     /*
      * Setting UE information with the ones found in ue_ref
      */
@@ -1304,7 +1304,7 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
     ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_ENB_UE_S1AP_ID;
     ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-    ue_ref->set_s1ap_ue_state(magma::lte::oai::S1AP_UE_CONNECTED);
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);
 
     ie = (S1ap_E_RABReleaseCommandIEs_t*)calloc(
         1, sizeof(S1ap_E_RABReleaseCommandIEs_t));

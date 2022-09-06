@@ -114,7 +114,7 @@ s1ap_imsi_map_t* get_s1ap_imsi_map() {
 }
 
 bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
-                                     magma::lte::oai::UeDescription* elementP,
+                                     oai::UeDescription* elementP,
                                      void* parameterP, void** resultP) {
   mme_ue_s1ap_id_t* mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t*)parameterP;
   oai::UeDescription* ue_ref = (oai::UeDescription*)elementP;
@@ -129,8 +129,8 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
 }
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
-                             magma::lte::oai::UeDescription* elementP,
-                             void* parameterP, void** resultP) {
+                             oai::UeDescription* elementP, void* parameterP,
+                             void** resultP) {
   imsi64_t imsi64 = INVALID_IMSI64;
   imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
   oai::UeDescription* ue_ref = (oai::UeDescription*)elementP;
