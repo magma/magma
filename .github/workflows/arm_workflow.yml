@@ -46,7 +46,7 @@ jobs:
           echo "[defaults]" >> ~/.ansible.cfg
           echo "host_key_checking = False" >> ~/.ansible.cfg
           echo "ssh_args = -o ServerAliveInterval=60" >> ~/.ansible.cfg
-          mkdir ~/.ssh
+          mkdir -p ~/.ssh
           touch ~/.ssh/config
           chmod 600  ~/.ssh/config
           echo "Host *" >> ~/.ssh/config
