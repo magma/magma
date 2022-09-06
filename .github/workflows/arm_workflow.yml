@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Run apt
-        run: cat /etc/ssh/sshd_config
+        run: cat ~/.ssh/config
         # run: sudo apt-get update && sudo apt -y upgrade
       # - name: setup pyenv
       #   uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
