@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Run apt
         run: |
+          mkdir ~/.ssh
           touch ~/.ssh/config
           chmod 600  ~/.ssh/config
           echo "Host *" >> ~/.ssh/config
