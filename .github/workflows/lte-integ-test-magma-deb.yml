@@ -28,7 +28,7 @@ jobs:
     env:
       SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           ref: ${{ env.SHA }}
       - name: Cache magma-deb-box
