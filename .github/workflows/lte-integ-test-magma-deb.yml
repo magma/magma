@@ -53,11 +53,10 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
-          sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
       - name: Run the integ test
