@@ -19,8 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Run apt
-        run: cat ~/.ssh/config
-        # run: sudo apt-get update && sudo apt -y upgrade
+        run: |
+          touch ~/.ssh/config
+          chmod 600  ~/.ssh/config
+          echo "Host *" >> ~/.ssh/config
+          echo "    ServerAliveInterval 240" >> ~/.ssh/config
+          cat  ~/.ssh/config
+      #   run: sudo apt-get update && sudo apt -y upgrade
       # - name: setup pyenv
       #   uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
       #   with:
@@ -47,6 +52,11 @@ jobs:
       #     echo "[defaults]" >> ~/.ansible.cfg
       #     echo "host_key_checking = False" >> ~/.ansible.cfg
       #     echo "ssh_args = -o ServerAliveInterval=60"
+      #     touch ~/.ssh/config
+      #     chmod 600  ~/.ssh/config
+      #     echo "Host *" >> ~/.ssh/config
+      #     echo "    ServerAliveInterval 240" >> ~/.ssh/config
+      #     cat  ~/.ssh/config
       # - name: Run the ansible script to build on graviton
       #   run: |
       #     cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
