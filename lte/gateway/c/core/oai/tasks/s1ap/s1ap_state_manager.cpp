@@ -63,20 +63,18 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(void) {
-  bstring ht_name;
+S1apState* create_s1ap_state(void) {
+  map_uint32_enb_description_t enb_map;
 
-  s1ap_state_t* state_cache_p = new s1ap_state_t();
-  state_cache_p->enbs.map =
-      new google::protobuf::Map<unsigned int, oai::EnbDescription*>();
-  state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_enb_description);
+  S1apState* state_cache_p = new S1apState();
+  enb_map.map = state_cache_p->mutable_enbs();
+  enb_map.set_name(S1AP_ENB_COLL);
+  enb_map.bind_callback(free_enb_description);
 
-  state_cache_p->mmeid2associd.map =
-      new google::protobuf::Map<uint32_t, uint32_t>();
-  state_cache_p->mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
+  magma::proto_map_uint32_uint32_t mmeid2associd;
+  mmeid2associd.map = state_cache_p->mutable_mmeid2associd();
+  mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
 
-  state_cache_p->num_enbs = 0;
   return state_cache_p;
 }
 
@@ -98,21 +96,23 @@ void S1apStateManager::create_state() {
   create_s1ap_imsi_map();
 }
 
-void free_s1ap_state(s1ap_state_t* state_cache_p) {
+void free_s1ap_state(S1apState* state_cache_p) {
   AssertFatal(state_cache_p,
-              "s1ap_state_t passed to free_s1ap_state must not be null");
+              "S1apState passed to free_s1ap_state must not be null");
 
   int i;
   hashtable_rc_t ht_rc;
   hashtable_key_array_t* keys;
   sctp_assoc_id_t assoc_id;
   oai::EnbDescription* enb;
+  map_uint32_enb_description_t enb_map;
+  enb_map.map = state_cache_p->mutable_enbs();
 
-  if (state_cache_p->enbs.isEmpty()) {
+  if (enb_map.isEmpty()) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
   } else {
-    for (auto itr = state_cache_p->enbs.map->begin();
-         itr != state_cache_p->enbs.map->end(); itr++) {
+    for (auto itr = enb_map.map->begin(); itr != enb_map.map.map->end();
+         itr++) {
       enb = itr->second;
       if (!enb) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
@@ -121,10 +121,13 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       }
     }
   }
-  if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
+  if (enb_map.destroy_map() != PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
   }
-  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
+
+  magma::proto_map_uint32_uint32_t mmeid2associd;
+  mmeid2associd.map = state_cache_p->mutable_mmeid2associd();
+  if ((mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP,
                  "An error occurred while destroying mmeid2associd map");
   }
