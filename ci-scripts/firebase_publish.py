@@ -90,7 +90,7 @@ def main():
     try:
         arm_agw_artifacts = json.loads(arm_agw_artifacts_env)
     except ValueError:
-        print("Decoding FEG artifacts JSON has failed: ", arm_agw_artifacts_env)
+        print("Decoding ARM AGW artifacts JSON has failed: ", arm_agw_artifacts_env)
         arm_agw_artifacts = {"packages": [], "valid": False}
     build_info["arm_agw"] = arm_agw_artifacts
 
