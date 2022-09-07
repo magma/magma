@@ -15,7 +15,7 @@
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
 
-ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
+ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
@@ -32,7 +32,7 @@ RUN apt-get update && \
 # Add the magma apt repo
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-  apt-add-repository "deb ${EXTRA_REPO} focal-ci main"
+  apt-add-repository "deb ${EXTRA_REPO} focal-1.8.0 main"
 
 # Install dependencies required for building
 RUN apt-get -y update && apt-get -y install \
