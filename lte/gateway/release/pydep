@@ -591,15 +591,21 @@ def py_to_deb(pkgname: str,
             return 0
         log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
-        cmd = "fpm -s python -t deb --no-python-dependencies --no-python-internal-pip "
-        if not py2:
-            cmd += "--python-package-name-prefix=python3 "
-            cmd += "--python-bin=python3 "
-        cmd += "-n {}".format(syspkg_name)
+        subprocess.call(shlex.split("sudo apt update"))
+        subprocess.call(shlex.split("sudo apt install -y python3-apt apt-file dpkg-dev fakeroot build-essential devscripts debhelper"))
+        subprocess.call(shlex.split("sudo apt-file update"))
+        subprocess.call(shlex.split("pip3 install wheel2deb"))
+
+        cmd = "pip3 wheel"
+        # cmd = "fpm -s python -t deb --no-python-dependencies --no-python-internal-pip "
+        # if not py2:
+        #     cmd += "--python-package-name-prefix=python3 "
+        #     cmd += "--python-bin=python3 "
+        # cmd += "-n {}".format(syspkg_name)
 
         # check if the package has an epoch
-        if syspkg_name in DEB_EPOCH:
-            cmd += " --epoch {}".format(DEB_EPOCH[syspkg_name])
+        # if syspkg_name in DEB_EPOCH:
+        #     cmd += " --epoch {}".format(DEB_EPOCH[syspkg_name])
         reqs = dist.requires()
         deps = []
         for req in reqs:
@@ -616,18 +622,21 @@ def py_to_deb(pkgname: str,
         for dep in deps:
             deppkg, depop, depver = dep
             if depver:
-                cmd += ' -d "{} {} {}"'.format(deppkg, depop, depver)
+                cmd += ' "{} {} {}"'.format(deppkg, depop, depver)
             else:
-                cmd += ' -d {}'.format(deppkg)
+                cmd += ' {}'.format(deppkg)
 
-        if more_args:
-            cmd += " {} ".format(more_args)
+        # if more_args:
+        #     cmd += " {} ".format(more_args)
         if version:
             cmd += " {}{}{}".format(pkgname, '==', version)
         else:
             cmd += " {}".format(pkgname)
 
-        log.debug(cmd)
+        log.info(cmd)
+        subprocess.call(shlex.split("/home/vagrant/.local/bin/wheel2deb --map attrs=attr"))
+        subprocess.call(shlex.split("/home/vagrant/.local/bin/wheel2deb build"))
+        # subprocess.call(shlex.split("rm *.whl"))
         return subprocess.call(shlex.split(cmd))
 
 
