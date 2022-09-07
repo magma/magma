@@ -164,6 +164,7 @@
       ansible.builtin.shell: |
         cd "{{ magma_dir }}"/lte/gateway/docker
         export IMAGE_VERSION="{{ magma_hash }}"
+        export DOCKER_REGISTRY="{{ magma_registry_username }}"
         docker login -u {{ magma_registry_username }} -p {{ magma_registry_password }} {{ magma_registry_url }}
         docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64
         docker-compose push
