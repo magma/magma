@@ -50,7 +50,7 @@ func NewDBCbsdBuilder() *DBCbsdBuilder {
 			FccId:                     db.MakeString(someFccId),
 			CbsdSerialNumber:          db.MakeString(someSerialNumber),
 			PreferredBandwidthMHz:     db.MakeInt(20),
-			PreferredFrequenciesMHz:   db.MakeString("[3600]"),
+			PreferredFrequenciesMHz:   []int64{3600},
 			MinPower:                  db.MakeFloat(10),
 			MaxPower:                  db.MakeFloat(20),
 			NumberOfPorts:             db.MakeInt(2),
@@ -201,16 +201,6 @@ func (b *DBCbsdBuilder) WithMaxIbwMhx(ibw int64) *DBCbsdBuilder {
 
 func (b *DBCbsdBuilder) WithShouldDeregister(should bool) *DBCbsdBuilder {
 	b.Cbsd.ShouldDeregister = db.MakeBool(should)
-	return b
-}
-
-func (b *DBCbsdBuilder) WithPreferredBandwidthMHz(bandwidth int64) *DBCbsdBuilder {
-	b.Cbsd.PreferredBandwidthMHz = db.MakeInt(bandwidth)
-	return b
-}
-
-func (b *DBCbsdBuilder) WithPreferredFrequenciesMHz(freq string) *DBCbsdBuilder {
-	b.Cbsd.PreferredFrequenciesMHz = db.MakeString(freq)
 	return b
 }
 

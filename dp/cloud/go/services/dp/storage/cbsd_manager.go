@@ -356,7 +356,8 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 		From(&DBCbsd{}).
 		Select(db.NewExcludeMask(
 			"state_id", "desired_state_id",
-			"is_deleted", "should_deregister", "should_relinquish")).
+			"is_deleted", "should_deregister", "should_relinquish",
+			"available_frequencies", "channels")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			As("t1").
