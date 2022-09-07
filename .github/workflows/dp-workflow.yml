@@ -139,7 +139,6 @@ jobs:
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
-          fail_ci_if_error: false
           verbose: true
 
   active_mode_controller_unit_tests:
@@ -179,7 +178,6 @@ jobs:
         with:
           flags: unittests,active-mode-controller
           name: codecov-active-mode-controller
-          fail_ci_if_error: false
           verbose: true
 
   radio_controller_unit_tests:
@@ -258,7 +256,6 @@ jobs:
         with:
           flags: unittests,radio-controller
           name: codecov-radio-controller
-          fail_ci_if_error: false
           verbose: true
 
   db_migration_check:
@@ -354,7 +351,6 @@ jobs:
         with:
           flags: unittests,db-service
           name: codecov-db-service
-          fail_ci_if_error: false
           verbose: true
 
   integration_tests_orc8r:
