@@ -392,7 +392,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
       &S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list;
   e_rab_admitted_list->no_of_items =
       handover_state.e_rab_admitted_list().no_of_items();
-  for (int idx = 0; idx < e_rab_admitted_list->no_of_items; idx++) {
+  for (uint8_t idx = 0; idx < e_rab_admitted_list->no_of_items; idx++) {
     const oai::ERabAdmittedItem& proto_e_rab_item =
         handover_state.e_rab_admitted_list().item(idx);
     e_rab_admitted_list->item[idx].e_rab_id = proto_e_rab_item.e_rab_id();

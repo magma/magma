@@ -158,8 +158,7 @@ status_code_e s1ap_mme_handle_erab_setup_failure(s1ap_state_t* state,
                                                  S1ap_S1AP_PDU_t* message);
 
 void s1ap_mme_release_ue_context(s1ap_state_t* state,
-                                 oai::UeDescription* ue_ref_p,
-                                 imsi64_t imsi64);
+                                 oai::UeDescription* ue_ref_p, imsi64_t imsi64);
 
 status_code_e s1ap_mme_handle_error_ind_message(s1ap_state_t* state,
                                                 const sctp_assoc_id_t assoc_id,
@@ -225,9 +224,11 @@ status_code_e s1ap_mme_generate_ue_context_modification(
 status_code_e s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id_t enb_ue_s1ap_id,
                                                uint32_t enb_id);
 
-status_code_e s1ap_send_mme_ue_context_release(
-    s1ap_state_t* state, oai::UeDescription* ue_ref_p,
-    enum s1cause s1_release_cause, S1ap_Cause_t ie_cause, imsi64_t imsi64);
+status_code_e s1ap_send_mme_ue_context_release(s1ap_state_t* state,
+                                               oai::UeDescription* ue_ref_p,
+                                               enum s1cause s1_release_cause,
+                                               S1ap_Cause_t ie_cause,
+                                               imsi64_t imsi64);
 
 }  // namespace lte
 }  // namespace magma
