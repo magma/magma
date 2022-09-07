@@ -47,6 +47,7 @@ def main():
     orc8r_artifacts_env = os.environ["ORC8R_ARTIFACTS"]
     cwag_artifacts_env = os.environ["CWAG_ARTIFACTS"]
     nms_artifacts_env = os.environ["NMS_ARTIFACTS"]
+    arm_agw_artifacts_env = os.environ["ARM_AGW_ARTIFACTS"]
 
     # Prepare list of registered test workers
     workers = [x.strip() for x in workers_env.split(",")]
@@ -83,6 +84,15 @@ def main():
         print("Decoding FEG artifacts JSON has failed: ", feg_artifacts_env)
         feg_artifacts = {"packages": [], "valid": False}
     build_info["feg"] = feg_artifacts
+
+    # Add ARM AGW Container artifacts
+    arm_agw_artifacts = {}
+    try:
+        arm_agw_artifacts = json.loads(arm_agw_artifacts_env)
+    except ValueError:
+        print("Decoding FEG artifacts JSON has failed: ", arm_agw_artifacts_env)
+        arm_agw_artifacts = {"packages": [], "valid": False}
+    build_info["arm_agw"] = arm_agw_artifacts
 
     # Add ORC8R artifacts
     orc8r_artifacts = {}

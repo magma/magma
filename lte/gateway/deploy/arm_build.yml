@@ -106,7 +106,7 @@
     magma_dir: /tmp/magma/
     magma_repo: https://github.com/magma/magma.git
     magma_branch: master #default value
-    magma_registry_url: "docker.artifactory.magmacore.org"
+    magma_registry_url: "agw-test.artifactory.magmacore.org"
     magma_registry_username: "overwrite_me"
     magma_registry_password: "overwrite_me"
   tasks:
