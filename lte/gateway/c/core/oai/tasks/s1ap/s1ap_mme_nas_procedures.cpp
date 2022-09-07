@@ -162,7 +162,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
 
     OAILOG_DEBUG(LOG_S1AP, "Creating new UE Ref on S1ap");
 
-    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_WAITING_CSR);
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_WAITING_ICSR);
 
     ue_ref->set_enb_ue_s1ap_id(enb_ue_s1ap_id);
     // Will be allocated by NAS
@@ -538,11 +538,11 @@ status_code_e s1ap_generate_downlink_nas_transport(
 
     out = &pdu.choice.initiatingMessage.value.choice.DownlinkNASTransport;
 
-    if (ue_ref->s1ap_ue_state() == oai::S1AP_UE_WAITING_CRR) {
+    if (ue_ref->s1ap_ue_state() == oai::S1AP_UE_WAITING_CRC) {
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
           "Already triggered UE Context Release Command and UE is"
-          "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
+          "in S1AP_UE_WAITING_CRC, so dropping the DownlinkNASTransport \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     } else {
       ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);

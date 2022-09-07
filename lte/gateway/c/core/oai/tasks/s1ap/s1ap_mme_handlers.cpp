@@ -1406,7 +1406,7 @@ status_code_e s1ap_mme_generate_ue_context_release_command(
   }
   if (rc == RETURNok) {
     // Start timer to track UE context release complete from eNB
-    ue_ref_p->set_s1ap_ue_state(oai::S1AP_UE_WAITING_CRR);
+    ue_ref_p->set_s1ap_ue_state(oai::S1AP_UE_WAITING_CRC);
     ue_ref_p->mutable_s1ap_ue_context_rel_timer()->set_id(s1ap_start_timer(
         ue_ref_p->s1ap_ue_context_rel_timer().msec(), TIMER_REPEAT_ONCE,
         handle_ue_context_rel_timer_expiry, mme_ue_s1ap_id));
@@ -1653,7 +1653,7 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
       imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
-      ue_ref_p->set_s1ap_ue_state(oai::S1AP_UE_WAITING_CRR);
+      ue_ref_p->set_s1ap_ue_state(oai::S1AP_UE_WAITING_CRC);
       // We can safely remove UE context now and stop timer
       s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
 
@@ -2188,7 +2188,7 @@ status_code_e s1ap_mme_handle_handover_request_ack(
         ue_ref_p->mutable_s1ap_handover_state();
     handover_state->mutable_e_rab_admitted_list()->set_no_of_items(
         e_rab_list.no_of_items);
-    for (int idx = 0; idx < e_rab_list.no_of_items; idx++) {
+    for (uint8_t idx = 0; idx < e_rab_list.no_of_items; idx++) {
       oai::ERabAdmittedItem* e_rab_admitted_item =
           handover_state->mutable_e_rab_admitted_list()->add_item();
       e_rab_admitted_item->set_e_rab_id(e_rab_list.item[idx].e_rab_id);
@@ -3842,7 +3842,7 @@ void s1ap_mme_release_ue_context(s1ap_state_t* state,
   message_p->ittiMsgHeader.imsi = imsi64;
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
 
-  if (!(ue_ref_p->s1ap_ue_state() == oai::S1AP_UE_WAITING_CRR)) {
+  if (!(ue_ref_p->s1ap_ue_state() == oai::S1AP_UE_WAITING_CRC)) {
     OAILOG_ERROR(LOG_S1AP, "Incorrect S1AP UE state\n");
   }
   OAILOG_DEBUG_UE(LOG_S1AP, imsi64, "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
@@ -4623,7 +4623,7 @@ status_code_e s1ap_mme_handle_erab_modification_indication(
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t)mme_ue_s1ap_id)) ==
       nullptr) {
-    OAILOG_DEBUG(LOG_S1AP,
+    OAILOG_ERROR(LOG_S1AP,
                  "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
                  " %u(10)\n",
                  (uint32_t)mme_ue_s1ap_id, (uint32_t)mme_ue_s1ap_id);
@@ -5033,7 +5033,7 @@ status_code_e s1ap_handle_path_switch_req_ack(
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
            path_switch_req_ack_p->mme_ue_s1ap_id)) == nullptr) {
-    OAILOG_DEBUG_UE(
+    OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
         "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         (uint32_t)path_switch_req_ack_p->mme_ue_s1ap_id);
@@ -5126,7 +5126,7 @@ status_code_e s1ap_handle_path_switch_req_failure(
   mme_ue_s1ap_id = path_switch_req_failure_p->mme_ue_s1ap_id;
   ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id);
   if (ue_ref_p == nullptr) {
-    OAILOG_DEBUG_UE(
+    OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
         "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
@@ -5393,7 +5393,7 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-// Frees the contents of pointer, called while freeing an entry from protibuf
+// Frees the contents of pointer, called while freeing an entry from protobuf
 // map
 void free_enb_description(void** ptr) {
   if (ptr) {
