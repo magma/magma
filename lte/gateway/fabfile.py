@@ -544,11 +544,6 @@ def integ_test_deb_installation(
     execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
 
-    if not gateway_host:
-        setup_env_vagrant()
-    else:
-        env.hosts = [gateway_host]
-
 
 def run_integ_tests(tests=None, federated_mode=False):
     """
