@@ -308,7 +308,7 @@ def _modify_for_bazel_services():
     run("sudo systemctl daemon-reload")
 
 
-def bazel_integ_test_pre_build(
+def provision_magma_dev_vm(
     gateway_host=None, destroy_vm='True', provision_vm='True',
 ):
     """
@@ -332,7 +332,6 @@ def bazel_integ_test_pre_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
 
     execute(_dist_upgrade)
-    execute(_modify_for_bazel_services)
 
 
 def bazel_integ_test_post_build(
@@ -369,6 +368,7 @@ def bazel_integ_test_post_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
+    execute(_modify_for_bazel_services)
     execute(_start_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
