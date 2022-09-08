@@ -25,7 +25,7 @@ import (
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.RADIUSD)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.RADIUSD)
 	if err != nil {
 		glog.Fatalf("Error creating RADIUSD service: %s", err)
 	}

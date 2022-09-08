@@ -40,7 +40,7 @@ def python_repositories(name = ""):
         remote = "https://github.com/magma/deb-python-aioeventlet.git",
         build_file = "//bazel/external:aioeventlet.BUILD",
         commit = "86130360db113430370ed6c64d42aee3b47cd619",
-        shallow_since = "1655813728",
+        shallow_since = "1656345625 +0200",
     )
 
     # TODO: This is not a nice solution, because it is not really hermetic.

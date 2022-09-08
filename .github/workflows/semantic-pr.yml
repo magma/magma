@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Semantic PR"
+name: "Check for semantic PR title"
 
 on:
   # Semantic PR module only works with pull_request_target
@@ -26,12 +26,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  reverted-pr-check:
-    name: Reverted PR Check Job
+  check-reverted-pr:
     runs-on: ubuntu-latest
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
-    # Map a step output to a job output
     outputs:
       is_reverted_pr: ${{ steps.reverted_pr_check.outputs.is_reverted_pr }}
     steps:
@@ -46,25 +44,12 @@ jobs:
             else  {
               core.setOutput('is_reverted_pr', 'false');
             }
-      - name: Save Reverted PR output
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
-          echo -n "false" > ./pr/skipped
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
-        with:
-          name: pr
-          path: pr/
 
-  semantic-pr:
-    needs: reverted-pr-check
-    if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
+  check-semantic-pr:
     runs-on: ubuntu-latest
+    needs: check-reverted-pr
+    if: ${{ needs.check-reverted-pr.outputs.is_reverted_pr == 'false' }}
     steps:
-      # Please look up the latest version from
-      # https://github.com/amannn/action-semantic-pull-request/releases
       - uses: amannn/action-semantic-pull-request@db6e259b93f286e3416eef27aaae88935d16cf2e # pin@v3.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -136,8 +121,8 @@ jobs:
           # Configure that a scope must always be provided.
           requireScope: false
           # For work-in-progress PRs you can typically use draft pull requests
-          # from Github. However, private repositories on the free plan don't have
-          # this option and therefore this action allows you to opt-in to using the
+          # from GitHub. However, private repositories on the free plan don't have
+          # this option and therefore this action allows you to opt in to using the
           # special "[WIP]" prefix to indicate this state. This will avoid the
           # validation of the PR title and the pull request checks remain pending.
           # Note that a second check will be reported if this is enabled.
@@ -147,14 +132,29 @@ jobs:
           # merge commit, and it's easy to commit this by mistake. Enable this option
           # to also validate the commit message for one commit PRs.
           validateSingleCommit: true
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo -n ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+
+  comment-on-pr:
+    runs-on: ubuntu-latest
+    needs: check-semantic-pr
+    if: always()
+    env:
+      STATUS: ':heavy_check_mark:'
+      check-type: Semantic PR check
+      check-documentation: See [instructions on formatting your commit and pull request titles](https://github.com/magma/magma/wiki/Contributing-Code#pull-request-and-commit-message-title-are-following-conventional-commits-format).
+    steps:
+      - if: needs.check-semantic-pr.result == 'failure'
+        run: echo 'STATUS=:x:' >> $GITHUB_ENV
+      - uses: peter-evans/find-comment@1769778a0c5bd330272d749d12c036d65e70d39d # pin@v2.0.0
+        id: fc
         with:
-          name: pr
-          path: pr/
+          issue-number: ${{ github.event.number }}
+          body-includes: ${{ env.check-type }}
+      - uses: thollander/actions-comment-pull-request@686ab1cab89e0f715a44a0d04b9fdfdd4f33d751 # pin@v1.4.1
+        if: >
+          (needs.check-semantic-pr.result == 'failure')
+          || (steps.fc.outputs.comment-id != '')
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          comment_includes: ${{ env.check-type }}
+          message: |
+            ${{ env.STATUS }} The **${{ env.check-type }}** ended with status **${{ needs.check-semantic-pr.result }}**. ${{ env.check-documentation }}

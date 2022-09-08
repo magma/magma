@@ -127,6 +127,20 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
 
             self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
 
+    def test_grants_relinquished_when_user_requested_relinquish(self):
+        builder = CbsdAPIDataBuilder() \
+            .with_serial_number(self.serial_number)
+
+        update_request = builder.build_enodebd_update_request()
+        cbsd_id = self.given_cbsd_provisioned(builder, update_request)
+
+        with self.while_cbsd_is_active(update_request):
+            self.when_cbsd_is_relinquished(cbsd_id)
+
+            self.then_state_is_eventually(get_empty_state(), update_request)
+
+            self.then_state_is_eventually(builder.build_grant_state_data(), update_request)
+
     def test_sas_flow_restarted_for_updated_cbsd(self):
         builder = CbsdAPIDataBuilder() \
             .with_serial_number(self.serial_number)
@@ -444,6 +458,10 @@ class DomainProxyOrc8rTestCase(Orc8rIntegrationTestCase):
 
     def when_cbsd_is_deregistered(self, cbsd_id: int):
         r = send_request_to_backend('post', f'cbsds/{cbsd_id}/deregister')
+        self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
+
+    def when_cbsd_is_relinquished(self, cbsd_id: int):
+        r = send_request_to_backend('post', f'cbsds/{cbsd_id}/relinquish')
         self.assertEqual(r.status_code, HTTPStatus.NO_CONTENT)
 
     @staticmethod

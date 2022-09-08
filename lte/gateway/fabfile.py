@@ -131,11 +131,8 @@ def package(
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
-        try:
+        with settings(warn_only=True):
             run('cp -f ~/magma-deps/*.deb ~/magma-packages')
-        except Exception:
-            # might be a problem if no deps found, but don't handle here
-            pass
         run('mv *.deb ~/magma-packages')
 
         with cd('release'):
@@ -387,7 +384,6 @@ def bazel_integ_test_post_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
-    execute(_run_sudo_python_unit_tests)
     execute(_restart_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
@@ -459,11 +455,6 @@ def integ_test(
     execute(_build_magma)
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
-
-    # Run suite of integ tests that are required to be run on the access gateway
-    # instead of the test VM
-    # TODO: fix the integration test T38069907
-    # execute(_run_local_integ_tests)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine

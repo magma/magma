@@ -37,3 +37,15 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "lib_ula_subdata_test",
+    size = "small",
+    srcs = [
+        "test_ula_subData.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

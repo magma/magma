@@ -37,22 +37,12 @@ func TestDeleteMessageString(t *testing.T) {
 
 func TestDeleteMessageSend(t *testing.T) {
 	client := &stubDeleteClient{}
-	provider := &stubDeleteClientProvider{client: client}
 
 	m := message.NewDeleteMessage(id)
-	require.NoError(t, m.Send(context.Background(), provider))
+	require.NoError(t, m.Send(context.Background(), client))
 
 	expected := &active_mode.DeleteCbsdRequest{Id: id}
 	assert.Equal(t, expected, client.req)
-}
-
-type stubDeleteClientProvider struct {
-	message.ClientProvider
-	client *stubDeleteClient
-}
-
-func (s *stubDeleteClientProvider) GetActiveModeClient() active_mode.ActiveModeControllerClient {
-	return s.client
 }
 
 type stubDeleteClient struct {

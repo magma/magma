@@ -98,6 +98,11 @@ func (c *cbsdBuilder) ForDeregistration() *cbsdBuilder {
 	return c
 }
 
+func (c *cbsdBuilder) ForRelinquish() *cbsdBuilder {
+	c.cbsd.DbData.ShouldRelinquish = true
+	return c
+}
+
 func (c *cbsdBuilder) WithChannel(channel *active_mode.Channel) *cbsdBuilder {
 	c.cbsd.Channels = append(c.cbsd.Channels, channel)
 	return c

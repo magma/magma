@@ -21,7 +21,6 @@ import IconButton from '@mui/material/IconButton';
 import PagerDutyConfigEditor from './PagerDutyConfigEditor';
 import PushoverConfigEditor from './PushoverConfigEditor';
 import SlackConfigEditor from './SlackConfigEditor';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
 import useForm from '../../../hooks/useForm';
@@ -29,6 +28,8 @@ import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
 
+import {AltFormField} from '../../../../../components/FormField';
+import {OutlinedInput} from '@mui/material';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {
   AlertReceiver,
@@ -145,17 +146,16 @@ export default function AddEditReceiver(props: Props) {
         <Card>
           <CardContent>
             <Typography paragraph>Details</Typography>
-            <TextField
-              variant="standard"
-              required
-              id="name"
-              label="Name"
-              placeholder="Ex: Support Team"
-              disabled={!isNew}
-              value={formState.name}
-              onChange={handleInputChange((val: string) => ({name: val}))}
-              fullWidth
-            />
+            <AltFormField label="Name">
+              <OutlinedInput
+                data-testid="receiverName"
+                disabled={!isNew}
+                fullWidth={true}
+                value={formState.name}
+                onChange={handleInputChange((val: string) => ({name: val}))}
+                placeholder="Ex: Support Team"
+              />
+            </AltFormField>
           </CardContent>
         </Card>
       </Grid>

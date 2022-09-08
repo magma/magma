@@ -21,36 +21,36 @@ set(libnas_mme_api_OBJS
     )
 
 set(libnas_emm_msg_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationFailure.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/CsServiceNotification.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DownlinkNasTransport.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmInformation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/emm_msg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmStatus.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ExtendedServiceRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationCommand.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeCommand.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/UplinkNasTransport.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationFailure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/CsServiceNotification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DownlinkNasTransport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmInformation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/emm_msg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmStatus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ExtendedServiceRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/UplinkNasTransport.cpp
     )
 
 set(libnas_esm_msg_OBJS

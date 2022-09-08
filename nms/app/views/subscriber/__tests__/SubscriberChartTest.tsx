@@ -16,7 +16,7 @@ import NetworkContext from '../../../context/NetworkContext';
 import React from 'react';
 import SubscriberChart from '../SubscriberChart';
 import defaultTheme from '../../../theme/default';
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {PromqlReturnObject} from '../../../../generated';
@@ -112,7 +112,7 @@ describe('<SubscriberChart />', () => {
           '/nms/test/subscribers/overview/config/IMSI001011234560000/overview',
         ]}
         initialIndex={0}>
-        <LocalizationProvider dateAdapter={AdapterMoment}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={defaultTheme}>
               <ThemeProvider theme={defaultTheme}>

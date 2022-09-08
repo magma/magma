@@ -36,6 +36,9 @@ typedef struct detach_type_s {
   uint8_t typeofdetach;
 } detach_type_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
                        uint32_t len);
 
@@ -46,5 +49,8 @@ int decode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
 
 int decode_u8_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t value,
                           uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* DETACH_TYPE_SEEN */

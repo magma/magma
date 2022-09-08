@@ -31,7 +31,7 @@ class TestIpv4v6PagingWithDedicatedBearer(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_ipv6_paging(self):
+    def test_ipv4v6_paging_with_dedicated_bearer(self):
         """ IPv4v6 Attach, add dedicated bearer, ue context release,
         paging request """
         # Ground work.

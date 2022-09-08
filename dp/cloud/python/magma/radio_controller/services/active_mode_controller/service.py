@@ -11,12 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import grpc
 from dp.protos.active_mode_pb2 import (
+    AcknowledgeCbsdRelinquishRequest,
     AcknowledgeCbsdUpdateRequest,
     Cbsd,
     Channel,
@@ -28,6 +30,7 @@ from dp.protos.active_mode_pb2 import (
     Grant,
     GrantSettings,
     InstallationParams,
+    RequestPayload,
     SasSettings,
     State,
     StoreAvailableFrequenciesRequest,
@@ -35,14 +38,19 @@ from dp.protos.active_mode_pb2 import (
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
-from magma.db_service.models import DBCbsd, DBChannel, DBGrant, DBRequest
+from magma.db_service.models import DBCbsd, DBGrant, DBRequest
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
 from magma.radio_controller.metrics import (
+    ACKNOWLEDGE_RELINQUISH_PROCESSING_TIME,
     ACKNOWLEDGE_UPDATE_PROCESSING_TIME,
     DELETE_CBSD_PROCESSING_TIME,
     GET_DB_STATE_PROCESSING_TIME,
+    INSERT_TO_DB_PROCESSING_TIME,
     STORE_AVAILABLE_FREQUENCIES_PROCESSING_TIME,
+)
+from magma.radio_controller.services.active_mode_controller.strategies.strategies_mapping import (
+    get_cbsd_filter_strategies,
 )
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import contains_eager, joinedload
@@ -55,8 +63,27 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
     Active Mode Controller gRPC Service class
     """
 
-    def __init__(self, session_manager: SessionManager):
+    def __init__(self, session_manager: SessionManager, request_types_map: Dict[str, int]):
         self.session_manager = session_manager
+        self.request_types_map = request_types_map
+
+    @INSERT_TO_DB_PROCESSING_TIME.time()
+    def UploadRequests(self, request_payload: RequestPayload, context) -> Empty:
+        """
+        Insert uploaded requests to the database
+
+        Parameters:
+            request_payload: gRPC RequestPayload message
+            context: gRPC context
+
+        Returns:
+            RequestDbIds: a list of IDs of inserted database records
+        """
+        logger.info("Storing requests in DB.")
+        requests_map = json.loads(request_payload.payload)
+        with self.session_manager.session_scope() as session:
+            _store_requests_from_map_in_db(session, self.request_types_map, requests_map)
+        return Empty()
 
     @GET_DB_STATE_PROCESSING_TIME.time()
     def GetState(self, request: GetStateRequest, context) -> State:
@@ -120,6 +147,25 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
         return Empty()
 
+    @ACKNOWLEDGE_RELINQUISH_PROCESSING_TIME.time()
+    def AcknowledgeCbsdRelinquish(self, request: AcknowledgeCbsdRelinquishRequest, context) -> Empty:
+        """
+        Mark CBSD in the Database as not relinquished
+
+        Parameters:
+            request: a AcknowledgeCbsdRelinquishRequest gRPC Message
+            context: gRPC context
+
+        Returns:
+            Empty: an empty gRPC message
+        """
+        db_id = request.id
+        logger.info(f"Acknowledging CBSD relinquish {db_id}")
+        updated = self._update_cbsd(db_id, {'should_relinquish': False})
+        if not updated:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+        return Empty()
+
     @STORE_AVAILABLE_FREQUENCIES_PROCESSING_TIME.time()
     def StoreAvailableFrequencies(self, request: StoreAvailableFrequenciesRequest, context) -> Empty:
         """
@@ -146,6 +192,26 @@ class ActiveModeControllerService(ActiveModeControllerServicer):
         return updated
 
 
+def _store_requests_from_map_in_db(session: Session, request_types_map: Dict[str, int], request_map: Dict[str, List[Dict]]) -> None:
+    request_type = next(iter(request_map))
+    for request_json in request_map[request_type]:
+        filters = get_cbsd_filter_strategies[request_type](request_json)
+        cbsd_id = session.query(DBCbsd.id).filter(*filters).first()
+        if not cbsd_id:
+            logger.error(
+                f"Could not obtain cbsd to bind to the request: {request_json}",
+            )
+            continue
+        db_request = DBRequest(
+            type_id=request_types_map[request_type],
+            cbsd_id=cbsd_id[0],
+            payload=request_json,
+        )
+        logger.info(f"Adding request {db_request}.")
+        session.add(db_request)
+    session.commit()
+
+
 def _list_cbsds(session: Session) -> State:
     # Selectively load sqlalchemy object relations using a single query to avoid commit races.
     return (
@@ -155,7 +221,6 @@ def _list_cbsds(session: Session) -> State:
         options(
             joinedload(DBCbsd.state),
             joinedload(DBCbsd.desired_state),
-            joinedload(DBCbsd.channels),
             contains_eager(DBCbsd.grants).
             joinedload(DBGrant.state),
         ).
@@ -178,6 +243,7 @@ def _build_filter():
         or_(
             or_(
                 DBCbsd.should_deregister == True,
+                DBCbsd.should_relinquish == True,
                 DBCbsd.is_deleted == True,
             ),
             and_(
@@ -216,10 +282,8 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
     # Application may not need those to be sorted.
     # Applying ordering mostly for easier assertions in testing
     cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
-    cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
-
     grants = [_build_grant(x) for x in cbsd_db_grants]
-    channels = [_build_channel(x) for x in cbsd_db_channels]
+    channels = [_build_channel(x) for x in cbsd.channels]
 
     last_seen = _to_timestamp(cbsd.last_seen)
     eirp_capabilities = _build_eirp_capabilities(cbsd)
@@ -256,11 +320,11 @@ def _build_grant(grant: DBGrant) -> Grant:
     )
 
 
-def _build_channel(channel: DBChannel) -> Channel:
+def _build_channel(channel: dict) -> Channel:
     return Channel(
-        low_frequency_hz=channel.low_frequency,
-        high_frequency_hz=channel.high_frequency,
-        max_eirp=_make_optional_float(channel.max_eirp),
+        low_frequency_hz=channel.get('low_frequency'),
+        high_frequency_hz=channel.get('high_frequency'),
+        max_eirp=_make_optional_float(channel.get('max_eirp')),
     )
 
 
@@ -283,6 +347,7 @@ def _build_db_data(cbsd: DBCbsd) -> DatabaseCbsd:
     return DatabaseCbsd(
         id=cbsd.id,
         should_deregister=cbsd.should_deregister,
+        should_relinquish=cbsd.should_relinquish,
         is_deleted=cbsd.is_deleted,
     )
 

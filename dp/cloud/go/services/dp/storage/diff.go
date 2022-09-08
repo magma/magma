@@ -10,12 +10,8 @@ const (
 )
 
 func ShouldEnodebdUpdateInstallationParams(prev *DBCbsd, next *DBCbsd) bool {
-	return canUpdate(prev) &&
-		(paramsChanges(next, prev) || coordinatesChanged(next, prev))
-}
-
-func canUpdate(prev *DBCbsd) bool {
-	return !prev.CpiDigitalSignature.Valid
+	// TODO this should probably moved out from storage
+	return paramsChanges(next, prev) || coordinatesChanged(next, prev)
 }
 
 func paramsChanges(prev *DBCbsd, next *DBCbsd) bool {

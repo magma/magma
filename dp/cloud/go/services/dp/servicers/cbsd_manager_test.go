@@ -62,6 +62,15 @@ const (
 	registered              = "registered"
 	someUrl                 = "someUrl"
 	authorized              = "authorized"
+
+	methodCreate        = "create"
+	methodUpdate        = "update"
+	methodEnodebdUpdate = "enodebd_update"
+	methodDelete        = "delete"
+	methodFetch         = "fetch"
+	methodList          = "list"
+	methodDeregister    = "deregister"
+	methodRelinquish    = "relinquish"
 )
 
 func (s *CbsdManagerTestSuite) SetupTest() {
@@ -112,6 +121,7 @@ func (s *CbsdManagerTestSuite) TestCreateCbsd() {
 			_, err := s.manager.CreateCbsd(context.Background(), request)
 			s.Require().NoError(err)
 
+			s.Assert().Equal(methodCreate, s.store.method)
 			s.Assert().Equal(networkId, s.store.networkId)
 			s.Assert().Equal(tc.expected, s.store.mutableData)
 		})
@@ -133,7 +143,6 @@ func (s *CbsdManagerTestSuite) TestCreateWithDuplicateData() {
 }
 
 func (s *CbsdManagerTestSuite) TestUserUpdateCbsd() {
-	// TODO adjust when User-triggered cbsd update is modified
 	request := &protos.UpdateCbsdRequest{
 		NetworkId: networkId,
 		Id:        cbsdId,
@@ -142,6 +151,7 @@ func (s *CbsdManagerTestSuite) TestUserUpdateCbsd() {
 	_, err := s.manager.UserUpdateCbsd(context.Background(), request)
 	s.Require().NoError(err)
 
+	s.Assert().Equal(methodUpdate, s.store.method)
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
 	s.Assert().Equal(b.GetMutableDBCbsd(b.NewDBCbsdBuilder().Cbsd, registered), s.store.mutableData)
@@ -304,6 +314,7 @@ func (s *CbsdManagerTestSuite) TestEnodebdUpdateCbsd() {
 			s.store.details = tc.expectedDetailedCbsd
 			state, err := s.manager.EnodebdUpdateCbsd(context.Background(), request)
 			s.Require().NoError(err)
+			s.Assert().Equal(methodEnodebdUpdate, s.store.method)
 			s.Assert().Equal(tc.expectedState, state)
 		})
 	}
@@ -398,6 +409,7 @@ func (s *CbsdManagerTestSuite) TestDeleteCbsd() {
 	_, err := s.manager.DeleteCbsd(context.Background(), request)
 	s.Require().NoError(err)
 
+	s.Assert().Equal(methodDelete, s.store.method)
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
 }
@@ -456,6 +468,7 @@ func (s *CbsdManagerTestSuite) TestFetchCbsd() {
 			actual, err := s.manager.FetchCbsd(context.Background(), request)
 			s.Require().NoError(err)
 
+			s.Assert().Equal(methodFetch, s.store.method)
 			s.Assert().Equal(networkId, s.store.networkId)
 			s.Assert().Equal(cbsdId, s.store.id)
 			s.Assert().Equal(tc.expected, actual.Details)
@@ -543,6 +556,7 @@ func (s *CbsdManagerTestSuite) TestListCbsd() {
 	actual, err := s.manager.ListCbsds(context.Background(), request)
 	s.Require().NoError(err)
 
+	s.Assert().Equal(methodList, s.store.method)
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(&storage.Pagination{}, s.store.pagination)
 	payloadBuilder := b.NewCbsdProtoPayloadBuilder().
@@ -626,11 +640,26 @@ func (s *CbsdManagerTestSuite) TestDeregisterCbsd() {
 	_, err := s.manager.DeregisterCbsd(context.Background(), request)
 	s.Require().NoError(err)
 
+	s.Assert().Equal(methodDeregister, s.store.method)
+	s.Assert().Equal(networkId, s.store.networkId)
+	s.Assert().Equal(cbsdId, s.store.id)
+}
+
+func (s *CbsdManagerTestSuite) TestRelinquishCbsd() {
+	request := &protos.RelinquishCbsdRequest{
+		NetworkId: networkId,
+		Id:        cbsdId,
+	}
+	_, err := s.manager.RelinquishCbsd(context.Background(), request)
+	s.Require().NoError(err)
+
+	s.Assert().Equal(methodRelinquish, s.store.method)
 	s.Assert().Equal(networkId, s.store.networkId)
 	s.Assert().Equal(cbsdId, s.store.id)
 }
 
 type stubCbsdManager struct {
+	method      string
 	networkId   string
 	id          int64
 	mutableData *storage.MutableCbsd
@@ -643,12 +672,14 @@ type stubCbsdManager struct {
 }
 
 func (s *stubCbsdManager) CreateCbsd(networkId string, data *storage.MutableCbsd) error {
+	s.method = methodCreate
 	s.networkId = networkId
 	s.mutableData = data
 	return s.err
 }
 
 func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.MutableCbsd) error {
+	s.method = methodUpdate
 	s.networkId = networkId
 	s.id = id
 	s.mutableData = data
@@ -656,6 +687,7 @@ func (s *stubCbsdManager) UpdateCbsd(networkId string, id int64, data *storage.M
 }
 
 func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) (*storage.DetailedCbsd, error) {
+	s.method = methodEnodebdUpdate
 	if s.details == nil {
 		return nil, s.err
 	}
@@ -672,18 +704,21 @@ func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) (*storage.Deta
 }
 
 func (s *stubCbsdManager) DeleteCbsd(networkId string, id int64) error {
+	s.method = methodDelete
 	s.networkId = networkId
 	s.id = id
 	return s.err
 }
 
 func (s *stubCbsdManager) FetchCbsd(networkId string, id int64) (*storage.DetailedCbsd, error) {
+	s.method = methodFetch
 	s.networkId = networkId
 	s.id = id
 	return s.details, s.err
 }
 
 func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Pagination, filter *storage.CbsdFilter) (*storage.DetailedCbsdList, error) {
+	s.method = methodList
 	s.networkId = networkId
 	s.pagination = pagination
 	s.filter = filter
@@ -691,6 +726,14 @@ func (s *stubCbsdManager) ListCbsd(networkId string, pagination *storage.Paginat
 }
 
 func (s *stubCbsdManager) DeregisterCbsd(networkId string, id int64) error {
+	s.method = methodDeregister
+	s.networkId = networkId
+	s.id = id
+	return s.err
+}
+
+func (s *stubCbsdManager) RelinquishCbsd(networkId string, id int64) error {
+	s.method = methodRelinquish
 	s.networkId = networkId
 	s.id = id
 	return s.err

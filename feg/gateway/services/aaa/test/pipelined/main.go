@@ -93,7 +93,7 @@ func main() {
 	flag.Parse() // for glog
 
 	// Dummy Pipelined service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.PIPELINED)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.PIPELINED)
 	if err != nil {
 		glog.Fatalf("Error creating %s service: %v", registry.PIPELINED, err)
 	}

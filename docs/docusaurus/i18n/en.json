@@ -216,6 +216,9 @@
       "lte/eventd": {
         "title": "Event Reporting"
       },
+      "lte/extended_5G_sa_features": {
+        "title": "Extended 5G SA Features"
+      },
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
       },

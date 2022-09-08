@@ -21,13 +21,9 @@ on:
   push:
     branches:
       - master
-    paths:
-      - .github/workflows/bazel.yml
-  schedule:
-    # Run four times a day to build bazel cache
-    - cron: '0 0,6,12,18 * * *'
+
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-4a878d8"
   CACHE_KEY: bazel-base-image
   REMOTE_DOWNLOAD_OPTIMIZATION: true
 
@@ -51,22 +47,26 @@ jobs:
             files_changed:
               - '.github/workflows/bazel.yml'
               - 'orc8r/gateway/**'
+              - 'orc8r/lib/go/**'
               - 'orc8r/protos/**'
+              - 'feg/cloud/go/**'
+              - 'feg/gateway/**'
               - 'lte/gateway/**'
+              - 'lte/cloud/go/**'
               - 'lte/protos/**'
               - 'src/go/**'
               - '**/BUILD'
               - '**/*.BUILD'
               - '**/*.bazel'
               - '**/*.bzl'
+              - '.bazelrc'
 
   bazel_build_and_test:
     needs: path_filter
-    # Only run workflow if this is a scheduled run on master branch,
-    # if the workflow has been triggered manually or if it is a pull_request
-    # that skip-duplicate-action wants to run again.
+    # Only run workflow if this is a push to the magma repository,
+    # if the workflow has been triggered manually or if it is a pull_request.
     if: |
-      (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'push' && github.repository_owner == 'magma') ||
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     strategy:
@@ -162,7 +162,7 @@ jobs:
           echo "Available storage:"
           df -h
       - name: Notify failure to slack
-        if: failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.repository_owner == 'magma'
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
@@ -218,11 +218,10 @@ jobs:
 
   bazel_package:
     needs: path_filter
-    # Only run workflow if this is a scheduled run on master branch,
-    # if the workflow has been triggered manually or if it is a pull_request
-    # that skip-duplicate-action wants to run again.
+    # Only run workflow if this is a push to the magma repository,
+    # if the workflow has been triggered manually or if it is a pull_request.
     if: |
-      (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'push' && github.repository_owner == 'magma') ||
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
@@ -265,7 +264,7 @@ jobs:
           echo "Available storage:"
           df -h
       - name: Notify failure to slack
-        if: failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.repository_owner == 'magma'
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
@@ -287,7 +286,7 @@ jobs:
         run: |
           ./bazel/scripts/check_py_bazel.sh
       - name: Notify failure to slack
-        if: failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.repository_owner == 'magma'
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
@@ -309,7 +308,7 @@ jobs:
         run: |
           ./bazel/scripts/check_c_cpp_bazel.sh
       - name: Notify failure to slack
-        if: failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.repository_owner == 'magma'
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}

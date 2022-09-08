@@ -17,7 +17,7 @@ import (
 	"context"
 	"fmt"
 
-	"magma/dp/cloud/go/active_mode_controller/protos/requests"
+	"magma/dp/cloud/go/active_mode_controller/protos/active_mode"
 )
 
 func NewSasMessage(data string) *sasMessage {
@@ -28,9 +28,8 @@ type sasMessage struct {
 	data string
 }
 
-func (s *sasMessage) Send(ctx context.Context, provider ClientProvider) error {
-	payload := &requests.RequestPayload{Payload: s.data}
-	client := provider.GetRequestsClient()
+func (s *sasMessage) Send(ctx context.Context, client active_mode.ActiveModeControllerClient) error {
+	payload := &active_mode.RequestPayload{Payload: s.data}
 	_, err := client.UploadRequests(ctx, payload)
 	return err
 }

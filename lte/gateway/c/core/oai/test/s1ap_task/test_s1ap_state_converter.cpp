@@ -112,7 +112,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   // Inserting 1 enb association
   init_state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
   // state_to_proto should update num_enbs to match expected eNB count on the
-  // hashtable
+  // map
   init_state->num_enbs = 5;
 
   oai::S1apState state_proto;
@@ -127,9 +127,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
 }
 
 TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
-  ue_description_t* ue = (ue_description_t*)calloc(1, sizeof(ue_description_t));
-  ue_description_t* final_ue =
-      (ue_description_t*)calloc(1, sizeof(ue_description_t));
+  ue_description_t* ue = new ue_description_t();
+  ue_description_t* final_ue = new ue_description_t();
 
   // filling with test values
   ue->mme_ue_s1ap_id = 1;
@@ -150,8 +149,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
   EXPECT_EQ(ue->s1ap_ue_context_rel_timer.id,
             final_ue->s1ap_ue_context_rel_timer.id);
 
-  free_wrapper((void**)&ue);
-  free_wrapper((void**)&final_ue);
+  delete ue;
+  delete final_ue;
 }
 
 }  // namespace lte

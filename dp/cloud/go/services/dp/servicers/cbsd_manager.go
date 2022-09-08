@@ -101,33 +101,6 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 	return state, nil
 }
 
-func (c *cbsdManager) sendLog(ctx context.Context, source interface{}, name string, from string, to string, details *storage.DetailedCbsd) {
-	msg, _ := json.Marshal(source)
-	log := &logs_pusher.DPLog{
-		EventTimestamp:   clock.Now().UTC().Unix(),
-		LogFrom:          from,
-		LogTo:            to,
-		LogName:          name,
-		LogMessage:       string(msg),
-		CbsdSerialNumber: details.Cbsd.CbsdSerialNumber.String,
-		NetworkId:        details.Cbsd.NetworkId.String,
-		FccId:            details.Cbsd.FccId.String,
-	}
-	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
-		glog.Warningf("Failed to log %s. Details: %s", name, err)
-	}
-}
-
-func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
-	cbsd := storage.DBCbsd{
-		CbsdSerialNumber: db.MakeString(request.SerialNumber),
-		CbsdCategory:     db.MakeString(request.CbsdCategory),
-	}
-	params := request.GetInstallationParam()
-	setInstallationParam(&cbsd, params)
-	return &cbsd
-}
-
 func (c *cbsdManager) DeleteCbsd(_ context.Context, request *protos.DeleteCbsdRequest) (*protos.DeleteCbsdResponse, error) {
 	err := c.store.DeleteCbsd(request.NetworkId, request.Id)
 	if err != nil {
@@ -170,6 +143,42 @@ func (c *cbsdManager) DeregisterCbsd(_ context.Context, request *protos.Deregist
 	return &protos.DeregisterCbsdResponse{}, nil
 }
 
+func (c *cbsdManager) RelinquishCbsd(_ context.Context, request *protos.RelinquishCbsdRequest) (*protos.RelinquishCbsdResponse, error) {
+	err := c.store.RelinquishCbsd(request.NetworkId, request.Id)
+	if err != nil {
+		return nil, makeErr(err, "relinquish cbsd")
+	}
+	return &protos.RelinquishCbsdResponse{}, nil
+}
+
+func (c *cbsdManager) sendLog(ctx context.Context, source interface{}, name string, from string, to string, details *storage.DetailedCbsd) {
+	// TODO maybe we don't have to marshal msg
+	msg, _ := json.Marshal(source)
+	log := &logs_pusher.DPLog{
+		EventTimestamp:   clock.Now().UTC().Unix(),
+		LogFrom:          from,
+		LogTo:            to,
+		LogName:          name,
+		LogMessage:       string(msg),
+		CbsdSerialNumber: details.Cbsd.CbsdSerialNumber.String,
+		NetworkId:        details.Cbsd.NetworkId.String,
+		FccId:            details.Cbsd.FccId.String,
+	}
+	if err := c.logPusher(ctx, log, c.logConsumerUrl); err != nil {
+		glog.Warningf("Failed to log %s. Details: %s", name, err)
+	}
+}
+
+func requestToDbCbsd(request *protos.EnodebdUpdateCbsdRequest) *storage.DBCbsd {
+	cbsd := storage.DBCbsd{
+		CbsdSerialNumber: db.MakeString(request.SerialNumber),
+		CbsdCategory:     db.MakeString(request.CbsdCategory),
+	}
+	params := request.GetInstallationParam()
+	setInstallationParam(&cbsd, params)
+	return &cbsd
+}
+
 func dbPagination(pagination *protos.Pagination) *storage.Pagination {
 	p := &storage.Pagination{}
 	if pagination.Limit != nil {
@@ -203,7 +212,6 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 	capabilities := data.GetCapabilities()
 	preferences := data.GetPreferences()
 	installationParam := data.GetInstallationParam()
-	b, _ := json.Marshal(preferences.GetFrequenciesMhz())
 	cbsd := &storage.DBCbsd{
 		UserId:                    db.MakeString(data.GetUserId()),
 		FccId:                     db.MakeString(data.GetFccId()),
@@ -212,7 +220,7 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 		MaxPower:                  db.MakeFloat(capabilities.GetMaxPower()),
 		NumberOfPorts:             db.MakeInt(capabilities.GetNumberOfAntennas()),
 		PreferredBandwidthMHz:     db.MakeInt(preferences.GetBandwidthMhz()),
-		PreferredFrequenciesMHz:   db.MakeString(string(b)),
+		PreferredFrequenciesMHz:   preferences.GetFrequenciesMhz(),
 		SingleStepEnabled:         db.MakeBool(data.GetSingleStepEnabled()),
 		CbsdCategory:              db.MakeString(data.GetCbsdCategory()),
 		CarrierAggregationEnabled: db.MakeBool(data.GetCarrierAggregationEnabled()),
@@ -236,8 +244,6 @@ func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam
 
 func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Duration) *protos.CbsdDetails {
 	isActive := clock.Since(data.Cbsd.LastSeen.Time) < inactivityInterval
-	var frequencies []int64
-	_ = json.Unmarshal([]byte(data.Cbsd.PreferredFrequenciesMHz.String), &frequencies)
 	return &protos.CbsdDetails{
 		Id: data.Cbsd.Id.Int64,
 		Data: &protos.CbsdData{
@@ -254,7 +260,7 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 			},
 			Preferences: &protos.FrequencyPreferences{
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
-				FrequenciesMhz: frequencies,
+				FrequenciesMhz: data.Cbsd.PreferredFrequenciesMHz,
 			},
 			DesiredState:              data.DesiredState.Name.String,
 			InstallationParam:         getInstallationParam(data.Cbsd),

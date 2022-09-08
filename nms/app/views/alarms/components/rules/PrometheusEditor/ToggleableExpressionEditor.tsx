@@ -17,28 +17,31 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
-import Input from '@mui/material/Input';
-import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
+import {AltFormField} from '../../../../../components/FormField';
+import {FormControl, OutlinedInput} from '@mui/material';
+import {InputChangeFunc} from './PrometheusEditor';
 import {LABEL_OPERATORS} from '../../prometheus/PromQLTypes';
+import {SelectProps} from '@mui/material/Select/Select';
 import {Theme} from '@mui/material/styles';
+import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useNetworkId} from '../../hooks';
 import {useSnackbars} from '../../../../../hooks/useSnackbar';
-
-import {InputChangeFunc} from './PrometheusEditor';
-import {SelectProps} from '@mui/material/Select/Select';
-import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 
 const useStyles = makeStyles<Theme>(theme => ({
+  autocompleteInput: {
+    maxHeight: '36px',
+  },
   button: {
     marginLeft: -theme.spacing(0.5),
-    margin: theme.spacing(1.5),
+    marginBottom: theme.spacing(1.5),
+    marginRight: theme.spacing(1.5),
   },
   instructions: {
     marginTop: theme.spacing(1),
@@ -117,18 +120,15 @@ export function AdvancedExpressionEditor(props: {
 }) {
   return (
     <Grid item>
-      <InputLabel htmlFor="metric-advanced-input" variant="standard">
-        Expression
-      </InputLabel>
-      <TextField
-        variant="standard"
-        id="metric-advanced-input"
-        required
-        placeholder="SNR >= 0"
-        value={props.expression}
-        onChange={props.onChange(value => ({expression: value}))}
-        fullWidth
-      />
+      <AltFormField disableGutters label="Expression">
+        <OutlinedInput
+          fullWidth={true}
+          value={props.expression}
+          onChange={props.onChange(value => ({expression: value}))}
+          placeholder="SNR >= 0"
+          id="metric-advanced-input"
+        />
+      </AltFormField>
     </Grid>
   );
 }
@@ -147,31 +147,28 @@ function ConditionSelector(props: {
   ];
   return (
     <Grid>
-      <InputLabel htmlFor="condition-input" variant="standard">
-        Condition
-      </InputLabel>
-      <TextField
-        id="condition-input"
-        variant="standard"
-        fullWidth
-        required
-        select
-        value={props.expression.comparator.op}
-        onChange={({target}) => {
-          props.onChange({
-            ...props.expression,
-            comparator: new PromQL.BinaryComparator(
-              // Cast to element type of conditions as it's item type
-              target.value as typeof conditions[number],
-            ),
-          });
-        }}>
-        {conditions.map(item => (
-          <MenuItem key={item} value={item}>
-            {item}
-          </MenuItem>
-        ))}
-      </TextField>
+      <AltFormField disableGutters label="Conditions">
+        <FormControl fullWidth>
+          <Select
+            value={props.expression.comparator.op}
+            onChange={({target}) => {
+              props.onChange({
+                ...props.expression,
+                comparator: new PromQL.BinaryComparator(
+                  // Cast to element type of conditions as it's item type
+                  target.value as typeof conditions[number],
+                ),
+              });
+            }}
+            input={<OutlinedInput />}>
+            {conditions.map(item => (
+              <MenuItem key={item} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </AltFormField>
     </Grid>
   );
 }
@@ -182,22 +179,20 @@ function ValueSelector(props: {
 }) {
   return (
     <Grid item>
-      <InputLabel htmlFor="value-input" variant="standard">
-        Value
-      </InputLabel>
-      <TextField
-        variant="standard"
-        id="value-input"
-        fullWidth
-        value={props.expression.value}
-        type="number"
-        onChange={({target}) => {
-          props.onChange({
-            ...props.expression,
-            value: parseFloat(target.value),
-          });
-        }}
-      />
+      <AltFormField disableGutters label="Value">
+        <OutlinedInput
+          id="value-input"
+          fullWidth
+          value={props.expression.value}
+          type="number"
+          onChange={({target}) => {
+            props.onChange({
+              ...props.expression,
+              value: parseFloat(target.value),
+            });
+          }}
+        />
+      </AltFormField>
     </Grid>
   );
 }
@@ -208,23 +203,29 @@ function MetricSelector(props: {
   metricNames: Array<string>;
 }) {
   const {metricNames} = props;
+  const classes = useStyles();
+
   return (
     <Grid item>
-      <InputLabel htmlFor="metric-input" variant="standard">
-        Metric
-      </InputLabel>
-      <Autocomplete
-        id="metric-input"
-        options={metricNames}
-        groupBy={getMetricNamespace}
-        value={props.expression.metricName}
-        onChange={(_e, value) => {
-          props.onChange({...props.expression, metricName: value!});
-        }}
-        renderInput={params => (
-          <TextField {...params} required variant="standard" />
-        )}
-      />
+      <AltFormField disableGutters label="Metric">
+        <Autocomplete
+          id="metric-input"
+          options={metricNames}
+          groupBy={getMetricNamespace}
+          value={props.expression.metricName}
+          onChange={(_e, value) => {
+            props.onChange({...props.expression, metricName: value!});
+          }}
+          renderInput={params => (
+            <TextField
+              className={classes.autocompleteInput}
+              {...params}
+              required
+              variant="outlined"
+            />
+          )}
+        />
+      </AltFormField>
     </Grid>
   );
 }
@@ -327,6 +328,7 @@ function MetricFilters(props: {
       <Grid item>
         <Button
           className={classes.button}
+          variant="outlined"
           color="primary"
           size="small"
           disabled={!isMetricSelected}
@@ -342,6 +344,7 @@ function MetricFilters(props: {
         </Button>
         <Button
           className={classes.button}
+          variant="outlined"
           color="primary"
           size="small"
           onClick={props.onToggleChange}>
@@ -382,92 +385,90 @@ function LabelFilter(props: {
   selectedLabel: string;
   selectedValue: string;
 }) {
+  const classes = useStyles();
   const currentFilter = props.expression.filters.labels[props.filterIdx];
   const values = Array.from(props.labelValues.get(props.selectedLabel) ?? []);
   return (
     <Grid item container xs={12} spacing={1} alignItems="flex-start">
       <Grid item xs={6}>
-        <InputLabel htmlFor={`metric-input-${props.filterIdx}`}>
-          Label
-        </InputLabel>
-        <FilterSelector
-          id={`metric-input-${props.filterIdx}`}
-          values={props.labelNames}
-          defaultVal=""
-          onChange={({target}) => {
-            const filtersCopy = props.expression.filters.copy();
-            filtersCopy.setIndex(props.filterIdx, target.value, '');
-            props.onChange({...props.expression, filters: filtersCopy});
-          }}
-          selectedValue={props.selectedLabel}
-        />
+        <AltFormField disableGutters label="Label">
+          <FilterSelector
+            id={`metric-input-${props.filterIdx}`}
+            values={props.labelNames}
+            defaultVal=""
+            onChange={({target}) => {
+              const filtersCopy = props.expression.filters.copy();
+              filtersCopy.setIndex(props.filterIdx, target.value, '');
+              props.onChange({...props.expression, filters: filtersCopy});
+            }}
+            selectedValue={props.selectedLabel}
+          />
+        </AltFormField>
       </Grid>
       <Grid item xs={2}>
         <Grid>
-          <InputLabel
-            htmlFor={`condition-input-${props.filterIdx}`}
-            variant="standard">
-            Condition
-          </InputLabel>
-          <TextField
-            variant="standard"
-            id={`condition-input-${props.filterIdx}`}
-            fullWidth
-            required
-            select
-            value={currentFilter.operator}
-            onChange={({target}) => {
-              const filtersCopy = props.expression.filters.copy();
-              const filterOperator = isRegexValue(target.value) ? '=~' : '=';
-              filtersCopy.setIndex(
-                props.filterIdx,
-                currentFilter.name,
-                currentFilter.value,
-                filterOperator,
-              );
-              props.onChange({...props.expression, filters: filtersCopy});
-            }}>
-            {LABEL_OPERATORS.map(item => (
-              <MenuItem key={item} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </TextField>
+          <AltFormField disableGutters label="Condition">
+            <FormControl fullWidth>
+              <Select
+                id={`condition-input-${props.filterIdx}`}
+                fullWidth
+                required
+                value={currentFilter.operator}
+                onChange={({target}) => {
+                  const filtersCopy = props.expression.filters.copy();
+                  const filterOperator = isRegexValue(target.value)
+                    ? '=~'
+                    : '=';
+                  filtersCopy.setIndex(
+                    props.filterIdx,
+                    currentFilter.name,
+                    currentFilter.value,
+                    filterOperator,
+                  );
+                  props.onChange({...props.expression, filters: filtersCopy});
+                }}
+                input={<OutlinedInput />}>
+                {LABEL_OPERATORS.map(item => (
+                  <MenuItem key={item} value={item}>
+                    {item}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </AltFormField>
         </Grid>
       </Grid>
       <Grid item xs={3}>
         <Grid item>
-          <InputLabel
-            htmlFor={`value-input-${props.filterIdx}`}
-            variant="standard">
-            Value
-          </InputLabel>
-          <Autocomplete
-            value={currentFilter.value}
-            freeSolo
-            options={values}
-            onChange={(_e, value) => {
-              const filtersCopy = props.expression.filters.copy();
-              filtersCopy.setIndex(
-                props.filterIdx,
-                currentFilter.name,
-                value!,
-                currentFilter.operator,
-              );
-              props.onChange({
-                ...props.expression,
-                filters: filtersCopy,
-              });
-            }}
-            renderInput={params => (
-              <TextField
-                {...params}
-                variant="standard"
-                required
-                id={`value-input-${props.filterIdx}`}
-              />
-            )}
-          />
+          <AltFormField disableGutters label="Metric">
+            <Autocomplete
+              value={currentFilter.value}
+              freeSolo
+              options={values}
+              onChange={(_e, value) => {
+                const filtersCopy = props.expression.filters.copy();
+                filtersCopy.setIndex(
+                  props.filterIdx,
+                  currentFilter.name,
+                  value!,
+                  currentFilter.operator,
+                );
+                props.onChange({
+                  ...props.expression,
+                  filters: filtersCopy,
+                });
+              }}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  required
+                  className={classes.autocompleteInput}
+                  id={`value-input-${props.filterIdx}`}
+                />
+              )}
+            />
+          </AltFormField>
         </Grid>
       </Grid>
       <Grid item xs={1} container alignItems="center" justifyContent="flex-end">
@@ -505,7 +506,7 @@ function FilterSelector(props: {
       displayEmpty
       className={classes.metricFilterItem}
       value={props.selectedValue}
-      input={<Input />}
+      input={<OutlinedInput />}
       onChange={props.onChange as SelectProps['onChange']}>
       <MenuItem disabled value="">
         {props.defaultVal}

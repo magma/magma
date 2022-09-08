@@ -30,7 +30,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.HEALTH)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.HEALTH)
 	if err != nil {
 		glog.Fatalf("Error creating HEALTH service: %s", err)
 	}

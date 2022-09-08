@@ -57,6 +57,14 @@
   tags:
     - agwc
 
+- name: Set ARM Architecture AGW variable
+  when: ansible_architecture == "aarch64"
+  tags:
+    - agwc
+    - base
+  set_fact:
+    optional_arch_postfix: "_arm"
+
 - name: create the env file
   tags:
     - agwc

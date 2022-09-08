@@ -32,6 +32,7 @@ type CbsdManager interface {
 	FetchCbsd(networkId string, id int64) (*DetailedCbsd, error)
 	ListCbsd(networkId string, pagination *Pagination, filter *CbsdFilter) (*DetailedCbsdList, error)
 	DeregisterCbsd(networkId string, id int64) error
+	RelinquishCbsd(networkId string, id int64) error
 }
 
 type CbsdFilter struct {
@@ -119,7 +120,8 @@ func (c *cbsdManager) EnodebdUpdateCbsd(data *DBCbsd) (*DetailedCbsd, error) {
 func (c *cbsdManager) DeleteCbsd(networkId string, id int64) error {
 	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
-		err := runner.markCbsdAsDeleted(networkId, id)
+		data := &DBCbsd{IsDeleted: db.MakeBool(true)}
+		err := runner.updateField(networkId, id, "is_deleted", data)
 		return nil, err
 	})
 	return makeError(err, c.errorChecker)
@@ -151,7 +153,18 @@ func (c *cbsdManager) ListCbsd(networkId string, pagination *Pagination, filter 
 func (c *cbsdManager) DeregisterCbsd(networkId string, id int64) error {
 	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getInTransactionManager(tx)
-		err := runner.markCbsdAsUpdated(networkId, id)
+		data := &DBCbsd{ShouldDeregister: db.MakeBool(true)}
+		err := runner.updateField(networkId, id, "should_deregister", data)
+		return nil, err
+	})
+	return makeError(err, c.errorChecker)
+}
+
+func (c *cbsdManager) RelinquishCbsd(networkId string, id int64) error {
+	_, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
+		runner := c.getInTransactionManager(tx)
+		data := &DBCbsd{ShouldRelinquish: db.MakeBool(true)}
+		err := runner.updateField(networkId, id, "should_relinquish", data)
 		return nil, err
 	})
 	return makeError(err, c.errorChecker)
@@ -297,34 +310,16 @@ func (c *cbsdManagerInTransaction) selectForUpdateIfCbsdExists(mask db.FieldMask
 	return res[0].(*DBCbsd), nil
 }
 
-func (c *cbsdManagerInTransaction) markCbsdAsDeleted(networkId string, id int64) error {
+func (c *cbsdManagerInTransaction) updateField(networkId string, id int64, field string, data *DBCbsd) error {
 	mask := db.NewIncludeMask("id")
 	if _, err := c.selectForUpdateIfCbsdExists(mask, getCbsdFiltersWithId(networkId, id)); err != nil {
 		return err
 	}
-	mask = db.NewIncludeMask("is_deleted")
+	mask = db.NewIncludeMask(field)
 	_, err := db.NewQuery().
 		WithBuilder(c.builder).
-		From(&DBCbsd{IsDeleted: db.MakeBool(true)}).
+		From(data).
 		Select(db.NewIncludeMask()).
-		Where(sq.Eq{"id": id}).
-		Update(mask)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *cbsdManagerInTransaction) markCbsdAsUpdated(networkId string, id int64) error {
-	mask := db.NewIncludeMask("id")
-	if _, err := c.selectForUpdateIfCbsdExists(mask, getCbsdFiltersWithId(networkId, id)); err != nil {
-		return err
-	}
-	mask = db.NewIncludeMask("should_deregister")
-	_, err := db.NewQuery().
-		WithBuilder(c.builder).
-		From(&DBCbsd{ShouldDeregister: db.MakeBool(true)}).
-		Select(mask).
 		Where(sq.Eq{"id": id}).
 		Update(mask)
 	if err != nil {
@@ -361,7 +356,8 @@ func buildDetailedCbsdQuery(builder sq.StatementBuilderType) *db.Query {
 		From(&DBCbsd{}).
 		Select(db.NewExcludeMask(
 			"state_id", "desired_state_id",
-			"is_deleted", "should_deregister")).
+			"is_deleted", "should_deregister", "should_relinquish",
+			"available_frequencies", "channels")).
 		Join(db.NewQuery().
 			From(&DBCbsdState{}).
 			As("t1").

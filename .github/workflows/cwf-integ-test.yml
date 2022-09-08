@@ -79,6 +79,15 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes
           key: vagrant-boxes-cwf-v20220722
+      - name: Log in to vagrant cloud
+        run: |
+          if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
+          then
+            echo "Logging in to vagrant cloud to mitigate rate limiting."
+            vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
+          else
+            echo "Vagrant cloud token is not configured. Skipping login."
+          fi
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
@@ -86,7 +95,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest
+          vagrant plugin install vagrant-vbguest vagrant-reload vagrant-disksize
       - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
         with:
           name: docker-images

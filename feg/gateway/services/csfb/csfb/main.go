@@ -37,7 +37,7 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewGatewayServiceWithOptions(registry.ModuleName, registry.CSFB)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.CSFB)
 	if err != nil {
 		glog.Fatalf("Error creating CSFB service: %s", err)
 	}
