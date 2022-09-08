@@ -52,8 +52,9 @@ func main() {
 	}
 	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker(), sqorc.GetSqlLocker())
 
-	interval := time.Second * time.Duration(serviceConfig.CbsdInactivityIntervalSec)
-	logConsumerUrl := serviceConfig.LogConsumerUrl
+	dpCfg := serviceConfig.DpBackend
+	interval := time.Second * time.Duration(dpCfg.CbsdInactivityIntervalSec)
+	logConsumerUrl := dpCfg.LogConsumerUrl
 
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
 
