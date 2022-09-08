@@ -13,6 +13,8 @@ limitations under the License.
 package main
 
 import (
+	"context"
+	"math/rand"
 	"time"
 
 	"github.com/golang/glog"
@@ -20,6 +22,8 @@ import (
 	"magma/dp/cloud/go/dp"
 	"magma/dp/cloud/go/protos"
 	dp_service "magma/dp/cloud/go/services/dp"
+	"magma/dp/cloud/go/services/dp/active_mode_controller"
+	amc_time "magma/dp/cloud/go/services/dp/active_mode_controller/time"
 	"magma/dp/cloud/go/services/dp/logs_pusher"
 	"magma/dp/cloud/go/services/dp/obsidian/cbsd"
 	dp_log "magma/dp/cloud/go/services/dp/obsidian/log"
@@ -58,8 +62,45 @@ func main() {
 
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
 
+	cancel, errs := startAmc(serviceConfig.ActiveModeController)
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running %s service amd echo server: %s", dp_service.ServiceName, err)
+	}
+
+	stopAmc(cancel, errs)
+}
+
+func startAmc(cfg *dp_service.AmcConfig) (context.CancelFunc, chan error) {
+	clock := &amc_time.Clock{}
+	seed := rand.NewSource(clock.Now().Unix())
+	app := active_mode_controller.NewApp(
+		active_mode_controller.WithClock(clock),
+		active_mode_controller.WithRNG(rand.New(seed)),
+		active_mode_controller.WithDialTimeout(secToDuration(cfg.DialTimeoutSec)),
+		active_mode_controller.WithHeartbeatSendTimeout(
+			secToDuration(cfg.HeartbeatSendTimeoutSec),
+			secToDuration(cfg.RequestProcessingIntervalSec)),
+		active_mode_controller.WithRequestTimeout(secToDuration(cfg.RequestTimeoutSec)),
+		active_mode_controller.WithPollingInterval(secToDuration(cfg.PollingIntervalSec)),
+		active_mode_controller.WithGrpcService(cfg.GrpcService, cfg.GrpcPort),
+		active_mode_controller.WithCbsdInactivityTimeout(secToDuration(cfg.CbsdInactivityTimeoutSec)),
+	)
+	errs := make(chan error, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() { errs <- app.Run(ctx) }()
+	return cancel, errs
+}
+
+func secToDuration(s int) time.Duration {
+	return time.Second * time.Duration(s)
+}
+
+func stopAmc(cancel context.CancelFunc, errs chan error) {
+	cancel()
+	err := <-errs
+	if err != nil && err != context.Canceled {
+		glog.Fatalf("Error while shutting down amc: %s", err)
 	}
 }

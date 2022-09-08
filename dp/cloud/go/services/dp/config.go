@@ -29,7 +29,7 @@ type AmcConfig struct {
 	HeartbeatSendTimeoutSec      int    `yaml:"heartbeat_send_timeout_sec"`
 	RequestTimeoutSec            int    `yaml:"request_timeout_sec"`
 	RequestProcessingIntervalSec int    `yaml:"request_processing_interval_sec"`
-	PollingIntervalSec           int    `yaml:"polling_interval_sec"`
+	PollingIntervalSec           int    `yaml:"polling_interval"` // TODO add sec to deployment scripts
 	GrpcService                  string `yaml:"grpc_service"`
 	GrpcPort                     int    `yaml:"grpc_port"`
 	CbsdInactivityTimeoutSec     int    `yaml:"cbsd_inactivity_timeout_sec"`
