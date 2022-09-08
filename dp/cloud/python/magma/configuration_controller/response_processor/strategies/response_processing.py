@@ -52,7 +52,6 @@ def unregister_cbsd_on_response_condition(process_response_func) -> Callable:
     Currently a CBSD should be marked as unregistered on Domain Proxy if:
     * SAS returns a response with responseCode 105 (ResponseCodes.DEREGISTER)
     * SAS returns a response with responseCode 103 (ResponseCodes.INVALID_VALUE)
-      and responseData has "cbsdId" listed as the INVALID_VALUE parameter
 
     Parameters:
         process_response_func: Response processing function
@@ -61,10 +60,7 @@ def unregister_cbsd_on_response_condition(process_response_func) -> Callable:
         response processing function wrapper
     """
     def process_response_wrapper(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
-        if any([
-            response.response_code == ResponseCodes.DEREGISTER.value,
-            _is_response_invalid_value_cbsd_id(response),
-        ]):
+        if response.response_code in {ResponseCodes.DEREGISTER.value, ResponseCodes.INVALID_VALUE.value}:
             logger.info(f'SAS {response.payload} implies CBSD immedaite unregistration')
             _unregister_cbsd(response, session)
             return
@@ -410,13 +406,3 @@ def _unregister_cbsd(response: DBResponse, session: Session) -> None:
         filter(DBCbsdState.name == CbsdStates.UNREGISTERED.value)
     _terminate_all_grants_from_response(response, session)
     _update_cbsd(session, where, {"state_id": state_id.subquery()})
-
-
-def _is_response_invalid_value_cbsd_id(response: DBResponse) -> bool:
-    if response.response_code != ResponseCodes.INVALID_VALUE.value:
-        return False
-
-    response_data = response.payload.get(
-        "response", {},
-    ).get("responseData", [])
-    return CBSD_ID in response_data
