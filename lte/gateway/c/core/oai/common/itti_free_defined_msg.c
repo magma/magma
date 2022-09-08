@@ -226,7 +226,7 @@ void itti_free_msg_content(MessageDef* const message_p) {
       e_rab_admitted_list_t e_rab_admitted_list = {};
       e_rab_admitted_list =
           message_p->ittiMsg.s1ap_handover_notify.e_rab_admitted_list;
-      for (int idx = 0; idx < e_rab_admitted_list.no_of_items; idx++) {
+      for (uint8_t idx = 0; idx < e_rab_admitted_list.no_of_items; idx++) {
         bdestroy_wrapper(
             &e_rab_admitted_list.item[idx].transport_layer_address);
       }
