@@ -1,5 +1,4 @@
 ---
-################################################################################
 # Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -10,12 +9,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-################################################################################
 
-- name: Set up Magma environment based on debian package for integration testing
-  hosts: deb
-  become: yes
-
-  roles:
-    - role: magma_deb
-    - role: service_aliases
+- name: Create convenient aliases for magma services
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - "alias magma-start='sudo service magma@magmad start'"
+    - "alias magma-stop='sudo service magma@* stop && sudo service sctpd stop && sudo service magma_dp@envoy stop'"
+    - "alias magma-restart='magma-stop && magma-start'"
+    - "alias magma-status='sudo service magma* status'"
