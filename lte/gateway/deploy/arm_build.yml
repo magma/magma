@@ -25,12 +25,12 @@
     aws_access_key: "overwrite_me"
     ansible_ssh_private_key_file: "~/.ssh/gha_keypair.pem"
     ansible_ssh_user: "ubuntu"
-    commit_id: "master"
-    magma_hash: ""
+    magma_branch: "master"
+    magma_tag: ""
   tasks:
     - name: Launch instance
       amazon.aws.ec2_instance:
-        name: "arm-build-{{ commit_id }}-{{ magma_hash }}"
+        name: "arm-build-{{ magma_branch }}-{{ magma_tag }}"
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
         key_name: "{{ keypair }}"
@@ -59,7 +59,7 @@
 
     - name: Fetch the public ip address
       amazon.aws.ec2_instance:
-        name: "arm-build-{{ commit_id }}-{{ magma_hash }}"
+        name: "arm-build-{{ commit_id }}-{{ magma_tag }}"
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
         key_name: "{{ keypair }}"
@@ -105,7 +105,8 @@
     ansible_ssh_user: "ubuntu"
     magma_dir: /tmp/magma/
     magma_repo: https://github.com/magma/magma.git
-    magma_branch: master #default value
+    magma_branch: "master"
+    magma_tag: ""
     magma_registry_url: "agw-test.artifactory.magmacore.org"
     magma_registry_username: "overwrite_me"
     magma_registry_password: "overwrite_me"
@@ -164,8 +165,11 @@
       ansible.builtin.shell: |
         cd "{{ magma_dir }}"/lte/gateway/docker
         docker login -u {{ magma_registry_username }} -p {{ magma_registry_password }} {{ magma_registry_url }}
-        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64 --build-arg DOCKER_REGISTRY="{{ magma_registry_username }}" --build-arg IMAGE_VERSION="{{ magma_hash }}"
-        docker-compose push
+        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64 --build-arg
+        docker tag agw-gateway_python:latest "{{ magma_registry_url }}"/agw_gateway_python_arm:"{{ magma_tag }}"
+        docker tag agw-gateway_c:latest "{{ magma_registry_url }}"/agw_gateway_c_arm:"{{ magma_tag }}"
+        docker push "{{ magma_registry_url }}"/agw_gateway_c_arm:"{{ magma_tag }}"
+        docker push "{{ magma_registry_url }}"/agw_gateway_python_arm:"{{ magma_tag }}"
 
 - name: Phase 3 - Kill the arm instance
   hosts: localhost
