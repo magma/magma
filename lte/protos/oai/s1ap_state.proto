@@ -64,11 +64,11 @@ message EnbDescription {
 
 enum S1apUeState {
  S1AP_UE_INVALID_STATE = 0;
- S1AP_UE_WAITING_CSR = 1; ///< Waiting for Initial Context Setup Response
+ S1AP_UE_WAITING_ICSR = 1; ///< Waiting for Initial Context Setup Response
  S1AP_UE_HANDOVER = 2;    ///< Handover procedure triggered
  S1AP_UE_CONNECTED = 3;   ///< UE context ready
- S1AP_UE_WAITING_CRR = 4; /// UE Context release Procedure initiated , waiting for
-                          /// UE context Release Complete
+ S1AP_UE_WAITING_CRC = 4; /// UE Context release Procedure initiated , waiting for
+                          /// UE Context Release Complete
 }
 
 message UeDescription {

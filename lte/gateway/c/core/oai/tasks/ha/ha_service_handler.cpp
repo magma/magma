@@ -103,6 +103,12 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
   EnbDescription* enb_ref_p = magma::lte::s1ap_state_get_enb(
       s1ap_state, ue_context_p->sctp_assoc_id_key);
 
+  if (!enb_ref_p) {
+    OAILOG_ERROR_UE(LOG_UTIL, imsi64,
+                    "Failed to find enb_ref_p for assoc_id :%u",
+                    ue_context_p->sctp_assoc_id_key);
+    return false;
+  }
   // Return if this UE does not satisfy any of the filtering criteria
   if ((imsi64 != ue_context_p->emm_context._imsi64) &&
       (offload_request->eNB_id != enb_ref_p->enb_id())) {
