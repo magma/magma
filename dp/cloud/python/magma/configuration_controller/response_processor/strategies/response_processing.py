@@ -19,13 +19,7 @@ from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.db_service.models import (
-    DBCbsd,
-    DBCbsdState,
-    DBChannel,
-    DBGrant,
-    DBGrantState,
-)
+from magma.db_service.models import DBCbsd, DBCbsdState, DBGrant, DBGrantState
 from magma.db_service.session_manager import Session
 from magma.mappings.types import CbsdStates, GrantStates, ResponseCodes
 
@@ -146,16 +140,14 @@ def _create_channels(response: DBResponse, session: Session):
         return
     for ac in available_channels:
         frequency_range = ac["frequencyRange"]
-        channel = DBChannel(
-            cbsd=cbsd,
-            low_frequency=frequency_range["lowFrequency"],
-            high_frequency=frequency_range["highFrequency"],
-            channel_type=ac["channelType"],
-            rule_applied=ac["ruleApplied"],
-            max_eirp=ac.get("maxEirp"),
-        )
-        logger.info(f"Creating channel for {cbsd.id=}")
-        session.add(channel)
+        channel = {
+            "low_frequency": frequency_range["lowFrequency"],
+            "high_frequency": frequency_range["highFrequency"],
+            "channel_type": ac["channelType"],
+            "rule_applied": ac["ruleApplied"],
+            "max_eirp": ac.get("maxEirp"),
+        }
+        cbsd.add_channel(channel=channel)
 
 
 @unregister_cbsd_on_response_condition
@@ -370,20 +362,20 @@ def _update_grant_from_response(response: DBResponse, grant: DBGrant) -> None:
 
 
 def _terminate_all_grants_from_response(response: DBResponse, session: Session) -> None:
-    cbsd_id = response.payload.get(
-        CBSD_ID,
-    ) or response.request.payload.get(CBSD_ID)
+    cbsd_id = response.cbsd_id
     if not cbsd_id:
         return
-    logger.info(f'Terminating all grants for {cbsd_id=}')
+
     with session.no_autoflush:
-        session.query(DBGrant). \
-            filter(DBGrant.cbsd_id == DBCbsd.id, DBCbsd.cbsd_id == cbsd_id). \
-            delete(synchronize_session=False)
+        logger.info(f'Terminating all grants for {cbsd_id=}')
+        session.query(DBGrant).filter(
+            DBGrant.cbsd_id == DBCbsd.id, DBCbsd.cbsd_id == cbsd_id,
+        ).delete(synchronize_session=False)
+
         logger.info(f"Deleting all channels for {cbsd_id=}")
-        session.query(DBChannel). \
-            filter(DBChannel.cbsd_id == DBCbsd.id, DBCbsd.cbsd_id == cbsd_id). \
-            delete(synchronize_session=False)
+        cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).first()
+        if cbsd:
+            cbsd.remove_channels()
 
 
 def _unsync_conflict_from_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:

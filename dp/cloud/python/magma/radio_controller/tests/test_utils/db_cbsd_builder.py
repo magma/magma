@@ -16,7 +16,7 @@ import json
 from datetime import datetime
 from typing import List
 
-from magma.db_service.models import DBCbsd, DBChannel, DBGrant, DBRequest
+from magma.db_service.models import DBCbsd, DBGrant, DBRequest
 
 
 class DBCbsdBuilder:
@@ -151,14 +151,14 @@ class DBCbsdBuilder:
         low: int, high: int,
         max_eirp: float = None,
     ) -> DBCbsdBuilder:
-        channel = DBChannel(
-            low_frequency=low,
-            high_frequency=high,
-            max_eirp=max_eirp,
-            channel_type='channel_type',
-            rule_applied='rule',
-        )
-        self.cbsd.channels.append(channel)
+        channel = {
+            "low_frequency": low,
+            "high_frequency": high,
+            "max_eirp": max_eirp,
+            "channel_type": "channel_type",
+            "rule_applied": "rule",
+        }
+        self.cbsd.add_channel(channel=channel)
         return self
 
     def with_request(self, type_id: int, payload: str) -> DBCbsdBuilder:

@@ -236,7 +236,25 @@ class DBCbsd(Base):
     desired_state = relationship("DBCbsdState", foreign_keys=[desired_state_id])
     requests = relationship("DBRequest", back_populates="cbsd")
     grants = relationship("DBGrant", back_populates="cbsd")
-    channels = relationship("DBChannel", back_populates="cbsd")
+    channels = Column(JSON, nullable=False, server_default=sa_text("'[]'::json"))
+
+    def add_channel(self, channel: dict) -> None:
+        """ Add channel dict to existing channels list.
+
+        Args:
+            channel: dict with channel's data.
+
+        Returns: None
+        """
+        channels = self.channels or []  # noqa: WPS601 - SQLAlchemy doesn't enforce default.
+        self.channels = channels + [channel]    # noqa: WPS601 - SQLAlchemy doesn't track mutation.
+
+    def remove_channels(self) -> None:
+        """ Remove all channels from CBSD.
+
+        Returns: None
+        """
+        self.channels = []  # noqa: WPS601
 
     def __repr__(self):
         """
@@ -251,34 +269,3 @@ class DBCbsd(Base):
                f"cbsd_serial_number='{self.cbsd_serial_number}', " \
                f"created_date='{self.created_date}' " \
                f"updated_date='{self.updated_date}')>"
-
-
-class DBChannel(Base):
-    """
-    SAS DB Channel class
-    """
-    __tablename__ = "channels"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
-    low_frequency = Column(BigInteger, nullable=False)
-    high_frequency = Column(BigInteger, nullable=False)
-    channel_type = Column(String, nullable=False)
-    rule_applied = Column(String, nullable=False)
-    max_eirp = Column(Float)
-    created_date = Column(
-        DateTime(timezone=True),
-        nullable=False, server_default=now(),
-    )
-    updated_date = Column(
-        DateTime(timezone=True),
-        server_default=now(), onupdate=now(),
-    )
-
-    cbsd = relationship("DBCbsd", back_populates="channels")
-
-    def __repr__(self):
-        """
-        Return string representation of DB object
-        """
-        class_name = self.__class__.__name__
-        return f"<{class_name}(id='{self.id}', cbsd_id='{self.cbsd_id}')>"

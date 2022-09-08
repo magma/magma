@@ -27,7 +27,6 @@ from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
-    DBChannel,
     DBGrant,
     DBRequest,
     DBRequestType,
@@ -582,15 +581,14 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         cbsd: DBCbsd,
         low_frequency: int,
         high_frequency: int,
-    ) -> DBChannel:
-        channel = DBChannel(
-            cbsd=cbsd,
-            low_frequency=low_frequency,
-            high_frequency=high_frequency,
-            channel_type="some_type",
-            rule_applied="some_rule",
-        )
-        self.session.add(channel)
+    ) -> dict:
+        channel = {
+            "low_frequency": low_frequency,
+            "high_frequency": high_frequency,
+            "channel_type": "some_type",
+            "rule_applied": "some_rule",
+        }
+        cbsd.add_channel(channel=channel)
         self.session.commit()
         return channel
 
