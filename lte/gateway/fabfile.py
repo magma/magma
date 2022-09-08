@@ -384,7 +384,7 @@ def bazel_integ_test_post_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
-    execute(_restart_gateway)
+    execute(_start_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
@@ -767,16 +767,7 @@ def _run_sudo_python_unit_tests():
 
 def _start_gateway():
     """ Starts the gateway """
-
-    with cd(AGW_ROOT):
-        run('make run')
-
-
-def _restart_gateway():
-    """ Restart the gateway """
-
-    with cd(AGW_ROOT):
-        run('make restart')
+    run('sudo service magma@magmad start')
 
 
 def _set_service_config_var(service, var_name, value):

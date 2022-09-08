@@ -72,15 +72,9 @@ clean_python: ## Clean Python-only builds
 clean_envoy_controller: ## Clean envoy controller build
 	rm -rf  $(GO_BUILD)/envoy_controller
 
-start: ## Start all services
-	sudo service magma@magmad start
-
-stop: ## Stop all services
+run: build ## Build and run all services
 	sudo service magma@* stop
-
-restart: stop start ## Restart all services
-
-run: build restart ## Build and run all services
+	sudo service magma@magmad start
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake
@@ -97,7 +91,8 @@ $(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
 cd $(2) && ctest --output-on-failure -R $(5)
 endef
 
-build_python: stop ## Build Python environment
+build_python: ## Build Python environment
+	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
 build_common: ## Build shared libraries
@@ -137,10 +132,12 @@ build_envoy_controller: ## Build envoy controller
 build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
 
-test_python: stop ## Run all Python-specific tests
+test_python: ## Run all Python-specific tests
+	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-test_sudo_python: stop ## Run Python tests that require sudo (datapath, etc.)
+test_sudo_python: ## Run Python tests that require sudo (datapath, etc.)
+	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
 
 test_python_service: ## Run all Python-specific tests for a given service
