@@ -14,7 +14,7 @@ from magma.db_service.tests.alembic_testcase import AlembicTestCase
 from sqlalchemy import select
 from sqlalchemy.exc import NoSuchTableError
 
-DOWN_REVISION = 'fa12c537244a'
+DOWN_REVISION = '37bd12af762a'
 UP_REVISION = '467ad00fbc83'
 
 CBSD_STATES_TABLE = 'cbsd_states'
