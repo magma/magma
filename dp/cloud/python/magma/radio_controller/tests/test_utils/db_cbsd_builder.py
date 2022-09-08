@@ -151,14 +151,16 @@ class DBCbsdBuilder:
         low: int, high: int,
         max_eirp: float = None,
     ) -> DBCbsdBuilder:
+        if not self.cbsd.channels:
+            # Default is set on commit, so it might be None at this point.
+            self.cbsd.channels = []
+
         channel = {
             "low_frequency": low,
             "high_frequency": high,
             "max_eirp": max_eirp,
-            "channel_type": "channel_type",
-            "rule_applied": "rule",
         }
-        self.cbsd.add_channel(channel=channel)
+        self.cbsd.channels = self.cbsd.channels + [channel]
         return self
 
     def with_request(self, type_id: int, payload: str) -> DBCbsdBuilder:

@@ -65,7 +65,8 @@ class AlembicTestCase(DBTestCaseBlueprint):
         return self.has_columns(table=table, columns_names=[column_name])
 
     def has_columns(self, table: sa.Table, columns_names: List[str]) -> bool:
-        existing = [c.name for c in table.columns]
+        # TODO add method for checking that none of the columns exists
+        existing = {c.name for c in table.columns}
 
         for c in columns_names:
             if c not in existing:

@@ -138,16 +138,16 @@ def _create_channels(response: DBResponse, session: Session):
             "Could not create channel from spectrumInquiryResponse. Response missing 'availableChannel' object",
         )
         return
+
+    channels = []
     for ac in available_channels:
         frequency_range = ac["frequencyRange"]
-        channel = {
+        channels.append({
             "low_frequency": frequency_range["lowFrequency"],
             "high_frequency": frequency_range["highFrequency"],
-            "channel_type": ac["channelType"],
-            "rule_applied": ac["ruleApplied"],
             "max_eirp": ac.get("maxEirp"),
-        }
-        cbsd.add_channel(channel=channel)
+        })
+    cbsd.channels = channels
 
 
 @unregister_cbsd_on_response_condition
@@ -373,9 +373,7 @@ def _terminate_all_grants_from_response(response: DBResponse, session: Session) 
         ).delete(synchronize_session=False)
 
         logger.info(f"Deleting all channels for {cbsd_id=}")
-        cbsd = session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).first()
-        if cbsd:
-            cbsd.remove_channels()
+        session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).update({DBCbsd.channels: []})
 
 
 def _unsync_conflict_from_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:

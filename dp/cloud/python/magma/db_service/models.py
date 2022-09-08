@@ -21,7 +21,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    Text,
 )
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.declarative import declarative_base
@@ -237,24 +236,6 @@ class DBCbsd(Base):
     requests = relationship("DBRequest", back_populates="cbsd")
     grants = relationship("DBGrant", back_populates="cbsd")
     channels = Column(JSON, nullable=False, server_default=sa_text("'[]'::json"))
-
-    def add_channel(self, channel: dict) -> None:
-        """ Add channel dict to existing channels list.
-
-        Args:
-            channel: dict with channel's data.
-
-        Returns: None
-        """
-        channels = self.channels or []  # noqa: WPS601 - SQLAlchemy doesn't enforce default.
-        self.channels = channels + [channel]    # noqa: WPS601 - SQLAlchemy doesn't track mutation.
-
-    def remove_channels(self) -> None:
-        """ Remove all channels from CBSD.
-
-        Returns: None
-        """
-        self.channels = []  # noqa: WPS601
 
     def __repr__(self):
         """

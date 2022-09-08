@@ -30,8 +30,6 @@ CHANNEL_DATA = {
     "low_frequency": 1,
     "high_frequency": 2,
     "max_eirp": 3.0,
-    "channel_type": 'channel_type',
-    "rule_applied": 'rule',
 }
 
 
@@ -82,7 +80,9 @@ class TestRemoveChannelsUpgrade(TestRemoveChannels):
         self._given_cbsd_created(id=CBSD_ID, state_id=TEST_STATE_ID, desired_state_id=TEST_STATE_ID)
 
         channels = self.get_table(CHANNELS_TABLE)
-        self.given_resource_inserted(channels, id=CHANNEL_ID, cbsd_id=CBSD_ID, **CHANNEL_DATA)
+        self.given_resource_inserted(
+            channels, id=CHANNEL_ID, cbsd_id=CBSD_ID, channel_type='channel', rule_applied='rule', **CHANNEL_DATA,
+        )
         data_before = [CHANNEL_DATA]
 
         # When
@@ -142,8 +142,6 @@ class TestRemoveChannelsDowngrade(TestRemoveChannels):
                     channels.c.low_frequency,
                     channels.c.high_frequency,
                     channels.c.max_eirp,
-                    channels.c.channel_type,
-                    channels.c.rule_applied,
                 ),
             ).mappings().all()
         ]

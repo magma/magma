@@ -27,7 +27,7 @@ def upgrade():
     for cbsd in conn.execute('SELECT cbsd_id FROM channels').fetchall():
         cbsd_id = cbsd[0]
         channels = conn.execute(
-            "SELECT low_frequency, high_frequency, max_eirp, channel_type, rule_applied "
+            "SELECT low_frequency, high_frequency, max_eirp "
             "FROM channels WHERE cbsd_id = %s",
             cbsd_id,
         )
@@ -46,8 +46,8 @@ def downgrade():
         sa.Column('cbsd_id', sa.INTEGER(), autoincrement=False, nullable=True),
         sa.Column('low_frequency', sa.BIGINT(), autoincrement=False, nullable=False),
         sa.Column('high_frequency', sa.BIGINT(), autoincrement=False, nullable=False),
-        sa.Column('channel_type', sa.VARCHAR(), autoincrement=False, nullable=False),
-        sa.Column('rule_applied', sa.VARCHAR(), autoincrement=False, nullable=False),
+        sa.Column('channel_type', sa.VARCHAR(), autoincrement=False, nullable=True),
+        sa.Column('rule_applied', sa.VARCHAR(), autoincrement=False, nullable=True),
         sa.Column(
             'max_eirp', postgresql.DOUBLE_PRECISION(precision=53), autoincrement=False, nullable=True,
         ),
@@ -71,8 +71,8 @@ def downgrade():
     for cbsd_id, channels in conn.execute("SELECT id, channels FROM cbsds WHERE channels::text <> '[]'").fetchall():
         for channel in channels:
             conn.execute(
-                "INSERT INTO channels (cbsd_id, low_frequency, high_frequency, max_eirp, channel_type, rule_applied) "
-                "VALUES (%(cbsd_id)s, %(low_frequency)s, %(high_frequency)s, %(max_eirp)s, %(channel_type)s, %(rule_applied)s)",
+                "INSERT INTO channels (cbsd_id, low_frequency, high_frequency, max_eirp) "
+                "VALUES (%(cbsd_id)s, %(low_frequency)s, %(high_frequency)s, %(max_eirp)s)",
                 dict(cbsd_id=cbsd_id, **channel),
             )
 

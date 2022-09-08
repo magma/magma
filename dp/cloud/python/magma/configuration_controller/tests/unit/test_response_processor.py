@@ -581,16 +581,13 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         cbsd: DBCbsd,
         low_frequency: int,
         high_frequency: int,
-    ) -> dict:
-        channel = {
+    ) -> None:
+        channels = [{
             "low_frequency": low_frequency,
             "high_frequency": high_frequency,
-            "channel_type": "some_type",
-            "rule_applied": "some_rule",
-        }
-        cbsd.add_channel(channel=channel)
+        }]
+        cbsd.channels = channels
         self.session.commit()
-        return channel
 
     def _create_db_requests_from_fixture(self, request_type, fixture, cbsd_state):
         db_requests = []
