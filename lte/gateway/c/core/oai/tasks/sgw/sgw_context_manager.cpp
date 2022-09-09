@@ -193,6 +193,10 @@ magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(
   }
   spgw_ue_context_t* ue_context_p = NULL;
   map_uint64_spgw_ue_context_t* spgw_ue_state = get_spgw_ue_state();
+  if (!spgw_ue_state) {
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Failed to find spgw_ue_state");
+    return magma::PROTO_MAP_SEARCH_NO_RESULT;
+  }
   spgw_ue_state->get(imsi64, &ue_context_p);
   if (ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
@@ -317,6 +321,10 @@ spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   spgw_ue_context_t* ue_context_p = NULL;
   map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
+  }
   state_ue_map->get(imsi64, &ue_context_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
@@ -325,6 +333,10 @@ spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   spgw_ue_context_t* ue_context_p = NULL;
   map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
+  }
   state_ue_map->get(imsi64, &ue_context_p);
   if (!ue_context_p) {
     ue_context_p = new spgw_ue_context_t();

@@ -34,6 +34,10 @@ namespace lte {
 
 bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
   map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    std::cout << "Failed to find spgw_ue_state" << std::endl;
+    return false;
+  }
   return state_ue_map->size() == expected_num_ue_contexts;
 }
 

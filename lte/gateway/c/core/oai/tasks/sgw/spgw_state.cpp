@@ -66,6 +66,10 @@ void put_spgw_ue_state(imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
     spgw_ue_context_t* ue_context_p = nullptr;
     map_uint64_spgw_ue_context_t* spgw_ue_state = get_spgw_ue_state();
+    if (!spgw_ue_state) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
     spgw_ue_state->get(imsi64, &ue_context_p);
     if (ue_context_p) {
       auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);

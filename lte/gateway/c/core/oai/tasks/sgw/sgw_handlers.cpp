@@ -1244,7 +1244,7 @@ void sgw_handle_release_access_bearers_request(
 
   map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
   if (!state_ue_map) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_ue_map");
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get spgw_ue_state");
     OAILOG_FUNC_OUT(LOG_SPGW_APP);
   }
   state_ue_map->get(imsi64, &ue_context_p);
