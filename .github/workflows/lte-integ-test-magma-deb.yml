@@ -23,7 +23,7 @@ on:
 
 jobs:
   lte-integ-test-magma-deb:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && (github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ (github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch') }}
     runs-on: macos-12
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
