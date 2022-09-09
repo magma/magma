@@ -64,6 +64,15 @@ To target a specific release, checkout the Magma repository's relevant release b
 
 Values for recent Orchestrator releases are summarized below
 
+### v1.8.0
+
+Verified with Terraform version `1.0.11`.
+
+- `v1.8` [patch branch](https://github.com/magma/magma/tree/v1.8)
+- `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.8`
+Terraform module source
+- `1.8.0` Helm chart version
+
 ### v1.6.0
 
 Verified with Terraform version `0.15.0`.
