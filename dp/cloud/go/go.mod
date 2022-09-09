@@ -32,6 +32,7 @@ require (
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/exp v0.0.0-20220907003533-145caa8ea1d0
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.0
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
@@ -92,7 +93,7 @@ require (
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
-	golang.org/x/tools v0.1.8 // indirect
+	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
