@@ -982,7 +982,7 @@ void SpgwStateConverter::ue_to_proto(const spgw_ue_context_t* ue_state,
 void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
                                      spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  hash_table_ts_t* state_ue_ht = nullptr;
+  map_uint64_spgw_ue_context_t* state_ue_map = nullptr;
   state_teid_map_t* state_teid_map = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
     state_teid_map = get_spgw_teid_state();
@@ -991,10 +991,10 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
-    state_ue_ht = get_spgw_ue_state();
-    if (!state_ue_ht) {
+    state_ue_map = get_spgw_ue_state();
+    if (!state_ue_map) {
       OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+                   "Failed to get state_ue_map from get_spgw_ue_state() \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
@@ -1003,8 +1003,7 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
         ue_proto.s11_bearer_context(0).sgw_eps_bearer_context().imsi64();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
-      hashtable_ts_insert(state_ue_ht, (const hash_key_t)imsi64,
-                          (void*)ue_context_p);
+      state_ue_map->insert(imsi64, ue_context_p);
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Failed to allocate memory for UE context \n");

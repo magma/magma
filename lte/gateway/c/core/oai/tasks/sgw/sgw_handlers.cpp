@@ -1240,10 +1240,14 @@ void sgw_handle_release_access_bearers_request(
 
   spgw_ue_context_t* ue_context_p = NULL;
   gtpv2c_cause_value_t cause = CONTEXT_NOT_FOUND;
-  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p = NULL;
-  hashtable_ts_get(state_ue_ht, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+
+  map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_ue_map");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+  state_ue_map->get(imsi64, &ue_context_p);
 
   if (ue_context_p) {
     sgw_s11_teid_t* s11_teid_p = NULL;

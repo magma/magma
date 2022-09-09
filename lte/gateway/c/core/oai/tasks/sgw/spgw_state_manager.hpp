@@ -27,6 +27,8 @@ constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
 constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
     "s11_bearer_context_information_htbl";
+constexpr char SPGW_STATE_UE_MAP[] =
+    "spgw_state_ue_map";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
 constexpr char SPGW_TASK_NAME[] = "SPGW";
 }  // namespace
@@ -72,6 +74,7 @@ class SpgwStateManager
   status_code_e read_ue_state_from_db() override;
 
   state_teid_map_t* get_state_teid_map();
+  map_uint64_spgw_ue_context_t* get_spgw_ue_state_map();
 
  private:
   SpgwStateManager();
@@ -85,6 +88,7 @@ class SpgwStateManager
 
   state_teid_map_t state_teid_map;
   const spgw_config_t* config_;
+  map_uint64_spgw_ue_context_t state_ue_map;
 };
 
 }  // namespace lte

@@ -44,7 +44,7 @@ void put_spgw_state(void);
  * Returns pointer to SPGW UE state
  * @return hashtable_ts_t struct with SPGW UE context structs as data
  */
-hash_table_ts_t* get_spgw_ue_state(void);
+map_uint64_spgw_ue_context_t* get_spgw_ue_state(void);
 
 state_teid_map_t* get_spgw_teid_state(void);
 
@@ -92,4 +92,4 @@ void pgw_free_pcc_rule(void** rule);
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
-void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
+void sgw_free_ue_context(void** ptr);

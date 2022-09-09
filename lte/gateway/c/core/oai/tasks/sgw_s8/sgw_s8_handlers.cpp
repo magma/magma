@@ -97,7 +97,7 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
     while (p1) {
       if (p1->sgw_s11_teid == teid) {
         LIST_REMOVE(p1, entries);
-        free_wrapper((void**)&p1);
+        free_cpp_wrapper((void**)&p1);
         break;
       }
       p1 = LIST_NEXT(p1, entries);
@@ -137,7 +137,7 @@ spgw_ue_context_t* sgw_create_or_get_ue_context(sgw_state_t* sgw_state,
   hashtable_ts_get(sgw_state->imsi_ue_context_htbl, (const hash_key_t)imsi64,
                    (void**)&ue_context_p);
   if (!ue_context_p) {
-    ue_context_p = (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
+    ue_context_p = new spgw_ue_context_t();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
       hashtable_ts_insert(sgw_state->imsi_ue_context_htbl,
@@ -162,8 +162,7 @@ status_code_e sgw_update_teid_in_ue_context(sgw_state_t* sgw_state,
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
-  sgw_s11_teid_t* sgw_s11_teid_p =
-      (sgw_s11_teid_t*)calloc(1, sizeof(sgw_s11_teid_t));
+  sgw_s11_teid_t* sgw_s11_teid_p = new sgw_s11_teid_t();
   if (!sgw_s11_teid_p) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
                     "Failed to allocate memory for sgw_s11_teid:" TEID_FMT "\n",
