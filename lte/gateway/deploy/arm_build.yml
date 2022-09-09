@@ -59,7 +59,7 @@
 
     - name: Fetch the public ip address
       amazon.aws.ec2_instance:
-        name: "arm-build-{{ commit_id }}-{{ magma_tag }}"
+        name: "arm-build-{{ magma_branch }}-{{ magma_tag }}"
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
         key_name: "{{ keypair }}"
@@ -165,7 +165,7 @@
       ansible.builtin.shell: |
         cd "{{ magma_dir }}"/lte/gateway/docker
         docker login -u {{ magma_registry_username }} -p {{ magma_registry_password }} {{ magma_registry_url }}
-        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64 --build-arg
+        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64 
         docker tag agw-gateway_python:latest "{{ magma_registry_url }}"/agw_gateway_python_arm:"{{ magma_tag }}"
         docker tag agw-gateway_c:latest "{{ magma_registry_url }}"/agw_gateway_c_arm:"{{ magma_tag }}"
         docker push "{{ magma_registry_url }}"/agw_gateway_c_arm:"{{ magma_tag }}"

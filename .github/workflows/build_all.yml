@@ -946,7 +946,7 @@ jobs:
       - name: Run the ansible script to build on graviton
         run: |
           cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
-          ansible-playbook -vvv --skip-tags debug --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.DOCKER_USERNAME }} magma_registry_password=${{ secrets.DOCKER_PASSWORD }} magma_tag="tim-test" magma_branch=${GITHUB_REF##*/}" arm_build.yml
+          ansible-playbook --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.JFROG_USERNAME }} magma_registry_password=${{ secrets.JFROG_PASSWORD }} magma_tag=${TAG} magma_branch=${GITHUB_REF##*/}" arm_build.yml
       - name: get the right metadata for firebase
         id: publish_artifacts
         run: |
