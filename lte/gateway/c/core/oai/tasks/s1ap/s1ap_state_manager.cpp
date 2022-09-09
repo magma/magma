@@ -102,14 +102,10 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   AssertFatal(state_cache_p,
               "s1ap_state_t passed to free_s1ap_state must not be null");
 
-  int i;
-  hashtable_rc_t ht_rc;
-  hashtable_key_array_t* keys;
-  sctp_assoc_id_t assoc_id;
   oai::EnbDescription* enb;
 
   if (state_cache_p->enbs.isEmpty()) {
-    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
+    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb map");
   } else {
     for (auto itr = state_cache_p->enbs.map->begin();
          itr != state_cache_p->enbs.map->end(); itr++) {
