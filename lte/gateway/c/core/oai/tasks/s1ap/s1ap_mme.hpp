@@ -60,21 +60,21 @@ magma::lte::oai::EnbDescription* s1ap_new_enb(void);
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
+oai::UeDescription* s1ap_new_ue(S1apState* state,
                                             sctp_assoc_id_t sctp_assoc_id,
                                             enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/
-void s1ap_remove_ue(s1ap_state_t* state,
+void s1ap_remove_ue(S1apState* state,
                     oai::UeDescription* ue_ref);
 
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
  **/
-void s1ap_remove_enb(s1ap_state_t* state,
-                     magma::lte::oai::EnbDescription* enb_ref);
+void s1ap_remove_enb(S1apState* state,
+                     oai::EnbDescription* enb_ref);
 
 void free_enb_description(void** ptr);
 

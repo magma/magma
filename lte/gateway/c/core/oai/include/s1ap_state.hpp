@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,6 +25,8 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
+#include "lte/protos/oai/s1ap_state.pb.h"
 namespace magma {
 namespace lte {
 
@@ -33,11 +34,11 @@ int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
 
 void s1ap_state_exit(void);
 
-s1ap_state_t* get_s1ap_state(bool read_from_db);
+oai::S1apState* get_s1ap_state(bool read_from_db);
 
 void put_s1ap_state(void);
 
-magma::lte::oai::EnbDescription* s1ap_state_get_enb(s1ap_state_t* state,
+magma::lte::oai::EnbDescription* s1ap_state_get_enb(oai::S1apState* state,
                                                     sctp_assoc_id_t assoc_id);
 
 oai::UeDescription* s1ap_state_get_ue_enbid(
@@ -88,7 +89,7 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
 void remove_ues_without_imsi_from_ue_id_coll(void);
 
 void clean_stale_enb_state(
-    s1ap_state_t* state, oai::EnbDescription* new_enb_association);
+    oai::S1apState* state, oai::EnbDescription* new_enb_association);
 
 }  // namespace lte
 }  // namespace magma

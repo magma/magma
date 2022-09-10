@@ -23,10 +23,11 @@ namespace lte {
 S1apStateConverter::~S1apStateConverter() = default;
 S1apStateConverter::S1apStateConverter() = default;
 
-void S1apStateConverter::state_to_proto(s1ap_state_t* state,
+void S1apStateConverter::state_to_proto(oai::S1apState* state,
                                         oai::S1apState* proto) {
   proto->Clear();
-
+  proto->MergeFrom(*state);
+#if 0
   // copy over enbs
   state_map_to_proto<map_uint32_enb_description_t, oai::EnbDescription,
                      oai::EnbDescription>(state->enbs, proto->mutable_enbs(),
@@ -51,10 +52,14 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state,
     state->num_enbs = expected_enb_count;
   }
   proto->set_num_enbs(state->num_enbs);
+#endif
 }
 
 void S1apStateConverter::proto_to_state(const oai::S1apState& proto,
-                                        s1ap_state_t* state) {
+                                        oai::S1apState* state) {
+  state->Clear();
+  state->MergeFrom(proto);
+#if 0
   proto_to_state_map<map_uint32_enb_description_t, oai::EnbDescription,
                      oai::EnbDescription>(proto.enbs(), state->enbs,
                                           proto_to_enb, LOG_S1AP);
@@ -70,6 +75,7 @@ void S1apStateConverter::proto_to_state(const oai::S1apState& proto,
                    state->num_enbs, expected_enb_count);
     state->num_enbs = expected_enb_count;
   }
+#endif
 }
 
 void S1apStateConverter::enb_to_proto(oai::EnbDescription* enb,

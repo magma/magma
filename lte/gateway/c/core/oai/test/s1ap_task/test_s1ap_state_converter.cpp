@@ -47,8 +47,8 @@ class S1APStateConverterTest : public ::testing::Test {
 
 TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   sctp_assoc_id_t assoc_id = 1;
-  s1ap_state_t* init_state = create_s1ap_state();
-  s1ap_state_t* final_state = create_s1ap_state();
+  S1apState* init_state = create_s1ap_state();
+  S1apState* final_state = create_s1ap_state();
 
   EnbDescription* enb_association = s1ap_new_enb();
   enb_association->set_sctp_assoc_id(assoc_id);
@@ -81,20 +81,25 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
     }
   }
   // Inserting 1 enb association
-  init_state->enbs.insert(enb_association->sctp_assoc_id(), enb_association);
-  init_state->num_enbs = 1;
+  map_uint32_enb_description_t enb_map.map = init_state->mutable_enbs();
+  enb_map.insert(enb_association->sctp_assoc_id(), enb_association);
+  init_state->set_num_enbs(1);
 
-  init_state->mmeid2associd.insert(1, assoc_id);
+  proto_map_uint32_uint32_t mmeid2associd_map =
+      init_state->mutable_mmeid2associd();
+  mmeid2associd_map.insert(1, assoc_id);
 
   oai::S1apState state_proto;
   S1apStateConverter::state_to_proto(init_state, &state_proto);
   S1apStateConverter::proto_to_state(state_proto, final_state);
 
-  EXPECT_EQ(init_state->num_enbs, final_state->num_enbs);
+  EXPECT_EQ(init_state->num_enbs(), final_state->num_enbs());
   EnbDescription* enbd = nullptr;
   EnbDescription* enbd_final = nullptr;
-  EXPECT_EQ(init_state->enbs.get(assoc_id, &enbd), magma::PROTO_MAP_OK);
-  EXPECT_EQ(final_state->enbs.get(assoc_id, &enbd_final), magma::PROTO_MAP_OK);
+  EXPECT_EQ(init_state->mutable_enbs().get(assoc_id, &enbd),
+            magma::PROTO_MAP_OK);
+  EXPECT_EQ(final_state->mutable_enbs().get(assoc_id, &enbd_final),
+            magma::PROTO_MAP_OK);
 
   EXPECT_EQ(enbd->sctp_assoc_id(), enbd_final->sctp_assoc_id());
   EXPECT_EQ(enbd->enb_id(), enbd_final->enb_id());
@@ -111,25 +116,27 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
 
 TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   sctp_assoc_id_t assoc_id = 1;
-  s1ap_state_t* init_state = create_s1ap_state();
-  s1ap_state_t* final_state = create_s1ap_state();
+  S1apState* init_state = create_s1ap_state();
+  S1apState* final_state = create_s1ap_state();
 
   EnbDescription* enb_association = s1ap_new_enb();
   enb_association->set_sctp_assoc_id(assoc_id);
   enb_association->set_enb_id(0xFFFFFFFF);
   enb_association->set_s1_enb_state(magma::lte::oai::S1AP_READY);
+
+  map_uint32_enb_description_t enb_map.map = init_state->mutable_enbs();
   // Inserting 1 enb association
-  init_state->enbs.insert(enb_association->sctp_assoc_id(), enb_association);
+  enb_map.insert(enb_association->sctp_assoc_id(), enb_association);
   // state_to_proto should update num_enbs to match expected eNB count on the
   // map
-  init_state->num_enbs = 5;
+  init_state->set_num_enbs(5);
 
   oai::S1apState state_proto;
   S1apStateConverter::state_to_proto(init_state, &state_proto);
-  EXPECT_EQ(init_state->num_enbs, 1);
+  EXPECT_EQ(init_state->num_enbs(), 1);
 
   S1apStateConverter::proto_to_state(state_proto, final_state);
-  EXPECT_EQ(final_state->num_enbs, 1);
+  EXPECT_EQ(final_state->num_enbs(), 1);
 
   free_s1ap_state(init_state);
   free_s1ap_state(final_state);

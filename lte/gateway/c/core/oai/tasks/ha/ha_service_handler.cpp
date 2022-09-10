@@ -73,7 +73,7 @@ bool sync_up_with_orc8r(void) {
 }
 
 typedef struct callback_data_s {
-  s1ap_state_t* s1ap_state;
+  S1apState* s1ap_state;
   ha_agw_offload_req_t* request;
 } callback_data_t;
 
@@ -94,7 +94,7 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
   callback_data_t* callback_data = (callback_data_t*)parameterP;
   ha_agw_offload_req_t* offload_request =
       (ha_agw_offload_req_t*)callback_data->request;
-  s1ap_state_t* s1ap_state = (s1ap_state_t*)callback_data->s1ap_state;
+  S1apState* s1ap_state = (S1apState*)callback_data->s1ap_state;
   struct ue_mm_context_s* ue_context_p = (struct ue_mm_context_s*)elementP;
   bool any_flag = false;  // true if we tried offloading any UE
 

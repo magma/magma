@@ -105,10 +105,9 @@ static int s1ap_send_init_sctp(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  s1ap_state_t* state;
   MessageDef* received_message_p = receive_msg(reader);
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  state = get_s1ap_state(false);
+  S1apState* state = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   bool is_task_state_same = false;
@@ -400,7 +399,7 @@ oai::EnbDescription* s1ap_new_enb(void) {
 }
 
 //------------------------------------------------------------------------------
-oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
+oai::UeDescription* s1ap_new_ue(S1apState* state,
                                 const sctp_assoc_id_t sctp_assoc_id,
                                 enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   oai::EnbDescription* enb_ref = NULL;
@@ -446,7 +445,7 @@ oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
+void s1ap_remove_ue(S1apState* state, oai::UeDescription* ue_ref) {
   oai::EnbDescription* enb_ref = NULL;
 
   // NULL reference...
@@ -476,7 +475,10 @@ void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
     return;
   }
   s1ap_ue_state->remove(ue_ref->comp_s1ap_id());
-  state->mmeid2associd.remove(mme_ue_s1ap_id);
+  proto_map_uint32_uint32_t mmeid2associd_map.map =
+      state->mutable_mmeid2associd();
+  mmeid2associd_map.remove(mme_ue_s1ap_id);
+
   magma::proto_map_uint32_uint64_t ue_id_coll;
   ue_id_coll.map = enb_ref->mutable_ue_id_map();
   ue_id_coll.remove(mme_ue_s1ap_id);
@@ -494,7 +496,7 @@ void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
       enb_ref->set_s1_state(magma::lte::oai::S1AP_INIT);
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name());
-      state->num_enbs--;
+      state->set_num_enbs(state->num_enbs() - 1);
     } else if (enb_ref->s1_enb_state() == magma::lte::oai::S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name());
@@ -504,25 +506,27 @@ void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_enb(s1ap_state_t* state, oai::EnbDescription* enb_ref) {
+void s1ap_remove_enb(S1apState* state, oai::EnbDescription* enb_ref) {
   if (enb_ref == NULL) {
     return;
   }
   magma::proto_map_uint32_uint64_t ue_id_coll;
+  map_uint32_enb_description_t enb_map;
   enb_ref->set_s1_state(magma::lte::oai::S1AP_INIT);
 
   ue_id_coll.map = enb_ref->mutable_ue_id_map();
   ue_id_coll.clear();
   OAILOG_INFO(LOG_S1AP, "Deleting eNB on assoc_id :%u\n",
               enb_ref->sctp_assoc_id());
-  state->enbs.remove(enb_ref->sctp_assoc_id());
-  state->num_enbs--;
+  enb_map.map = state->mutable_enbs();
+  enb_map.remove(enb_ref->sctp_assoc_id());
+  state->set_num_enbs(state->num_enbs() - 1);
 }
 
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
-  s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
+  S1apState* s1ap_state_p = get_s1ap_state(false);
   application_s1ap_stats_msg_t stats_msg;
-  stats_msg.nb_enb_connected = s1ap_state_p->num_enbs;
+  stats_msg.nb_enb_connected = s1ap_state_p->num_enbs();
   stats_msg.nb_s1ap_last_msg_latency = s1ap_last_msg_latency;
   return send_s1ap_stats_to_service303(&s1ap_task_zmq_ctx, TASK_S1AP,
                                        &stats_msg);

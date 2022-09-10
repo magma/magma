@@ -91,7 +91,7 @@ extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
                                                  const sctp_assoc_id_t assoc_id,
                                                  const sctp_stream_id_t stream,
                                                  S1ap_S1AP_PDU_t* pdu) {
@@ -278,7 +278,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_uplink_nas_transport(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state, const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UplinkNASTransport_t* container = NULL;
@@ -390,7 +390,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_nas_non_delivery(oai::S1apState* state,
                                                __attribute__((unused))
                                                sctp_assoc_id_t assoc_id,
                                                sctp_stream_id_t stream,
@@ -475,7 +475,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_downlink_nas_transport(
-    s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+    oai::S1apState* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
     const imsi64_t imsi64, bool* is_state_same) {
   oai::UeDescription* ue_ref = nullptr;
@@ -487,8 +487,9 @@ status_code_e s1ap_generate_downlink_nas_transport(
   OAILOG_FUNC_IN(LOG_S1AP);
 
   // Try to retrieve SCTP association id using mme_ue_s1ap_id
-  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
-      magma::PROTO_MAP_OK) {
+  proto_map_uint32_uint32_t mmeid2associd_map.map =
+      state->mutable_mmeid2associd();
+  if ((mmeid2associd_map.get(ue_id, &sctp_assoc_id)) == magma::PROTO_MAP_OK) {
     oai::EnbDescription* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref =
@@ -606,7 +607,7 @@ status_code_e s1ap_generate_downlink_nas_transport(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_s1ap_e_rab_setup_req(
-    s1ap_state_t* state, itti_s1ap_e_rab_setup_req_t* const e_rab_setup_req) {
+    oai::S1apState* state, itti_s1ap_e_rab_setup_req_t* const e_rab_setup_req) {
   OAILOG_FUNC_IN(LOG_S1AP);
   oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
@@ -615,8 +616,9 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_setup_req->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
-  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
-      magma::PROTO_MAP_OK) {
+  proto_map_uint32_uint32_t mmeid2associd_map.map =
+      state->mutable_mmeid2associd();
+  if ((mmeid2associd_map.get(ue_id, &sctp_assoc_id)) == magma::PROTO_MAP_OK) {
     oai::EnbDescription* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
       ue_ref =
@@ -840,7 +842,7 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
 
 //------------------------------------------------------------------------------
 void s1ap_handle_conn_est_cnf(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_mme_app_connection_establishment_cnf_t* const conn_est_cnf_pP,
     imsi64_t imsi64) {
   /*
@@ -1179,7 +1181,7 @@ void send_dereg_ind_to_mme_app(enb_ue_s1ap_id_t enb_ue_s1ap_id,
 }
 //------------------------------------------------------------------------------
 void s1ap_handle_mme_ue_id_notification(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_mme_app_s1ap_mme_ue_id_notification_t* const notification_p) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -1202,8 +1204,10 @@ void s1ap_handle_mme_ue_id_notification(
         return;
       }
       ue_ref->set_mme_ue_s1ap_id(mme_ue_s1ap_id);
+      proto_map_uint32_uint32_t mmeid2associd_map.map =
+          state->mutable_mmeid2associd();
       magma::proto_map_rc_t rc =
-          state->mmeid2associd.insert(mme_ue_s1ap_id, sctp_assoc_id);
+          mmeid2associd_map.insert(mme_ue_s1ap_id, sctp_assoc_id);
 
       magma::proto_map_uint32_uint64_t ue_id_coll;
       ue_id_coll.map = enb_ref->mutable_ue_id_map();
@@ -1236,7 +1240,7 @@ void s1ap_handle_mme_ue_id_notification(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
-    s1ap_state_t* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd) {
+    oai::S1apState* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
   oai::UeDescription* ue_ref = nullptr;
@@ -1246,7 +1250,9 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_rel_cmd->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_rel_cmd->mme_ue_s1ap_id;
 
-  state->mmeid2associd.get(ue_id, &id);
+  proto_map_uint32_uint32_t mmeid2associd_map.map =
+      state->mutable_mmeid2associd();
+  mmeid2associd_map.get(ue_id, &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
     oai::EnbDescription* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);

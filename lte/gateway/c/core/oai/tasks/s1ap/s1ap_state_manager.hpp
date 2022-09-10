@@ -100,6 +100,7 @@ class S1apStateManager
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
   map_uint64_ue_description_t* get_s1ap_ue_state();
+  S1apState* get_state(bool read_from_db) override;
 
  private:
   S1apStateManager();

@@ -121,7 +121,7 @@ struct S1ap_E_RABSetupItemCtxtSURes_s;
 struct S1ap_IE;
 
 status_code_e s1ap_generate_s1_setup_response(
-    s1ap_state_t* state, oai::EnbDescription* enb_association);
+    oai::S1apState* state, oai::EnbDescription* enb_association);
 
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
@@ -212,7 +212,7 @@ s1ap_message_handler_t message_handlers[][3] = {
     {0, 0, 0}, /* 62 SecondaryRATDataUsageReport */
 };
 
-status_code_e s1ap_mme_handle_message(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_message(oai::S1apState* state,
                                       const sctp_assoc_id_t assoc_id,
                                       const sctp_stream_id_t stream,
                                       S1ap_S1AP_PDU_t* pdu) {
@@ -404,7 +404,7 @@ bool get_stale_enb_connection_with_enb_id(__attribute__((unused))
   return false;
 }
 
-void clean_stale_enb_state(s1ap_state_t* state,
+void clean_stale_enb_state(oai::S1apState* state,
                            oai::EnbDescription* new_enb_association) {
   oai::EnbDescription* stale_enb_association = NULL;
 
@@ -445,7 +445,7 @@ void clean_stale_enb_state(s1ap_state_t* state,
 }
 
 static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
-    s1ap_state_t* state, sctp_assoc_id_t sctp_assoc_id) {
+    oai::S1apState* state, sctp_assoc_id_t sctp_assoc_id) {
   OAILOG_FUNC_IN(LOG_S1AP);
   unsigned int i = 0;
   unsigned int num_elements = 0;
@@ -465,7 +465,7 @@ static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_s1_setup_request(oai::S1apState* state,
                                                const sctp_assoc_id_t assoc_id,
                                                const sctp_stream_id_t stream,
                                                S1ap_S1AP_PDU_t* pdu) {
@@ -722,7 +722,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_s1_setup_response(
-    s1ap_state_t* state, oai::EnbDescription* enb_association) {
+    oai::S1apState* state, oai::EnbDescription* enb_association) {
   S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_S1SetupResponse_t* out;
   S1ap_S1SetupResponseIEs_t* ie = NULL;
@@ -839,7 +839,7 @@ status_code_e s1ap_generate_s1_setup_response(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_ue_cap_indication(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_ue_cap_indication(oai::S1apState* state,
                                                 __attribute__((unused))
                                                 const sctp_assoc_id_t assoc_id,
                                                 const sctp_stream_id_t stream,
@@ -958,7 +958,8 @@ status_code_e s1ap_mme_handle_ue_cap_indication(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_initial_context_setup_response(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_InitialContextSetupResponse_t* container;
@@ -1117,7 +1118,8 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_ue_context_release_request(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UEContextReleaseRequest_t* container;
@@ -1297,7 +1299,7 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_generate_ue_context_release_command(
-    s1ap_state_t* state, oai::UeDescription* ue_ref_p, enum s1cause cause,
+    oai::S1apState* state, oai::UeDescription* ue_ref_p, enum s1cause cause,
     imsi64_t imsi64, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, mme_ue_s1ap_id_t mme_ue_s1ap_id,
     enb_ue_s1ap_id_t enb_ue_s1ap_id) {
@@ -1557,7 +1559,7 @@ status_code_e s1ap_mme_generate_ue_context_modification(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_handle_ue_context_release_command(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_s1ap_ue_context_release_command_t* const
         ue_context_release_command_pP,
     imsi64_t imsi64) {
@@ -1597,7 +1599,7 @@ status_code_e s1ap_handle_ue_context_release_command(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_handle_ue_context_mod_req(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_s1ap_ue_context_mod_req_t* const ue_context_mod_req_pP,
     imsi64_t imsi64) {
   oai::UeDescription* ue_ref_p = nullptr;
@@ -1626,7 +1628,8 @@ status_code_e s1ap_handle_ue_context_mod_req(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_ue_context_release_complete(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UEContextReleaseComplete_t* container;
@@ -1687,7 +1690,8 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_initial_context_setup_failure(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_InitialContextSetupFailure_t* container;
@@ -1826,7 +1830,8 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
 }
 
 status_code_e s1ap_mme_handle_ue_context_modification_response(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UEContextModificationResponseIEs_t *ie, *ie_enb = NULL;
@@ -1911,7 +1916,8 @@ status_code_e s1ap_mme_handle_ue_context_modification_response(
 }
 
 status_code_e s1ap_mme_handle_ue_context_modification_failure(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UEContextModificationFailureIEs_t *ie, *ie_enb = NULL;
@@ -2062,7 +2068,8 @@ status_code_e s1ap_mme_handle_ue_context_modification_failure(
 //------------------------------------------------------------------------------
 
 status_code_e s1ap_mme_handle_handover_request_ack(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_HandoverRequestAcknowledge_t* container = NULL;
@@ -2221,7 +2228,7 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_mme_handle_handover_failure(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_handover_failure(oai::S1apState* state,
                                                const sctp_assoc_id_t assoc_id,
                                                const sctp_stream_id_t stream,
                                                S1ap_S1AP_PDU_t* pdu) {
@@ -2358,7 +2365,7 @@ status_code_e s1ap_mme_handle_handover_failure(s1ap_state_t* state,
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_mme_handle_handover_cancel(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_handover_cancel(oai::S1apState* state,
                                               const sctp_assoc_id_t assoc_id,
                                               const sctp_stream_id_t stream,
                                               S1ap_S1AP_PDU_t* pdu) {
@@ -2500,7 +2507,8 @@ status_code_e s1ap_mme_handle_handover_cancel(s1ap_state_t* state,
 }
 
 status_code_e s1ap_mme_handle_handover_request(
-    s1ap_state_t* state, const itti_mme_app_handover_request_t* ho_request_p) {
+    oai::S1apState* state,
+    const itti_mme_app_handover_request_t* ho_request_p) {
   uint8_t* buffer_p = NULL;
   uint8_t err = 0;
   uint32_t length = 0;
@@ -2756,7 +2764,7 @@ status_code_e s1ap_mme_handle_handover_request(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_handover_required(oai::S1apState* state,
                                                 __attribute__((unused))
                                                 const sctp_assoc_id_t assoc_id,
                                                 __attribute__((unused))
@@ -2963,7 +2971,8 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
 }
 
 status_code_e s1ap_mme_handle_handover_command(
-    s1ap_state_t* state, const itti_mme_app_handover_command_t* ho_command_p) {
+    oai::S1apState* state,
+    const itti_mme_app_handover_command_t* ho_command_p) {
   uint8_t* buffer_p = NULL;
   uint8_t err = 0;
   uint32_t length = 0;
@@ -3065,7 +3074,7 @@ status_code_e s1ap_mme_handle_handover_command(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_handover_notify(oai::S1apState* state,
                                               const sctp_assoc_id_t assoc_id,
                                               const sctp_stream_id_t stream,
                                               S1ap_S1AP_PDU_t* pdu) {
@@ -3237,7 +3246,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
 }
 
 status_code_e s1ap_mme_handle_enb_status_transfer(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_ENBStatusTransfer_t* container = NULL;
   S1ap_ENBStatusTransferIEs_t* ie = NULL;
@@ -3338,7 +3347,8 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
 }
 
 status_code_e s1ap_mme_handle_path_switch_request(
-    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_PathSwitchRequest_t* container = NULL;
@@ -3668,7 +3678,7 @@ bool construct_s1ap_mme_full_reset_req(uint32_t keyP, const uint64_t dataP,
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
+status_code_e s1ap_handle_sctp_disconnection(oai::S1apState* state,
                                              const sctp_assoc_id_t assoc_id,
                                              bool reset) {
   arg_s1ap_send_enb_dereg_ind_t arg = {0};
@@ -3756,7 +3766,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_handle_new_association(s1ap_state_t* state,
+status_code_e s1ap_handle_new_association(oai::S1apState* state,
                                           sctp_new_peer_t* sctp_new_peer_p) {
   oai::EnbDescription* enb_association = NULL;
 
@@ -3840,7 +3850,7 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-void s1ap_mme_release_ue_context(s1ap_state_t* state,
+void s1ap_mme_release_ue_context(oai::S1apState* state,
                                  oai::UeDescription* ue_ref_p,
                                  imsi64_t imsi64) {
   MessageDef* message_p = NULL;
@@ -3879,7 +3889,7 @@ void s1ap_mme_release_ue_context(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_error_ind_message(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_error_ind_message(oai::S1apState* state,
                                                 const sctp_assoc_id_t assoc_id,
                                                 const sctp_stream_id_t stream,
                                                 S1ap_S1AP_PDU_t* message) {
@@ -3995,7 +4005,7 @@ status_code_e s1ap_mme_handle_error_ind_message(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_erab_setup_response(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_S1AP);
   S1ap_E_RABSetupResponse_t* container = NULL;
@@ -4106,7 +4116,7 @@ status_code_e s1ap_mme_handle_erab_setup_response(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_erab_setup_failure(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_erab_setup_failure(oai::S1apState* state,
                                                  const sctp_assoc_id_t assoc_id,
                                                  const sctp_stream_id_t stream,
                                                  S1ap_S1AP_PDU_t* message) {
@@ -4114,7 +4124,7 @@ status_code_e s1ap_mme_handle_erab_setup_failure(s1ap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_enb_reset(oai::S1apState* state,
                                         const sctp_assoc_id_t assoc_id,
                                         const sctp_stream_id_t stream,
                                         S1ap_S1AP_PDU_t* pdu) {
@@ -4459,7 +4469,7 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
 
 //-------------------------------------------------------------------------------
 status_code_e s1ap_handle_paging_request(
-    s1ap_state_t* state, const itti_s1ap_paging_request_t* paging_request,
+    oai::S1apState* state, const itti_s1ap_paging_request_t* paging_request,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -4585,13 +4595,14 @@ status_code_e s1ap_handle_paging_request(
     OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  if (!(state->enbs.size())) {
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
+  if (!(enb_map.size())) {
     OAILOG_ERROR(LOG_S1AP, "Could not find eNB map!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
-  for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
-       itr++) {
+  for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
     enb_ref_p = (oai::EnbDescription*)itr->second;
     if (!enb_ref_p) {
       continue;
@@ -4625,7 +4636,7 @@ status_code_e s1ap_handle_paging_request(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_erab_modification_indication(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_S1AP);
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
@@ -4787,7 +4798,8 @@ status_code_e s1ap_mme_handle_erab_modification_indication(
 
 //------------------------------------------------------------------------------
 void s1ap_mme_generate_erab_modification_confirm(
-    s1ap_state_t* state, const itti_s1ap_e_rab_modification_cnf_t* const conf) {
+    oai::S1apState* state,
+    const itti_s1ap_e_rab_modification_cnf_t* const conf) {
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   oai::UeDescription* ue_ref = nullptr;
@@ -4885,14 +4897,14 @@ void s1ap_mme_generate_erab_modification_confirm(
 
 //----------------------------------------------------------------
 status_code_e s1ap_mme_handle_enb_configuration_transfer(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_ENBConfigurationTransfer_t* container = NULL;
   S1ap_ENBConfigurationTransferIEs_t* ie = NULL;
   S1ap_TargeteNB_ID_t* targeteNB_ID = NULL;
   uint8_t* enb_id_buf = NULL;
   oai::EnbDescription* enb_association = NULL;
-  oai::EnbDescription* target_enb_association = NULL;
+  oai::EnbDescription target_enb_association;
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -4947,18 +4959,16 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   }
 
   // retrieve enb_description using hash table and match target_enb_id
-  if (state->enbs.size()) {
-    for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
-         itr++) {
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
+  if (enb_map.size()) {
+    for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
       target_enb_association = itr->second;
-      if (!target_enb_association) {
-        continue;
-      }
-      if (target_enb_association->enb_id() == target_enb_id) {
+      if (target_enb_association.enb_id() == target_enb_id) {
         break;
       }
     }
-    if (target_enb_association->enb_id() != target_enb_id) {
+    if (target_enb_association.enb_id() != target_enb_id) {
       OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
@@ -4985,7 +4995,7 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
 
   // Send message
   rc = s1ap_mme_itti_send_sctp_request(
-      &b, target_enb_association->sctp_assoc_id(),
+      &b, target_enb_association.sctp_assoc_id(),
       0,   // Stream id 0 for non UE related S1AP message
       0);  // mme_ue_s1ap_id 0 because UE in idle
 
@@ -5048,7 +5058,7 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container) {
 }
 //------------------------------------------------------------------------------
 status_code_e s1ap_handle_path_switch_req_ack(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_s1ap_path_switch_request_ack_t* path_switch_req_ack_p,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -5245,7 +5255,7 @@ const char* s1ap_direction2str(uint8_t dir) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_erab_rel_response(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_erab_rel_response(oai::S1apState* state,
                                                 const sctp_assoc_id_t assoc_id,
                                                 const sctp_stream_id_t stream,
                                                 S1ap_S1AP_PDU_t* pdu) {
@@ -5357,7 +5367,7 @@ status_code_e s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id_t enb_ue_s1ap_id,
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_send_mme_ue_context_release(s1ap_state_t* state,
+status_code_e s1ap_send_mme_ue_context_release(oai::S1apState* state,
                                                oai::UeDescription* ue_ref_p,
                                                enum s1cause s1_release_cause,
                                                S1ap_Cause_t ie_cause,
@@ -5393,7 +5403,7 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   oai::UeDescription* ue_ref_p = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
-  s1ap_state_t* state = NULL;
+  oai::S1apState* state = NULL;
   if (!s1ap_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(LOG_S1AP, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);

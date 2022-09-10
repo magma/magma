@@ -67,7 +67,11 @@ S1apState* create_s1ap_state(void) {
   map_uint32_enb_description_t enb_map;
 
   S1apState* state_cache_p = new S1apState();
-  enb_map.map = state_cache_p->mutable_enbs();
+  if (!s1ap_state_p) {
+    OAILOG_CRITICAL(LOG_S1AP, "Failed allocate memory for S1apState");
+    return s1ap_state_p;
+  }
+  enb_map.map = s1ap_state_p->mutable_enbs();
   enb_map.set_name(S1AP_ENB_COLL);
   enb_map.bind_callback(free_enb_description);
 
@@ -243,5 +247,20 @@ map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
 
+S1apState* S1apStateManager::get_state(bool read_from_db) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  AssertFatal(
+      is_initialized,
+      "S1apStateManager init() function should be called to initialize state");
+  // TODO: Add check for reentrant read/write function, to block multiple
+  // reads
+  state_dirty = true;
+  AssertFatal(state_cache_p != nullptr, " S1ap State cache is NULL");
+  if (persist_state_enabled && read_from_db) {
+    read_state_from_db();
+    read_ue_state_from_db();
+  }
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, state_cache_p);
+}
 }  // namespace lte
 }  // namespace magma
