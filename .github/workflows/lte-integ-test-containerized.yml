@@ -12,14 +12,8 @@
 name: LTE integ test dockerized agw
 
 on:
-  workflow_dispatch: null
-  workflow_run:
-    workflows:
-      - build-all
-    branches:
-      - master
-    types:
-      - completed
+  pull_request:
+    types: [ opened, reopened, synchronize ]
 
 jobs:
   lte-integ-test-magma-deb:
