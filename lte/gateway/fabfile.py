@@ -541,15 +541,11 @@ def integ_test_containerized(
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     print("#####", gateway_host, gateway_ip)
-    #execute(_dist_upgrade)
-    #execute(_build_magma)
-    #execute(_run_sudo_python_unit_tests)
-    #execute(_start_gateway)
+    execute(_start_gateway_containerized)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     #_setup_vm(test_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
-    #execute(_start_trfserver)
     #execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
@@ -562,6 +558,13 @@ def integ_test_containerized(
     #    setup_env_vagrant()
     #else:
     #    env.hosts = [gateway_host]
+
+
+def _start_gateway_containerized():
+    """ Starts the gateway """
+
+    with cd(AGW_ROOT + "docker"):
+        run('docker-compose up')
 
 
 def run_integ_tests(tests=None, federated_mode=False):

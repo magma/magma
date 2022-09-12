@@ -13,6 +13,14 @@
 version: "3.7"
 
 services:
+  gateway_c:
+    environment:
+      - MAGMA_DEV_MODE=1
+
+  gateway_python:
+    environment:
+      - MAGMA_DEV_MODE=1
+
   magmad:
     environment:
       - MAGMA_DEV_MODE=1
