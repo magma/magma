@@ -563,7 +563,7 @@ def integ_test_containerized(
 def _start_gateway_containerized():
     """ Starts the gateway """
 
-    with cd(AGW_ROOT + "docker"):
+    with cd(AGW_ROOT + "/docker"):
         run('docker-compose up')
 
 
