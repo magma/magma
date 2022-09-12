@@ -886,6 +886,24 @@ class MagmadUtil(object):
             stderr=subprocess.DEVNULL,
         )
 
+    def exec_command_output(self, command):
+        """Run a command remotely on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        Returns:
+            output of command execution
+        """
+        data = self._data
+        data["command"] = '"' + command + '"'
+        param_list = shlex.split(self._command.format(**data))
+        return subprocess.check_output(
+            param_list,
+            shell=False,
+        ).decode("utf-8")
+
     def detect_init_system(self) -> InitMode:
         """Detect whether services are running with Docker or systemd."""
 
@@ -913,24 +931,6 @@ class MagmadUtil(object):
     @property
     def init_system(self):
         return self._init_system
-
-    def exec_command_output(self, command):
-        """Run a command remotely on magma_dev VM.
-
-        Args:
-            command: command (str) to be executed on remote host
-            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
-
-        Returns:
-            output of command execution
-        """
-        data = self._data
-        data["command"] = '"' + command + '"'
-        param_list = shlex.split(self._command.format(**data))
-        return subprocess.check_output(
-            param_list,
-            shell=False,
-        ).decode("utf-8")
 
     def config_stateless(self, cmd):
         """
@@ -1005,6 +1005,32 @@ class MagmadUtil(object):
                     self.exec_command(f"sudo systemctl restart magma@{s}")
                 elif self._init_system == InitMode.DOCKER:
                     self.exec_command(f"docker restart {s}")
+        self.wait_for_restart_to_finish(wait_time)
+
+    def restart_mme(self, wait_time=20):
+        """
+        Restart MME service and wait for the service to come up properly
+        """
+        print("Restarting mme service on gateway")
+        if self._init_system == InitMode.SYSTEMD:
+            self.exec_command("sudo systemctl restart magma@mme")
+        elif self._init_system == InitMode.DOCKER:
+            self.exec_command("docker restart mobilityd pipelined sessiond oai_mme")
+        self.wait_for_restart_to_finish(wait_time)
+
+    def restart_sctpd(self, wait_time=30):
+        """
+        Restart sctpd service explicitly because it is not managed by magmad
+        """
+        print("Restarting sctpd service on gateway")
+        if self._init_system == InitMode.SYSTEMD:
+            self.exec_command("sudo service sctpd restart")
+        elif self._init_system == InitMode.DOCKER:
+            self.exec_command_output(
+                "docker stop sctpd mobilityd pipelined sessiond oai_mme;"
+                "sudo su -c '/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_pre';"
+                "docker start sctpd mobilityd pipelined sessiond oai_mme",
+            )
         self.wait_for_restart_to_finish(wait_time)
 
     @staticmethod
@@ -1255,32 +1281,6 @@ class MagmadUtil(object):
 
         print("Ha service configuration failed")
         return -1
-
-    def restart_mme(self, wait_time=20):
-        """
-        Restart MME service and wait for the service to come up properly
-        """
-        print("Restarting mme service on gateway")
-        if self._init_system == InitMode.SYSTEMD:
-            self.exec_command("sudo systemctl restart magma@mme")
-        elif self._init_system == InitMode.DOCKER:
-            self.exec_command("docker restart mobilityd pipelined sessiond oai_mme")
-        self.wait_for_restart_to_finish(wait_time)
-
-    def restart_sctpd(self, wait_time=30):
-        """
-        Restart sctpd service explicitly because it is not managed by magmad
-        """
-        print("Restarting sctpd service on gateway")
-        if self._init_system == InitMode.SYSTEMD:
-            self.exec_command("sudo service sctpd restart")
-        elif self._init_system == InitMode.DOCKER:
-            self.exec_command_output(
-                "docker stop sctpd mobilityd pipelined sessiond oai_mme;"
-                "sudo su -c '/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_pre';"
-                "docker start sctpd mobilityd pipelined sessiond oai_mme",
-            )
-        self.wait_for_restart_to_finish(wait_time)
 
     def print_redis_state(self):
         """
