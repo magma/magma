@@ -545,12 +545,12 @@ def integ_test_containerized(
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
-    _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
-    execute(_start_trfserver)
+    #_setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    #execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
-    #_setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     #execute(_make_integ_tests)
     #execute(_run_integ_tests, gateway_ip)
 
