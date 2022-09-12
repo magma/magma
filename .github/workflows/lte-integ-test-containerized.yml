@@ -16,7 +16,7 @@ on:
     types: [ opened, reopened, synchronize ]
 
 jobs:
-  lte-integ-test-magma-deb:
+  lte-integ-test-containerized:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
     env:
