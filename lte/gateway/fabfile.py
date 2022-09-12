@@ -564,7 +564,6 @@ def _start_gateway_containerized():
     """ Starts the gateway """
 
     with cd(AGW_ROOT + "/docker"):
-        run("echo ${DOCKER_REGISTRY}")
         run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d')
 
 
