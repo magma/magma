@@ -27,7 +27,6 @@ from magma.db_service.db_initialize import DBInitializer
 from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
-    DBChannel,
     DBGrant,
     DBRequest,
     DBRequestType,
@@ -124,33 +123,15 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
 
     @parameterized.expand([
-        (
-            GRANT_REQ, ResponseCodes.SUCCESS.value, None, GrantStates.GRANTED.value,
-        ),
-        (
-            GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, None,
-        ),
-        (
-            GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value, ['grant1', 'grant2'], GrantStates.UNSYNC.value,
-        ),
-        (
-            GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, None,
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, GrantStates.AUTHORIZED.value,
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, None,
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, GrantStates.GRANTED.value,
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, GrantStates.UNSYNC.value,
-        ),
-        (
-            RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, None,
-        ),
+        (GRANT_REQ, ResponseCodes.SUCCESS.value, None, GrantStates.GRANTED.value),
+        (GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, None),
+        (GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value, ['grant1', 'grant2'], GrantStates.UNSYNC.value),
+        (GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, None),
+        (HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, GrantStates.AUTHORIZED.value),
+        (HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, None),
+        (HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, GrantStates.GRANTED.value),
+        (HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, GrantStates.UNSYNC.value),
+        (RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, None),
     ])
     @responses.activate
     def test_grant_state_after_response(
@@ -180,35 +161,19 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         )
 
     @parameterized.expand([
-        (
-            GRANT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.GRANTED.value],
-        ),
-        (
-            GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, [],
-        ),
+        (GRANT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.GRANTED.value]),
+        (GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, []),
         (
             GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value,
             ['test_grant_id_for_1', 'test_grant_id_for_2'],
             [GrantStates.GRANTED.value, GrantStates.UNSYNC.value],
         ),
-        (
-            GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, [],
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.AUTHORIZED.value],
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, [],
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, [GrantStates.GRANTED.value],
-        ),
-        (
-            HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, [GrantStates.UNSYNC.value],
-        ),
-        (
-            RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, [],
-        ),
+        (GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, []),
+        (HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.AUTHORIZED.value]),
+        (HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, []),
+        (HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, [GrantStates.GRANTED.value]),
+        (HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, [GrantStates.UNSYNC.value]),
+        (RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, []),
     ])
     @responses.activate
     def test_preexisting_grant_state_after_response(
@@ -408,10 +373,15 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         (HEARTBEAT_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
         (RELINQUISHMENT_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
         (DEREGISTRATION_REQ, ResponseCodes.INVALID_VALUE.value, [CBSD_ID], CbsdStates.UNREGISTERED.value),
-        (SPECTRUM_INQ_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
-        (GRANT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
-        (HEARTBEAT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
-        (RELINQUISHMENT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.REGISTERED.value),
+        (SPECTRUM_INQ_REQ, ResponseCodes.INVALID_VALUE.value, [GRANT_ID], CbsdStates.UNREGISTERED.value),
+        (GRANT_REQ, ResponseCodes.INVALID_VALUE.value, [GRANT_ID], CbsdStates.UNREGISTERED.value),
+        (HEARTBEAT_REQ, ResponseCodes.INVALID_VALUE.value, [GRANT_ID], CbsdStates.UNREGISTERED.value),
+        (RELINQUISHMENT_REQ, ResponseCodes.INVALID_VALUE.value, [GRANT_ID], CbsdStates.UNREGISTERED.value),
+        (DEREGISTRATION_REQ, ResponseCodes.INVALID_VALUE.value, [GRANT_ID], CbsdStates.UNREGISTERED.value),
+        (SPECTRUM_INQ_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.UNREGISTERED.value),
+        (GRANT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.UNREGISTERED.value),
+        (HEARTBEAT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.UNREGISTERED.value),
+        (RELINQUISHMENT_REQ, ResponseCodes.INVALID_VALUE.value, None, CbsdStates.UNREGISTERED.value),
     ])
     @responses.activate
     def test_cbsd_state_after_unsuccessful_response_code(self, request_type, response_code, response_data, expected_cbsd_sate):
@@ -582,17 +552,13 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         cbsd: DBCbsd,
         low_frequency: int,
         high_frequency: int,
-    ) -> DBChannel:
-        channel = DBChannel(
-            cbsd=cbsd,
-            low_frequency=low_frequency,
-            high_frequency=high_frequency,
-            channel_type="some_type",
-            rule_applied="some_rule",
-        )
-        self.session.add(channel)
+    ) -> None:
+        channels = [{
+            "low_frequency": low_frequency,
+            "high_frequency": high_frequency,
+        }]
+        cbsd.channels = channels
         self.session.commit()
-        return channel
 
     def _create_db_requests_from_fixture(self, request_type, fixture, cbsd_state):
         db_requests = []
@@ -613,14 +579,18 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     def _create_response_payload_from_db_requests(response_type_name, db_requests, sas_response_code=0, sas_response_data=None):
         response_payload = {response_type_name: []}
         for i, db_request in enumerate(db_requests):
-            cbsd_id = db_request.cbsd.cbsd_id or str(i)
             response_json = {
                 "response": {
                     "responseCode": sas_response_code,
-                }, "cbsdId": cbsd_id,
+                },
             }
+
             if sas_response_data:
                 response_json["response"]["responseData"] = sas_response_data
+            else:
+                cbsd_id = db_request.cbsd.cbsd_id or str(i)
+                response_json["cbsdId"] = cbsd_id
+
             if db_request.payload.get(GRANT_ID, ""):
                 response_json[GRANT_ID] = db_request.payload.get(GRANT_ID)
             elif response_type_name == request_response[GRANT_REQ]:

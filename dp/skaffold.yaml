@@ -136,6 +136,9 @@ profiles:
             spec:
               database:
                 db: dp_test
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_integration_tests.yaml
   - name: integration-tests-dev
     patches:
       - op: add

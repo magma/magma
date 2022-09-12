@@ -16,7 +16,7 @@ import GatewayLogs from '../GatewayLogs';
 import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
@@ -30,7 +30,7 @@ const LogTableWrapper = () => (
   <MemoryRouter
     initialEntries={['/nms/mynetwork/gateway/mygateway/logs']}
     initialIndex={0}>
-    <LocalizationProvider dateAdapter={AdapterMoment}>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={defaultTheme}>
           <Routes>
@@ -123,7 +123,6 @@ describe('<GatewayLogs />', () => {
   ];
   beforeEach(() => {
     mockAPI(MagmaAPI.logs, 'networksNetworkIdLogsCountGet', mockLogCount);
-
     mockAPI(MagmaAPI.logs, 'networksNetworkIdLogsSearchGet', mockLogs);
   });
 

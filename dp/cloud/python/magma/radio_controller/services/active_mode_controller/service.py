@@ -38,13 +38,7 @@ from dp.protos.active_mode_pb2 import (
 from dp.protos.active_mode_pb2_grpc import ActiveModeControllerServicer
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.wrappers_pb2 import FloatValue
-from magma.db_service.models import (
-    DBCbsd,
-    DBChannel,
-    DBGrant,
-    DBRequest,
-    DBRequestType,
-)
+from magma.db_service.models import DBCbsd, DBGrant, DBRequest
 from magma.db_service.session_manager import Session, SessionManager
 from magma.mappings.cbsd_states import cbsd_state_mapping, grant_state_mapping
 from magma.radio_controller.metrics import (
@@ -227,7 +221,6 @@ def _list_cbsds(session: Session) -> State:
         options(
             joinedload(DBCbsd.state),
             joinedload(DBCbsd.desired_state),
-            joinedload(DBCbsd.channels),
             contains_eager(DBCbsd.grants).
             joinedload(DBGrant.state),
         ).
@@ -289,10 +282,8 @@ def _build_cbsd(cbsd: DBCbsd) -> Cbsd:
     # Application may not need those to be sorted.
     # Applying ordering mostly for easier assertions in testing
     cbsd_db_grants = sorted(cbsd.grants, key=lambda x: x.id)
-    cbsd_db_channels = sorted(cbsd.channels, key=lambda x: x.id)
-
     grants = [_build_grant(x) for x in cbsd_db_grants]
-    channels = [_build_channel(x) for x in cbsd_db_channels]
+    channels = [_build_channel(x) for x in cbsd.channels]
 
     last_seen = _to_timestamp(cbsd.last_seen)
     eirp_capabilities = _build_eirp_capabilities(cbsd)
@@ -329,11 +320,11 @@ def _build_grant(grant: DBGrant) -> Grant:
     )
 
 
-def _build_channel(channel: DBChannel) -> Channel:
+def _build_channel(channel: dict) -> Channel:
     return Channel(
-        low_frequency_hz=channel.low_frequency,
-        high_frequency_hz=channel.high_frequency,
-        max_eirp=_make_optional_float(channel.max_eirp),
+        low_frequency_hz=channel.get('low_frequency'),
+        high_frequency_hz=channel.get('high_frequency'),
+        max_eirp=_make_optional_float(channel.get('max_eirp')),
     )
 
 
