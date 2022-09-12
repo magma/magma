@@ -421,7 +421,7 @@ def _setup_gateway(gateway_host, name, ansible_role, ansible_file, destroy_vm, p
 
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
-    destroy_vm='True', provision_vm='True', dockerized_gateway='False'
+    destroy_vm='True', provision_vm='True',
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -449,25 +449,20 @@ def integ_test(
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_dist_upgrade)
     execute(_build_magma)
-    # execute(_run_sudo_python_unit_tests)
-    execute(_start_gateway, strtobool(dockerized_gateway))
+    execute(_run_sudo_python_unit_tests)
+    execute(_start_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
-    # _setup_vm(test_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
-    # execute(_start_trfserver)
+    _setup_vm(test_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    execute(_start_trfserver)
+    execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     _setup_vm(trf_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
-    print("+++++++++++++++++++++++")
-    print("make integ tests")
-    print("+++++++++++++++++++++++")
     execute(_make_integ_tests)
-    print("+++++++++++++++++++++++")
-    print("run integ tests")
-    print("+++++++++++++++++++++++")
-    execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
+    execute(_run_integ_tests, gateway_ip)
 
     if not gateway_host:
         setup_env_vagrant()
@@ -515,6 +510,57 @@ def integ_test_deb_installation(
     _setup_vm(trf_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
+
+
+def integ_test_containerized(
+        gateway_host=None, test_host=None, trf_host=None,
+        destroy_vm='True', provision_vm='True',
+):
+    """
+    Run the integration tests. This defaults to running on local vagrant
+    machines, but can also be pointed to an arbitrary host (e.g. amazon) by
+    passing "address:port" as arguments
+
+    gateway_host: The ssh address string of the machine to run the gateway
+        services on. Formatted as "host:port". If not specified, defaults to
+        the `magma` vagrant box.
+
+    test_host: The ssh address string of the machine to run the tests on
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_test` vagrant box.
+
+    trf_host: The ssh address string of the machine to run the TrafficServer
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_trfserver` vagrant box.
+    """
+
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    # Setup the gateway: use the provided gateway if given, else default to the
+    # vagrant machine
+    gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
+    #execute(_dist_upgrade)
+    #execute(_build_magma)
+    #execute(_run_sudo_python_unit_tests)
+    #execute(_start_gateway)
+
+    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    #_setup_vm(test_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    #execute(_start_trfserver)
+    #execute(_start_trfserver)
+
+    # Run the tests: use the provided test machine if given, else default to
+    # the vagrant machine
+    #_setup_vm(trf_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    #execute(_make_integ_tests)
+    #execute(_run_integ_tests, gateway_ip)
+
+    #if not gateway_host:
+    #    setup_env_vagrant()
+    #else:
+    #    env.hosts = [gateway_host]
 
 
 def run_integ_tests(tests=None, federated_mode=False):
@@ -791,7 +837,7 @@ def _run_sudo_python_unit_tests():
         run('make test_sudo_python')
 
 
-def _start_gateway(dockerized_gateway: bool):
+def _start_gateway():
     """ Starts the gateway """
     run('sudo service magma@magmad start')
 
